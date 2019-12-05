@@ -15,14 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.verification.serializer;
 
-import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.verification.DependencyVerifier;
 import org.gradle.api.internal.artifacts.verification.model.ArtifactVerificationMetadata;
 import org.gradle.api.internal.artifacts.verification.model.ChecksumKind;
 import org.gradle.api.internal.artifacts.verification.model.ComponentVerificationMetadata;
-import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.xml.SimpleXmlWriter;
 
 import java.io.IOException;
@@ -92,15 +90,11 @@ public class DependencyVerificationsXmlWriter {
     }
 
     private void writeArtifactVerification(ArtifactVerificationMetadata verification) throws IOException {
-        ComponentArtifactIdentifier artifact = verification.getArtifact();
-        if (artifact instanceof ModuleComponentArtifactIdentifier) {
-            ModuleComponentArtifactIdentifier mcai = (ModuleComponentArtifactIdentifier) artifact;
-            String name = mcai.getFileName();
-            writer.startElement(ARTIFACT);
-            writer.attribute(NAME, name);
-            writeChecksums(verification.getChecksums());
-            writer.endElement();
-        }
+        String artifact = verification.getArtifactName();
+        writer.startElement(ARTIFACT);
+        writer.attribute(NAME, artifact);
+        writeChecksums(verification.getChecksums());
+        writer.endElement();
     }
 
     private void writeChecksums(Map<ChecksumKind, String> checksums) throws IOException {

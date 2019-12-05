@@ -49,17 +49,17 @@ public class DependencyVerifierBuilder {
 
     private static class ComponentVerificationsBuilder {
         private final ModuleComponentIdentifier component;
-        private final Map<ModuleComponentArtifactIdentifier, EnumMap<ChecksumKind, String>> checksums = Maps.newLinkedHashMap();
+        private final Map<String, EnumMap<ChecksumKind, String>> checksums = Maps.newLinkedHashMap();
 
         private ComponentVerificationsBuilder(ModuleComponentIdentifier component) {
             this.component = component;
         }
 
         void addChecksum(ModuleComponentArtifactIdentifier artifact, ChecksumKind kind, String value) {
-            checksums.computeIfAbsent(artifact, id -> Maps.newEnumMap(ChecksumKind.class)).put(kind, value);
+            checksums.computeIfAbsent(artifact.getFileName(), id -> Maps.newEnumMap(ChecksumKind.class)).put(kind, value);
         }
 
-        private static ArtifactVerificationMetadata toArtifactVerification(Map.Entry<ModuleComponentArtifactIdentifier, EnumMap<ChecksumKind, String>> entry) {
+        private static ArtifactVerificationMetadata toArtifactVerification(Map.Entry<String, EnumMap<ChecksumKind, String>> entry) {
             return new ImmutableArtifactVerificationMetadata(entry.getKey(), entry.getValue());
         }
 

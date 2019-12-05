@@ -91,8 +91,8 @@ public class DependencyVerifier {
             String foundArtifactFileName = foundArtifact.getFileName();
             List<ArtifactVerificationMetadata> verifications = componentVerification.getArtifactVerifications();
             for (ArtifactVerificationMetadata verification : verifications) {
-                ModuleComponentArtifactIdentifier verifiedArtifact = verification.getArtifact();
-                if (verifiedArtifact.getFileName().equals(foundArtifactFileName)) {
+                String verifiedArtifact = verification.getArtifactName();
+                if (verifiedArtifact.equals(foundArtifactFileName)) {
                     Map<ChecksumKind, String> checksums = verification.getChecksums();
                     for (Map.Entry<ChecksumKind, String> entry : checksums.entrySet()) {
                         verify(entry.getKey(), file, checksumService, entry.getValue(), f -> failure.set(f));

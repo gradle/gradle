@@ -113,13 +113,13 @@ class DependencyVerificationFixture {
 
         void artifact(String name, @DelegatesTo(value = ArtifactVerification, strategy = Closure.DELEGATE_FIRST) Closure action) {
             def artifacts = metadata.artifactVerifications.findAll {
-                name == it.artifact.fileName
+                name == it.artifactName
             }
             if (artifacts.size() > 1) {
                 throw new AssertionError("Expected only one artifact named ${name} for module ${metadata.componentId} but found ${artifacts}")
             }
             ArtifactVerificationMetadata md = artifacts ? artifacts[0] : null
-            assert md: "Artifact file $name not found in verification file for module ${metadata.componentId}. Artifact names: ${metadata.artifactVerifications.collect { it.artifact.fileName } }"
+            assert md: "Artifact file $name not found in verification file for module ${metadata.componentId}. Artifact names: ${metadata.artifactVerifications.collect { it.artifactName } }"
             action.delegate = new ArtifactVerification(md)
             action.resolveStrategy = Closure.DELEGATE_FIRST
             action()
@@ -135,7 +135,7 @@ class DependencyVerificationFixture {
 
         void declaresChecksum(String checksum, String algorithm = "sha1") {
             def expectedChecksum = metadata.checksums.get(ChecksumKind.valueOf(algorithm))
-            assert expectedChecksum == checksum : "On ${metadata.artifact}, expected a ${algorithm} checksum of ${checksum} but was ${expectedChecksum}"
+            assert expectedChecksum == checksum : "On ${metadata.artifactName}, expected a ${algorithm} checksum of ${checksum} but was ${expectedChecksum}"
         }
 
         void declaresChecksums(Map<String, String> checksums, boolean strict = true) {
