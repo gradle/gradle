@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 import org.apache.tools.ant.filters.ReplaceTokens
+import org.asciidoctor.gradle.AsciidoctorTask
 import org.gradle.build.docs.CacheableAsciidoctorTask
 import org.gradle.build.docs.Docbook2Xhtml
 import org.gradle.build.docs.UserGuideTransformTask
@@ -29,14 +30,14 @@ import org.gradle.gradlebuild.PublicApi
 import org.gradle.gradlebuild.docs.RenderMarkdownTask
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 import org.gradle.samples.Sample
-import org.asciidoctor.gradle.AsciidoctorTask
+import org.gradle.util.GUtil
 
 plugins {
     id 'java-library'
     id 'gradlebuild.jsoup'
     id 'javascript-base'
     id 'org.asciidoctor.convert'
-    id 'org.gradle.samples' version "0.15.24"
+    id 'org.gradle.samples' version "0.15.25"
 }
 
 repositories {
@@ -560,6 +561,7 @@ samples.configureEach { sample ->
     }
 
     sample.gradleVersion = project.provider { project.version.toString() }
+    sample.permalink = GUtil.toWords(sample.name, '_' as char).toLowerCase()
 }
 
 def templateDir = file("src/samples/templates")
@@ -660,6 +662,7 @@ samples {
     javaComponentsWithJUnit4Tests {
         sampleDirectory = file("src/samples/java/components-with-junit-4-tests")
         displayName = "Java Components With JUnit 4 Tests"
+        permalink = "java_components_with_junit4_tests"
         description = "Demonstrate how to test Java components using JUnit 4"
         def sourceFiles = installSourceFromTemplate(it) {
             from("$templateDir/java-application") { into("application") }
