@@ -80,7 +80,7 @@ public abstract class AbstractConsumerConnection extends HasCompatibilityMapping
     }
 
     @Override
-    public void notifyDaemonsAboutChangedFiles(List<String> locations, ConsumerOperationParameters parameters) {
+    public void notifyDaemonsAboutChangedPaths(List<String> changedPaths, ConsumerOperationParameters operationParameters) {
         // Default is no-op
     }
 }

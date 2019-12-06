@@ -41,7 +41,7 @@ import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.registry.DaemonRegistryServices;
 import org.gradle.launcher.daemon.server.api.DaemonCommandAction;
-import org.gradle.launcher.daemon.server.api.HandleInvalidateLocations;
+import org.gradle.launcher.daemon.server.api.HandleInvalidateVirtualFileSystem;
 import org.gradle.launcher.daemon.server.api.HandleReportStatus;
 import org.gradle.launcher.daemon.server.api.HandleStop;
 import org.gradle.launcher.daemon.server.exec.DaemonCommandExecuter;
@@ -144,7 +144,7 @@ public class DaemonServices extends DefaultServiceRegistry {
         DaemonDiagnostics daemonDiagnostics = new DaemonDiagnostics(daemonLog, daemonContext.getPid());
         return ImmutableList.of(
             new HandleStop(get(ListenerManager.class)),
-            new HandleInvalidateLocations(get(GradleUserHomeScopeServiceRegistry.class)),
+            new HandleInvalidateVirtualFileSystem(get(GradleUserHomeScopeServiceRegistry.class)),
             new HandleCancel(),
             new HandleReportStatus(),
             new ReturnResult(),

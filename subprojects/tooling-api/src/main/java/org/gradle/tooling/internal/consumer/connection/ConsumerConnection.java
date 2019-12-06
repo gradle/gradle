@@ -47,5 +47,5 @@ public interface ConsumerConnection extends Stoppable {
 
     void runTests(TestExecutionRequest testExecutionRequest, ConsumerOperationParameters operationParameters);
 
-    void notifyDaemonsAboutChangedFiles(List<String> locations, ConsumerOperationParameters parameters);
+    void notifyDaemonsAboutChangedPaths(List<String> changedPaths, ConsumerOperationParameters operationParameters);
 }

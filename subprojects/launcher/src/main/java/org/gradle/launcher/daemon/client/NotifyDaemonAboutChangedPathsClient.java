@@ -22,7 +22,7 @@ import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.protocol.Command;
 import org.gradle.launcher.daemon.protocol.Failure;
 import org.gradle.launcher.daemon.protocol.Finished;
-import org.gradle.launcher.daemon.protocol.InvalidateFileSystemLocations;
+import org.gradle.launcher.daemon.protocol.InvalidateVirtualFileSystem;
 import org.gradle.launcher.daemon.protocol.Message;
 import org.gradle.launcher.daemon.protocol.Result;
 import org.gradle.launcher.daemon.registry.DaemonInfo;
@@ -34,20 +34,20 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.UUID;
 
-public class DaemonFileSystemChangesNotificationClient {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DaemonFileSystemChangesNotificationClient.class);
+public class NotifyDaemonAboutChangedPathsClient {
+    private static final Logger LOGGER = LoggerFactory.getLogger(NotifyDaemonAboutChangedPathsClient.class);
 
     private final DaemonConnector connector;
     private final IdGenerator<UUID> idGenerator;
     private final DaemonRegistry daemonRegistry;
 
-    public DaemonFileSystemChangesNotificationClient(DaemonConnector connector, IdGenerator<UUID> idGenerator, DaemonRegistry daemonRegistry) {
+    public NotifyDaemonAboutChangedPathsClient(DaemonConnector connector, IdGenerator<UUID> idGenerator, DaemonRegistry daemonRegistry) {
         this.connector = connector;
         this.idGenerator = idGenerator;
         this.daemonRegistry = daemonRegistry;
     }
 
-    public void notifyDaemonsAboutChangedFiles(List<String> locations) {
+    public void notifyDaemonsAboutChangedPaths(List<String> changedPaths) {
         for (DaemonInfo daemonInfo : daemonRegistry.getAll()) {
             DaemonStateControl.State state = daemonInfo.getState();
             if (state != DaemonStateControl.State.Idle && state != DaemonStateControl.State.Busy) {
@@ -57,14 +57,14 @@ public class DaemonFileSystemChangesNotificationClient {
             if (connection == null) {
                 continue;
             }
-            dispatch(connection, new InvalidateFileSystemLocations(locations, idGenerator.generateId(), connection.getDaemon().getToken()));
+            dispatch(connection, new InvalidateVirtualFileSystem(changedPaths, idGenerator.generateId(), connection.getDaemon().getToken()));
         }
     }
 
-    private static void dispatch(Connection<Message> connection, Command stopCommand) {
+    private static void dispatch(Connection<Message> connection, Command command) {
         Throwable failure = null;
         try {
-            connection.dispatch(stopCommand);
+            connection.dispatch(command);
             Result result = (Result) connection.receive();
             if (result instanceof Failure) {
                 failure = ((Failure) result).getValue();

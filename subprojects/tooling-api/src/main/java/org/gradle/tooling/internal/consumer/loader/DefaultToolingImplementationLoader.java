@@ -30,8 +30,8 @@ import org.gradle.tooling.internal.consumer.ConnectionParameters;
 import org.gradle.tooling.internal.consumer.Distribution;
 import org.gradle.tooling.internal.consumer.connection.AbstractConsumerConnection;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
-import org.gradle.tooling.internal.consumer.connection.FileSystemChangesAwareConsumerConnection;
 import org.gradle.tooling.internal.consumer.connection.NoToolingApiConnection;
+import org.gradle.tooling.internal.consumer.connection.NotifyDaemonsAboutChangedPathsConsumerConnection;
 import org.gradle.tooling.internal.consumer.connection.ParameterAcceptingConsumerConnection;
 import org.gradle.tooling.internal.consumer.connection.ParameterValidatingConsumerConnection;
 import org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection;
@@ -42,7 +42,7 @@ import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
-import org.gradle.tooling.internal.protocol.InternalFileSystemChangesAwareConnection;
+import org.gradle.tooling.internal.protocol.InternalNotifyDaemonsAboutChangedPathsConnection;
 import org.gradle.tooling.internal.protocol.InternalParameterAcceptingConnection;
 import org.gradle.tooling.internal.protocol.InternalPhasedActionConnection;
 import org.gradle.tooling.internal.protocol.test.InternalTestExecutionConnection;
@@ -82,8 +82,8 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
             ProtocolToModelAdapter adapter = new ProtocolToModelAdapter(new ConsumerTargetTypeProvider());
             ModelMapping modelMapping = new ModelMapping();
 
-            if (connection instanceof InternalFileSystemChangesAwareConnection) {
-                return createConnection(new FileSystemChangesAwareConsumerConnection(connection, modelMapping, adapter), connectionParameters);
+            if (connection instanceof InternalNotifyDaemonsAboutChangedPathsConnection) {
+                return createConnection(new NotifyDaemonsAboutChangedPathsConsumerConnection(connection, modelMapping, adapter), connectionParameters);
             } else if (connection instanceof InternalPhasedActionConnection) {
                 return createConnection(new PhasedActionAwareConsumerConnection(connection, modelMapping, adapter), connectionParameters);
             } else if (connection instanceof InternalParameterAcceptingConnection) {

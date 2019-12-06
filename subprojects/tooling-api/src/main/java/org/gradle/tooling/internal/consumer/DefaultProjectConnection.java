@@ -82,11 +82,11 @@ class DefaultProjectConnection implements ProjectConnection {
     }
 
     @Override
-    public void notifyDaemonsAboutChangedFiles(List<String> locations) {
+    public void notifyDaemonsAboutChangedPaths(List<String> changedPaths) {
         ConsumerOperationParameters.Builder operationParamsBuilder = ConsumerOperationParameters.builder();
         operationParamsBuilder.setCancellationToken(new DefaultCancellationTokenSource().token());
         operationParamsBuilder.setParameters(parameters);
-        operationParamsBuilder.setEntryPoint("Invalidate locations API");
+        operationParamsBuilder.setEntryPoint("Notify daemons about changed paths API");
         connection.run(
             new ConsumerAction<Void>() {
                 @Override
@@ -96,12 +96,12 @@ class DefaultProjectConnection implements ProjectConnection {
 
                 @Override
                 public Void run(ConsumerConnection connection) {
-                    connection.notifyDaemonsAboutChangedFiles(locations, getParameters());
+                    connection.notifyDaemonsAboutChangedPaths(changedPaths, getParameters());
                     return null;
                 }
             },
             new ResultHandlerAdapter<>(new BlockingResultHandler<>(Void.class),
-                new ExceptionTransformer(throwable -> String.format("Could not notify daemons about changed files: %s.", connection.getDisplayName()))
+                new ExceptionTransformer(throwable -> String.format("Could not notify daemons about changed paths: %s.", connection.getDisplayName()))
             ));
     }
 }

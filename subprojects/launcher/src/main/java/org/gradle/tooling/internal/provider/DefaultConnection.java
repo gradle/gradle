@@ -42,7 +42,7 @@ import org.gradle.tooling.internal.protocol.InternalBuildActionVersion2;
 import org.gradle.tooling.internal.protocol.InternalCancellableConnection;
 import org.gradle.tooling.internal.protocol.InternalCancellationToken;
 import org.gradle.tooling.internal.protocol.InternalConnection;
-import org.gradle.tooling.internal.protocol.InternalFileSystemChangesAwareConnection;
+import org.gradle.tooling.internal.protocol.InternalNotifyDaemonsAboutChangedPathsConnection;
 import org.gradle.tooling.internal.protocol.InternalParameterAcceptingConnection;
 import org.gradle.tooling.internal.protocol.InternalPhasedAction;
 import org.gradle.tooling.internal.protocol.InternalPhasedActionConnection;
@@ -72,7 +72,7 @@ import java.util.List;
 
 public class DefaultConnection implements ConnectionVersion4, InternalConnection, BuildActionRunner,
     ConfigurableConnection, ModelBuilder, InternalBuildActionExecutor, InternalCancellableConnection, InternalParameterAcceptingConnection,
-    StoppableConnection, InternalTestExecutionConnection, InternalPhasedActionConnection, InternalFileSystemChangesAwareConnection {
+    StoppableConnection, InternalTestExecutionConnection, InternalPhasedActionConnection, InternalNotifyDaemonsAboutChangedPathsConnection {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultConnection.class);
     private static final String UNSUPPORTED_MESSAGE = "Support for clients using a tooling API version older than 3.0 was removed in Gradle 5.0. %sYou should upgrade your tooling API client to version 3.0 or later.";
 
@@ -293,8 +293,8 @@ public class DefaultConnection implements ConnectionVersion4, InternalConnection
     }
 
     @Override
-    public void notifyDaemonsAboutChangedFiles(List<String> locations, BuildParameters operationParameters) {
+    public void notifyDaemonsAboutChangedPaths(List<String> changedPaths, BuildParameters operationParameters) {
         ProviderOperationParameters providerParameters = validateAndConvert(operationParameters);
-        connection.notifyDaemonsAboutChangedFiles(locations, providerParameters);
+        connection.notifyDaemonsAboutChangedPaths(changedPaths, providerParameters);
     }
 }

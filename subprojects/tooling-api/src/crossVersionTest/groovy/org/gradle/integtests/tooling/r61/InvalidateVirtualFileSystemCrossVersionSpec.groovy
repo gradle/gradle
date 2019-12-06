@@ -38,17 +38,17 @@ class InvalidateVirtualFileSystemCrossVersionSpec extends ToolingApiSpecificatio
     }
 
     def "can invalidate paths"() {
-        def filesToInvalidate = [file("src/main/java").absolutePath]
+        def changedPaths = [file("src/main/java").absolutePath]
 
         when:
         createIdleDaemon()
 
         withConnection { connection ->
-            connection.notifyDaemonsAboutChangedFiles(filesToInvalidate)
+            connection.notifyDaemonsAboutChangedPaths(changedPaths)
         }
 
         then:
-        toolingApi.daemons.daemon.log.contains("Invalidating ${filesToInvalidate}")
+        toolingApi.daemons.daemon.log.contains("Invalidating ${changedPaths}")
     }
 
     private void createIdleDaemon() {

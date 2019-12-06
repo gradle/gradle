@@ -18,6 +18,6 @@ package org.gradle.tooling.internal.protocol;
 
 import java.util.List;
 
-public interface InternalFileSystemChangesAwareConnection extends InternalProtocolInterface {
-    void notifyDaemonsAboutChangedFiles(List<String> locations, BuildParameters parameters);
+public interface InternalNotifyDaemonsAboutChangedPathsConnection extends InternalProtocolInterface {
+    void notifyDaemonsAboutChangedPaths(List<String> changedPaths, BuildParameters parameters);
 }

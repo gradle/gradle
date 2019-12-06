@@ -19,15 +19,15 @@ package org.gradle.launcher.daemon.protocol;
 import java.util.List;
 import java.util.UUID;
 
-public class InvalidateFileSystemLocations extends Command {
-    private final List<String> locations;
+public class InvalidateVirtualFileSystem extends Command {
+    private final List<String> changedPaths;
 
-    public InvalidateFileSystemLocations(List<String> locations, UUID identifier, byte[] token) {
+    public InvalidateVirtualFileSystem(List<String> changedPaths, UUID identifier, byte[] token) {
         super(identifier, token);
-        this.locations = locations;
+        this.changedPaths = changedPaths;
     }
 
-    public List<String> getLocations() {
-        return locations;
+    public List<String> getChangedPaths() {
+        return changedPaths;
     }
 }

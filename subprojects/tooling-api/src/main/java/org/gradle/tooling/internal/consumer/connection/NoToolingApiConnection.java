@@ -67,7 +67,8 @@ public class NoToolingApiConnection implements ConsumerConnection {
     }
 
     @Override
-    public void notifyDaemonsAboutChangedFiles(List<String> locations, ConsumerOperationParameters parameters) {
+    public void notifyDaemonsAboutChangedPaths(List<String> changedPaths, ConsumerOperationParameters operationParameters) {
+        throw Exceptions.unsupportedFeature(operationParameters.getEntryPointName(), distribution, "6.1");
     }
 
 }

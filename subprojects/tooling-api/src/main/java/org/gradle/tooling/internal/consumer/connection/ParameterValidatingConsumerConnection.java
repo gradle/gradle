@@ -69,8 +69,8 @@ public class ParameterValidatingConsumerConnection implements ConsumerConnection
     }
 
     @Override
-    public void notifyDaemonsAboutChangedFiles(List<String> locations, ConsumerOperationParameters parameters) {
-        delegate.notifyDaemonsAboutChangedFiles(locations, parameters);
+    public void notifyDaemonsAboutChangedPaths(List<String> changedPaths, ConsumerOperationParameters operationParameters) {
+        delegate.notifyDaemonsAboutChangedPaths(changedPaths, operationParameters);
     }
 
     private void validateParameters(ConsumerOperationParameters operationParameters) {

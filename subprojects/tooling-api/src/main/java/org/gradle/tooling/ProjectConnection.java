@@ -163,10 +163,11 @@ public interface ProjectConnection extends Closeable {
      *
      * The daemons will use this information to update the retained file system state.
      *
+     * @param locations Absolute paths which have been changed by the external process.
      * @since 6.1
      */
     @Incubating
-    void notifyDaemonsAboutChangedFiles(List<String> locations);
+    void notifyDaemonsAboutChangedPaths(List<String> locations);
 
     /**
      * Closes this connection. Blocks until any pending operations are complete. Once this method has returned, no more notifications will be delivered by any threads.

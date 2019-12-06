@@ -82,7 +82,7 @@ public class UnsupportedOlderVersionConnection implements ConsumerConnection {
     }
 
     @Override
-    public void notifyDaemonsAboutChangedFiles(List<String> locations, ConsumerOperationParameters parameters) {
+    public void notifyDaemonsAboutChangedPaths(List<String> changedPaths, ConsumerOperationParameters operationParameters) {
         throw unsupported();
     }
 
