@@ -77,7 +77,7 @@ public class DefaultClasspathTransformerCacheFactory implements ClasspathTransfo
     }
 
     @Override
-    public List<File> getFileStoreRoots() {
+    public List<File> getAdditiveCacheRoots() {
         return Collections.singletonList(cacheDir);
     }
 }

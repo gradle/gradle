@@ -495,12 +495,16 @@ fun classLoaderScopeOf(project: Project) =
 
 
 internal
-val accessorsCacheKeyPrefix = CacheKeySpec.withPrefix("gradle-kotlin-dsl-accessors")
+const val accessorCacheKeyPrefix = "gradle-kotlin-dsl-accessors"
+
+
+internal
+val accessorsCacheKeySpecPrefix = CacheKeySpec.withPrefix(accessorCacheKeyPrefix)
 
 
 private
 fun cacheKeyFor(projectSchema: TypedProjectSchema, classPath: ClassPath): CacheKeySpec =
-    (accessorsCacheKeyPrefix
+    (accessorsCacheKeySpecPrefix
         + hashCodeFor(projectSchema)
         + classPath)
 

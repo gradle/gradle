@@ -20,7 +20,6 @@ import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
-import org.gradle.api.internal.changedetection.state.WellKnownFileLocations;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.plugins.DefaultPluginManager;
@@ -101,6 +100,7 @@ import org.gradle.internal.scopeids.id.UserScopeId;
 import org.gradle.internal.scopeids.id.WorkspaceScopeId;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.vfs.AdditiveCacheLocations;
 import org.gradle.internal.vfs.VirtualFileSystem;
 
 import java.util.Arrays;
@@ -272,9 +272,27 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         return instantiator.newInstance(DefaultPluginManager.class, pluginRegistry, instantiatorFactory.inject(this), target, buildOperationExecutor, userCodeApplicationContext, decorator, domainObjectCollectionFactory);
     }
 
-    FileContentCacheFactory createFileContentCacheFactory(FileContentCacheFactory globalCacheFactory, ListenerManager listenerManager, VirtualFileSystem virtualFileSystem, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, Gradle gradle, WellKnownFileLocations wellKnownFileLocations) {
-        DefaultFileContentCacheFactory localCacheFactory = new DefaultFileContentCacheFactory(listenerManager, virtualFileSystem, cacheRepository, inMemoryCacheDecoratorFactory, gradle);
-        return new SplitFileContentCacheFactory(globalCacheFactory, localCacheFactory, wellKnownFileLocations);
+    FileContentCacheFactory createFileContentCacheFactory(
+        AdditiveCacheLocations additiveCacheLocations,
+        CacheRepository cacheRepository,
+        FileContentCacheFactory globalCacheFactory,
+        Gradle gradle,
+        InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
+        ListenerManager listenerManager,
+        VirtualFileSystem virtualFileSystem
+    ) {
+        DefaultFileContentCacheFactory localCacheFactory = new DefaultFileContentCacheFactory(
+            listenerManager,
+            virtualFileSystem,
+            cacheRepository,
+            inMemoryCacheDecoratorFactory,
+            gradle
+        );
+        return new SplitFileContentCacheFactory(
+            globalCacheFactory,
+            localCacheFactory,
+            additiveCacheLocations
+        );
     }
 
     BuildServiceRegistryInternal createSharedServiceRegistry(Instantiator instantiator, DomainObjectCollectionFactory factory, InstantiatorFactory instantiatorFactory, ServiceRegistry services, ListenerManager listenerManager, IsolatableFactory isolatableFactory, SharedResourceLeaseRegistry sharedResourceLeaseRegistry) {
