@@ -16,6 +16,7 @@
 package org.gradle.tooling;
 
 import java.io.Closeable;
+import java.util.List;
 
 /**
  * <p>Represents a long-lived connection to a Gradle project. You obtain an instance of a {@code ProjectConnection} by using {@link org.gradle.tooling.GradleConnector#connect()}.</p>
@@ -25,10 +26,10 @@ import java.io.Closeable;
  * try (ProjectConnection connection = GradleConnector.newConnector()
  *        .forProjectDirectory(new File("someFolder"))
  *        .connect()) {
- *    
+ *
  *    //obtain some information from the build
  *    BuildEnvironment environment = connection.model(BuildEnvironment.class).get();
- *    
+ *
  *    //run some tasks
  *    connection.newBuild()
  *      .forTasks("tasks")
@@ -154,6 +155,13 @@ public interface ProjectConnection extends Closeable {
      * @since 4.8
      */
     BuildActionExecuter.Builder action();
+
+    /**
+     * Notifies all daemons about the some changes made by an external tool, like an IDE.
+     *
+     * The daemons will use this information to update the retained file system state.
+     */
+    void notifyDaemonsAboutChangedFiles(List<String> locations);
 
     /**
      * Closes this connection. Blocks until any pending operations are complete. Once this method has returned, no more notifications will be delivered by any threads.

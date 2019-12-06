@@ -41,6 +41,7 @@ import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
 import org.gradle.launcher.cli.converter.PropertiesToDaemonParametersConverter;
 import org.gradle.launcher.daemon.client.DaemonClient;
 import org.gradle.launcher.daemon.client.DaemonClientFactory;
+import org.gradle.launcher.daemon.client.DaemonFileSystemChangesNotificationClient;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
@@ -180,6 +181,14 @@ public class ProviderConnection {
         ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters);
         TestExecutionRequestAction action = TestExecutionRequestAction.create(listenerConfig.clientSubscriptions, startParameter, testExecutionRequest);
         return run(action, cancellationToken, listenerConfig, listenerConfig.buildEventConsumer, providerParameters, params);
+    }
+
+    public void notifyDaemonsAboutChangedFiles(List<String> locations, ProviderOperationParameters providerParameters) {
+        LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newNestedLogging();
+        Parameters params = initParams(providerParameters);
+        ServiceRegistry clientServices = daemonClientFactory.createStopDaemonServices(loggingServices.get(OutputEventListener.class), params.daemonParams);
+        DaemonFileSystemChangesNotificationClient fileSystemNotificationClient = clientServices.get(DaemonFileSystemChangesNotificationClient.class);
+        fileSystemNotificationClient.notifyDaemonsAboutChangedFiles(locations);
     }
 
     private Object run(BuildAction action, BuildCancellationToken cancellationToken,

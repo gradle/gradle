@@ -33,5 +33,6 @@ public abstract class DaemonMessages {
     public static final String ADVERTISING_DAEMON = "Advertising the daemon address to the clients: ";
     public static final String REMOVING_DAEMON_ADDRESS_ON_FAILURE = "Removing daemon from the registry due to communication failure. Daemon information: ";
     public static final String UNABLE_TO_STOP_DAEMON = "Unable to stop one of the daemons. The daemon may have crashed.";
+    public static final String UNABLE_TO_NOTIFY_DAEMON_ABOUT_FILE_CHANGES = "Unable to notify the daemon about file changes.";
     public static final String WAITING_ON_CANCELED = "Waiting for daemons with canceled builds to become available";
 }

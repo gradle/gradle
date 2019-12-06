@@ -23,6 +23,11 @@ import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.TestLauncher;
 import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
+import org.gradle.tooling.internal.consumer.connection.ConsumerAction;
+import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
+import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
+
+import java.util.List;
 
 class DefaultProjectConnection implements ProjectConnection {
     private final AsyncConsumerActionExecutor connection;
@@ -74,5 +79,29 @@ class DefaultProjectConnection implements ProjectConnection {
     @Override
     public BuildActionExecuter.Builder action() {
         return new DefaultBuildActionExecuter.Builder(connection, parameters);
+    }
+
+    @Override
+    public void notifyDaemonsAboutChangedFiles(List<String> locations) {
+        ConsumerOperationParameters.Builder operationParamsBuilder = ConsumerOperationParameters.builder();
+        operationParamsBuilder.setCancellationToken(new DefaultCancellationTokenSource().token());
+        operationParamsBuilder.setParameters(parameters);
+        operationParamsBuilder.setEntryPoint("Invalidate locations API");
+        connection.run(
+            new ConsumerAction<Void>() {
+                @Override
+                public ConsumerOperationParameters getParameters() {
+                    return operationParamsBuilder.build();
+                }
+
+                @Override
+                public Void run(ConsumerConnection connection) {
+                    connection.notifyDaemonsAboutChangedFiles(locations, getParameters());
+                    return null;
+                }
+            },
+            new ResultHandlerAdapter<>(new BlockingResultHandler<>(Void.class),
+                new ExceptionTransformer(throwable -> String.format("Could not notify daemons about changed files: %s.", connection.getDisplayName()))
+            ));
     }
 }
