@@ -15,6 +15,8 @@
  */
 package org.gradle.tooling;
 
+import org.gradle.api.Incubating;
+
 import java.io.Closeable;
 import java.util.List;
 
@@ -160,7 +162,10 @@ public interface ProjectConnection extends Closeable {
      * Notifies all daemons about the some changes made by an external tool, like an IDE.
      *
      * The daemons will use this information to update the retained file system state.
+     *
+     * @since 6.1
      */
+    @Incubating
     void notifyDaemonsAboutChangedFiles(List<String> locations);
 
     /**
