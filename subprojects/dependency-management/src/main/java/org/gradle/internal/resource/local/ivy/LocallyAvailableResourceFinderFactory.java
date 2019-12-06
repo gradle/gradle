@@ -136,7 +136,7 @@ public class LocallyAvailableResourceFinderFactory implements Factory<LocallyAva
         }
     }
 
-    private class NoMavenLocalRepositoryResourceFinder implements LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> {
+    private static class NoMavenLocalRepositoryResourceFinder implements LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> {
         private final CannotLocateLocalMavenRepositoryException ex;
         private boolean logged;
 

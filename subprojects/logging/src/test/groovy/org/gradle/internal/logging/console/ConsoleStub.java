@@ -46,10 +46,10 @@ public class ConsoleStub implements Console {
         buildProgressArea.redraw();
     }
 
-    protected class TestableBuildOutputTextArea extends TestStyledTextOutput implements TextArea {
+    protected static class TestableBuildOutputTextArea extends TestStyledTextOutput implements TextArea {
     }
 
-    protected class TestableRedrawableLabel extends TestStyledLabel implements RedrawableLabel {
+    protected static class TestableRedrawableLabel extends TestStyledLabel implements RedrawableLabel {
         String id; // Allows individual identification for debugging
         String buffer;
 

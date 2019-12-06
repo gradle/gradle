@@ -161,7 +161,7 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
         return new FileCollectionAdapter(new SingletonFileSet(gradleImplDepsJar, displayName));
     }
 
-    abstract class GeneratedFileCollection extends CompositeFileCollection {
+    abstract static class GeneratedFileCollection extends CompositeFileCollection {
 
         private final String displayName;
         private FileCollection generatedCollection;

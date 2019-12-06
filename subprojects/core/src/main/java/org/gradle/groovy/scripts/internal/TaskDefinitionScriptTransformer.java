@@ -37,7 +37,7 @@ public class TaskDefinitionScriptTransformer extends AbstractScriptTransformer {
         AstUtils.visitScriptCode(source, new TaskDefinitionTransformer());
     }
 
-    private class TaskDefinitionTransformer extends CodeVisitorSupport {
+    private static class TaskDefinitionTransformer extends CodeVisitorSupport {
         @Override
         public void visitMethodCallExpression(MethodCallExpression call) {
             doVisitMethodCallExpression(call);

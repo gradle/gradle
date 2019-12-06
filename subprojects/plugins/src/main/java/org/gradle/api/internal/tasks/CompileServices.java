@@ -57,7 +57,7 @@ public class CompileServices extends AbstractPluginServiceRegistry {
         }
     }
 
-    private class UserHomeScopeServices {
+    private static class UserHomeScopeServices {
         DefaultUserHomeScopedCompileCaches createCompileCaches(CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, VirtualFileSystem virtualFileSystem, StringInterner interner) {
             return new DefaultUserHomeScopedCompileCaches(virtualFileSystem, cacheRepository, inMemoryCacheDecoratorFactory, interner);
         }
