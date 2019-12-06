@@ -25,8 +25,8 @@ import org.gradle.api.internal.artifacts.verification.model.ChecksumKind;
 import org.gradle.api.internal.artifacts.verification.model.ComponentVerificationMetadata;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
-import org.gradle.internal.hash.HashUtil;
-import org.gradle.internal.hash.HashValue;
+import org.gradle.internal.hash.ChecksumService;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -56,10 +56,10 @@ public class DependencyVerifier {
         .weakValues()
         .build();
 
-    public void verify(BuildOperationExecutor buildOperationExecutor, ModuleComponentArtifactIdentifier foundArtifact, File file, Action<VerificationFailure> onFailure) {
+    public void verify(BuildOperationExecutor buildOperationExecutor, ChecksumService checksumService, ModuleComponentArtifactIdentifier foundArtifact, File file, Action<VerificationFailure> onFailure) {
         try {
             Optional<VerificationFailure> verificationFailure = verificationCache.get(file, () -> {
-                return performVerification(buildOperationExecutor, foundArtifact, file);
+                return performVerification(buildOperationExecutor, foundArtifact, checksumService, file);
             });
             verificationFailure.ifPresent(f -> onFailure.execute(f));
         } catch (ExecutionException e) {
@@ -67,14 +67,14 @@ public class DependencyVerifier {
         }
     }
 
-    private Optional<VerificationFailure> performVerification(BuildOperationExecutor buildOperationExecutor, ModuleComponentArtifactIdentifier foundArtifact, File file) {
+    private Optional<VerificationFailure> performVerification(BuildOperationExecutor buildOperationExecutor, ModuleComponentArtifactIdentifier foundArtifact, ChecksumService checksumService, File file) {
         return buildOperationExecutor.call(new CallableBuildOperation<Optional<VerificationFailure>>() {
             @Override
             public Optional<VerificationFailure> call(BuildOperationContext context) {
                 if (!file.exists()) {
                     return VerificationFailure.OPT_DELETED;
                 }
-                return doVerifyArtifact(foundArtifact, file);
+                return doVerifyArtifact(foundArtifact, checksumService, file);
             }
 
             @Override
@@ -84,7 +84,7 @@ public class DependencyVerifier {
         });
     }
 
-    private Optional<VerificationFailure> doVerifyArtifact(ModuleComponentArtifactIdentifier foundArtifact, File file) {
+    private Optional<VerificationFailure> doVerifyArtifact(ModuleComponentArtifactIdentifier foundArtifact, ChecksumService checksumService, File file) {
         AtomicReference<VerificationFailure> failure = new AtomicReference<>();
         ComponentVerificationMetadata componentVerification = verificationMetadata.get(foundArtifact.getComponentIdentifier());
         if (componentVerification != null) {
@@ -95,7 +95,7 @@ public class DependencyVerifier {
                 if (verifiedArtifact.getFileName().equals(foundArtifactFileName)) {
                     Map<ChecksumKind, String> checksums = verification.getChecksums();
                     for (Map.Entry<ChecksumKind, String> entry : checksums.entrySet()) {
-                        verify(entry.getKey(), file, entry.getValue(), f -> failure.set(f));
+                        verify(entry.getKey(), file, checksumService, entry.getValue(), f -> failure.set(f));
                         if (failure.get() != null) {
                             return Optional.of(failure.get());
                         }
@@ -108,23 +108,23 @@ public class DependencyVerifier {
         return VerificationFailure.OPT_MISSING;
     }
 
-    private static void verify(ChecksumKind algorithm, File file, String expected, Action<VerificationFailure> onFailure) {
-        HashValue hashValue = null;
+    private static void verify(ChecksumKind algorithm, File file, ChecksumService cache, String expected, Action<VerificationFailure> onFailure) {
+        HashCode hashValue = null;
         switch (algorithm) {
             case md5:
-                hashValue = HashUtil.md5(file);
+                hashValue = cache.md5(file);
                 break;
             case sha1:
-                hashValue = HashUtil.sha1(file);
+                hashValue = cache.sha1(file);
                 break;
             case sha256:
-                hashValue = HashUtil.sha256(file);
+                hashValue = cache.sha256(file);
                 break;
             case sha512:
-                hashValue = HashUtil.sha512(file);
+                hashValue = cache.sha512(file);
                 break;
         }
-        String actual = hashValue.asHexString();
+        String actual = hashValue.toString();
         if (!actual.equals(expected)) {
             onFailure.execute(new VerificationFailure(algorithm, expected, actual));
         }

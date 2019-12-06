@@ -125,7 +125,7 @@ public class MavenArtifactNotationParserFactory implements Factory<NotationParse
         }
     }
 
-    private class MavenArtifactMapNotationConverter extends MapNotationConverter<MavenArtifact> {
+    private static class MavenArtifactMapNotationConverter extends MapNotationConverter<MavenArtifact> {
         private final NotationParser<Object, MavenArtifact> sourceNotationParser;
 
         private MavenArtifactMapNotationConverter(NotationParser<Object, MavenArtifact> sourceNotationParser) {

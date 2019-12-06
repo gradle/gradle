@@ -24,6 +24,7 @@ import org.gradle.internal.resource.local.DefaultPathKeyFileStore
 import org.gradle.internal.resource.local.FileAccessTracker
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.TestUtil
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
@@ -33,7 +34,7 @@ import spock.lang.Specification
 class DirectoryBuildCacheServiceTest extends Specification {
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
     def cacheDir = temporaryFolder.createDir("cache")
-    def fileStore = new DefaultPathKeyFileStore(cacheDir)
+    def fileStore = new DefaultPathKeyFileStore(TestUtil.checksumService, cacheDir)
     def persistentCache = Mock(PersistentCache) {
         getBaseDir() >> cacheDir
         withFileLock(_) >> { Runnable r -> r.run() }

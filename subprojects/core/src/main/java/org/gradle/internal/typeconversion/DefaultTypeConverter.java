@@ -305,7 +305,7 @@ public class DefaultTypeConverter implements TypeConverter {
         }
     }
 
-    private class CharacterConverter extends CharSequenceConverter<Character> {
+    private static class CharacterConverter extends CharSequenceConverter<Character> {
         private final Class<Character> target;
 
         public CharacterConverter(Class<Character> boxed, Class<Character> target) {

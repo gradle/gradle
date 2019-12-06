@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.classpath;
+package org.gradle.internal.vfs;
 
 import java.io.File;
 import java.util.List;
 
 /**
- * Represents a store of cached and immutable files. Once added to a file store, files should not be mutated in place.
+ * Represents a store of cached and immutable files.
+ *
+ * Over time more files can be added to an additive cache, but existing files
+ * can never be modified. Files in additive caches can only be deleted as part
+ * of cleanup.
  */
-public interface CachedJarFileStore {
+public interface AdditiveCache {
     /**
-     * Returns the root directories of the store.
+     * Returns the root directories of the additive cache.
      */
-    List<File> getFileStoreRoots();
+    List<File> getAdditiveCacheRoots();
 }

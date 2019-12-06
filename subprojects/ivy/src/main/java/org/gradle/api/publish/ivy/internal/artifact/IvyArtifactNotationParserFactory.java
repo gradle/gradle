@@ -125,7 +125,7 @@ public class IvyArtifactNotationParserFactory implements Factory<NotationParser<
         }
     }
 
-    private class IvyArtifactMapNotationConverter extends MapNotationConverter<IvyArtifact> {
+    private static class IvyArtifactMapNotationConverter extends MapNotationConverter<IvyArtifact> {
         private final NotationParser<Object, IvyArtifact> sourceNotationParser;
 
         private IvyArtifactMapNotationConverter(NotationParser<Object, IvyArtifact> sourceNotationParser) {

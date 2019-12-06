@@ -47,6 +47,7 @@ import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.component.model.MutableModuleSources;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.resolve.ArtifactNotFoundException;
 import org.gradle.internal.resolve.ArtifactResolveException;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
@@ -60,7 +61,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.math.BigInteger;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -266,7 +266,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             CachedArtifacts cachedModuleArtifacts = moduleArtifactsCache.getCachedArtifacts(delegate, component.getId(), contextId);
             ModuleSources sources = component.getSources();
             ModuleDescriptorHashModuleSource cachingModuleSource = findCachingModuleSource(sources);
-            BigInteger moduleDescriptorHash = cachingModuleSource.getDescriptorHash();
+            HashCode moduleDescriptorHash = cachingModuleSource.getDescriptorHash();
 
             if (cachedModuleArtifacts != null) {
                 if (!cachePolicy.mustRefreshModuleArtifacts(component.getModuleVersionId(), null, cachedModuleArtifacts.getAgeMillis(),
@@ -322,7 +322,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         private void resolveArtifactFromCache(ComponentArtifactMetadata artifact, ModuleSources moduleSources, BuildableArtifactResolveResult result) {
             CachedArtifact cached = moduleArtifactCache.lookup(artifactCacheKey(artifact.getId()));
             ModuleDescriptorHashModuleSource moduleSource = findCachingModuleSource(moduleSources);
-            final BigInteger descriptorHash = moduleSource.getDescriptorHash();
+            final HashCode descriptorHash = moduleSource.getDescriptorHash();
             if (cached != null) {
                 long age = timeProvider.getCurrentTime() - cached.getCachedAt();
                 final boolean isChangingModule = moduleSource.isChangingModule();

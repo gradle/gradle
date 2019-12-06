@@ -60,7 +60,12 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
     final IvyMutableModuleMetadataFactory metadataFactory = DependencyManagementTestUtil.ivyMetadataFactory()
     final DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory = new DefaultUrlArtifactRepository.Factory(fileResolver, new DocumentationRegistry())
 
-    final DefaultIvyArtifactRepository repository = instantiator.newInstance(DefaultIvyArtifactRepository.class, fileResolver, transportFactory, locallyAvailableResourceFinder, artifactIdentifierFileStore, externalResourceFileStore, authenticationContainer, ivyContextManager, moduleIdentifierFactory, TestUtil.instantiatorFactory(), Mock(FileResourceRepository), moduleMetadataParser, metadataFactory, SnapshotTestUtil.valueSnapshotter(), Mock(ObjectFactory), urlArtifactRepositoryFactory)
+    final DefaultIvyArtifactRepository repository = instantiator.newInstance(DefaultIvyArtifactRepository.class, fileResolver, transportFactory, locallyAvailableResourceFinder,
+        artifactIdentifierFileStore, externalResourceFileStore, authenticationContainer, ivyContextManager,
+        moduleIdentifierFactory, TestUtil.instantiatorFactory(), Mock(FileResourceRepository), moduleMetadataParser,
+        metadataFactory, SnapshotTestUtil.valueSnapshotter(), Mock(ObjectFactory), urlArtifactRepositoryFactory,
+        TestUtil.checksumService
+    )
 
     def "default values"() {
         expect:

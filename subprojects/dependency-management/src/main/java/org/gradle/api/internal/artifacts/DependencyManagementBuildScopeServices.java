@@ -108,6 +108,7 @@ import org.gradle.internal.component.external.model.ModuleComponentArtifactMetad
 import org.gradle.internal.component.external.model.PreferJavaRuntimeVariant;
 import org.gradle.internal.component.model.PersistentModuleSource;
 import org.gradle.internal.file.FileAccessTimeJournal;
+import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
@@ -210,7 +211,8 @@ class DependencyManagementBuildScopeServices {
     ModuleRepositoryCacheProvider createModuleRepositoryCacheProvider(BuildCommencedTimeProvider timeProvider, ArtifactCacheLockingManager artifactCacheLockingManager, ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                                                       ArtifactCacheMetadata artifactCacheMetadata, AttributeContainerSerializer attributeContainerSerializer, MavenMutableModuleMetadataFactory mavenMetadataFactory, IvyMutableModuleMetadataFactory ivyMetadataFactory, SimpleMapInterner stringInterner,
                                                                       ArtifactIdentifierFileStore artifactIdentifierFileStore,
-                                                                      ModuleSourcesSerializer moduleSourcesSerializer) {
+                                                                      ModuleSourcesSerializer moduleSourcesSerializer,
+                                                                      ChecksumService checksumService) {
         ModuleRepositoryCaches caches = new ModuleRepositoryCaches(
             new InMemoryModuleVersionsCache(timeProvider, new DefaultModuleVersionsCache(
                 timeProvider,
@@ -225,7 +227,8 @@ class DependencyManagementBuildScopeServices {
                 mavenMetadataFactory,
                 ivyMetadataFactory,
                 stringInterner,
-                moduleSourcesSerializer)),
+                moduleSourcesSerializer,
+                checksumService)),
             new InMemoryModuleArtifactsCache(timeProvider, new DefaultModuleArtifactsCache(
                 timeProvider,
                 artifactCacheLockingManager
@@ -257,12 +260,12 @@ class DependencyManagementBuildScopeServices {
         );
     }
 
-    ArtifactIdentifierFileStore createArtifactRevisionIdFileStore(ArtifactCacheMetadata artifactCacheMetadata, FileAccessTimeJournal fileAccessTimeJournal) {
-        return new ArtifactIdentifierFileStore(artifactCacheMetadata.getFileStoreDirectory(), new TmpDirTemporaryFileProvider(), fileAccessTimeJournal);
+    ArtifactIdentifierFileStore createArtifactRevisionIdFileStore(ArtifactCacheMetadata artifactCacheMetadata, FileAccessTimeJournal fileAccessTimeJournal, ChecksumService checksumService) {
+        return new ArtifactIdentifierFileStore(artifactCacheMetadata.getFileStoreDirectory(), new TmpDirTemporaryFileProvider(), fileAccessTimeJournal, checksumService);
     }
 
-    ExternalResourceFileStore createExternalResourceFileStore(ArtifactCacheMetadata artifactCacheMetadata, FileAccessTimeJournal fileAccessTimeJournal) {
-        return new ExternalResourceFileStore(artifactCacheMetadata.getExternalResourcesStoreDirectory(), new TmpDirTemporaryFileProvider(), fileAccessTimeJournal);
+    ExternalResourceFileStore createExternalResourceFileStore(ArtifactCacheMetadata artifactCacheMetadata, FileAccessTimeJournal fileAccessTimeJournal, ChecksumService checksumService) {
+        return new ExternalResourceFileStore(artifactCacheMetadata.getExternalResourcesStoreDirectory(), new TmpDirTemporaryFileProvider(), fileAccessTimeJournal, checksumService);
     }
 
     TextFileResourceLoader createTextFileResourceLoader() {
@@ -290,11 +293,14 @@ class DependencyManagementBuildScopeServices {
         return new DefaultLocalMavenRepositoryLocator(mavenSettingsProvider);
     }
 
-    LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> createArtifactRevisionIdLocallyAvailableResourceFinder(ArtifactCacheMetadata artifactCacheMetadata, LocalMavenRepositoryLocator localMavenRepositoryLocator, ArtifactIdentifierFileStore fileStore) {
+    LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> createArtifactRevisionIdLocallyAvailableResourceFinder(ArtifactCacheMetadata artifactCacheMetadata,
+                                                                                                                           LocalMavenRepositoryLocator localMavenRepositoryLocator,
+                                                                                                                           ArtifactIdentifierFileStore fileStore,
+                                                                                                                           ChecksumService checksumService) {
         LocallyAvailableResourceFinderFactory finderFactory = new LocallyAvailableResourceFinderFactory(
             artifactCacheMetadata,
             localMavenRepositoryLocator,
-            fileStore);
+            fileStore, checksumService);
         return finderFactory.create();
     }
 
@@ -307,7 +313,8 @@ class DependencyManagementBuildScopeServices {
                                                                 List<ResourceConnectorFactory> resourceConnectorFactories,
                                                                 BuildOperationExecutor buildOperationExecutor,
                                                                 ProducerGuard<ExternalResourceName> producerGuard,
-                                                                FileResourceRepository fileResourceRepository) {
+                                                                FileResourceRepository fileResourceRepository,
+                                                                ChecksumService checksumService) {
         StartParameterResolutionOverride startParameterResolutionOverride = new StartParameterResolutionOverride(startParameter);
         return new RepositoryTransportFactory(
             resourceConnectorFactories,
@@ -319,7 +326,8 @@ class DependencyManagementBuildScopeServices {
             buildOperationExecutor,
             startParameterResolutionOverride,
             producerGuard,
-            fileResourceRepository);
+            fileResourceRepository,
+            checksumService);
     }
 
     RepositoryBlacklister createRepositoryBlacklister() {
@@ -330,8 +338,8 @@ class DependencyManagementBuildScopeServices {
         return new StartParameterResolutionOverride(startParameter);
     }
 
-    DependencyVerificationOverride createDependencyVerificationOverride(StartParameterResolutionOverride startParameterResolutionOverride, BuildOperationExecutor buildOperationExecutor) {
-        return startParameterResolutionOverride.dependencyVerificationOverride(buildOperationExecutor);
+    DependencyVerificationOverride createDependencyVerificationOverride(StartParameterResolutionOverride startParameterResolutionOverride, BuildOperationExecutor buildOperationExecutor, ChecksumService checksumService) {
+        return startParameterResolutionOverride.dependencyVerificationOverride(buildOperationExecutor, checksumService);
     }
 
     ResolveIvyFactory createResolveIvyFactory(StartParameterResolutionOverride startParameterResolutionOverride, ModuleRepositoryCacheProvider moduleRepositoryCacheProvider,
@@ -439,4 +447,5 @@ class DependencyManagementBuildScopeServices {
                                                                                       SuppliedComponentMetadataSerializer suppliedComponentMetadataSerializer) {
         return new ComponentMetadataSupplierRuleExecutor(cacheRepository, cacheDecoratorFactory, snapshotter, timeProvider, suppliedComponentMetadataSerializer);
     }
+
 }

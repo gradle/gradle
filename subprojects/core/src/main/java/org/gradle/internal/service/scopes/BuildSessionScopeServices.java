@@ -19,16 +19,20 @@ package org.gradle.internal.service.scopes;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory;
+import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.BuildScopeFileTimeStampInspector;
+import org.gradle.api.internal.changedetection.state.CrossBuildFileHashCache;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.project.BuildOperationCrossProjectConfigurator;
 import org.gradle.api.internal.project.CrossProjectConfigurator;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CacheRepositoryServices;
 import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.CleanupActionFactory;
+import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.VersionStrategy;
 import org.gradle.deployment.internal.DefaultDeploymentRegistry;
 import org.gradle.groovy.scripts.internal.DefaultScriptSourceHasher;
@@ -47,8 +51,11 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.featurelifecycle.DeprecatedUsageBuildOperationProgressBroadaster;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.filewatch.PendingChangesManager;
+import org.gradle.internal.hash.ChecksumService;
+import org.gradle.internal.hash.DefaultChecksumService;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
+import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
@@ -66,6 +73,7 @@ import org.gradle.internal.work.DefaultAsyncWorkTracker;
 import org.gradle.plugin.use.internal.InjectedPluginClasspath;
 import org.gradle.process.internal.ExecFactory;
 
+import java.io.Closeable;
 import java.io.File;
 
 /**
@@ -174,5 +182,30 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
             buildOperationListenerManager.getBroadcaster(),
             currentBuildOperationRef
         );
+    }
+
+    CrossBuildFileHashCacheWrapper createCrossBuildChecksumCache(CacheScopeMapping cacheScopeMapping, ProjectCacheDir projectCacheDir, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
+        File cacheDir = cacheScopeMapping.getBaseDirectory(projectCacheDir.getDir(), "checksums", VersionStrategy.SharedCache);
+        CrossBuildFileHashCache crossBuildCache = new CrossBuildFileHashCache(cacheDir, cacheRepository, inMemoryCacheDecoratorFactory, CrossBuildFileHashCache.Kind.CHECKSUMS);
+        return new CrossBuildFileHashCacheWrapper(crossBuildCache);
+    }
+
+    ChecksumService createChecksumService(StringInterner stringInterner, FileSystem fileSystem, CrossBuildFileHashCacheWrapper crossBuildCache, BuildScopeFileTimeStampInspector inspector) {
+        return new DefaultChecksumService(stringInterner, crossBuildCache.delegate, fileSystem, inspector);
+    }
+
+    // Wraps CrossBuildFileHashCache so that it doesn't conflict
+    // with other services in different scopes
+    static class CrossBuildFileHashCacheWrapper implements Closeable {
+        private final CrossBuildFileHashCache delegate;
+
+        private CrossBuildFileHashCacheWrapper(CrossBuildFileHashCache delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public void close() {
+            delegate.close();
+        }
     }
 }

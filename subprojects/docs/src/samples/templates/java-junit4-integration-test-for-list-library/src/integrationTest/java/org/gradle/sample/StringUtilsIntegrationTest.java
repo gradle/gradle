@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.sample;
 
-/**
- * This service can tell whether a file is in a location controlled by Gradle,
- * which usually allows for more optimization than user-provided files.
- */
-public interface WellKnownFileLocations {
-    boolean isImmutable(String path);
+import org.junit.Test;
+import static org.junit.Assert.*;
+
+public class StringUtilsIntegrationTest {
+    @Test public void testSplit() {
+        LinkedList list = StringUtils.split("The dog is green");
+        assertEquals(4, list.size());
+        assertEquals("The", list.get(0));
+        assertEquals("dog", list.get(1));
+        assertEquals("is", list.get(2));
+        assertEquals("green", list.get(3));
+    }
 }

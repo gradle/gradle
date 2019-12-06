@@ -50,6 +50,7 @@ import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
 import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.BuildCommencedTimeProvider
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -78,7 +79,7 @@ class ResolveIvyFactoryTest extends Specification {
         cacheProvider = new ModuleRepositoryCacheProvider(caches, caches)
         startParameterResolutionOverride = Mock(StartParameterResolutionOverride) {
             _ * overrideModuleVersionRepository(_) >> { ModuleComponentRepository repository -> repository }
-            _ * dependencyVerificationOverride(_) >> DependencyVerificationOverride.NO_VERIFICATION
+            _ * dependencyVerificationOverride(_, _) >> DependencyVerificationOverride.NO_VERIFICATION
         }
         buildCommencedTimeProvider = Mock(BuildCommencedTimeProvider)
         moduleIdentifierFactory = Mock(ImmutableModuleIdentifierFactory)
@@ -88,7 +89,7 @@ class ResolveIvyFactoryTest extends Specification {
         instantiatorFactory = Mock()
         buildOperationExecutor = Mock()
 
-        resolveIvyFactory = new ResolveIvyFactory(cacheProvider, startParameterResolutionOverride, startParameterResolutionOverride.dependencyVerificationOverride(buildOperationExecutor), buildCommencedTimeProvider, versionComparator, moduleIdentifierFactory, repositoryBlacklister, versionParser, instantiatorFactory)
+        resolveIvyFactory = new ResolveIvyFactory(cacheProvider, startParameterResolutionOverride, startParameterResolutionOverride.dependencyVerificationOverride(buildOperationExecutor, TestUtil.checksumService), buildCommencedTimeProvider, versionComparator, moduleIdentifierFactory, repositoryBlacklister, versionParser, instantiatorFactory)
     }
 
     def "returns an empty resolver when no repositories are configured" () {
@@ -150,7 +151,8 @@ class ResolveIvyFactoryTest extends Specification {
                 metadataArtifactProvider,
                 componentMetadataSupplierFactory,
                 versionListerFactory,
-                Mock(Instantiator)
+                Mock(Instantiator),
+                TestUtil.checksumService
             ]
         ) {
             appendId(_) >> { }

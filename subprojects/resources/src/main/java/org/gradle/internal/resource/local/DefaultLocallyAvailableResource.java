@@ -15,18 +15,20 @@
  */
 package org.gradle.internal.resource.local;
 
-import org.gradle.internal.hash.HashValue;
+import org.gradle.internal.hash.ChecksumService;
+import org.gradle.internal.hash.HashCode;
 
 import java.io.File;
 
 public class DefaultLocallyAvailableResource extends AbstractLocallyAvailableResource {
     private final File origin;
 
-    public DefaultLocallyAvailableResource(File origin) {
+    public DefaultLocallyAvailableResource(File origin, ChecksumService checksumService) {
+        super(() -> checksumService.sha1(origin));
         this.origin = origin;
     }
 
-    public DefaultLocallyAvailableResource(File origin, HashValue sha1) {
+    public DefaultLocallyAvailableResource(File origin, HashCode sha1) {
         super(sha1);
         this.origin = origin;
     }

@@ -19,6 +19,7 @@ package org.gradle.internal.resource.local;
 import org.apache.commons.io.FileUtils;
 import org.gradle.api.Action;
 import org.gradle.api.NonNullApi;
+import org.gradle.internal.hash.ChecksumService;
 
 import java.io.File;
 
@@ -30,8 +31,8 @@ import java.io.File;
 @NonNullApi
 public class UniquePathKeyFileStore extends DefaultPathKeyFileStore {
 
-    public UniquePathKeyFileStore(File baseDir) {
-        super(baseDir);
+    public UniquePathKeyFileStore(ChecksumService checksumService, File baseDir) {
+        super(checksumService, baseDir);
     }
 
     @Override

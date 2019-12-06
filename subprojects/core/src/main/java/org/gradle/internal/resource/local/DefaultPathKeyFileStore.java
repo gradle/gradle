@@ -24,6 +24,7 @@ import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.internal.file.collections.MinimalFileTree;
 import org.gradle.api.internal.file.collections.SingleIncludePatternFileTree;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.hash.ChecksumService;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.RelativePathUtil;
 
@@ -50,6 +51,8 @@ import static org.gradle.internal.FileUtils.hasExtension;
 @NonNullApi
 public class DefaultPathKeyFileStore implements PathKeyFileStore {
 
+    private final ChecksumService checksumService;
+
     /*
         When writing a file into the filestore a marker file with this suffix is written alongside,
         then removed after the write. This is used to detect partially written files (due to a serious crash)
@@ -59,7 +62,8 @@ public class DefaultPathKeyFileStore implements PathKeyFileStore {
 
     private File baseDir;
 
-    public DefaultPathKeyFileStore(File baseDir) {
+    public DefaultPathKeyFileStore(ChecksumService checksumService, File baseDir) {
+        this.checksumService = checksumService;
         this.baseDir = baseDir;
     }
 
@@ -191,14 +195,14 @@ public class DefaultPathKeyFileStore implements PathKeyFileStore {
     }
 
     protected LocallyAvailableResource entryAt(final String path) {
-        return new DefaultLocallyAvailableResource(getFile(path));
+        return new DefaultLocallyAvailableResource(getFile(path), checksumService);
     }
 
     @Override
     public LocallyAvailableResource get(String... path) {
         final File file = getFileWhileCleaningInProgress(path);
         if (file.exists()) {
-            return new DefaultLocallyAvailableResource(getFile(path));
+            return new DefaultLocallyAvailableResource(getFile(path), checksumService);
         } else {
             return null;
         }

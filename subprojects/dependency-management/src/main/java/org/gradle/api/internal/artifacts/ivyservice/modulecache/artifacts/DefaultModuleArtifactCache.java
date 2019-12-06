@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.metadata.ComponentArtifactIdentifierSer
 import org.gradle.api.internal.artifacts.metadata.ModuleComponentFileArtifactIdentifierSerializer;
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentFileArtifactIdentifier;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.resource.cached.AbstractCachedIndex;
 import org.gradle.internal.resource.local.FileAccessTracker;
 import org.gradle.internal.serialize.Decoder;
@@ -33,7 +34,6 @@ import org.gradle.util.BuildCommencedTimeProvider;
 
 import java.io.File;
 import java.io.IOException;
-import java.math.BigInteger;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -55,22 +55,22 @@ public class DefaultModuleArtifactCache extends AbstractCachedIndex<ArtifactAtRe
     }
 
     @Override
-    public void store(final ArtifactAtRepositoryKey key, final File artifactFile, BigInteger moduleDescriptorHash) {
+    public void store(final ArtifactAtRepositoryKey key, final File artifactFile, HashCode moduleDescriptorHash) {
         assertArtifactFileNotNull(artifactFile);
         assertKeyNotNull(key);
         storeInternal(key, createEntry(artifactFile, moduleDescriptorHash));
     }
 
-    private DefaultCachedArtifact createEntry(File artifactFile, BigInteger moduleDescriptorHash) {
+    private DefaultCachedArtifact createEntry(File artifactFile, HashCode moduleDescriptorHash) {
         return new DefaultCachedArtifact(artifactFile, timeProvider.getCurrentTime(), moduleDescriptorHash);
     }
 
     @Override
-    public void storeMissing(ArtifactAtRepositoryKey key, List<String> attemptedLocations, BigInteger descriptorHash) {
+    public void storeMissing(ArtifactAtRepositoryKey key, List<String> attemptedLocations, HashCode descriptorHash) {
         storeInternal(key, createMissingEntry(attemptedLocations, descriptorHash));
     }
 
-    private CachedArtifact createMissingEntry(List<String> attemptedLocations, BigInteger descriptorHash) {
+    private CachedArtifact createMissingEntry(List<String> attemptedLocations, HashCode descriptorHash) {
         return new DefaultCachedArtifact(attemptedLocations, timeProvider.getCurrentTime(), descriptorHash);
     }
 
@@ -149,7 +149,7 @@ public class DefaultModuleArtifactCache extends AbstractCachedIndex<ArtifactAtRe
             boolean isMissing = decoder.readBoolean();
             long createTimestamp = decoder.readLong();
             byte[] encodedHash = decoder.readBinary();
-            BigInteger hash = new BigInteger(encodedHash);
+            HashCode hash = HashCode.fromBytes(encodedHash);
             if (!isMissing) {
                 return new DefaultCachedArtifact(denormalizeAndResolveFilePath(decoder.readString()), createTimestamp, hash);
             } else {

@@ -83,7 +83,7 @@ fun pluginSpecBuildersClassPath(project: Project): AccessorsClassPath = project.
 
     rootProject.getOrCreateProperty("gradleKotlinDsl.pluginAccessorsClassPath") {
         val buildSrcClassLoaderScope = baseClassLoaderScopeOf(rootProject)
-        val cacheKeySpec = accessorsCacheKeyPrefix + buildSrcClassLoaderScope.exportClassLoader
+        val cacheKeySpec = accessorsCacheKeySpecPrefix + buildSrcClassLoaderScope.exportClassLoader
         cachedAccessorsClassPathFor(rootProject, cacheKeySpec) { srcDir, binDir ->
             kotlinScriptClassPathProviderOf(rootProject).run {
                 withAsynchronousIO(rootProject) {

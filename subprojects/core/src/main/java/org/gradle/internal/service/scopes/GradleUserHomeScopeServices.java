@@ -20,9 +20,7 @@ import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.changedetection.state.DefaultFileAccessTimeJournal;
-import org.gradle.api.internal.changedetection.state.DefaultWellKnownFileLocations;
 import org.gradle.api.internal.changedetection.state.GlobalScopeFileTimeStampInspector;
-import org.gradle.api.internal.changedetection.state.WellKnownFileLocations;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
@@ -47,7 +45,6 @@ import org.gradle.internal.classloader.ClasspathHasher;
 import org.gradle.internal.classloader.DefaultHashingClassLoaderFactory;
 import org.gradle.internal.classloader.HashingClassLoaderFactory;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
-import org.gradle.internal.classpath.CachedJarFileStore;
 import org.gradle.internal.classpath.ClasspathTransformerCacheFactory;
 import org.gradle.internal.classpath.DefaultCachedClasspathTransformer;
 import org.gradle.internal.classpath.DefaultClasspathTransformerCacheFactory;
@@ -66,6 +63,9 @@ import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.remote.MessagingServer;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.vfs.AdditiveCache;
+import org.gradle.internal.vfs.AdditiveCacheLocations;
+import org.gradle.internal.vfs.DefaultAdditiveCacheLocations;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.process.internal.JavaExecHandleFactory;
 import org.gradle.process.internal.health.memory.MemoryManager;
@@ -138,23 +138,23 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
         );
     }
 
-    WellKnownFileLocations createWellKnownFileLocations(List<CachedJarFileStore> fileStores) {
-        return new DefaultWellKnownFileLocations(fileStores);
+    AdditiveCacheLocations createAdditiveCacheLocations(List<AdditiveCache> additiveCaches) {
+        return new DefaultAdditiveCacheLocations(additiveCaches);
     }
 
     CachedClasspathTransformer createCachedClasspathTransformer(
+        AdditiveCacheLocations additiveCacheLocations,
         CacheRepository cacheRepository,
         ClasspathTransformerCacheFactory classpathTransformerCacheFactory,
-        FileHasher fileHasher,
         FileAccessTimeJournal fileAccessTimeJournal,
-        WellKnownFileLocations wellKnownFileLocations
+        FileHasher fileHasher
     ) {
         return new DefaultCachedClasspathTransformer(
             cacheRepository,
             classpathTransformerCacheFactory,
             fileAccessTimeJournal,
             new JarCache(fileHasher),
-            wellKnownFileLocations
+            additiveCacheLocations
         );
     }
 

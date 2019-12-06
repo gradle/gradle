@@ -18,7 +18,7 @@ package org.gradle.internal.resource.cached;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManager;
-import org.gradle.internal.hash.HashValue;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.resource.local.FileAccessTracker;
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
@@ -100,9 +100,9 @@ public class DefaultCachedExternalResourceIndex<K extends Serializable> extends 
                 String contentType = decoder.readNullableString();
                 long contentLength = decoder.readSmallLong();
                 String etag = decoder.readNullableString();
-                HashValue sha1 = null;
+                HashCode sha1 = null;
                 if (decoder.readBoolean()) {
-                    sha1 = HashValue.parse(decoder.readString());
+                    sha1 = HashCode.fromString(decoder.readString());
                 }
                 metaData = new DefaultExternalResourceMetaData(uri, lastModified, contentLength, contentType, etag, sha1);
             }
@@ -129,7 +129,7 @@ public class DefaultCachedExternalResourceIndex<K extends Serializable> extends 
                 encoder.writeNullableString(metaData.getEtag());
                 encoder.writeBoolean(metaData.getSha1() != null);
                 if (metaData.getSha1() != null) {
-                    encoder.writeString(metaData.getSha1().asHexString());
+                    encoder.writeString(metaData.getSha1().toString());
                 }
             }
         }

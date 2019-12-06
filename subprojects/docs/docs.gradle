@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import org.asciidoctor.gradle.AsciidoctorTask
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 import org.gradle.samples.Sample
@@ -25,7 +24,7 @@ plugins {
     // TODO: Apply asciidoctor in documentation plugin instead.
     id 'org.asciidoctor.convert'
     id 'gradlebuild.documentation'
-    id 'org.gradle.samples' version "0.15.24"
+    id 'org.gradle.samples' version "0.15.25"
 }
 
 repositories {
@@ -140,6 +139,7 @@ samples.configureEach { sample ->
     }
 
     sample.gradleVersion = project.provider { project.version.toString() }
+    sample.permalink = org.gradle.util.GUtil.toWords(sample.name, '_' as char).toLowerCase()
 }
 
 def templateDir = file("src/samples/templates")
@@ -170,6 +170,26 @@ samples {
         description = "Demonstrate how to build a Spring Boot Web application"
         def sourceFiles = installSourceFromTemplate(it) {
             from("$templateDir/spring-boot-web-application")
+        }
+        archiveContent.from sourceFiles
+        exemplar.source {
+            from(sourceFiles) { into('groovy') }
+            from(sourceFiles) { into('kotlin') }
+        }
+    }
+
+    jvmComponentsWithAdditionalTestTypes {
+        sampleDirectory = file("src/samples/jvm-components-with-additional-test-types")
+        displayName = "JVM Components With Additional Test Types"
+        description = "Demonstrate how to add additional test types to JVM components - e.g. integration tests"
+        def sourceFiles = installSourceFromTemplate(it) {
+            from("$templateDir/java-application") { into("application") }
+            from("$templateDir/java-junit4-test-for-application") { into("application") }
+            from("$templateDir/java-junit4-integration-test-for-application") { into("application") }
+            from("$templateDir/java-list-library") { into("library") }
+            from("$templateDir/java-junit4-test-for-list-library") { into("library") }
+            from("$templateDir/java-junit4-integration-test-for-list-library") { into("library") }
+            from("$templateDir/java-utilities-library") { into("library") }
         }
         archiveContent.from sourceFiles
         exemplar.source {
@@ -240,6 +260,7 @@ samples {
     javaComponentsWithJUnit4Tests {
         sampleDirectory = file("src/samples/java/components-with-junit-4-tests")
         displayName = "Java Components With JUnit 4 Tests"
+        permalink = "java_components_with_junit4_tests"
         description = "Demonstrate how to test Java components using JUnit 4"
         def sourceFiles = installSourceFromTemplate(it) {
             from("$templateDir/java-application") { into("application") }

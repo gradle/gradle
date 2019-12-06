@@ -69,7 +69,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
     def buildId = UniqueId.generate()
     def id = DefaultModuleVersionIdentifier.newId("group", "module", "1.2")
     def projectDependencyResolver = Mock(ProjectDependencyPublicationResolver)
-    def generator = new GradleModuleMetadataWriter(new BuildInvocationScopeId(buildId), projectDependencyResolver)
+    def generator = new GradleModuleMetadataWriter(new BuildInvocationScopeId(buildId), projectDependencyResolver, TestUtil.checksumService)
 
     def "fails to write file for component with no variants"() {
         def writer = new StringWriter()

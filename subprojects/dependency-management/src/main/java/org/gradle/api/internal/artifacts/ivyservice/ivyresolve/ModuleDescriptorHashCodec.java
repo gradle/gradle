@@ -16,11 +16,11 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.internal.component.model.PersistentModuleSource;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 
 import java.io.IOException;
-import java.math.BigInteger;
 
 public class ModuleDescriptorHashCodec implements PersistentModuleSource.Codec<ModuleDescriptorHashModuleSource> {
     @Override
@@ -32,7 +32,7 @@ public class ModuleDescriptorHashCodec implements PersistentModuleSource.Codec<M
     @Override
     public ModuleDescriptorHashModuleSource decode(Decoder decoder) throws IOException {
         return new ModuleDescriptorHashModuleSource(
-            new BigInteger(decoder.readBinary()),
+            HashCode.fromBytes(decoder.readBinary()),
             decoder.readBoolean()
         );
     }

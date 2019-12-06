@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.repositories.metadata;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
+import org.gradle.internal.hash.ChecksumService;
 import org.gradle.api.internal.artifacts.repositories.maven.MavenMetadataLoader;
 import org.gradle.api.internal.artifacts.repositories.resolver.ResourcePattern;
 import org.gradle.api.internal.artifacts.repositories.resolver.VersionLister;
@@ -34,8 +35,8 @@ import static org.gradle.api.internal.artifacts.repositories.metadata.DefaultArt
 public class MavenLocalPomMetadataSource extends DefaultMavenPomMetadataSource {
 
     @Inject
-    public MavenLocalPomMetadataSource(MetadataArtifactProvider metadataArtifactProvider, MetaDataParser<MutableMavenModuleResolveMetadata> pomParser, FileResourceRepository fileResourceRepository, MavenMetadataValidator validator, MavenMetadataLoader mavenMetadataLoader) {
-        super(metadataArtifactProvider, pomParser, fileResourceRepository, validator, mavenMetadataLoader);
+    public MavenLocalPomMetadataSource(MetadataArtifactProvider metadataArtifactProvider, MetaDataParser<MutableMavenModuleResolveMetadata> pomParser, FileResourceRepository fileResourceRepository, MavenMetadataValidator validator, MavenMetadataLoader mavenMetadataLoader, ChecksumService checksumService) {
+        super(metadataArtifactProvider, pomParser, fileResourceRepository, validator, mavenMetadataLoader, checksumService);
     }
 
     @Override

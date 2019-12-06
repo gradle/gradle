@@ -74,7 +74,7 @@ public class InjectedClasspathPluginResolver implements PluginResolver {
         return injectedClasspath.isEmpty();
     }
 
-    private class InjectedClasspathPluginResolution implements PluginResolution {
+    private static class InjectedClasspathPluginResolution implements PluginResolution {
         private final PluginImplementation<?> plugin;
 
         public InjectedClasspathPluginResolution(PluginImplementation<?> plugin) {

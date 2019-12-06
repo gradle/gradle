@@ -26,6 +26,7 @@ import org.gradle.internal.resource.ExternalResourceRepository
 import org.gradle.internal.resource.local.FileStore
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
 import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 import java.lang.reflect.Field
@@ -75,7 +76,7 @@ class DependencyResolverIdentifierTest extends Specification {
     static class TestResolver extends ExternalResourceResolver {
 
         protected TestResolver(String name, boolean local, ExternalResourceRepository repository, CacheAwareExternalResourceAccessor cachingResourceAccessor, LocallyAvailableResourceFinder locallyAvailableResourceFinder, FileStore artifactFileStore, ImmutableModuleIdentifierFactory moduleIdentifierFactory, ImmutableMetadataSources metadataSources, MetadataArtifactProvider metadataArtifactProvider) {
-            super(name, local, repository, cachingResourceAccessor, locallyAvailableResourceFinder, artifactFileStore, metadataSources, metadataArtifactProvider, null, null, null)
+            super(name, local, repository, cachingResourceAccessor, locallyAvailableResourceFinder, artifactFileStore, metadataSources, metadataArtifactProvider, null, null, null, TestUtil.checksumService)
         }
 
         @Override

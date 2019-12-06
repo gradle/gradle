@@ -29,7 +29,7 @@ import org.gradle.api.internal.artifacts.repositories.resolver.ResourcePattern;
 import org.gradle.api.internal.artifacts.repositories.resolver.VersionLister;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.external.model.maven.MutableMavenModuleResolveMetadata;
-import org.gradle.internal.hash.HashUtil;
+import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
@@ -42,13 +42,15 @@ public class DefaultMavenPomMetadataSource extends AbstractRepositoryMetadataSou
     private final MetaDataParser<MutableMavenModuleResolveMetadata> pomParser;
     private final MavenMetadataValidator validator;
     private final MavenMetadataLoader mavenMetadataLoader;
+    private final ChecksumService checksumService;
 
     @Inject
-    public DefaultMavenPomMetadataSource(MetadataArtifactProvider metadataArtifactProvider, MetaDataParser<MutableMavenModuleResolveMetadata> pomParser, FileResourceRepository fileResourceRepository, MavenMetadataValidator validator, MavenMetadataLoader mavenMetadataLoader) {
-        super(metadataArtifactProvider, fileResourceRepository);
+    public DefaultMavenPomMetadataSource(MetadataArtifactProvider metadataArtifactProvider, MetaDataParser<MutableMavenModuleResolveMetadata> pomParser, FileResourceRepository fileResourceRepository, MavenMetadataValidator validator, MavenMetadataLoader mavenMetadataLoader, ChecksumService checksumService) {
+        super(metadataArtifactProvider, fileResourceRepository, checksumService);
         this.pomParser = pomParser;
         this.validator = validator;
         this.mavenMetadataLoader = mavenMetadataLoader;
+        this.checksumService = checksumService;
     }
 
     @Override
@@ -68,7 +70,7 @@ public class DefaultMavenPomMetadataSource extends AbstractRepositoryMetadataSou
             }
             MutableMavenModuleResolveMetadata result = MavenResolver.processMetaData(metaData);
             result.getSources().add(new ModuleDescriptorHashModuleSource(
-                HashUtil.createHash(cachedResource.getFile(), "MD5").asBigInteger(),
+                checksumService.md5(cachedResource.getFile()),
                 metaData.isChanging()
             ));
             if (validator.isUsableModule(repoName, result, artifactResolver)) {
