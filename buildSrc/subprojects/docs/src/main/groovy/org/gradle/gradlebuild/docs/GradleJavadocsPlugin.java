@@ -86,7 +86,7 @@ public class GradleJavadocsPlugin implements Plugin<Project> {
             // TODO: This should be in Javadoc task
             DirectoryProperty generatedJavadocDirectory = project.getObjects().directoryProperty();
             generatedJavadocDirectory.set(layout.getBuildDirectory().dir("javadoc"));
-            task.getOutputs().file(generatedJavadocDirectory);
+            task.getOutputs().dir(generatedJavadocDirectory);
             task.getExtensions().getExtraProperties().set("destinationDirectory", generatedJavadocDirectory);
             // TODO: This breaks the provider
             task.setDestinationDir(generatedJavadocDirectory.get().getAsFile());
