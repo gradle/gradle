@@ -15,7 +15,7 @@
 [[checkstyle_plugin]]
 = The Checkstyle Plugin
 
-The Checkstyle plugin performs quality checks on your project's Java source files using http://checkstyle.sourceforge.net/index.html[Checkstyle] and generates reports from these checks.
+The Checkstyle plugin performs quality checks on your project's Java source files using https://checkstyle.org/index.html[Checkstyle] and generates reports from these checks.
 
 
 [[sec:checkstyle_usage]]
