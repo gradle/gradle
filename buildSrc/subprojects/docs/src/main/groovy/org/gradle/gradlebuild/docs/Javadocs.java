@@ -19,7 +19,6 @@ package org.gradle.gradlebuild.docs;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.Property;
-import org.gradle.api.provider.SetProperty;
 
 import java.net.URI;
 

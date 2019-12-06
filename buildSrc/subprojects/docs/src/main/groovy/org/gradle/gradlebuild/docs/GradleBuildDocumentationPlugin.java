@@ -34,7 +34,6 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.gradlebuild.ProjectGroups;
 import org.gradle.gradlebuild.PublicApi;
-import org.gradle.language.base.plugins.LifecycleBasePlugin;
 
 import java.util.Collections;
 

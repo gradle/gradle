@@ -30,7 +30,6 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.external.javadoc.StandardJavadocDocletOptions;
 import org.gradle.gradlebuild.BuildEnvironment;
-import org.gradle.gradlebuild.PublicApi;
 
 import java.io.File;
 
