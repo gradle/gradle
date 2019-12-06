@@ -25,6 +25,7 @@ import spock.lang.Issue
 import spock.lang.Unroll
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
+import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
 
 class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
 
@@ -436,4 +437,74 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
         )
     }
 
+    @Issue("https://plugins.gradle.org/plugin/com.google.protobuf")
+    def "protobuf plugin"() {
+        given:
+        buildFile << """
+            plugins {
+                id('java')
+                id("com.google.protobuf") version "${TestedVersions.protobuf}"
+            }
+
+            ${mavenCentralRepository()}
+
+            def protobufVersion = '3.11.1'
+            protobuf {
+                protoc {
+                    artifact = "com.google.protobuf:protoc:${'$'}protobufVersion"
+                }
+            }
+            dependencies {
+                implementation "com.google.protobuf:protobuf-java:${'$'}protobufVersion"
+            }
+        """
+
+        and:
+        file("src/main/proto/sample.proto") << """
+            syntax = "proto3";
+            option java_package = "my.proto";
+            option java_multiple_files = true;
+            message Msg {
+                string text = 1;
+            }
+        """
+        file("src/main/java/my/Sample.java") << """
+            package my;
+            import my.proto.Msg;
+            public class Sample {}
+        """
+
+        when:
+        def result = runner('compileJava').forwardOutput().build()
+
+        then:
+        result.task(":generateProto").outcome == SUCCESS
+
+        and:
+        expectDeprecationWarnings(
+            result,
+            "Property 'destDir' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
+            "Property 'isTest' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
+            "The compile configuration has been deprecated for resolution. This will fail with an error in Gradle 7.0. Please resolve the compileClasspath configuration instead.",
+            "Property 'buildType' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
+            "Property 'builtins' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
+            "Property 'descriptorPath' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
+            "Property 'descriptorSetOptions' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
+            "Property 'fileResolver' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
+            "Property 'flavors' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
+            "Property 'generateDescriptorSet' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
+            "Property 'isTestVariant' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
+            "Property 'outputSourceDirectorySet' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
+            "Property 'plugins' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
+            "Property 'sourceFiles' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
+            "Property 'sourceSet' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
+            "Property 'variant' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0."
+        )
+
+        when:
+        result = runner('compileJava').forwardOutput().build()
+
+        then:
+        result.task(":generateProto").outcome == UP_TO_DATE
+    }
 }
