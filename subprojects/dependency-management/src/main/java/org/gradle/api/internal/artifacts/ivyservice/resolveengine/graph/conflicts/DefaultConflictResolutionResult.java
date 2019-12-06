@@ -18,16 +18,30 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflic
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ComponentState;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.NodeState;
 
 import java.util.Collection;
 
-class DefaultConflictResolutionResult<T> implements ConflictResolutionResult {
-    private final Collection<? extends ModuleIdentifier> participatingModules;
-    private final T selected;
+class DefaultConflictResolutionResult implements ConflictResolutionResult {
 
-    public DefaultConflictResolutionResult(Collection<? extends ModuleIdentifier> participatingModules, T selected) {
+    private static ComponentState findComponent(Object selected) {
+        if (selected instanceof ComponentState) {
+            return (ComponentState) selected;
+        }
+        if (selected instanceof NodeState) {
+            return ((NodeState) selected).getComponent();
+        }
+        throw new IllegalArgumentException("Cannot extract a ComponentState from " + selected.getClass());
+    }
+
+
+    private final Collection<? extends ModuleIdentifier> participatingModules;
+    private final ComponentState selected;
+
+    public DefaultConflictResolutionResult(Collection<? extends ModuleIdentifier> participatingModules, Object selected) {
         this.participatingModules = participatingModules;
-        this.selected = selected;
+        this.selected = findComponent(selected);
     }
 
     @Override
@@ -38,7 +52,7 @@ class DefaultConflictResolutionResult<T> implements ConflictResolutionResult {
     }
 
     @Override
-    public T getSelected() {
+    public ComponentState getSelected() {
         return selected;
     }
 

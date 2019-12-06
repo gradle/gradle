@@ -18,9 +18,9 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflic
 
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.dsl.ModuleReplacementsData
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ConflictResolverDetails
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflictResolver
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ComponentState
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -100,7 +100,7 @@ class DefaultConflictHandlerTest extends Specification {
         def candidate = Stub(CandidateModule)
         candidate.getId() >> DefaultModuleIdentifier.newId(group, name)
         candidate.getVersions() >> versions.collect { String version ->
-            def v = Stub(ComponentResolutionState)
+            def v = Stub(ComponentState)
             v.getId() >> newId(group, name, version)
             v
         }
