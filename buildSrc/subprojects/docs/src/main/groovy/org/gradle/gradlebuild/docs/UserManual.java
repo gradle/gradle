@@ -38,6 +38,8 @@ public abstract class UserManual {
      */
     public abstract DirectoryProperty getStagingRoot();
 
+    public abstract DirectoryProperty getStagedDocumentation();
+
     /**
      * Additional resources to include in the final docs
      */

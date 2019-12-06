@@ -19,12 +19,10 @@ package org.gradle.gradlebuild.docs;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.tasks.CacheableTask;
-import org.gradle.api.tasks.InputFiles;
-import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
@@ -36,57 +34,59 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.regex.MatchResult;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
  * Checks adoc files for broken links.
- *
- * TODO: This is currently broken.
  */
 @CacheableTask
 public abstract class FindBrokenInternalLinks extends DefaultTask {
     private final Pattern linkPattern = Pattern.compile("<<([^,>]+)[^>]*>>");
     private final Pattern linkWithHashPattern = Pattern.compile("([a-zA-Z_0-9-.]*)#(.*)");
 
-    @Internal
-    public abstract DirectoryProperty getDocumentationRoot();
-
-    @InputFiles
+    @InputDirectory
     @PathSensitive(PathSensitivity.RELATIVE)
-    public abstract ConfigurableFileCollection getDocumentationFiles();
+    public abstract DirectoryProperty getDocumentationRoot();
 
     @OutputFile
     public abstract RegularFileProperty getReportFile();
 
     @TaskAction
     public void checkDeadLinks() {
-        Map<String, List<Error>> errors = new TreeMap<>();
+        Map<File, List<Error>> errors = new TreeMap<>();
         File documentationRoot = getDocumentationRoot().get().getAsFile();
 
-        getDocumentationFiles().forEach(file -> {
+        getDocumentationRoot().getAsFileTree().matching(pattern -> pattern.include("**/*.adoc")).forEach(file -> {
             hasDeadLink(documentationRoot, file, errors);
         });
         reportErrors(errors, getReportFile().get().getAsFile());
     }
 
-    private void reportErrors(Map<String, List<Error>> errors, File reportFile) {
+    private void reportErrors(Map<File, List<Error>> errors, File reportFile) {
         try (PrintWriter fw = new PrintWriter(new FileWriter(reportFile))) {
             writeHeader(fw);
             if (errors.isEmpty()) {
                 fw.println("All clear!");
                 return;
             }
-            for (Map.Entry<String, List<Error>> e : errors.entrySet()) {
-                String file = e.getKey();
+            for (Map.Entry<File, List<Error>> e : errors.entrySet()) {
+                File file = e.getKey();
                 List<Error> errorsForFile = e.getValue();
-                fw.println("In " + file);
+
+                StringBuilder sb = new StringBuilder();
                 for (Error error : errorsForFile) {
-                    fw.println("   - At line " + error.line + "invalid include " + error.missingFile);
+                    sb.append("ERROR: " + file.getName() + ":" + error.lineNumber + " " + error.message + "\n    " + error.line + "\n");
                 }
+                String message = sb.toString();
+                getLogger().error(message);
+                fw.println(message);
             }
         } catch (IOException e) {
             throw new UncheckedIOException(e);
@@ -102,7 +102,7 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
         fw.println("# The checker does not handle implicit section names, so they must be explicit and declared as: [[section-name]]");
     }
 
-    private void hasDeadLink(File baseDir, File sourceFile, Map<String, List<Error>> errors) {
+    private void hasDeadLink(File baseDir, File sourceFile, Map<File, List<Error>> errors) {
         int lineNumber = 0;
         List<Error> errorsForFile = new ArrayList<>();
 
@@ -110,30 +110,34 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
             String line = br.readLine();
             while (line != null) {
                 lineNumber++;
-                // TODO: fix this
-//                linkPattern.findAll(line).forEach {
-//                    val link = it.groupValues[1]
-//                    if (link.contains('#')) {
-//                        linkWithHashPattern.find(link) !!.apply {
-//                            val fileName = getFileName(this.groupValues[1], sourceFile)
-//                            val referencedFile = File(baseDir, fileName)
-//                            if (!referencedFile.exists() || referencedFile.isDirectory) {
-//                                errorsForFile.add(Error(lineNumber, fileName))
-//                            } else {
-//                                val idName = this.groupValues[2]
-//                                if (idName.isNotEmpty()) {
-//                                    if (!referencedFile.readText().contains("[[$idName]]")) {
-//                                        errorsForFile.add(Error(lineNumber, "$fileName $idName"))
-//                                    }
-//                                }
-//                            }
-//                        }
-//                    } else {
-//                        if (!sourceFile.readText().contains("[[$link]]")) {
-//                            errorsForFile.add(Error(lineNumber, "${sourceFile.name} $link"))
-//                        }
-//                    }
-//                }
+                Matcher matcher = linkPattern.matcher(line);
+                while (matcher.find()) {
+                    MatchResult xrefMatcher = matcher.toMatchResult();
+                    String link = xrefMatcher.group(1);
+                    if (link.contains("#")) {
+                        Matcher linkMatcher = linkWithHashPattern.matcher(link);
+                        if (linkMatcher.matches()) {
+                            MatchResult result = linkMatcher.toMatchResult();
+                            String fileName = getFileName(result.group(1), sourceFile);
+                            File referencedFile = new File(baseDir, fileName);
+                            if (!referencedFile.exists() || referencedFile.isDirectory()) {
+                                errorsForFile.add(new Error(lineNumber, line, "Looking for file named " + fileName));
+                            } else {
+                                String idName = result.group(2);
+                                if (!idName.isEmpty()) {
+                                    if (!fileContainsText(referencedFile, "[[" + idName + "]]")) {
+                                        errorsForFile.add(new Error(lineNumber, line, "Looking for section named " + idName + " in " + fileName));
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        if (!fileContainsText(sourceFile, "[[" + link + "]]")) {
+                            errorsForFile.add(new Error(lineNumber, line, "Looking for section named " + link + " in " + sourceFile.getName()));
+                        }
+                    }
+                }
+
                 line = br.readLine();
             }
         } catch (IOException e) {
@@ -141,25 +145,43 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
         }
 
         if (!errorsForFile.isEmpty()) {
-            errors.put(sourceFile.getAbsolutePath(), errorsForFile);
+            errors.put(sourceFile, errorsForFile);
         }
     }
-//
-//    private String getFileName(String match, File currentFile) {
-//        return if (match.isNotEmpty()) {
-//            if (match.endsWith(".adoc")) match else "$match.adoc"
-//        } else {
-//            currentFile.name
-//        }
-//    }
+
+    private boolean fileContainsText(File referencedFile, String text) {
+        try {
+            for (String line : Files.readAllLines(referencedFile.toPath())) {
+                if (line.contains(text)) {
+                    return true;
+                }
+            }
+        } catch (IOException e) {
+            // ignore
+        }
+        return false;
+    }
+
+    private String getFileName(String match, File currentFile) {
+        if (match.isEmpty()) {
+            return currentFile.getName();
+        } else {
+            if (match.endsWith(".adoc")) {
+                return match;
+            }
+            return match + ".adoc";
+        }
+    }
 
     private static class Error {
-        private final int line;
-        private final String missingFile;
+        private final int lineNumber;
+        private final String line;
+        private final String message;
 
-        private Error(int line, String missingFile) {
+        private Error(int lineNumber, String line, String message) {
+            this.lineNumber = lineNumber;
             this.line = line;
-            this.missingFile = missingFile;
+            this.message = message;
         }
     }
 }

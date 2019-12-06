@@ -21,6 +21,7 @@ import org.asciidoctor.gradle.AsciidoctorTask;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.file.Directory;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RelativePath;
@@ -55,17 +56,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
         generateDefaultImports(project, tasks, extension);
         generateUserManual(project, tasks, objects, layout, extension);
 
-        TaskProvider<FindBrokenInternalLinks> checkDeadInternalLinks = tasks.register("checkDeadInternalLinks", FindBrokenInternalLinks.class, task -> {
-            // TODO: Configure this properly
-            task.getReportFile().convention(layout.getBuildDirectory().file("reports/dead-internal-links.txt"));
-            task.getDocumentationRoot().convention(extension.getDocumentationRenderedRoot());
-            // TODO: This should be the intermediate adoc files
-            task.getDocumentationFiles().from();
-//            dependsOn(userguideFlattenSources)
-//            inputDirectory.set(userguideFlattenSources.get().destinationDir)
-        });
-
-        tasks.named(LifecycleBasePlugin.CHECK_TASK_NAME, task -> task.dependsOn(checkDeadInternalLinks));
+        checkXrefLinksInUserManualAreValid(layout, tasks, objects, extension);
     }
 
     // TODO: This doesn't really make sense to be part of the user manual generation, but it's so tied up into it
@@ -185,7 +176,13 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             });
             task.from(extension.getUserManual().getResources());
 
-            task.into(extension.getUserManual().getStagingRoot().dir("raw"));
+            // TODO: This should be available on a Copy task.
+            DirectoryProperty flattenedAsciidocDirectory = project.getObjects().directoryProperty();
+            flattenedAsciidocDirectory.set(extension.getUserManual().getStagingRoot().dir("raw"));
+            task.getOutputs().dir(flattenedAsciidocDirectory);
+            task.getExtensions().getExtraProperties().set("destinationDirectory", flattenedAsciidocDirectory);
+            task.into(flattenedAsciidocDirectory);
+
             // TODO: ???
 //            doLast {
 //                adocFiles.each { adocFile ->
@@ -198,7 +195,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
         TaskProvider<AsciidoctorTask> userguideSinglePage = tasks.register("userguideSinglePage", AsciidoctorTask.class, task -> {
             task.setGroup("documentation");
             task.setDescription("Generates single-page user manual.");
-            task.dependsOn(userguideFlattenSources);
+            task.dependsOn(extension.getUserManual().getStagedDocumentation());
 
             task.sources(new Closure(null) {
                 public Object doCall(Object ignore) {
@@ -209,7 +206,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             task.backends("pdf");
 
             // TODO: This breaks the provider
-            task.setSourceDir(userguideFlattenSources.get().getDestinationDir());
+            task.setSourceDir(extension.getUserManual().getStagedDocumentation().get().getAsFile());
 
             // TODO: This breaks the provider
             task.setOutputDir(extension.getUserManual().getStagingRoot().dir("render-single").get().getAsFile());
@@ -229,7 +226,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
         TaskProvider<AsciidoctorTask> userguideMultiPage = tasks.register("userguideMultiPage", AsciidoctorTask.class, task -> {
             task.setGroup("documentation");
             task.setDescription("Generates multi-page user manual.");
-            task.dependsOn(userguideFlattenSources);
+            task.dependsOn(extension.getUserManual().getStagedDocumentation());
 
             task.sources(new Closure(null) {
                 public Object doCall(Object ignore) {
@@ -241,7 +238,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
                 }
             });
             // TODO: This breaks the provider
-            task.setSourceDir(userguideFlattenSources.get().getDestinationDir());
+            task.setSourceDir(extension.getUserManual().getStagedDocumentation().get().getAsFile());
             // TODO: This breaks the provider
             task.setOutputDir(extension.getUserManual().getStagingRoot().dir("render-multi").get().getAsFile());
 
@@ -278,7 +275,17 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             userManual.getRoot().convention(extension.getSourceRoot().dir("userguide"));
             userManual.getStagingRoot().convention(extension.getStagingRoot().dir("usermanual"));
             userManual.getSnippets().convention(layout.getProjectDirectory().dir("src/snippets"));
+            userManual.getStagedDocumentation().convention(userguideFlattenSources.flatMap(task -> (DirectoryProperty) task.getExtensions().getExtraProperties().get("destinationDirectory")));
             userManual.getRenderedDocumentation().from(userguide);
         });
+    }
+
+    private void checkXrefLinksInUserManualAreValid(ProjectLayout layout, TaskContainer tasks, ObjectFactory objects, GradleDocumentationExtension extension) {
+        TaskProvider<FindBrokenInternalLinks> checkDeadInternalLinks = tasks.register("checkDeadInternalLinks", FindBrokenInternalLinks.class, task -> {
+            task.getReportFile().convention(layout.getBuildDirectory().file("reports/dead-internal-links.txt"));
+            task.getDocumentationRoot().convention(extension.getUserManual().getStagedDocumentation());
+        });
+
+        tasks.named(LifecycleBasePlugin.CHECK_TASK_NAME, task -> task.dependsOn(checkDeadInternalLinks));
     }
 }
