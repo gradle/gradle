@@ -159,9 +159,16 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             task.attributes(attributes);
         });
 
+        TaskProvider<GenerateDocInfo> generateDocinfo = tasks.register("generateDocInfo", GenerateDocInfo.class, task -> {
+            task.getDocumentationFiles().from(extension.getUserManual().getRoot());
+            task.getDocumentationRoot().convention(extension.getUserManual().getRoot());
+            task.getDestinationDirectory().convention(layout.getBuildDirectory().dir("tmp/" + task.getName()));
+        });
+
         TaskProvider<Sync> userguideFlattenSources = tasks.register("stageUserguideSource", Sync.class, task -> {
             task.setDuplicatesStrategy(DuplicatesStrategy.FAIL);
 
+            // TODO: This doesn't allow adoc files to be generated?
             task.from(extension.getUserManual().getRoot(), sub -> {
                 sub.include("**/*.adoc");
                 // Flatten adocs into a single directory
@@ -176,20 +183,14 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             });
             task.from(extension.getUserManual().getResources());
 
+            task.from(generateDocinfo);
+
             // TODO: This should be available on a Copy task.
             DirectoryProperty flattenedAsciidocDirectory = project.getObjects().directoryProperty();
             flattenedAsciidocDirectory.set(extension.getUserManual().getStagingRoot().dir("raw"));
             task.getOutputs().dir(flattenedAsciidocDirectory);
             task.getExtensions().getExtraProperties().set("destinationDirectory", flattenedAsciidocDirectory);
             task.into(flattenedAsciidocDirectory);
-
-            // TODO: ???
-//            doLast {
-//                adocFiles.each { adocFile ->
-//                        file("${buildDir}/userguide-resources/${adocFile.name.substring(0, adocFile.name.length() - 5)}-docinfo.html").text =
-//                                """<meta name="adoc-src-path" content="${adocFile.path - adocDir.path}">"""
-//                }
-//            }
         });
 
         TaskProvider<AsciidoctorTask> userguideSinglePage = tasks.register("userguideSinglePage", AsciidoctorTask.class, task -> {
