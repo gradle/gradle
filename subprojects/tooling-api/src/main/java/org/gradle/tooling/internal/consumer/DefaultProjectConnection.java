@@ -68,12 +68,12 @@ class DefaultProjectConnection implements ProjectConnection {
         if (!modelType.isInterface()) {
             throw new IllegalArgumentException(String.format("Cannot fetch a model of type '%s' as this type is not an interface.", modelType.getName()));
         }
-        return new DefaultModelBuilder<T>(modelType, connection, parameters);
+        return new DefaultModelBuilder<>(modelType, connection, parameters);
     }
 
     @Override
     public <T> BuildActionExecuter<T> action(final BuildAction<T> buildAction) {
-        return new DefaultBuildActionExecuter<T>(buildAction, connection, parameters);
+        return new DefaultBuildActionExecuter<>(buildAction, connection, parameters);
     }
 
     @Override

@@ -37,7 +37,7 @@ public class DefaultGradleUserHomeScopeServiceRegistry implements GradleUserHome
     private final ServiceRegistry sharedServices;
     private final Object provider;
     private final Lock lock = new ReentrantLock();
-    private final Map<File, Services> servicesForHomeDir = new HashMap<File, Services>();
+    private final Map<File, Services> servicesForHomeDir = new HashMap<>();
 
     public DefaultGradleUserHomeScopeServiceRegistry(ServiceRegistry sharedServices, Object provider) {
         this.sharedServices = sharedServices;
@@ -82,12 +82,7 @@ public class DefaultGradleUserHomeScopeServiceRegistry implements GradleUserHome
                     .displayName("services for Gradle user home dir " + gradleUserHomeDir)
                     .provider(new Object() {
                         GradleUserHomeDirProvider createGradleUserHomeDirProvider() {
-                            return new GradleUserHomeDirProvider() {
-                                @Override
-                                public File getGradleUserHomeDirectory() {
-                                    return gradleUserHomeDir;
-                                }
-                            };
+                            return () -> gradleUserHomeDir;
                         }
                     })
                     .provider(provider)
