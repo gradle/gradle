@@ -210,6 +210,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
 
             // TODO: This breaks the provider
             task.setSourceDir(userguideFlattenSources.get().getDestinationDir());
+
             // TODO: This breaks the provider
             task.setOutputDir(extension.getUserManual().getStagingRoot().dir("render-single").get().getAsFile());
 
@@ -264,6 +265,11 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             task.from(userguideSinglePage);
             task.from(userguideMultiPage);
             task.into(extension.getUserManual().getStagingRoot().dir("final"));
+            // TODO: Eliminate this duplication with the flatten task
+            task.from(extension.getUserManual().getRoot().dir("img"), sub -> {
+                sub.include("**/*.png", "**/*.gif", "**/*.jpg");
+                sub.into("img");
+            });
 
             task.rename("userguide_single.pdf", "userguide.pdf");
         });
