@@ -41,17 +41,20 @@ class InvalidateVirtualFileSystemCrossVersionSpec extends ToolingApiSpecificatio
         def filesToInvalidate = [file("src/main/java").absolutePath]
 
         when:
-        withConnection { connection ->
-            connection.model(GradleBuild).get()
-        }
-        toolingApi.daemons.daemon.assertIdle()
+        createIdleDaemon()
 
-        and:
         withConnection { connection ->
             connection.notifyDaemonsAboutChangedFiles(filesToInvalidate)
         }
 
         then:
         toolingApi.daemons.daemon.log.contains("Invalidating ${filesToInvalidate}")
+    }
+
+    private void createIdleDaemon() {
+        withConnection { connection ->
+            connection.model(GradleBuild).get()
+        }
+        toolingApi.daemons.daemon.assertIdle()
     }
 }

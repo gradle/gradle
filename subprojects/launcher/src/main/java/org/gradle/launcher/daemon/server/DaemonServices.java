@@ -30,6 +30,7 @@ import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
+import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.launcher.cli.action.BuildActionSerializer;
 import org.gradle.launcher.daemon.configuration.DaemonServerConfiguration;
 import org.gradle.launcher.daemon.context.DaemonContext;
@@ -143,7 +144,7 @@ public class DaemonServices extends DefaultServiceRegistry {
         DaemonDiagnostics daemonDiagnostics = new DaemonDiagnostics(daemonLog, daemonContext.getPid());
         return ImmutableList.of(
             new HandleStop(get(ListenerManager.class)),
-            new HandleInvalidateLocations(this),
+            new HandleInvalidateLocations(get(GradleUserHomeScopeServiceRegistry.class)),
             new HandleCancel(),
             new HandleReportStatus(),
             new ReturnResult(),

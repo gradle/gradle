@@ -16,7 +16,6 @@
 
 package org.gradle.launcher.daemon.server.api;
 
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.launcher.daemon.protocol.InvalidateFileSystemLocations;
@@ -27,17 +26,16 @@ import org.slf4j.LoggerFactory;
 public class HandleInvalidateLocations implements DaemonCommandAction {
     private static final Logger LOGGER = LoggerFactory.getLogger(HandleInvalidateLocations.class);
 
-    private final ServiceRegistry contextServices;
+    private final GradleUserHomeScopeServiceRegistry gradleUserHomeScopeServiceRegistry;
 
-    public HandleInvalidateLocations(ServiceRegistry contextServices) {
-        this.contextServices = contextServices;
+    public HandleInvalidateLocations(GradleUserHomeScopeServiceRegistry gradleUserHomeScopeServiceRegistry) {
+        this.gradleUserHomeScopeServiceRegistry = gradleUserHomeScopeServiceRegistry;
     }
 
     @Override
     public void execute(DaemonCommandExecution execution) {
         if (execution.getCommand() instanceof InvalidateFileSystemLocations) {
             InvalidateFileSystemLocations command = (InvalidateFileSystemLocations) execution.getCommand();
-            GradleUserHomeScopeServiceRegistry gradleUserHomeScopeServiceRegistry = contextServices.get(GradleUserHomeScopeServiceRegistry.class);
             gradleUserHomeScopeServiceRegistry.getCurrentServices().ifPresent(currentServices -> {
                 LOGGER.info("Invalidating {}", command.getLocations());
                 VirtualFileSystem virtualFileSystem = currentServices.get(VirtualFileSystem.class);

@@ -159,7 +159,7 @@ public interface ProjectConnection extends Closeable {
     BuildActionExecuter.Builder action();
 
     /**
-     * Notifies all daemons about the some changes made by an external tool, like an IDE.
+     * Notifies all daemons about file changes made by an external process, like an IDE.
      *
      * The daemons will use this information to update the retained file system state.
      *
