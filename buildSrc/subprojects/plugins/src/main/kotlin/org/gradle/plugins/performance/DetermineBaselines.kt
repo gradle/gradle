@@ -93,7 +93,7 @@ open class DetermineBaselines @Inject constructor(isDistributed: Boolean) : Defa
     private
     fun tryGetUpstream(): String? = project.execAndGetStdout("git", "remote", "-v")
         .lines()
-        .find { it.contains("git@github.com:gradle/gradle.git") }
+        .find { it.contains("git@github.com:gradle/gradle.git") || it.contains("https://github.com/gradle/gradle.git") }
         .let {
             val str = it?.replace(Regex("\\s+"), " ")
             return str?.substring(0, str.indexOf(' '))
