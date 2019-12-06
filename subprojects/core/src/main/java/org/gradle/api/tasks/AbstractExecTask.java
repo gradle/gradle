@@ -371,9 +371,10 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
      * @return The result. Returns {@code null} if this task has not been executed yet.
      */
     @Internal
+    @Nullable
     @Deprecated
     public ExecResult getExecResult() {
-        DeprecationLogger.nagUserOfReplacedMethod("getExecResult", "getExecutionResult");
+        DeprecationLogger.nagUserOfReplacedMethod("AbstractExecTask.getExecResult()", "AbstractExecTask.getExecutionResult()");
         return execResult.getOrNull();
     }
 

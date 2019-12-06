@@ -24,7 +24,7 @@ class ExecutionResultExecTaskDeprecationIntegrationTest extends AbstractExecutio
 
     def setup() {
         executer.beforeExecute {
-            executer.expectDeprecationWarning("The getExecResult method has been deprecated. This is scheduled to be removed in Gradle 7.0. Please use the getExecutionResult method instead.")
+            executer.expectDeprecationWarning("The AbstractExecTask.getExecResult() method has been deprecated. This is scheduled to be removed in Gradle 7.0. Please use the AbstractExecTask.getExecutionResult() method instead.")
         }
     }
 

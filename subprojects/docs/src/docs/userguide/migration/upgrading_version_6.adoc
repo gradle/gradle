@@ -76,10 +76,9 @@ taskA.threadPoolSize = taskB.outputFile.map { it.text.toInteger() }
 In this case, calling `get()`, or any other query method, on `taskA.threadPoolSize` will produce a deprecation warning if done prior to `taskB` completing, as the file has not yet been generated.
 This will become an error in Gradle 7.0
 
-==== `Exec#getExecResult()` has been deprecated
+==== Deprecated methods
 
-The `Exec#getExecResult()` has been replaced by `Exec#getExecutionResult()` for consistency with the new `JavaExec#getExecutionResult()`.
-It provide validation through the use of the <<lazy_configuration.adoc#,Provider API>>.
+- `AbstractExecTask#getExecResult()` has been replaced by `AbstractExecTask#getExecutionResult()` for consistency with `JavaExec#getExecutionResult()`. The return type is a <<lazy_configuration.adoc#,lazy value provider>>.
 
 === Potential breaking changes
 
