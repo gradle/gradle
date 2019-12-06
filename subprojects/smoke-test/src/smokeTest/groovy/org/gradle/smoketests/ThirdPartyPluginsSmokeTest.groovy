@@ -443,19 +443,18 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
         buildFile << """
             plugins {
                 id('java')
-                id("com.google.protobuf") version "${TestedVersions.protobuf}"
+                id("com.google.protobuf") version "${TestedVersions.protobufPlugin}"
             }
 
             ${mavenCentralRepository()}
 
-            def protobufVersion = '3.11.1'
             protobuf {
                 protoc {
-                    artifact = "com.google.protobuf:protoc:${'$'}protobufVersion"
+                    artifact = "com.google.protobuf:protoc:${TestedVersions.protobufTools}"
                 }
             }
             dependencies {
-                implementation "com.google.protobuf:protobuf-java:${'$'}protobufVersion"
+                implementation "com.google.protobuf:protobuf-java:${TestedVersions.protobufTools}"
             }
         """
 
@@ -479,6 +478,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
 
         then:
         result.task(":generateProto").outcome == SUCCESS
+        result.task(":compileJava").outcome == SUCCESS
 
         and:
         expectDeprecationWarnings(
@@ -506,5 +506,6 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
 
         then:
         result.task(":generateProto").outcome == UP_TO_DATE
+        result.task(":compileJava").outcome == UP_TO_DATE
     }
 }
