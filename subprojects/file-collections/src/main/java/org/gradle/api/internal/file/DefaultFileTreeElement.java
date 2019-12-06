@@ -63,7 +63,7 @@ public class DefaultFileTreeElement extends AbstractFileTreeElement {
 
     @Override
     public boolean isDirectory() {
-        return file.isDirectory();
+        return !relativePath.isFile();
     }
 
     @Override

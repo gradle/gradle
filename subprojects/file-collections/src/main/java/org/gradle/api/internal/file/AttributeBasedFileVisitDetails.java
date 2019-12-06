@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,28 +16,29 @@
 
 package org.gradle.api.internal.file;
 
-import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RelativePath;
 import org.gradle.internal.file.Chmod;
 import org.gradle.internal.file.Stat;
 
 import java.io.File;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class DefaultFileVisitDetails extends DefaultFileTreeElement implements FileVisitDetails {
-    private final AtomicBoolean stop;
+public class AttributeBasedFileVisitDetails extends DefaultFileVisitDetails {
+    private final BasicFileAttributes attributes;
 
-    public DefaultFileVisitDetails(File file, RelativePath relativePath, AtomicBoolean stop, Chmod chmod, Stat stat) {
-        super(file, relativePath, chmod, stat);
-        this.stop = stop;
-    }
-
-    public DefaultFileVisitDetails(File file, Chmod chmod, Stat stat) {
-        this(file, new RelativePath(!file.isDirectory(), file.getName()), new AtomicBoolean(), chmod, stat);
+    public AttributeBasedFileVisitDetails(File file, RelativePath relativePath, AtomicBoolean stop, Chmod chmod, Stat stat, BasicFileAttributes attributes) {
+        super(file, relativePath, stop, chmod, stat);
+        this.attributes = attributes;
     }
 
     @Override
-    public void stopVisiting() {
-        stop.set(true);
+    public long getSize() {
+        return attributes.size();
+    }
+
+    @Override
+    public long getLastModified() {
+        return attributes.lastModifiedTime().toMillis();
     }
 }
