@@ -23,6 +23,7 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.Exec;
 import org.gradle.api.tasks.PathSensitivity;
@@ -32,6 +33,7 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.gradlebuild.ProjectGroups;
+import org.gradle.gradlebuild.PublicApi;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 
 import java.util.Collections;
@@ -88,9 +90,15 @@ public class GradleBuildDocumentationPlugin implements Plugin<Project> {
 
         Configuration gradleApiRuntime = project.getConfigurations().create("gradleApiRuntime");
         extension.getClasspath().from(gradleApiRuntime);
+
         // TODO: This should not reach across project boundaries
         for (Project publicProject : ProjectGroups.INSTANCE.getPublicJavaProjects(project)) {
-            extension.getDocumentedSource().from(publicProject.getExtensions().getByType(SourceSetContainer.class).getByName("main").getAllJava());
+            SourceDirectorySet javaSources = publicProject.getExtensions().getByType(SourceSetContainer.class).getByName("main").getAllJava();
+            extension.getDocumentedSource().from(javaSources.matching(pattern -> {
+                // Filter out any non-public APIs
+                pattern.include(PublicApi.INSTANCE.getIncludes());
+                pattern.exclude(PublicApi.INSTANCE.getExcludes());
+            }));
         }
     }
 
@@ -123,18 +131,6 @@ public class GradleBuildDocumentationPlugin implements Plugin<Project> {
     }
 
     private void checkDocumentation(ProjectLayout layout, TaskContainer tasks, GradleDocumentationExtension extension) {
-        TaskProvider<FindBrokenInternalLinks> checkDeadInternalLinks = tasks.register("checkDeadInternalLinks", FindBrokenInternalLinks.class, task -> {
-            // TODO: Configure this properly
-            task.getReportFile().convention(layout.getBuildDirectory().file("reports/dead-internal-links.txt"));
-            task.getDocumentationRoot().convention(extension.getDocumentationRenderedRoot());
-            // TODO: This should be the intermediate adoc files
-            task.getDocumentationFiles().from();
-//            dependsOn(userguideFlattenSources)
-//            inputDirectory.set(userguideFlattenSources.get().destinationDir)
-        });
-
-        tasks.named(LifecycleBasePlugin.CHECK_TASK_NAME, task -> task.dependsOn(checkDeadInternalLinks));
-
         tasks.named("test", Test.class).configure(task -> {
             task.getInputs().file(extension.getReleaseNotes().getRenderedDocumentation()).withPropertyName("releaseNotes").withPathSensitivity(PathSensitivity.NONE);
             task.getInputs().file(extension.getReleaseFeatures().getReleaseFeaturesFile()).withPropertyName("releaseFeatures").withPathSensitivity(PathSensitivity.NONE);

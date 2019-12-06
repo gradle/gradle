@@ -46,15 +46,6 @@ public abstract class Javadocs {
     public abstract RegularFileProperty getJavadocCss();
 
     /**
-     * Packages to include in the documentation
-     */
-    public abstract SetProperty<String> getIncludes();
-    /**
-     * Packages to exclude in the documentation
-     */
-    public abstract SetProperty<String> getExcludes();
-
-    /**
      * A collection of the final rendered Javaodcs
      */
     public abstract ConfigurableFileCollection getRenderedDocumentation();

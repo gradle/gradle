@@ -35,6 +35,7 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.build.docs.dsl.source.GenerateApiMapping;
 import org.gradle.build.docs.dsl.source.GenerateDefaultImports;
+import org.gradle.language.base.plugins.LifecycleBasePlugin;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -53,6 +54,18 @@ public class GradleUserManualPlugin implements Plugin<Project> {
         GradleDocumentationExtension extension = project.getExtensions().getByType(GradleDocumentationExtension.class);
         generateDefaultImports(project, tasks, extension);
         generateUserManual(project, tasks, objects, layout, extension);
+
+        TaskProvider<FindBrokenInternalLinks> checkDeadInternalLinks = tasks.register("checkDeadInternalLinks", FindBrokenInternalLinks.class, task -> {
+            // TODO: Configure this properly
+            task.getReportFile().convention(layout.getBuildDirectory().file("reports/dead-internal-links.txt"));
+            task.getDocumentationRoot().convention(extension.getDocumentationRenderedRoot());
+            // TODO: This should be the intermediate adoc files
+            task.getDocumentationFiles().from();
+//            dependsOn(userguideFlattenSources)
+//            inputDirectory.set(userguideFlattenSources.get().destinationDir)
+        });
+
+        tasks.named(LifecycleBasePlugin.CHECK_TASK_NAME, task -> task.dependsOn(checkDeadInternalLinks));
     }
 
     // TODO: This doesn't really make sense to be part of the user manual generation, but it's so tied up into it

@@ -53,7 +53,7 @@ public abstract class GradleDocumentationExtension {
     public abstract ConfigurableFileCollection getCssFiles();
 
     /**
-     * The source code to be documented.
+     * The source code to be documented. This should be the "public" APIs.
      */
     public abstract ConfigurableFileCollection getDocumentedSource();
 

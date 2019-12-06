@@ -82,11 +82,6 @@ public class GradleJavadocsPlugin implements Plugin<Project> {
 
             task.source(extension.getDocumentedSource());
 
-            // TODO: This breaks the provider
-            task.include(javadocs.getIncludes().get());
-            // TODO: This breaks the provider
-            task.exclude(javadocs.getIncludes().get());
-
             task.setClasspath(extension.getClasspath());
 
             // TODO: This should be in Javadoc task
@@ -126,8 +121,7 @@ public class GradleJavadocsPlugin implements Plugin<Project> {
 
         extension.javadocs(javadocs -> {
             javadocs.getJavadocCss().convention(extension.getSourceRoot().file("css/javadoc.css"));
-            javadocs.getIncludes().convention(PublicApi.INSTANCE.getIncludes());
-            javadocs.getExcludes().convention(PublicApi.INSTANCE.getExcludes());
+
             // TODO: destinationDirectory should be part of Javadoc
             javadocs.getRenderedDocumentation().from(javadocAll.flatMap(task -> (DirectoryProperty) task.getExtensions().getExtraProperties().get("destinationDirectory")));
         });
