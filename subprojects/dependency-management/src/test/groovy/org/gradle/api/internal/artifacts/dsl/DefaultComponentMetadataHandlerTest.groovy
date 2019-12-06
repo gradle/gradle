@@ -28,6 +28,7 @@ import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.MetadataResolutionContext
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleSourcesSerializer
 import org.gradle.api.specs.Specs
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory
@@ -67,6 +68,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
     def mavenMetadataFactory = DependencyManagementTestUtil.mavenMetadataFactory()
     def ivyMetadataFactory = DependencyManagementTestUtil.ivyMetadataFactory()
     MetadataResolutionContext context = Mock()
+    ModuleSourcesSerializer moduleSourcesSerializer = new ModuleSourcesSerializer([:])
 
     def 'setup'() {
         TestComponentMetadataRule.instanceCount = 0

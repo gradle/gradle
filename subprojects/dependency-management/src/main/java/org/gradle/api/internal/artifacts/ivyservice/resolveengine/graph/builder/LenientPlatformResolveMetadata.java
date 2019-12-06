@@ -37,7 +37,6 @@ import org.gradle.internal.component.external.model.VirtualComponentIdentifier;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.ModuleSources;
-import org.gradle.internal.hash.HashValue;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
@@ -157,11 +156,6 @@ class LenientPlatformResolveMetadata implements ModuleComponentResolveMetadata {
     @Override
     public ModuleComponentArtifactMetadata artifact(String type, @Nullable String extension, @Nullable String classifier) {
         throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public HashValue getOriginalContentHash() {
-        return null;
     }
 
     @Override

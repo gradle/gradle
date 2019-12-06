@@ -20,12 +20,12 @@ import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.ArtifactVerificationOperation;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
+import org.gradle.api.internal.artifacts.repositories.metadata.DefaultMetadataFileSource;
 import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
-import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
@@ -38,6 +38,7 @@ import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolv
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
 
 import javax.annotation.Nullable;
+import java.io.File;
 import java.util.Map;
 
 public class DependencyVerifyingModuleComponentRepository implements ModuleComponentRepository {
@@ -96,9 +97,34 @@ public class DependencyVerifyingModuleComponentRepository implements ModuleCompo
             delegate.listModuleVersions(dependency, result);
         }
 
+        private boolean hasUsableResult(BuildableModuleComponentMetaDataResolveResult result) {
+            return result.hasResult() && result.getState() == BuildableModuleComponentMetaDataResolveResult.State.Resolved;
+        }
+
         @Override
         public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult result) {
             delegate.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result);
+            if (hasUsableResult(result)) {
+                result.getMetaData().getSources().withSources(DefaultMetadataFileSource.class, metadataFileSource -> {
+                    ModuleComponentArtifactIdentifier artifact = metadataFileSource.getArtifactId();
+                    if (isExternalArtifactId(artifact)) {
+                        result.getMetaData().getSources().withSource(ModuleDescriptorHashModuleSource.class, hashSource -> {
+                            if (hashSource.isPresent()) {
+                                boolean changingModule = requestMetaData.isChanging() || hashSource.get().isChangingModule();
+                                if (!changingModule) {
+                                    File artifactFile = metadataFileSource.getArtifactFile();
+                                    if (artifactFile != null) {
+                                        // it's possible that the file is null if it has been removed from the cache
+                                        // for example
+                                        operation.onArtifact(artifact, artifactFile);
+                                    }
+                                }
+                            }
+                            return null;
+                        });
+                    }
+                });
+            }
         }
 
         @Override
@@ -124,13 +150,13 @@ public class DependencyVerifyingModuleComponentRepository implements ModuleCompo
         }
 
         private boolean isNotChanging(ModuleSources moduleSources) {
-            return moduleSources.withSource(CachingModuleComponentRepository.CachingModuleSource.class, source -> {
+            return moduleSources.withSource(ModuleDescriptorHashModuleSource.class, source -> {
                 return source.map(cachingModuleSource -> !cachingModuleSource.isChangingModule()).orElse(true);
             });
         }
 
         private boolean isExternalArtifactId(ComponentArtifactIdentifier id) {
-            return id instanceof ModuleComponentArtifactIdentifier && !(id instanceof ComponentFileArtifactIdentifier);
+            return id instanceof ModuleComponentArtifactIdentifier;
         }
 
         @Override

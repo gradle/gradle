@@ -81,7 +81,7 @@ class CachingModuleComponentRepositoryTest extends Specification {
         }
 
         def descriptorHash = 1234G
-        def moduleSource = Stub(CachingModuleComponentRepository.CachingModuleSource) {
+        def moduleSource = Stub(ModuleDescriptorHashModuleSource) {
             getDescriptorHash() >> descriptorHash
         }
 

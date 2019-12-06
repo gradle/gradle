@@ -26,7 +26,8 @@ class DependencyVerificationIntegrityCheckIntegTest extends AbstractDependencyVe
     @Unroll
     def "doesn't fail if verification metadata matches for #kind"() {
         createMetadataFile {
-            addChecksum("org:foo:1.0", kind, value)
+            addChecksum("org:foo:1.0", kind, jar)
+            addChecksum("org:foo:1.0", kind, pom, "pom", "pom")
         }
 
         given:
@@ -45,11 +46,11 @@ class DependencyVerificationIntegrityCheckIntegTest extends AbstractDependencyVe
         outputContains("Dependency verification is an incubating feature.")
 
         where:
-        kind     | value
-        "md5"    | "ea8b622874eaa501476e0ebbe0c562ed"
-        "sha1"   | "16e066e005a935ac60f06216115436ab97c5da02"
-        "sha256" | "20ae575ede776e5e06ee6b168652d11ee23069e92de110fdec13fbeaa5cf3bbc"
-        "sha512" | "734fce768f0e1a3aec423cb4804e5cdf343fd317418a5da1adc825256805c5cad9026a3e927ae43ecc12d378ce8f45cc3e16ade9114c9a147fda3958d357a85b"
+        kind     | jar                                                                                                                                | pom
+        "md5"    | "ea8b622874eaa501476e0ebbe0c562ed"                                                                                                 | "9ecdc5a5aaf0fb15d0e1c5d1760d477c"
+        "sha1"   | "16e066e005a935ac60f06216115436ab97c5da02"                                                                                         | "85a7b8a2eb6bb1c4cdbbfe5e6c8dc3757de22c02"
+        "sha256" | "20ae575ede776e5e06ee6b168652d11ee23069e92de110fdec13fbeaa5cf3bbc"                                                                 | "f331cce36f6ce9ea387a2c8719fabaf67dc5a5862227ebaa13368ff84eb69481"
+        "sha512" | "734fce768f0e1a3aec423cb4804e5cdf343fd317418a5da1adc825256805c5cad9026a3e927ae43ecc12d378ce8f45cc3e16ade9114c9a147fda3958d357a85b" | "3d890ff72a2d6fcb2a921715143e6489d8f650a572c33070b7f290082a07bfc4af0b64763bcf505e1c07388bc21b7d5707e50a3952188dc604814e09387fbbfe"
     }
 
     def "doesn't try to verify checksums for changing dependencies"() {
@@ -105,6 +106,7 @@ class DependencyVerificationIntegrityCheckIntegTest extends AbstractDependencyVe
         then:
         failure.assertHasCause("""Dependency verification failed for configuration ':compileClasspath':
   - On artifact foo-1.0.jar (org:foo:1.0): expected a '$kind' checksum of 'invalid' but was '$value'
+  - Artifact foo-1.0.pom (org:foo:1.0) checksum is missing from verification metadata.
 This can indicate that a dependency has been compromised. Please verify carefully the checksums.""")
 
         where:
@@ -118,6 +120,7 @@ This can indicate that a dependency has been compromised. Please verify carefull
     def "can collect multiple errors in a single dependency graph"() {
         createMetadataFile {
             addChecksum("org:foo:1.0", "sha1", "invalid")
+            addChecksum("org:foo:1.0", "sha1", "invalid", "pom", "pom")
             addChecksum("org:bar:1.0", "sha1", "also invalid")
             addChecksum("org:baz:1.0", "sha1", "c554a4a45e3ed3da494befb446fb2923b8bcecef")
         }
@@ -143,6 +146,9 @@ This can indicate that a dependency has been compromised. Please verify carefull
         failure.assertHasCause("""Dependency verification failed for configuration ':compileClasspath':
   - On artifact bar-1.0.jar (org:bar:1.0): expected a 'sha1' checksum of 'also invalid' but was '42077067b52edb41c658839ab62a616740417814'
   - On artifact foo-1.0.jar (org:foo:1.0): expected a 'sha1' checksum of 'invalid' but was '16e066e005a935ac60f06216115436ab97c5da02'
+  - On artifact foo-1.0.pom (org:foo:1.0): expected a 'sha1' checksum of 'invalid' but was '6db079f8f24050d849647e029da573999776b635'
+  - Artifact bar-1.0.pom (org:bar:1.0) checksum is missing from verification metadata.
+  - Artifact baz-1.0.pom (org:baz:1.0) checksum is missing from verification metadata.
 This can indicate that a dependency has been compromised. Please verify carefully the checksums.""")
     }
 
@@ -151,7 +157,9 @@ This can indicate that a dependency has been compromised. Please verify carefull
     def "fails on the first access to an artifact (not at the end of the build) using #firstResolution"() {
         createMetadataFile {
             addChecksum("org:foo:1.0", "sha1", "invalid")
+            addChecksum("org:foo:1.0", "sha1", "85a7b8a2eb6bb1c4cdbbfe5e6c8dc3757de22c02", "pom", "pom")
             addChecksum("org:bar:1.0", "sha1", "invalid")
+            addChecksum("org:bar:1.0", "sha1", "302ecc047ad29b30546a6419fbd5bd58755ff2a0", "pom", "pom")
         }
 
         given:
@@ -339,6 +347,7 @@ Please update the file either manually (preferred) or by adding the --write-veri
         then:
         failure.assertHasCause("""Dependency verification failed for configuration ':compileClasspath':
   - Artifact foo-1.0.jar (org:foo:1.0) checksum is missing from verification metadata.
+  - Artifact foo-1.0.pom (org:foo:1.0) checksum is missing from verification metadata.
 Please update the file either manually (preferred) or by adding the --write-verification-metadata flag (unsafe).""")
     }
 
@@ -451,6 +460,7 @@ Please update the file either manually (preferred) or by adding the --write-veri
     def "can detect a tampered file in the local cache"() {
         createMetadataFile {
             addChecksum("org:foo", "sha1", "16e066e005a935ac60f06216115436ab97c5da02")
+            addChecksum("org:foo", "sha1", "85a7b8a2eb6bb1c4cdbbfe5e6c8dc3757de22c02", "pom", "pom")
         }
         uncheckedModule("org", "foo")
 
@@ -483,5 +493,105 @@ Please update the file either manually (preferred) or by adding the --write-veri
         failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
   - On artifact foo-1.0.jar (org:foo:1.0): expected a 'sha1' checksum of '16e066e005a935ac60f06216115436ab97c5da02' but was '93d6c93d9a76d27ec3462e7b57de5df1eb45bc7b'
 This can indicate that a dependency has been compromised. Please verify carefully the checksums."""
+    }
+
+    /**
+     * This test case is NOT about security but detecting tampered metadata files.
+     * In practice, if you update a metadata file in the local cache, it would be unnoticed
+     * because Gradle always uses the binary version instead. So this is about warning the
+     * user that someone did something wrong by thinking that updating a file in our local
+     * cache should change something in terms of resolution.
+     *
+     * Security is not an issue: if someone manages to tamper the local cache, then
+     * it means they have access to the local FS so all bets are off.
+     */
+    @Issue("https://github.com/gradle/gradle/issues/4934")
+    @ToBeFixedForInstantExecution
+    @Unroll
+    def "can detect a tampered metadata file in the local cache (stop in between = #stop)"() {
+        createMetadataFile {
+            addChecksum("org:foo", "sha1", "16e066e005a935ac60f06216115436ab97c5da02")
+            addChecksum("org:foo", "sha1", "85a7b8a2eb6bb1c4cdbbfe5e6c8dc3757de22c02", "pom", "pom")
+        }
+        uncheckedModule("org", "foo")
+
+        given:
+        javaLibrary()
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        succeeds ':compileJava'
+
+        then:
+        noExceptionThrown()
+        if (stop) {
+            executer.stop()
+        }
+
+        when:
+        def group = new File(CacheLayout.FILE_STORE.getPath(metadataCacheDir), "org")
+        def module = new File(group, "foo")
+        def version = new File(module, "1.0")
+        def originHash = new File(version, "85a7b8a2eb6bb1c4cdbbfe5e6c8dc3757de22c02")
+        def artifactFile = new File(originHash, "foo-1.0.pom")
+        artifactFile.text = "tampered"
+
+        fails ':compileJava'
+
+        then:
+        failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
+  - On artifact foo-1.0.pom (org:foo:1.0): expected a 'sha1' checksum of '85a7b8a2eb6bb1c4cdbbfe5e6c8dc3757de22c02' but was '93d6c93d9a76d27ec3462e7b57de5df1eb45bc7b'
+This can indicate that a dependency has been compromised. Please verify carefully the checksums."""
+
+        where:
+        stop << [true, false]
+    }
+
+    @ToBeFixedForInstantExecution
+    @Unroll
+    def "deleting local artifacts fails verification (stop in between = #stop)"() {
+        createMetadataFile {
+            addChecksum("org:foo", "sha1", "16e066e005a935ac60f06216115436ab97c5da02")
+            addChecksum("org:foo", "sha1", "85a7b8a2eb6bb1c4cdbbfe5e6c8dc3757de22c02", "pom", "pom")
+        }
+        uncheckedModule("org", "foo")
+
+        given:
+        javaLibrary()
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        succeeds ':compileJava'
+
+        then:
+        noExceptionThrown()
+        if (stop) {
+            executer.stop()
+        }
+
+        when:
+        def group = new File(CacheLayout.FILE_STORE.getPath(metadataCacheDir), "org")
+        def module = new File(group, "foo")
+        def version = new File(module, "1.0")
+        def originHash = new File(version, "85a7b8a2eb6bb1c4cdbbfe5e6c8dc3757de22c02")
+        def artifactFile = new File(originHash, "foo-1.0.pom")
+        artifactFile.delete()
+
+        fails ':compileJava'
+
+        then:
+        failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
+  - Artifact foo-1.0.pom (org:foo:1.0) has been deleted from local cache so verification cannot be performed"""
+
+        where:
+        stop << [true, false]
     }
 }

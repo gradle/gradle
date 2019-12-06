@@ -20,7 +20,8 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
-import org.gradle.kotlin.dsl.*
+import org.gradle.kotlin.dsl.execAndGetStdout
+import org.gradle.kotlin.dsl.property
 import javax.inject.Inject
 
 
@@ -76,7 +77,9 @@ open class DetermineBaselines @Inject constructor(isDistributed: Boolean) : Defa
 
     private
     fun forkPointCommitBaseline(): String {
-        project.execAndGetStdout("git", "fetch", "origin", "master", "release")
+        val upstream = tryGetUpstream()
+        val source = if (upstream == null) { "origin" } else { upstream }
+        project.execAndGetStdout("git", "fetch", source, "master", "release")
         val masterForkPointCommit = project.execAndGetStdout("git", "merge-base", "origin/master", "HEAD")
         val releaseForkPointCommit = project.execAndGetStdout("git", "merge-base", "origin/release", "HEAD")
         val forkPointCommit =
@@ -86,6 +89,15 @@ open class DetermineBaselines @Inject constructor(isDistributed: Boolean) : Defa
                 masterForkPointCommit
         return commitBaseline(forkPointCommit)
     }
+
+    private
+    fun tryGetUpstream(): String? = project.execAndGetStdout("git", "remote", "-v")
+        .lines()
+        .find { it.contains("git@github.com:gradle/gradle.git") || it.contains("https://github.com/gradle/gradle.git") }
+        .let {
+            val str = it?.replace(Regex("\\s+"), " ")
+            return str?.substring(0, str.indexOf(' '))
+        }
 
     private
     fun commitBaseline(commit: String): String {

@@ -19,7 +19,6 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.verification.model.ArtifactVerificationMetadata;
 import org.gradle.api.internal.artifacts.verification.model.ChecksumKind;
@@ -72,6 +71,9 @@ public class DependencyVerifier {
         return buildOperationExecutor.call(new CallableBuildOperation<Optional<VerificationFailure>>() {
             @Override
             public Optional<VerificationFailure> call(BuildOperationContext context) {
+                if (!file.exists()) {
+                    return VerificationFailure.OPT_DELETED;
+                }
                 return doVerifyArtifact(foundArtifact, file);
             }
 
@@ -86,10 +88,11 @@ public class DependencyVerifier {
         AtomicReference<VerificationFailure> failure = new AtomicReference<>();
         ComponentVerificationMetadata componentVerification = verificationMetadata.get(foundArtifact.getComponentIdentifier());
         if (componentVerification != null) {
+            String foundArtifactFileName = foundArtifact.getFileName();
             List<ArtifactVerificationMetadata> verifications = componentVerification.getArtifactVerifications();
             for (ArtifactVerificationMetadata verification : verifications) {
-                ComponentArtifactIdentifier verifiedArtifact = verification.getArtifact();
-                if (verifiedArtifact.equals(foundArtifact)) {
+                ModuleComponentArtifactIdentifier verifiedArtifact = verification.getArtifact();
+                if (verifiedArtifact.getFileName().equals(foundArtifactFileName)) {
                     Map<ChecksumKind, String> checksums = verification.getChecksums();
                     for (Map.Entry<ChecksumKind, String> entry : checksums.entrySet()) {
                         verify(entry.getKey(), file, entry.getValue(), f -> failure.set(f));
@@ -133,7 +136,9 @@ public class DependencyVerifier {
 
     public static class VerificationFailure {
         public static final VerificationFailure MISSING = new VerificationFailure(null, null, null);
+        public static final VerificationFailure DELETED = new VerificationFailure(null, null, null);
         private static final Optional<VerificationFailure> OPT_MISSING = Optional.of(MISSING);
+        private static final Optional<VerificationFailure> OPT_DELETED = Optional.of(DELETED);
 
         private final ChecksumKind kind;
         private final String expected;

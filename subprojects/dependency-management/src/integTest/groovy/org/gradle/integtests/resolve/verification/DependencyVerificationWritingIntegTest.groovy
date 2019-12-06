@@ -16,8 +16,9 @@
 
 package org.gradle.integtests.resolve.verification
 
-import spock.lang.Unroll
+
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import spock.lang.Unroll
 
 class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificationIntegTest {
 
@@ -92,17 +93,24 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         then:
         hasModules(["org:foo"])
         module("org:foo") {
-            artifact("foo") {
+            artifact("foo-1.0.jar") {
                 declaresChecksums(
                     sha1: "16e066e005a935ac60f06216115436ab97c5da02",
                     sha512: "734fce768f0e1a3aec423cb4804e5cdf343fd317418a5da1adc825256805c5cad9026a3e927ae43ecc12d378ce8f45cc3e16ade9114c9a147fda3958d357a85b"
+                )
+            }
+            artifact("foo-1.0.pom") {
+                declaresChecksums(
+                    sha1: "85a7b8a2eb6bb1c4cdbbfe5e6c8dc3757de22c02",
+                    sha512: "3d890ff72a2d6fcb2a921715143e6489d8f650a572c33070b7f290082a07bfc4af0b64763bcf505e1c07388bc21b7d5707e50a3952188dc604814e09387fbbfe"
                 )
             }
         }
     }
 
     @ToBeFixedForInstantExecution
-    def "generates verification file for dependencies downloaded in previous build"() {
+    @Unroll
+    def "generates verification file for dependencies downloaded in previous build (stop in between = #stop)"() {
         given:
         javaLibrary()
         uncheckedModule("org", "foo")
@@ -114,7 +122,9 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
 
         when:
         run ":compileJava"
-        executer.stop()
+        if (stop) {
+            executer.stop()
+        }
 
         then:
         assertMetadataIsMissing()
@@ -126,13 +136,22 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         then:
         hasModules(["org:foo"])
         module("org:foo") {
-            artifact("foo") {
+            artifact("foo-1.0.jar") {
                 declaresChecksums(
                     sha1: "16e066e005a935ac60f06216115436ab97c5da02",
                     sha512: "734fce768f0e1a3aec423cb4804e5cdf343fd317418a5da1adc825256805c5cad9026a3e927ae43ecc12d378ce8f45cc3e16ade9114c9a147fda3958d357a85b"
                 )
             }
+            artifact("foo-1.0.pom") {
+                declaresChecksums(
+                    sha1: "85a7b8a2eb6bb1c4cdbbfe5e6c8dc3757de22c02",
+                    sha512: "3d890ff72a2d6fcb2a921715143e6489d8f650a572c33070b7f290082a07bfc4af0b64763bcf505e1c07388bc21b7d5707e50a3952188dc604814e09387fbbfe"
+                )
+            }
         }
+
+        where:
+        stop << [true, false]
     }
 
     def "generates checksums for resolvable configurations only"() {
@@ -168,15 +187,21 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         then:
         hasModules(["org:foo"])
         module("org:foo:1.0") {
-            artifact("foo") {
+            artifact("foo-1.0.jar") {
                 declaresChecksums(
                     sha1: "16e066e005a935ac60f06216115436ab97c5da02",
                     sha512: "734fce768f0e1a3aec423cb4804e5cdf343fd317418a5da1adc825256805c5cad9026a3e927ae43ecc12d378ce8f45cc3e16ade9114c9a147fda3958d357a85b"
                 )
             }
+            artifact("foo-1.0.pom") {
+                declaresChecksums(
+                    sha1: "85a7b8a2eb6bb1c4cdbbfe5e6c8dc3757de22c02",
+                    sha512: "3d890ff72a2d6fcb2a921715143e6489d8f650a572c33070b7f290082a07bfc4af0b64763bcf505e1c07388bc21b7d5707e50a3952188dc604814e09387fbbfe"
+                )
+            }
         }
         module("org:foo:1.1") {
-            artifact("foo") {
+            artifact("foo-1.1.jar") {
                 declaresChecksums(
                     sha1: "4f61704d48102455b54b20e00bed598b51128184",
                     sha512: "a140b3fa056a88cc228e155a717e4ea5dfbc519f91d9fc9d2a3ab9cdbee118edc834c04dc2abe96d62d2df225fa06083be6fce75a2a7aa0b59e3ae7118a284b1"
@@ -210,19 +235,25 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         then:
         hasModules(["org:foo"])
         module("org:foo") {
-            artifact("foo") {
+            artifact("foo-1.0.jar") {
                 declaresChecksums(
                     sha1: "16e066e005a935ac60f06216115436ab97c5da02",
                     sha512: "734fce768f0e1a3aec423cb4804e5cdf343fd317418a5da1adc825256805c5cad9026a3e927ae43ecc12d378ce8f45cc3e16ade9114c9a147fda3958d357a85b"
                 )
             }
-            artifact("foo", "jar", "jar", "classy") {
+            artifact("foo-1.0.pom") {
+                declaresChecksums(
+                    sha1: "85a7b8a2eb6bb1c4cdbbfe5e6c8dc3757de22c02",
+                    sha512: "3d890ff72a2d6fcb2a921715143e6489d8f650a572c33070b7f290082a07bfc4af0b64763bcf505e1c07388bc21b7d5707e50a3952188dc604814e09387fbbfe"
+                )
+            }
+            artifact("foo-1.0-classy.jar") {
                 declaresChecksums(
                     sha1: "57e775f9a7cdbe42752dcb8a18fa1fdedb06a46f",
                     sha512: "77ce252cbb2ffab6f1dc7d1fce84b933106a38f22f12cd21553d6f7be9846f8d53caf0be109f6a78eac0262f10c54651be9b293f805fe175c66f6e609e557e48"
                 )
             }
-            artifact("foo", "zip", "zip") {
+            artifact("foo-1.0.zip") {
                 declaresChecksums(
                     sha1: "d94282a5db10b302c7dfc3b685c3746584a06ee3",
                     sha512: "6c9f16dc09b4b5ff9d02ac05418f865552a543633f9e60562b5086841850d0a69775ffa0ea1a618fdc5744840e98feb437560ae64aea097ed3fe385293fb59e8"
@@ -258,15 +289,21 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         then:
         hasModules(["org:foo", "org:bar"])
         module("org:foo") {
-            artifact("foo") {
+            artifact("foo-1.0.jar") {
                 declaresChecksums(
                     sha1: "16e066e005a935ac60f06216115436ab97c5da02",
                     sha512: "734fce768f0e1a3aec423cb4804e5cdf343fd317418a5da1adc825256805c5cad9026a3e927ae43ecc12d378ce8f45cc3e16ade9114c9a147fda3958d357a85b"
                 )
             }
+            artifact("foo-1.0.pom") {
+                declaresChecksums(
+                    sha1: "85a7b8a2eb6bb1c4cdbbfe5e6c8dc3757de22c02",
+                    sha512: "3d890ff72a2d6fcb2a921715143e6489d8f650a572c33070b7f290082a07bfc4af0b64763bcf505e1c07388bc21b7d5707e50a3952188dc604814e09387fbbfe"
+                )
+            }
         }
         module("org:bar") {
-            artifact("bar") {
+            artifact("bar-1.0.jar") {
                 declaresChecksums(
                     sha1: "42077067b52edb41c658839ab62a616740417814",
                     sha512: "7bec2082e5447fbbd76285b458f2978194229360cc9aed75a0fc21e2a1b0033137ecf4cbd9883c0a3cfd8b11c176a915500b23d6622aa002c207f48e5043b3b2"
@@ -304,15 +341,21 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         then:
         hasModules(["org:foo", "org:bar"])
         module("org:foo") {
-            artifact("foo") {
+            artifact("foo-1.0.jar") {
                 declaresChecksums(
                     sha1: "16e066e005a935ac60f06216115436ab97c5da02",
                     sha512: "734fce768f0e1a3aec423cb4804e5cdf343fd317418a5da1adc825256805c5cad9026a3e927ae43ecc12d378ce8f45cc3e16ade9114c9a147fda3958d357a85b"
                 )
             }
+            artifact("foo-1.0.pom") {
+                declaresChecksums(
+                    sha1: "85a7b8a2eb6bb1c4cdbbfe5e6c8dc3757de22c02",
+                    sha512: "3d890ff72a2d6fcb2a921715143e6489d8f650a572c33070b7f290082a07bfc4af0b64763bcf505e1c07388bc21b7d5707e50a3952188dc604814e09387fbbfe"
+                )
+            }
         }
         module("org:bar") {
-            artifact("bar") {
+            artifact("bar-1.0.jar") {
                 declaresChecksums(
                     sha1: "42077067b52edb41c658839ab62a616740417814",
                     sha512: "7bec2082e5447fbbd76285b458f2978194229360cc9aed75a0fc21e2a1b0033137ecf4cbd9883c0a3cfd8b11c176a915500b23d6622aa002c207f48e5043b3b2"
@@ -423,10 +466,16 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         notExecuted(":mod2:compileJava", ":mod2:jar")
         assertMetadataExists()
         module("org:foo") {
-            artifact("foo") {
+            artifact("foo-1.0.jar") {
                 declaresChecksums(
                     sha1: "16e066e005a935ac60f06216115436ab97c5da02",
                     sha512: "734fce768f0e1a3aec423cb4804e5cdf343fd317418a5da1adc825256805c5cad9026a3e927ae43ecc12d378ce8f45cc3e16ade9114c9a147fda3958d357a85b"
+                )
+            }
+            artifact("foo-1.0.pom") {
+                declaresChecksums(
+                    sha1: "85a7b8a2eb6bb1c4cdbbfe5e6c8dc3757de22c02",
+                    sha512: "3d890ff72a2d6fcb2a921715143e6489d8f650a572c33070b7f290082a07bfc4af0b64763bcf505e1c07388bc21b7d5707e50a3952188dc604814e09387fbbfe"
                 )
             }
         }
@@ -517,16 +566,22 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         then:
         hasModules(["org:foo", "org:bar"])
         module("org:foo") {
-            artifact("foo") {
+            artifact("foo-1.0.jar") {
                 declaresChecksums(
                     md5: "abc",
                     sha1: "16e066e005a935ac60f06216115436ab97c5da02",
                     sha512: "734fce768f0e1a3aec423cb4804e5cdf343fd317418a5da1adc825256805c5cad9026a3e927ae43ecc12d378ce8f45cc3e16ade9114c9a147fda3958d357a85b"
                 )
             }
+            artifact("foo-1.0.pom") {
+                declaresChecksums(
+                    sha1: "85a7b8a2eb6bb1c4cdbbfe5e6c8dc3757de22c02",
+                    sha512: "3d890ff72a2d6fcb2a921715143e6489d8f650a572c33070b7f290082a07bfc4af0b64763bcf505e1c07388bc21b7d5707e50a3952188dc604814e09387fbbfe"
+                )
+            }
         }
         module("org:bar") {
-            artifact("bar") {
+            artifact("bar-1.0.jar") {
                 declaresChecksums(
                     sha1: "untouched"
                 )
@@ -538,14 +593,21 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
 <verification-metadata>
    <components>
       <component group="org" name="foo" version="1.0">
-         <artifact name="foo" type="jar" ext="jar">
+         <artifact name="foo-1.0.jar">
             <md5 value="abc"/>
+            <sha1 value="1234"/>
+         </artifact>
+         <artifact name="foo-1.0.jar">
             <sha1 value="16e066e005a935ac60f06216115436ab97c5da02"/>
             <sha512 value="734fce768f0e1a3aec423cb4804e5cdf343fd317418a5da1adc825256805c5cad9026a3e927ae43ecc12d378ce8f45cc3e16ade9114c9a147fda3958d357a85b"/>
          </artifact>
+         <artifact name="foo-1.0.pom">
+            <sha1 value="85a7b8a2eb6bb1c4cdbbfe5e6c8dc3757de22c02"/>
+            <sha512 value="3d890ff72a2d6fcb2a921715143e6489d8f650a572c33070b7f290082a07bfc4af0b64763bcf505e1c07388bc21b7d5707e50a3952188dc604814e09387fbbfe"/>
+         </artifact>
       </component>
       <component group="org" name="bar" version="1.0">
-         <artifact name="bar" type="jar" ext="jar">
+         <artifact name="bar-1.0.jar">
             <sha1 value="untouched"/>
          </artifact>
       </component>
@@ -590,7 +652,7 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         then:
         hasModules(["org:foo", "org:bar"])
         module("org:foo") {
-            artifact("foo") {
+            artifact("foo-1.0.jar") {
                 declaresChecksums(
                     sha1: "16e066e005a935ac60f06216115436ab97c5da02",
                     sha512: "734fce768f0e1a3aec423cb4804e5cdf343fd317418a5da1adc825256805c5cad9026a3e927ae43ecc12d378ce8f45cc3e16ade9114c9a147fda3958d357a85b"
@@ -598,12 +660,138 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
             }
         }
         module("org:bar") {
-            artifact("bar") {
+            artifact("bar-1.0.jar") {
                 declaresChecksums(
                     sha1: "42077067b52edb41c658839ab62a616740417814",
                     sha512: "7bec2082e5447fbbd76285b458f2978194229360cc9aed75a0fc21e2a1b0033137ecf4cbd9883c0a3cfd8b11c176a915500b23d6622aa002c207f48e5043b3b2"
                 )
             }
         }
+    }
+
+    def "writes checksums for parent POMs"() {
+        given:
+        uncheckedModule("org", "foo", "1.0") {
+            parent("org", "parent", "1.0")
+        }
+        uncheckedModule("org", "parent", "1.0") {
+            hasPackaging("pom")
+
+        }
+        javaLibrary()
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+        when:
+        writeVerificationMetadata()
+        run ":help"
+
+        then:
+        hasModules(["org:foo", "org:parent"])
+        module("org:foo:1.0") {
+            artifact("foo-1.0.jar") {
+                declaresChecksums(
+                    sha1: "16e066e005a935ac60f06216115436ab97c5da02",
+                    sha512: "734fce768f0e1a3aec423cb4804e5cdf343fd317418a5da1adc825256805c5cad9026a3e927ae43ecc12d378ce8f45cc3e16ade9114c9a147fda3958d357a85b"
+                )
+            }
+        }
+        module("org:parent:1.0") {
+            artifact("parent-1.0.pom") {
+                declaresChecksums(
+                    sha1: "dcf91b67fc14846f8234ef8e9cac922721cabf80",
+                    sha512: "1d797bd76f86414d7d7184522663bc7a28faaf19310caf5458a156dded879a914bd5c151ccc3553a9f65c4e58a85e8ec917692d517f770aaf7debacbf0fcbaf"
+                )
+            }
+        }
+    }
+
+    def "writes checksums for Gradle module metadata"() {
+        given:
+        uncheckedModule("org", "foo", "1.0") {
+            withModuleMetadata()
+        }
+        javaLibrary()
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+        when:
+        writeVerificationMetadata()
+        run ":help"
+
+        then:
+        hasModules(["org:foo"])
+        module("org:foo:1.0") {
+            artifact("foo-1.0.jar") {
+                declaresChecksums(
+                    sha1: "16e066e005a935ac60f06216115436ab97c5da02",
+                    sha512: "734fce768f0e1a3aec423cb4804e5cdf343fd317418a5da1adc825256805c5cad9026a3e927ae43ecc12d378ce8f45cc3e16ade9114c9a147fda3958d357a85b"
+                )
+            }
+            artifact("foo-1.0.module") {
+                declaresChecksums(
+                    sha1: "a1a9a2fa2769295b6cef64520662a9a9135e3bb",
+                    sha512: "7505ecc6796dd6d0a90a7e422d25c50a7c4b85b21b71ecb43dfca431bb3c3d2f696634c839a315333c96662f92987a9c58719748f6a2017fa5a89913870db60b"
+                )
+            }
+        }
+    }
+
+    @Unroll
+    def "writes checksums for parent POMs downloaded in previous build (stop in between = #stop)"() {
+        given:
+        uncheckedModule("org", "foo", "1.0") {
+            parent("org", "parent", "1.0")
+        }
+        uncheckedModule("org", "parent", "1.0") {
+            hasPackaging("pom")
+
+        }
+        javaLibrary()
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        succeeds ':compileJava'
+
+        then:
+        assertMetadataIsMissing()
+        executedAndNotSkipped(":compileJava")
+
+        when:
+        if (stop) {
+            executer.stop()
+        }
+        writeVerificationMetadata()
+        run ":help"
+
+        then:
+        hasModules(["org:foo", "org:parent"])
+        module("org:foo:1.0") {
+            artifact("foo-1.0.jar") {
+                declaresChecksums(
+                    sha1: "16e066e005a935ac60f06216115436ab97c5da02",
+                    sha512: "734fce768f0e1a3aec423cb4804e5cdf343fd317418a5da1adc825256805c5cad9026a3e927ae43ecc12d378ce8f45cc3e16ade9114c9a147fda3958d357a85b"
+                )
+            }
+        }
+        module("org:parent:1.0") {
+            artifact("parent-1.0.pom") {
+                declaresChecksums(
+                    sha1: "dcf91b67fc14846f8234ef8e9cac922721cabf80",
+                    sha512: "1d797bd76f86414d7d7184522663bc7a28faaf19310caf5458a156dded879a914bd5c151ccc3553a9f65c4e58a85e8ec917692d517f770aaf7debacbf0fcbaf"
+                )
+            }
+        }
+
+        where:
+        stop << [true, false]
     }
 }

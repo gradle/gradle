@@ -45,8 +45,8 @@ import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
-import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.component.model.ModuleSources;
+import org.gradle.internal.component.model.MutableModuleSources;
 import org.gradle.internal.resolve.ArtifactNotFoundException;
 import org.gradle.internal.resolve.ArtifactResolveException;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
@@ -63,7 +63,6 @@ import java.io.File;
 import java.math.BigInteger;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -77,7 +76,6 @@ import java.util.stream.Collectors;
  */
 public class CachingModuleComponentRepository implements ModuleComponentRepository {
     private static final Logger LOGGER = LoggerFactory.getLogger(CachingModuleComponentRepository.class);
-    private static final Supplier<RuntimeException> UNSUPPORTED_SOURCE = () -> new RuntimeException("Cannot find expected metadata source");
 
     private final ModuleVersionsCache moduleVersionsCache;
     private final ModuleMetadataCache moduleMetadataCache;
@@ -222,8 +220,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             }
 
             LOGGER.debug("Using cached module metadata for module '{}' in '{}'", moduleComponentIdentifier, delegate.getName());
-            CachingModuleSource cachingModuleSource = new CachingModuleSource(metadata.getOriginalContentHash().asBigInteger(), metadata.isChanging());
-            result.resolved(metadata.withExtraSource(cachingModuleSource));
+            result.resolved(metadata);
             // When age == 0, verified since the start of this build, assume the meta-data hasn't changed
             result.setAuthoritative(cachedMetadata.getAgeMillis() == 0);
         }
@@ -268,8 +265,8 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         private void resolveModuleArtifactsFromCache(String contextId, ComponentResolveMetadata component, BuildableArtifactSetResolveResult result) {
             CachedArtifacts cachedModuleArtifacts = moduleArtifactsCache.getCachedArtifacts(delegate, component.getId(), contextId);
             ModuleSources sources = component.getSources();
-            CachingModuleSource cachingModuleSource = findCachingModuleSource(sources);
-            BigInteger moduleDescriptorHash = cachingModuleSource.descriptorHash;
+            ModuleDescriptorHashModuleSource cachingModuleSource = findCachingModuleSource(sources);
+            BigInteger moduleDescriptorHash = cachingModuleSource.getDescriptorHash();
 
             if (cachedModuleArtifacts != null) {
                 if (!cachePolicy.mustRefreshModuleArtifacts(component.getModuleVersionId(), null, cachedModuleArtifacts.getAgeMillis(),
@@ -324,7 +321,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
 
         private void resolveArtifactFromCache(ComponentArtifactMetadata artifact, ModuleSources moduleSources, BuildableArtifactResolveResult result) {
             CachedArtifact cached = moduleArtifactCache.lookup(artifactCacheKey(artifact.getId()));
-            CachingModuleSource moduleSource = findCachingModuleSource(moduleSources);
+            ModuleDescriptorHashModuleSource moduleSource = findCachingModuleSource(moduleSources);
             final BigInteger descriptorHash = moduleSource.getDescriptorHash();
             if (cached != null) {
                 long age = timeProvider.getCurrentTime() - cached.getCachedAt();
@@ -349,8 +346,9 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         }
     }
 
-    private CachingModuleSource findCachingModuleSource(ModuleSources sources) {
-        return sources.getSource(CachingModuleSource.class).orElseThrow(UNSUPPORTED_SOURCE);
+    private ModuleDescriptorHashModuleSource findCachingModuleSource(ModuleSources sources) {
+        return sources.getSource(ModuleDescriptorHashModuleSource.class)
+            .orElseThrow(() -> new RuntimeException("Cannot find expected module source " + ModuleDescriptorHashModuleSource.class.getSimpleName() + " in " + sources));
     }
 
     private class ResolveAndCacheRepositoryAccess implements ModuleComponentRepositoryAccess {
@@ -386,10 +384,15 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                 case Resolved:
                     ModuleComponentResolveMetadata resolvedMetadata = result.getMetaData();
                     ModuleMetadataCache.CachedMetadata cachedMetadata = moduleMetadataCache.cacheMetaData(delegate, moduleComponentIdentifier, resolvedMetadata);
+                    // Starting here we're going to process the component metadata rules
+                    // Therefore metadata can be mutated, and will _not_ be stored in the module metadata cache
+                    // but will be in the _in memory_ cache
                     ModuleComponentResolveMetadata processedMetadata = metadataProcessor.processMetadata(resolvedMetadata);
+                    if (processedMetadata.isChanging() || requestMetaData.isChanging()) {
+                        processedMetadata = makeChanging(resolvedMetadata, processedMetadata);
+                    }
                     cachedMetadata.putProcessedMetadata(metadataProcessor.getRulesHash(), processedMetadata);
-                    CachingModuleSource cachingModuleSource = new CachingModuleSource(processedMetadata.getOriginalContentHash().asBigInteger(), requestMetaData.isChanging() || processedMetadata.isChanging());
-                    result.resolved(processedMetadata.withExtraSource(cachingModuleSource));
+                    result.resolved(processedMetadata);
                     break;
                 case Failed:
                     break;
@@ -398,12 +401,29 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             }
         }
 
+        private ModuleComponentResolveMetadata makeChanging(ModuleComponentResolveMetadata resolvedMetadata, ModuleComponentResolveMetadata processedMetadata) {
+            MutableModuleSources sources = new MutableModuleSources();
+            resolvedMetadata.getSources().withSources(src -> {
+                if (src instanceof ModuleDescriptorHashModuleSource) {
+                    ModuleDescriptorHashModuleSource changingSource = new ModuleDescriptorHashModuleSource(
+                        ((ModuleDescriptorHashModuleSource) src).getDescriptorHash(),
+                        true
+                    );
+                    sources.add(changingSource);
+                } else {
+                    sources.add(src);
+                }
+            });
+            processedMetadata = processedMetadata.withSources(sources);
+            return processedMetadata;
+        }
+
         @Override
         public void resolveArtifactsWithType(ComponentResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
             delegate.getRemoteAccess().resolveArtifactsWithType(component, artifactType, result);
 
             if (result.getFailure() == null) {
-                CachingModuleSource moduleSource = findCachingModuleSource(component.getSources());
+                ModuleDescriptorHashModuleSource moduleSource = findCachingModuleSource(component.getSources());
                 moduleArtifactsCache.cacheArtifacts(delegate, component.getId(), cacheKey(artifactType), moduleSource.getDescriptorHash(), result.getResult());
             }
         }
@@ -414,7 +434,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
 
             if (result.getFailure() == null) {
                 FixedComponentArtifacts artifacts = (FixedComponentArtifacts) result.getResult();
-                CachingModuleSource moduleSource = findCachingModuleSource(component);
+                ModuleDescriptorHashModuleSource moduleSource = findCachingModuleSource(component);
                 moduleArtifactsCache.cacheArtifacts(delegate, component.getId(), "component:", moduleSource.getDescriptorHash(), artifacts.getArtifacts());
             }
         }
@@ -426,7 +446,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             LOGGER.debug("Downloaded artifact '{}' from resolver: {}", artifact, delegate.getName());
 
             ArtifactResolveException failure = result.getFailure();
-            CachingModuleSource cachingModuleSource = findCachingModuleSource(moduleSources);
+            ModuleDescriptorHashModuleSource cachingModuleSource = findCachingModuleSource(moduleSources);
             if (failure == null) {
                 moduleArtifactCache.store(artifactCacheKey(artifact.getId()), result.getResult(), cachingModuleSource.getDescriptorHash());
             } else if (failure instanceof ArtifactNotFoundException) {
@@ -440,7 +460,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         }
     }
 
-    private CachingModuleSource findCachingModuleSource(ComponentResolveMetadata component) {
+    private ModuleDescriptorHashModuleSource findCachingModuleSource(ComponentResolveMetadata component) {
         return findCachingModuleSource(component.getSources());
     }
 
@@ -452,27 +472,4 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         return new ArtifactAtRepositoryKey(delegate.getId(), id);
     }
 
-    static class CachingModuleSource implements ModuleSource {
-        private final BigInteger descriptorHash;
-        private final boolean changingModule;
-
-        public CachingModuleSource(BigInteger descriptorHash, boolean changingModule) {
-            this.descriptorHash = descriptorHash;
-            this.changingModule = changingModule;
-        }
-
-        @Override
-        public String toString() {
-            return "{descriptor: " + descriptorHash + ", changing: " + changingModule + "}";
-        }
-
-        public BigInteger getDescriptorHash() {
-            return descriptorHash;
-        }
-
-        public boolean isChangingModule() {
-            return changingModule;
-        }
-
-    }
 }

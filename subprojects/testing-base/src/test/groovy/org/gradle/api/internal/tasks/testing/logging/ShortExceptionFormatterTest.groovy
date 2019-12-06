@@ -26,10 +26,16 @@ class ShortExceptionFormatterTest extends Specification {
     def formatter = new ShortExceptionFormatter(testLogging)
 
     def "shows all exceptions that have occurred for a test"() {
+        def exceptions = [
+            new IOException("oops").tap { stackTrace = createStackTrace() },
+            // java.lang.AssertionError(String) is private, so explicit cast to Object is needed here
+            // to call public AssertionError(Object)
+            new AssertionError((Object) "ouch").tap { stackTrace = createCauseTrace() }
+        ]
         expect:
-        formatter.format(testDescriptor, [new IOException("oops"), new AssertionError("ouch")]) == """\
-    java.io.IOException
-    java.lang.AssertionError
+        formatter.format(testDescriptor, exceptions) == """\
+    java.io.IOException at FileName1.java:11
+    java.lang.AssertionError at FileName0.java:1
 """
     }
 
@@ -39,22 +45,22 @@ class ShortExceptionFormatterTest extends Specification {
 
         expect:
         formatter.format(testDescriptor, [exception]) == """\
-    java.lang.Exception at ShortExceptionFormatterTest.groovy:37
+    java.lang.Exception at ShortExceptionFormatterTest.groovy:43
 """
     }
 
     def "optionally shows causes"() {
-        def causeCause = new RuntimeException("oops")
-        def cause = new IllegalArgumentException("ouch", causeCause)
-        def exception = new Exception("argh", cause)
+        def causeCause = new RuntimeException("oops").tap { stackTrace = createCauseCauseTrace() }
+        def cause = new IllegalArgumentException("ouch", causeCause).tap { stackTrace = createCauseTrace() }
+        def exception = new Exception("argh", cause).tap { stackTrace = createStackTrace() }
 
         testLogging.showCauses >> true
 
         expect:
         formatter.format(testDescriptor, [exception]) == """\
-    java.lang.Exception
-        Caused by: java.lang.IllegalArgumentException
-            Caused by: java.lang.RuntimeException
+    java.lang.Exception at FileName1.java:11
+        Caused by: java.lang.IllegalArgumentException at FileName0.java:1
+            Caused by: java.lang.RuntimeException at FileName00.java:1
 """
     }
 
@@ -64,7 +70,33 @@ class ShortExceptionFormatterTest extends Specification {
 
         expect:
         formatter.format(testDescriptor, [exception]) == """\
-    java.lang.Exception at ShortExceptionFormatterTest.groovy:62
+    java.lang.Exception at ShortExceptionFormatterTest.groovy:68
 """
+    }
+
+    private createStackTrace() {
+        [
+            new StackTraceElement("org.ClassName1", "methodName1", "FileName1.java", 11),
+            new StackTraceElement("org.ClassName2", "methodName2", "FileName2.java", 22),
+            new StackTraceElement("org.ClassName3", "methodName3", "FileName3.java", 33)
+        ] as StackTraceElement[]
+    }
+
+    private createCauseTrace() {
+        [
+            new StackTraceElement("org.ClassName0", "methodName0", "FileName0.java", 1),
+            new StackTraceElement("org.ClassName1", "methodName1", "FileName1.java", 10),
+            new StackTraceElement("org.ClassName2", "methodName2", "FileName2.java", 22),
+            new StackTraceElement("org.ClassName3", "methodName3", "FileName3.java", 33)
+        ] as StackTraceElement[]
+    }
+
+    private createCauseCauseTrace() {
+        [
+            new StackTraceElement("org.ClassName01", "methodName00", "FileName00.java", 1),
+            new StackTraceElement("org.ClassName01", "methodName01", "FileName01.java", 10),
+            new StackTraceElement("org.ClassName02", "methodName02", "FileName02.java", 22),
+            new StackTraceElement("org.ClassName03", "methodName03", "FileName03.java", 33)
+        ] as StackTraceElement[]
     }
 }

@@ -36,6 +36,7 @@ public class GroupedAndNamedUniqueFileStore<K> implements FileStore<K>, FileStor
     private final Grouper<K> grouper;
     private final Namer<K> namer;
     private final FileAccessTracker checksumDirAccessTracker;
+    private final File baseDir;
 
     public GroupedAndNamedUniqueFileStore(File baseDir, TemporaryFileProvider temporaryFileProvider, FileAccessTimeJournal fileAccessTimeJournal, Grouper<K> grouper, Namer<K> namer) {
         this.delegate = new UniquePathKeyFileStore(baseDir);
@@ -43,6 +44,7 @@ public class GroupedAndNamedUniqueFileStore<K> implements FileStore<K>, FileStor
         this.grouper = grouper;
         this.namer = namer;
         this.checksumDirAccessTracker = new SingleDepthFileAccessTracker(fileAccessTimeJournal, baseDir, grouper.getNumberOfGroupingDirs() + NUMBER_OF_CHECKSUM_DIRS);
+        this.baseDir = baseDir;
     }
 
     @Override
@@ -72,6 +74,10 @@ public class GroupedAndNamedUniqueFileStore<K> implements FileStore<K>, FileStor
 
     private File getTempFile() {
         return temporaryFileProvider.createTemporaryFile("filestore", "bin");
+    }
+
+    public File whereIs(K key, String checksum) {
+        return new File(baseDir, toPath(key, checksum));
     }
 
     @Override
