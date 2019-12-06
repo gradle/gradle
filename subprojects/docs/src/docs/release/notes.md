@@ -19,7 +19,8 @@ Include only their name, impactful features should be called out separately belo
 [Vladimir Sitnikov](https://github.com/vlsi),
 [Michael Ernst](https://github.com/mernst),
 [Nelson Osacky](https://github.com/runningcode),
-and [Dmitriy Konopelkin](https://github.com/DeKaN).
+[Dmitriy Konopelkin](https://github.com/DeKaN),
+and [Steven Crockett](https://github.com/stevencrockett).
 
 ## Upgrade Instructions
 
