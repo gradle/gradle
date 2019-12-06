@@ -16,20 +16,27 @@
 
 package org.gradle.api.tasks
 
+import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
 
-class JavaExecTaskIntegrationTest extends AbstractExecTaskIntegrationTest {
+class ExecutionResultExecTaskDeprecationIntegrationTest extends AbstractExecutionResultExecTaskIntegrationTest {
     TestFile mainJavaFile
+
+    def setup() {
+        executer.beforeExecute {
+            executer.expectDeprecationWarning("The getExecResult method has been deprecated. This is scheduled to be removed in Gradle 7.0. Please use the getExecutionResult method instead.")
+        }
+    }
 
     @Override
     protected void makeExecProject() {
         buildFile.text = """
             apply plugin: "java"
 
-            task run(type: JavaExec) {
-                classpath = project.layout.files(compileJava)
-                main "driver.Driver"
-                args "1"
+            task run(type: Exec) {
+                dependsOn(compileJava)
+                executable = ${Jvm.canonicalName}.current().javaExecutable
+                args '-cp', project.layout.files(compileJava).asPath, 'driver.Driver', "1"
             }
         """
     }
@@ -81,6 +88,6 @@ class JavaExecTaskIntegrationTest extends AbstractExecTaskIntegrationTest {
 
     @Override
     protected String getExecResultDsl() {
-        return "${taskUnderTestDsl}.execResult.getOrNull()"
+        return "${taskUnderTestDsl}.execResult"
     }
 }

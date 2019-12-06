@@ -16,10 +16,9 @@
 
 package org.gradle.api.tasks
 
-import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
 
-class ExecTaskIntegrationTest extends AbstractExecTaskIntegrationTest {
+class ExecutionResultJavaExecTaskIntegrationTest extends AbstractExecutionResultExecTaskIntegrationTest {
     TestFile mainJavaFile
 
     @Override
@@ -27,10 +26,10 @@ class ExecTaskIntegrationTest extends AbstractExecTaskIntegrationTest {
         buildFile.text = """
             apply plugin: "java"
 
-            task run(type: Exec) {
-                dependsOn(compileJava)
-                executable = ${Jvm.canonicalName}.current().javaExecutable
-                args '-cp', project.layout.files(compileJava).asPath, 'driver.Driver', "1"
+            task run(type: JavaExec) {
+                classpath = project.layout.files(compileJava)
+                main "driver.Driver"
+                args "1"
             }
         """
     }
@@ -82,6 +81,6 @@ class ExecTaskIntegrationTest extends AbstractExecTaskIntegrationTest {
 
     @Override
     protected String getExecResultDsl() {
-        return "${taskUnderTestDsl}.execResult"
+        return "${taskUnderTestDsl}.executionResult.getOrNull()"
     }
 }

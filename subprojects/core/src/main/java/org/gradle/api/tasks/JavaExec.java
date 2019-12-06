@@ -694,7 +694,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Internal
     @Incubating
-    public Provider<ExecResult> getExecResult() {
+    public Provider<ExecResult> getExecutionResult() {
         return execResult;
     }
 }
