@@ -373,7 +373,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         then:
         execHandle.state == ExecHandleState.FAILED
         detachResult.processCompleted
-        detachResult.execResult.exitValue == 72
+        detachResult.executionResult.get().exitValue == 72
     }
 
     void "can redirect error stream"() {

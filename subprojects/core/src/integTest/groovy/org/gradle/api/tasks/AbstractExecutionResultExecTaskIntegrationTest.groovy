@@ -19,7 +19,7 @@ package org.gradle.api.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
-abstract class AbstractExecTaskIntegrationTest extends AbstractIntegrationSpec {
+abstract class AbstractExecutionResultExecTaskIntegrationTest extends AbstractIntegrationSpec {
     protected abstract void makeExecProject()
     protected abstract void writeSucceedingExec()
     protected abstract void writeFailingExec()
