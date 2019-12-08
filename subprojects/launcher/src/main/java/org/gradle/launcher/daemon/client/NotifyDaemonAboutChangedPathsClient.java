@@ -50,7 +50,7 @@ public class NotifyDaemonAboutChangedPathsClient {
     public void notifyDaemonsAboutChangedPaths(List<String> changedPaths) {
         for (DaemonInfo daemonInfo : daemonRegistry.getAll()) {
             DaemonStateControl.State state = daemonInfo.getState();
-            if (state != DaemonStateControl.State.Idle && state != DaemonStateControl.State.Busy) {
+            if (state != DaemonStateControl.State.Idle) {
                 continue;
             }
             DaemonClientConnection connection = connector.maybeConnect(daemonInfo);

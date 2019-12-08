@@ -16,30 +16,22 @@
 
 package org.gradle.integtests.tooling.r61
 
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.tooling.model.gradle.GradleBuild
+import org.junit.Rule
 
-@ToolingApiVersion(">=6.1")
 @TargetGradleVersion(">=6.1")
-class InvalidateVirtualFileSystemCrossVersionSpec extends ToolingApiSpecification {
+class InvalidateVirtualFileSystemCrossVersionSpec extends AbstractInvalidateVirtualFileSystemCrossVersionSpec {
+    @Rule BlockingHttpServer server = new BlockingHttpServer()
+    GradleExecuter executer
 
     def setup() {
-        toolingApi.requireIsolatedToolingApi()
-
-        buildFile << """
-            apply plugin: 'java-library'
-        """
+        executer = toolingApi.createExecuter()
     }
 
-    def cleanup() {
-        toolingApi.close()
-    }
-
-    def "can invalidate paths"() {
-        def changedPaths = [file("src/main/java").absolutePath]
-
+    def "invalidates paths for single idle daemon"() {
         when:
         createIdleDaemon()
 
@@ -48,7 +40,36 @@ class InvalidateVirtualFileSystemCrossVersionSpec extends ToolingApiSpecificatio
         }
 
         then:
-        toolingApi.daemons.daemon.log.contains("Invalidating ${changedPaths}")
+        pathsInvalidated()
+    }
+
+    def "does not invalidate paths for single busy daemon"() {
+        server.start()
+        buildFile << """
+            task block {
+                doLast {
+                    ${server.callFromBuild("block")}
+                }
+            }
+        """
+        def block = server.expectAndBlock("block")
+        def build = executer.withTasks("block").start()
+        block.waitForAllPendingCalls()
+        toolingApi.daemons.daemon.assertBusy()
+
+        when:
+        withConnection { connection ->
+            connection.notifyDaemonsAboutChangedPaths(changedPaths)
+        }
+
+        then:
+        block.releaseAll()
+        build.waitForFinish()
+        !pathsInvalidated()
+
+        cleanup:
+        block?.releaseAll()
+        build?.waitForFinish()
     }
 
     private void createIdleDaemon() {
