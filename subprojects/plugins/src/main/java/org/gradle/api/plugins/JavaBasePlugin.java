@@ -57,6 +57,7 @@ import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.component.external.model.JavaEcosystemVariantDerivationStrategy;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.internal.model.RuleBasedPluginListener;
+import org.gradle.jvm.toolchain.JavaInstallationRegistry;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.jvm.tasks.ProcessResources;
 
@@ -103,11 +104,13 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     );
 
     private final ObjectFactory objectFactory;
+    private final JavaInstallationRegistry javaInstallationRegistry;
     private final boolean javaClasspathPackaging;
 
     @Inject
-    public JavaBasePlugin(ObjectFactory objectFactory) {
+    public JavaBasePlugin(ObjectFactory objectFactory, JavaInstallationRegistry javaInstallationRegistry) {
         this.objectFactory = objectFactory;
+        this.javaInstallationRegistry = javaInstallationRegistry;
         this.javaClasspathPackaging = Boolean.getBoolean(COMPILE_CLASSPATH_PACKAGING_SYSTEM_PROPERTY);
     }
 
@@ -140,6 +143,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         project.getConvention().getPlugins().put("java", javaConvention);
         project.getExtensions().add(SourceSetContainer.class, "sourceSets", javaConvention.getSourceSets());
         project.getExtensions().create(JavaPluginExtension.class, "java", DefaultJavaPluginExtension.class, javaConvention, project);
+        project.getExtensions().add("javaInstalls", javaInstallationRegistry);
         return javaConvention;
     }
 
@@ -159,8 +163,6 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
                 .attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME))
                 .attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, LibraryElements.JAR));
     }
-
-
 
     private void configureSourceSetDefaults(final JavaPluginConvention pluginConvention) {
         final Project project = pluginConvention.getProject();
