@@ -91,7 +91,7 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-        throw new GradleException("Documentation check failed: found invalid internal links. See " + new org.gradle.internal.logging.ConsoleRenderer().asClickableFileUrl(reportFile));
+        throw new GradleException("Documentation assertion failed: found invalid internal links. See " + new org.gradle.internal.logging.ConsoleRenderer().asClickableFileUrl(reportFile));
     }
 
     private void writeHeader(PrintWriter fw) {
