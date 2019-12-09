@@ -167,6 +167,10 @@ class DependencyVerificationFixture {
     static class Builder {
         private final DependencyVerifierBuilder builder = new DependencyVerifierBuilder()
 
+        void noMetadataVerification() {
+            builder.verifyMetadata = false
+        }
+
         void addChecksum(String id, String algo, String checksum, String type="jar", String ext="jar", String origin = null) {
             def parts = id.split(":")
             def group = parts[0]

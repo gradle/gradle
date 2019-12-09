@@ -36,6 +36,7 @@ import java.util.stream.Collectors;
 
 public class DependencyVerifierBuilder {
     private final Map<ModuleComponentIdentifier, ComponentVerificationsBuilder> byComponent = Maps.newLinkedHashMap();
+    private boolean isVerifyMetadata = true;
 
     public void addChecksum(ModuleComponentArtifactIdentifier artifact, ChecksumKind kind, String value, @Nullable String origin) {
         ModuleComponentIdentifier componentIdentifier = artifact.getComponentIdentifier();
@@ -43,12 +44,20 @@ public class DependencyVerifierBuilder {
             .addChecksum(artifact, kind, value, origin);
     }
 
+    public void setVerifyMetadata(boolean verifyMetadata) {
+        isVerifyMetadata = verifyMetadata;
+    }
+
+    public boolean isVerifyMetadata() {
+        return isVerifyMetadata;
+    }
+
     public DependencyVerifier build() {
         ImmutableMap.Builder<ComponentIdentifier, ComponentVerificationMetadata> builder = ImmutableMap.builderWithExpectedSize(byComponent.size());
         for (Map.Entry<ModuleComponentIdentifier, ComponentVerificationsBuilder> entry : byComponent.entrySet()) {
             builder.put(entry.getKey(), entry.getValue().build());
         }
-        return new DependencyVerifier(builder.build());
+        return new DependencyVerifier(builder.build(), new DependencyVerificationConfiguration(isVerifyMetadata));
     }
 
     private static class ComponentVerificationsBuilder {

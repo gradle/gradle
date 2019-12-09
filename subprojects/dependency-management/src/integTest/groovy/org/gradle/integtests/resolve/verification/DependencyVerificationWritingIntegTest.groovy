@@ -592,6 +592,9 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         and:
         assertXmlContents """<?xml version="1.0" encoding="UTF-8"?>
 <verification-metadata>
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+   </configuration>
    <components>
       <component group="org" name="foo" version="1.0">
          <artifact name="foo-1.0.jar">
@@ -794,6 +797,110 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         where:
         stop << [true, false]
     }
+
+    @Unroll
+    @ToBeFixedForInstantExecution
+    def "doesn't write artifact metadata when metadata verification is disabled"() {
+        createMetadataFile {
+            noMetadataVerification()
+        }
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0") {
+            if (gmm) {
+                withModuleMetadata()
+            }
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        writeVerificationMetadata("sha1")
+        succeeds ":compileJava"
+
+        then:
+        hasModules(["org:foo"])
+        module("org:foo:1.0") {
+            artifact("foo-1.0.jar") {
+                declaresChecksums(
+                    sha1: "16e066e005a935ac60f06216115436ab97c5da02",
+                )
+            }
+        }
+
+        and:
+        assertXmlContents """<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata>
+   <configuration>
+      <verify-metadata>false</verify-metadata>
+   </configuration>
+   <components>
+      <component group="org" name="foo" version="1.0">
+         <artifact name="foo-1.0.jar">
+            <sha1 value="16e066e005a935ac60f06216115436ab97c5da02"/>
+         </artifact>
+      </component>
+   </components>
+</verification-metadata>
+"""
+
+        where:
+        gmm << [false, true]
+    }
+
+    def "doesn't write checksums of parent POMs if metadata verification is disabled"() {
+        createMetadataFile {
+            noMetadataVerification()
+        }
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "parent", "1.0")
+        uncheckedModule("org", "foo", "1.0") {
+            parent("org", "parent", "1.0")
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        writeVerificationMetadata("sha1")
+        succeeds ":compileJava"
+
+        then:
+        hasModules(["org:foo"])
+        module("org:foo:1.0") {
+            artifact("foo-1.0.jar") {
+                declaresChecksums(
+                    sha1: "16e066e005a935ac60f06216115436ab97c5da02",
+                )
+            }
+        }
+
+        and:
+        assertXmlContents """<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata>
+   <configuration>
+      <verify-metadata>false</verify-metadata>
+   </configuration>
+   <components>
+      <component group="org" name="foo" version="1.0">
+         <artifact name="foo-1.0.jar">
+            <sha1 value="16e066e005a935ac60f06216115436ab97c5da02"/>
+         </artifact>
+      </component>
+   </components>
+</verification-metadata>
+"""
+
+    }
+
 
     def "updating a file doesn't generate duplicates"() {
         given:

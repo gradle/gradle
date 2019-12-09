@@ -20,6 +20,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.ArtifactVerificationOperation;
 import org.gradle.api.internal.artifacts.verification.model.ArtifactVerificationMetadata;
 import org.gradle.api.internal.artifacts.verification.model.Checksum;
 import org.gradle.api.internal.artifacts.verification.model.ChecksumKind;
@@ -44,9 +45,11 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class DependencyVerifier {
     private final Map<ComponentIdentifier, ComponentVerificationMetadata> verificationMetadata;
+    private final DependencyVerificationConfiguration config;
 
-    DependencyVerifier(Map<ComponentIdentifier, ComponentVerificationMetadata> verificationMetadata) {
+    DependencyVerifier(Map<ComponentIdentifier, ComponentVerificationMetadata> verificationMetadata, DependencyVerificationConfiguration config) {
         this.verificationMetadata = ImmutableMap.copyOf(verificationMetadata);
+        this.config = config;
     }
 
     // This cache is a mapping from a file to its verification failure state
@@ -58,7 +61,10 @@ public class DependencyVerifier {
         .weakValues()
         .build();
 
-    public void verify(BuildOperationExecutor buildOperationExecutor, ChecksumService checksumService, ModuleComponentArtifactIdentifier foundArtifact, File file, Action<VerificationFailure> onFailure) {
+    public void verify(BuildOperationExecutor buildOperationExecutor, ChecksumService checksumService, ArtifactVerificationOperation.ArtifactKind kind, ModuleComponentArtifactIdentifier foundArtifact, File file, Action<VerificationFailure> onFailure) {
+        if (shouldSkipVerification(kind)) {
+            return;
+        }
         try {
             Optional<VerificationFailure> verificationFailure = verificationCache.get(file, () -> {
                 return performVerification(buildOperationExecutor, foundArtifact, checksumService, file);
@@ -67,6 +73,13 @@ public class DependencyVerifier {
         } catch (ExecutionException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
+    }
+
+    private boolean shouldSkipVerification(ArtifactVerificationOperation.ArtifactKind kind) {
+        if (kind == ArtifactVerificationOperation.ArtifactKind.METADATA && !config.isVerifyMetadata()) {
+            return true;
+        }
+        return false;
     }
 
     private Optional<VerificationFailure> performVerification(BuildOperationExecutor buildOperationExecutor, ModuleComponentArtifactIdentifier foundArtifact, ChecksumService checksumService, File file) {
@@ -146,6 +159,10 @@ public class DependencyVerifier {
 
     public Collection<ComponentVerificationMetadata> getVerificationMetadata() {
         return verificationMetadata.values();
+    }
+
+    public DependencyVerificationConfiguration getConfiguration() {
+        return config;
     }
 
     public static class VerificationFailure {

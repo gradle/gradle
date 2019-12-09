@@ -13,17 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification;
+package org.gradle.api.internal.artifacts.verification;
 
-import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
+public class DependencyVerificationConfiguration {
+    private final boolean verifyMetadata;
 
-import java.io.File;
+    public DependencyVerificationConfiguration(boolean verifyMetadata) {
+        this.verifyMetadata = verifyMetadata;
+    }
 
-public interface ArtifactVerificationOperation {
-    void onArtifact(ArtifactKind kind, ModuleComponentArtifactIdentifier artifact, File path);
-
-    enum ArtifactKind {
-        METADATA,
-        REGULAR
+    public boolean isVerifyMetadata() {
+        return verifyMetadata;
     }
 }
