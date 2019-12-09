@@ -164,6 +164,12 @@ public interface ProjectConnection extends Closeable {
      *
      * <p>The daemons will use this information to update the retained file system state.
      *
+     * <p>The method should be invoked on every change done by the external process.
+     * The process shouldn't notify Gradle about changes detected by using file watchers,
+     * since Gradle already will be using its own file watcher.
+     * For example, an IDE should notify Gradle when the user saves a changed file, or
+     * after some refactoring finished.
+     *
      * <p>The paths which are passed in need to be absolute, canonicalized paths.
      * For a delete, the deleted path should be passed.
      * For a rename, the old and the new path should be passed.
