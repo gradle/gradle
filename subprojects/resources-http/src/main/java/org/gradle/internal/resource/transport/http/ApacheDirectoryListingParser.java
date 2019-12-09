@@ -128,7 +128,7 @@ public class ApacheDirectoryListingParser {
         return uris;
     }
 
-    private class AnchorListerHandler extends DefaultHandler {
+    private static class AnchorListerHandler extends DefaultHandler {
         List<String> hrefs = new ArrayList<String>();
 
         public List<String> getHrefs() {

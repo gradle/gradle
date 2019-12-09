@@ -382,7 +382,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         changing = changing || dependencyState.getDependency().isChanging();
     }
 
-    private class UnmatchedVersionsReason implements Describable {
+    private static class UnmatchedVersionsReason implements Describable {
         private final Collection<String> rejectedVersions;
         private final ComponentSelectionDescriptorInternal descriptor;
 

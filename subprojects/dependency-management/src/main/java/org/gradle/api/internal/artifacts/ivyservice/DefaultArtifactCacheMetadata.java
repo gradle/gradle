@@ -18,13 +18,13 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.CacheVersion;
 import org.gradle.cache.internal.VersionStrategy;
-import org.gradle.internal.classpath.CachedJarFileStore;
+import org.gradle.internal.vfs.AdditiveCache;
 
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
-public class DefaultArtifactCacheMetadata implements ArtifactCacheMetadata, CachedJarFileStore {
+public class DefaultArtifactCacheMetadata implements ArtifactCacheMetadata, AdditiveCache {
 
     public static final CacheVersion CACHE_LAYOUT_VERSION = CacheLayout.META_DATA.getVersion();
     private final File cacheDir;
@@ -46,7 +46,7 @@ public class DefaultArtifactCacheMetadata implements ArtifactCacheMetadata, Cach
     }
 
     @Override
-    public List<File> getFileStoreRoots() {
+    public List<File> getAdditiveCacheRoots() {
         return Arrays.asList(getFileStoreDirectory(), getTransformsStoreDirectory());
     }
 

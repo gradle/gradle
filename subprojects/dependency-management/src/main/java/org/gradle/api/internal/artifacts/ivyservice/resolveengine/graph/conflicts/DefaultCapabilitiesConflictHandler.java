@@ -128,7 +128,7 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
                 if (details.reason != null) {
                     conflictResolution = conflictResolution.withDescription(details.reason);
                 }
-                details.getSelected().getComponent().addCause(conflictResolution);
+                details.getSelected().addCause(conflictResolution);
                 return;
             }
         }
@@ -264,8 +264,8 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
         }
 
         @Override
-        public NodeState getSelected() {
-            return selected;
+        public ComponentState getSelected() {
+            return selected.getComponent();
         }
     }
 

@@ -29,7 +29,7 @@ import java.util.Set;
  *
  * <p>You can create an instance of this type using the factory method {@link org.gradle.api.model.ObjectFactory#namedDomainObjectSet(Class)}.</p>
  *
- *  @param <T> The type of objects in the set
+ * @param <T> The type of objects in the set
  */
 public interface NamedDomainObjectSet<T> extends NamedDomainObjectCollection<T>, Set<T> {
 

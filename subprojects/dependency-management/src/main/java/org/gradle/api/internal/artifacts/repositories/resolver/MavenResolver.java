@@ -39,6 +39,7 @@ import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.component.model.MutableModuleSources;
+import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResult;
@@ -76,7 +77,8 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
                          MavenMetadataLoader mavenMetadataLoader,
                          @Nullable InstantiatingAction<ComponentMetadataSupplierDetails> componentMetadataSupplierFactory,
                          @Nullable InstantiatingAction<ComponentMetadataListerDetails> versionListerFactory,
-                         Instantiator injector) {
+                         Instantiator injector,
+                         ChecksumService checksumService) {
         super(name, transport.isLocal(),
             transport.getRepository(),
             transport.getResourceAccessor(),
@@ -86,7 +88,8 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
             metadataArtifactProvider,
             componentMetadataSupplierFactory,
             versionListerFactory,
-            injector);
+            injector,
+            checksumService);
         this.mavenMetaDataLoader = mavenMetadataLoader;
         this.root = rootUri;
         updatePatterns();

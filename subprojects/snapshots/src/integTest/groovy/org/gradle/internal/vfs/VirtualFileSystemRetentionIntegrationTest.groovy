@@ -19,6 +19,8 @@ package org.gradle.internal.vfs
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import spock.lang.IgnoreIf
 
 import static org.gradle.internal.service.scopes.VirtualFileSystemServices.VFS_DROP_PROPERTY
@@ -26,6 +28,8 @@ import static org.gradle.internal.service.scopes.VirtualFileSystemServices.VFS_R
 
 // The whole test makes no sense if there isn't a daemon to retain the state.
 @IgnoreIf({ GradleContextualExecuter.noDaemon })
+// TODO Re-enable for all OSs once we have Windows native watchers merged
+@Requires(TestPrecondition.NOT_WINDOWS)
 class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
@@ -83,7 +87,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
     }
 
     @ToBeFixedForInstantExecution
-    def "build script changes get recognized"() {
+    def "Groovy build script changes get recognized"() {
         when:
         buildFile.text = """
             println "Hello from the build!"
@@ -95,6 +99,25 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         when:
         buildFile.text = """
             println "Hello from the modified build!"
+        """
+        withRetention().run "help"
+        then:
+        outputContains "Hello from the modified build!"
+    }
+
+    @ToBeFixedForInstantExecution
+    def "Kotlin build script changes get recognized"() {
+        when:
+        buildKotlinFile.text = """
+            println("Hello from the build!")
+        """
+        withRetention().run "help"
+        then:
+        outputContains "Hello from the build!"
+
+        when:
+        buildKotlinFile.text = """
+            println("Hello from the modified build!")
         """
         withRetention().run "help"
         then:
@@ -217,6 +240,6 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
     }
 
     private static void waitForChangesToBePickedUp() {
-        Thread.sleep(20)
+        Thread.sleep(300)
     }
 }

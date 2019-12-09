@@ -127,7 +127,7 @@ project(":b") {
         mavenRepo.module("org.other", "externalA", "1.2").publish()
 
         and:
-        file('settings.gradle') << """rootProject.name='test' 
+        file('settings.gradle') << """rootProject.name='test'
 include 'a', 'b'"""
 
         and:
@@ -616,7 +616,7 @@ project('c') {
         fails("impl:check")
 
         then:
-        failure.assertHasCause "Cannot change dependencies of configuration ':api:conf' after it has been included in dependency resolution"
+        failure.assertHasCause "Cannot change dependencies of dependency configuration ':api:conf' after it has been included in dependency resolution"
     }
 
     @Issue(["GRADLE-3330", "GRADLE-3362"])

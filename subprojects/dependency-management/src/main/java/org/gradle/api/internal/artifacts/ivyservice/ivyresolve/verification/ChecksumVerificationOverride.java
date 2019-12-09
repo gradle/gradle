@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.verification.DependencyVerifier;
 import org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationsXmlReader;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
+import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.operations.BuildOperationExecutor;
 
@@ -38,14 +39,18 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ChecksumVerificationOverride implements DependencyVerificationOverride, ArtifactVerificationOperation {
+    private static final Comparator<Map.Entry<ModuleComponentArtifactIdentifier, DependencyVerifier.VerificationFailure>> DELETED_LAST = Comparator.comparing(e -> e.getValue() == DependencyVerifier.VerificationFailure.DELETED ? 1 : 0);
+    private static final Comparator<Map.Entry<ModuleComponentArtifactIdentifier, DependencyVerifier.VerificationFailure>> MISSING_LAST = Comparator.comparing(e -> e.getValue() == DependencyVerifier.VerificationFailure.MISSING ? 1 : 0);
     private static final Comparator<Map.Entry<ModuleComponentArtifactIdentifier, DependencyVerifier.VerificationFailure>> BY_MODULE_ID = Comparator.comparing(e -> e.getKey().getDisplayName());
 
     private final DependencyVerifier verifier;
     private final Map<ModuleComponentArtifactIdentifier, DependencyVerifier.VerificationFailure> failures = Maps.newLinkedHashMapWithExpectedSize(2);
     private final BuildOperationExecutor buildOperationExecutor;
+    private final ChecksumService checksumService;
 
-    public ChecksumVerificationOverride(BuildOperationExecutor buildOperationExecutor, File verificationsFile) {
+    public ChecksumVerificationOverride(BuildOperationExecutor buildOperationExecutor, File verificationsFile, ChecksumService checksumService) {
         this.buildOperationExecutor = buildOperationExecutor;
+        this.checksumService = checksumService;
         try {
             this.verifier = DependencyVerificationsXmlReader.readFromXml(
                 new FileInputStream(verificationsFile)
@@ -57,7 +62,7 @@ public class ChecksumVerificationOverride implements DependencyVerificationOverr
 
     @Override
     public void onArtifact(ModuleComponentArtifactIdentifier artifact, File path) {
-        verifier.verify(buildOperationExecutor, artifact, path, f -> {
+        verifier.verify(buildOperationExecutor, checksumService, artifact, path, f -> {
             synchronized (failures) {
                 failures.put(artifact, f);
             }
@@ -81,10 +86,12 @@ public class ChecksumVerificationOverride implements DependencyVerificationOverr
                 // Sorting entries so that error messages are always displayed in a reproducible order
                 failures.entrySet()
                     .stream()
-                    .sorted(BY_MODULE_ID)
+                    .sorted(DELETED_LAST.thenComparing(MISSING_LAST).thenComparing(BY_MODULE_ID))
                     .forEachOrdered(entry -> {
                         DependencyVerifier.VerificationFailure failure = entry.getValue();
-                        if (failure == DependencyVerifier.VerificationFailure.MISSING) {
+                        if (failure == DependencyVerifier.VerificationFailure.DELETED) {
+                            formatter.node("Artifact " + entry.getKey() + " has been deleted from local cache so verification cannot be performed");
+                        } else if (failure == DependencyVerifier.VerificationFailure.MISSING) {
                             hasMissing.set(true);
                             formatter.node("Artifact " + entry.getKey() + " checksum is missing from verification metadata.");
                         } else {

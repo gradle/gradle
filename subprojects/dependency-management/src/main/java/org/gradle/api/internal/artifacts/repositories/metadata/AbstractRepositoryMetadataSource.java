@@ -32,14 +32,19 @@ import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.DefaultModuleDescriptorArtifactMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleDescriptorArtifactMetadata;
+import org.gradle.internal.component.model.MutableModuleSources;
+import org.gradle.internal.hash.ChecksumService;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
+import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,11 +53,14 @@ abstract class AbstractRepositoryMetadataSource<S extends MutableModuleComponent
 
     final MetadataArtifactProvider metadataArtifactProvider;
     private final FileResourceRepository fileResourceRepository;
+    private final ChecksumService checksumService;
 
     protected AbstractRepositoryMetadataSource(MetadataArtifactProvider metadataArtifactProvider,
-                                               FileResourceRepository fileResourceRepository) {
+                                               FileResourceRepository fileResourceRepository,
+                                               ChecksumService checksumService) {
         this.metadataArtifactProvider = metadataArtifactProvider;
         this.fileResourceRepository = fileResourceRepository;
+        this.checksumService = checksumService;
     }
 
     @Override
@@ -69,7 +77,7 @@ abstract class AbstractRepositoryMetadataSource<S extends MutableModuleComponent
         ModuleComponentArtifactMetadata artifact = getMetaDataArtifactFor(moduleComponentIdentifier);
         LocallyAvailableExternalResource metadataArtifact = artifactResolver.resolveArtifact(artifact, result);
         if (metadataArtifact != null) {
-            ExternalResourceResolverDescriptorParseContext context = new ExternalResourceResolverDescriptorParseContext(componentResolvers, fileResourceRepository);
+            ExternalResourceResolverDescriptorParseContext context = new ExternalResourceResolverDescriptorParseContext(componentResolvers, fileResourceRepository, checksumService);
             MetaDataParser.ParseResult<S> parseResult = parseMetaDataFromResource(moduleComponentIdentifier, metadataArtifact, artifactResolver, context, repositoryName);
             if (parseResult != null) {
                 if (parseResult.hasGradleMetadataRedirectionMarker()) {
@@ -79,10 +87,24 @@ abstract class AbstractRepositoryMetadataSource<S extends MutableModuleComponent
                         throw new IllegalStateException("Unexpected Gradle metadata redirection answer");
                     }
                 }
-                return parseResult.getResult();
+                S metadata = parseResult.getResult();
+                File metadataArtifactFile = metadataArtifact.getFile();
+                ExternalResourceMetaData metaData = metadataArtifact.getMetaData();
+                MutableModuleSources sources = metadata.getSources();
+                sources.add(new DefaultMetadataFileSource(artifact.getId(), metadataArtifactFile, findSha1(metaData, metadataArtifactFile)));
+                context.appendSources(sources);
+                return metadata;
             }
         }
         return null;
+    }
+
+    private HashCode findSha1(ExternalResourceMetaData metaData, File artifact) {
+        HashCode sha1 = metaData.getSha1();
+        if (sha1 == null) {
+            sha1 = checksumService.sha1(artifact);
+        }
+        return sha1;
     }
 
     private ModuleDescriptorArtifactMetadata getMetaDataArtifactFor(ModuleComponentIdentifier moduleComponentIdentifier) {

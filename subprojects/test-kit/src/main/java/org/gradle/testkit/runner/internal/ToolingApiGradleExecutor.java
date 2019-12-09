@@ -194,7 +194,7 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
         return gradleConnector;
     }
 
-    private class TaskExecutionProgressListener implements ProgressListener {
+    private static class TaskExecutionProgressListener implements ProgressListener {
         private final List<BuildTask> tasks;
         private final Map<String, Integer> order = new HashMap<String, Integer>();
 

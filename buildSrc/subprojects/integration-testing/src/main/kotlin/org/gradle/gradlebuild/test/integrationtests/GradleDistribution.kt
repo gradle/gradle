@@ -45,6 +45,7 @@ open class GradleDistribution(project: Project, gradleHomeDir: DirectoryProperty
         exclude("lib/**")
         exclude("src/**")
         exclude("docs/**")
+        exclude("README")
         exclude("getting-started.html")
     }
 

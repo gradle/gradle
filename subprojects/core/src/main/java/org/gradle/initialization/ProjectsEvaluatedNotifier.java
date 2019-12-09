@@ -35,7 +35,7 @@ public class ProjectsEvaluatedNotifier {
         buildOperationExecutor.run(new NotifyProjectsEvaluatedListeners(gradle));
     }
 
-    private class NotifyProjectsEvaluatedListeners implements RunnableBuildOperation {
+    private static class NotifyProjectsEvaluatedListeners implements RunnableBuildOperation {
         private final GradleInternal gradle;
 
         public NotifyProjectsEvaluatedListeners(GradleInternal gradle) {

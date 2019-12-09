@@ -41,7 +41,7 @@ public class AllExceptIgnoredTestRunnerBuilder extends AllDefaultPossibilitiesBu
         return new FallbackJUnit4Builder();
     }
 
-    private class FallbackJUnit4Builder extends JUnit4Builder {
+    private static class FallbackJUnit4Builder extends JUnit4Builder {
         @Override
         public Runner runnerForClass(Class<?> testClass) throws Throwable {
             try {
@@ -60,7 +60,7 @@ public class AllExceptIgnoredTestRunnerBuilder extends AllDefaultPossibilitiesBu
         }
     }
 
-    private class IgnoredIgnoredBuilder extends IgnoredBuilder {
+    private static class IgnoredIgnoredBuilder extends IgnoredBuilder {
         @Override
         public Runner runnerForClass(Class<?> testClass) {
             return null;

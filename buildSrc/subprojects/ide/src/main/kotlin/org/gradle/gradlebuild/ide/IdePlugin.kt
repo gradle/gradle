@@ -24,9 +24,8 @@ import org.gradle.api.PolymorphicDomainObjectContainer
 import org.gradle.api.Project
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.JavaPlugin
-import org.gradle.api.tasks.Copy
 import org.gradle.gradlebuild.PublicApi
-import org.gradle.gradlebuild.docs.RenderMarkdownTask
+import org.gradle.gradlebuild.docs.DecorateReleaseNotes
 import org.gradle.kotlin.dsl.*
 import org.gradle.plugins.ide.eclipse.model.AbstractClasspathEntry
 import org.gradle.plugins.ide.eclipse.model.Classpath
@@ -273,13 +272,12 @@ open class IdePlugin : Plugin<Project> {
     private
     fun getDefaultJunitVmParameters(docsProject: Project): String {
         val rootProject = docsProject.rootProject
-        val releaseNotesMarkdown: RenderMarkdownTask by docsProject.tasks
-        val releaseNotes: Copy by docsProject.tasks
+        val releaseNotes: DecorateReleaseNotes by docsProject.tasks
         val distsDir = rootProject.layout.buildDirectory.dir(rootProject.base.distsDirName)
         val vmParameter = mutableListOf(
             "-ea",
-            "-Dorg.gradle.docs.releasenotes.source=${releaseNotesMarkdown.markdownFile}",
-            "-Dorg.gradle.docs.releasenotes.rendered=${releaseNotes.destinationDir.resolve(releaseNotes.property("fileName") as String)}",
+            // TODO: This breaks the provider
+            "-Dorg.gradle.docs.releasenotes.rendered=${releaseNotes.getDestinationFile().get().getAsFile()}",
             "-DintegTest.gradleHomeDir=\$MODULE_DIR\$/build/integ test",
             "-DintegTest.gradleUserHomeDir=${rootProject.file("intTestHomeDir").absolutePath}",
             "-DintegTest.gradleGeneratedApiJarCacheDir=\$MODULE_DIR\$/build/generatedApiJars",

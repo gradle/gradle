@@ -16,6 +16,7 @@ import jetbrains.buildServer.configs.kotlin.v2018_2.triggers.schedule
 import jetbrains.buildServer.configs.kotlin.v2018_2.triggers.vcs
 import model.CIBuildModel
 import model.Stage
+import model.StageName
 import model.StageNames
 import model.Trigger
 import projects.StageProject
@@ -117,7 +118,10 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, stagePro
 })
 
 fun stageTriggerUuid(model: CIBuildModel, stage: Stage) = "${model.projectPrefix}Stage_${stage.stageName.uuid}_Trigger"
-fun stageTriggerId(model: CIBuildModel, stage: Stage) = AbsoluteId("${model.projectPrefix}Stage_${stage.stageName.id}_Trigger")
+
+fun stageTriggerId(model: CIBuildModel, stage: Stage) = stageTriggerId(model, stage.stageName)
+
+fun stageTriggerId(model: CIBuildModel, stageName: StageName) = AbsoluteId("${model.projectPrefix}Stage_${stageName.id}_Trigger")
 
 fun Dependencies.snapshotDependencies(buildTypes: Iterable<BuildType>) {
     buildTypes.forEach {

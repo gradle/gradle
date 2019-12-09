@@ -44,6 +44,14 @@
             "member": "Method org.gradle.kotlin.dsl.ScriptHandlerExtensionsKt.repositories(org.gradle.api.initialization.dsl.ScriptHandler,kotlin.jvm.functions.Function1)",
             "acceptation": "Extension method moved from org.gradle.kotlin.dsl.ProjectExtensions",
             "changes": []
+        },
+        {
+            "type": "org.gradle.api.tasks.AbstractExecTask",
+            "member": "Method org.gradle.api.tasks.AbstractExecTask.getExecResult()",
+            "acceptation": "This could always return null before",
+            "changes": [
+                "From non-null returning to null returning breaking change"
+            ]
         }
     ]
 }

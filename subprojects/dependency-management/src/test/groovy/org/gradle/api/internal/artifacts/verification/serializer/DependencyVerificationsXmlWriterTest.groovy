@@ -62,18 +62,18 @@ class DependencyVerificationsXmlWriterTest extends Specification {
 <verification-metadata>
    <components>
       <component group="org" name="foo" version="1.0">
-         <artifact name="foo" type="jar" ext="jar">
+         <artifact name="foo-1.0.jar">
             <sha1 value="abc"/>
             <sha256 value="bcd"/>
          </artifact>
       </component>
       <component group="org" name="foo" version="1.1">
-         <artifact name="foo" type="jar" ext="jar">
+         <artifact name="foo-1.1.jar">
             <md5 value="1234"/>
          </artifact>
       </component>
       <component group="org" name="bar" version="1.2">
-         <artifact name="bar" type="jar" ext="jar">
+         <artifact name="bar-1.2.jar">
             <sha1 value="9876"/>
             <sha512 value="123def"/>
          </artifact>
@@ -97,13 +97,13 @@ class DependencyVerificationsXmlWriterTest extends Specification {
 <verification-metadata>
    <components>
       <component group="org" name="foo" version="1.0">
-         <artifact name="foo" type="jar" ext="jar">
+         <artifact name="foo-1.0.jar">
             <sha1 value="abc"/>
          </artifact>
-         <artifact name="foo" type="zip" ext="zip">
+         <artifact name="foo-1.0.zip">
             <sha256 value="def"/>
          </artifact>
-         <artifact name="foo" classifier="classy" type="jar" ext="jar">
+         <artifact name="foo-1.0-classy.jar">
             <sha1 value="123"/>
          </artifact>
       </component>

@@ -95,7 +95,6 @@ public class ModuleComponentResolveMetadataSerializer extends AbstractSerializer
     }
 
     private VirtualComponentIdentifier readModuleIdentifier(Decoder decoder) throws IOException {
-        decoder.readBoolean();
         String group = decoder.readString();
         String module = decoder.readString();
         String version = decoder.readString();
@@ -128,7 +127,6 @@ public class ModuleComponentResolveMetadataSerializer extends AbstractSerializer
     }
 
     private void writeComponentIdentifier(Encoder encoder, ModuleComponentIdentifier platformOwner) throws IOException {
-        encoder.writeBoolean(true);
         encoder.writeString(platformOwner.getGroup());
         encoder.writeString(platformOwner.getModule());
         encoder.writeString(platformOwner.getVersion());

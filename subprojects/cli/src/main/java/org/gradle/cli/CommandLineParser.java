@@ -400,7 +400,7 @@ public class CommandLineParser {
         public abstract ParserState onComplete();
     }
 
-    private class KnownOptionParserState extends OptionParserState {
+    private static class KnownOptionParserState extends OptionParserState {
         private final OptionString optionString;
         private final CommandLineOption option;
         private final ParsedCommandLine commandLine;

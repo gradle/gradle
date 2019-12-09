@@ -33,7 +33,6 @@ import org.gradle.instantexecution.serialization.DefaultWriteContext
 import org.gradle.instantexecution.serialization.IsolateOwner
 import org.gradle.instantexecution.serialization.MutableIsolateContext
 import org.gradle.instantexecution.serialization.beans.BeanConstructors
-import org.gradle.instantexecution.serialization.codecs.BuildOperationListenersCodec
 import org.gradle.instantexecution.serialization.codecs.Codecs
 import org.gradle.instantexecution.serialization.codecs.WorkNodeCodec
 import org.gradle.instantexecution.serialization.readCollection
@@ -42,7 +41,6 @@ import org.gradle.instantexecution.serialization.writeCollection
 import org.gradle.internal.build.event.BuildEventListenerRegistryInternal
 import org.gradle.internal.hash.HashUtil
 import org.gradle.internal.operations.BuildOperationExecutor
-import org.gradle.internal.operations.BuildOperationListenerManager
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
@@ -396,9 +394,6 @@ class DefaultInstantExecution internal constructor(
     private
     suspend fun DefaultWriteContext.writeGradleState(gradle: Gradle) {
         withGradleIsolate(gradle) {
-            BuildOperationListenersCodec().run {
-                writeBuildOperationListeners(service())
-            }
             val eventListenerRegistry = service<BuildEventListenerRegistryInternal>()
             writeCollection(eventListenerRegistry.subscriptions)
         }
@@ -408,12 +403,6 @@ class DefaultInstantExecution internal constructor(
     private
     suspend fun DefaultReadContext.readGradleState(gradle: Gradle) {
         withGradleIsolate(gradle) {
-            val listeners = BuildOperationListenersCodec().run {
-                readBuildOperationListeners()
-            }
-            service<BuildOperationListenerManager>().let { manager ->
-                listeners.forEach { manager.addListener(it) }
-            }
             val eventListenerRegistry = service<BuildEventListenerRegistryInternal>()
             readCollection {
                 val provider = read() as Provider<OperationCompletionListener>

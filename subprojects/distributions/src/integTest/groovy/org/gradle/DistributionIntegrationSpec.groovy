@@ -160,7 +160,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-language-groovy-${baseVersion}.jar"))
 
         // Docs
-        contentsDir.file('getting-started.html').assertIsFile()
+        contentsDir.file('README').assertIsFile()
 
         // Others
         assertIsGradleApiMetadataJar(contentsDir.file("lib/gradle-api-metadata-${baseVersion}.jar"))

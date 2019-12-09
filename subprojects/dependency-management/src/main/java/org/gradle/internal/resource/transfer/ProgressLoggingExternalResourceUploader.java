@@ -42,7 +42,7 @@ public class ProgressLoggingExternalResourceUploader extends AbstractProgressLog
         }
     }
 
-    private class ProgressLoggingReadableContent implements ReadableContent {
+    private static class ProgressLoggingReadableContent implements ReadableContent {
         private final ReadableContent delegate;
         private final ResourceOperation uploadOperation;
 

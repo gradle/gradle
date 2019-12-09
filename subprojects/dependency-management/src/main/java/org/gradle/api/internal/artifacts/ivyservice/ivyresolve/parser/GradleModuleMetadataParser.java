@@ -46,7 +46,6 @@ import org.gradle.internal.component.external.model.MutableModuleComponentResolv
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
-import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.gradle.internal.snapshot.impl.CoercingStringValueSnapshot;
 
@@ -108,7 +107,6 @@ public class GradleModuleMetadataParser {
                     version = reader.nextString();
                     consumeTopLevelElements(reader, metadata);
                     File file = resource.getFile();
-                    metadata.setContentHash(HashUtil.createHash(file, "MD5"));
                     if (!FORMAT_VERSION.equals(version)) {
                         LOGGER.debug("Unrecognized metadata format version '{}' found in '{}'. Parsing succeeded but it may lead to unexpected resolution results. Try upgrading to a newer version of Gradle", version, file);
                     }

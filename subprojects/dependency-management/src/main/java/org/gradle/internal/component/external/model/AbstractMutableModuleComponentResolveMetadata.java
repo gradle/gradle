@@ -43,8 +43,6 @@ import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.component.model.MutableModuleSources;
 import org.gradle.internal.component.model.VariantResolveMetadata;
-import org.gradle.internal.hash.HashUtil;
-import org.gradle.internal.hash.HashValue;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -55,7 +53,6 @@ import java.util.stream.Collectors;
 import static org.gradle.internal.component.model.ComponentResolveMetadata.DEFAULT_STATUS_SCHEME;
 
 public abstract class AbstractMutableModuleComponentResolveMetadata implements MutableModuleComponentResolveMetadata {
-    public static final HashValue EMPTY_CONTENT = HashUtil.createHash("", "MD5");
     private static final String DEFAULT_STATUS = "integration";
 
     private final ImmutableAttributesFactory attributesFactory;
@@ -66,7 +63,6 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
     private boolean missing;
     private List<String> statusScheme = DEFAULT_STATUS_SCHEME;
     private MutableModuleSources moduleSources;
-    private HashValue contentHash = EMPTY_CONTENT;
     private /*Mutable*/AttributeContainerInternal componentLevelAttributes;
     private final AttributesSchemaInternal schema;
 
@@ -93,7 +89,6 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
         this.missing = metadata.isMissing();
         this.statusScheme = metadata.getStatusScheme();
         this.moduleSources = MutableModuleSources.of(metadata.getSources());
-        this.contentHash = metadata.getOriginalContentHash();
         this.variants = metadata.getVariants();
         this.attributesFactory = metadata.getAttributesFactory();
         this.schema = metadata.getAttributesSchema();
@@ -164,16 +159,6 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
     @Override
     public void setChanging(boolean changing) {
         this.changing = changing;
-    }
-
-    @Override
-    public HashValue getContentHash() {
-        return contentHash;
-    }
-
-    @Override
-    public void setContentHash(HashValue contentHash) {
-        this.contentHash = contentHash;
     }
 
     @Override

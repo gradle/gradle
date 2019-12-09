@@ -25,9 +25,9 @@ import org.gradle.api.internal.artifacts.verification.DependencyVerifier;
 import org.gradle.api.internal.artifacts.verification.DependencyVerifierBuilder;
 import org.gradle.api.internal.artifacts.verification.model.ChecksumKind;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
+import org.gradle.internal.component.external.model.ModuleComponentFileArtifactIdentifier;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -41,13 +41,10 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.ARTIFACT;
-import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.CLASSIFIER;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.COMPONENT;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.COMPONENTS;
-import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.EXT;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.GROUP;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.NAME;
-import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.TYPE;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.VALUE;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.VERIFICATION_METADATA;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.VERSION;
@@ -149,13 +146,10 @@ public class DependencyVerificationsXmlReader {
             }
         }
 
-        private DefaultModuleComponentArtifactIdentifier createArtifactId(Attributes attributes) {
-            return new DefaultModuleComponentArtifactIdentifier(
+        private ModuleComponentFileArtifactIdentifier createArtifactId(Attributes attributes) {
+            return new ModuleComponentFileArtifactIdentifier(
                 currentComponent,
-                getAttribute(attributes, NAME),
-                getNullableAttribute(attributes, TYPE),
-                getNullableAttribute(attributes, EXT),
-                getNullableAttribute(attributes, CLASSIFIER)
+                getAttribute(attributes, NAME)
             );
         }
 
@@ -176,16 +170,5 @@ public class DependencyVerificationsXmlReader {
             return stringInterner.intern(value);
         }
 
-        private String getNullableAttribute(Attributes attributes, String name) {
-            String value = attributes.getValue(name);
-            if (value == null) {
-                return null;
-            }
-            return stringInterner.intern(value);
-        }
-
-        DependencyVerifier toVerifier() {
-            return builder.build();
-        }
     }
 }

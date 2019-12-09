@@ -86,11 +86,14 @@ public class UserResolverChain implements ComponentResolvers {
     }
 
     private static class ModuleTransformer implements Transformer<ModuleComponentResolveMetadata, RepositoryChainModuleResolution> {
+        private final boolean log = Boolean.getBoolean("debug.modulesource");
+
         @Override
         public ModuleComponentResolveMetadata transform(RepositoryChainModuleResolution original) {
             RepositoryChainModuleSource moduleSource = new RepositoryChainModuleSource(original.repository);
             ModuleSources originSources = original.module.getSources();
-            return original.module.withSources(ImmutableModuleSources.of(originSources, moduleSource));
+            ImmutableModuleSources mutated = ImmutableModuleSources.of(originSources, moduleSource);
+            return original.module.withSources(mutated);
         }
     }
 }

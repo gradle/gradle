@@ -22,9 +22,11 @@ import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class DefaultFileHierarchySetTest extends Specification {
-    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     def "creates from a single file"() {
         def dir = tmpDir.createDir("dir")
@@ -43,6 +45,7 @@ class DefaultFileHierarchySetTest extends Specification {
         def set = DefaultFileHierarchySet.of([])
         !set.contains(tmpDir.file("any"))
     }
+
 
     def "creates from collection containing single file"() {
         def dir = tmpDir.createDir("dir")
@@ -101,6 +104,55 @@ class DefaultFileHierarchySetTest extends Specification {
         expect:
         def set = DefaultFileHierarchySet.of(Arrays.asList(File.listRoots()))
         set.contains(tmpDir.file("any"))
+    }
+
+    @Requires(TestPrecondition.WINDOWS)
+    @Unroll
+    def 'can handle more root dirs'() {
+        expect:
+        DefaultFileHierarchySet.of(pathList.collect { new File(it) }).contains(target) == result
+
+        where:
+        pathList                 | target            | result
+        ['C:\\', 'D:\\']         | 'C:\\'            | true
+        ['C:\\', 'D:\\', 'E:\\'] | 'C:\\'            | true
+        ['C:\\', 'D:\\']         | 'D:\\'            | true
+        ['C:\\', 'D:\\']         | 'C:\\any'         | true
+        ['C:\\', 'D:\\']         | 'D:\\any'         | true
+        ['C:\\', 'D:\\']         | 'E:\\any'         | false
+        ['C:\\', 'D:\\', 'E:\\'] | 'E:\\any'         | true
+        ['C:\\', 'D:\\', 'E:\\'] | 'F:\\any'         | false
+        ['C:\\', 'C:\\any']      | 'C:\\any\\thing'  | true
+        ['C:\\', 'C:\\any']      | 'E:\\any\\thing'  | false
+        ['C:\\any1', 'D:\\any2'] | 'C:\\any1\\thing' | true
+        ['C:\\any1', 'D:\\any2'] | 'D:\\any2\\thing' | true
+    }
+
+    @Requires(TestPrecondition.UNIX)
+    @Unroll
+    def 'can handle more dirs on Unix'() {
+        expect:
+        DefaultFileHierarchySet.of(pathList.collect { new File(it) }).contains(target) == result
+
+        where:
+        pathList                       | target               | result
+        ['/var', '/home']              | '/usr'               | false
+        ['/var/log', '/var/home', '/'] | '/usr'               | true
+        ['/', '/home']                 | '/'                  | true
+        ['/home', '/']                 | '/'                  | true
+        ['/home', '/']                 | '/home'              | true
+        ['/', '/home']                 | '/home'              | true
+        ['/', '/']                     | '/'                  | true
+        ['/var', '/home']              | '/var'               | true
+        ['/var', '/home']              | '/home'              | true
+        ['/var', '/home', '/usr']      | '/home'              | true
+        ['/var', '/home', '/usr']      | '/usr'               | true
+        ['/var', '/home', '/usr']      | '/bin'               | false
+        ['/var/log', '/home/my']       | '/var/log'           | true
+        ['/var/log', '/home/my']       | '/home/my/documents' | true
+        ['/var', '/var/log']           | '/var/log/kern.log'  | true
+        ['/var', '/var/log']           | '/var/other'         | true
+        ['/var', '/var/log']           | '/home'              | false
     }
 
     def "can add dir to empty set"() {
