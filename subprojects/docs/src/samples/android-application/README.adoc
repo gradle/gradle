@@ -1,11 +1,3 @@
-= Android Application Sample
-
-ifndef::env-github[]
-[.download]
-- link:{zip-base-file-name}-groovy-dsl.zip[icon:download[] Groovy DSL ZIP]
-- link:{zip-base-file-name}-kotlin-dsl.zip[icon:download[] Kotlin DSL ZIP]
-endif::[]
-
 NOTE: You can open the samples inside a Android Studio IDE using the https://developer.android.com/studio/projects/create-project#ImportAProject[project importer].
 
 This sample shows how a simple Android application written in Java can be built with Gradle.
@@ -42,5 +34,5 @@ BUILD SUCCESSFUL in 1m 0s
 =====
 ====
 
-For more information, we suggest reading link:{userManualPath}getting_started.html[Getting Started with Gradle].
+For more information, we suggest reading <<getting_started.adoc#,Getting Started with Gradle>>.
 You can also find https://developer.android.com/guide[Android development related information inside the guides provided by the Android team].

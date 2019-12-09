@@ -78,7 +78,7 @@ public class GradleBuildDocumentationPlugin implements Plugin<Project> {
 
         extension.getSourceRoot().convention(layout.getProjectDirectory().dir("src/docs"));
         extension.getDocumentationRenderedRoot().convention(layout.getBuildDirectory().dir("docs"));
-        extension.getStagingRoot().convention(layout.getBuildDirectory().dir("docs-working"));
+        extension.getStagingRoot().convention(layout.getBuildDirectory().dir("working"));
 
         ConfigurableFileTree css = objects.fileTree();
         css.from(extension.getSourceRoot().dir("css"));

@@ -155,7 +155,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             attributes.put("gradleVersion", project.getVersion().toString());
             attributes.put("samplesPath", "snippets");
             // Used by SampleIncludeProcessor from `gradle/dotorg-docs`
-            attributes.put("samples-dir", "src/snippets"); // TODO:
+            attributes.put("samples-dir", "src"); // TODO:
             task.attributes(attributes);
         });
 
@@ -176,6 +176,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             });
 
             task.from(extension.getUserManual().getSnippets(), sub -> sub.into("snippets"));
+            task.from(extension.getUserManual().getAssembledSamples(), sub -> sub.into("samples"));
             task.from(extension.getCssFiles(), sub -> sub.into("css"));
             task.from(extension.getUserManual().getRoot().dir("img"), sub -> {
                 sub.include("**/*.png", "**/*.gif", "**/*.jpg");
@@ -275,6 +276,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
         extension.userManual(userManual -> {
             userManual.getRoot().convention(extension.getSourceRoot().dir("userguide"));
             userManual.getStagingRoot().convention(extension.getStagingRoot().dir("usermanual"));
+            // TODO: These should be generated too
             userManual.getSnippets().convention(layout.getProjectDirectory().dir("src/snippets"));
             userManual.getStagedDocumentation().convention(userguideFlattenSources.flatMap(task -> (DirectoryProperty) task.getExtensions().getExtraProperties().get("destinationDirectory")));
             userManual.getRenderedDocumentation().from(userguide);
