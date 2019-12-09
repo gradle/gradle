@@ -186,7 +186,7 @@ public class ProviderConnection {
     public void notifyDaemonsAboutChangedPaths(List<String> changedPaths, ProviderOperationParameters providerParameters) {
         LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newNestedLogging();
         Parameters params = initParams(providerParameters);
-        ServiceRegistry clientServices = daemonClientFactory.createStopDaemonServices(loggingServices.get(OutputEventListener.class), params.daemonParams);
+        ServiceRegistry clientServices = daemonClientFactory.createMessageDaemonServices(loggingServices.get(OutputEventListener.class), params.daemonParams);
         NotifyDaemonAboutChangedPathsClient client = clientServices.get(NotifyDaemonAboutChangedPathsClient.class);
         client.notifyDaemonsAboutChangedPaths(changedPaths);
     }

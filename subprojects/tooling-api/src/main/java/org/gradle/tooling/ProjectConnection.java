@@ -161,13 +161,27 @@ public interface ProjectConnection extends Closeable {
     /**
      * Notifies all daemons about file changes made by an external process, like an IDE.
      *
-     * The daemons will use this information to update the retained file system state.
+     * <p>The daemons will use this information to update the retained file system state.
      *
-     * @param locations Absolute paths which have been changed by the external process.
+     * <p>The paths which are passed in need to be absolute, canonicalized paths.
+     * For a delete, the deleted path should be passed.
+     * For a rename, the old and the new path should be passed.
+     * When creating a new file, the path to the file should be passed.
+     *
+     * <p>The call is synchronous, i.e. the method ensures that the changed paths are taken into account
+     * by the daemon after it returned. This ensures that for every build started
+     * after this method has been called knows about the changed paths.
+     *
+     * <p>If the version of Gradle does not support virtual file system retention (i.e. &lt; 6.1),
+     * then the operation is a no-op.
+     *
+     * @param changedPaths Absolute paths which have been changed by the external process.
+     * @throws UnsupportedVersionException When the target Gradle version is &lt;= 2.5.
+     * @throws GradleConnectionException On some other failure using the connection.
      * @since 6.1
      */
     @Incubating
-    void notifyDaemonsAboutChangedPaths(List<String> locations);
+    void notifyDaemonsAboutChangedPaths(List<String> changedPaths);
 
     /**
      * Closes this connection. Blocks until any pending operations are complete. Once this method has returned, no more notifications will be delivered by any threads.

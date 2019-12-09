@@ -16,9 +16,9 @@
 
 package org.gradle.launcher.daemon.client;
 
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.remote.internal.Connection;
-import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.protocol.Command;
 import org.gradle.launcher.daemon.protocol.Failure;
 import org.gradle.launcher.daemon.protocol.Finished;
@@ -74,7 +74,7 @@ public class NotifyDaemonAboutChangedPathsClient {
             failure = e;
         }
         if (failure != null) {
-            LOGGER.warn(DaemonMessages.UNABLE_TO_NOTIFY_DAEMON_ABOUT_FILE_CHANGES, failure);
+            throw UncheckedException.throwAsUncheckedException(failure);
         }
     }
 }
