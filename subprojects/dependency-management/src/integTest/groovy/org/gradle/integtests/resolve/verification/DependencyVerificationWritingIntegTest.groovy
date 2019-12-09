@@ -16,8 +16,9 @@
 
 package org.gradle.integtests.resolve.verification
 
-
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.test.fixtures.maven.MavenFileModule
+import org.gradle.test.fixtures.maven.MavenFileRepository
 import spock.lang.Unroll
 
 class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificationIntegTest {
@@ -872,6 +873,64 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
    </components>
 </verification-metadata>
 """
+    }
+
+    // This test verifies that the writer "sees" all checksums in a single
+    // build, even if it means that something is fishy (an artifact used in the build
+    // can have different checksums if it comes from different repositories, but the user
+    // needs to be aware of it)
+    def "can write alternate checksums in a single build"() {
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo")
+        def alternateRepo = new MavenFileRepository(
+            testDirectory.createDir("alternate-repo")
+        )
+        MavenFileModule otherFile = alternateRepo.module("org", "foo", "1.0")
+            .publish()
+        otherFile.artifactFile.bytes = [0,0,0,0]
+
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+        settingsFile << "include 'other'"
+        file("other/build.gradle") << """
+            repositories {
+                  maven { url "${alternateRepo.uri}" }
+            }
+            configurations {
+                other
+            }
+            dependencies {
+                other "org:foo:1.0"
+            }
+            tasks.register("resolveAnother") {
+                doLast { println configurations.other.files }
+            }
+        """
+
+        when:
+        writeVerificationMetadata()
+        succeeds ":compileJava", "other:resolveAnother"
+
+        then:
+        hasModules(["org:foo"])
+        module("org:foo") {
+            artifact("foo-1.0.jar") {
+                declaresChecksums(
+                    sha1: ["16e066e005a935ac60f06216115436ab97c5da02", "9069ca78e7450a285173431b3e52c5c25299e473"],
+                    sha512: ["734fce768f0e1a3aec423cb4804e5cdf343fd317418a5da1adc825256805c5cad9026a3e927ae43ecc12d378ce8f45cc3e16ade9114c9a147fda3958d357a85b", "ec2d57691d9b2d40182ac565032054b7d784ba96b18bcb5be0bb4e70e3fb041eff582c8af66ee50256539f2181d7f9e53627c0189da7e75a4d5ef10ea93b20b3"]
+                )
+            }
+            artifact("foo-1.0.pom") {
+                declaresChecksums(
+                    sha1: "85a7b8a2eb6bb1c4cdbbfe5e6c8dc3757de22c02",
+                    sha512: "3d890ff72a2d6fcb2a921715143e6489d8f650a572c33070b7f290082a07bfc4af0b64763bcf505e1c07388bc21b7d5707e50a3952188dc604814e09387fbbfe"
+                )
+            }
+        }
     }
 
 }

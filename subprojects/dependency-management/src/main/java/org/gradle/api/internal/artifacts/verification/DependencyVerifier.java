@@ -117,7 +117,7 @@ public class DependencyVerifier {
         }
         if (alternatives != null) {
             for (String alternative : alternatives) {
-                if (expected.equals(alternative)) {
+                if (actualChecksum.equals(alternative)) {
                     return;
                 }
             }
