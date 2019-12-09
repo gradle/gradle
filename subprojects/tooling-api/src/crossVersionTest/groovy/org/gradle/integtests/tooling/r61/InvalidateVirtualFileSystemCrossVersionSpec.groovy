@@ -36,7 +36,7 @@ class InvalidateVirtualFileSystemCrossVersionSpec extends AbstractInvalidateVirt
         createIdleDaemon()
 
         withConnection { connection ->
-            connection.notifyDaemonsAboutChangedPaths(changedPaths)
+            connection.notifyDaemonsAboutChangedPaths(toPaths(changedPaths))
         }
 
         then:
@@ -59,7 +59,7 @@ class InvalidateVirtualFileSystemCrossVersionSpec extends AbstractInvalidateVirt
 
         when:
         withConnection { connection ->
-            connection.notifyDaemonsAboutChangedPaths(changedPaths)
+            connection.notifyDaemonsAboutChangedPaths(toPaths(changedPaths))
         }
 
         then:

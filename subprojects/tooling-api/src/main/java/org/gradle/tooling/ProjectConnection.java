@@ -18,6 +18,7 @@ package org.gradle.tooling;
 import org.gradle.api.Incubating;
 
 import java.io.Closeable;
+import java.nio.file.Path;
 import java.util.List;
 
 /**
@@ -176,12 +177,13 @@ public interface ProjectConnection extends Closeable {
      * then the operation is a no-op.
      *
      * @param changedPaths Absolute paths which have been changed by the external process.
+     * @throws IllegalArgumentException When the paths are not absolute.
      * @throws UnsupportedVersionException When the target Gradle version is &lt;= 2.5.
      * @throws GradleConnectionException On some other failure using the connection.
      * @since 6.1
      */
     @Incubating
-    void notifyDaemonsAboutChangedPaths(List<String> changedPaths);
+    void notifyDaemonsAboutChangedPaths(List<Path> changedPaths);
 
     /**
      * Closes this connection. Blocks until any pending operations are complete. Once this method has returned, no more notifications will be delivered by any threads.

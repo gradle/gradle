@@ -20,6 +20,9 @@ import org.gradle.integtests.fixtures.daemon.DaemonFixture
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 
+import java.nio.file.Path
+import java.nio.file.Paths
+
 @ToolingApiVersion(">=6.1")
 abstract class AbstractInvalidateVirtualFileSystemCrossVersionSpec extends ToolingApiSpecification {
 
@@ -36,11 +39,28 @@ abstract class AbstractInvalidateVirtualFileSystemCrossVersionSpec extends Tooli
     def "no daemon is started for request"() {
         when:
         withConnection { connection ->
-            connection.notifyDaemonsAboutChangedPaths(changedPaths)
+            connection.notifyDaemonsAboutChangedPaths(toPaths(changedPaths))
         }
 
         then:
         toolingApi.daemons.daemons.empty
+    }
+
+    static List<Path> toPaths(List<String> paths) {
+        paths.collect { Paths.get(it) }
+    }
+
+    def "changed paths need to be absolute"() {
+        changedPaths = ["some/relative/path"]
+
+        when:
+        withConnection { connection ->
+            connection.notifyDaemonsAboutChangedPaths(toPaths(changedPaths))
+        }
+
+        then:
+        def exception = thrown(IllegalArgumentException)
+        exception.message == "Changed path '${changedPaths[0]}' is not absolute"
     }
 
     def cleanup() {

@@ -27,6 +27,8 @@ import org.gradle.tooling.internal.consumer.connection.ConsumerAction;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 
+import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 
 class DefaultProjectConnection implements ProjectConnection {
@@ -82,7 +84,14 @@ class DefaultProjectConnection implements ProjectConnection {
     }
 
     @Override
-    public void notifyDaemonsAboutChangedPaths(List<String> changedPaths) {
+    public void notifyDaemonsAboutChangedPaths(List<Path> changedPaths) {
+        List<String> absolutePaths = new ArrayList<>();
+        for (Path changedPath : changedPaths) {
+            if (!changedPath.isAbsolute()) {
+                throw new IllegalArgumentException(String.format("Changed path '%s' is not absolute", changedPath));
+            }
+            absolutePaths.add(changedPath.toString());
+        }
         ConsumerOperationParameters.Builder operationParamsBuilder = ConsumerOperationParameters.builder();
         operationParamsBuilder.setCancellationToken(new DefaultCancellationTokenSource().token());
         operationParamsBuilder.setParameters(parameters);
@@ -96,7 +105,7 @@ class DefaultProjectConnection implements ProjectConnection {
 
                 @Override
                 public Void run(ConsumerConnection connection) {
-                    connection.notifyDaemonsAboutChangedPaths(changedPaths, getParameters());
+                    connection.notifyDaemonsAboutChangedPaths(absolutePaths, getParameters());
                     return null;
                 }
             },

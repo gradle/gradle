@@ -32,7 +32,7 @@ class InvalidateVirtualFileSystemOldVersionsCrossVersionSpec extends AbstractInv
 
         when:
         withConnection { connection ->
-            connection.notifyDaemonsAboutChangedPaths(changedPaths)
+            connection.notifyDaemonsAboutChangedPaths(toPaths(changedPaths))
         }
 
         then:
