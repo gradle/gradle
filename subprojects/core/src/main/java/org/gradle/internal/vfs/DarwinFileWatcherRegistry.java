@@ -18,39 +18,43 @@ package org.gradle.internal.vfs;
 
 import com.google.common.annotations.VisibleForTesting;
 import net.rubygrapefruit.platform.Native;
-import net.rubygrapefruit.platform.internal.jni.DefaultOsxFileEventFunctions;
+import net.rubygrapefruit.platform.file.FileWatcher;
+import net.rubygrapefruit.platform.internal.jni.OsxFileEventFunctions;
 import org.gradle.internal.vfs.watch.FileWatcherRegistry;
 import org.gradle.internal.vfs.watch.FileWatcherRegistryFactory;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class DarwinFileWatcherRegistry implements FileWatcherRegistry {
 
-    private final DefaultOsxFileEventFunctions fileEvents;
-    private DefaultOsxFileEventFunctions.ChangeCollector watcher;
+    private final FileWatcher watcher;
+    private final List<String> changedPaths = new ArrayList<>();
 
-    public DarwinFileWatcherRegistry(Iterable<Path> watchRoots) {
-        this.fileEvents = Native.get(DefaultOsxFileEventFunctions.class);
-        for (Path watchRoot : watchRoots) {
-            fileEvents.addRecursiveWatch(watchRoot.toString());
-        }
-        this.watcher = fileEvents.startWatch();
+    public DarwinFileWatcherRegistry(Set<Path> watchRoots) {
+        this.watcher = Native.get(OsxFileEventFunctions.class)
+            .startWatching(
+                watchRoots.stream()
+                    .map(Path::toString)
+                    .collect(Collectors.toList()),
+                // TODO Figure out a good value for this
+                0.3,
+                changedPaths::add
+            );
     }
 
     @Override
     public void stopWatching(ChangeHandler handler) throws IOException {
-        if (watcher == null) {
-            throw new IllegalStateException("Watcher already closed");
-        }
         try {
-            fileEvents.stopWatch(watcher)
+            changedPaths
                 .forEach(changedPath -> handler.handleChange(Type.MODIFIED, Paths.get(changedPath)));
-            watcher = null;
         } catch (Exception ex) {
             throw new IOException("Couldn't get watches", ex);
         }
@@ -58,11 +62,7 @@ public class DarwinFileWatcherRegistry implements FileWatcherRegistry {
 
     @Override
     public void close() throws IOException {
-        if (watcher == null) {
-            return;
-        }
-        fileEvents.stopWatch(watcher);
-        watcher = null;
+        watcher.close();
     }
 
     /**

@@ -205,7 +205,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
     private static Map<String, String> collectThirdPartyLibs() {
         def reducedNativePlatformSubset = true
-        def nativePlatformVersion = "0.20-snapshot-20191202152713+0000"
+        def nativePlatformVersion = "0.20-snapshot-20191209123018+0000"
 
         def builder = ImmutableMap.<String, String>builder()
         addLibrary(builder, "annotations-13.0.jar", "ace2a10dc8e2d5fd34925ecac03e4988b2c0f851650c94b8cef49ba1bd111478")
@@ -244,14 +244,14 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         addLibrary(builder, "log4j-over-slf4j-1.7.28.jar", "c24e45c905f0c3b1dcc873164f5409bbfe3ee8860e366d1cd2190f798227f864")
         addLibrary(builder, "minlog-1.2.jar", "a678cb1aa8f5d03d901c992c75741841d98a9bc3d55dad02e84d65315c4e60f2")
 
-        addLibrary(builder, "native-platform-${nativePlatformVersion}.jar", "841b3cd7b124ae5f7725e4a4563b4d448164c18d605a3427071dc483552ea430")
-        addLibrary(builder, "native-platform-linux-amd64-${nativePlatformVersion}.jar", "40ccea0193b2f28fe96dbe86e03a8f5961814de4d02c86cd65a047c0bd0e66ba")
-        addLibrary(builder, "native-platform-linux-amd64-ncurses5-${nativePlatformVersion}.jar", "34c915c01cf0af0ec6a8ba562cabf1d2349e1764252d7090acdea2ad67186e7e")
-        addLibrary(builder, "native-platform-osx-amd64-${nativePlatformVersion}.jar", "4f64f8a70e4743d7db838b298046b809295b9f3dc0e85e4cb35dceac387afb5f")
-        addLibrary(builder, "native-platform-windows-amd64-${nativePlatformVersion}.jar", "6ddfc1d693b1894e2e5249888771c0504ce6ba2aad47aa723e82aa04490605f9")
-        addLibrary(builder, "native-platform-windows-amd64-min-${nativePlatformVersion}.jar", "065b05429a0386ca90b391493d82ea8992cd21cf511a7f3feff417360241a7bc")
-        addLibrary(builder, "native-platform-windows-i386-${nativePlatformVersion}.jar", "3b0d197c842752fad1f7c50729aa0f6ebe5e626dfdad961ca0a24d96f78576ee")
-        addLibrary(builder, "native-platform-windows-i386-min-${nativePlatformVersion}.jar", "75aec3823a1ec926ee234770e6a27dcf45b464c871ad1e941b08f79c92f44838")
+        addLibrary(builder, "native-platform-${nativePlatformVersion}.jar", "a03b4c2a75bce2e7ddb12a2de8ff2649956b5e3f0929de7814330bb51b195a2e")
+        addLibrary(builder, "native-platform-linux-amd64-${nativePlatformVersion}.jar", "8a4edd29f20c562c8388fc29d75c721c12b5446daafa6ff34837b80c45248f94")
+        addLibrary(builder, "native-platform-linux-amd64-ncurses5-${nativePlatformVersion}.jar", "058d3e8f4d952a739d560cc02a53fe1c632b7fe38b6ff7f0945769ed1996ea60")
+        addLibrary(builder, "native-platform-osx-amd64-${nativePlatformVersion}.jar", "546c52de1f9216d28e8c8cb1c90d7d12a2437f824be792fa7106721a93e5320c")
+        addLibrary(builder, "native-platform-windows-amd64-${nativePlatformVersion}.jar", "d2289f14294cd2de84e1743d55293c805b297753d37c7d138f1449fac6a3abb2")
+        addLibrary(builder, "native-platform-windows-amd64-min-${nativePlatformVersion}.jar", "ccc2b19765654ee3bb1c1a8d5bb11326c8d65a3fcc9e9e0ae6c58467cca7bfc0")
+        addLibrary(builder, "native-platform-windows-i386-${nativePlatformVersion}.jar", "560ea9824ca7e6d940c9c1d741b6c2e83aafd954859bb4087e2a1215364df842")
+        addLibrary(builder, "native-platform-windows-i386-min-${nativePlatformVersion}.jar", "ce2aaedf6d7ac49e95bff3878bd7d1e1321a56a58d1836931914b58aeba82ea3")
 
         if (!reducedNativePlatformSubset) {
             addLibrary(builder, "native-platform-freebsd-amd64-libcpp-${nativePlatformVersion}.jar", "1731c5508d09b56d9f564cb7f9096e8d80df982383435568e1a2e8b44a93aa24")
