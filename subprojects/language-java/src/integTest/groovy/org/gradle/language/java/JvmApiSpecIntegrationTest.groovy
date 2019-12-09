@@ -222,6 +222,7 @@ class JvmApiSpecIntegrationTest extends AbstractJvmLanguageIntegrationTest {
         }
 
         then:
+        expectDeprecationWarnings()
         succeeds "assemble"
 
         and:
@@ -273,6 +274,7 @@ class JvmApiSpecIntegrationTest extends AbstractJvmLanguageIntegrationTest {
             ["non_api/pkg/InternalPerson.class"])
 
         then:
+        expectDeprecationWarnings()
         succeeds 'assemble'
 
         and:
@@ -321,6 +323,7 @@ class JvmApiSpecIntegrationTest extends AbstractJvmLanguageIntegrationTest {
             ["non_api/pkg/InternalPerson.class", "compile/test/internal/Util.class"])
 
         then:
+        expectDeprecationWarnings()
         succeeds 'assemble'
 
         and:
