@@ -193,6 +193,7 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
         FilteringClassLoader.Spec groovyCompilerClassLoaderSpec = new FilteringClassLoader.Spec();
         groovyCompilerClassLoaderSpec.allowPackage("org.codehaus.groovy");
         groovyCompilerClassLoaderSpec.allowPackage("groovy");
+        groovyCompilerClassLoaderSpec.allowPackage("groovyjarjarasm");
         // Disallow classes from Groovy Jar that reference external classes. Such classes must be loaded from astTransformClassLoader,
         // or a NoClassDefFoundError will occur. Essentially this is drawing a line between the Groovy compiler and the Groovy
         // library, albeit only for selected classes that run a high risk of being statically referenced from a transform.
