@@ -1,0 +1,9 @@
+> Task :compileKotlin
+> Task :compileJava NO-SOURCE
+> Task :processResources NO-SOURCE
+> Task :classes UP-TO-DATE
+> Task :inspectClassesForKotlinIC
+> Task :jar
+
+BUILD SUCCESSFUL in 0s
+3 actionable tasks: 3 executed
