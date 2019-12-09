@@ -67,7 +67,6 @@ import java.io.File
 
 
 interface KotlinScriptEvaluator {
-
     fun evaluate(
         target: Any,
         scriptSource: ScriptSource,
@@ -154,7 +153,6 @@ class StandardKotlinScriptEvaluator(
             } ?: ClassPath.EMPTY
 
         override fun runCompileBuildOperation(scriptPath: String, stage: String, action: () -> String): String =
-
             buildOperationExecutor.call(object : CallableBuildOperation<String> {
 
                 override fun call(context: BuildOperationContext): String =
@@ -199,7 +197,6 @@ class StandardKotlinScriptEvaluator(
         }
 
         override fun closeTargetScopeOf(scriptHost: KotlinScriptHost<*>) {
-
             pluginRequestApplicator.applyPlugins(
                 PluginRequests.EMPTY,
                 scriptHost.scriptHandler as ScriptHandlerInternal?,
@@ -277,7 +274,7 @@ class StandardKotlinScriptEvaluator(
     }
 
     private
-    inner class ScopeBackedCompiledScript(
+    class ScopeBackedCompiledScript(
         private val classLoaderScope: ClassLoaderScope,
         private val childScopeId: String,
         private val location: File,
