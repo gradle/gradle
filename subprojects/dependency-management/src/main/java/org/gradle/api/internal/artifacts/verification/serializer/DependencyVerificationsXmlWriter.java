@@ -21,8 +21,11 @@ import org.gradle.api.internal.artifacts.verification.DependencyVerifier;
 import org.gradle.api.internal.artifacts.verification.model.ArtifactVerificationMetadata;
 import org.gradle.api.internal.artifacts.verification.model.Checksum;
 import org.gradle.api.internal.artifacts.verification.model.ComponentVerificationMetadata;
+import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
+import org.gradle.internal.xml.SimpleMarkupWriter;
 import org.gradle.internal.xml.SimpleXmlWriter;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Collection;
@@ -34,8 +37,12 @@ import static org.gradle.api.internal.artifacts.verification.serializer.Dependen
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.COMPONENT;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.COMPONENTS;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.CONFIG;
+import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.FILE;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.GROUP;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.NAME;
+import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.REGEX;
+import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.TRUST;
+import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.TRUSTED_ARTIFACTS;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.ORIGIN;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.VALUE;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.VERIFICATION_METADATA;
@@ -72,7 +79,31 @@ public class DependencyVerificationsXmlWriter {
         writer.startElement(VERIFY_METADATA);
         writer.write(String.valueOf(configuration.isVerifyMetadata()));
         writer.endElement();
+        writer.startElement(TRUSTED_ARTIFACTS);
+        for (DependencyVerificationConfiguration.TrustedArtifact trustedArtifact : configuration.getTrustedArtifacts()) {
+            writer.startElement(TRUST);
+            writeAttribute(GROUP, trustedArtifact.getGroup());
+            writeNullableAttribute(NAME, trustedArtifact.getName());
+            writeNullableAttribute(VERSION, trustedArtifact.getVersion());
+            writeNullableAttribute(FILE, trustedArtifact.getFileName());
+            if (trustedArtifact.isRegex()) {
+                writeAttribute(REGEX, "true");
+            }
+            writer.endElement();
+        }
         writer.endElement();
+        writer.endElement();
+    }
+
+    private SimpleMarkupWriter writeAttribute(String name, String value) throws IOException {
+        return writer.attribute(name, value);
+    }
+
+    private SimpleMarkupWriter writeNullableAttribute(String name, @Nullable String value) throws IOException {
+        if (value == null) {
+            return writer;
+        }
+        return writeAttribute(name, value);
     }
 
     private void writeVerifications(Collection<ComponentVerificationMetadata> verifications) throws IOException {
@@ -86,9 +117,9 @@ public class DependencyVerificationsXmlWriter {
     private void writeVerification(ComponentVerificationMetadata verification) throws IOException {
         ModuleComponentIdentifier mci = verification.getComponentId();
         writer.startElement(COMPONENT);
-        writer.attribute(GROUP, mci.getGroup());
-        writer.attribute(NAME, mci.getModule());
-        writer.attribute(VERSION, mci.getVersion());
+        writeAttribute(GROUP, mci.getGroup());
+        writeAttribute(NAME, mci.getModule());
+        writeAttribute(VERSION, mci.getVersion());
         writeArtifactVerifications(verification.getArtifactVerifications());
         writer.endElement();
     }
@@ -102,9 +133,10 @@ public class DependencyVerificationsXmlWriter {
     private void writeArtifactVerification(ArtifactVerificationMetadata verification) throws IOException {
         String artifact = verification.getArtifactName();
         writer.startElement(ARTIFACT);
-        writer.attribute(NAME, artifact);
+        writeAttribute(NAME, artifact);
         writeChecksums(verification.getChecksums());
         writer.endElement();
+
     }
 
     private void writeChecksums(List<Checksum> checksums) throws IOException {
@@ -112,16 +144,16 @@ public class DependencyVerificationsXmlWriter {
             String kind = checksum.getKind().name();
             String value = checksum.getValue();
             writer.startElement(kind);
-            writer.attribute(VALUE, value);
+            writeAttribute(VALUE, value);
             String origin = checksum.getOrigin();
             if (origin != null) {
-                writer.attribute(ORIGIN, origin);
+                writeAttribute(ORIGIN, origin);
             }
             Set<String> alternatives = checksum.getAlternatives();
             if (alternatives != null) {
                 for (String alternative : alternatives) {
                     writer.startElement(ALSO_TRUST);
-                    writer.attribute(VALUE, alternative);
+                    writeAttribute(VALUE, alternative);
                     writer.endElement();
                 }
             }

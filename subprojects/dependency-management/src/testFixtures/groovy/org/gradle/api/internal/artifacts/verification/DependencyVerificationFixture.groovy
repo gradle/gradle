@@ -171,6 +171,10 @@ class DependencyVerificationFixture {
             builder.verifyMetadata = false
         }
 
+        void trust(String group, String name = null, String version = null, String fileName = null, boolean regex = false) {
+            builder.addTrustedArtifact(group, name, version, fileName, regex)
+        }
+
         void addChecksum(String id, String algo, String checksum, String type="jar", String ext="jar", String origin = null) {
             def parts = id.split(":")
             def group = parts[0]

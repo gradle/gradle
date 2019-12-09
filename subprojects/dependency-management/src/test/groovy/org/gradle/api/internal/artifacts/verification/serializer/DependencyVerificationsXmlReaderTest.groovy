@@ -64,6 +64,83 @@ class DependencyVerificationsXmlReaderTest extends Specification {
         verifyMetadata << [true, false]
     }
 
+    def "parses trusted artifacts"() {
+        when:
+        parse """<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata>
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+      <trusted-artifacts>
+         <trust group="group"/>
+         <trust group="group" name="module"/>
+         <trust group="group" name="module" version="1.0" regex="true"/>
+         <trust group="group" name="module" version="1.1" file="somefile.jar"/>
+         <trust group="group2" name="module2" version="1.2" file="somefile.jar" regex="true"/>
+      </trusted-artifacts>
+   </configuration>
+</verification-metadata>
+"""
+        then:
+        verifier.configuration.verifyMetadata
+        def trusted = verifier.configuration.trustedArtifacts
+        trusted.size() == 5
+        trusted[0].group == "group"
+        trusted[0].name == null
+        trusted[0].version == null
+        trusted[0].fileName == null
+        trusted[0].regex == false
+
+        trusted[1].group == "group"
+        trusted[1].name == "module"
+        trusted[1].version == null
+        trusted[1].fileName == null
+        trusted[1].regex == false
+
+        trusted[2].group == "group"
+        trusted[2].name == "module"
+        trusted[2].version == "1.0"
+        trusted[2].fileName == null
+        trusted[2].regex == true
+
+        trusted[3].group == "group"
+        trusted[3].name == "module"
+        trusted[3].version == "1.1"
+        trusted[3].fileName == "somefile.jar"
+        trusted[3].regex == false
+
+        trusted[4].group == "group2"
+        trusted[4].name == "module2"
+        trusted[4].version == "1.2"
+        trusted[4].fileName == "somefile.jar"
+        trusted[4].regex == true
+    }
+
+    @Unroll
+    def "reasonable error message when trusted artifact notation is incorrect (#notation)"() {
+        when:
+        parse """<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata>
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+      <trusted-artifacts>
+         <trust $notation/>
+      </trusted-artifacts>
+   </configuration>
+</verification-metadata>
+"""
+        then:
+        InvalidUserDataException ex = thrown()
+        ex.message == "Unable to read dependency verification metadata"
+        ex.cause.message == error
+
+        where:
+        notation                                  | error
+        'name="name"'                             | "Invalid dependency verification metadata file: Missing attribute: group"
+        'group="foo" version="1.0"'               | "name cannot be null"
+        'group="foo" file="file.jar"'             | "name cannot be null"
+        'group="foo" name="name" file="file.jar"' | "version cannot be null"
+    }
+
     def "can parse dependency verification metadata"() {
         when:
         parse """<?xml version="1.0" encoding="UTF-8"?>

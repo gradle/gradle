@@ -16,7 +16,9 @@
 package org.gradle.api.internal.artifacts.verification;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.gradle.api.InvalidUserDataException;
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -36,6 +38,7 @@ import java.util.stream.Collectors;
 
 public class DependencyVerifierBuilder {
     private final Map<ModuleComponentIdentifier, ComponentVerificationsBuilder> byComponent = Maps.newLinkedHashMap();
+    private final List<DependencyVerificationConfiguration.TrustedArtifact> trustedArtifacts = Lists.newArrayList();
     private boolean isVerifyMetadata = true;
 
     public void addChecksum(ModuleComponentArtifactIdentifier artifact, ChecksumKind kind, String value, @Nullable String origin) {
@@ -52,12 +55,30 @@ public class DependencyVerifierBuilder {
         return isVerifyMetadata;
     }
 
+    public void addTrustedArtifact(String group, @Nullable String name, @Nullable String version, @Nullable String fileName, boolean regex) {
+        validateUserInput(group, name, version, fileName);
+        trustedArtifacts.add(new DependencyVerificationConfiguration.TrustedArtifact(group, name, version, fileName, regex));
+    }
+
+    private void validateUserInput(@Nullable String group, @Nullable String name, @Nullable String version, @Nullable String fileName) {
+        // because this can be called from parsing XML, we need to perform additional verification
+        if (group == null) {
+            throw new InvalidUserDataException("group cannot be null");
+        }
+        if (name == null && (version != null || fileName != null)) {
+            throw new InvalidUserDataException("name cannot be null");
+        }
+        if (version == null && fileName != null) {
+            throw new InvalidUserDataException("version cannot be null");
+        }
+    }
+
     public DependencyVerifier build() {
         ImmutableMap.Builder<ComponentIdentifier, ComponentVerificationMetadata> builder = ImmutableMap.builderWithExpectedSize(byComponent.size());
         for (Map.Entry<ModuleComponentIdentifier, ComponentVerificationsBuilder> entry : byComponent.entrySet()) {
             builder.put(entry.getKey(), entry.getValue().build());
         }
-        return new DependencyVerifier(builder.build(), new DependencyVerificationConfiguration(isVerifyMetadata));
+        return new DependencyVerifier(builder.build(), new DependencyVerificationConfiguration(isVerifyMetadata, trustedArtifacts));
     }
 
     private static class ComponentVerificationsBuilder {

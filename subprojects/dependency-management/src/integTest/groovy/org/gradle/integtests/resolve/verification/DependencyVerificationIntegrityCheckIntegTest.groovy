@@ -641,7 +641,37 @@ This can indicate that a dependency has been compromised. Please verify carefull
 
         then:
         outputContains("Dependency verification is an incubating feature.")
+    }
 
+    def "can trust some artifacts"() {
+        createMetadataFile {
+            addChecksum("org:baz:1.0", "sha1", "caf4fe86ac24e52f35d4001f5e02261e6a9f3785", "pom", "pom")
+            trust("org", "foo", "1.0")
+            trust("org", "bar")
+            trust("org", "baz", "1.0", "baz-1.0.jar")
+            trust("org2", "ta.*", null, null, true)
+        }
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0")
+        uncheckedModule("org", "bar", "1.0")
+        uncheckedModule("org", "baz", "1.0")
+        uncheckedModule("org2", "tada", "1.1")
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+                implementation "org:bar:1.0"
+                implementation "org:baz:1.0"
+                implementation "org2:tada:1.1"
+            }
+        """
+
+        when:
+        succeeds ":compileJava"
+
+        then:
+        outputContains("Dependency verification is an incubating feature.")
     }
 
     @Unroll

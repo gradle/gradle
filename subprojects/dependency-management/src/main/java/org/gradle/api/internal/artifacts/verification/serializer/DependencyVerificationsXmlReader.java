@@ -45,8 +45,12 @@ import static org.gradle.api.internal.artifacts.verification.serializer.Dependen
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.COMPONENT;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.COMPONENTS;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.CONFIG;
+import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.FILE;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.GROUP;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.NAME;
+import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.REGEX;
+import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.TRUST;
+import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.TRUSTED_ARTIFACTS;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.ORIGIN;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.VALUE;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.VERIFICATION_METADATA;
@@ -93,6 +97,7 @@ public class DependencyVerificationsXmlReader {
         private boolean inComponents;
         private boolean inConfiguration;
         private boolean inVerifyMetadata;
+        private boolean inTrustedArtifacts;
         private ModuleComponentIdentifier currentComponent;
         private ModuleComponentArtifactIdentifier currentArtifact;
         private ChecksumKind currentChecksum;
@@ -117,8 +122,14 @@ public class DependencyVerificationsXmlReader {
                 assertValidComponent();
                 currentArtifact = createArtifactId(attributes);
             } else if (VERIFY_METADATA.equals(qName)) {
-                assertInConfiguration();
+                assertInConfiguration(VERIFY_METADATA);
                 inVerifyMetadata = true;
+            } else if (TRUSTED_ARTIFACTS.equals(qName)) {
+                assertInConfiguration(TRUSTED_ARTIFACTS);
+                inTrustedArtifacts = true;
+            } else if (TRUST.equals(qName)) {
+                assertInTrustedArtifacts();
+                addTrustedArtifact(attributes);
             } else {
                 if (currentChecksum != null && ALSO_TRUST.equals(qName)) {
                     builder.addChecksum(currentArtifact, currentChecksum, getAttribute(attributes, VALUE), null);
@@ -129,6 +140,25 @@ public class DependencyVerificationsXmlReader {
             }
         }
 
+        private void assertInTrustedArtifacts() {
+            assertContext(inTrustedArtifacts, TRUST, TRUSTED_ARTIFACTS);
+        }
+
+        private void addTrustedArtifact(Attributes attributes) {
+            boolean regex = false;
+            String regexAttr = getNullableAttribute(attributes, REGEX);
+            if (regexAttr != null) {
+                regex = Boolean.parseBoolean(regexAttr);
+            }
+            builder.addTrustedArtifact(
+                getAttribute(attributes, GROUP),
+                getNullableAttribute(attributes, NAME),
+                getNullableAttribute(attributes, VERSION),
+                getNullableAttribute(attributes, FILE),
+                regex
+            );
+        }
+
         @Override
         public void characters(char[] ch, int start, int length) throws SAXException {
             if (inVerifyMetadata) {
@@ -136,8 +166,8 @@ public class DependencyVerificationsXmlReader {
             }
         }
 
-        private void assertInConfiguration() {
-            assertContext(inConfiguration, VERIFY_METADATA, CONFIG);
+        private void assertInConfiguration(String tag) {
+            assertContext(inConfiguration, tag, CONFIG);
         }
 
         private void assertInComponents() {
@@ -174,6 +204,8 @@ public class DependencyVerificationsXmlReader {
                 inComponents = false;
             } else if (COMPONENT.equals(qName)) {
                 currentComponent = null;
+            } else if (TRUSTED_ARTIFACTS.equals(qName)) {
+                inTrustedArtifacts = false;
             } else if (ARTIFACT.equals(qName)) {
                 currentArtifact = null;
                 currentChecksum = null;

@@ -549,6 +549,8 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
             addChecksum("org:foo:1.0", "md5", "abc")
             addChecksum("org:foo:1.0", "sha1", "1234")
             addChecksum("org:bar:1.0", "sha1", "untouched")
+            trust("dummy", "artifact")
+            trust("other", "artifact", "with", "file.jar", true)
         }
 
         given:
@@ -594,6 +596,10 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
 <verification-metadata>
    <configuration>
       <verify-metadata>true</verify-metadata>
+      <trusted-artifacts>
+         <trust group="dummy" name="artifact"/>
+         <trust group="other" name="artifact" version="with" file="file.jar" regex="true"/>
+      </trusted-artifacts>
    </configuration>
    <components>
       <component group="org" name="foo" version="1.0">
@@ -799,8 +805,7 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
-    def "doesn't write artifact metadata when metadata verification is disabled"() {
+    def "doesn't write artifact metadata when metadata verification is disabled (gmm=#gmm)"() {
         createMetadataFile {
             noMetadataVerification()
         }
@@ -837,6 +842,7 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
 <verification-metadata>
    <configuration>
       <verify-metadata>false</verify-metadata>
+      <trusted-artifacts/>
    </configuration>
    <components>
       <component group="org" name="foo" version="1.0">
@@ -888,6 +894,7 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
 <verification-metadata>
    <configuration>
       <verify-metadata>false</verify-metadata>
+      <trusted-artifacts/>
    </configuration>
    <components>
       <component group="org" name="foo" version="1.0">
