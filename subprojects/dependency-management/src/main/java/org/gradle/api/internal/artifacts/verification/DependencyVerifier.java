@@ -62,7 +62,7 @@ public class DependencyVerifier {
         .build();
 
     public void verify(BuildOperationExecutor buildOperationExecutor, ChecksumService checksumService, ArtifactVerificationOperation.ArtifactKind kind, ModuleComponentArtifactIdentifier foundArtifact, File file, Action<VerificationFailure> onFailure) {
-        if (shouldSkipVerification(kind)) {
+        if (shouldSkipVerification(kind, foundArtifact)) {
             return;
         }
         try {
@@ -75,8 +75,11 @@ public class DependencyVerifier {
         }
     }
 
-    private boolean shouldSkipVerification(ArtifactVerificationOperation.ArtifactKind kind) {
+    private boolean shouldSkipVerification(ArtifactVerificationOperation.ArtifactKind kind, ModuleComponentArtifactIdentifier id) {
         if (kind == ArtifactVerificationOperation.ArtifactKind.METADATA && !config.isVerifyMetadata()) {
+            return true;
+        }
+        if (config.getTrustedArtifacts().stream().anyMatch(artifact -> artifact.isTrusted(id))) {
             return true;
         }
         return false;

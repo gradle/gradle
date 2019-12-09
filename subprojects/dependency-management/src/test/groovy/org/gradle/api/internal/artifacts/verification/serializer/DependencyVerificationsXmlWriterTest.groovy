@@ -40,12 +40,42 @@ class DependencyVerificationsXmlWriterTest extends Specification {
 <verification-metadata>
    <configuration>
       <verify-metadata>$verifyMetadata</verify-metadata>
+      <trusted-artifacts/>
    </configuration>
    <components/>
 </verification-metadata>
 """
         where:
         verifyMetadata << [true, false]
+    }
+
+    def "can declare trusted artifacts"() {
+        when:
+        builder.with {
+            addTrustedArtifact("group", null, null, null, false)
+            addTrustedArtifact("group", "module", null, null, false)
+            addTrustedArtifact("group", "module", "1.0", null, true)
+            addTrustedArtifact("group", "module", "1.1", "somefile.jar", false)
+            addTrustedArtifact("group2", "module2", "1.2", "somefile.jar", true)
+        }
+        serialize()
+
+        then:
+        contents == """<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata>
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+      <trusted-artifacts>
+         <trust group="group"/>
+         <trust group="group" name="module"/>
+         <trust group="group" name="module" version="1.0" regex="true"/>
+         <trust group="group" name="module" version="1.1" file="somefile.jar"/>
+         <trust group="group2" name="module2" version="1.2" file="somefile.jar" regex="true"/>
+      </trusted-artifacts>
+   </configuration>
+   <components/>
+</verification-metadata>
+"""
     }
 
     // In context of future dependency verification file update, we try
@@ -70,6 +100,7 @@ class DependencyVerificationsXmlWriterTest extends Specification {
 <verification-metadata>
    <configuration>
       <verify-metadata>true</verify-metadata>
+      <trusted-artifacts/>
    </configuration>
    <components>
       <component group="org" name="foo" version="1.0">
@@ -108,6 +139,7 @@ class DependencyVerificationsXmlWriterTest extends Specification {
 <verification-metadata>
    <configuration>
       <verify-metadata>true</verify-metadata>
+      <trusted-artifacts/>
    </configuration>
    <components>
       <component group="org" name="foo" version="1.0">

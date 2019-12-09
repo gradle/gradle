@@ -28,4 +28,8 @@ abstract class DependencyVerificationXmlTags {
     static final String ALSO_TRUST = "also-trust";
     static final String CONFIG = "configuration";
     static final String VERIFY_METADATA = "verify-metadata";
+    static final String TRUSTED_ARTIFACTS = "trusted-artifacts";
+    static final String TRUST = "trust";
+    static final String FILE = "file";
+    static final String REGEX = "regex";
 }
