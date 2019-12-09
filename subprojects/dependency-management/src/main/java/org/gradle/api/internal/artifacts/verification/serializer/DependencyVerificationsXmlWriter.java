@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.verification.serializer;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.verification.DependencyVerificationConfiguration;
 import org.gradle.api.internal.artifacts.verification.DependencyVerifier;
 import org.gradle.api.internal.artifacts.verification.model.ArtifactVerificationMetadata;
 import org.gradle.api.internal.artifacts.verification.model.Checksum;
@@ -32,11 +33,13 @@ import static org.gradle.api.internal.artifacts.verification.serializer.Dependen
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.ARTIFACT;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.COMPONENT;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.COMPONENTS;
+import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.CONFIG;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.GROUP;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.NAME;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.ORIGIN;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.VALUE;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.VERIFICATION_METADATA;
+import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.VERIFY_METADATA;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.VERSION;
 
 public class DependencyVerificationsXmlWriter {
@@ -58,9 +61,18 @@ public class DependencyVerificationsXmlWriter {
 
     private void write(DependencyVerifier verifier) throws IOException {
         writer.startElement(VERIFICATION_METADATA);
+        writeConfiguration(verifier.getConfiguration());
         writeVerifications(verifier.getVerificationMetadata());
         writer.endElement();
         writer.close();
+    }
+
+    private void writeConfiguration(DependencyVerificationConfiguration configuration) throws IOException {
+        writer.startElement(CONFIG);
+        writer.startElement(VERIFY_METADATA);
+        writer.write(String.valueOf(configuration.isVerifyMetadata()));
+        writer.endElement();
+        writer.endElement();
     }
 
     private void writeVerifications(Collection<ComponentVerificationMetadata> verifications) throws IOException {

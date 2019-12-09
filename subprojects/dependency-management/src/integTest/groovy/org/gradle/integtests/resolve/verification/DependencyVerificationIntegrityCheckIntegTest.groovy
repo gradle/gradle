@@ -595,6 +595,55 @@ This can indicate that a dependency has been compromised. Please verify carefull
         stop << [true, false]
     }
 
+    def "can skip verification of metadata"() {
+        createMetadataFile {
+            noMetadataVerification()
+            addChecksum("org:foo:1.0", "sha1", "16e066e005a935ac60f06216115436ab97c5da02")
+        }
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo")
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        succeeds ":compileJava"
+
+        then:
+        outputContains("Dependency verification is an incubating feature.")
+
+    }
+
+    def "can skip verification of parent POM"() {
+        createMetadataFile {
+            noMetadataVerification()
+            addChecksum("org:foo:1.0", "sha1", "16e066e005a935ac60f06216115436ab97c5da02")
+        }
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "parent", "1.0")
+        uncheckedModule("org", "foo", "1.0") {
+            parent("org", "parent", "1.0")
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        succeeds ":compileJava"
+
+        then:
+        outputContains("Dependency verification is an incubating feature.")
+
+    }
+
     @Unroll
     def "doesn't fail if verification metadata matches for #kind using alternate checksum"() {
         createMetadataFile {
@@ -626,5 +675,4 @@ This can indicate that a dependency has been compromised. Please verify carefull
         "sha256" | "20ae575ede776e5e06ee6b168652d11ee23069e92de110fdec13fbeaa5cf3bbc"                                                                 | "f331cce36f6ce9ea387a2c8719fabaf67dc5a5862227ebaa13368ff84eb69481"
         "sha512" | "734fce768f0e1a3aec423cb4804e5cdf343fd317418a5da1adc825256805c5cad9026a3e927ae43ecc12d378ce8f45cc3e16ade9114c9a147fda3958d357a85b" | "3d890ff72a2d6fcb2a921715143e6489d8f650a572c33070b7f290082a07bfc4af0b64763bcf505e1c07388bc21b7d5707e50a3952188dc604814e09387fbbfe"
     }
-
 }

@@ -52,6 +52,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 public class WriteDependencyVerificationFile implements DependencyVerificationOverride, ArtifactVerificationOperation {
@@ -65,17 +66,18 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
     private static final List<String> DEFAULT_CHECKSUMS = ImmutableList.of("sha1", "sha512");
 
     private final DependencyVerifierBuilder verificationsBuilder = new DependencyVerifierBuilder();
-    private final File buildDirectory;
     private final BuildOperationExecutor buildOperationExecutor;
     private final List<String> checksums;
     private final Set<ChecksumEntry> entriesToBeWritten = Sets.newLinkedHashSetWithExpectedSize(512);
     private final ChecksumService checksumService;
+    private final File verificationFile;
+    private final AtomicBoolean initialized = new AtomicBoolean();
 
     public WriteDependencyVerificationFile(File buildDirectory, BuildOperationExecutor buildOperationExecutor, List<String> checksums, ChecksumService checksumService) {
-        this.buildDirectory = buildDirectory;
         this.buildOperationExecutor = buildOperationExecutor;
         this.checksums = validateChecksums(checksums);
         this.checksumService = checksumService;
+        this.verificationFile = DependencyVerificationOverride.dependencyVerificationsFile(buildDirectory);
     }
 
     private List<String> validateChecksums(List<String> checksums) {
@@ -117,28 +119,26 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
 
     @Override
     public void buildFinished(Gradle gradle) {
-        File verifFile = DependencyVerificationOverride.dependencyVerificationsFile(buildDirectory);
         try {
-            maybeReadExistingFile(verifFile);
             computeHashsConcurrently(gradle);
             writeEntriesSerially();
-            serializeResult(verifFile);
+            serializeResult();
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
-    private void serializeResult(File verifFile) throws IOException {
+    private void serializeResult() throws IOException {
         DependencyVerificationsXmlWriter.serialize(
             verificationsBuilder.build(),
-            new FileOutputStream(verifFile)
+            new FileOutputStream(verificationFile)
         );
     }
 
-    private void maybeReadExistingFile(File verifFile) throws FileNotFoundException {
-        if (verifFile.exists()) {
+    private void maybeReadExistingFile() throws FileNotFoundException {
+        if (verificationFile.exists()) {
             LOGGER.info("Found dependency verification metadata file, updating");
-            DependencyVerificationsXmlReader.readFromXml(new FileInputStream(verifFile), verificationsBuilder);
+            DependencyVerificationsXmlReader.readFromXml(new FileInputStream(verificationFile), verificationsBuilder);
         }
     }
 
@@ -169,11 +169,32 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
         });
     }
 
+    private void initialize() {
+        if (!initialized.getAndSet(true)) {
+            try {
+                maybeReadExistingFile();
+            } catch (FileNotFoundException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+        }
+    }
+
     @Override
-    public void onArtifact(ModuleComponentArtifactIdentifier id, File file) {
+    public void onArtifact(ArtifactKind kind, ModuleComponentArtifactIdentifier id, File file) {
+        initialize();
+        if (shouldSkipVerification(kind)) {
+            return;
+        }
         for (String checksum : checksums) {
             addChecksum(id, file, ChecksumKind.valueOf(checksum));
         }
+    }
+
+    private boolean shouldSkipVerification(ArtifactVerificationOperation.ArtifactKind kind) {
+        if (kind == ArtifactVerificationOperation.ArtifactKind.METADATA && !verificationsBuilder.isVerifyMetadata()) {
+            return true;
+        }
+        return false;
     }
 
     private void addChecksum(ModuleComponentArtifactIdentifier id, File file, ChecksumKind kind) {

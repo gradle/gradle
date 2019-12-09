@@ -44,11 +44,13 @@ import static org.gradle.api.internal.artifacts.verification.serializer.Dependen
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.ARTIFACT;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.COMPONENT;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.COMPONENTS;
+import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.CONFIG;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.GROUP;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.NAME;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.ORIGIN;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.VALUE;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.VERIFICATION_METADATA;
+import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.VERIFY_METADATA;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.VERSION;
 
 public class DependencyVerificationsXmlReader {
@@ -89,6 +91,8 @@ public class DependencyVerificationsXmlReader {
         private final DependencyVerifierBuilder builder;
         private boolean inMetadata;
         private boolean inComponents;
+        private boolean inConfiguration;
+        private boolean inVerifyMetadata;
         private ModuleComponentIdentifier currentComponent;
         private ModuleComponentArtifactIdentifier currentArtifact;
         private ChecksumKind currentChecksum;
@@ -99,7 +103,9 @@ public class DependencyVerificationsXmlReader {
 
         @Override
         public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
-            if (VERIFICATION_METADATA.equals(qName)) {
+            if (CONFIG.equals(qName)) {
+                inConfiguration = true;
+            } else if (VERIFICATION_METADATA.equals(qName)) {
                 inMetadata = true;
             } else if (COMPONENTS.equals(qName)) {
                 assertInMetadata();
@@ -110,6 +116,9 @@ public class DependencyVerificationsXmlReader {
             } else if (ARTIFACT.equals(qName)) {
                 assertValidComponent();
                 currentArtifact = createArtifactId(attributes);
+            } else if (VERIFY_METADATA.equals(qName)) {
+                assertInConfiguration();
+                inVerifyMetadata = true;
             } else {
                 if (currentChecksum != null && ALSO_TRUST.equals(qName)) {
                     builder.addChecksum(currentArtifact, currentChecksum, getAttribute(attributes, VALUE), null);
@@ -120,16 +129,31 @@ public class DependencyVerificationsXmlReader {
             }
         }
 
+        @Override
+        public void characters(char[] ch, int start, int length) throws SAXException {
+            if (inVerifyMetadata) {
+                builder.setVerifyMetadata(Boolean.parseBoolean(new String(ch, start, length)));
+            }
+        }
+
+        private void assertInConfiguration() {
+            assertContext(inConfiguration, VERIFY_METADATA, CONFIG);
+        }
+
         private void assertInComponents() {
-            assertContext(inComponents, "<component> must be found under the <components> tag");
+            assertContext(inComponents, COMPONENT, COMPONENTS);
         }
 
         private void assertInMetadata() {
-            assertContext(inMetadata, "<components> must be found under the <verification-metadata> tag");
+            assertContext(inMetadata, COMPONENTS, VERIFICATION_METADATA);
         }
 
         private void assertValidComponent() {
-            assertContext(currentComponent != null, "<artifact> must be found  under the <component> tag");
+            assertContext(currentComponent != null, ARTIFACT, COMPONENT);
+        }
+
+        private static void assertContext(boolean test, String innerTag, String outerTag) {
+            assertContext(test, "<" + innerTag + "> must be found under the <" + outerTag + "> tag");
         }
 
         private static void assertContext(boolean test, String message) {
@@ -140,7 +164,11 @@ public class DependencyVerificationsXmlReader {
 
         @Override
         public void endElement(String uri, String localName, String qName) throws SAXException {
-            if (VERIFICATION_METADATA.equals(qName)) {
+            if (CONFIG.equals(qName)) {
+                inConfiguration = false;
+            } else if (VERIFY_METADATA.equals(qName)) {
+                inVerifyMetadata = false;
+            } else if (VERIFICATION_METADATA.equals(qName)) {
                 inMetadata = false;
             } else if (COMPONENTS.equals(qName)) {
                 inComponents = false;

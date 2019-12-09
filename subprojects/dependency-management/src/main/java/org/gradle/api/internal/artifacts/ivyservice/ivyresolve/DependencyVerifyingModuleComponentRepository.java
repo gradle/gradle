@@ -30,6 +30,7 @@ import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
+import org.gradle.internal.component.model.ModuleDescriptorArtifactMetadata;
 import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
@@ -116,7 +117,7 @@ public class DependencyVerifyingModuleComponentRepository implements ModuleCompo
                                     if (artifactFile != null) {
                                         // it's possible that the file is null if it has been removed from the cache
                                         // for example
-                                        operation.onArtifact(artifact, artifactFile);
+                                        operation.onArtifact(ArtifactVerificationOperation.ArtifactKind.METADATA, artifact, artifactFile);
                                     }
                                 }
                             }
@@ -144,9 +145,18 @@ public class DependencyVerifyingModuleComponentRepository implements ModuleCompo
                 ComponentArtifactIdentifier id = artifact.getId();
                 if (isExternalArtifactId(id) && isNotChanging(moduleSources)) {
                     ModuleComponentArtifactIdentifier mcai = (ModuleComponentArtifactIdentifier) id;
-                    operation.onArtifact(mcai, result.getResult());
+                    ArtifactVerificationOperation.ArtifactKind artifactKind = determineArtifactKind(artifact);
+                    operation.onArtifact(artifactKind, mcai, result.getResult());
                 }
             }
+        }
+
+        private ArtifactVerificationOperation.ArtifactKind determineArtifactKind(ComponentArtifactMetadata artifact) {
+            ArtifactVerificationOperation.ArtifactKind artifactKind = ArtifactVerificationOperation.ArtifactKind.REGULAR;
+            if (artifact instanceof ModuleDescriptorArtifactMetadata) {
+                artifactKind = ArtifactVerificationOperation.ArtifactKind.METADATA;
+            }
+            return artifactKind;
         }
 
         private boolean isNotChanging(ModuleSources moduleSources) {

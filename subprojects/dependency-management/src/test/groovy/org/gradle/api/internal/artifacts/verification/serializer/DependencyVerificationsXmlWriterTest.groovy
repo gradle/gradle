@@ -23,21 +23,29 @@ import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class DependencyVerificationsXmlWriterTest extends Specification {
     private final DependencyVerifierBuilder builder = new DependencyVerifierBuilder()
     private String contents
 
+    @Unroll
     def "can write an empty file"() {
         when:
+        builder.verifyMetadata = verifyMetadata
         serialize()
 
         then:
         contents == """<?xml version="1.0" encoding="UTF-8"?>
 <verification-metadata>
+   <configuration>
+      <verify-metadata>$verifyMetadata</verify-metadata>
+   </configuration>
    <components/>
 </verification-metadata>
 """
+        where:
+        verifyMetadata << [true, false]
     }
 
     // In context of future dependency verification file update, we try
@@ -60,6 +68,9 @@ class DependencyVerificationsXmlWriterTest extends Specification {
         then:
         contents == """<?xml version="1.0" encoding="UTF-8"?>
 <verification-metadata>
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+   </configuration>
    <components>
       <component group="org" name="foo" version="1.0">
          <artifact name="foo-1.0.jar">
@@ -95,6 +106,9 @@ class DependencyVerificationsXmlWriterTest extends Specification {
         then:
         contents == """<?xml version="1.0" encoding="UTF-8"?>
 <verification-metadata>
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+   </configuration>
    <components>
       <component group="org" name="foo" version="1.0">
          <artifact name="foo-1.0.jar">
