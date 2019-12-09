@@ -227,7 +227,8 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
             .thenComparing(ChecksumEntry::getModule)
             .thenComparing(ChecksumEntry::getVersion)
             .thenComparing(ChecksumEntry::getFile)
-            .thenComparing(ChecksumEntry::getChecksumKind);
+            .thenComparing(ChecksumEntry::getChecksumKind)
+            .thenComparing(ChecksumEntry::getChecksum);
 
         private final ModuleComponentArtifactIdentifier id;
         private final File file;
@@ -246,6 +247,7 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
         private int precomputeHashCode() {
             int result = id.hashCode();
             result = 31 * result + file.getName().hashCode();
+            result = 31 * result + checksum.hashCode();
             result = 31 * result + checksumKind.hashCode();
             return result;
         }
@@ -260,6 +262,10 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
 
         String getVersion() {
             return id.getComponentIdentifier().getVersion();
+        }
+
+        String getChecksum() {
+            return checksum;
         }
 
         @Override
@@ -287,6 +293,9 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
             ChecksumEntry that = (ChecksumEntry) o;
 
             if (!id.equals(that.id)) {
+                return false;
+            }
+            if (!checksum.equals(that.checksum)) {
                 return false;
             }
             if (!getFile().equals(that.getFile())) {
