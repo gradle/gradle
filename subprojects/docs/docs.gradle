@@ -133,7 +133,7 @@ samples.configureEach { sample ->
         task.attributes.put('outfilesuffix', '.html')
         task.attributes.put('userManualPath', '../../userguide')
         doFirst {
-            new File(temporaryDir, 'README-docinfo.html').text = 
+            new File(temporaryDir, 'README-docinfo.html').text =
                 """<meta name="adoc-src-path" content="/../../samples${sample.readMeFile.get().asFile.path - samplesSrcDir.path}">"""
         }
     }
@@ -358,6 +358,11 @@ samples {
             from(sourceFiles) { into('groovy') }
             from(sourceFiles) { into('kotlin') }
         }
+    }
+
+    passArgumentsToTask {
+        sampleDirectory = file("src/samples/pass-arguments-to-task")
+        description = "Demonstrate how to pass arguments to a task"
     }
 }
 

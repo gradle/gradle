@@ -1,0 +1,13 @@
+plugins {
+    id 'java-gradle-plugin'
+    id 'groovy'
+}
+
+gradlePlugin {
+    plugins {
+        greeting {
+            id = 'project-info'
+            implementationClass = 'ProjectInfoPlugin'
+        }
+    }
+}
