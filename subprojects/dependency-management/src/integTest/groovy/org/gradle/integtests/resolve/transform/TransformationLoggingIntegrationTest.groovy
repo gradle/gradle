@@ -19,12 +19,19 @@ package org.gradle.integtests.resolve.transform
 import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.console.AbstractConsoleGroupedTaskFunctionalTest
+import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.junit.Rule
 import spock.lang.Unroll
+
+import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
 class TransformationLoggingIntegrationTest extends AbstractConsoleGroupedTaskFunctionalTest {
     ConsoleOutput consoleType
 
     private static final List<ConsoleOutput> TESTED_CONSOLE_TYPES = [ConsoleOutput.Plain, ConsoleOutput.Verbose, ConsoleOutput.Rich, ConsoleOutput.Auto]
+
+    @Rule
+    BlockingHttpServer server
 
     def setup() {
         settingsFile << """
@@ -177,12 +184,12 @@ class TransformationLoggingIntegrationTest extends AbstractConsoleGroupedTaskFun
         // Build scan plugin filters artifact transform logging by the name of the progress display name
         // since that is the only way it currently can distinguish transforms.
         // When it has a better way, then this test can be removed.
-
         consoleType = ConsoleOutput.Rich
+        server.start()
         buildFile << """
             allprojects {
                 dependencies {
-                    registerTransform(RedMultiplier) {
+                    registerTransform(Red) {
                         from.attribute(artifactType, "jar")
                         to.attribute(artifactType, "red")
                     }
@@ -200,26 +207,32 @@ class TransformationLoggingIntegrationTest extends AbstractConsoleGroupedTaskFun
                 }
             }
 
-            abstract class RedMultiplier extends Multiplier {
-                RedMultiplier() {
+            // NOTE: This is named "Red" so that the status message fits on one line
+            abstract class Red extends Multiplier {
+                Red() {
                     super("red")
                 }
-                
+
                 @Override
                 void transform(TransformOutputs outputs) {
-                    // BlockingHttpServer seems to be too verbose, so blocking here causes
-                    // the progress message to disappear somehow.
-                    // Thread.sleep seems to work just fine.
-                    Thread.sleep(200)
+                    ${server.callFromBuildUsingExpression("inputArtifact.get().asFile.name")}
                     super.transform(outputs)
                 }
             }
         """
 
         when:
-        run ":util:resolveRed"
+        def block = server.expectConcurrentAndBlock("lib1.jar", "lib2.jar")
+        def build = executer.withTasks(":util:resolveRed").start()
         then:
-        output.contains("> Transforming artifact ")
+        block.waitForAllPendingCalls()
+        poll {
+            assertHasWorkInProgress(build, "> Transforming artifact lib1.jar (project :lib) with Red > Red lib1.jar")
+            assertHasWorkInProgress(build, "> Transforming artifact lib2.jar (project :lib) with Red > Red lib2.jar")
+        }
+
+        block.releaseAll()
+        build.waitForFinish()
     }
 
     @ToBeFixedForInstantExecution
