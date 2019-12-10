@@ -1,13 +1,12 @@
 plugins {
     id 'java-gradle-plugin'
-    id 'groovy'
 }
 
 gradlePlugin {
     plugins {
-        greeting {
-            id = 'project-info'
-            implementationClass = 'ProjectInfoPlugin'
+        projectInfo {
+            id = 'org.gradle.samples.project-info'
+            implementationClass = 'org.gradle.samples.ProjectInfoPlugin'
         }
     }
 }

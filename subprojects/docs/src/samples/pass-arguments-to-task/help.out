@@ -1,0 +1,29 @@
+> Task :project-info-plugin:compileJava
+> Task :project-info-plugin:pluginDescriptors
+> Task :project-info-plugin:processResources
+> Task :project-info-plugin:classes
+> Task :project-info-plugin:jar
+
+> Task :help
+Detailed task information for projectInfo
+
+Path
+     :projectInfo
+
+Type
+     ProjectInfoTask (org.gradle.samples.ProjectInfoTask)
+
+Options
+     --format     Output format of the project information.
+                  Available values are:
+                       JSON
+                       PLAIN
+
+Description
+     Displays current project info
+
+Group
+     help
+
+BUILD SUCCESSFUL in 0s
+1 actionable task: 1 executed
