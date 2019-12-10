@@ -32,7 +32,7 @@ import java.util.List;
  * @since 6.1
  * @see org.gradle.tooling.internal.protocol.ConnectionVersion4
  */
-public interface InternalNotifyDaemonsAboutChangedPathsConnection extends InternalProtocolInterface {
+public interface InternalInvalidatableVirtualFileSystemConnection extends InternalProtocolInterface {
 
     /**
      * Notifies all daemons about file changes made by an external process, like an IDE.

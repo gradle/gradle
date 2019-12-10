@@ -85,7 +85,7 @@ class DefaultProjectConnection implements ProjectConnection {
 
     @Override
     public void notifyDaemonsAboutChangedPaths(List<Path> changedPaths) {
-        List<String> absolutePaths = new ArrayList<>();
+        List<String> absolutePaths = new ArrayList<>(changedPaths.size());
         for (Path changedPath : changedPaths) {
             if (!changedPath.isAbsolute()) {
                 throw new IllegalArgumentException(String.format("Changed path '%s' is not absolute", changedPath));

@@ -42,7 +42,7 @@ import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
-import org.gradle.tooling.internal.protocol.InternalNotifyDaemonsAboutChangedPathsConnection;
+import org.gradle.tooling.internal.protocol.InternalInvalidatableVirtualFileSystemConnection;
 import org.gradle.tooling.internal.protocol.InternalParameterAcceptingConnection;
 import org.gradle.tooling.internal.protocol.InternalPhasedActionConnection;
 import org.gradle.tooling.internal.protocol.test.InternalTestExecutionConnection;
@@ -82,7 +82,7 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
             ProtocolToModelAdapter adapter = new ProtocolToModelAdapter(new ConsumerTargetTypeProvider());
             ModelMapping modelMapping = new ModelMapping();
 
-            if (connection instanceof InternalNotifyDaemonsAboutChangedPathsConnection) {
+            if (connection instanceof InternalInvalidatableVirtualFileSystemConnection) {
                 return createConnection(new NotifyDaemonsAboutChangedPathsConsumerConnection(connection, modelMapping, adapter), connectionParameters);
             } else if (connection instanceof InternalPhasedActionConnection) {
                 return createConnection(new PhasedActionAwareConsumerConnection(connection, modelMapping, adapter), connectionParameters);

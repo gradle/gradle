@@ -20,12 +20,12 @@ import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
-import org.gradle.tooling.internal.protocol.InternalNotifyDaemonsAboutChangedPathsConnection;
+import org.gradle.tooling.internal.protocol.InternalInvalidatableVirtualFileSystemConnection;
 
 import java.util.List;
 
 /**
- * An adapter for {@link InternalNotifyDaemonsAboutChangedPathsConnection}.
+ * An adapter for {@link InternalInvalidatableVirtualFileSystemConnection}.
  *
  * <p>Used for providers >= 6.1.</p>
  */
@@ -36,6 +36,6 @@ public class NotifyDaemonsAboutChangedPathsConsumerConnection extends PhasedActi
 
     @Override
     public void notifyDaemonsAboutChangedPaths(List<String> changedPaths, ConsumerOperationParameters operationParameters) {
-        ((InternalNotifyDaemonsAboutChangedPathsConnection) getDelegate()).notifyDaemonsAboutChangedPaths(changedPaths, operationParameters);
+        ((InternalInvalidatableVirtualFileSystemConnection) getDelegate()).notifyDaemonsAboutChangedPaths(changedPaths, operationParameters);
     }
 }
