@@ -59,7 +59,7 @@ public interface HasConfigurableValue {
      *
      * @since 6.1
      */
-    void finalizeOnRead();
+    void finalizeValueOnRead();
 
     /**
      * Disallows further direct changes to this object.

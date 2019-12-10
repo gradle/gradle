@@ -118,7 +118,7 @@ public abstract class AbstractProperty<T> extends AbstractMinimalProvider<T> imp
     }
 
     @Override
-    public void finalizeOnRead() {
+    public void finalizeValueOnRead() {
         finalizeOnNextGet = true;
     }
 
