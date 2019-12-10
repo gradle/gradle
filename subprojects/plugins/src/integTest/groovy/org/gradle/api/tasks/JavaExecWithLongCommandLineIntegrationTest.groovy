@@ -61,6 +61,7 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
         """
     }
 
+    @ToBeFixedForInstantExecution
     def "still fail when classpath doesn't shorten the command line enough"() {
         def veryLongCommandLineArgs = getLongArgs()
         buildFile << """
