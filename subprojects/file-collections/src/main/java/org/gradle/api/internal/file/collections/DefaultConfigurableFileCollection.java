@@ -40,7 +40,7 @@ import java.util.Set;
  */
 public class DefaultConfigurableFileCollection extends CompositeFileCollection implements ConfigurableFileCollection, Managed, HasConfigurableValueInternal {
     private enum State {
-        Mutable, FinalizeNextQuery, Final
+        Mutable, ImplicitFinalizeNextQuery, FinalizeNextQuery, Final
     }
 
     private final Set<Object> files;
@@ -90,9 +90,16 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     }
 
     @Override
+    public void finalizeOnRead() {
+        if (state == State.Mutable || state == State.ImplicitFinalizeNextQuery) {
+            state = State.FinalizeNextQuery;
+        }
+    }
+
+    @Override
     public void implicitFinalizeValue() {
         if (state == State.Mutable) {
-            state = State.FinalizeNextQuery;
+            state = State.ImplicitFinalizeNextQuery;
         }
     }
 
@@ -178,9 +185,13 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
 
     @Override
     public void visitContents(FileCollectionResolveContext context) {
-        if (state == State.FinalizeNextQuery) {
+        if (state == State.ImplicitFinalizeNextQuery) {
             calculateFinalizedValue();
             state = State.Final;
+        } else if (state == State.FinalizeNextQuery) {
+            calculateFinalizedValue();
+            state = State.Final;
+            disallowChanges = true;
         }
         if (state == State.Final) {
             context.addAll(files);
