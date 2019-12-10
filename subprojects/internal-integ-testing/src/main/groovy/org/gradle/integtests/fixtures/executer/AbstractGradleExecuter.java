@@ -155,6 +155,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     protected WarningMode warningMode = WarningMode.All;
     private boolean showStacktrace = true;
     private boolean renderWelcomeMessage;
+    private boolean usePartialVfsInvalidation = true;
 
     private int expectedGenericDeprecationWarnings;
     private final List<String> expectedDeprecationWarnings = new ArrayList<>();
@@ -238,6 +239,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         durationMeasurement = null;
         consoleType = null;
         warningMode = WarningMode.All;
+        usePartialVfsInvalidation = true;
         return this;
     }
 
@@ -400,6 +402,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
 
         executer.withTestConsoleAttached(consoleAttachment);
+
+        executer.withPartialVfsInvalidation(usePartialVfsInvalidation);
 
         return executer;
     }
@@ -1009,11 +1013,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             properties.put(TestOverrideConsoleDetector.INTERACTIVE_TOGGLE, "true");
         }
 
-        properties.put(DefaultCommandLineActionFactory.WELCOME_MESSAGE_ENABLED_SYSTEM_PROPERTY, Boolean.toString(renderWelcomeMessage));
+        if (usePartialVfsInvalidation) {
+            properties.put(VirtualFileSystemServices.VFS_PARTIAL_INVALIDATION_ENABLED_PROPERTY, "true");
+        }
 
-        // All our tests should work with partial VFS invalidation.
-        // As soon as partial invalidation is enabled by default, we can remove this line again.
-        properties.put(VirtualFileSystemServices.VFS_PARTIAL_INVALIDATION_ENABLED_PROPERTY, "true");
+        properties.put(DefaultCommandLineActionFactory.WELCOME_MESSAGE_ENABLED_SYSTEM_PROPERTY, Boolean.toString(renderWelcomeMessage));
 
         return properties;
     }
@@ -1124,6 +1128,12 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     @Override
     public GradleExecuter withBuildCacheEnabled() {
         return withArgument("--build-cache");
+    }
+
+    @Override
+    public GradleExecuter withPartialVfsInvalidation(boolean enabled) {
+        this.usePartialVfsInvalidation = enabled;
+        return this;
     }
 
     protected Action<ExecutionResult> getResultAssertion() {

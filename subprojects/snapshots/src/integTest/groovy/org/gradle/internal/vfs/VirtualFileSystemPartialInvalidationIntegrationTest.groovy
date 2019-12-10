@@ -24,6 +24,12 @@ class VirtualFileSystemPartialInvalidationIntegrationTest extends AbstractIntegr
 
     private static final INCUBATING_MESSAGE = "Partial virtual file system invalidation is an incubating feature"
 
+    def setup() {
+        executer.beforeExecute {
+            withPartialVfsInvalidation(false)
+        }
+    }
+
     def "incubating message is shown for partial invalidation"() {
         buildFile << """
             apply plugin: "java"
