@@ -5,7 +5,7 @@
 > Task :project-info-plugin:jar
 
 > Task :projectInfo
-pass-arguments-to-task:1.0.2
+task-with-arguments:1.0.2
 
 BUILD SUCCESSFUL in 0s
 1 actionable task: 1 executed

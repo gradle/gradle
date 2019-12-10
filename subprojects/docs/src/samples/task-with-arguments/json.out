@@ -6,7 +6,7 @@
 
 > Task :projectInfo
 {
-    "projectName": "pass-arguments-to-task"
+    "projectName": "task-with-arguments"
     "version": "1.0.2"
 }
 
