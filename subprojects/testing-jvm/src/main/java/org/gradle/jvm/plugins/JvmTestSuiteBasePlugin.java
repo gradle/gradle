@@ -71,6 +71,7 @@ import java.util.List;
  * @since 2.12
  */
 @SuppressWarnings("UnusedDeclaration")
+@Deprecated
 public class JvmTestSuiteBasePlugin extends RuleSource {
     @BinaryTasks
     void createJvmTestSuiteTasks(ModelMap<Task> tasks,

@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Unroll
 
 import static org.gradle.language.java.JavaIntegrationTesting.applyJavaPlugin
+import static org.gradle.language.java.JavaIntegrationTesting.expectJavaLangPluginDeprecationWarnings
 
 class JavaCompilationAgainstDependenciesIntegrationTest extends AbstractIntegrationSpec {
 
@@ -28,7 +29,7 @@ class JavaCompilationAgainstDependenciesIntegrationTest extends AbstractIntegrat
     @ToBeFixedForInstantExecution
     def "#scope dependencies are visible from all source sets"() {
         given:
-        applyJavaPlugin(buildFile)
+        applyJavaPlugin(buildFile, executer)
         buildFile << """
             model {
                 components {
@@ -60,7 +61,7 @@ class JavaCompilationAgainstDependenciesIntegrationTest extends AbstractIntegrat
     @ToBeFixedForInstantExecution
     def "resolved classpath for jvm library includes transitive api-scoped dependencies and not #scope dependencies"() {
         given:
-        applyJavaPlugin(buildFile)
+        applyJavaPlugin(buildFile, executer)
         buildFile << """
 model {
     components {
@@ -117,7 +118,7 @@ model {
     @ToBeFixedForInstantExecution
     def "when a library dependency is declared at both #scope1 and #scope2 levels, its API is #exportedOrNot"() {
         given:
-        applyJavaPlugin(buildFile)
+        applyJavaPlugin(buildFile, executer)
         buildFile << """
             model {
                 components {
@@ -143,6 +144,7 @@ model {
         succeeds 'coreJar'
 
         and:
+        expectJavaLangPluginDeprecationWarnings(executer)
         if (exportedOrNot == 'exported') {
             succeeds 'mainJar'
         } else {

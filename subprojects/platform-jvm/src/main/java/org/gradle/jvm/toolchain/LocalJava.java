@@ -26,6 +26,7 @@ import java.io.File;
  * A local JDK, JRE or Java 9+ installation.
  */
 @Incubating
+@Deprecated
 @Managed
 public interface LocalJava extends Named {
     /**

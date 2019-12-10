@@ -24,7 +24,7 @@ class PlayPlatformComponentReportIntegrationTest extends AbstractComponentReport
     private def defaultPlayPlatform = new PlayPlatformResolver().resolve(DefaultPlatformRequirement.create(defaultPlayPlatformName));
 
     def "shows details of Play application"() {
-        executer.expectDeprecationWarnings(3)
+        executer.expectDeprecationWarnings(6)
 
         given:
         buildFile << """

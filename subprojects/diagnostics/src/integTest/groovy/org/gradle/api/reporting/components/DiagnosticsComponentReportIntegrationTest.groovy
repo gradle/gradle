@@ -17,8 +17,15 @@
 package org.gradle.api.reporting.components
 
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
+import org.gradle.util.GradleVersion
 
 class DiagnosticsComponentReportIntegrationTest extends AbstractNativeComponentReportIntegrationTest {
+
+    private void expectJavaLanguagePluginDeprecationWarnings() {
+        executer.expectDeprecationWarning("The jvm-component plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
+        executer.expectDeprecationWarning("The java-lang plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
+        executer.expectDeprecationWarning("The jvm-resources plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
+    }
 
     @RequiresInstalledToolChain
     def "informs the user when project has no components defined"() {
@@ -33,6 +40,8 @@ No components defined for this project.
 
     @RequiresInstalledToolChain
     def "shows details of multiple components"() {
+        expectJavaLanguagePluginDeprecationWarnings()
+
         given:
         buildFile << """
 plugins {
@@ -106,6 +115,8 @@ Binaries
     }
 
     def "shows an error when targeting a native platform from a jvm component"() {
+        expectJavaLanguagePluginDeprecationWarnings()
+
         given:
         buildFile << """
     apply plugin: 'jvm-component'
@@ -131,6 +142,8 @@ Binaries
     }
 
     def "shows an error when targeting a jvm platform from a native component"() {
+        expectJavaLanguagePluginDeprecationWarnings()
+
         given:
         buildFile << """
     apply plugin: 'jvm-component'

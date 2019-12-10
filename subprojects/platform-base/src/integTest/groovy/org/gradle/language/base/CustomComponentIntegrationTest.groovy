@@ -24,6 +24,7 @@ import org.gradle.platform.base.ComponentSpec
 import org.gradle.platform.base.GeneralComponentSpec
 import org.gradle.platform.base.LibrarySpec
 import org.gradle.platform.base.SourceComponentSpec
+import org.gradle.util.GradleVersion
 import spock.lang.Unroll
 
 class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
@@ -235,6 +236,7 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can declare custom managed Jvm library component"() {
+        executer.expectDeprecationWarning("The jvm-component plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
         buildFile << """
             apply plugin: "jvm-component"
 

@@ -24,6 +24,7 @@ import org.gradle.language.base.LanguageSourceSet;
  * A set of sources passed to the Scala compiler.
  */
 @Incubating
+@Deprecated
 public interface ScalaLanguageSourceSet extends LanguageSourceSet {
     Classpath getCompileClasspath();
 }

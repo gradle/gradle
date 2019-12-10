@@ -23,5 +23,6 @@ import org.gradle.platform.base.ToolChain;
  * A set of tools for building Scala applications
  */
 @Incubating
+@Deprecated
 public interface ScalaToolChain extends ToolChain {
 }

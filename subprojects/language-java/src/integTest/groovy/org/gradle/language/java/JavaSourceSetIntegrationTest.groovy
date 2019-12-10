@@ -28,7 +28,7 @@ class JavaSourceSetIntegrationTest extends AbstractIntegrationSpec {
     @ToBeFixedForInstantExecution
     def "can define dependencies on Java source set"() {
         given:
-        applyJavaPlugin(buildFile)
+        applyJavaPlugin(buildFile, executer)
         buildFile << '''
 model {
     components {
@@ -70,7 +70,7 @@ model {
     @ToBeFixedForInstantExecution
     def "dependencies returned by the container are immutable"() {
         given:
-        applyJavaPlugin(buildFile)
+        applyJavaPlugin(buildFile, executer)
         buildFile << '''
 model {
     components {
@@ -113,7 +113,7 @@ model {
     @ToBeFixedForInstantExecution
     def "reports failure for invalid dependency notation"() {
         given:
-        applyJavaPlugin(buildFile)
+        applyJavaPlugin(buildFile, executer)
         buildFile << """
 model {
     components {
@@ -157,7 +157,7 @@ model {
         file("src/main/java8/Java8.java") << "public class Java8 {}"
         file("src/main/java8-resources/java8.properties") << "java=8"
 
-        applyJavaPlugin(buildFile)
+        applyJavaPlugin(buildFile, executer)
         buildFile << '''
 model {
     components {
