@@ -24,8 +24,7 @@ import org.gradle.process.internal.util.LongCommandLineDetectionUtil
 import static org.gradle.util.Matchers.containsText
 
 class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec {
-    public static final int MAX_COMMAND_LINE_LENGTH = OperatingSystem.current().windows ? LongCommandLineDetectionUtil.MAX_COMMAND_LINE_LENGTH_WINDOWS : LongCommandLineDetectionUtil.MAX_COMMAND_LINE_LENGTH_NIX
-    def veryLongFileNames = getLongArgs(MAX_COMMAND_LINE_LENGTH)
+    def veryLongFileNames = getLongArgs()
 
     def setup() {
         file("src/main/java/Driver.java") << """
@@ -63,7 +62,7 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
     }
 
     def "still fail when classpath doesn't shorten the command line enough"() {
-        def veryLongCommandLineArgs = getLongArgs(MAX_COMMAND_LINE_LENGTH)
+        def veryLongCommandLineArgs = getLongArgs()
         buildFile << """
             extraClasspath.from('${veryLongFileNames.join("','")}')
             
@@ -84,7 +83,7 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
     }
 
     @ToBeFixedForInstantExecution
-    def "does not suggest long command line failures when execution fails on non-Windows system"() {
+    def "does not suggest long command line failures when execution fails"() {
         buildFile << """
             extraClasspath.from('${veryLongFileNames.join("','")}')
             run.executable 'does-not-exist'
@@ -156,12 +155,14 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
         outputContains("Shortening Java classpath")
     }
 
-    private static final int MAX_STRING_LENGTH = 65530
-    private static List<String> getLongArgs(int argumentLength) {
+    private static List<String> getLongArgs() {
+        final int maxIndividualArgLength = 65530
+
+        int maxCommandLength = OperatingSystem.current().windows ? LongCommandLineDetectionUtil.MAX_COMMAND_LINE_LENGTH_WINDOWS : LongCommandLineDetectionUtil.MAX_COMMAND_LINE_LENGTH_NIX
         List<String> result = new ArrayList<>()
-        while (argumentLength > 0) {
-            result.add('a' * MAX_STRING_LENGTH)
-            argumentLength -= MAX_STRING_LENGTH
+        while (maxCommandLength > 0) {
+            result.add('a' * maxIndividualArgLength)
+            maxCommandLength -= maxIndividualArgLength
         }
 
         return result
