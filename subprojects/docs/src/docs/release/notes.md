@@ -43,7 +43,7 @@ This enables its copy from host to host, allowing to fully leverage all the cach
 Note that priming the cache and consuming it needs to use the same Gradle version for maximum effect.
 See [the documentation](userguide/dependency_resolution.html#sub:cache_copy) for details on this.
 
-This is one step in helping out ephemeral CI setups where host images can be seeded with dependency cache content, reducing the amout of downloads during the build.
+This is one step in helping out ephemeral CI setups where host images can be seeded with dependency cache content, reducing the amount of downloads during the build.
 
 ## Groovy compilation support for method parameter names with JDK8+ 
 
@@ -59,15 +59,40 @@ The `TestLauncher` interface in the Tooling API is capable of launching tests by
 
 ## Improvements for plugin authors
 
+### Finalize property value only when the value is queried
+
+In previous Gradle releases, certain Gradle types, such as [`Property`](javadoc/org/gradle/api/provider/Property.html) or [`ConfigurableFileCollection`](javadoc/org/gradle/api/file/ConfigurableFileCollection.html),
+provide a `finalizeValue()` method, which calculates a final value for the object and prevents further changes.
+Gradle automatically finalizes task properties of these types when the task starts running, so that the same value is seen by everything that queries the property value, such as Gradle's build caching
+or the task action. This also avoids calculating the property value multiple times, which can be expensive. Plugins can use this method to finalize other properties, for example
+a property of a project extension, prior to querying the property value.
+
+In this release, these types gain a new [`finalizeValueOnRead()`](javadoc/org/gradle/api/provider/HasConfigurableValue.html#finalizeValueOnRead--) method. This method is similar to `finalizeValue()`, except that the final
+value is calculated on demand when the value is queried, rather than eagerly when `finalizeValue()` is called. Plugins can use this method when a property value may be expensive to calculate or when the
+value may not have been configured, and can still ensure that all consumers of the property see the same, final, value from that point onwards.
+
+Please see the [user manual](userguide/lazy_configuration.html#unmodifiable_property) for more details.
+
 ### New managed property types
 
-TBD - Managed properties of type `DomainObjectSet<T>` now supported.
+Gradle 5.5 introduced the concept of a [_managed property_ for tasks and other types](userguide/custom_gradle_types.html#managed_properties), where Gradle provides an implementation of the getter 
+and setter for an abstract property defined on a task, project extension, or other custom type.
+This simplifies plugin implementation by removing a bunch of boilerplate.
+
+In this release, it is possible for a task or other custom type to have an abstract read-only property of type [`DomainObjectSet<T>`](javadoc/org/gradle/api/DomainObjectSet.html).
+
+Please see the [user manual](userguide/custom_gradle_types.html#managed_properties) for more details.
 
 ### New factory methods
 
-TBD - `ObjectFactory` has a method to create `ExtensiblePolymorphicDomainObjectContainer` instances.
-TBD - `ObjectFactory` has a method to create `NamedDomainObjectSet` instances.
-TBD - `ObjectFactory` has a method to create `NamedDomainObjectList` instances.
+The [`ObjectFactory`](javadoc/org/gradle/api/model/ObjectFactory.html) type, which plugins and other custom types use to create instances of various useful types, has several new factory methods.
+These metehods create certain Gradle types that could only be created using internal APIs in previous releases: 
+
+- The [`polymorphicDomainObjectContainer()`](javadoc/org/gradle/api/model/ObjectFactory.html#polymorphicDomainObjectContainer-java.lang.Class-) method to create [`ExtensiblePolymorphicDomainObjectContainer<T>`](javadoc/org/gradle/api/ExtensiblePolymorphicDomainObjectContainer.html) instances.
+- The [`namedDomainObjectSet()`](javadoc/org/gradle/api/model/ObjectFactory.html#namedDomainObjectSet-java.lang.Class-) method to create [`NamedDomainObjectSet<T>`](javadoc/org/gradle/api/NamedDomainObjectSet.html) instances.
+- The [`namedDomainObjectList()`](javadoc/org/gradle/api/model/ObjectFactory.html#namedDomainObjectList-java.lang.Class-) method to create [`NamedDomainObjectList<T>`](javadoc/org/gradle/api/NamedDomainObjectList.html) instances.
+
+Please see the [user manual](userguide/custom_gradle_types.html#collection_types) for more details.
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.

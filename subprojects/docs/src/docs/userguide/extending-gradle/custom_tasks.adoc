@@ -162,7 +162,7 @@ In addition, the task needs to declare at least one incremental file input prope
 To query incremental changes for an input file property, that property always needs to return the same instance.
 The easiest way to accomplish this is to use one of the following types for such properties: link:{javadocPath}/org/gradle/api/file/RegularFileProperty.html[RegularFileProperty], link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html[DirectoryProperty] or link:{javadocPath}/org/gradle/api/file/ConfigurableFileCollection.html[ConfigurableFileCollection].
 
-You can learn more about `RegularFileProperty` and `DirectoryProperty` in the <<lazy_configuration#lazy_configuration,Lazy Configuration>> chapter, especially the sections on <<lazy_configuration#sec:lazy_properties,using read-only and configurable properties>> and <<lazy_configuration#sec:working_with_files_in_lazy_properties,lazy file properties>>.
+You can learn more about `RegularFileProperty` and `DirectoryProperty` in the <<lazy_configuration#lazy_configuration,Lazy Configuration>> chapter, especially the sections on <<lazy_configuration#lazy_properties,using read-only and configurable properties>> and <<lazy_configuration#working_with_files_in_lazy_properties,lazy file properties>>.
 ====
 
 The incremental task action can use link:{groovyDslPath}/org.gradle.work.InputChanges.html#org.gradle.work.InputChanges:getFileChanges(org.gradle.api.file.FileCollection)[InputChanges.getFileChanges()] to find out what files have changed for a given file-based input property, be it of type `RegularFileProperty`, `DirectoryProperty` or `ConfigurableFileCollection`.
