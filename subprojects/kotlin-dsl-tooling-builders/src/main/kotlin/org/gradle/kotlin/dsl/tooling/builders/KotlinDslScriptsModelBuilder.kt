@@ -234,20 +234,14 @@ data class KotlinDslScriptsParameter(
 
 
 internal
-fun <T : Any> commonPrefixOf(lists: List<List<T>>): List<T> {
-    if (lists.isEmpty()) return emptyList()
-    if (lists.size == 1) return lists.first()
-    val maxIndex = lists.map { it.size }.min()!! - 1
-    if (maxIndex < 0) return emptyList()
-    val first = lists.first()
-    val others = lists.drop(1)
-    val common = ArrayList<T>(maxIndex)
-    for (idx in 0..maxIndex) {
-        if (others.all { it[idx] == first[idx] }) common += first[idx]
-        else break
-    }
-    return common
-}
+fun <T : Any> commonPrefixOf(lists: List<List<T>>): List<T> =
+    lists.minBy { it.size }?.let { maxCommonPrefix ->
+        maxCommonPrefix.indices.asSequence().takeWhile { index ->
+            lists.all { list -> list[index] == maxCommonPrefix[index] }
+        }.lastOrNull()?.let { maxCommonIndex ->
+            maxCommonPrefix.take(maxCommonIndex + 1)
+        }
+    } ?: emptyList()
 
 
 private
