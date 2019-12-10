@@ -22,11 +22,12 @@ import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import java.util.zip.ZipFile
 
 import static org.gradle.language.java.JavaIntegrationTesting.applyJavaPlugin
+import static org.gradle.language.java.JavaIntegrationTesting.expectJavaLangPluginDeprecationWarnings
 
 class JavaJvmAssemblyIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
-        applyJavaPlugin buildFile
+        applyJavaPlugin(buildFile, executer)
         buildFile << '''
             model {
                 components {
@@ -152,6 +153,7 @@ class JavaJvmAssemblyIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'precompiledClassesJar'
 
         and:
+        expectJavaLangPluginDeprecationWarnings(executer)
         succeeds 'mainConsumerJar'
     }
 

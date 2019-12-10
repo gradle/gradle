@@ -23,5 +23,6 @@ import org.gradle.platform.base.ComponentSpec;
  * Definition of a software component that is to be built by Gradle to run a on JVM platform.
  */
 @Incubating
+@Deprecated
 public interface JvmComponentSpec extends ComponentSpec {
 }

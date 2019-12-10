@@ -31,6 +31,7 @@ import java.util.Set;
  * @since 2.10
  */
 @Incubating @UnmanagedStruct
+@Deprecated
 public interface JvmApiSpec {
 
     /**

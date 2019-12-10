@@ -76,6 +76,14 @@ taskA.threadPoolSize = taskB.outputFile.map { it.text.toInteger() }
 In this case, calling `get()`, or any other query method, on `taskA.threadPoolSize` will produce a deprecation warning if done prior to `taskB` completing, as the file has not yet been generated.
 This will become an error in Gradle 7.0
 
+[[upgrading_jvm_plugins]]
+==== Alternative JVM plugins
+
+A set of alternative plugins for Java and Scala development that have been introduced in Gradle 2 as an experiment are now deprecated.
+Development of these plugins has been discontinued since Gradle 3.
+Instead, the regular Java and Scala plugins have been extended, and new plugins such as `java-library` and `java-platform` have been added over the past years, to offer the same functionality and more.
+If you are still using one of these old plugins (`java-lang`, `scala-lang`, `jvm-component`, `jvm-resources`, `junit-test-suite`) please consult the documentation on <<building_java_projects.adoc#,Building Java & JVM projects>> to determine to which of the stable JVM plugins to migrate to.
+
 ==== Deprecated methods
 
 - `AbstractExecTask#getExecResult()` has been replaced by `AbstractExecTask#getExecutionResult()` for consistency with `JavaExec#getExecutionResult()`. The return type is a <<lazy_configuration.adoc#,lazy value provider>>.

@@ -111,24 +111,26 @@ public abstract class AbstractLazyModuleComponentResolveMetadata extends Abstrac
         if (variants.isPresent()) {
             builder.addAll(variants.get());
         }
-        for (Map.Entry<String, String> variantName : variantMetadataRules.getAdditionalVariants().entrySet()) {
-            String baseName = variantName.getValue();
+        for (AdditionalVariant additionalVariant : variantMetadataRules.getAdditionalVariants()) {
+            String baseName = additionalVariant.getBase();
             ConfigurationMetadata base = null;
             if (baseName != null) {
                 if (variants.isPresent()) {
                     base = variantsByName.get(baseName);
-                    if (!(base instanceof ModuleConfigurationMetadata)) {
+                    if (!additionalVariant.isLenient() && !(base instanceof ModuleConfigurationMetadata)) {
                         throw new InvalidUserDataException("Variant '" + baseName + "' not defined in module " + getId().getDisplayName());
                     }
                 } else {
                     base = getConfiguration(baseName);
-                    if (!(base instanceof ModuleConfigurationMetadata)) {
+                    if (!additionalVariant.isLenient() && !(base instanceof ModuleConfigurationMetadata)) {
                         throw new InvalidUserDataException("Configuration '" + baseName + "' not defined in module " + getId().getDisplayName());
                     }
                 }
             }
-            ConfigurationMetadata configurationMetadata = new LazyRuleAwareWithBaseConfigurationMetadata(variantName.getKey(), (ModuleConfigurationMetadata) base, getId(), getAttributes(), variantMetadataRules);
-            builder.add(configurationMetadata);
+            if (baseName == null || base instanceof ModuleConfigurationMetadata) {
+                ConfigurationMetadata configurationMetadata = new LazyRuleAwareWithBaseConfigurationMetadata(additionalVariant.getName(), (ModuleConfigurationMetadata) base, getId(), getAttributes(), variantMetadataRules);
+                builder.add(configurationMetadata);
+            }
         }
         return Optional.of(builder.build());
     }

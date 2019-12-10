@@ -27,6 +27,7 @@ class JavaLanguageIncrementalBuildIntegrationTest extends AbstractJvmLanguageInc
     @ToBeFixedForInstantExecution
     def "rebuilds jar when input property changed"() {
         given:
+        expectDeprecationWarnings()
         run "mainJar"
 
         when:
@@ -35,6 +36,7 @@ class JavaLanguageIncrementalBuildIntegrationTest extends AbstractJvmLanguageInc
         options.debug = false
     }
 """
+        expectDeprecationWarnings()
         run "mainJar"
 
         then:
@@ -50,7 +52,7 @@ class JavaLanguageIncrementalBuildIntegrationTest extends AbstractJvmLanguageInc
                 subprojects {
                     apply plugin: 'jvm-component'
                     apply plugin: '${testComponent.languageName}-lang'
-                    
+
                     ${mavenCentralRepository()}
                 }
                 project(':library') {
@@ -58,9 +60,9 @@ class JavaLanguageIncrementalBuildIntegrationTest extends AbstractJvmLanguageInc
                         components {
                             main(JvmLibrarySpec)
                         }
-                    }                    
+                    }
                 }
-                
+
                 project(':app') {
                     model {
                         components {
@@ -79,6 +81,7 @@ class JavaLanguageIncrementalBuildIntegrationTest extends AbstractJvmLanguageInc
         resourceFiles = testComponent.writeResources(file("app/src/main/resources"))
 
         when:
+        expectDeprecationWarnings()
         succeeds mainCompileTaskName
 
         then:
@@ -89,6 +92,7 @@ class JavaLanguageIncrementalBuildIntegrationTest extends AbstractJvmLanguageInc
 
         and:
         executer.withArgument('-i')
+        expectDeprecationWarnings()
         succeeds mainCompileTaskName
 
         then:

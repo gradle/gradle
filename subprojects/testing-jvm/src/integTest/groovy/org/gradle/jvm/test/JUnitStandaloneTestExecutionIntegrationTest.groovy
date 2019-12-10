@@ -426,6 +426,7 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
         executedAndNotSkipped ':compileMyTestBinaryMyTestJava', ':processMyTestBinaryMyTestResources', ':myTestBinaryTest'
 
         when:
+        expectDeprecationWarnings()
         succeeds ':checkTaskType'
 
         then:
