@@ -363,6 +363,15 @@ samples {
     passArgumentsToTask {
         sampleDirectory = file("src/samples/pass-arguments-to-task")
         description = "Demonstrate how to pass arguments to a task"
+
+        def sourceFiles = installSourceFromTemplate(it) {
+            from("$templateDir/project-info-plugin")
+        }
+        archiveContent.from sourceFiles
+        exemplar.source {
+            from(sourceFiles) { into('groovy/project-info-plugin') }
+            from(sourceFiles) { into('kotlin/project-info-plugin') }
+        }
     }
 }
 
