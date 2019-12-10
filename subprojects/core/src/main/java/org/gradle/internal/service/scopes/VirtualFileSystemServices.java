@@ -76,6 +76,7 @@ import org.gradle.internal.vfs.DarwinFileWatcherRegistry;
 import org.gradle.internal.vfs.RoutingVirtualFileSystem;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.internal.vfs.WatchingVirtualFileSystem;
+import org.gradle.internal.vfs.WindowsFileWatcherRegistry;
 import org.gradle.internal.vfs.impl.DefaultVirtualFileSystem;
 import org.gradle.internal.vfs.impl.DefaultWatchingVirtualFileSystem;
 import org.gradle.internal.vfs.watch.FileWatcherRegistryFactory;
@@ -170,8 +171,10 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                 OperatingSystem operatingSystem = OperatingSystem.current();
                 if (operatingSystem.isMacOsX()) {
                     return new DarwinFileWatcherRegistry.Factory();
+                } else if (operatingSystem.isWindows()) {
+                    return new WindowsFileWatcherRegistry.Factory();
                 } else if (operatingSystem.isLinux()) {
-                    // The Linux watched in the JDK works quite well
+                    // The Linux watcher in the JDK works quite well
                     return new JdkFileWatcherRegistry.Factory();
                 } else {
                     return new NoopFileWatcherRegistry.Factory();
