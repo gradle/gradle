@@ -30,7 +30,10 @@ class CommonListPrefixTest {
         val b = listOf("a", "b", "c", "3", "4", "5", "d")
         val c = listOf("a", "b", "c", "6", "7", "8", "d")
 
-        assertThat(commonPrefixOf(listOf(a, b, c)), equalTo(listOf("a", "b", "c")))
+        assertThat(
+            commonPrefixOf(listOf(a, b, c)),
+            equalTo(listOf("a", "b", "c"))
+        )
     }
 
     @Test
@@ -39,7 +42,10 @@ class CommonListPrefixTest {
         val a = listOf("a", "b", "c")
         val b = listOf("a", "b", "c")
 
-        assertThat(commonPrefixOf(listOf(a, b)), equalTo(listOf("a", "b", "c")))
+        assertThat(
+            commonPrefixOf(listOf(a, b)),
+            equalTo(listOf("a", "b", "c"))
+        )
     }
 
     @Test
@@ -48,7 +54,10 @@ class CommonListPrefixTest {
         val a = listOf("0", "a", "b", "c")
         val b = listOf("1", "a", "b", "c")
 
-        assertThat(commonPrefixOf(listOf(a, b)), equalTo(emptyList()))
+        assertThat(
+            commonPrefixOf(listOf(a, b)),
+            equalTo(emptyList())
+        )
     }
 
     @Test
@@ -57,7 +66,10 @@ class CommonListPrefixTest {
         val a = listOf("a", "b", "c", "0", "1", "d")
         val b = listOf("a", "b", "c", "3", "d")
 
-        assertThat(commonPrefixOf(listOf(a, b)), equalTo(listOf("a", "b", "c")))
+        assertThat(
+            commonPrefixOf(listOf(a, b)),
+            equalTo(listOf("a", "b", "c"))
+        )
     }
 
     @Test
@@ -66,20 +78,35 @@ class CommonListPrefixTest {
         val a = listOf("a", "b", "c", "0", "d")
         val b = listOf("a", "b", "c", "3", "4", "d")
 
-        assertThat(commonPrefixOf(listOf(a, b)), equalTo(listOf("a", "b", "c")))
+        assertThat(
+            commonPrefixOf(listOf(a, b)),
+            equalTo(listOf("a", "b", "c"))
+        )
     }
 
     @Test
     fun `empty lists have empty prefix`() {
 
-        assertThat(commonPrefixOf(emptyList()), equalTo(emptyList<Any>()))
-        assertThat(commonPrefixOf(listOf(emptyList())), equalTo(emptyList<Any>()))
-        assertThat(commonPrefixOf(listOf(emptyList(), emptyList())), equalTo(emptyList<Any>()))
+        assertThat(
+            commonPrefixOf(emptyList()),
+            equalTo(emptyList<Any>())
+        )
+        assertThat(
+            commonPrefixOf(listOf(emptyList())),
+            equalTo(emptyList<Any>())
+        )
+        assertThat(
+            commonPrefixOf(listOf(emptyList(), emptyList())),
+            equalTo(emptyList<Any>())
+        )
     }
 
     @Test
     fun `single list prefix is same list`() {
 
-        assertThat(commonPrefixOf(listOf(listOf("a", "b"))), equalTo(listOf("a", "b")))
+        assertThat(
+            commonPrefixOf(listOf(listOf("a", "b"))),
+            equalTo(listOf("a", "b"))
+        )
     }
 }
