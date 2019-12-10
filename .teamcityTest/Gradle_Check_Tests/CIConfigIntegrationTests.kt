@@ -209,19 +209,13 @@ class CIConfigIntegrationTests {
         val model = CIBuildModel()
         val rootProject = RootProject(model)
         val triggerNameToTasks = rootProject.buildTypes.map { it.uuid to ((it as StagePasses).steps.items[0] as GradleBuildStep).tasks }.toMap()
-
-        assertEquals(mapOf(
-            "Gradle_Check_Stage_QuickFeedbackLinuxOnly_Trigger" to "createBuildReceipt",
-            "Gradle_Check_Stage_QuickFeedback_Trigger" to "createBuildReceipt",
-            "Gradle_Check_Stage_BranchBuildAccept_Trigger" to "createBuildReceipt",
-            "Gradle_Check_Stage_MasterAccept_Trigger" to "createBuildReceipt updateBranchStatus",
-            "Gradle_Check_Stage_ReleaseAccept_Trigger" to "createBuildReceipt",
-            "Gradle_Check_Stage_HistoricalPerformance_Trigger" to "createBuildReceipt",
-            "Gradle_Check_Stage_Experimental_Trigger" to "createBuildReceipt",
-            "Gradle_Check_Stage_ExperimentalWindows10quick_Trigger" to "createBuildReceipt",
-            "Gradle_Check_Stage_ExperimentalWindows10platform_Trigger" to "createBuildReceipt"),
-            triggerNameToTasks)
+        val readyForNightlyId = toTriggerId("MasterAccept")
+        assertEquals("createBuildReceipt updateBranchStatus", triggerNameToTasks[readyForNightlyId])
+        val otherTaskNames = triggerNameToTasks.filterKeys { it != readyForNightlyId }.values.toSet()
+        assertEquals(setOf("createBuildReceipt"), otherTaskNames)
     }
+
+    private fun toTriggerId(id: String) = "Gradle_Check_Stage_${id}_Trigger"
 
     @Test
     fun allSubprojectsAreListed() {

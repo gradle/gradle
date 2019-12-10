@@ -83,6 +83,11 @@ buildTypes {
         tasks("instantIntegTest")
     }
 
+    // Run the integration tests with vfs retention enabled
+    create("vfsRetentionTest") {
+        tasks("vfsRetentionIntegTest")
+    }
+
     create("performanceTests") {
         tasks("performance:performanceTest")
     }
