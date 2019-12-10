@@ -671,7 +671,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         property.set(provider)
 
         when:
-        property.finalizeOnRead()
+        property.finalizeValueOnRead()
 
         then:
         0 * _
@@ -1009,7 +1009,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         given:
         def property = propertyWithNoValue()
         property.set(someOtherValue())
-        property.finalizeOnRead()
+        property.finalizeValueOnRead()
 
         when:
         property.set(someValue())
@@ -1023,7 +1023,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         given:
         def property = propertyWithNoValue()
         property.set(someValue())
-        property.finalizeOnRead()
+        property.finalizeValueOnRead()
         property.get()
 
         when:
@@ -1111,7 +1111,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         given:
         def property = propertyWithNoValue()
         property.set(someValue())
-        property.finalizeOnRead()
+        property.finalizeValueOnRead()
         property.disallowChanges()
 
         when:
@@ -1199,7 +1199,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         given:
         def property = propertyWithNoValue()
         property.set(someValue())
-        property.finalizeOnRead()
+        property.finalizeValueOnRead()
         property.get()
 
         when:
@@ -1316,7 +1316,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         given:
         def property = propertyWithNoValue()
         property.set(someValue())
-        property.finalizeOnRead()
+        property.finalizeValueOnRead()
         property.get()
 
         when:
@@ -1418,7 +1418,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         given:
         def property = propertyWithDefaultValue()
         property.set(someValue())
-        property.finalizeOnRead()
+        property.finalizeValueOnRead()
         property.get()
 
         when:
@@ -1506,7 +1506,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         given:
         def property = propertyWithNoValue()
         property.set(someValue())
-        property.finalizeOnRead()
+        property.finalizeValueOnRead()
         property.get()
 
         when:

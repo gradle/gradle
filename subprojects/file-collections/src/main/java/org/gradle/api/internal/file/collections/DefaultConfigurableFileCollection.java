@@ -90,7 +90,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     }
 
     @Override
-    public void finalizeOnRead() {
+    public void finalizeValueOnRead() {
         if (state == State.Mutable || state == State.ImplicitFinalizeNextQuery) {
             state = State.FinalizeNextQuery;
         }

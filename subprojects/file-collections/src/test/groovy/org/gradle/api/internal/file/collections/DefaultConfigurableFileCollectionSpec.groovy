@@ -732,7 +732,7 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         collection.from('a')
 
         when:
-        collection.finalizeOnRead()
+        collection.finalizeValueOnRead()
 
         then:
         0 * fileResolver._
@@ -765,7 +765,7 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         collection.from(closure)
 
         when:
-        collection.finalizeOnRead()
+        collection.finalizeValueOnRead()
 
         then:
         0 * closure._
@@ -802,7 +802,7 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         this.collection.from(collection)
 
         when:
-        this.collection.finalizeOnRead()
+        this.collection.finalizeValueOnRead()
 
         then:
         0 * collection._
@@ -834,7 +834,7 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
     def canSpecifyPathsBeforeQueriedAndFinalizeOnRead() {
         given:
         def file = new File('one')
-        collection.finalizeOnRead()
+        collection.finalizeValueOnRead()
 
         when:
         collection.setFrom('a')
@@ -856,7 +856,7 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
     def canAddPathsBeforeQueriedAndFinalizeOnRead() {
         given:
         def file = new File('one')
-        collection.finalizeOnRead()
+        collection.finalizeValueOnRead()
 
         when:
         collection.from('a')
@@ -878,7 +878,7 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
     def canMutateFromSetBeforeQueriedAndFinalizeOnRead() {
         given:
         def file = new File('one')
-        collection.finalizeOnRead()
+        collection.finalizeValueOnRead()
 
         when:
         collection.from.add('a')
@@ -902,7 +902,7 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         collection.from('a')
         _ * fileResolver.resolve('a') >> new File('a')
 
-        collection.finalizeOnRead()
+        collection.finalizeValueOnRead()
         collection.files
 
         when:
@@ -925,7 +925,7 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         collection.from('a')
         _ * fileResolver.resolve('a') >> new File('a')
 
-        collection.finalizeOnRead()
+        collection.finalizeValueOnRead()
         collection.files
 
         when:
@@ -941,7 +941,7 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         collection.from('a')
         _ * fileResolver.resolve('a') >> new File('a')
 
-        collection.finalizeOnRead()
+        collection.finalizeValueOnRead()
         collection.files
 
         when:
