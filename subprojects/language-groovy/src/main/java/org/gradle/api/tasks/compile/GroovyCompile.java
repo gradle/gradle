@@ -289,7 +289,7 @@ public class GroovyCompile extends AbstractCompile {
 
         spec.setSourcesRoots(sourceRoots);
         spec.setSourceFiles(stableSourcesAsFileTree);
-        spec.setDestinationDir(getDestinationDir());
+        spec.setDestinationDir(getDestinationDirectory().getAsFile().getOrNull());
         spec.setWorkingDir(getProject().getProjectDir());
         spec.setTempDir(getTemporaryDir());
         spec.setCompileClasspath(ImmutableList.copyOf(determineGroovyCompileClasspath()));

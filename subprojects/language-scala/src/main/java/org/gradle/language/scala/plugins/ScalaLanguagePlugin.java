@@ -146,7 +146,7 @@ public class ScalaLanguagePlugin implements Plugin<Project> {
                     assembly.builtBy(compile);
 
                     compile.setDescription(description);
-                    compile.setDestinationDir(single(assembly.getClassDirectories()));
+                    compile.getDestinationDirectory().set(single(assembly.getClassDirectories()));
 
                     compile.getScalaCompileOptions().getIncrementalOptions().getAnalysisFile().set(
                         compile.getProject().getLayout().getBuildDirectory().file("tmp/scala/compilerAnalysis/" + compile.getName() + ".analysis")
