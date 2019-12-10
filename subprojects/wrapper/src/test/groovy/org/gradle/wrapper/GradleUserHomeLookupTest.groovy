@@ -22,6 +22,7 @@ import org.gradle.util.Requires
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
+import spock.lang.Issue
 import spock.lang.Specification
 
 class GradleUserHomeLookupTest extends Specification {
@@ -31,6 +32,8 @@ class GradleUserHomeLookupTest extends Specification {
     @Rule
     SetSystemProperties setSystemProperties = new SetSystemProperties()
 
+    @Requires(TestPrecondition.NOT_EC2_AGENT)
+    @Issue('https://github.com/gradle/gradle-private/issues/2876')
     def "returns default Gradle user home if environment variable or system property isn't defined"() {
         expect:
         GradleUserHomeLookup.gradleUserHome() == new File(GradleUserHomeLookup.DEFAULT_GRADLE_USER_HOME)
