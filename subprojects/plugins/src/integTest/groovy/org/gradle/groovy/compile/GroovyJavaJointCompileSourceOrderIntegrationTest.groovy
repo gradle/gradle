@@ -81,8 +81,8 @@ class GroovyJavaJointCompileSourceOrderIntegrationTest extends AbstractIntegrati
 
         where:
         configurationStyle | setup
-        'lazy'             | "tasks.named('compileJava') { classpath += files(sourceSets.main.groovy.outputDirectory) }"
-        'eager'            | "compileJava { classpath += files(sourceSets.main.groovy.outputDirectory) }"
+        'lazy'             | "tasks.named('compileJava') { classpath += files(sourceSets.main.groovy.classesDirectory) }"
+        'eager'            | "compileJava { classpath += files(sourceSets.main.groovy.classesDirectory) }"
     }
 
     private static String buildFileWithSources(String... sourceFiles) {

@@ -65,7 +65,7 @@ class ScalaPluginTest {
         assertThat(task, instanceOf(ScalaCompile.class))
         assertThat(task.description, equalTo('Compiles the main Scala source.'))
         assertThat(task.classpath.files as List, equalTo([
-            mainSourceSet.java.outputDir
+            mainSourceSet.java.destinationDirectory.get().asFile
         ]))
         assertThat(task.source as List, equalTo(mainSourceSet.scala  as List))
         assertThat(task, dependsOn(JavaPlugin.COMPILE_JAVA_TASK_NAME))
@@ -75,10 +75,10 @@ class ScalaPluginTest {
         assertThat(task, instanceOf(ScalaCompile.class))
         assertThat(task.description, equalTo('Compiles the test Scala source.'))
         assertThat(task.classpath.files as List, equalTo([
-            mainSourceSet.java.outputDir,
-            mainSourceSet.scala.outputDir,
+            mainSourceSet.java.destinationDirectory.get().asFile,
+            mainSourceSet.scala.destinationDirectory.get().asFile,
             mainSourceSet.output.resourcesDir,
-            testSourceSet.java.outputDir,
+            testSourceSet.java.destinationDirectory.get().asFile,
         ]))
         assertThat(task.source as List, equalTo(testSourceSet.scala as List))
         assertThat(task, dependsOn(JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME, JavaPlugin.CLASSES_TASK_NAME))
@@ -102,8 +102,8 @@ class ScalaPluginTest {
         def testSourceSet = project.sourceSets.test
         assertThat(task, instanceOf(ScalaCompile.class))
         assertThat(task.classpath.files as List, equalTo([
-            mainSourceSet.java.outputDirectory.get().asFile,
-            mainSourceSet.scala.outputDirectory.get().asFile,
+            mainSourceSet.java.destinationDirectory.get().asFile,
+            mainSourceSet.scala.destinationDirectory.get().asFile,
             mainSourceSet.output.resourcesDir
         ]))
         assertThat(task.source as List, equalTo(testSourceSet.scala as List))

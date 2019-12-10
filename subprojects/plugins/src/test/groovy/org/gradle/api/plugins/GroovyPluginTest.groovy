@@ -119,8 +119,8 @@ class GroovyPluginTest extends AbstractProjectBuilderSpec {
         then:
         task instanceof GroovyCompile
         task.classpath.files as List == [
-            mainSourceSet.java.outputDirectory.get().asFile,
-            mainSourceSet.groovy.outputDirectory.get().asFile,
+            mainSourceSet.java.destinationDirectory.get().asFile,
+            mainSourceSet.groovy.destinationDirectory.get().asFile,
             mainSourceSet.output.resourcesDir
         ]
         not(dependsOn(JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME, JavaPlugin.CLASSES_TASK_NAME)).matches(task)

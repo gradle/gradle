@@ -66,8 +66,8 @@ class ScalaCompileWithJavaLibraryIntegrationTest extends AbstractIntegrationSpec
 
         where:
         configurationStyle | setup
-        'lazy'             | "tasks.named('compileJava') { classpath += files(sourceSets.main.scala.outputDirectory) }"
-        'eager'            | "compileJava { classpath += files(sourceSets.main.scala.outputDirectory) }"
+        'lazy'             | "tasks.named('compileJava') { classpath += files(sourceSets.main.scala.classesDirectory) }"
+        'eager'            | "compileJava { classpath += files(sourceSets.main.scala.classesDirectory) }"
     }
 
 }

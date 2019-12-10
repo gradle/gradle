@@ -18,6 +18,8 @@ package org.gradle.api.internal.file;
 import groovy.lang.Closure;
 import org.gradle.api.Buildable;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Task;
+import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.DirectoryTree;
 import org.gradle.api.file.FileCollection;
@@ -30,10 +32,10 @@ import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
@@ -46,6 +48,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 public class DefaultSourceDirectorySet extends CompositeFileTree implements SourceDirectorySet {
     private final List<Object> source = new ArrayList<Object>();
@@ -56,8 +59,8 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
     private final PatternSet patterns;
     private final PatternSet filter;
     private final FileCollection dirs;
-    private final Property<File> outputDir;          // the user configurable output directory
-    private final DirectoryProperty outputDirectory; // bound to the compile task output
+    private final DirectoryProperty destinationDirectory; // the user configurable output directory
+    private final DirectoryProperty classesDirectory;     // bound to the compile task output
 
     public DefaultSourceDirectorySet(String name, String displayName, Factory<PatternSet> patternSetFactory, FileCollectionFactory fileCollectionFactory, DirectoryFileTreeFactory directoryFileTreeFactory, ObjectFactory objectFactory) {
         this.name = name;
@@ -67,8 +70,8 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
         this.patterns = patternSetFactory.create();
         this.filter = patternSetFactory.create();
         this.dirs = new FileCollectionAdapter(new SourceDirectories());
-        this.outputDir = objectFactory.property(File.class);
-        this.outputDirectory = objectFactory.directoryProperty();
+        this.destinationDirectory = objectFactory.directoryProperty();
+        this.classesDirectory = objectFactory.directoryProperty();
     }
 
     @Override
@@ -167,22 +170,33 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
 
     @Override
     public File getOutputDir() {
-        return outputDir.get();
+        return destinationDirectory.getAsFile().get();
     }
 
     @Override
     public void setOutputDir(Provider<File> provider) {
-        this.outputDir.set(provider);
+        destinationDirectory.set(classesDirectory.fileProvider(provider));
     }
 
     @Override
     public void setOutputDir(File outputDir) {
-        this.outputDir.set(outputDir);
+        destinationDirectory.set(outputDir);
     }
 
     @Override
-    public DirectoryProperty getOutputDirectoryProperty() {
-        return outputDirectory;
+    public DirectoryProperty getDestinationDirectory() {
+        return destinationDirectory;
+    }
+
+    @Override
+    public Provider<Directory> getClassesDirectory() {
+        return classesDirectory;
+    }
+
+    @Override
+    public <T extends Task> void compiledBy(TaskProvider<T> taskProvider, Function<T, DirectoryProperty> mapping) {
+        taskProvider.configure(task -> mapping.apply(task).set(destinationDirectory));
+        classesDirectory.set(taskProvider.flatMap(mapping::apply));
     }
 
     @Override
