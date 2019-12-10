@@ -26,6 +26,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.Resources;
 import org.junit.Rule;
 import org.junit.Test;
+import spock.lang.Issue;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -176,5 +177,20 @@ public class TarFileTreeTest {
         TestFile.Snapshot snapshot = content.snapshot();
         assertVisits(tree, toList("file1.txt"), new ArrayList<String>());
         content.assertHasNotChangedSince(snapshot);
+    }
+
+    /*
+    To create the archive, the following command was used: tar cf pax.tar --pax-option gname=user pax/
+    where pax/ contained empty files at pax/subdir/file1.txt and pax/subdir2/file2.txt
+     */
+    @Issue("https://github.com/gradle/gradle/issues/11630")
+    @Test
+    public void readsTarFileContainingPaxHeaders() {
+        TestFile tarFile = resources.findResource("pax.tar");
+
+        MaybeCompressedFileResource resource = new MaybeCompressedFileResource(new LocalResourceAdapter(TestFiles.fileRepository().localResource(tarFile)));
+        TarFileTree tree = new TarFileTree(tarFile, resource, expandDir, fileSystem(), directoryFileTreeFactory(), streamHasher(), fileHasher());
+
+        assertVisits(tree, toList("pax/subdir/file1.txt", "pax/subdir2/file2.txt"), toList("pax", "pax/subdir2", "pax/subdir"));
     }
 }
