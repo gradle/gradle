@@ -62,6 +62,8 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
     private final DirectoryProperty destinationDirectory; // the user configurable output directory
     private final DirectoryProperty classesDirectory;     // bound to the compile task output
 
+    private TaskProvider<?> compileTaskProvider;
+
     public DefaultSourceDirectorySet(String name, String displayName, Factory<PatternSet> patternSetFactory, FileCollectionFactory fileCollectionFactory, DirectoryFileTreeFactory directoryFileTreeFactory, ObjectFactory objectFactory) {
         this.name = name;
         this.displayName = displayName;
@@ -195,7 +197,12 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
 
     @Override
     public <T extends Task> void compiledBy(TaskProvider<T> taskProvider, Function<T, DirectoryProperty> mapping) {
-        taskProvider.configure(task -> mapping.apply(task).set(destinationDirectory));
+        this.compileTaskProvider = taskProvider;
+        taskProvider.configure(task -> {
+            if (taskProvider == this.compileTaskProvider) {
+                mapping.apply(task).set(destinationDirectory);
+            }
+        });
         classesDirectory.set(taskProvider.flatMap(mapping::apply));
     }
 
