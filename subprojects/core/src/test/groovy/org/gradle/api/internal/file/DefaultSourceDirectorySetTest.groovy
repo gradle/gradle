@@ -15,21 +15,27 @@
  */
 package org.gradle.api.internal.file
 
+import org.gradle.api.Action
 import org.gradle.api.Buildable
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Task
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
+import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.tasks.TaskProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
+
+import java.util.function.Function
 
 import static org.apache.commons.io.FileUtils.touch
 import static org.gradle.api.tasks.AntBuilderAwareUtil.assertSetContainsForAllTypes
@@ -383,6 +389,31 @@ class DefaultSourceDirectorySetTest extends Specification {
 
         then:
         assertSetContainsForAllTypes(filteredSet, 'subdir/file1.txt', 'subdir2/file1.txt')
+    }
+
+    void "compileBy can be called multiple times and only applies the last mapping"() {
+        given:
+        TaskProvider taskProvider1 = Mock()
+        TaskProvider taskProvider2 = Mock()
+        Function mapping1 = Mock()
+        Function mapping2 = Mock()
+        Action taskAction1
+        Action taskAction2
+        taskProvider1.configure(_) >> { Action action -> taskAction1 = action }
+        taskProvider2.configure(_) >> { Action action -> taskAction2 = action }
+        taskProvider1.flatMap(_) >> Mock(ProviderInternal)
+        taskProvider2.flatMap(_) >> Mock(ProviderInternal)
+
+        when:
+        set.compiledBy(taskProvider1, mapping1)
+        set.compiledBy(taskProvider2, mapping2)
+
+        taskAction1.execute(null)
+        taskAction2.execute(null)
+
+        then:
+        0 * mapping1.apply(_)
+        1 * mapping2.apply(_) >> Mock(DirectoryProperty)
     }
 
     Set<Task> dependencies(Buildable buildable) {
