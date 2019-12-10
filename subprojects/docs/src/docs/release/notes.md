@@ -21,7 +21,8 @@ Include only their name, impactful features should be called out separately belo
 [Michael Ernst](https://github.com/mernst),
 [Nelson Osacky](https://github.com/runningcode),
 [Dmitriy Konopelkin](https://github.com/DeKaN),
-and [Steven Crockett](https://github.com/stevencrockett).
+[Steven Crockett](https://github.com/stevencrockett),
+and [Predrag Knezevic](https://github.com/pedjak).
 
 ## Upgrade Instructions
 
