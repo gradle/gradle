@@ -159,7 +159,7 @@ public class JvmPluginsHelper {
 
     public static void configureOutputDirectoryForSourceSet(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, final Project target, TaskProvider<? extends AbstractCompile> compileTask, Provider<CompileOptions> options) {
         final String sourceSetChildPath = "classes/" + sourceDirectorySet.getName() + "/" + sourceSet.getName();
-        sourceDirectorySet.getDestinationDirectory().set(target.getLayout().getBuildDirectory().dir(sourceSetChildPath));
+        sourceDirectorySet.getDestinationDirectory().convention(target.getLayout().getBuildDirectory().dir(sourceSetChildPath));
 
         DefaultSourceSetOutput sourceSetOutput = Cast.cast(DefaultSourceSetOutput.class, sourceSet.getOutput());
         sourceSetOutput.addClassesDir(new Callable<File>() {
