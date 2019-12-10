@@ -85,6 +85,36 @@ class GroovyJavaJointCompileSourceOrderIntegrationTest extends AbstractIntegrati
         'eager'            | "compileJava { classpath += files(sourceSets.main.groovy.classesDirectory) }"
     }
 
+    def "groovy and java source directory compilation order can be reversed for a custom source set"() {
+        given:
+        file("src/main/groovy/Groovy.groovy") << "class Groovy { }"
+        file("src/main/java/Java.java") << "public class Java { Groovy groovy = new Groovy(); }"
+        buildFile << """
+            plugins {
+                id 'groovy'
+            }
+            sourceSets {
+                mySources
+            }
+
+            tasks.named('compileMySourcesJava') {
+                classpath += files(sourceSets.mySources.groovy.classesDirectory)
+            }
+            tasks.named('compileMySourcesGroovy') {
+                classpath = sourceSets.mySources.compileClasspath
+            }
+            dependencies {
+                mySourcesImplementation localGroovy()
+            }
+        """
+
+        when:
+        succeeds 'compileMySourcesJava'
+
+        then:
+        result.assertTasksExecutedInOrder(':compileMySourcesGroovy', ':compileMySourcesJava')
+    }
+
     private static String buildFileWithSources(String... sourceFiles) {
         """
             configurations {
