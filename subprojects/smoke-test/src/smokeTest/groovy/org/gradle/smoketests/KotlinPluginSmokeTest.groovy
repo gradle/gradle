@@ -143,7 +143,7 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
                 classpath = sourceSets.main.compileClasspath
             }
             tasks.named('compileKotlin') {
-                classpath += files(sourceSets.main.groovy.outputDirectory)
+                classpath += files(sourceSets.main.groovy.classesDirectory)
             }
 
             dependencies {
