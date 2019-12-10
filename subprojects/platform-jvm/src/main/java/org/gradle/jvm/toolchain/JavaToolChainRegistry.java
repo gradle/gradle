@@ -24,6 +24,7 @@ import org.gradle.platform.base.ToolChainRegistry;
  * A container for {@link JavaToolChain}s.
  */
 @Incubating
+@Deprecated
 @HasInternalProtocol
 public interface JavaToolChainRegistry extends ToolChainRegistry<JavaPlatform, JavaToolChain> {
 }

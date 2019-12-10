@@ -24,6 +24,7 @@ import org.gradle.testing.base.TestSuiteSpec;
  *
  * @since 2.11
  */
+@Deprecated
 public interface JvmTestSuiteSpec extends TestSuiteSpec, JvmComponentSpec {
     /**
      * The set of dependencies applicable to the entire test suite.
