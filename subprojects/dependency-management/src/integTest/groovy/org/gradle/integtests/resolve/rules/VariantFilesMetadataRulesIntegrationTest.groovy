@@ -40,8 +40,6 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
                 MissingJdk8VariantRule(String base) {
                     this.base = base
                 }
-                @javax.inject.Inject
-                ObjectFactory getObjects() { }
                 void execute(ComponentMetadataContext context) {
                     context.details.addVariant('jdk8Runtime', base) {
                         attributes { attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 8) }
@@ -53,8 +51,6 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
                 }
             }
             class MissingJdk8VariantRuleWithoutBase implements ComponentMetadataRule {
-                @javax.inject.Inject
-                ObjectFactory getObjects() { }
                 void execute(ComponentMetadataContext context) {
                     context.details.addVariant('jdk8Runtime') {
                         attributes { attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 8) }
@@ -75,8 +71,6 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
                     this.type = type
                     this.url = url
                 }
-                @javax.inject.Inject
-                ObjectFactory getObjects() { }
                 void execute(ComponentMetadataContext context) {
                     context.details.withVariant('runtime') {
                         withFiles {
@@ -88,6 +82,35 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
                         }
                     }
                 }
+            }
+
+            class DirectMetadataAccessVariantRule implements ComponentMetadataRule {
+                @javax.inject.Inject
+                ObjectFactory getObjects() { }
+
+                void execute(ComponentMetadataContext context) {
+                    def id = context.details.id
+                    context.details.maybeAddVariant("apiElementsWithMetadata", "api") {
+                        attributes {
+                            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
+                            attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType, "all-files"))
+                        }
+                        withFiles {
+                            addFile("\${id.name}-\${id.version}.pom")
+                            addFile("\${id.name}-\${id.version}.module")
+                        }
+                    }
+                    context.details.maybeAddVariant("compileWithMetadata", "compile") {
+                        attributes {
+                            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
+                            attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType, "all-files"))
+                        }
+                        withFiles {
+                            addFile("\${id.name}-\${id.version}.pom")
+                        }
+                    }
+                }
+
             }
         """
     }
@@ -110,7 +133,7 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
             dependencies {
                 conf 'org.test:moduleA:1.0'
                 components {
-                    withModule('org.test:moduleA', MissingJdk8VariantRule) { params('runtime') } 
+                    withModule('org.test:moduleA', MissingJdk8VariantRule) { params('runtime') }
                 }
             }
         """
@@ -198,7 +221,7 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
             dependencies {
                 conf 'org.test:moduleA:1.0'
                 components {
-                    withModule('org.test:moduleA', MissingJdk8VariantRule) { params('this-does-not-exist') } 
+                    withModule('org.test:moduleA', MissingJdk8VariantRule) { params('this-does-not-exist') }
                 }
             }
         """
@@ -212,6 +235,63 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
         def baseType = useMaven() || gradleMetadataPublished ? 'Variant' : 'Configuration'
         fails 'checkDep'
         failure.assertHasCause "$baseType 'this-does-not-exist' not defined in module org.test:moduleA:1.0"
+    }
+
+    @RequiredFeatures(
+        @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
+    )
+    def "can add variants containing metadata as artifacts using lenient rules"() {
+        given:
+        repository {
+            'org.test:moduleA:1.0' {
+                dependsOn 'org.test:moduleB:1.0'
+            }
+            'org.test:moduleB:1.0'()
+        }
+
+        when:
+        buildFile << """
+            configurations.conf {
+                attributes { attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType, "all-files")) }
+            }
+            dependencies {
+                conf 'org.test:moduleA:1.0'
+                components {
+                    all(DirectMetadataAccessVariantRule)
+                }
+            }
+        """
+        repositoryInteractions {
+            'org.test:moduleA:1.0' {
+                expectResolve()
+            }
+            'org.test:moduleB:1.0' {
+                expectResolve()
+            }
+        }
+
+        then:
+        succeeds 'checkDep'
+        def allFilesVariant = gradleMetadataPublished ? 'apiElementsWithMetadata' : 'compileWithMetadata'
+        def hasModuleFile = gradleMetadataPublished
+        resolve.expectGraph {
+            root(':', ':test:') {
+                module('org.test:moduleA:1.0') {
+                    variant(allFilesVariant, ['org.gradle.status': 'release', 'org.gradle.usage': 'java-api', 'org.gradle.libraryelements': 'jar',
+                                            'org.gradle.category': 'documentation', 'org.gradle.docstype': 'all-files'])
+                    artifact(group: 'org.test', name: 'moduleA', version: '1.0', type: 'jar')
+                    artifact(group: 'org.test', name: 'moduleA', version: '1.0', type: 'pom')
+                    if (hasModuleFile) { artifact(group: 'org.test', name: 'moduleA', version: '1.0', type: 'module') }
+                    module('org.test:moduleB:1.0') {
+                        variant(allFilesVariant, ['org.gradle.status': 'release', 'org.gradle.usage': 'java-api', 'org.gradle.libraryelements': 'jar',
+                                                'org.gradle.category': 'documentation', 'org.gradle.docstype': 'all-files'])
+                        artifact(group: 'org.test', name: 'moduleB', version: '1.0', type: 'jar')
+                        artifact(group: 'org.test', name: 'moduleB', version: '1.0', type: 'pom')
+                        if (hasModuleFile) { artifact(group: 'org.test', name: 'moduleB', version: '1.0', type: 'module') }
+                    }
+                }
+            }
+        }
     }
 
     def "file can be added to existing variant"() {
@@ -377,7 +457,7 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
 
                 void execute(ComponentMetadataContext context) {
                     context.details.addVariant('runtimeElements', 'default') { // the way it is published, the ivy 'default' configuration is the runtime variant
-                        attributes { 
+                        attributes {
                             attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.JAR))
                             attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.LIBRARY))
                             attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
@@ -385,7 +465,7 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
                         }
                     }
                     context.details.addVariant('apiElements', 'compile') {
-                        attributes { 
+                        attributes {
                             attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.JAR))
                             attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.LIBRARY))
                             attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))

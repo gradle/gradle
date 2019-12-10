@@ -233,7 +233,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return factory.create(project.getBuildScriptSource(), project.getClassLoaderScope(), new ScriptScopedContext(project));
     }
 
-    private class ScriptScopedContext implements DomainObjectContext {
+    private static class ScriptScopedContext implements DomainObjectContext {
         private final DomainObjectContext delegate;
 
         public ScriptScopedContext(DomainObjectContext delegate) {

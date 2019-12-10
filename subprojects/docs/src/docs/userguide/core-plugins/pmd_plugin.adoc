@@ -15,7 +15,7 @@
 [[pmd_plugin]]
 = The PMD Plugin
 
-The PMD plugin performs quality checks on your project's Java source files using http://pmd.sourceforge.net[PMD] and generates reports from these checks.
+The PMD plugin performs quality checks on your project's Java source files using https://pmd.github.io/[PMD] and generates reports from these checks.
 
 [[sec:pmd_usage]]
 == Usage

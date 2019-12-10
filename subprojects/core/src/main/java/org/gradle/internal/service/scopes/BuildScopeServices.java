@@ -472,7 +472,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new PluginInspector(modelRuleSourceDetector);
     }
 
-    private class DependencyMetaDataProviderImpl implements DependencyMetaDataProvider {
+    private static class DependencyMetaDataProviderImpl implements DependencyMetaDataProvider {
         @Override
         public Module getModule() {
             return new DefaultModule("unspecified", "unspecified", Project.DEFAULT_VERSION, Project.DEFAULT_STATUS);

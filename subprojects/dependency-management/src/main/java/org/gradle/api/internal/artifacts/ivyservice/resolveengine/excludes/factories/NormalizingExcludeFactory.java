@@ -52,10 +52,12 @@ import static java.util.stream.Collectors.toSet;
  */
 public class NormalizingExcludeFactory extends DelegatingExcludeFactory {
     private final Intersections intersections;
+    private final Unions unions;
 
     public NormalizingExcludeFactory(ExcludeFactory delegate) {
         super(delegate);
         this.intersections = new Intersections(this);
+        this.unions = new Unions(this);
     }
 
     @Override
@@ -198,7 +200,37 @@ public class NormalizingExcludeFactory extends DelegatingExcludeFactory {
         builder.addAll(groupSetExcludes);
         builder.addAll(moduleSetExcludes);
         builder.addAll(other);
-        return Optimizations.optimizeCollection(this, builder.build(), delegate::anyOf);
+        Set<ExcludeSpec> elements = builder.build();
+        if (elements.size() > 1) {
+            // try simplify
+            ExcludeSpec[] asArray = elements.toArray(new ExcludeSpec[elements.size()]);
+            boolean simplified = false;
+            for (int i = 0; i < asArray.length; i++) {
+                ExcludeSpec left = asArray[i];
+                if (left != null) {
+                    for (int j = 0; j < asArray.length; j++) {
+                        ExcludeSpec right = asArray[j];
+                        if (right != null && i != j) {
+                            ExcludeSpec merged = unions.tryUnion(left, right);
+                            if (merged != null) {
+                                if (merged instanceof ExcludeEverything) {
+                                    return merged;
+                                }
+                                left = merged;
+                                asArray[i] = merged;
+                                asArray[j] = null;
+                                simplified = true;
+                            }
+                        }
+                    }
+                }
+            }
+            if (simplified) {
+                Set<ExcludeSpec> tmp = Arrays.stream(asArray).filter(Objects::nonNull).collect(toSet());
+                elements = tmp;
+            }
+        }
+        return Optimizations.optimizeCollection(this, elements, delegate::anyOf);
     }
 
     /**

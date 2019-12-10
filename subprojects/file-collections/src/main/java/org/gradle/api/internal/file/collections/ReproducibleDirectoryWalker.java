@@ -62,7 +62,7 @@ public class ReproducibleDirectoryWalker implements DirectoryWalker {
             File child = children[i];
             boolean isFile = child.isFile();
             RelativePath childPath = path.append(isFile, child.getName());
-            FileVisitDetails details = new DefaultFileVisitDetails(child, childPath, stopFlag, fileSystem, fileSystem, !isFile);
+            FileVisitDetails details = new DefaultFileVisitDetails(child, childPath, stopFlag, fileSystem, fileSystem);
             if (DirectoryFileTree.isAllowed(details, spec)) {
                 if (isFile) {
                     visitor.visitFile(details);

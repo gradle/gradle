@@ -111,16 +111,15 @@ class DependencyVerificationFixture {
             this.metadata = md
         }
 
-        void artifact(String name, String type="jar", String ext="jar", String classy = null, @DelegatesTo(value = ArtifactVerification, strategy = Closure.DELEGATE_FIRST) Closure action) {
+        void artifact(String name, @DelegatesTo(value = ArtifactVerification, strategy = Closure.DELEGATE_FIRST) Closure action) {
             def artifacts = metadata.artifactVerifications.findAll {
-                def ivy = it.artifact.name
-                ivy.name == name && ivy.type == type && ivy.extension == ext && ivy.classifier == classy
+                name == it.artifact.fileName
             }
             if (artifacts.size() > 1) {
                 throw new AssertionError("Expected only one artifact named ${name} for module ${metadata.componentId} but found ${artifacts}")
             }
             ArtifactVerificationMetadata md = artifacts ? artifacts[0] : null
-            assert md: "Artifact file $name not found in verification file for module ${metadata.componentId}. Artifact names: ${metadata.artifactVerifications.collect { it.artifact.name.name } }"
+            assert md: "Artifact file $name not found in verification file for module ${metadata.componentId}. Artifact names: ${metadata.artifactVerifications.collect { it.artifact.fileName } }"
             action.delegate = new ArtifactVerification(md)
             action.resolveStrategy = Closure.DELEGATE_FIRST
             action()
@@ -136,7 +135,7 @@ class DependencyVerificationFixture {
 
         void declaresChecksum(String checksum, String algorithm = "sha1") {
             def expectedChecksum = metadata.checksums.get(ChecksumKind.valueOf(algorithm))
-            assert expectedChecksum == checksum
+            assert expectedChecksum == checksum : "On ${metadata.artifact}, expected a ${algorithm} checksum of ${checksum} but was ${expectedChecksum}"
         }
 
         void declaresChecksums(Map<String, String> checksums, boolean strict = true) {
@@ -154,7 +153,7 @@ class DependencyVerificationFixture {
     static class Builder {
         private final DependencyVerifierBuilder builder = new DependencyVerifierBuilder()
 
-        void addChecksum(String id, String algo, String checksum) {
+        void addChecksum(String id, String algo, String checksum, String type="jar", String ext="jar") {
             def parts = id.split(":")
             def group = parts[0]
             def name = parts[1]
@@ -166,8 +165,8 @@ class DependencyVerificationFixture {
                         version
                     ),
                     name,
-                    "jar",
-                    "jar"
+                    type,
+                    ext
                 ),
                 ChecksumKind.valueOf(algo),
                 checksum

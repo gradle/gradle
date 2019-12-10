@@ -58,6 +58,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
+import org.gradle.internal.hash.ChecksumService;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.DependencyVerificationOverride;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.LocalComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalConfigurationMetadataBuilder;
@@ -447,7 +448,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                           ObjectFactory objectFactory,
                                                           CollectionCallbackActionDecorator callbackDecorator,
                                                           NamedObjectInstantiator instantiator,
-                                                          DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory) {
+                                                          DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory,
+                                                          ChecksumService checksumService) {
             return new DefaultBaseRepositoryFactory(
                 localMavenRepositoryLocator,
                 fileResolver,
@@ -468,7 +470,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 isolatableFactory,
                 objectFactory,
                 callbackDecorator,
-                urlArtifactRepositoryFactory
+                urlArtifactRepositoryFactory,
+                checksumService
             );
         }
 

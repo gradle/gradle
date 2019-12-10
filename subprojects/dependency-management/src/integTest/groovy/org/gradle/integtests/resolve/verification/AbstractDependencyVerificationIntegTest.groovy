@@ -37,6 +37,7 @@ class AbstractDependencyVerificationIntegTest extends AbstractHttpDependencyReso
         settingsFile << """
             rootProject.name = "dependency-verification"
         """
+        println("Test running in ${testDirectory}")
     }
 
     protected GradleExecuter writeVerificationMetadata(String checksums = "sha1,sha512") {
@@ -48,7 +49,7 @@ class AbstractDependencyVerificationIntegTest extends AbstractHttpDependencyReso
             plugins {
                 id 'java-library'
             }
-            
+
             repositories {
                 maven {
                     url "${mavenHttpRepo.uri}"

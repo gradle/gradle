@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.ComponentMetadataContext;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleDescriptorHashModuleSource;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
@@ -36,7 +37,10 @@ public class ComponentMetadataRuleExecutor extends CrossBuildCachingRuleExecutor
         return new Transformer<Object, ModuleComponentResolveMetadata>() {
             @Override
             public Serializable transform(ModuleComponentResolveMetadata moduleMetadata) {
-                return moduleMetadata.getOriginalContentHash().asHexString();
+                return moduleMetadata.getSources().withSource(ModuleDescriptorHashModuleSource.class, source -> {
+                    return source.map(metadataFileSource -> metadataFileSource.getDescriptorHash().toString())
+                        .orElseThrow(() -> new RuntimeException("Cannot find original content hash"));
+                });
             }
         };
     }
@@ -81,4 +85,5 @@ public class ComponentMetadataRuleExecutor extends CrossBuildCachingRuleExecutor
             return identifier;
         }
     }
+
 }

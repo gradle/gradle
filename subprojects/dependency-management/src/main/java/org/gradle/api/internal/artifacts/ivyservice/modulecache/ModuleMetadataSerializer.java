@@ -60,8 +60,6 @@ import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
-import org.gradle.internal.component.model.MutableModuleSources;
-import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 
@@ -82,31 +80,35 @@ public class ModuleMetadataSerializer {
     private final MavenMutableModuleMetadataFactory mavenMetadataFactory;
     private final IvyMutableModuleMetadataFactory ivyMetadataFactory;
     private final AttributeContainerSerializer attributeContainerSerializer;
+    private final ModuleSourcesSerializer moduleSourcesSerializer;
 
-    public ModuleMetadataSerializer(AttributeContainerSerializer attributeContainerSerializer, MavenMutableModuleMetadataFactory mavenMetadataFactory, IvyMutableModuleMetadataFactory ivyMetadataFactory) {
+    public ModuleMetadataSerializer(AttributeContainerSerializer attributeContainerSerializer, MavenMutableModuleMetadataFactory mavenMetadataFactory, IvyMutableModuleMetadataFactory ivyMetadataFactory, ModuleSourcesSerializer moduleSourcesSerializer) {
         this.mavenMetadataFactory = mavenMetadataFactory;
         this.ivyMetadataFactory = ivyMetadataFactory;
         this.attributeContainerSerializer = attributeContainerSerializer;
         this.componentSelectorSerializer = new ModuleComponentSelectorSerializer(attributeContainerSerializer);
+        this.moduleSourcesSerializer = moduleSourcesSerializer;
     }
 
     public MutableModuleComponentResolveMetadata read(Decoder decoder, ImmutableModuleIdentifierFactory moduleIdentifierFactory, Map<Integer, MavenDependencyDescriptor> deduplicationDependencyCache) throws IOException {
-        return new Reader(decoder, moduleIdentifierFactory, attributeContainerSerializer, componentSelectorSerializer, mavenMetadataFactory, ivyMetadataFactory).read(deduplicationDependencyCache);
+        return new Reader(decoder, moduleIdentifierFactory, attributeContainerSerializer, componentSelectorSerializer, mavenMetadataFactory, ivyMetadataFactory, moduleSourcesSerializer).read(deduplicationDependencyCache);
     }
 
     public void write(Encoder encoder, ModuleComponentResolveMetadata metadata, Map<ExternalDependencyDescriptor, Integer> deduplicationDependencyCache) throws IOException {
-        new Writer(encoder, attributeContainerSerializer, componentSelectorSerializer).write(metadata, deduplicationDependencyCache);
+        new Writer(encoder, attributeContainerSerializer, componentSelectorSerializer, moduleSourcesSerializer).write(metadata, deduplicationDependencyCache);
     }
 
     private static class Writer {
         private final Encoder encoder;
         private final AttributeContainerSerializer attributeContainerSerializer;
         private final ModuleComponentSelectorSerializer componentSelectorSerializer;
+        private final ModuleSourcesSerializer moduleSourcesSerializer;
 
-        private Writer(Encoder encoder, AttributeContainerSerializer attributeContainerSerializer, ModuleComponentSelectorSerializer componentSelectorSerializer) {
+        private Writer(Encoder encoder, AttributeContainerSerializer attributeContainerSerializer, ModuleComponentSelectorSerializer componentSelectorSerializer, ModuleSourcesSerializer moduleSourcesSerializer) {
             this.encoder = encoder;
             this.attributeContainerSerializer = attributeContainerSerializer;
             this.componentSelectorSerializer = componentSelectorSerializer;
+            this.moduleSourcesSerializer = moduleSourcesSerializer;
         }
 
         public void write(ModuleComponentResolveMetadata metadata, Map<ExternalDependencyDescriptor, Integer> deduplicationDependencyCache) throws IOException {
@@ -213,11 +215,11 @@ public class ModuleMetadataSerializer {
         }
 
         private void writeSharedInfo(ModuleComponentResolveMetadata metadata) throws IOException {
-            encoder.writeBinary(metadata.getOriginalContentHash().asByteArray());
             encoder.writeBoolean(metadata.isMissing());
             encoder.writeBoolean(metadata.isChanging());
             encoder.writeString(metadata.getStatus());
             writeStringList(metadata.getStatusScheme());
+            moduleSourcesSerializer.write(encoder, metadata.getSources());
         }
 
         private void writeId(ModuleComponentIdentifier componentIdentifier) throws IOException {
@@ -395,6 +397,7 @@ public class ModuleMetadataSerializer {
         private final ModuleComponentSelectorSerializer componentSelectorSerializer;
         private final MavenMutableModuleMetadataFactory mavenMetadataFactory;
         private final IvyMutableModuleMetadataFactory ivyMetadataFactory;
+        private final ModuleSourcesSerializer moduleSourcesSerializer;
         private ModuleComponentIdentifier id;
         private ImmutableAttributes attributes;
 
@@ -402,7 +405,8 @@ public class ModuleMetadataSerializer {
                        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                        AttributeContainerSerializer attributeContainerSerializer,
                        ModuleComponentSelectorSerializer componentSelectorSerializer, MavenMutableModuleMetadataFactory mavenMutableModuleMetadataFactory,
-                       IvyMutableModuleMetadataFactory ivyMetadataFactory) {
+                       IvyMutableModuleMetadataFactory ivyMetadataFactory,
+                       ModuleSourcesSerializer moduleSourcesSerializer) {
             this.decoder = decoder;
             this.moduleIdentifierFactory = moduleIdentifierFactory;
             this.excludeRuleConverter = new DefaultExcludeRuleConverter(moduleIdentifierFactory);
@@ -410,6 +414,7 @@ public class ModuleMetadataSerializer {
             this.componentSelectorSerializer = componentSelectorSerializer;
             this.mavenMetadataFactory = mavenMutableModuleMetadataFactory;
             this.ivyMetadataFactory = ivyMetadataFactory;
+            this.moduleSourcesSerializer = moduleSourcesSerializer;
         }
 
         public MutableModuleComponentResolveMetadata read(Map<Integer, MavenDependencyDescriptor> deduplicationDependencyCache) throws IOException {
@@ -425,12 +430,11 @@ public class ModuleMetadataSerializer {
         }
 
         private void readSharedInfo(MutableModuleComponentResolveMetadata metadata) throws IOException {
-            metadata.setContentHash(new HashValue(decoder.readBinary()));
             metadata.setMissing(decoder.readBoolean());
             metadata.setChanging(decoder.readBoolean());
             metadata.setStatus(decoder.readString());
             metadata.setStatusScheme(readStringList());
-            metadata.setSources(new MutableModuleSources());
+            metadata.setSources(moduleSourcesSerializer.read(decoder));
         }
 
         private MutableModuleComponentResolveMetadata readMaven(Map<Integer, MavenDependencyDescriptor> deduplicationDependencyCache) throws IOException {

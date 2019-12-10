@@ -861,7 +861,7 @@ public class TestFile extends File {
         return baseDir.toURI().relativize(toURI());
     }
 
-    public class Snapshot {
+    public static class Snapshot {
         private final long modTime;
         private final HashCode hash;
 

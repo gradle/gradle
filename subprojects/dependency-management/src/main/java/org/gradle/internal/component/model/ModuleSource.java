@@ -16,13 +16,19 @@
 
 package org.gradle.internal.component.model;
 
-import java.io.Serializable;
-
 /**
  * A memento for any resolution state that is relevant to locate the artifacts of a resolved module version.
  *
- * Implementations must retain as little state as possible and must be able to be serialized. Also note that
- * a given instance may be passed to multiple repository instances.
+ * Implementations must retain as little state as possible and must be immutable. There are two different kinds
+ * of module sources:
+ *
+ * <ul>
+ *     <li>sources which can be reconstructed from the caches, for example, the repository source</li>
+ *     <li>sources which can't be reconstructed because the cache format looses information, for example a descriptor converted to binary</li>
+ * </ul>
+ *
+ * The 2d kind, sources which must be stored into the metadata cache, have to implement the {@link PersistentModuleSource}
+ * interface instead.
  */
-public interface ModuleSource extends Serializable {
+public interface ModuleSource {
 }

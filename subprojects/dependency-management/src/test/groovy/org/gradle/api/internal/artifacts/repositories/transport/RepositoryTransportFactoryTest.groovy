@@ -28,6 +28,7 @@ import org.gradle.internal.resource.connector.ResourceConnectorFactory
 import org.gradle.internal.resource.local.FileResourceRepository
 import org.gradle.internal.resource.transport.ResourceConnectorRepositoryTransport
 import org.gradle.internal.verifier.HttpRedirectVerifier
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -45,7 +46,7 @@ class RepositoryTransportFactoryTest extends Specification {
         connectorFactory2.getSupportedAuthentication() >> ([] as Set)
         List<ResourceConnectorFactory> resourceConnectorFactories = Lists.newArrayList(connectorFactory1, connectorFactory2)
         StartParameterResolutionOverride override = new StartParameterResolutionOverride(new StartParameter())
-        repositoryTransportFactory = new RepositoryTransportFactory(resourceConnectorFactories, null, null, null, null, null, null, override, producerGuard, Mock(FileResourceRepository))
+        repositoryTransportFactory = new RepositoryTransportFactory(resourceConnectorFactories, null, null, null, null, null, null, override, producerGuard, Mock(FileResourceRepository), TestUtil.checksumService)
     }
 
     RepositoryTransport createTransport(String scheme, String name, Collection<Authentication> authentications) {

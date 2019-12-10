@@ -68,7 +68,8 @@ class DefaultMavenLocalRepositoryTest extends Specification {
             mavenMetadataFactory,
             (IsolatableFactory) SnapshotTestUtil.valueSnapshotter(),
             objectFactory,
-            urlArtifactRepositoryFactory
+            urlArtifactRepositoryFactory,
+            TestUtil.checksumService
         )
     }
 

@@ -19,6 +19,7 @@ import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
+import org.gradle.internal.component.model.ModuleSources;
 
 import javax.annotation.Nullable;
 
@@ -37,6 +38,8 @@ public interface ModuleMetadataCache {
         long getAgeMillis();
 
         boolean isMissing();
+
+        ModuleSources getModuleSources();
 
         /**
          * The metadata after being processed by component metadata rules.

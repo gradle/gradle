@@ -32,6 +32,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolver
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
+import org.gradle.internal.hash.ChecksumService;
 import org.gradle.api.internal.artifacts.repositories.descriptor.MavenRepositoryDescriptor;
 import org.gradle.api.internal.artifacts.repositories.descriptor.RepositoryDescriptor;
 import org.gradle.api.internal.artifacts.repositories.maven.MavenMetadataLoader;
@@ -99,6 +100,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     private final FileResourceRepository fileResourceRepository;
     private final MavenMutableModuleMetadataFactory metadataFactory;
     private final IsolatableFactory isolatableFactory;
+    private final ChecksumService checksumService;
     private final MavenMetadataSources metadataSources = new MavenMetadataSources();
     private final InstantiatorFactory instantiatorFactory;
 
@@ -114,10 +116,11 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
                                           MavenMutableModuleMetadataFactory metadataFactory,
                                           IsolatableFactory isolatableFactory,
                                           ObjectFactory objectFactory,
-                                          DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory) {
+                                          DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory,
+                                          ChecksumService checksumService) {
         this(new DefaultDescriber(), fileResolver, transportFactory, locallyAvailableResourceFinder, instantiatorFactory,
             artifactFileStore, pomParser, metadataParser, authenticationContainer,
-            resourcesFileStore, fileResourceRepository, metadataFactory, isolatableFactory, objectFactory, urlArtifactRepositoryFactory);
+            resourcesFileStore, fileResourceRepository, metadataFactory, isolatableFactory, objectFactory, urlArtifactRepositoryFactory, checksumService);
     }
 
     public DefaultMavenArtifactRepository(Transformer<String, MavenArtifactRepository> describer,
@@ -133,7 +136,8 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
                                           MavenMutableModuleMetadataFactory metadataFactory,
                                           IsolatableFactory isolatableFactory,
                                           ObjectFactory objectFactory,
-                                          DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory) {
+                                          DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory,
+                                          ChecksumService checksumService) {
         super(instantiatorFactory.decorateLenient(), authenticationContainer, objectFactory);
         this.describer = describer;
         this.fileResolver = fileResolver;
@@ -147,6 +151,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         this.fileResourceRepository = fileResourceRepository;
         this.metadataFactory = metadataFactory;
         this.isolatableFactory = isolatableFactory;
+        this.checksumService = checksumService;
         this.metadataSources.setDefaults();
         this.instantiatorFactory = instantiatorFactory;
     }
@@ -266,7 +271,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         Instantiator injector = createInjectorForMetadataSuppliers(transport, instantiatorFactory, getUrl(), resourcesFileStore);
         InstantiatingAction<ComponentMetadataSupplierDetails> supplier = createComponentMetadataSupplierFactory(injector, isolatableFactory);
         InstantiatingAction<ComponentMetadataListerDetails> lister = createComponentMetadataVersionLister(injector, isolatableFactory);
-        return new MavenResolver(getName(), rootUri, transport, locallyAvailableResourceFinder, artifactFileStore, metadataSources, MavenMetadataArtifactProvider.INSTANCE, mavenMetadataLoader, supplier, lister, injector);
+        return new MavenResolver(getName(), rootUri, transport, locallyAvailableResourceFinder, artifactFileStore, metadataSources, MavenMetadataArtifactProvider.INSTANCE, mavenMetadataLoader, supplier, lister, injector, checksumService);
     }
 
     @Override
@@ -287,7 +292,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         boolean listVersionsForGradleMetadata = !metadataSources.mavenPom;
         MetadataSource<MutableModuleComponentResolveMetadata> gradleModuleMetadataSource =
             new MavenSnapshotDecoratingSource(
-                new DefaultGradleModuleMetadataSource(getMetadataParser(), metadataFactory, listVersionsForGradleMetadata)
+                new DefaultGradleModuleMetadataSource(getMetadataParser(), metadataFactory, listVersionsForGradleMetadata, checksumService)
             );
         if (metadataSources.gradleMetadata) {
             sources.add(gradleModuleMetadataSource);
@@ -307,7 +312,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     }
 
     protected DefaultMavenPomMetadataSource createPomMetadataSource(MavenMetadataLoader mavenMetadataLoader, FileResourceRepository fileResourceRepository) {
-        return new DefaultMavenPomMetadataSource(MavenMetadataArtifactProvider.INSTANCE, getPomParser(), fileResourceRepository, getMetadataValidationServices(), mavenMetadataLoader);
+        return new DefaultMavenPomMetadataSource(MavenMetadataArtifactProvider.INSTANCE, getPomParser(), fileResourceRepository, getMetadataValidationServices(), mavenMetadataLoader, checksumService);
     }
 
     protected DefaultMavenPomMetadataSource.MavenMetadataValidator getMetadataValidationServices() {

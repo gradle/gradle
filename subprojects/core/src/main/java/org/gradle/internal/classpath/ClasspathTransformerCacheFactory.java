@@ -20,8 +20,9 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.resource.local.FileAccessTracker;
+import org.gradle.internal.vfs.AdditiveCache;
 
-public interface ClasspathTransformerCacheFactory extends CachedJarFileStore {
+public interface ClasspathTransformerCacheFactory extends AdditiveCache {
     PersistentCache createCache(CacheRepository cacheRepository, FileAccessTimeJournal fileAccessTimeJournal);
 
     FileAccessTracker createFileAccessTracker(FileAccessTimeJournal fileAccessTimeJournal);

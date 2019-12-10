@@ -19,11 +19,6 @@ package org.gradle.docs.releasenotes
 import org.gradle.docs.SystemPropertyFiles
 
 class ReleaseNotesTestContext {
-
-    File getSourceFile() {
-        SystemPropertyFiles.get("org.gradle.docs.releasenotes.source")
-    }
-
     File getRenderedFile() {
         SystemPropertyFiles.get("org.gradle.docs.releasenotes.rendered")
     }

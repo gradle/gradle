@@ -24,7 +24,6 @@ import org.gradle.api.plugins.quality.CodeNarc
 import org.gradle.api.reporting.Reporting
 import org.gradle.api.tasks.compile.AbstractCompile
 import org.gradle.build.ClasspathManifest
-import org.gradle.build.docs.CacheableAsciidoctorTask
 import org.gradle.gradlebuild.BuildEnvironment.isCiServer
 import org.gradle.gradlebuild.BuildEnvironment.isJenkins
 import org.gradle.gradlebuild.BuildEnvironment.isTravis
@@ -102,7 +101,7 @@ open class BuildScanPlugin : Plugin<Project> {
     fun Task.isMonitoredCompileTask() = this is AbstractCompile || this is ClasspathManifest
 
     private
-    fun Task.isMonitoredAsciidoctorTask() = this is CacheableAsciidoctorTask
+    fun Task.isMonitoredAsciidoctorTask() = false // No asciidoctor tasks are cacheable for now
 
     private
     fun Task.isExpectedAsciidoctorCacheMiss() =

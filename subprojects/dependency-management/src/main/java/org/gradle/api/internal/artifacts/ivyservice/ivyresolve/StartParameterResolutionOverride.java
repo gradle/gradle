@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 import org.gradle.StartParameter;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
+import org.gradle.internal.hash.ChecksumService;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.ChecksumVerificationOverride;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.DependencyVerificationOverride;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.WriteDependencyVerificationFile;
@@ -73,17 +74,17 @@ public class StartParameterResolutionOverride {
         return original;
     }
 
-    public DependencyVerificationOverride dependencyVerificationOverride(BuildOperationExecutor buildOperationExecutor) {
+    public DependencyVerificationOverride dependencyVerificationOverride(BuildOperationExecutor buildOperationExecutor, ChecksumService checksumService) {
         File currentDir = startParameter.getCurrentDir();
         List<String> checksums = startParameter.getWriteDependencyVerifications();
         if (!checksums.isEmpty()) {
             SingleMessageLogger.incubatingFeatureUsed("Dependency verification");
-            return new WriteDependencyVerificationFile(currentDir, buildOperationExecutor, checksums);
+            return new WriteDependencyVerificationFile(currentDir, buildOperationExecutor, checksums, checksumService);
         } else {
             File verificationsFile = DependencyVerificationOverride.dependencyVerificationsFile(currentDir);
             if (verificationsFile.exists()) {
                 SingleMessageLogger.incubatingFeatureUsed("Dependency verification");
-                return new ChecksumVerificationOverride(buildOperationExecutor, verificationsFile);
+                return new ChecksumVerificationOverride(buildOperationExecutor, verificationsFile, checksumService);
             }
         }
         return DependencyVerificationOverride.NO_VERIFICATION;

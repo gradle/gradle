@@ -145,7 +145,7 @@ class VariantFilesMetadataRulesTest extends Specification {
     @Unroll
     def "new variant can be added to #metadataType metadata"() {
         when:
-        metadata.getVariantMetadataRules().addVariant("new-variant", "runtime")
+        metadata.getVariantMetadataRules().addVariant("new-variant", "runtime", false)
         def immutableMetadata = metadata.asImmutable()
         def variants = immutableMetadata.variantsForGraphTraversal.get()
         def baseVariant = variants.find { it.name == 'runtime' }
@@ -198,7 +198,7 @@ class VariantFilesMetadataRulesTest extends Specification {
         def rule = Mock(Action)
 
         when:
-        metadata.variantMetadataRules.addVariant('new-variant', 'runtime')
+        metadata.variantMetadataRules.addVariant('new-variant', 'runtime', false)
         metadata.variantMetadataRules.addVariantFilesAction(new VariantMetadataRules.VariantAction<MutableVariantFilesMetadata>({ true }, rule))
         def newVariant =  metadata.asImmutable().variantsForGraphTraversal.get().find { it.name == 'new-variant' }
 
@@ -228,7 +228,7 @@ class VariantFilesMetadataRulesTest extends Specification {
     @Unroll
     def "throws error for non-existing base in #metadataType metadata"() {
         when:
-        metadata.getVariantMetadataRules().addVariant("new-variant", "not-exist")
+        metadata.getVariantMetadataRules().addVariant("new-variant", "not-exist", false)
         def immutableMetadata = metadata.asImmutable()
         immutableMetadata.variantsForGraphTraversal.get()
 
@@ -241,6 +241,30 @@ class VariantFilesMetadataRulesTest extends Specification {
         "maven"      | mavenComponentMetadata('dep')  | 'Variant'
         "ivy"        | ivyComponentMetadata('dep')    | 'Configuration'
         "gradle"     | gradleComponentMetadata('dep') | 'Variant'
+    }
+
+    @Unroll
+    def "does not add a variant for non-existing base in #metadataType metadata if lenient"() {
+        given:
+        def rule = Mock(Action)
+
+        when:
+        metadata.getVariantMetadataRules().addVariant("new-variant", "not-exist", true)
+        metadata.variantMetadataRules.addVariantFilesAction(new VariantMetadataRules.VariantAction<MutableVariantFilesMetadata>({ true }, rule))
+        def immutableMetadata = metadata.asImmutable()
+        def variants = immutableMetadata.variantsForGraphTraversal.get()
+
+        then:
+        0 * rule.execute(_)
+        variants.size() == initialVariantCount
+        !variants.any { it.name == 'new-variant' }
+        !variants.any { it.name == 'not-exist' }
+
+        where:
+        metadataType | metadata                       | initialVariantCount
+        "maven"      | mavenComponentMetadata('dep')  | 6 // default derivation strategy for maven
+        "ivy"        | ivyComponentMetadata('dep')    | 0 // there is no derivation strategy for ivy
+        "gradle"     | gradleComponentMetadata('dep') | 1 // 'runtime' added in test setup
     }
 
     @Unroll

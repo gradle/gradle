@@ -116,4 +116,13 @@ public class ImmutableModuleSources implements ModuleSources {
     public int hashCode() {
         return hashCode;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("{Sources = [");
+        withSources(src -> sb.append(src).append(","));
+        sb.append("]}");
+        return sb.toString();
+    }
 }

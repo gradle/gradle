@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[upgrading_version_5]]
+[[upgrading_version_6]]
 = Upgrading your build from Gradle 6.x to the latest
 
 This chapter provides the information you need to migrate your Gradle 6.x builds to the latest Gradle release. For migrating from Gradle 4.x or 5.x, see the <<upgrading_version_5.adoc#upgrading_version_5, older migration guide>> first.
@@ -76,9 +76,17 @@ taskA.threadPoolSize = taskB.outputFile.map { it.text.toInteger() }
 In this case, calling `get()`, or any other query method, on `taskA.threadPoolSize` will produce a deprecation warning if done prior to `taskB` completing, as the file has not yet been generated.
 This will become an error in Gradle 7.0
 
+==== Deprecated methods
+
+- `AbstractExecTask#getExecResult()` has been replaced by `AbstractExecTask#getExecutionResult()` for consistency with `JavaExec#getExecutionResult()`. The return type is a <<lazy_configuration.adoc#,lazy value provider>>.
+
 === Potential breaking changes
 
 ==== Updates to bundled Gradle dependencies
 
 - Kotlin has been updated to https://blog.jetbrains.com/kotlin/2019/11/kotlin-1-3-60-released/[Kotlin 1.3.61].
 
+==== Updates to default tool integration versions
+
+- Checkstyle has been updated to https://checkstyle.org/releasenotes.html#Release_8.27[Checkstyle 8.27].
+- PMD has been updated to https://pmd.github.io/pmd-6.20.0/pmd_release_notes.html#29-november-2019---6200[PMD 6.20.0].

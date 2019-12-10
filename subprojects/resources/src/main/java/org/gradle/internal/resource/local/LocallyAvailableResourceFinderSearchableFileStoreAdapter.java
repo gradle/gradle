@@ -18,6 +18,7 @@ package org.gradle.internal.resource.local;
 
 import org.gradle.api.Transformer;
 import org.gradle.internal.Factory;
+import org.gradle.internal.hash.ChecksumService;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
@@ -31,7 +32,7 @@ import java.util.Set;
  */
 public class LocallyAvailableResourceFinderSearchableFileStoreAdapter<C> extends AbstractLocallyAvailableResourceFinder<C> {
 
-    public LocallyAvailableResourceFinderSearchableFileStoreAdapter(final FileStoreSearcher<C> fileStore) {
+    public LocallyAvailableResourceFinderSearchableFileStoreAdapter(final FileStoreSearcher<C> fileStore, ChecksumService checksumService) {
         super(new Transformer<Factory<List<File>>, C>() {
             @Override
             public Factory<List<File>> transform(final C criterion) {
@@ -48,7 +49,7 @@ public class LocallyAvailableResourceFinderSearchableFileStoreAdapter<C> extends
                     }
                 };
             }
-        });
+        }, checksumService);
     }
 
 }

@@ -55,7 +55,7 @@ public class PlatformJvmServices extends AbstractPluginServiceRegistry {
         registration.addProvider(new BuildScopeServices());
     }
 
-    private class BuildScopeServices {
+    private static class BuildScopeServices {
         LocalLibraryDependencyResolverFactory createResolverProviderFactory(ProjectModelResolver projectModelResolver, ModelSchemaStore schemaStore, List<VariantAxisCompatibilityFactory> factories) {
             return new LocalLibraryDependencyResolverFactory(projectModelResolver, schemaStore, factories);
         }

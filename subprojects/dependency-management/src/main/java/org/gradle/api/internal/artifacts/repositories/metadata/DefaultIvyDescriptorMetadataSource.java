@@ -17,7 +17,7 @@ package org.gradle.api.internal.artifacts.repositories.metadata;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleDescriptorHashModuleSource;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceArtifactResolver;
@@ -26,6 +26,7 @@ import org.gradle.api.internal.artifacts.repositories.resolver.VersionLister;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.external.model.ivy.MutableIvyModuleResolveMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
@@ -36,11 +37,13 @@ import java.util.List;
 public class DefaultIvyDescriptorMetadataSource extends AbstractRepositoryMetadataSource<MutableIvyModuleResolveMetadata> {
 
     private final MetaDataParser<MutableIvyModuleResolveMetadata> metaDataParser;
+    private final ChecksumService checksumService;
 
     @Inject
-    public DefaultIvyDescriptorMetadataSource(MetadataArtifactProvider metadataArtifactProvider, MetaDataParser<MutableIvyModuleResolveMetadata> metaDataParser, FileResourceRepository fileResourceRepository, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
-        super(metadataArtifactProvider, fileResourceRepository);
+    public DefaultIvyDescriptorMetadataSource(MetadataArtifactProvider metadataArtifactProvider, MetaDataParser<MutableIvyModuleResolveMetadata> metaDataParser, FileResourceRepository fileResourceRepository, ChecksumService checksumService) {
+        super(metadataArtifactProvider, fileResourceRepository, checksumService);
         this.metaDataParser = metaDataParser;
+        this.checksumService = checksumService;
     }
 
     @Override
@@ -48,6 +51,10 @@ public class DefaultIvyDescriptorMetadataSource extends AbstractRepositoryMetada
         MetaDataParser.ParseResult<MutableIvyModuleResolveMetadata> parseResult = metaDataParser.parseMetaData(context, cachedResource);
         MutableIvyModuleResolveMetadata metaData = parseResult.getResult();
         if (metaData != null) {
+            metaData.getSources().add(new ModuleDescriptorHashModuleSource(
+                checksumService.md5(cachedResource.getFile()),
+                metaData.isChanging()
+            ));
             checkMetadataConsistency(moduleComponentIdentifier, metaData);
         }
         return parseResult;

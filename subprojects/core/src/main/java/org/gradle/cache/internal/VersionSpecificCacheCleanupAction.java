@@ -20,6 +20,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.SortedSetMultimap;
 import com.google.common.collect.TreeMultimap;
+import org.gradle.api.internal.changedetection.state.CrossBuildFileHashCache;
 import org.gradle.api.specs.Spec;
 import org.gradle.cache.CleanupProgressMonitor;
 import org.gradle.internal.file.Deleter;
@@ -36,9 +37,8 @@ import java.io.IOException;
 import java.util.SortedSet;
 import java.util.concurrent.TimeUnit;
 
-import static org.gradle.api.internal.changedetection.state.CrossBuildFileHashCache.FILE_HASHES_CACHE_KEY;
-
 public class VersionSpecificCacheCleanupAction implements DirectoryCleanupAction {
+    private final static String FILE_HASHES_CACHE_KEY =  CrossBuildFileHashCache.Kind.FILE_HASHES.getCacheId();
 
     @VisibleForTesting static final String MARKER_FILE_PATH = FILE_HASHES_CACHE_KEY + "/" + FILE_HASHES_CACHE_KEY + ".lock";
     private static final Logger LOGGER = LoggerFactory.getLogger(VersionSpecificCacheCleanupAction.class);

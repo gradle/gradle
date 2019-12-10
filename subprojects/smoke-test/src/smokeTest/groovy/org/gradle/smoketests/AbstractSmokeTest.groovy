@@ -105,6 +105,10 @@ abstract class AbstractSmokeTest extends Specification {
 
         // https://plugins.gradle.org/plugin/net.ltgt.errorprone
         static errorProne = "0.8.1"
+
+        // https://plugins.gradle.org/plugin/com.google.protobuf
+        static protobufPlugin = "0.8.10"
+        static protobufTools = "3.11.1"
     }
 
     static class Versions implements Iterable<String> {

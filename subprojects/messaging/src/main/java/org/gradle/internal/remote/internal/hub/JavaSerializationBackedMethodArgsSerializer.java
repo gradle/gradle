@@ -37,7 +37,7 @@ class JavaSerializationBackedMethodArgsSerializer implements MethodArgsSerialize
         return new ArraySerializer();
     }
 
-    private class EmptyArraySerializer implements Serializer<Object[]> {
+    private static class EmptyArraySerializer implements Serializer<Object[]> {
         @Override
         public Object[] read(Decoder decoder) {
             return ZERO_ARGS;

@@ -112,7 +112,13 @@ public class ComponentMetadataDetailsAdapter implements ComponentMetadataDetails
 
     @Override
     public void addVariant(String name, String base, Action<? super VariantMetadata> action) {
-        metadata.getVariantMetadataRules().addVariant(name, base);
+        metadata.getVariantMetadataRules().addVariant(name, base, false);
+        withVariant(name, action);
+    }
+
+    @Override
+    public void maybeAddVariant(String name, String base, Action<? super VariantMetadata> action) {
+        metadata.getVariantMetadataRules().addVariant(name, base, true);
         withVariant(name, action);
     }
 

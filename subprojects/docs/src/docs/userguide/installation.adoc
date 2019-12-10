@@ -80,7 +80,7 @@ Unzip the distribution zip file in the directory of your choosing, e.g.:
 ❯ mkdir /opt/gradle
 ❯ unzip -d /opt/gradle gradle-{gradleVersion}-bin.zip
 ❯ ls /opt/gradle/gradle-{gradleVersion}
-LICENSE  NOTICE  bin  getting-started.html  init.d  lib  media
+LICENSE  NOTICE  bin  README  init.d  lib  media
 ----
 
 ==== Microsoft Windows users

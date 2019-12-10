@@ -20,6 +20,7 @@ import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.api.internal.artifacts.repositories.resolver.ResourcePattern;
+import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.resource.local.AbstractLocallyAvailableResourceFinder;
 import org.gradle.api.internal.file.collections.MinimalFileTree;
 import org.gradle.api.internal.file.collections.SingleIncludePatternFileTree;
@@ -31,8 +32,8 @@ import java.util.List;
 
 public class PatternBasedLocallyAvailableResourceFinder extends AbstractLocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> {
 
-    public PatternBasedLocallyAvailableResourceFinder(File baseDir, ResourcePattern pattern) {
-        super(createProducer(baseDir, pattern));
+    public PatternBasedLocallyAvailableResourceFinder(File baseDir, ResourcePattern pattern, ChecksumService checksumService) {
+        super(createProducer(baseDir, pattern), checksumService);
     }
 
     private static Transformer<Factory<List<File>>, ModuleComponentArtifactMetadata> createProducer(final File baseDir, final ResourcePattern pattern) {

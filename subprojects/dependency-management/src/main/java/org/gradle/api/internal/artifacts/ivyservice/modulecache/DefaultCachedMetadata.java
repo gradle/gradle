@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.DefaultResolvedModuleVersion;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
+import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.util.BuildCommencedTimeProvider;
 
 import javax.annotation.Nullable;
@@ -39,6 +40,11 @@ class DefaultCachedMetadata implements ModuleMetadataCache.CachedMetadata {
     @Override
     public boolean isMissing() {
         return metadata == null;
+    }
+
+    @Override
+    public ModuleSources getModuleSources() {
+        return metadata.getSources();
     }
 
     @Override
