@@ -118,6 +118,11 @@ public abstract class AbstractProperty<T> extends AbstractMinimalProvider<T> imp
     }
 
     @Override
+    public void finalizeOnRead() {
+        finalizeOnNextGet = true;
+    }
+
+    @Override
     public void implicitFinalizeValue() {
         disallowChanges = true;
         finalizeOnNextGet = true;
@@ -176,7 +181,7 @@ public abstract class AbstractProperty<T> extends AbstractMinimalProvider<T> imp
     }
 
     private boolean canMutate() {
-        if (state == State.Final && disallowChanges) {
+        if (state == State.Final) {
             throw new IllegalStateException(String.format("The value for %s is final and cannot be changed any further.", getDisplayName().getDisplayName()));
         } else if (disallowChanges) {
             throw new IllegalStateException(String.format("The value for %s cannot be changed any further.", getDisplayName().getDisplayName()));
