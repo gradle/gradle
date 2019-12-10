@@ -173,6 +173,56 @@ class TransformationLoggingIntegrationTest extends AbstractConsoleGroupedTaskFun
     }
 
     @ToBeFixedForInstantExecution
+    def "progress display name is 'Transforming' for top level transforms"() {
+        // Build scan plugin filters artifact transform logging by the name of the progress display name
+        // since that is the only way it currently can distinguish transforms.
+        // When it has a better way, then this test can be removed.
+
+        consoleType = ConsoleOutput.Rich
+        buildFile << """
+            allprojects {
+                dependencies {
+                    registerTransform(RedMultiplier) {
+                        from.attribute(artifactType, "jar")
+                        to.attribute(artifactType, "red")
+                    }
+                }                            
+                tasks.register("resolveRed") {
+                    def artifacts = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'red') }
+                    }.artifacts
+
+                    inputs.files artifacts.artifactFiles
+                    
+                    doLast {
+                        println "files: " + artifacts.collect { it.file.name }
+                    }
+                }
+            }
+
+            abstract class RedMultiplier extends Multiplier {
+                RedMultiplier() {
+                    super("red")
+                }
+                
+                @Override
+                void transform(TransformOutputs outputs) {
+                    // BlockingHttpServer seems to be too verbose, so blocking here causes
+                    // the progress message to disappear somehow.
+                    // Thread.sleep seems to work just fine.
+                    Thread.sleep(200)
+                    super.transform(outputs)
+                }
+            }
+        """
+
+        when:
+        run ":util:resolveRed"
+        then:
+        output.contains("> Transforming artifact ")
+    }
+
+    @ToBeFixedForInstantExecution
     def "each step is logged separately"() {
         consoleType = ConsoleOutput.Plain
 
