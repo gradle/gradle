@@ -67,7 +67,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
 
         if (version == TestedVersions.shadow.latest()) {
             expectDeprecationWarnings(result,
-                "The compile configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 7.0. Please use the implementation configuration instead."
+                "Property 'transformers.\$0.serviceEntries' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0."
             )
         }
 
@@ -156,7 +156,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
                 javaApplication {
                     baseImage = 'dockerfile/java:openjdk-7-jre'
                     ports = [9090]
-                    tag = 'jettyapp:1.115'
+                    images = ['jettyapp:1.115']
                 }
             }
             """.stripIndent()
@@ -384,9 +384,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
         then:
         file('build/reports/spotbugs').isDirectory()
 
-        expectDeprecationWarnings(result,
-            "Property 'showProgress' @Input properties with primitive type 'boolean' cannot be @Optional. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0."
-        )
+        expectNoDeprecationWarnings(result)
     }
 
     @Issue("https://github.com/gradle/gradle/issues/9897")
@@ -432,9 +430,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
         def result = runner('compileJava').forwardOutput().build()
 
         then:
-        expectDeprecationWarnings(result,
-            "Property 'options.compilerArgumentProviders.errorprone\$0.name' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0."
-        )
+        expectNoDeprecationWarnings(result)
     }
 
     @Issue("https://plugins.gradle.org/plugin/com.google.protobuf")
