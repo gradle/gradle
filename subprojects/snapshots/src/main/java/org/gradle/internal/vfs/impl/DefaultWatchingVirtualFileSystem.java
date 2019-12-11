@@ -108,7 +108,7 @@ public class DefaultWatchingVirtualFileSystem extends AbstractDelegatingVirtualF
         }
 
         AtomicInteger count = new AtomicInteger();
-        AtomicBoolean overflow = new AtomicBoolean();
+        AtomicBoolean unknownEventEncountered = new AtomicBoolean();
         try {
             watchRegistry.stopWatching(new FileWatcherRegistry.ChangeHandler() {
                 @Override
@@ -118,21 +118,20 @@ public class DefaultWatchingVirtualFileSystem extends AbstractDelegatingVirtualF
                 }
 
                 @Override
-                public void handleOverflow() {
-                    overflow.set(true);
+                public void handleLostState() {
+                    unknownEventEncountered.set(true);
+                    LOGGER.warn("Dropped VFS state due to lost state");
                     invalidateAll();
                 }
             });
+            if (!unknownEventEncountered.get()) {
+                LOGGER.warn("Received {} file system events since last build", count);
+            }
         } catch (IOException ex) {
             LOGGER.error("Couldn't fetch file changes, dropping VFS state", ex);
             invalidateAll();
         } finally {
             close();
-        }
-        if (!overflow.get()) {
-            LOGGER.warn("Invalidated {} VFS paths due to changes since last build", count);
-        } else {
-            LOGGER.warn("Invalidated all VFS paths after {} changes due to overflow", count);
         }
     }
 

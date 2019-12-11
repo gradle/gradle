@@ -20,12 +20,12 @@ import com.google.common.annotations.VisibleForTesting;
 import net.rubygrapefruit.platform.Native;
 import net.rubygrapefruit.platform.file.FileWatcher;
 import net.rubygrapefruit.platform.internal.jni.WindowsFileEventFunctions;
+import org.gradle.internal.vfs.impl.WatcherEvent;
 import org.gradle.internal.vfs.watch.FileWatcherRegistry;
 import org.gradle.internal.vfs.watch.FileWatcherRegistryFactory;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
 public class WindowsFileWatcherRegistry implements FileWatcherRegistry {
 
     private final FileWatcher watcher;
-    private final List<String> changedPaths = new ArrayList<>();
+    private final List<WatcherEvent> events = new ArrayList<>();
 
     public WindowsFileWatcherRegistry(Set<Path> watchRoots) {
         this.watcher = Native.get(WindowsFileEventFunctions.class)
@@ -44,18 +44,13 @@ public class WindowsFileWatcherRegistry implements FileWatcherRegistry {
                 watchRoots.stream()
                     .map(Path::toString)
                     .collect(Collectors.toList()),
-                changedPaths::add
+                (type, path) -> events.add(WatcherEvent.createEvent(type, path))
             );
     }
 
     @Override
     public void stopWatching(ChangeHandler handler) throws IOException {
-        try {
-            changedPaths
-                .forEach(changedPath -> handler.handleChange(Type.MODIFIED, Paths.get(changedPath)));
-        } catch (Exception ex) {
-            throw new IOException("Couldn't get watches", ex);
-        }
+        WatcherEvent.dispatch(events, handler);
     }
 
     @Override
