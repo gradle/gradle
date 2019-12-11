@@ -16,24 +16,26 @@
 
 package org.gradle.internal.vfs;
 
-import com.google.common.annotations.VisibleForTesting;
 import net.rubygrapefruit.platform.Native;
 import net.rubygrapefruit.platform.file.FileWatcher;
 import net.rubygrapefruit.platform.internal.jni.OsxFileEventFunctions;
+import org.gradle.internal.vfs.impl.WatchRootUtil;
 import org.gradle.internal.vfs.impl.WatcherEvent;
 import org.gradle.internal.vfs.watch.FileWatcherRegistry;
 import org.gradle.internal.vfs.watch.FileWatcherRegistryFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 public class DarwinFileWatcherRegistry implements FileWatcherRegistry {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(DarwinFileWatcherRegistry.class);
 
     private final FileWatcher watcher;
     private final List<WatcherEvent> events = new ArrayList<>();
@@ -60,35 +62,12 @@ public class DarwinFileWatcherRegistry implements FileWatcherRegistry {
         watcher.close();
     }
 
-    /**
-     * Filters out directories whose ancestor is also among the watched directories.
-     */
-    @VisibleForTesting
-    static Set<Path> resolveRootsToWatch(Set<Path> directories) {
-        Set<Path> roots = new HashSet<>();
-        directories.stream()
-            .sorted(Comparator.comparingInt(Path::getNameCount))
-            .filter(path -> {
-                Path parent = path;
-                while (true) {
-                    parent = parent.getParent();
-                    if (parent == null) {
-                        break;
-                    }
-                    if (roots.contains(parent)) {
-                        return false;
-                    }
-                }
-                return true;
-            })
-            .forEach(roots::add);
-        return roots;
-    }
-
     public static class Factory implements FileWatcherRegistryFactory {
         @Override
         public FileWatcherRegistry startWatching(Set<Path> directories) {
-            return new DarwinFileWatcherRegistry(resolveRootsToWatch(directories));
+            Set<Path> watchRoots = WatchRootUtil.resolveRootsToWatch(directories);
+            LOGGER.warn("Watching {} directory hierarchies to track changes between builds in {} directories", watchRoots.size(), directories.size());
+            return new DarwinFileWatcherRegistry(watchRoots);
         }
     }
 }

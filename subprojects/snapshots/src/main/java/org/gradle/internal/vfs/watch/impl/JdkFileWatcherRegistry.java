@@ -98,6 +98,7 @@ public class JdkFileWatcherRegistry implements FileWatcherRegistry {
         @Override
         public FileWatcherRegistry startWatching(Set<Path> directories) throws IOException {
             WatchService watchService = FileSystems.getDefault().newWatchService();
+            LOGGER.warn("Watching {} directories to track changes between builds", directories.size());
             return new JdkFileWatcherRegistry(watchService, directories);
         }
     }

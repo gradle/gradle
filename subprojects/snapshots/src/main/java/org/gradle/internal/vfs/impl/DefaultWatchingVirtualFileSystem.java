@@ -59,7 +59,7 @@ public class DefaultWatchingVirtualFileSystem extends AbstractDelegatingVirtualF
             throw new IllegalStateException("Watch service already started");
         }
         try {
-            Set<Path> watchRoots = new HashSet<>();
+            Set<Path> watchedDirectories = new HashSet<>();
             getRoot().visitSnapshots(snapshot -> {
                 Path path = Paths.get(snapshot.getAbsolutePath());
 
@@ -79,7 +79,7 @@ public class DefaultWatchingVirtualFileSystem extends AbstractDelegatingVirtualF
                         break;
                     }
                     if (Files.exists(ancestor)) {
-                        watchRoots.add(ancestor);
+                        watchedDirectories.add(ancestor);
                         break;
                     }
                 }
@@ -89,11 +89,10 @@ public class DefaultWatchingVirtualFileSystem extends AbstractDelegatingVirtualF
                 // has children, it would be watched through them already.
                 // This is here to make sure we also watch empty directories.
                 if (snapshot.getType() == FileType.Directory) {
-                    watchRoots.add(path);
+                    watchedDirectories.add(path);
                 }
             });
-            LOGGER.warn("Watching {} directories", watchRoots.size());
-            watchRegistry = watcherRegistryFactory.startWatching(watchRoots);
+            watchRegistry = watcherRegistryFactory.startWatching(watchedDirectories);
         } catch (Exception ex) {
             LOGGER.error("Couldn't create watch service, not tracking changes between builds", ex);
             invalidateAll();
