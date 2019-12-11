@@ -21,7 +21,6 @@ import org.gradle.api.internal.artifacts.verification.DependencyVerifier;
 import org.gradle.api.internal.artifacts.verification.model.ArtifactVerificationMetadata;
 import org.gradle.api.internal.artifacts.verification.model.Checksum;
 import org.gradle.api.internal.artifacts.verification.model.ComponentVerificationMetadata;
-import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.xml.SimpleMarkupWriter;
 import org.gradle.internal.xml.SimpleXmlWriter;
 
