@@ -142,7 +142,7 @@ public class AsmBackedClassGeneratorTest {
     public void mixesInGeneratedSubclassInterface() throws Exception {
         Bean bean = newInstance(Bean.class);
         assertTrue(bean instanceof GeneratedSubclass);
-        assertEquals(Bean.class, ((GeneratedSubclass)bean).publicType());
+        assertEquals(Bean.class, ((GeneratedSubclass) bean).publicType());
         assertEquals(Bean.class, GeneratedSubclasses.unpackType(bean));
         assertEquals(Bean.class, GeneratedSubclasses.unpack(bean.getClass()));
     }
@@ -151,7 +151,7 @@ public class AsmBackedClassGeneratorTest {
     public void mixesInGeneratedSubclassInterfaceToInterface() throws Exception {
         InterfaceWithDefaultMethods bean = newInstance(InterfaceWithDefaultMethods.class);
         assertTrue(bean instanceof GeneratedSubclass);
-        assertEquals(InterfaceWithDefaultMethods.class, ((GeneratedSubclass)bean).publicType());
+        assertEquals(InterfaceWithDefaultMethods.class, ((GeneratedSubclass) bean).publicType());
         assertEquals(InterfaceWithDefaultMethods.class, GeneratedSubclasses.unpackType(bean));
         assertEquals(InterfaceWithDefaultMethods.class, GeneratedSubclasses.unpack(bean.getClass()));
     }
@@ -571,6 +571,22 @@ public class AsmBackedClassGeneratorTest {
 
         bean.setValue(12);
         assertThat(bean.getValue(), equalTo("12"));
+    }
+
+    @Test
+    public void appliesConventionMappingToPropertyWithSetterCovariantType() throws Exception {
+        CovariantPropertyTypes bean = newInstance(CovariantPropertyTypes.class);
+
+        new DslObject(bean).getConventionMapping().map("value2", new Callable<String>() {
+            public String call() {
+                return "conventionValue";
+            }
+        });
+
+        assertThat(bean.getValue2(), equalTo("conventionValue"));
+
+        bean.setValue2(12);
+        assertThat(bean.getValue2(), equalTo(12));
     }
 
     @Test
@@ -1043,6 +1059,7 @@ public class AsmBackedClassGeneratorTest {
 
         dynamicObject.setProperty("prop", providerFactory.provider(new Callable<String>() {
             int count;
+
             @Override
             public String call() {
                 return "[" + ++count + "]";
@@ -1064,6 +1081,7 @@ public class AsmBackedClassGeneratorTest {
 
         dynamicObject.setProperty("aProp", providerFactory.provider(new Callable<String>() {
             int count;
+
             @Override
             public String call() {
                 return "[" + ++count + "]";
@@ -1088,6 +1106,7 @@ public class AsmBackedClassGeneratorTest {
 
         dynamicObject.setProperty("prop2", providerFactory.provider(new Callable<String>() {
             int count;
+
             @Override
             public String call() {
                 return "[" + ++count + "]";
@@ -1148,6 +1167,7 @@ public class AsmBackedClassGeneratorTest {
 
     public static class ParentBean {
         Object value;
+        Object value2;
 
         public Object getValue() {
             return value;
@@ -1156,12 +1176,27 @@ public class AsmBackedClassGeneratorTest {
         public void setValue(Object value) {
             this.value = value;
         }
+
+        public Object getValue2() {
+            return value2;
+        }
+
+        public ParentBean setValue2(Object value2) {
+            this.value2 = value2;
+            return this;
+        }
     }
 
     public static class CovariantPropertyTypes extends ParentBean {
         @Override
         public String getValue() {
             return String.valueOf(super.getValue());
+        }
+
+        @Override
+        public CovariantPropertyTypes setValue2(Object value2) {
+            super.setValue2(value2);
+            return this;
         }
     }
 
@@ -1880,13 +1915,12 @@ public class AsmBackedClassGeneratorTest {
     }
 
     public interface InterfaceWithDefaultMethods {
-        default
-        String getName() {
+        default String getName() {
             return "name";
         }
 
-        default
-        void thing() {}
+        default void thing() {
+        }
     }
 
     public static abstract class BeanWithAbstractProperty {
