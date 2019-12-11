@@ -19,6 +19,8 @@ package org.gradle.smoketests
 import org.apache.commons.io.FileUtils
 import org.gradle.cache.internal.DefaultGeneratedGradleJarCache
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.executer.InstantExecutionGradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler
 import org.gradle.test.fixtures.file.TestFile
@@ -174,11 +176,15 @@ abstract class AbstractSmokeTest extends Specification {
     }
 
     private static List<String> buildContextParameters() {
+        List<String> parameters = []
+        if (GradleContextualExecuter.isInstant()) {
+            parameters += InstantExecutionGradleExecuter.INSTANT_EXECUTION_ARGS
+        }
         def generatedApiJarCacheDir = IntegrationTestBuildContext.INSTANCE.gradleGeneratedApiJarCacheDir
         if (generatedApiJarCacheDir == null) {
-            return []
+            return parameters
         }
-        return ["-D${DefaultGeneratedGradleJarCache.BASE_DIR_OVERRIDE_PROPERTY}=${generatedApiJarCacheDir.absolutePath}" as String]
+        return parameters + ["-D${DefaultGeneratedGradleJarCache.BASE_DIR_OVERRIDE_PROPERTY}=${generatedApiJarCacheDir.absolutePath}" as String]
     }
 
     private static List<String> outputParameters() {
