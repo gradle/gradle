@@ -40,8 +40,6 @@ class InstantExecutionSantaTrackerIntegrationTest extends AbstractInstantExecuti
         copyRemoteProject(remoteProject)
         withAgpNightly()
 
-
-
         when:
         instantRun ':santa-tracker:assembleDebug', '--dry-run', '--no-build-cache'
 
@@ -73,11 +71,9 @@ class InstantExecutionSantaTrackerIntegrationTest extends AbstractInstantExecuti
         withAgpNightly()
 
         when:
-        executer.expectDeprecationWarning() // Coming from Android plugin
         instantRun("assembleDebug", "--no-build-cache")
 
         and:
-        executer.expectDeprecationWarning() // Coming from Android plugin
         run 'clean'
 
         then:

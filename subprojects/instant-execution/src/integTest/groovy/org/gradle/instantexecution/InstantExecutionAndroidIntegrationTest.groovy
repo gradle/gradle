@@ -78,7 +78,6 @@ class InstantExecutionAndroidIntegrationTest extends AbstractInstantExecutionAnd
         instantExecution.assertStateStored()
 
         when:
-        executer.expectDeprecationWarning("Internal API constructor DefaultDomainObjectSet(Class<T>) has been deprecated. This is scheduled to be removed in Gradle 7.0. Please use ObjectFactory.domainObjectSet(Class<T>) instead.")
         run 'clean'
         instantRun("assembleDebug")
 
