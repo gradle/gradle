@@ -16,10 +16,10 @@
 
 package org.gradle.launcher.daemon.client;
 
+import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
-import org.gradle.internal.logging.events.OutputEventListener;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -50,9 +50,13 @@ public class DaemonClientFactory {
     }
 
     /**
-     * Creates the services for a {@link DaemonStopClient} that can be used to stop builds.
+     * Creates the services for sending simple messages to daemons.
+     *
+     * Currently, there are two clients which can be used from this registry:
+     *   - {@link DaemonStopClient} that can be used to stop daemons.
+     *   - {@link NotifyDaemonAboutChangedPathsClient} that can be used to notify daemons about changed paths.
      */
-    public ServiceRegistry createStopDaemonServices(OutputEventListener loggingReceiver, DaemonParameters daemonParameters) {
+    public ServiceRegistry createMessageDaemonServices(OutputEventListener loggingReceiver, DaemonParameters daemonParameters) {
         DefaultServiceRegistry loggingServices = new DefaultServiceRegistry(sharedServices);
         loggingServices.add(OutputEventListener.class, loggingReceiver);
         return new DaemonClientServices(loggingServices, daemonParameters, new ByteArrayInputStream(new byte[0]));

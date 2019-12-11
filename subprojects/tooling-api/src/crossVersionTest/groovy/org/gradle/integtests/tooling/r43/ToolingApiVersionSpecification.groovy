@@ -92,4 +92,13 @@ public class TestClientTest{
             launcher.run()
         }
     }
+
+    // since 6.1
+    def notifyDaemonsAboutChangedPaths() {
+        build()
+
+        withConnection { ProjectConnection connection ->
+            connection.notifyDaemonsAboutChangedPaths([file("some/file").toPath()])
+        }
+    }
 }

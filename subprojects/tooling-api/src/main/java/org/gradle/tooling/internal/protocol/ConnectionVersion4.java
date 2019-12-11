@@ -21,6 +21,7 @@ package org.gradle.tooling.internal.protocol;
  * <p>The following constraints apply to implementations:
  * <ul>
  * <li>Implementations must be thread-safe.
+ * <li>Implementations should implement {@link InternalInvalidatableVirtualFileSystemConnection}. This is used by all consumer versions from 6.1.
  * <li>Implementations should implement {@link org.gradle.tooling.internal.protocol.test.InternalTestExecutionConnection}. This is used by all consumer versions from 2.6-rc-1.
  * <li>Implementations should implement {@link InternalPhasedActionConnection}. This is used by all consumer versions from 4.8.
  * <li>Implementations should implement {@link InternalParameterAcceptingConnection}. This is used by all consumer versions from 4.4.
