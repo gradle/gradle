@@ -39,6 +39,7 @@ include::sample[dir="scala/quickstart/kotlin",files="build.gradle.kts[tags=use-p
 == Tasks
 
 The Scala plugin adds the following tasks to the project.
+Information about altering the dependencies to Java compile tasks are found <<building_java_projects.adoc#sec:building_jvm_lang,here>>.
 
 `compileScala` — link:{groovyDslPath}/org.gradle.api.tasks.scala.ScalaCompile.html[ScalaCompile]::
 _Depends on_: `compileJava`
