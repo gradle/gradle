@@ -16,6 +16,7 @@
 
 package org.gradle.smoketests
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Issue
@@ -49,6 +50,7 @@ class NebulaPluginsSmokeTest extends AbstractSmokeTest {
     }
 
     @Issue('https://plugins.gradle.org/plugin/nebula.plugin-plugin')
+    @ToBeFixedForInstantExecution
     def 'nebula plugin plugin'() {
         when:
         buildFile << """
@@ -73,6 +75,7 @@ class NebulaPluginsSmokeTest extends AbstractSmokeTest {
     }
 
     @Issue('https://plugins.gradle.org/plugin/nebula.lint')
+    @ToBeFixedForInstantExecution
     def 'nebula lint plugin'() {
         given:
         buildFile << """
@@ -129,6 +132,7 @@ testCompile('junit:junit:4.7')""")
 
     @Issue("gradle/gradle#3798")
     @Unroll
+    @ToBeFixedForInstantExecution
     def "nebula dependency lock plugin version #version binary compatibility"() {
         when:
         buildFile << """
@@ -136,13 +140,13 @@ testCompile('junit:junit:4.7')""")
                 id 'java-library'
                 id 'nebula.dependency-lock' version '$version'
             }
-            
+
             ${jcenterRepository()}
-            
+
             dependencies {
                 api 'org.apache.commons:commons-math3:3.6.1'
             }
-            
+
             task resolve {
                 doFirst {
                     configurations.compileClasspath.each { println it.name }
@@ -193,6 +197,7 @@ testCompile('junit:junit:4.7')""")
 
     @Issue('https://plugins.gradle.org/plugin/nebula.resolution-rules')
     @Requires(TestPrecondition.JDK11_OR_EARLIER)
+    @ToBeFixedForInstantExecution
     def 'nebula resolution rules plugin'() {
         when:
         file('rules.json') << """
@@ -213,12 +218,12 @@ testCompile('junit:junit:4.7')""")
                 id 'java-library'
                 id 'nebula.resolution-rules' version '${TestedVersions.nebulaResolutionRules}'
             }
-            
-            ${jcenterRepository()}                        
+
+            ${jcenterRepository()}
 
             dependencies {
                 resolutionRules files('rules.json')
-                
+
                 // Need a non-empty configuration to trigger the plugin
                 api 'org.apache.commons:commons-math3:3.6.1'
             }

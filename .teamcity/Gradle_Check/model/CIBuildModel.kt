@@ -56,7 +56,9 @@ data class CIBuildModel(
                 SpecificBuild.BuildDistributions,
                 SpecificBuild.Gradleception,
                 SpecificBuild.SmokeTestsMinJavaVersion,
-                SpecificBuild.SmokeTestsMaxJavaVersion
+                SpecificBuild.SmokeTestsMaxJavaVersion,
+                SpecificBuild.InstantSmokeTestsMinJavaVersion,
+                SpecificBuild.InstantSmokeTestsMaxJavaVersion
             ),
             functionalTests = listOf(
                 TestCoverage(3, TestType.platform, Os.linux, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor),
@@ -486,6 +488,16 @@ enum class SpecificBuild {
     SmokeTestsMaxJavaVersion {
         override fun create(model: CIBuildModel, stage: Stage): BuildType {
             return SmokeTests(model, stage, JvmCategory.MAX_VERSION)
+        }
+    },
+    InstantSmokeTestsMinJavaVersion {
+        override fun create(model: CIBuildModel, stage: Stage): BuildType {
+            return SmokeTests(model, stage, JvmCategory.MIN_VERSION, "instantSmokeTest")
+        }
+    },
+    InstantSmokeTestsMaxJavaVersion {
+        override fun create(model: CIBuildModel, stage: Stage): BuildType {
+            return SmokeTests(model, stage, JvmCategory.MAX_VERSION, "instantSmokeTest")
         }
     },
     DependenciesCheck {
