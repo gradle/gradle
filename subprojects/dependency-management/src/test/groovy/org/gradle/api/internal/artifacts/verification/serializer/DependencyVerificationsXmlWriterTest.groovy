@@ -169,6 +169,10 @@ class DependencyVerificationsXmlWriterTest extends Specification {
         then:
         contents == """<?xml version="1.0" encoding="UTF-8"?>
 <verification-metadata>
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+      <trusted-artifacts/>
+   </configuration>
    <components>
       <component group="org" name="foo" version="1.0">
          <artifact name="foo-1.0.jar">
@@ -197,6 +201,10 @@ class DependencyVerificationsXmlWriterTest extends Specification {
         then:
         contents == """<?xml version="1.0" encoding="UTF-8"?>
 <verification-metadata>
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+      <trusted-artifacts/>
+   </configuration>
    <components>
       <component group="org" name="foo" version="1.0">
          <artifact name="foo-1.0.jar">
