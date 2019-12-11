@@ -229,6 +229,12 @@ class CIConfigIntegrationTests {
     }
 
     @Test
+    fun uuidsAreUnique() {
+        val uuidList = CIBuildModel().stages.flatMap { it.functionalTests.map { ft -> ft.uuid } }
+        assertEquals(uuidList.distinct(), uuidList)
+    }
+
+    @Test
     fun testsAreCorrectlyConfiguredForAllSubProjects() {
         CIBuildModel().subProjects.filter {
             !listOf(
