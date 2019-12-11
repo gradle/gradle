@@ -303,15 +303,18 @@ data class SubprojectSplit(val subproject: GradleSubproject, val total: Int) : B
 }
 
 data class SubprojectBucket(val name: String, val subprojects: List<GradleSubproject>) : BuildTypeBucket, Validatable {
-    override fun createFunctionalTestsFor(model: CIBuildModel, stage: Stage, testCoverage: TestCoverage) = listOf(
-        FunctionalTest(model, testCoverage.asConfigurationId(model, name),
-            "${testCoverage.asName()} (${subprojects.joinToString(", ") { it.name }})",
-            "${testCoverage.asName()} for ${subprojects.joinToString(", ") { it.name }}",
-            testCoverage,
-            stage,
-            subprojects.map { it.name }
+    override fun createFunctionalTestsFor(model: CIBuildModel, stage: Stage, testCoverage: TestCoverage): List<FunctionalTest> {
+        val subprojectsForCoverage = subprojects.filter { !it.shouldBeSkipped(testCoverage) }
+        return listOf(
+            FunctionalTest(model, testCoverage.asConfigurationId(model, name),
+                "${testCoverage.asName()} (${subprojectsForCoverage.joinToString(", ") { it.name }})",
+                "${testCoverage.asName()} for ${subprojectsForCoverage.joinToString(", ") { it.name }}",
+                testCoverage,
+                stage,
+                subprojectsForCoverage.map { it.name }
+            )
         )
-    )
+    }
 
     override fun getSubprojectNames(): List<String> {
         return subprojects.map { it.name }
@@ -340,7 +343,7 @@ data class SubprojectBucket(val name: String, val subprojects: List<GradleSubpro
         return count == 0 || count == subprojects.size
     }
 
-    override fun shouldBeSkipped(testCoverage: TestCoverage) = subprojects.any { it.shouldBeSkipped(testCoverage) }
+    override fun shouldBeSkipped(testCoverage: TestCoverage) = subprojects.all { it.shouldBeSkipped(testCoverage) }
 
     override fun containsSlowTests() = subprojects.any { it.containsSlowTests }
 
