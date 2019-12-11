@@ -39,6 +39,7 @@ include::sample[dir="groovy/quickstart/kotlin",files="build.gradle.kts[tags=use-
 == Tasks
 
 The Groovy plugin adds the following tasks to the project.
+Information about altering the dependencies to Java compile tasks are found <<building_java_projects.adoc#sec:building_jvm_lang,here>>.
 
 `compileGroovy` — link:{groovyDslPath}/org.gradle.api.tasks.compile.GroovyCompile.html[GroovyCompile]::
 _Depends on_: `compileJava`

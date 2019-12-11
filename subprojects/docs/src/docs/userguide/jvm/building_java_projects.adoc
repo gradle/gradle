@@ -513,6 +513,16 @@ This plugin is the exception as it does not apply the Java Plugin.
 
 If you want to leverage the multi language aspect of the JVM, most of what was described here will still apply.
 
-Gradle itself provides <<groovy_plugin.adoc#,Groovy>> and <<scala_plugin.adoc#,Scala>> plugins. Note that these can be further enhanced by combining them with the `java-library` plugin.
+Gradle itself provides <<groovy_plugin.adoc#,Groovy>> and <<scala_plugin.adoc#,Scala>> plugins.
+The plugins automatically apply support for compiling Java code and can be further enhanced by combining them with the `java-library` plugin.
 
-And beyond core Gradle, there are other https://plugins.gradle.org/search?term=jvm[great plugins] for more JVM languages!
+These plugins create a dependency between Groovy/Scala compilation and Java compilation (of source code in tha `java` folder of a source set).
+You can change this default behavior by adjusting the classpath of the involved compile tasks as shown in the following example:
+
+.Changing the classpath of compile tasks
+====
+include::sample[dir="userguide/tutorial/compileTaskClasspath/groovy",files="build.gradle[tags=compile-task-classpath]"]
+include::sample[dir="userguide/tutorial/compileTaskClasspath/kotlin",files="build.gradle.kts[tags=compile-task-classpath]"]
+====
+
+Beyond core Gradle, there are other https://plugins.gradle.org/search?term=jvm[great plugins] for more JVM languages!
