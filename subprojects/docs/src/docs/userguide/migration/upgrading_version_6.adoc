@@ -49,6 +49,17 @@ Nothing was deprecated.
 No potential breaking changes were introduced.
 ////
 
+[[changes_6.2]]
+== Upgrading from 6.1 and earlier
+
+=== Deprecations
+
+==== Deprecated properties in AbstractCompile and SourceDirectorySet for changing output destination
+
+Dependencies between compile tasks (subclasses of `AbstractCompile`) have been remodelled using directory providers.
+In this context, the existing getters and setters for the destination/output directories on `AbstractCompile` and `SourceDirectorySet` have been deprecated in favor of the new directory properties.
+Consult the Javadoc of link:{javadocPath}/org/gradle/api/tasks/compile/AbstractCompile.html#getDestinationDirectory[`AbstractCompile.getDestinationDirectory()`], link:{javadocPath}/org/gradle/api/file/SourceDirectorySet.html#getDestinationDirectory[`SourceDirectorySet.getDestinationDirectory()`] and link:{javadocPath}/org/gradle/api/file/SourceDirectorySet.html#getClassesDirectory[`SourceDirectorySet.getClassesDirectory()`] for details.
+
 [[changes_6.1]]
 == Upgrading from 6.0 and earlier
 

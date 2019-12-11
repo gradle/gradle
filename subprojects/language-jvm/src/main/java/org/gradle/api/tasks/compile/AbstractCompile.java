@@ -15,7 +15,6 @@
  */
 package org.gradle.api.tasks.compile;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
@@ -26,6 +25,7 @@ import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SourceTask;
+import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -69,7 +69,6 @@ public abstract class AbstractCompile extends SourceTask {
      * @return The destination directory property.
      * @since 6.1
      */
-    @Incubating
     @OutputDirectory
     public DirectoryProperty getDestinationDirectory() {
         return destinationDirectory;
@@ -79,9 +78,12 @@ public abstract class AbstractCompile extends SourceTask {
      * Returns the directory to generate the {@code .class} files into.
      *
      * @return The destination directory.
+     * @deprecated use {@link #getDestinationDirectory()}
      */
     @ReplacedBy("destinationDirectory")
+    @Deprecated
     public File getDestinationDir() {
+        // No 'nagUserOfReplacedMethod("AbstractCompile.getDestinationDir()", "AbstractCompile.getDestinationDirectory().get()")' because this method is called by the Kotlin plugin
         return destinationDirectory.getAsFile().getOrNull();
     }
 
@@ -89,8 +91,13 @@ public abstract class AbstractCompile extends SourceTask {
      * Sets the directory to generate the {@code .class} files into.
      *
      * @param destinationDir The destination directory. Must not be null.
+     *
+     * @deprecated set the value of {@link #getDestinationDirectory()} instead
      */
+    @Deprecated
     public void setDestinationDir(File destinationDir) {
+        DeprecationLogger.nagUserOfReplacedMethod("AbstractCompile.setDestinationDir()",
+            "AbstractCompile.getDestinationDirectory().set()");
         this.destinationDirectory.set(destinationDir);
     }
 
@@ -100,8 +107,12 @@ public abstract class AbstractCompile extends SourceTask {
      * @param destinationDir The destination directory. Must not be null.
      *
      * @since 4.0
+     * @deprecated set the value of {@link #getDestinationDirectory()} instead
      */
+    @Deprecated
     public void setDestinationDir(Provider<File> destinationDir) {
+        DeprecationLogger.nagUserOfReplacedMethod("AbstractCompile.setDestinationDir()",
+            "AbstractCompile.getDestinationDirectory().set()");
         this.destinationDirectory.set(getProject().getLayout().dir(destinationDir));
     }
 

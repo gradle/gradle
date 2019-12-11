@@ -16,7 +16,6 @@
 package org.gradle.api.file;
 
 import org.gradle.api.Describable;
-import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.api.Task;
 import org.gradle.api.model.ReplacedBy;
@@ -115,7 +114,6 @@ public interface SourceDirectorySet extends FileTree, PatternFilterable, Named, 
      * @return The destination directory property for this set of sources.
      * @since 6.1
      */
-    @Incubating
     DirectoryProperty getDestinationDirectory();
 
     /**
@@ -127,7 +125,6 @@ public interface SourceDirectorySet extends FileTree, PatternFilterable, Named, 
      * @return The output directory property for this set of sources.
      * @since 6.1
      */
-    @Incubating
     Provider<Directory> getClassesDirectory();
 
     /**
@@ -137,33 +134,40 @@ public interface SourceDirectorySet extends FileTree, PatternFilterable, Named, 
      * @param mapping a mapping from the task to the task's output directory (e.g. AbstractCompile::getDestinationDirectory)
      * @since 6.1
      */
-    @Incubating
     <T extends Task> void compiledBy(TaskProvider<T> taskProvider, Function<T, DirectoryProperty> mapping);
 
     /**
      * Returns the directory to put the output for these sources.
      *
      * @return The output directory for this set of sources.
+     * @deprecated get the value from {@link #getClassesDirectory()} instead
      * @since 4.0
      */
     @ReplacedBy("destinationDirectory")
+    @Deprecated
     File getOutputDir();
 
     /**
      * Sets the provider that gives the directory to assemble the compiled classes into.
 
      * @param provider provides output directory for this source directory set
+     *
+     * @deprecated set the value in {@link #getDestinationDirectory()} instead
      * @since 4.0
      */
     @ReplacedBy("destinationDirectory")
+    @Deprecated
     void setOutputDir(Provider<File> provider);
 
     /**
      * Sets the directory to assemble the compiled classes into.
      *
      * @param outputDir output directory for this source directory set
+     *
+     * @deprecated set the value in {@link #getDestinationDirectory()} instead
      * @since 4.0
      */
     @ReplacedBy("destinationDirectory")
+    @Deprecated
     void setOutputDir(File outputDir);
 }

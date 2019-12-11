@@ -39,6 +39,7 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
 
 import java.io.File;
@@ -172,16 +173,22 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
 
     @Override
     public File getOutputDir() {
+        DeprecationLogger.nagUserOfReplacedMethod("SourceDirectorySet.getOutputDir()",
+            "AbstractCompile.getClassesDirectory()");
         return destinationDirectory.getAsFile().get();
     }
 
     @Override
     public void setOutputDir(Provider<File> provider) {
+        DeprecationLogger.nagUserOfReplacedMethod("SourceDirectorySet.setOutputDir()",
+            "AbstractCompile.getDestinationDirectory().set()");
         destinationDirectory.set(classesDirectory.fileProvider(provider));
     }
 
     @Override
     public void setOutputDir(File outputDir) {
+        DeprecationLogger.nagUserOfReplacedMethod("SourceDirectorySet.setOutputDir()",
+            "AbstractCompile.getDestinationDirectory().set()");
         destinationDirectory.set(outputDir);
     }
 
