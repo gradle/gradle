@@ -16,10 +16,10 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.StartParameter;
+import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.verification.DependencyVerificationMode;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
-import org.gradle.internal.hash.ChecksumService;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.ChecksumVerificationOverride;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.DependencyVerificationOverride;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.WriteDependencyVerificationFile;
@@ -33,6 +33,7 @@ import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.ModuleSources;
+import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.resolve.ArtifactResolveException;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -88,7 +89,11 @@ public class StartParameterResolutionOverride {
                     return DependencyVerificationOverride.NO_VERIFICATION;
                 }
                 SingleMessageLogger.incubatingFeatureUsed("Dependency verification");
-                return new ChecksumVerificationOverride(buildOperationExecutor, verificationsFile, checksumService, startParameter.getDependencyVerificationMode());
+                try {
+                    return new ChecksumVerificationOverride(buildOperationExecutor, verificationsFile, checksumService, startParameter.getDependencyVerificationMode());
+                } catch (Exception e) {
+                    return new FailureVerificationOverride(e, verificationsFile);
+                }
             }
         }
         return DependencyVerificationOverride.NO_VERIFICATION;
@@ -193,4 +198,18 @@ public class StartParameterResolutionOverride {
         }
     }
 
+    private static class FailureVerificationOverride implements DependencyVerificationOverride {
+        private final Exception error;
+        private final File verificationFile;
+
+        private FailureVerificationOverride(Exception error, File verificationFile) {
+            this.error = error;
+            this.verificationFile = verificationFile;
+        }
+
+        @Override
+        public ModuleComponentRepository overrideDependencyVerification(ModuleComponentRepository original) {
+            throw new GradleException("Dependency verification cannot be performed because the configuration couldn't be read: "+ verificationFile, error);
+        }
+    }
 }
