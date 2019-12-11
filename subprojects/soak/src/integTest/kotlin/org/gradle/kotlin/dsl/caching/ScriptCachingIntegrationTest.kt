@@ -223,7 +223,7 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
         }
     }
 
-    @Test @Ignore
+    @Test
     fun `in-memory script class loading cache releases memory of unused entries`() {
 
         // given: buildSrc memory hog
