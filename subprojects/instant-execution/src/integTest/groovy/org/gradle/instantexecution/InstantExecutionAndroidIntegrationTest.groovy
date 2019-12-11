@@ -41,21 +41,6 @@ class InstantExecutionAndroidIntegrationTest extends AbstractInstantExecutionAnd
         instantExecution = newInstantExecutionFixture()
     }
 
-    def "android 3.6 minimal build assembleDebug --dry-run"() {
-
-        when:
-        instantRun("assembleDebug", "--dry-run")
-
-        then:
-        instantExecution.assertStateStored()
-
-        when:
-        instantRun("assembleDebug", "--dry-run")
-
-        then:
-        instantExecution.assertStateLoaded()
-    }
-
     def "android 3.6 minimal build assembleDebug up-to-date"() {
         when:
         instantRun("assembleDebug")
