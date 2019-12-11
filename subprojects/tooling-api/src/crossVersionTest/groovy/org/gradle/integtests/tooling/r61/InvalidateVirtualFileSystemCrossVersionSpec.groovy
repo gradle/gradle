@@ -39,7 +39,7 @@ class InvalidateVirtualFileSystemCrossVersionSpec extends ToolingApiSpecificatio
         toolingApi.requireIsolatedToolingApi()
 
         buildFile << """
-            apply plugin: 'java-library'
+            apply plugin: 'java'
         """
 
         executer = toolingApi.createExecuter()
