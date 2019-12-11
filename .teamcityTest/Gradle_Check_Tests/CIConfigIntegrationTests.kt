@@ -16,7 +16,9 @@ import model.SubprojectSplit
 import model.TestCoverage
 import model.TestType
 import model.Trigger
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import projects.FunctionalTestProject
 import projects.RootProject
@@ -234,11 +236,8 @@ class CIConfigIntegrationTests {
 
     @Test
     fun uuidsAreUnique() {
-        val uuidList = CIBuildModel().stages.flatMap { it.functionalTests.map { ft -> ft.uuid  } }
-        val uuidSet = HashSet<Int>()
-        uuidList.forEach {
-            assertTrue(uuidSet.add(it), "Functional test UUID is not unique: $it")
-        }
+        val uuidList = CIBuildModel().stages.flatMap { it.functionalTests.map { ft -> ft.uuid } }
+        assertEquals(uuidList.distinct(), uuidList)
     }
 
     @Test
