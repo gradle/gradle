@@ -47,8 +47,8 @@ To create a Gradle plugin, you need to write a class that implements the link:{j
 
 .A custom plugin
 ====
-include::sample[dir="userguide/customPlugins/customPlugin/groovy",files="build.gradle[]"]
-include::sample[dir="userguide/customPlugins/customPlugin/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/userguide/customPlugins/customPlugin/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/userguide/customPlugins/customPlugin/kotlin",files="build.gradle.kts[]"]
 ====
 
 .Output of **`gradle -q hello`**
@@ -71,8 +71,8 @@ Let's add a simple extension object to the project. Here we add a `greeting` ext
 
 .A custom plugin extension
 ====
-include::sample[dir="userguide/customPlugins/customPluginWithConvention/groovy",files="build.gradle[]"]
-include::sample[dir="userguide/customPlugins/customPluginWithConvention/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/userguide/customPlugins/customPluginWithConvention/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/userguide/customPlugins/customPluginWithConvention/kotlin",files="build.gradle.kts[]"]
 ====
 
 .Output of **`gradle -q hello`**
@@ -87,8 +87,8 @@ Oftentimes, you have several related properties you need to specify on a single 
 
 .A custom plugin with configuration block
 ====
-include::sample[dir="userguide/customPlugins/customPluginWithAdvancedConvention/groovy",files="build.gradle[]"]
-include::sample[dir="userguide/customPlugins/customPluginWithAdvancedConvention/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/userguide/customPlugins/customPluginWithAdvancedConvention/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/userguide/customPlugins/customPluginWithAdvancedConvention/kotlin",files="build.gradle.kts[]"]
 ====
 
 .Output of **`gradle -q hello`**
@@ -117,8 +117,8 @@ When developing custom tasks and plugins, it's a good idea to be very flexible w
 
 .Evaluating file properties lazily
 ====
-include::sample[dir="userguide/tasks/customTaskWithFileProperty/groovy",files="build.gradle[tags=all]"]
-include::sample[dir="userguide/tasks/customTaskWithFileProperty/kotlin",files="build.gradle.kts[tags=all]"]
+include::sample[dir="snippets/userguide/tasks/customTaskWithFileProperty/groovy",files="build.gradle[tags=all]"]
+include::sample[dir="snippets/userguide/tasks/customTaskWithFileProperty/kotlin",files="build.gradle.kts[tags=all]"]
 ====
 
 .Output of **`gradle -q sayGreeting`**
@@ -143,8 +143,8 @@ Now we will move our plugin to a standalone project, so we can publish it and sh
 
 .A build for a custom plugin
 ====
-include::sample[dir="customPlugin/groovy/plugin",files="build.gradle[tags=use-plugin]"]
-include::sample[dir="customPlugin/kotlin/plugin",files="build.gradle.kts[tags=use-plugin]"]
+include::sample[dir="snippets/customPlugin/groovy/plugin",files="build.gradle[tags=use-plugin]"]
+include::sample[dir="snippets/customPlugin/kotlin/plugin",files="build.gradle.kts[tags=use-plugin]"]
 ====
 
 NOTE: The code for this example can be found at **`samples/customPlugin`** in the ‘-all’ distribution of Gradle.
@@ -195,16 +195,16 @@ To use a plugin in a build script, you need to add the plugin classes to the bui
 
 .Using a custom plugin in another project
 ====
-include::sample[dir="customPlugin/groovy/consumer",files="build.gradle[tags=use-plugin]"]
-include::sample[dir="customPlugin/kotlin/consumer",files="build.gradle.kts[tags=use-plugin]"]
+include::sample[dir="snippets/customPlugin/groovy/consumer",files="build.gradle[tags=use-plugin]"]
+include::sample[dir="snippets/customPlugin/kotlin/consumer",files="build.gradle.kts[tags=use-plugin]"]
 ====
 
 Alternatively, you can use the plugins DSL (see <<plugins.adoc#sec:plugins_block,Applying plugins using the plugins DSL>>) to apply the plugin:
 
 .Applying a community plugin with the plugins DSL
 ====
-include::sample[dir="plugins/dsl/groovy",files="build.gradle[tags=use-community-plugin]"]
-include::sample[dir="plugins/dsl/kotlin",files="build.gradle.kts[tags=use-community-plugin]"]
+include::sample[dir="snippets/plugins/dsl/groovy",files="build.gradle[tags=use-community-plugin]"]
+include::sample[dir="snippets/plugins/dsl/kotlin",files="build.gradle.kts[tags=use-community-plugin]"]
 ====
 
 [[sec:writing_tests_for_your_plugin]]
@@ -228,8 +228,8 @@ You can use the <<java_gradle_plugin.adoc#java_gradle_plugin,Java Gradle Plugin 
 
 .Using the Java Gradle Plugin Development plugin
 ====
-include::sample[dir="customPlugin/groovy/javaGradlePlugin",files="build.gradle[tags=use-and-configure-plugin]"]
-include::sample[dir="customPlugin/kotlin/javaGradlePlugin",files="build.gradle.kts[tags=use-and-configure-plugin]"]
+include::sample[dir="snippets/customPlugin/groovy/javaGradlePlugin",files="build.gradle[tags=use-and-configure-plugin]"]
+include::sample[dir="snippets/customPlugin/kotlin/javaGradlePlugin",files="build.gradle.kts[tags=use-and-configure-plugin]"]
 ====
 
 When publishing plugins to custom plugin repositories using the <<publishing_ivy.adoc#publishing_ivy,Ivy>> or <<publishing_maven.adoc#publishing_maven,Maven>> publish plugins, the <<java_gradle_plugin.adoc#java_gradle_plugin,Java Gradle Plugin Development Plugin>> will also generate plugin marker artifacts named based on the plugin id which depend on the plugin's implementation artifact.

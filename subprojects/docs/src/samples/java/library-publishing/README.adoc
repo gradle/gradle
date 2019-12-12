@@ -4,8 +4,8 @@ This sample shows how a simple Java library can be built with Gradle.
 The library has no dependencies and the build has minimal configuration.
 
 ====
-include::sample[dir="groovy",files="build.gradle[]"]
-include::sample[dir="kotlin",files="build.gradle.kts[]"]
+include::sample[dir="samples/java/library-publishing/groovy",files="build.gradle[]"]
+include::sample[dir="samples/java/library-publishing/kotlin",files="build.gradle.kts[]"]
 ====
 
 To publish the library:

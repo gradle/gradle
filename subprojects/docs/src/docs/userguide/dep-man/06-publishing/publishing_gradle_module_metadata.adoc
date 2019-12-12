@@ -80,8 +80,8 @@ If you want to suppress warnings, you can use the following APIs to do so:
 
 .Disabling publication warnings
 ====
-include::sample[dir="userguide/dependencyManagement/modelingFeatures/outgoingCapabilities/groovy",files="build.gradle[tags=ignore-pom-warnings]"]
-include::sample[dir="userguide/dependencyManagement/modelingFeatures/outgoingCapabilities/kotlin",files="build.gradle.kts[tags=ignore-pom-warnings]"]
+include::sample[dir="snippets/userguide/dependencyManagement/modelingFeatures/outgoingCapabilities/groovy",files="build.gradle[tags=ignore-pom-warnings]"]
+include::sample[dir="snippets/userguide/dependencyManagement/modelingFeatures/outgoingCapabilities/kotlin",files="build.gradle.kts[tags=ignore-pom-warnings]"]
 ====
 
 [[sub:interactions-other-build-tools]]
@@ -105,8 +105,8 @@ If you know that the modules you depend on are always published with Gradle Modu
 
 .Resolving Gradle Module Metadata only
 ====
-include::sample[dir="userguide/dependencyManagement/modelingFeatures/crossProjectPublications/advanced-published/groovy/producer",files="build.gradle[tags=gradle_metadata_source]"]
-include::sample[dir="userguide/dependencyManagement/modelingFeatures/crossProjectPublications/advanced-published/kotlin/producer",files="build.gradle.kts[tags=gradle_metadata_source]"]
+include::sample[dir="snippets/userguide/dependencyManagement/modelingFeatures/crossProjectPublications/advanced-published/groovy/producer",files="build.gradle[tags=gradle_metadata_source]"]
+include::sample[dir="snippets/userguide/dependencyManagement/modelingFeatures/crossProjectPublications/advanced-published/kotlin/producer",files="build.gradle.kts[tags=gradle_metadata_source]"]
 ====
 
 [[sub:gmm-validation]]
@@ -135,6 +135,6 @@ In this case, disabling the publication of Gradle Module Metadata is done simply
 
 .Disabling publication of Gradle Module Metadata
 ====
-include::sample[dir="userguide/dependencyManagement/modelingFeatures/crossProjectPublications/advanced-published/groovy/producer",files="build.gradle[tags=disable_gradle_metadata_publication]"]
-include::sample[dir="userguide/dependencyManagement/modelingFeatures/crossProjectPublications/advanced-published/kotlin/producer",files="build.gradle.kts[tags=disable_gradle_metadata_publication]"]
+include::sample[dir="snippets/userguide/dependencyManagement/modelingFeatures/crossProjectPublications/advanced-published/groovy/producer",files="build.gradle[tags=disable_gradle_metadata_publication]"]
+include::sample[dir="snippets/userguide/dependencyManagement/modelingFeatures/crossProjectPublications/advanced-published/kotlin/producer",files="build.gradle.kts[tags=disable_gradle_metadata_publication]"]
 ====

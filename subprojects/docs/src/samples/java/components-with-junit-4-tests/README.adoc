@@ -5,15 +5,15 @@ This sample shows how to test Java projects using JUnit 4 in Gradle.
 Applications can be configured as follow:
 
 ====
-include::sample[dir="groovy",files="application/build.gradle[]"]
-include::sample[dir="kotlin",files="application/build.gradle.kts[]"]
+include::sample[dir="samples/java/components-with-junit-4-tests/groovy",files="application/build.gradle[]"]
+include::sample[dir="samples/java/components-with-junit-4-tests/kotlin",files="application/build.gradle.kts[]"]
 ====
 
 Libraries can be configured as follow:
 
 ====
-include::sample[dir="groovy",files="library/build.gradle[]"]
-include::sample[dir="kotlin",files="library/build.gradle.kts[]"]
+include::sample[dir="samples/java/components-with-junit-4-tests/groovy",files="library/build.gradle[]"]
+include::sample[dir="samples/java/components-with-junit-4-tests/kotlin",files="library/build.gradle.kts[]"]
 ====
 
 To test the projects:

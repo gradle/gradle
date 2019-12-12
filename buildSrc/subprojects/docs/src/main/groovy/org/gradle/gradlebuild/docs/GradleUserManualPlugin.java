@@ -126,7 +126,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
 
             Map<String, Object> attributes = new HashMap<>();
             // TODO: Break the paths assumed here
-            attributes.put("stylesdir", "css/");
+            attributes.put("stylesdir", extension.getUserManual().getStagingRoot().dir("raw/css").get().getAsFile().getAbsolutePath());
             attributes.put("stylesheet", "manual.css");
             attributes.put("imagesdir", "img");
             attributes.put("nofooter", true);

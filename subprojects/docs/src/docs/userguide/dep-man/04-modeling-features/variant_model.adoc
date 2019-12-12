@@ -371,8 +371,8 @@ If you know that all the ivy modules your are consuming have been published with
 
 .Deriving compile and runtime variants for Ivy metadata
 ====
-include::sample[dir="userguide/dependencyManagement/customizingResolution/ivyMetadataRule/groovy",files="build.gradle[tags=ivy-component-metadata-rule]"]
-include::sample[dir="userguide/dependencyManagement/customizingResolution/ivyMetadataRule/kotlin",files="build.gradle.kts[tags=ivy-component-metadata-rule]"]
+include::sample[dir="snippets/userguide/dependencyManagement/customizingResolution/ivyMetadataRule/groovy",files="build.gradle[tags=ivy-component-metadata-rule]"]
+include::sample[dir="snippets/userguide/dependencyManagement/customizingResolution/ivyMetadataRule/kotlin",files="build.gradle.kts[tags=ivy-component-metadata-rule]"]
 ====
 
 The rule creates an `apiElements` variant based on the `compile` configuration and a `runtimeElements` variant based on the `default` configuration of each ivy module.

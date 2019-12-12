@@ -76,12 +76,12 @@ The following example demonstrates usage of various properties.
 
 .Setting properties with a gradle.properties file
 ====
-include::sample[dir="userguide/tutorial/properties/groovy",files="gradle.properties[]"]
+include::sample[dir="snippets/userguide/tutorial/properties/groovy",files="gradle.properties[]"]
 ====
 
 ====
-include::sample[dir="userguide/tutorial/properties/groovy",files="build.gradle[]"]
-include::sample[dir="userguide/tutorial/properties/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/userguide/tutorial/properties/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/userguide/tutorial/properties/kotlin",files="build.gradle.kts[]"]
 ====
 
 ----
@@ -190,8 +190,8 @@ They all use `-Xmx512m` by default.
 
 .Set Java compile options for link:{groovyDslPath}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile] tasks
 ====
-include::sample[dir="userguide/buildEnvironment/javaCompileOptions/groovy",files="build.gradle[]"]
-include::sample[dir="userguide/buildEnvironment/javaCompileOptions/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/userguide/buildEnvironment/javaCompileOptions/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/userguide/buildEnvironment/javaCompileOptions/kotlin",files="build.gradle.kts[]"]
 ====
 
 See other examples in the link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] API documentation and <<java_testing.adoc#sec:test_execution, test execution in the Java plugin reference>>.
@@ -210,8 +210,8 @@ Suppose you'd like to ensure release builds are only triggered by CI. A simple w
 
 .Prevent releasing outside of CI
 ====
-include::sample[dir="userguide/tutorial/configureTaskUsingProjectProperty/groovy",files="build.gradle[]"]
-include::sample[dir="userguide/tutorial/configureTaskUsingProjectProperty/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/userguide/tutorial/configureTaskUsingProjectProperty/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/userguide/tutorial/configureTaskUsingProjectProperty/kotlin",files="build.gradle.kts[]"]
 ====
 
 ----

@@ -113,6 +113,7 @@ samples {
     templates {
         javaAndroidApplication
         springBoot
+
         javaApplication
         javaListLibrary
         javaUtilitiesLibrary
@@ -128,6 +129,7 @@ samples {
             sourceDirectory = javaUtilitiesLibrary.sourceDirectory
             target = "utilities"
         }
+
         groovySpockTestForListLibrary {
             target = "list"
         }
@@ -140,6 +142,13 @@ samples {
         javaJunit4TestForListLibrary {
             target = "list"
         }
+        javaJunit4IntegrationTestForApplication {
+            target = "application"
+        }
+        javaJunit4IntegrationTestForListLibrary {
+            target = "list"
+        }
+
         groovyApplication
         groovyListLibrary
         groovyUtilitiesLibrary
@@ -155,6 +164,10 @@ samples {
             sourceDirectory = groovyUtilitiesLibrary.sourceDirectory
             target = "utilities"
         }
+
+        kotlinApplication
+        kotlinListLibrary
+        kotlinUtilitiesLibrary
     }
     publishedSamples {
         androidApplication {
@@ -171,67 +184,41 @@ samples {
                 from(templates.springBoot)
             }
         }
-        /*
-        TODO:
+        // gradleSitePlugin {
+        //     displayName = "Gradle Site Plugin"
+        //     description = ""
+        //     category = "Other"
+        //     dsls = ["GROOVY"]
+        // }
 
-    kotlinApplication {
-        sampleDirectory = file("src/samples/kotlin/application")
-        description = "Demonstrate how to build a Kotlin application"
-
-        def sourceFiles = installSourceFromTemplate(it) {
-            from("$templateDir/kotlin-application")
-            from("$templateDir/kotlin-list-library")
-            from("$templateDir/kotlin-utilities-library")
-        }
-        archiveContent.from sourceFiles
-        exemplar.source {
-            from(sourceFiles) { into('groovy') }
-            from(sourceFiles) { into('kotlin') }
-        }
-    }
-    kotlinLibrary {
-        sampleDirectory = file("src/samples/kotlin/library")
-        description = "Demonstrate how to build a Kotlin library"
-
-        def sourceFiles = installSourceFromTemplate(it) {
-            from("$templateDir/kotlin-list-library")
-            from("$templateDir/kotlin-utilities-library")
-        }
-        archiveContent.from sourceFiles
-        exemplar.source {
-            from(sourceFiles) { into('groovy') }
-            from(sourceFiles) { into('kotlin') }
-        }
-    }
         jvmComponentsWithAdditionalTestTypes {
             displayName = "JVM Components With Additional Test Types"
             description = "Demonstrate how to add additional test types to JVM components - e.g. integration tests"
-            def sourceFiles = installSourceFromTemplate(it) {
-                from("$templateDir/java-application") { into("application") }
-                from("$templateDir/java-junit4-test-for-application") { into("application") }
-                from("$templateDir/java-junit4-integration-test-for-application") { into("application") }
-                from("$templateDir/java-list-library") { into("library") }
-                from("$templateDir/java-junit4-test-for-list-library") { into("library") }
-                from("$templateDir/java-junit4-integration-test-for-list-library") { into("library") }
-                from("$templateDir/java-utilities-library") { into("library") }
-            }
-            archiveContent.from sourceFiles
-            exemplar.source {
-                from(sourceFiles) { into('groovy') }
-                from(sourceFiles) { into('kotlin') }
+            category = "General"
+
+            common {
+                from(templates.javaApplicationAsSubproject)
+                from(templates.javaJunit4TestForApplication)
+                from(templates.javaJunit4IntegrationTestForApplication)
+                
+                from(templates.javaListLibraryAsSubproject)
+                from(templates.javaJunit4TestForListLibrary)
+                from(templates.javaJunit4IntegrationTestForListLibrary)
+
+                from(templates.javaUtilitiesLibraryAsSubproject)
             }
         }
-        */
 
         jvmMultiProjectBuild {
             description = "Demonstrate how transitive dependencies works as part of a multi-project build"
-            category = "Java"
+            category = "General"
             common {
                 from(templates.javaApplicationAsSubproject)
                 from(templates.javaListLibraryAsSubproject)
                 from(templates.javaUtilitiesLibraryAsSubproject)
             }
         }
+
         javaApplication {
             sampleDirectory = samplesRoot.dir("java/application")
             description = "Demonstrate how to build a basic Java application"
@@ -285,6 +272,27 @@ samples {
                 from(templates.javaUtilitiesLibrary)
             }
         }
+
+        kotlinApplication {
+            sampleDirectory = samplesRoot.dir("kotlin/application")
+            description = "Demonstrate how to build a basic Kotlin application"
+            category = "Kotlin"
+            common {
+                from(templates.kotlinApplication)
+                from(templates.kotlinListLibrary)
+                from(templates.kotlinUtilitiesLibrary)
+            }
+        }
+        kotlinLibrary {
+            sampleDirectory = samplesRoot.dir("kotlin/library")
+            description = "Demonstrate how to build a basic Kotlin library"
+            category = "Kotlin"
+            common {
+                from(templates.kotlinListLibrary)
+                from(templates.kotlinUtilitiesLibrary)
+            }
+        }
+
         groovyApplication {
             sampleDirectory = samplesRoot.dir("groovy/application")
             description = "Demonstrate how to build a basic Groovy application"

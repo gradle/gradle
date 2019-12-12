@@ -222,8 +222,8 @@ Note that it is possible to override property annotations from the base class by
 
 .Custom cacheable BundleTask
 ====
-include::sample[dir="buildCache/cacheable-bundle-task/groovy",files="build.gradle[tags=bundle-task]"]
-include::sample[dir="buildCache/cacheable-bundle-task/kotlin",files="build.gradle.kts[tags=bundle-task]"]
+include::sample[dir="snippets/buildCache/cacheable-bundle-task/groovy",files="build.gradle[tags=bundle-task]"]
+include::sample[dir="snippets/buildCache/cacheable-bundle-task/kotlin",files="build.gradle.kts[tags=bundle-task]"]
 ====
 - (1) Add `@CacheableTask` to enable caching for the task.
 - (2) Override the getter of a property of the base class to change the input annotation to `@Internal`.
@@ -241,8 +241,8 @@ Input properties can be overridden by specifying the same property name.
 
 .Make the bundle task cacheable
 ====
-include::sample[dir="buildCache/cacheable-bundle/groovy",files="build.gradle[tags=bundle-task]"]
-include::sample[dir="buildCache/cacheable-bundle/kotlin",files="build.gradle.kts[tags=bundle-task]"]
+include::sample[dir="snippets/buildCache/cacheable-bundle/groovy",files="build.gradle[tags=bundle-task]"]
+include::sample[dir="snippets/buildCache/cacheable-bundle/kotlin",files="build.gradle.kts[tags=bundle-task]"]
 ====
 
 [[sec:build_cache_configure]]
@@ -273,8 +273,8 @@ Here is an example of the configuration.
 
 .Configure the local cache
 ====
-include::sample[dir="buildCache/configure-built-in-caches/groovy",files="settings.gradle[tags=configure-directory-build-cache]"]
-include::sample[dir="buildCache/configure-built-in-caches/kotlin",files="settings.gradle.kts[tags=configure-directory-build-cache]"]
+include::sample[dir="snippets/buildCache/configure-built-in-caches/groovy",files="settings.gradle[tags=configure-directory-build-cache]"]
+include::sample[dir="snippets/buildCache/configure-built-in-caches/kotlin",files="settings.gradle.kts[tags=configure-directory-build-cache]"]
 ====
 
 [[sec:build_cache_configure_remote]]
@@ -286,16 +286,16 @@ Note that by using the following configuration the local build cache will be use
 
 .Load from HttpBuildCache
 ====
-include::sample[dir="buildCache/http-build-cache/groovy",files="settings.gradle[tags=http-build-cache]"]
-include::sample[dir="buildCache/http-build-cache/kotlin",files="settings.gradle.kts[tags=http-build-cache]"]
+include::sample[dir="snippets/buildCache/http-build-cache/groovy",files="settings.gradle[tags=http-build-cache]"]
+include::sample[dir="snippets/buildCache/http-build-cache/kotlin",files="settings.gradle.kts[tags=http-build-cache]"]
 ====
 
 You can configure the credentials the link:{groovyDslPath}/org.gradle.caching.http.HttpBuildCache.html[HttpBuildCache] uses to access the build cache server as shown in the following example.
 
 .Configure remote HTTP cache
 ====
-include::sample[dir="buildCache/configure-built-in-caches/groovy",files="settings.gradle[tags=configure-http-build-cache]"]
-include::sample[dir="buildCache/configure-built-in-caches/kotlin",files="settings.gradle.kts[tags=configure-http-build-cache]"]
+include::sample[dir="snippets/buildCache/configure-built-in-caches/groovy",files="settings.gradle[tags=configure-http-build-cache]"]
+include::sample[dir="snippets/buildCache/configure-built-in-caches/kotlin",files="settings.gradle.kts[tags=configure-http-build-cache]"]
 ====
 
 [NOTE]
@@ -309,8 +309,8 @@ This is a convenient workaround, but you shouldn’t use it as a long-term solut
 
 .Allow untrusted cache server
 ====
-include::sample[dir="buildCache/http-build-cache/groovy",files="settings.gradle[tags=allow-untrusted-server]"]
-include::sample[dir="buildCache/http-build-cache/kotlin",files="settings.gradle.kts[tags=allow-untrusted-server]"]
+include::sample[dir="snippets/buildCache/http-build-cache/groovy",files="settings.gradle[tags=allow-untrusted-server]"]
+include::sample[dir="snippets/buildCache/http-build-cache/kotlin",files="settings.gradle.kts[tags=allow-untrusted-server]"]
 ====
 
 [[sec:build_cache_configure_use_cases]]
@@ -321,8 +321,8 @@ The configuration would then look as follows.
 
 .Recommended setup for CI push use case
 ====
-include::sample[dir="buildCache/developer-ci-setup/groovy",files="settings.gradle[tags=developer-ci-setup]"]
-include::sample[dir="buildCache/developer-ci-setup/kotlin",files="settings.gradle.kts[tags=developer-ci-setup]"]
+include::sample[dir="snippets/buildCache/developer-ci-setup/groovy",files="settings.gradle[tags=developer-ci-setup]"]
+include::sample[dir="snippets/buildCache/developer-ci-setup/kotlin",files="settings.gradle.kts[tags=developer-ci-setup]"]
 ====
 
 If you use a `buildSrc` directory, you should make sure that it uses the same build cache configuration as the main build.
@@ -330,16 +330,16 @@ This can be achieved by applying the same script to `buildSrc/settings.gradle` a
 
 .Consistent setup for buildSrc and main build
 ====
-include::sample[dir="buildCache/build-src/groovy",files="settings.gradle[tags=configure-build-src-build-cache];gradle/buildCacheSettings.gradle[tags=configure-build-src-build-cache];buildSrc/settings.gradle[tags=configure-build-src-build-cache]"]
-include::sample[dir="buildCache/build-src/kotlin",files="settings.gradle.kts[tags=configure-build-src-build-cache];gradle/buildCacheSettings.gradle.kts[tags=configure-build-src-build-cache];buildSrc/settings.gradle.kts[tags=configure-build-src-build-cache]"]
+include::sample[dir="snippets/buildCache/build-src/groovy",files="settings.gradle[tags=configure-build-src-build-cache];gradle/buildCacheSettings.gradle[tags=configure-build-src-build-cache];buildSrc/settings.gradle[tags=configure-build-src-build-cache]"]
+include::sample[dir="snippets/buildCache/build-src/kotlin",files="settings.gradle.kts[tags=configure-build-src-build-cache];gradle/buildCacheSettings.gradle.kts[tags=configure-build-src-build-cache];buildSrc/settings.gradle.kts[tags=configure-build-src-build-cache]"]
 ====
 
 It is also possible to configure the build cache from an <<init_scripts.adoc#sec:using_an_init_script,init script>>, which can be used from the command line, added to your Gradle user home or be a part of your custom Gradle distribution.
 
 .Init script to configure the build cache
 ====
-include::sample[dir="buildCache/configure-by-init-script/groovy",files="init.gradle[]"]
-include::sample[dir="buildCache/configure-by-init-script/kotlin",files="init.gradle.kts[]"]
+include::sample[dir="snippets/buildCache/configure-by-init-script/groovy",files="init.gradle[]"]
+include::sample[dir="snippets/buildCache/configure-by-init-script/kotlin",files="init.gradle.kts[]"]
 ====
 
 [[sec:build_cache_composite]]

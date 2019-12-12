@@ -7,15 +7,15 @@ In this sample, we are testing Java projects with JUnit 4, however, adding addit
 Applications can be configured as follow:
 
 ====
-include::sample[dir="groovy",files="application/build.gradle[]"]
-include::sample[dir="kotlin",files="application/build.gradle.kts[]"]
+include::sample[dir="samples/jvm-components-with-additional-test-types/groovy",files="application/build.gradle[]"]
+include::sample[dir="samples/jvm-components-with-additional-test-types/kotlin",files="application/build.gradle.kts[]"]
 ====
 
 Libraries can be configured as follow:
 
 ====
-include::sample[dir="groovy",files="library/build.gradle[]"]
-include::sample[dir="kotlin",files="library/build.gradle.kts[]"]
+include::sample[dir="samples/jvm-components-with-additional-test-types/groovy",files="library/build.gradle[]"]
+include::sample[dir="samples/jvm-components-with-additional-test-types/kotlin",files="library/build.gradle.kts[]"]
 ====
 
 The additional tests for the projects can be executed via the `integrationTest` task or as part of lifecycle `check` task as demonstrated:

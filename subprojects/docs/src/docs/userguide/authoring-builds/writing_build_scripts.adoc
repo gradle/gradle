@@ -33,8 +33,8 @@ In fact, almost all top-level properties and blocks in a build script are part o
 
 .Accessing property of the Project object
 ====
-include::sample[dir="userguide/tutorial/projectApi/groovy",files="build.gradle[tags=project-name]"]
-include::sample[dir="userguide/tutorial/projectApi/kotlin",files="build.gradle.kts[tags=project-name]"]
+include::sample[dir="snippets/userguide/tutorial/projectApi/groovy",files="build.gradle[tags=project-name]"]
+include::sample[dir="snippets/userguide/tutorial/projectApi/kotlin",files="build.gradle.kts[tags=project-name]"]
 
 .Output of **`gradle -q check`**
 ----
@@ -122,8 +122,8 @@ Local variables are declared with the `val` keyword. They are only visible in th
 
 .Using local variables
 ====
-include::sample[dir="userguide/tutorial/localVariables/groovy",files="build.gradle[]"]
-include::sample[dir="userguide/tutorial/localVariables/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/userguide/tutorial/localVariables/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/userguide/tutorial/localVariables/kotlin",files="build.gradle.kts[]"]
 ====
 
 [[sec:extra_properties]]
@@ -139,8 +139,8 @@ Extra properties can be added, read and set via the owning object's `extra` prop
 
 .Using extra properties
 ====
-include::sample[dir="userguide/tutorial/extraProperties/groovy",files="build.gradle[tags=extraProperties]"]
-include::sample[dir="userguide/tutorial/extraProperties/kotlin",files="build.gradle.kts[tags=extraProperties]"]
+include::sample[dir="snippets/userguide/tutorial/extraProperties/groovy",files="build.gradle[tags=extraProperties]"]
+include::sample[dir="snippets/userguide/tutorial/extraProperties/kotlin",files="build.gradle.kts[tags=extraProperties]"]
 
 .Output of **`gradle -q printProperties`**
 ----
@@ -166,8 +166,8 @@ You can configure arbitrary objects in the following very readable way.
 
 .Configuring arbitrary objects
 ====
-include::sample[dir="userguide/tutorial/configureObject/groovy",files="build.gradle[]"]
-include::sample[dir="userguide/tutorial/configureObject/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/userguide/tutorial/configureObject/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/userguide/tutorial/configureObject/kotlin",files="build.gradle.kts[]"]
 
 .Output of **`gradle -q configure`**
 ----
@@ -190,7 +190,7 @@ See link:https://github.com/gradle/kotlin-dsl/issues/659[gradle/kotlin-dsl#659] 
 
 .Configuring arbitrary objects using a script
 ====
-include::sample[dir="userguide/tutorial/configureObjectUsingScript/groovy",files="build.gradle[];other.gradle[]"]
+include::sample[dir="snippets/userguide/tutorial/configureObjectUsingScript/groovy",files="build.gradle[];other.gradle[]"]
 
 .Output of `gradle -q configure`
 ----
@@ -215,7 +215,7 @@ Groovy adds lots of useful methods to the standard Java classes. For example, `I
 
 .Groovy JDK methods
 ====
-include::sample[dir="userguide/tutorial/groovy",files="build.gradle[tags=groovyJdk]"]
+include::sample[dir="snippets/userguide/tutorial/groovy",files="build.gradle[tags=groovyJdk]"]
 ====
 
 Have a look at https://groovy-lang.org/gdk.html[] for more details.
@@ -227,7 +227,7 @@ Groovy automatically converts a property reference into a call to the appropriat
 
 .Property accessors
 ====
-include::sample[dir="userguide/tutorial/groovy",files="build.gradle[tags=propertyAccessors]"]
+include::sample[dir="snippets/userguide/tutorial/groovy",files="build.gradle[tags=propertyAccessors]"]
 ====
 
 [[sec:optional_parentheses_on_method_calls]]
@@ -237,7 +237,7 @@ Parentheses are optional for method calls.
 
 .Method call without parentheses
 ====
-include::sample[dir="userguide/tutorial/groovy",files="build.gradle[tags=methodCallWithoutParentheses]"]
+include::sample[dir="snippets/userguide/tutorial/groovy",files="build.gradle[tags=methodCallWithoutParentheses]"]
 ====
 
 [[sec:list_and_map_literals]]
@@ -249,7 +249,7 @@ For instance, the “`apply`” method (where you typically apply plugins) actua
 
 .List and map literals
 ====
-include::sample[dir="userguide/tutorial/groovy",files="build.gradle[tags=listAndMapLiterals]"]
+include::sample[dir="snippets/userguide/tutorial/groovy",files="build.gradle[tags=listAndMapLiterals]"]
 ====
 
 [[sec:closures_as_the_last_parameter_in_a_method]]
@@ -259,7 +259,7 @@ The Gradle DSL uses closures in many places. You can find out more about closure
 
 .Closure as method parameter
 ====
-include::sample[dir="userguide/tutorial/groovy",files="build.gradle[tags=closureAsLastParam]"]
+include::sample[dir="snippets/userguide/tutorial/groovy",files="build.gradle[tags=closureAsLastParam]"]
 ====
 
 [[sec:closure_delegate]]
@@ -269,7 +269,7 @@ Each closure has a `delegate` object, which Groovy uses to look up variable and 
 
 .Closure delegates
 ====
-include::sample[dir="userguide/tutorial/groovy",files="build.gradle[tags=closureDelegates]"]
+include::sample[dir="snippets/userguide/tutorial/groovy",files="build.gradle[tags=closureDelegates]"]
 ====
 
 [[script-default-imports]]
