@@ -18,8 +18,8 @@ package org.gradle.api.internal.artifacts.verification;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import org.gradle.api.InvalidUserDataException;
 import com.google.common.collect.Sets;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.verification.model.ArtifactVerificationMetadata;
@@ -79,6 +79,10 @@ public class DependencyVerifierBuilder {
             builder.put(entry.getKey(), entry.getValue().build());
         }
         return new DependencyVerifier(builder.build(), new DependencyVerificationConfiguration(isVerifyMetadata, trustedArtifacts));
+    }
+
+    public List<DependencyVerificationConfiguration.TrustedArtifact> getTrustedArtifacts() {
+        return trustedArtifacts;
     }
 
     private static class ComponentVerificationsBuilder {

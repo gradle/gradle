@@ -1056,4 +1056,87 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         }
     }
 
+    def "skips writing checksums for artifacts declared as trusted"() {
+        given:
+        createMetadataFile {
+            trust("org", "bar")
+        }
+        javaLibrary()
+        uncheckedModule("org", "foo")
+        uncheckedModule("org", "bar")
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+                implementation "org:bar:1.0"
+            }
+        """
+
+        when:
+        writeVerificationMetadata()
+        run ":compileJava"
+
+        then:
+        hasModules(["org:foo"])
+        module("org:foo") {
+            artifact("foo-1.0.jar") {
+                declaresChecksums(
+                    sha1: "16e066e005a935ac60f06216115436ab97c5da02",
+                    sha512: "734fce768f0e1a3aec423cb4804e5cdf343fd317418a5da1adc825256805c5cad9026a3e927ae43ecc12d378ce8f45cc3e16ade9114c9a147fda3958d357a85b"
+                )
+            }
+            artifact("foo-1.0.pom") {
+                declaresChecksums(
+                    sha1: "85a7b8a2eb6bb1c4cdbbfe5e6c8dc3757de22c02",
+                    sha512: "3d890ff72a2d6fcb2a921715143e6489d8f650a572c33070b7f290082a07bfc4af0b64763bcf505e1c07388bc21b7d5707e50a3952188dc604814e09387fbbfe"
+                )
+            }
+        }
+    }
+
+    def "skips writing checksums for artifacts declared as trusted unless they were already in the file"() {
+        given:
+        createMetadataFile {
+            addChecksum("org:bar:1.1", "md5", "abc")
+            trust("org", "bar")
+        }
+        javaLibrary()
+        uncheckedModule("org", "foo")
+        uncheckedModule("org", "bar")
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+                implementation "org:bar:1.0"
+            }
+        """
+
+        when:
+        writeVerificationMetadata()
+        run ":compileJava"
+
+        then:
+        hasModules(["org:foo", "org:bar"])
+        module("org:foo") {
+            artifact("foo-1.0.jar") {
+                declaresChecksums(
+                    sha1: "16e066e005a935ac60f06216115436ab97c5da02",
+                    sha512: "734fce768f0e1a3aec423cb4804e5cdf343fd317418a5da1adc825256805c5cad9026a3e927ae43ecc12d378ce8f45cc3e16ade9114c9a147fda3958d357a85b"
+                )
+            }
+            artifact("foo-1.0.pom") {
+                declaresChecksums(
+                    sha1: "85a7b8a2eb6bb1c4cdbbfe5e6c8dc3757de22c02",
+                    sha512: "3d890ff72a2d6fcb2a921715143e6489d8f650a572c33070b7f290082a07bfc4af0b64763bcf505e1c07388bc21b7d5707e50a3952188dc604814e09387fbbfe"
+                )
+            }
+        }
+        hasNoModule("org:bar:1.0")
+        module("org:bar:1.1") {
+            artifact("bar-1.1.jar") {
+                declaresChecksums(
+                    md5: "abc"
+                )
+            }
+        }
+    }
+
 }

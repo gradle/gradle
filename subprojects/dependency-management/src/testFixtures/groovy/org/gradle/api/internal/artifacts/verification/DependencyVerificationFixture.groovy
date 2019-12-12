@@ -104,6 +104,19 @@ class DependencyVerificationFixture {
         }
     }
 
+    void hasNoModule(String id) {
+        withVerifier {
+            def list = id.split(":")
+            def group = list[0]
+            def name = list[1]
+            def version = list.size() == 3 ? list[2] : "1.0"
+            def md = verificationMetadata.find {
+                it.componentId.group == group && it.componentId.module == name && it.componentId.version == version
+            }
+            assert md == null : "Didn't expect module $id to be present but it was"
+        }
+    }
+
     static class ComponentVerification {
         private final ComponentVerificationMetadata metadata
 
