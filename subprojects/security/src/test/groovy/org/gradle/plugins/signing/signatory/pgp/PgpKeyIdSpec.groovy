@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,33 +19,33 @@ package org.gradle.plugins.signing.signatory.pgp
 import spock.lang.*
 
 class PgpKeyIdSpec extends Specification  {
-    
+
     protected key(arg) {
         new PgpKeyId(arg)
     }
-    
+
     def "conversion is symmetrical"() {
         expect:
         key("ABCDABCD").asHex == "ABCDABCD"
     }
-    
+
     @Unroll
     def "conversion"() {
         expect:
         key(hex).asLong == decimal
         key(decimal).asHex == hex
-        
+
         where:
         hex        | decimal
         "AAAAAAAA" | 2863311530
         "DA124B92" | 3658632082
     }
-    
+
     def "equals impl"() {
         expect:
         key("AAAAAAAA") == key(2863311530)
     }
-    
+
     def "comparison"() {
         expect:
         key("00000000") < key("00000001")

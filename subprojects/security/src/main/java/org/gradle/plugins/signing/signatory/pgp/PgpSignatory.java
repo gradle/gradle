@@ -41,7 +41,7 @@ import java.security.Security;
  */
 public class PgpSignatory extends SignatorySupport {
 
-    {
+    static {
         Security.addProvider(new BouncyCastleProvider());
     }
 

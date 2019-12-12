@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.signing.type
+package org.gradle.plugins.signing.type.type
 
-import spock.lang.*
+import org.gradle.plugins.signing.type.AbstractSignatureType
+import spock.lang.Specification
 
 class AbstractSignatureTypeSpec extends Specification {
 
@@ -26,25 +27,25 @@ class AbstractSignatureTypeSpec extends Specification {
     def "fileFor"() {
         when:
         def input = new File(path)
-        
+
         then:
         type.fileFor(input) == new File(input.path + ".$extension")
-        
+
         where:
         path << ["some.txt", "/absolute/some.txt", "relative/some.txt"]
     }
-    
+
     def "combined extension"() {
         expect:
         type.combinedExtension(new File(name)) == expected
-        
+
         where:
         name          | expected
-        "pom.xml"     | "xml.$extension" 
+        "pom.xml"     | "xml.$extension"
         "pom"         | extension
         "pom.xml.zip" | "zip.$extension"
         ""            | extension
     }
 
-    
+
 }
