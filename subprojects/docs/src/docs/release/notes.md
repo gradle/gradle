@@ -51,12 +51,6 @@ Gradle now supports compiling Groovy code with [method parameter names](https://
 
 This was contributed by [Andrew Malyhin](https://github.com/katoquro).
 
-## Features for Gradle tooling providers
-
-### `TestLauncher` can select specific methods
-
-The `TestLauncher` interface in the Tooling API is capable of launching tests by specifying the name of the test classes or methods. If there are multiple test tasks contain those test classes/methods, then all tasks are executed. This is not ideal for IDEs: developers usually want to execute only one test variant at the time. To overcome this, Gradle 6.1 introduces the `withTaskAndTestClasses()` and `withTaskAndTestMethods()` methods.
-
 ## Improvements for plugin authors
 
 ### Finalize property value only when the value is queried
@@ -93,6 +87,12 @@ These metehods create certain Gradle types that could only be created using inte
 - The [`namedDomainObjectList()`](javadoc/org/gradle/api/model/ObjectFactory.html#namedDomainObjectList-java.lang.Class-) method to create [`NamedDomainObjectList<T>`](javadoc/org/gradle/api/NamedDomainObjectList.html) instances.
 
 Please see the [user manual](userguide/custom_gradle_types.html#collection_types) for more details.
+
+## Features for Gradle tooling providers
+
+### `TestLauncher` can select specific methods
+
+The `TestLauncher` interface in the Tooling API is capable of launching tests by specifying the name of the test classes or methods. If there are multiple test tasks contain those test classes/methods, then all tasks are executed. This is not ideal for IDEs: developers usually want to execute only one test variant at the time. To overcome this, Gradle 6.1 introduces the `withTaskAndTestClasses()` and `withTaskAndTestMethods()` methods.
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
