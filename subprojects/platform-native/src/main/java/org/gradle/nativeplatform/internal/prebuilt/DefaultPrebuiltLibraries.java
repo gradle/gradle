@@ -63,8 +63,12 @@ public class DefaultPrebuiltLibraries extends AbstractNamedDomainObjectContainer
     @Override
     public PrebuiltLibrary resolveLibrary(String name) {
         PrebuiltLibrary library = findByName(name);
-        if (library != null && library.getBinaries().isEmpty()) {
-            libraryInitializer.execute(library);
+        if (library != null) {
+            synchronized (library.getBinaries()) {
+                if (library.getBinaries().isEmpty()) {
+                    libraryInitializer.execute(library);
+                }
+            }
         }
         return library;
     }
