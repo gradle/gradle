@@ -69,7 +69,14 @@ public class DependencyVerifier {
             Optional<VerificationFailure> verificationFailure = verificationCache.get(file, () -> {
                 return performVerification(buildOperationExecutor, foundArtifact, checksumService, file);
             });
-            verificationFailure.ifPresent(f -> onFailure.execute(f));
+            verificationFailure.ifPresent(f -> {
+                // In order to avoid going through the list for every artifact, we only
+                // check if it's trusted if an error is thrown
+                if (isTrustedArtifact(foundArtifact)) {
+                    return;
+                }
+                onFailure.execute(f);
+            });
         } catch (ExecutionException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
@@ -79,6 +86,10 @@ public class DependencyVerifier {
         if (kind == ArtifactVerificationOperation.ArtifactKind.METADATA && !config.isVerifyMetadata()) {
             return true;
         }
+        return false;
+    }
+
+    private boolean isTrustedArtifact(ModuleComponentArtifactIdentifier id) {
         if (config.getTrustedArtifacts().stream().anyMatch(artifact -> artifact.isTrusted(id))) {
             return true;
         }
