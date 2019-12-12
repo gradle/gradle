@@ -119,7 +119,11 @@ data class CIBuildModel(
             runsIndependent = true,
             functionalTests = listOf(
                 TestCoverage(27, TestType.vfsRetention, Os.linux, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor),
-                TestCoverage(28, TestType.vfsRetention, Os.linux, JvmCategory.MAX_VERSION.version, vendor = JvmCategory.MAX_VERSION.vendor)))
+                TestCoverage(28, TestType.vfsRetention, Os.linux, JvmCategory.MAX_VERSION.version, vendor = JvmCategory.MAX_VERSION.vendor),
+                TestCoverage(29, TestType.vfsRetention, Os.windows, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor),
+                TestCoverage(30, TestType.vfsRetention, Os.windows, JvmCategory.MAX_VERSION.version, vendor = JvmCategory.MAX_VERSION.vendor),
+                TestCoverage(31, TestType.vfsRetention, Os.macos, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor),
+                TestCoverage(32, TestType.vfsRetention, Os.macos, JvmCategory.MAX_VERSION.version, vendor = JvmCategory.MAX_VERSION.vendor)))
         ),
 
     val subProjects: List<GradleSubproject> = listOf(
