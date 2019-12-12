@@ -34,54 +34,44 @@ class InstantExecutionSantaTrackerIntegrationTest extends AbstractInstantExecuti
     }
 
     @Unroll
-    def "assembleDebug --dry-run on Santa Tracker #flavor"() {
+    def "assembleDebug up-to-date on Santa Tracker #flavor"() {
 
         given:
         copyRemoteProject(remoteProject)
         withAgpNightly()
 
-
-
         when:
-        instantRun ':santa-tracker:assembleDebug', '--dry-run', '--no-build-cache'
+        instantRun("assembleDebug", "--no-build-cache")
 
         then:
-        instantRun ':santa-tracker:assembleDebug', '--dry-run', '--no-build-cache'
+        instantRun("assembleDebug", "--no-build-cache")
 
         where:
         flavor | remoteProject
         'Java' | "santaTrackerJava"
-        // 'Kotlin' | "santaTrackerKotlin" // TODO:instant-execution Instant execution state could not be cached.
+        // 'Kotlin' | "santaTrackerKotlin" // TODO:instant-execution Kotlin 1.3.70
     }
 
-    def "assembleDebug up-to-date on Santa Tracker Java"() {
+    @Unroll
+    def "clean assembleDebug on Santa Tracker #flavor"() {
+
         given:
-        copyRemoteProject("santaTrackerJava")
+        copyRemoteProject(remoteProject)
         withAgpNightly()
 
         when:
-        instantRun("assembleDebug", "--no-build-cache")
-
-        then:
-        instantRun("assembleDebug", "--no-build-cache")
-    }
-
-    def "supported tasks clean assembleDebug on Santa Tracker Java"() {
-
-        given:
-        copyRemoteProject("santaTrackerJava")
-        withAgpNightly()
-
-        when:
-        executer.expectDeprecationWarning() // Coming from Android plugin
         instantRun("assembleDebug", "--no-build-cache")
 
         and:
-        executer.expectDeprecationWarning() // Coming from Android plugin
         run 'clean'
 
         then:
         // Instant execution avoid registering the listener inside Android plugin
         instantRun("assembleDebug", "--no-build-cache")
+
+        where:
+        flavor | remoteProject
+        'Java' | "santaTrackerJava"
+        // 'Kotlin' | "santaTrackerKotlin" // TODO:instant-execution Kotlin 1.3.70
     }
 }

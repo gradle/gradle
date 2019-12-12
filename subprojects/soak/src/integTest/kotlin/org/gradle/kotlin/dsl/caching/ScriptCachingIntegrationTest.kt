@@ -34,7 +34,6 @@ import org.gradle.kotlin.dsl.execution.ProgramSource
 import org.gradle.kotlin.dsl.execution.ProgramTarget
 import org.gradle.kotlin.dsl.fixtures.DeepThought
 import org.gradle.soak.categories.SoakTest
-import org.junit.Ignore
 import org.junit.Test
 import org.junit.experimental.categories.Category
 import java.util.UUID
@@ -223,7 +222,7 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
         }
     }
 
-    @Test @Ignore
+    @Test
     fun `in-memory script class loading cache releases memory of unused entries`() {
 
         // given: buildSrc memory hog

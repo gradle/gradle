@@ -44,31 +44,31 @@ abstract class AbstractSmokeTest extends Specification {
          */
 
         // https://plugins.gradle.org/plugin/nebula.dependency-recommender
-        static nebulaDependencyRecommender = "8.0.1"
+        static nebulaDependencyRecommender = "9.0.1"
 
         // https://plugins.gradle.org/plugin/nebula.plugin-plugin
-        static nebulaPluginPlugin = "12.4.1"
+        static nebulaPluginPlugin = "13.3.0"
 
         // https://plugins.gradle.org/plugin/nebula.lint
-        static nebulaLint = "14.2.0"
+        static nebulaLint = "16.0.2"
 
         // https://plugins.gradle.org/plugin/nebula.dependency-lock
-        static nebulaDependencyLock = Versions.of("4.9.5", "5.0.6", "6.0.0", "7.0.1", "7.1.2", "7.3.4", "7.6.7", "8.0.0")
+        static nebulaDependencyLock = Versions.of("4.9.5", "5.0.6", "6.0.0", "7.0.1", "7.1.2", "7.3.4", "7.6.7", "8.0.0", "8.3.0")
 
         // https://plugins.gradle.org/plugin/nebula.resolution-rules
-        static nebulaResolutionRules = "7.4.1"
+        static nebulaResolutionRules = "7.4.2"
 
         // https://plugins.gradle.org/plugin/com.github.johnrengelman.shadow
-        static shadow = Versions.of("4.0.4", "5.1.0")
+        static shadow = Versions.of("4.0.4", "5.2.0")
 
         // https://github.com/asciidoctor/asciidoctor-gradle-plugin/releases
         static asciidoctor = "2.3.0"
 
         // https://plugins.gradle.org/plugin/com.github.spotbugs
-        static spotbugs = "2.0.0"
+        static spotbugs = "3.0.0"
 
         // https://plugins.gradle.org/plugin/com.bmuschko.docker-java-application
-        static docker = "5.0.0"
+        static docker = "6.0.0"
 
         // https://plugins.gradle.org/plugin/com.bmuschko.tomcat
         static tomcat = "2.5"
@@ -77,7 +77,7 @@ abstract class AbstractSmokeTest extends Specification {
         static springDependencyManagement = "1.0.8.RELEASE"
 
         // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-gradle-plugin
-        static springBoot = "2.1.8.RELEASE"
+        static springBoot = "2.2.2.RELEASE"
 
         // https://developer.android.com/studio/releases/build-tools
         static androidTools = "29.0.2"
@@ -88,7 +88,7 @@ abstract class AbstractSmokeTest extends Specification {
         static kotlin = Versions.of('1.3.21', '1.3.31', '1.3.41', '1.3.50', '1.3.61')
 
         // https://plugins.gradle.org/plugin/org.gretty
-        static gretty = "2.3.1"
+        static gretty = "3.0.1"
 
         // https://plugins.gradle.org/plugin/com.eriwen.gradle.js
         static gradleJs = "2.14.1"
@@ -97,16 +97,16 @@ abstract class AbstractSmokeTest extends Specification {
         static gradleCss = "2.14.0"
 
         // https://plugins.gradle.org/plugin/org.ajoberstar.grgit
-        static grgit = "3.1.1"
+        static grgit = "4.0.0"
 
         // https://plugins.gradle.org/plugin/com.github.ben-manes.versions
-        static gradleVersions = "0.25.0"
+        static gradleVersions = "0.27.0"
 
         // https://plugins.gradle.org/plugin/org.gradle.playframework
         static playframework = "0.9"
 
         // https://plugins.gradle.org/plugin/net.ltgt.errorprone
-        static errorProne = "0.8.1"
+        static errorProne = "1.1.1"
 
         // https://plugins.gradle.org/plugin/com.google.protobuf
         static protobufPlugin = "0.8.10"
