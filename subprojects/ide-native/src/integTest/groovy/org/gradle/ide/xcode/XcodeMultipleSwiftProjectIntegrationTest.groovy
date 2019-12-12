@@ -472,7 +472,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
         sharedLib("log/build/lib/main/debug/Log").assertExists()
     }
 
-    @Ignore
+    @Ignore("https://github.com/gradle/gradle-native-private/issues/274")
     @ToBeFixedForInstantExecution
     def "can create xcode project for Swift application inside composite build"() {
         requireSwiftToolChain()
