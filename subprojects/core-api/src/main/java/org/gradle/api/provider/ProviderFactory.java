@@ -18,6 +18,7 @@ package org.gradle.api.provider;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.file.RegularFile;
 
 import java.util.concurrent.Callable;
 
@@ -61,6 +62,34 @@ public interface ProviderFactory {
      */
     @Incubating
     Provider<String> systemProperty(Provider<String> propertyName);
+
+    /**
+     * Allows lazy access to the contents of the given file.
+     *
+     * When the file contents are read at configuration time the file is automatically considered
+     * as an input to the configuration model.
+     *
+     * @param file the file
+     * @return
+     *
+     * @since 6.1
+     */
+    @Incubating
+    FileContents fileContents(RegularFile file);
+
+    /**
+     * Allows lazy access to the contents of the given file.
+     *
+     * When the file contents are read at configuration time the file is automatically considered
+     * as an input to the configuration model.
+     *
+     * @param file the file
+     * @return
+     *
+     * @since 6.1
+     */
+    @Incubating
+    FileContents fileContents(Provider<RegularFile> file);
 
     /**
      * Creates a {@link Provider} whose value is obtained from the given {@link ValueSource}.

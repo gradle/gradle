@@ -17,7 +17,11 @@
 package org.gradle.api.internal.provider;
 
 import org.gradle.api.Action;
+import org.gradle.api.file.RegularFile;
+import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.internal.provider.sources.FileTextValueSource;
 import org.gradle.api.internal.provider.sources.SystemPropertyValueSource;
+import org.gradle.api.provider.FileContents;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.provider.ValueSource;
@@ -59,6 +63,28 @@ public class DefaultProviderFactory implements ProviderFactory {
             SystemPropertyValueSource.class,
             spec -> spec.getParameters().getPropertyName().set(propertyName)
         );
+    }
+
+    @Override
+    public FileContents fileContents(RegularFile file) {
+        return fileContents(property -> property.set(file));
+    }
+
+    @Override
+    public FileContents fileContents(Provider<RegularFile> file) {
+        return fileContents(property -> property.set(file));
+    }
+
+    private FileContents fileContents(Action<RegularFileProperty> setFileProperty) {
+        return new FileContents() {
+            @Override
+            public Provider<String> getAsText() {
+                return of(
+                    FileTextValueSource.class,
+                    spec -> setFileProperty.execute(spec.getParameters().getFile())
+                );
+            }
+        };
     }
 
     @Override

@@ -243,4 +243,67 @@ class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecuti
         "isCi.map(String::toBoolean).getOrElse(false)" | "value"
         "isCi.isPresent"                               | "presence"
     }
+
+    @Unroll
+    def "file contents #usage used as build logic input"() {
+
+        given:
+        def instant = newInstantExecutionFixture()
+        buildKotlinFile """
+            val ciFile = layout.projectDirectory.file("ci")
+            val isCi = providers.fileContents(ciFile).asText
+            if ($expression) {
+                tasks.register("run") {
+                    doLast { println("ON CI") }
+                }
+            } else {
+                tasks.register("run") {
+                    doLast { println("NOT CI") }
+                }
+            }
+        """
+
+        when:
+        instantRun "run"
+
+        then:
+        output.count("NOT CI") == 1
+        instant.assertStateStored()
+
+        when:
+        instantRun "run"
+
+        then:
+        output.count("NOT CI") == 1
+        instant.assertStateLoaded()
+
+        when:
+        file("ci").text = "true"
+        instantRun "run"
+
+        then:
+        output.count("ON CI") == 1
+        instant.assertStateStored()
+
+        when: "file is touched but unchanged"
+        file("ci").text = "true"
+        instantRun "run"
+
+        then: "cache is still valid"
+        output.count("ON CI") == 1
+        instant.assertStateLoaded()
+
+        when: "file is changed"
+        file("ci").text = "false"
+        instantRun "run"
+
+        then: "cache is NO longer valid"
+        output.count(usage == "presence" ? "ON CI" : "NOT CI") == 1
+        instant.assertStateStored()
+
+        where:
+        expression                                     | usage
+        "isCi.map(String::toBoolean).getOrElse(false)" | "value"
+        "isCi.isPresent"                               | "presence"
+    }
 }
