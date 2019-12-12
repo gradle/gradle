@@ -126,6 +126,7 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
 
     @Unroll
     @Requires(KOTLIN_SCRIPT)
+    @ToBeFixedForInstantExecution
     def 'kotlin #kotlinVersion and groovy plugins combined'() {
         given:
         buildFile << """
