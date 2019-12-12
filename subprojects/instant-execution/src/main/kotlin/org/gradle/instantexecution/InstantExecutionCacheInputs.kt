@@ -48,7 +48,7 @@ class InstantExecutionCacheInputs(
         obtainedValue: ValueSourceProviderFactory.Listener.ObtainedValue<T, P>
     ) {
         when (val parameters = obtainedValue.valueSourceParameters) {
-            is FileContentValueSource.Parameters -> { // TODO: consider making this a more general interface
+            is FileContentValueSource.Parameters -> {
                 parameters.file.orNull?.asFile?.let { file ->
                     // TODO - consider the potential race condition in computing the hash code here
                     inputFiles.add(
