@@ -34,7 +34,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class DarwinFileWatcherRegistry implements FileWatcherRegistry {
-
     private static final Logger LOGGER = LoggerFactory.getLogger(DarwinFileWatcherRegistry.class);
 
     private final FileWatcher watcher;
