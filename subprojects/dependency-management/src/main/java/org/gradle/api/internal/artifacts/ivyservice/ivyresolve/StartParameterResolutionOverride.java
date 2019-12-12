@@ -81,7 +81,7 @@ public class StartParameterResolutionOverride {
         List<String> checksums = startParameter.getWriteDependencyVerifications();
         if (!checksums.isEmpty()) {
             SingleMessageLogger.incubatingFeatureUsed("Dependency verification");
-            return new WriteDependencyVerificationFile(currentDir, buildOperationExecutor, checksums, checksumService);
+            return new WriteDependencyVerificationFile(currentDir, buildOperationExecutor, checksums, checksumService, startParameter.isDryRun());
         } else {
             File verificationsFile = DependencyVerificationOverride.dependencyVerificationsFile(currentDir);
             if (verificationsFile.exists()) {

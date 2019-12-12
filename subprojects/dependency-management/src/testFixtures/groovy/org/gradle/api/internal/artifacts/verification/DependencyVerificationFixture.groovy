@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.verification
 
+import com.google.common.io.Files
 import groovy.transform.CompileStatic
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.verification.model.ArtifactVerificationMetadata
@@ -30,11 +31,13 @@ import org.gradle.util.TextUtil
 @CompileStatic
 class DependencyVerificationFixture {
     private final File verificationFile
+    private final File dryRunVerificationFile
 
     private DependencyVerifier verifier
 
     DependencyVerificationFixture(File verificationFile) {
         this.verificationFile = verificationFile
+        this.dryRunVerificationFile = new File(verificationFile.parentFile, "${Files.getNameWithoutExtension(verificationFile.name)}.dryrun.xml")
     }
 
     void assertMetadataExists() {
@@ -65,6 +68,11 @@ class DependencyVerificationFixture {
 
     void assertXmlContents(String expected) {
         def actualContents = TextUtil.normaliseLineSeparators(verificationFile.text)
+        assert actualContents == expected
+    }
+
+    void assertDryRunXmlContents(String expected) {
+        def actualContents = TextUtil.normaliseLineSeparators(dryRunVerificationFile.text)
         assert actualContents == expected
     }
 
