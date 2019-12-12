@@ -146,8 +146,43 @@ property.set(provider)
 
 assert property.get() == 1 
 assert property.get() == 2 
+
 property.finalizeValue()
+
+assert counter == 3 // is eager
 assert property.get() == 3 
+
+counter = 45
+assert property.get() == 3 
+
+property.set(12)
+"""
+
+        when:
+        fails()
+
+        then:
+        failure.assertHasCause("The value for this property is final and cannot be changed any further.")
+    }
+
+    def "can finalize the value of a property on next read using API"() {
+        given:
+        buildFile << """
+Integer counter = 0
+def provider = providers.provider { ++counter }
+
+def property = objects.property(Integer)
+property.set(provider)
+
+assert property.get() == 1 
+assert property.get() == 2 
+
+property.finalizeValueOnRead()
+
+assert counter == 2 // is lazy
+assert property.get() == 3
+ 
+counter = 45
 assert property.get() == 3 
 
 property.set(12)

@@ -81,11 +81,7 @@ public class RecompilationSpec {
     private static class NormalizingClassNamesSet extends LinkedHashSet<String> {
         @Override
         public boolean add(String className) {
-            int idx = className.indexOf('$');
-            if (idx > 0) {
-                className = className.substring(0, idx);
-            }
-            return super.add(className);
+            return super.add(maybeClassName(className));
         }
 
         @Override
@@ -96,5 +92,39 @@ public class RecompilationSpec {
             }
             return added;
         }
+    }
+
+    /**
+     * Given a class name, try to extract the file name portion of it.
+     *
+     * TODO: This is unreliable since there's not a strong connection between
+     * the name of a class and the name of the file that needs recompilation.
+     *
+     * For some languages, the compiler can provide this.  We should be doing that
+     * here instead of guessing.
+     */
+    static String maybeClassName(String fullyQualifiedName) {
+        final String packageName;
+        final String className;
+        int packageIdx = fullyQualifiedName.lastIndexOf('.');
+        if (packageIdx > 0) {
+            // com.example.<classname>
+            packageName = fullyQualifiedName.substring(0, packageIdx+1);
+            className = fullyQualifiedName.substring(packageIdx+1);
+        } else {
+            // must be in the default package?
+            packageName = "";
+            className = fullyQualifiedName;
+        }
+
+        final String guessClassName;
+        int innerClassIdx = className.indexOf('$');
+        if (innerClassIdx > 1) {
+            // Classes can start with a $
+            guessClassName = className.substring(0, innerClassIdx);
+        } else {
+            guessClassName = className;
+        }
+        return packageName + guessClassName;
     }
 }

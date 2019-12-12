@@ -41,21 +41,6 @@ class InstantExecutionAndroidIntegrationTest extends AbstractInstantExecutionAnd
         instantExecution = newInstantExecutionFixture()
     }
 
-    def "android 3.6 minimal build assembleDebug --dry-run"() {
-
-        when:
-        instantRun("assembleDebug", "--dry-run")
-
-        then:
-        instantExecution.assertStateStored()
-
-        when:
-        instantRun("assembleDebug", "--dry-run")
-
-        then:
-        instantExecution.assertStateLoaded()
-    }
-
     def "android 3.6 minimal build assembleDebug up-to-date"() {
         when:
         instantRun("assembleDebug")
@@ -78,7 +63,6 @@ class InstantExecutionAndroidIntegrationTest extends AbstractInstantExecutionAnd
         instantExecution.assertStateStored()
 
         when:
-        executer.expectDeprecationWarning("Internal API constructor DefaultDomainObjectSet(Class<T>) has been deprecated. This is scheduled to be removed in Gradle 7.0. Please use ObjectFactory.domainObjectSet(Class<T>) instead.")
         run 'clean'
         instantRun("assembleDebug")
 

@@ -153,6 +153,6 @@ public interface HasMultipleValues<T> extends HasConfigurableValue {
      *
      * @since 5.0
      */
-    @Incubating
+    @Incubating @Override
     void finalizeValue();
 }
