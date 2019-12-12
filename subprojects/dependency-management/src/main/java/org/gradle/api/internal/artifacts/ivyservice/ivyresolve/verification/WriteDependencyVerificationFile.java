@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import com.google.common.io.Files;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ArtifactView;
@@ -72,12 +73,14 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
     private final ChecksumService checksumService;
     private final File verificationFile;
     private final AtomicBoolean initialized = new AtomicBoolean();
+    private final boolean isDryRun;
 
-    public WriteDependencyVerificationFile(File buildDirectory, BuildOperationExecutor buildOperationExecutor, List<String> checksums, ChecksumService checksumService) {
+    public WriteDependencyVerificationFile(File buildDirectory, BuildOperationExecutor buildOperationExecutor, List<String> checksums, ChecksumService checksumService, boolean isDryRun) {
         this.buildOperationExecutor = buildOperationExecutor;
         this.checksums = validateChecksums(checksums);
         this.checksumService = checksumService;
         this.verificationFile = DependencyVerificationOverride.dependencyVerificationsFile(buildDirectory);
+        this.isDryRun = isDryRun;
     }
 
     private List<String> validateChecksums(List<String> checksums) {
@@ -129,9 +132,13 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
     }
 
     private void serializeResult() throws IOException {
+        File out = verificationFile;
+        if (isDryRun) {
+            out = new File(verificationFile.getParent(), Files.getNameWithoutExtension(verificationFile.getName()) + ".dryrun.xml");
+        }
         DependencyVerificationsXmlWriter.serialize(
             verificationsBuilder.build(),
-            new FileOutputStream(verificationFile)
+            new FileOutputStream(out)
         );
     }
 
