@@ -251,7 +251,7 @@ class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecuti
         def instant = newInstantExecutionFixture()
         buildKotlinFile """
             val ciFile = layout.projectDirectory.file("ci")
-            val isCi = providers.fileContents(ciFile).asText
+            val isCi = providers.fileContents(ciFile)
             if ($expression) {
                 tasks.register("run") {
                     doLast { println("ON CI") }
@@ -298,12 +298,14 @@ class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecuti
         instantRun "run"
 
         then: "cache is NO longer valid"
-        output.count(usage == "presence" ? "ON CI" : "NOT CI") == 1
+        output.count(usage.endsWith("presence") ? "ON CI" : "NOT CI") == 1
         instant.assertStateStored()
 
         where:
-        expression                                     | usage
-        "isCi.map(String::toBoolean).getOrElse(false)" | "value"
-        "isCi.isPresent"                               | "presence"
+        expression                                                     | usage
+        "isCi.asText.map(String::toBoolean).getOrElse(false)"          | "text"
+        "isCi.asText.isPresent"                                        | "text presence"
+        "isCi.asBytes.map { String(it).toBoolean() }.getOrElse(false)" | "bytes"
+        "isCi.asBytes.isPresent"                                       | "bytes presence"
     }
 }

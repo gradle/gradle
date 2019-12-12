@@ -17,7 +17,7 @@
 package org.gradle.instantexecution
 
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
-import org.gradle.api.internal.provider.sources.FileTextValueSource
+import org.gradle.api.internal.provider.sources.FileContentValueSource
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.instantexecution.extensions.uncheckedCast
 import org.gradle.internal.hash.HashCode
@@ -35,7 +35,10 @@ class InstantExecutionCacheInputs(
 ) : ValueSourceProviderFactory.Listener {
 
     internal
-    data class InputFile(val file: File, val hashCode: HashCode?)
+    data class InputFile(
+        val file: File,
+        val hashCode: HashCode?
+    )
 
     val inputFiles = mutableListOf<InputFile>()
 
@@ -45,8 +48,9 @@ class InstantExecutionCacheInputs(
         obtainedValue: ValueSourceProviderFactory.Listener.ObtainedValue<T, P>
     ) {
         when (val parameters = obtainedValue.valueSourceParameters) {
-            is FileTextValueSource.Parameters -> { // TODO: consider making this a more general interface
+            is FileContentValueSource.Parameters -> { // TODO: consider making this a more general interface
                 parameters.file.orNull?.asFile?.let { file ->
+                    // TODO - consider the potential race condition in computing the hash code here
                     inputFiles.add(
                         InputFile(file, virtualFileSystem.hashCodeOf(file))
                     )

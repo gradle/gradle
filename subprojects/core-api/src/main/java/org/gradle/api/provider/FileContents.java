@@ -32,4 +32,11 @@ public interface FileContents {
      * @return provider to the entire file contents as a single String.
      */
     Provider<String> getAsText();
+
+    /**
+     * Gets a provider to the entire file contents as a single byte array.
+     *
+     * @return provider to the entire file contents as a single byte array.
+     */
+    Provider<byte[]> getAsBytes();
 }

@@ -19,6 +19,7 @@ package org.gradle.api.internal.provider;
 import org.gradle.api.Action;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.internal.provider.sources.FileBytesValueSource;
 import org.gradle.api.internal.provider.sources.FileTextValueSource;
 import org.gradle.api.internal.provider.sources.SystemPropertyValueSource;
 import org.gradle.api.provider.FileContents;
@@ -81,6 +82,14 @@ public class DefaultProviderFactory implements ProviderFactory {
             public Provider<String> getAsText() {
                 return of(
                     FileTextValueSource.class,
+                    spec -> setFileProperty.execute(spec.getParameters().getFile())
+                );
+            }
+
+            @Override
+            public Provider<byte[]> getAsBytes() {
+                return of(
+                    FileBytesValueSource.class,
                     spec -> setFileProperty.execute(spec.getParameters().getFile())
                 );
             }

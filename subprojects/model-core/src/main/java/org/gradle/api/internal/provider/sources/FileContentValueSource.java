@@ -16,14 +16,28 @@
 
 package org.gradle.api.internal.provider.sources;
 
+import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.provider.ValueSource;
+import org.gradle.api.provider.ValueSourceParameters;
+import org.gradle.api.tasks.InputFile;
+
+import javax.annotation.Nullable;
 import java.io.File;
 
-import static org.gradle.util.GFileUtils.readFile;
+public abstract class FileContentValueSource<T> implements ValueSource<T, FileContentValueSource.Parameters> {
 
-public abstract class FileTextValueSource extends FileContentValueSource<String> {
+    public interface Parameters extends ValueSourceParameters {
 
-    @Override
-    protected String obtainFrom(File file) {
-        return readFile(file);
+        @InputFile
+        RegularFileProperty getFile();
     }
+
+    @Nullable
+    @Override
+    public T obtain() {
+        final File file = getParameters().getFile().get().getAsFile();
+        return file.isFile() ? obtainFrom(file) : null;
+    }
+
+    protected abstract T obtainFrom(File file);
 }
