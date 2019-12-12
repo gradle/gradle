@@ -31,6 +31,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class DarwinFileWatcherRegistry implements FileWatcherRegistry {
@@ -46,7 +47,7 @@ public class DarwinFileWatcherRegistry implements FileWatcherRegistry {
                     .map(Path::toString)
                     .collect(Collectors.toList()),
                 // TODO Figure out a good value for this
-                0.3,
+                300, TimeUnit.MICROSECONDS,
                 (type, path) -> events.add(WatcherEvent.createEvent(type, path))
             );
     }
