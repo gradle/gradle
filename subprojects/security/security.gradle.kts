@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,33 +19,28 @@ plugins {
     `java-library`
 }
 
+description = "Shared classes for projects requiring GPG support"
+
 dependencies {
+    api(project(":coreApi"))
     implementation(project(":baseServices"))
     implementation(project(":logging"))
     implementation(project(":processServices"))
-    implementation(project(":coreApi"))
-    implementation(project(":modelCore"))
-    implementation(project(":core"))
-    implementation(project(":fileCollections"))
-    implementation(project(":plugins"))
-    implementation(project(":dependencyManagement"))
-    implementation(project(":publish"))
-    implementation(project(":maven"))
-    implementation(project(":security"))
 
-    implementation(library("groovy"))
-    implementation(library("slf4j_api"))
-    implementation(library("guava"))
-    implementation(library("inject"))
+    implementation(library("bouncycastle_pgp"))
 
-    testImplementation(project(":ivy"))
+    implementation(library("groovy")) {
+        because("Project.exec() depends on Groovy")
+    }
+
     testImplementation(testFixtures(project(":core")))
-
+    testRuntimeOnly(project(":dependencyManagement"))
+    testRuntimeOnly(project(":workers"))
     testRuntimeOnly(project(":runtimeApiInfo"))
-    testRuntimeOnly(testFixtures(project(":security")))
+
 }
 
 gradlebuildJava {
+    // We need this because org.gradle.internal.nativeintegration.filesystem.Stat is used in workers
     moduleType = ModuleType.CORE
 }
-

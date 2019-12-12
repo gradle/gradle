@@ -13,14 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.signing.signatory.internal.gnupg;
+package org.gradle.security.internal.gnupg;
 
-import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.plugins.signing.signatory.SignatorySupport;
-import org.gradle.process.ExecSpec;
 
 import java.io.File;
 import java.io.InputStream;
@@ -66,15 +64,13 @@ public class GnupgSignatory extends SignatorySupport {
     public void sign(final InputStream input, final OutputStream output) {
         final List<String> arguments = buildArgumentList();
         LOG.info("Invoking {} with arguments: {}", executable, arguments);
-        project.exec(new Action<ExecSpec>() {
-            @Override
-            public void execute(ExecSpec spec) {
+        project.exec(spec -> {
                 spec.setExecutable(executable);
                 spec.setArgs(arguments);
                 spec.setStandardInput(input);
                 spec.setStandardOutput(output);
             }
-        });
+        );
     }
 
     private List<String> buildArgumentList() {

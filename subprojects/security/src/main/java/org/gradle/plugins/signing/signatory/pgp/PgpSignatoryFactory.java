@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,13 +23,14 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 
 import javax.annotation.Nullable;
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import static org.codehaus.groovy.runtime.ResourceGroovyMethods.newInputStream;
 import static org.gradle.internal.Cast.uncheckedCast;
 import static org.gradle.internal.IoActions.uncheckedClose;
 
@@ -127,9 +128,9 @@ public class PgpSignatoryFactory {
 
     private InputStream openSecretKeyFile(File file) {
         try {
-            return newInputStream(file);
+            return new BufferedInputStream(new FileInputStream(file));
         } catch (FileNotFoundException e) {
-            throw new InvalidUserDataException("Unable to retrieve secret key from key ring file \'" + String.valueOf(file) + "\' as it does not exist");
+            throw new InvalidUserDataException("Unable to retrieve secret key from key ring file \'" + file + "\' as it does not exist");
         }
     }
 
@@ -146,7 +147,7 @@ public class PgpSignatoryFactory {
     protected PGPSecretKey readSecretKey(PGPSecretKeyRingCollection keyRings, final PgpKeyId keyId, String sourceDescription) {
         PGPSecretKey key = findSecretKey(keyRings, keyId);
         if (key == null) {
-            throw new InvalidUserDataException("did not find secret key for id \'" + String.valueOf(keyId) + "\' in key source \'" + sourceDescription + "\'");
+            throw new InvalidUserDataException("did not find secret key for id \'" + keyId + "\' in key source \'" + sourceDescription + "\'");
         }
         return key;
     }
