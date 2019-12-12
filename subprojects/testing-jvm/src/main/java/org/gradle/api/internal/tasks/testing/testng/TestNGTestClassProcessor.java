@@ -127,7 +127,7 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
             }
         }
 
-        if (!options.getIncludedTests().isEmpty() || !options.getIncludedTestsCommandLine().isEmpty()) {
+        if (!options.getIncludedTests().isEmpty() || !options.getIncludedTestsCommandLine().isEmpty() || !options.getExcludedTests().isEmpty()) {
             testNg.addListener(new SelectedTestsFilter(options.getIncludedTests(),
                 options.getExcludedTests(), options.getIncludedTestsCommandLine()));
         }
