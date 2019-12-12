@@ -44,6 +44,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
     }
 
     @ToBeFixedForInstantExecution
+    @Ignore("https://github.com/gradle/gradle-native-private/issues/273")
     def "can create xcode project for Swift application"() {
         given:
         buildFile << """
@@ -98,6 +99,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
     }
 
     @ToBeFixedForInstantExecution
+    @Ignore("https://github.com/gradle/gradle-native-private/issues/273")
     def "can create xcode project for Swift application with transitive dependencies"() {
         def app = new SwiftAppWithLibraries()
 
@@ -168,6 +170,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
     }
 
     @ToBeFixedForInstantExecution
+    @Ignore("https://github.com/gradle/gradle-native-private/issues/273")
     def "can create xcode project for Swift application with binary-specific dependencies"() {
         def app = new SwiftAppWithLibraries()
 
@@ -244,6 +247,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
     }
 
     @ToBeFixedForInstantExecution
+    @Ignore("https://github.com/gradle/gradle-native-private/issues/273")
     def "can create xcode project for Swift application with dependency on c++ library"() {
         def cppGreeter = new CppGreeterFunction()
         def swiftGreeter = new SwiftGreeterUsingCppFunction(cppGreeter)
@@ -324,6 +328,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
     }
 
     @ToBeFixedForInstantExecution
+    @Ignore("https://github.com/gradle/gradle-native-private/issues/273")
     def "can create xcode project for Swift application with dependency on a static c++ library"() {
         def cppGreeter = new CppGreeterFunction()
         def swiftGreeter = new SwiftGreeterUsingCppFunction(cppGreeter)
@@ -408,6 +413,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
     }
 
     @ToBeFixedForInstantExecution
+    @Ignore("https://github.com/gradle/gradle-native-private/issues/273")
     def "can clean xcode project with transitive dependencies"() {
         def app = new SwiftAppWithLibraries()
 
