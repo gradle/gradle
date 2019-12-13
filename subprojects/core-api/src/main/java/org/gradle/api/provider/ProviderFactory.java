@@ -18,6 +18,7 @@ package org.gradle.api.provider;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.file.FileContents;
 import org.gradle.api.file.RegularFile;
 
 import java.util.concurrent.Callable;

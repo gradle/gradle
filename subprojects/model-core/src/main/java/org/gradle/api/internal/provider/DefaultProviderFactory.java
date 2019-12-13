@@ -22,7 +22,7 @@ import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.provider.sources.FileBytesValueSource;
 import org.gradle.api.internal.provider.sources.FileTextValueSource;
 import org.gradle.api.internal.provider.sources.SystemPropertyValueSource;
-import org.gradle.api.provider.FileContents;
+import org.gradle.api.file.FileContents;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.provider.ValueSource;

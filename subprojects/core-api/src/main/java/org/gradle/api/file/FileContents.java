@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.provider;
+package org.gradle.api.file;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.provider.Provider;
 
 /**
  * Provides lazy access to the contents of a given file.
