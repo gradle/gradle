@@ -82,6 +82,7 @@ public class GradleDslReferencePlugin implements Plugin<Project> {
         TaskProvider<Docbook2Xhtml> dslHtml = tasks.register("dslHtml", Docbook2Xhtml.class, task -> {
             task.setGroup("documentation");
             task.setDescription("Generates DSL reference HTML documentation.");
+            task.onlyIf(t -> !extension.getQuickFeedback().get());
 
             task.source(dslStandaloneDocbook);
             task.getStylesheetDirectory().convention(dslReference.getStylesheetDirectory());

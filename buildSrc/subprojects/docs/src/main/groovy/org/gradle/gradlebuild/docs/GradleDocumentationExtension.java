@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 
 import javax.inject.Inject;
 
@@ -118,4 +119,12 @@ public abstract class GradleDocumentationExtension {
     public void javadocs(Action<? super Javadocs> action) {
         action.execute(javadocs);
     }
+
+    /**
+     * This property is wired into very slow documentation generation tasks.
+     *
+     * Passing -PquickDocs will disable slow documentation tasks.
+     *
+     */
+    public abstract Property<Boolean> getQuickFeedback();
 }

@@ -56,7 +56,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
         generateDefaultImports(project, tasks, extension);
         generateUserManual(project, tasks, objects, layout, extension);
 
-        checkXrefLinksInUserManualAreValid(layout, tasks, objects, extension);
+        checkXrefLinksInUserManualAreValid(layout, tasks, extension);
     }
 
     // TODO: This doesn't really make sense to be part of the user manual generation, but it's so tied up into it
@@ -109,7 +109,6 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             }
 
             task.setSeparateOutputDirs(false);
-            task.options(Collections.singletonMap("doctype", "book"));
             task.backends("html5");
 
             // TODO: Break the paths assumed here
@@ -120,14 +119,16 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             inputs.dir("src/main/resources")
                     .withPropertyName("resources")
                     .withPathSensitivity(PathSensitivity.RELATIVE);
-            inputs.files(extension.getUserManual().getSnippets())
+            inputs.dir(extension.getUserManual().getSnippets())
                     .withPropertyName("snippets")
                     .withPathSensitivity(PathSensitivity.RELATIVE);
 
-            Map<String, Object> attributes = new HashMap<>();
             // TODO: Break the paths assumed here
-            attributes.put("stylesdir", extension.getUserManual().getStagingRoot().dir("raw/css").get().getAsFile().getAbsolutePath());
+            Map<String, Object> attributes = new HashMap<>();
+            // TODO: This breaks the provider
+            attributes.put("stylesdir", extension.getUserManual().getStagedDocumentation().dir("css").get().getAsFile().getAbsolutePath());
             attributes.put("stylesheet", "manual.css");
+            attributes.put("doctype", "book");
             attributes.put("imagesdir", "img");
             attributes.put("nofooter", true);
             attributes.put("sectanchors", true);
@@ -155,7 +156,8 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             attributes.put("gradleVersion", project.getVersion().toString());
             attributes.put("samplesPath", "snippets");
             // Used by SampleIncludeProcessor from `gradle/dotorg-docs`
-            attributes.put("samples-dir", "src"); // TODO:
+            // TODO: This breaks the provider
+            attributes.put("samples-dir", extension.getUserManual().getStagedDocumentation().get().getAsFile()); // TODO:
             task.attributes(attributes);
         });
 
@@ -176,7 +178,6 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             });
 
             task.from(extension.getUserManual().getSnippets(), sub -> sub.into("snippets"));
-            task.from(extension.getUserManual().getAssembledSamples(), sub -> sub.into("samples"));
             task.from(extension.getCssFiles(), sub -> sub.into("css"));
             task.from(extension.getUserManual().getRoot().dir("img"), sub -> {
                 sub.include("**/*.png", "**/*.gif", "**/*.jpg");
@@ -198,6 +199,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             task.setGroup("documentation");
             task.setDescription("Generates single-page user manual.");
             task.dependsOn(extension.getUserManual().getStagedDocumentation());
+            task.onlyIf(t -> !extension.getQuickFeedback().get());
 
             task.sources(new Closure(null) {
                 public Object doCall(Object ignore) {
@@ -283,7 +285,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
         });
     }
 
-    private void checkXrefLinksInUserManualAreValid(ProjectLayout layout, TaskContainer tasks, ObjectFactory objects, GradleDocumentationExtension extension) {
+    private void checkXrefLinksInUserManualAreValid(ProjectLayout layout, TaskContainer tasks, GradleDocumentationExtension extension) {
         TaskProvider<FindBrokenInternalLinks> checkDeadInternalLinks = tasks.register("checkDeadInternalLinks", FindBrokenInternalLinks.class, task -> {
             task.getReportFile().convention(layout.getBuildDirectory().file("reports/dead-internal-links.txt"));
             task.getDocumentationRoot().convention(extension.getUserManual().getStagedDocumentation());

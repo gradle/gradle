@@ -32,11 +32,6 @@ public abstract class UserManual {
      * Source of snippets that can be inserted into the user manual
      */
     public abstract DirectoryProperty getSnippets();
-    
-    /**
-     * Source of samples that can be included into the user manual
-     */
-    public abstract ConfigurableFileCollection getAssembledSamples();
 
     /**
      * Working directory for staging directory for intermediate user manual files

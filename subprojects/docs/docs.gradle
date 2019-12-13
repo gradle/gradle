@@ -14,9 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import org.asciidoctor.gradle.AsciidoctorTask
+
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
-import org.gradle.samples.Sample
 
 plugins {
     id 'java-library'
@@ -103,9 +102,6 @@ gradleDocumentation {
         javaApi = project.uri("https://docs.oracle.com/javase/8/docs/api")
         groovyApi = project.uri("https://docs.groovy-lang.org/docs/groovy-${groovyVersion}/html/gapi")
         mavenApi = project.uri("https://maven.apache.org/ref/${libraries.maven3.version}/maven-model/apidocs")
-    }
-    userManual {
-        assembledSamples.from(samples.assembledDocumentation)
     }
 }
 
