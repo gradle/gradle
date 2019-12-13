@@ -35,11 +35,11 @@ public interface FileContents {
      * </p>
      * <p>
      * The returned provider won't have a value, i.e., {@link Provider#isPresent} will return {@code false} when:
+     * </p>
      * <ul>
      *     <li>the underlying file does not exist;</li>
      *     <li>this {@link FileContents} is connected to a {@link Provider}{@code <}{@link RegularFile}{@code >} with no value;</li>
      * </ul>
-     * </p>
      * <p>
      *     When the underlying file exists but reading it fails, the ensuing exception is permanently propagated to callers of
      *     {@link Provider#get}, {@link Provider#getOrElse}, {@link Provider#getOrNull} and {@link Provider#isPresent}.
@@ -57,11 +57,11 @@ public interface FileContents {
      * </p>
      * <p>
      * The returned provider won't have a value, i.e., {@link Provider#isPresent} will return {@code false} when:
+     * </p>
      * <ul>
      *     <li>the underlying file does not exist;</li>
      *     <li>this {@link FileContents} is connected to a {@link Provider}{@code <}{@link RegularFile}{@code >} with no value;</li>
      * </ul>
-     * </p>
      * <p>
      *     When the underlying file exists but reading it fails, the ensuing exception is permanently propagated to callers of
      *     {@link Provider#get}, {@link Provider#getOrElse}, {@link Provider#getOrNull} and {@link Provider#isPresent}.
