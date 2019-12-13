@@ -31,13 +31,6 @@ repositories {
 }
 
 configurations {
-    gradleSamplesElements {
-        visible = false
-        canBeResolved = false
-        canBeConsumed = true
-        attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, "docs"))
-        attributes.attribute(Attribute.of("type", String), "samples")
-    }
     gradleFullDocsElements {
         visible = false
         canBeResolved = false
@@ -107,7 +100,7 @@ gradleDocumentation {
 
 tasks.named("stageDocs") {
     // Add samples to generated documentation
-    from(samples.renderedDocumentation) {
+    from(samples.distribution.renderedDocumentation) {
         into("samples")
     }
 }
@@ -337,12 +330,6 @@ samples {
 // Publications for the docs subproject:
 
 configurations {
-    gradleSamplesElements {
-        // TODO: This breaks the provider
-        outgoing.artifact(samples.documentationRoot.get().asFile) {
-            builtBy 'assembleSamples'
-        }
-    }
     gradleFullDocsElements {
         // TODO: This breaks the provider
         outgoing.artifact(project.gradleDocumentation.getDocumentationRenderedRoot().get().asFile) {
