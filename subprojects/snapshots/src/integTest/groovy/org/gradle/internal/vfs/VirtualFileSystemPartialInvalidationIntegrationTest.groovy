@@ -26,6 +26,8 @@ class VirtualFileSystemPartialInvalidationIntegrationTest extends AbstractIntegr
 
     def setup() {
         executer.beforeExecute {
+            // Don't enable partial vfs invalidation by default,
+            // the test cases enable and disable on their own.
             withPartialVfsInvalidation(false)
         }
     }
