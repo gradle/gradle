@@ -105,6 +105,13 @@ gradleDocumentation {
     }
 }
 
+tasks.named("stageDocs") {
+    // Add samples to generated documentation
+    from(samples.renderedDocumentation) {
+        into("samples")
+    }
+}
+
 samples {
     templates {
         javaAndroidApplication
@@ -180,12 +187,6 @@ samples {
                 from(templates.springBoot)
             }
         }
-        // gradleSitePlugin {
-        //     displayName = "Gradle Site Plugin"
-        //     description = ""
-        //     category = "Other"
-        //     dsls = ["GROOVY"]
-        // }
 
         jvmComponentsWithAdditionalTestTypes {
             displayName = "JVM Components With Additional Test Types"
@@ -206,6 +207,7 @@ samples {
         }
 
         jvmMultiProjectBuild {
+            displayName = "JVM Multi-project build"
             description = "Demonstrate how transitive dependencies works as part of a multi-project build"
             category = "General"
             common {

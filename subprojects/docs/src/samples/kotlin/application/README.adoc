@@ -4,8 +4,8 @@ This sample shows how a Kotlin application can be built with Gradle.
 The application has no dependencies aside from the Kotlin standard library and the build has minimal configuration.
 
 ====
-include::sample[dir="samples/kotlin/application/groovy",files="build.gradle[]"]
-include::sample[dir="samples/kotlin/application/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="samples/kotlin-application/groovy",files="build.gradle[]"]
+include::sample[dir="samples/kotlin-application/kotlin",files="build.gradle.kts[]"]
 ====
 
 To build and run the application:
@@ -26,6 +26,6 @@ BUILD SUCCESSFUL in 1s
 =====
 ====
 
-For more information, see <<application_plugin.adoc#application_plugin,Application Plugin>> and link:https://kotlinlang.org/docs/reference/using-gradle.html[building a Kotlin project with Gradle reference].
+For more information, see link:{userManualPath}/application_plugin.html[Application Plugin] and link:https://kotlinlang.org/docs/reference/using-gradle.html[building a Kotlin project with Gradle reference].
 
-You can also get started quickly using the <<build_init_plugin.adoc#build_init_plugin,Build Init Plugin>>.
+You can also get started quickly using the link:{userManualPath}/build_init_plugin.html[Build Init Plugin].

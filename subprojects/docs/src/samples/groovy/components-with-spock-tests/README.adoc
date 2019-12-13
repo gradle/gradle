@@ -5,15 +5,15 @@ This sample shows how to test Groovy projects using Spock Framework in Gradle.
 Applications can be configured as follow:
 
 ====
-include::sample[dir="samples/groovy/components-with-spock-tests/groovy",files="application/build.gradle[]"]
-include::sample[dir="samples/groovy/components-with-spock-tests/kotlin",files="application/build.gradle.kts[]"]
+include::sample[dir="samples/groovy-components-with-spock-tests/groovy",files="application/build.gradle[]"]
+include::sample[dir="samples/groovy-components-with-spock-tests/kotlin",files="application/build.gradle.kts[]"]
 ====
 
 Libraries can be configured as follow:
 
 ====
-include::sample[dir="samples/groovy/components-with-spock-tests/groovy",files="library/build.gradle[]"]
-include::sample[dir="samples/groovy/components-with-spock-tests/kotlin",files="library/build.gradle.kts[]"]
+include::sample[dir="samples/groovy-components-with-spock-tests/groovy",files="library/build.gradle[]"]
+include::sample[dir="samples/groovy-components-with-spock-tests/kotlin",files="library/build.gradle.kts[]"]
 ====
 
 To test the projects:

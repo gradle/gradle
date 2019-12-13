@@ -76,8 +76,6 @@ public class GradleBuildDocumentationPlugin implements Plugin<Project> {
             // User manual goes into userguide/ (for historical reasons)
             task.from(extension.getUserManual().getRenderedDocumentation(), sub -> sub.into("userguide"));
 
-            // TODO: Samples
-
             task.into(extension.getDocumentationRenderedRoot());
         });
 

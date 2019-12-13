@@ -155,9 +155,6 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             // TODO: This breaks if the version is changed later.
             attributes.put("gradleVersion", project.getVersion().toString());
             attributes.put("samplesPath", "snippets");
-            // Used by SampleIncludeProcessor from `gradle/dotorg-docs`
-            // TODO: This breaks the provider
-            attributes.put("samples-dir", extension.getUserManual().getStagedDocumentation().get().getAsFile()); // TODO:
             task.attributes(attributes);
         });
 
@@ -224,6 +221,9 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             attributes.put("groovyDslPath", "https://docs.gradle.org/" + project.getVersion() + "/dsl");
             attributes.put("javadocPath", "https://docs.gradle.org/" + project.getVersion() + "/javadoc");
             attributes.put("kotlinDslPath", "https://gradle.github.io/kotlin-dsl-docs/api");
+            // Used by SampleIncludeProcessor from `gradle/dotorg-docs`
+            // TODO: This breaks the provider
+            attributes.put("samples-dir", extension.getUserManual().getStagedDocumentation().get().getAsFile()); // TODO:
             task.attributes(attributes);
         });
 
@@ -255,6 +255,9 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             attributes.put("groovyDslPath", "../dsl");
             attributes.put("javadocPath", "../javadoc");
             attributes.put("kotlinDslPath", "https://gradle.github.io/kotlin-dsl-docs/api");
+            // Used by SampleIncludeProcessor from `gradle/dotorg-docs`
+            // TODO: This breaks the provider
+            attributes.put("samples-dir", extension.getUserManual().getStagedDocumentation().get().getAsFile()); // TODO:
             task.attributes(attributes);
         });
 
