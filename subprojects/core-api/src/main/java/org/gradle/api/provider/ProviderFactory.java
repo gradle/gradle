@@ -70,8 +70,11 @@ public interface ProviderFactory {
      * When the file contents are read at configuration time the file is automatically considered
      * as an input to the configuration model.
      *
-     * @param file the file
-     * @return
+     * @param file the file whose contents to read.
+     * @return an object that allows lazy access to the contents of the given file.
+     *
+     * @see FileContents#getAsText()
+     * @see FileContents#getAsBytes()
      *
      * @since 6.1
      */
@@ -84,8 +87,11 @@ public interface ProviderFactory {
      * When the file contents are read at configuration time the file is automatically considered
      * as an input to the configuration model.
      *
-     * @param file the file
-     * @return
+     * @param file provider of the file whose contents to read.
+     * @return an object that allows lazy access to the contents of the given file.
+     *
+     * @see FileContents#getAsText()
+     * @see FileContents#getAsBytes()
      *
      * @since 6.1
      */
