@@ -308,4 +308,48 @@ class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecuti
         "isCi.asBytes.map { String(it).toBoolean() }.getOrElse(false)" | "bytes"
         "isCi.asBytes.isPresent"                                       | "bytes presence"
     }
+
+    def "mapped file contents used as task input"() {
+
+        given:
+        def instant = newInstantExecutionFixture()
+        buildKotlinFile """
+
+            val threadPoolSizeProvider = providers
+                .fileContents(layout.projectDirectory.file("thread.pool.size"))
+                .asText
+                .map(Integer::valueOf)
+
+            abstract class TaskA : DefaultTask() {
+
+                @get:Input
+                abstract val threadPoolSize: Property<Int>
+
+                @TaskAction
+                fun act() {
+                    println("ThreadPoolSize = " + threadPoolSize.get())
+                }
+            }
+
+            tasks.register<TaskA>("a") {
+                threadPoolSize.set(threadPoolSizeProvider)
+            }
+        """
+
+        when:
+        file("thread.pool.size").text = "4"
+        instantRun("a")
+
+        then:
+        output.count("ThreadPoolSize = 4") == 1
+        instant.assertStateStored()
+
+        when: "the file is changed"
+        file("thread.pool.size").text = "3"
+        instantRun("a")
+
+        then: "the instant execution cache is NOT invalidated"
+        output.count("ThreadPoolSize = 3") == 1
+        instant.assertStateLoaded()
+    }
 }
