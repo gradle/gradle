@@ -90,6 +90,12 @@ If you are still using one of these old plugins (`java-lang`, `scala-lang`, `jvm
 
 === Potential breaking changes
 
+==== `ProjectLayout` is no longer available to worker actions as a service
+
+In Gradle 6.0, the `ProjectLayout` service was made available to worker actions via service injection. This service allowed for mutable state to leak into a worker action and introduced a way for dependencies to go undeclared in the worker action.
+
+`ProjectLayout` has been removed from the available services.  Worker actions that were using `ProjectLayout` should switch to injecting the `projectDirectory` or `buildDirectory` as a parameter instead.
+
 ==== Updates to bundled Gradle dependencies
 
 - Kotlin has been updated to https://blog.jetbrains.com/kotlin/2019/11/kotlin-1-3-60-released/[Kotlin 1.3.61].
