@@ -18,7 +18,9 @@ package org.gradle.api.tasks
 
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Ignore
 
+@Ignore("Need to de-incubate getExecutionResult first")
 class ExecutionResultExecTaskDeprecationIntegrationTest extends AbstractExecutionResultExecTaskIntegrationTest {
     TestFile mainJavaFile
 
