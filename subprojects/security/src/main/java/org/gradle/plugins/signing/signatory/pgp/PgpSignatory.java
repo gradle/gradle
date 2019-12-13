@@ -42,7 +42,9 @@ import java.security.Security;
 public class PgpSignatory extends SignatorySupport {
 
     static {
-        Security.addProvider(new BouncyCastleProvider());
+        if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null) {
+            Security.addProvider(new BouncyCastleProvider());
+        }
     }
 
     private final String name;
