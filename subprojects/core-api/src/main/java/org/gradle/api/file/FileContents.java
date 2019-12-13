@@ -28,7 +28,7 @@ import org.gradle.api.provider.Provider;
 public interface FileContents {
 
     /**
-     * Gets a provider to the entire file contents as a single String.
+     * Gets a provider of the entire file contents as a single String.
      *
      * <p>
      * The file is read only once and only when the value is requested for the first time.
@@ -45,12 +45,12 @@ public interface FileContents {
      *     {@link Provider#get}, {@link Provider#getOrElse}, {@link Provider#getOrNull} and {@link Provider#isPresent}.
      * </p>
      *
-     * @return provider to the entire file contents as a single String.
+     * @return provider of the entire file contents as a single String.
      */
     Provider<String> getAsText();
 
     /**
-     * Gets a provider to the entire file contents as a single byte array.
+     * Gets a provider of the entire file contents as a single byte array.
      *
      * <p>
      * The file is read only once and only when the value is requested for the first time.
@@ -67,7 +67,7 @@ public interface FileContents {
      *     {@link Provider#get}, {@link Provider#getOrElse}, {@link Provider#getOrNull} and {@link Provider#isPresent}.
      * </p>
      *
-     * @return provider to the entire file contents as a single byte array.
+     * @return provider of the entire file contents as a single byte array.
      */
     Provider<byte[]> getAsBytes();
 }

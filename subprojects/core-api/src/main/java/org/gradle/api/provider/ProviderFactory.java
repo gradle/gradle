@@ -71,7 +71,7 @@ public interface ProviderFactory {
      * as an input to the configuration model.
      *
      * @param file the file whose contents to read.
-     * @return an object that allows lazy access to the contents of the given file.
+     * @return an interface that allows lazy access to the contents of the given file.
      *
      * @see FileContents#getAsText()
      * @see FileContents#getAsBytes()
@@ -88,7 +88,7 @@ public interface ProviderFactory {
      * as an input to the configuration model.
      *
      * @param file provider of the file whose contents to read.
-     * @return an object that allows lazy access to the contents of the given file.
+     * @return an interface that allows lazy access to the contents of the given file.
      *
      * @see FileContents#getAsText()
      * @see FileContents#getAsBytes()
