@@ -17,7 +17,6 @@
 package org.gradle.internal.vfs;
 
 import net.rubygrapefruit.platform.Native;
-import net.rubygrapefruit.platform.file.FileWatcher;
 import net.rubygrapefruit.platform.internal.jni.WindowsFileEventFunctions;
 import org.gradle.internal.vfs.impl.WatchRootUtil;
 import org.gradle.internal.vfs.impl.WatcherEvent;
@@ -26,37 +25,21 @@ import org.gradle.internal.vfs.watch.FileWatcherRegistryFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class WindowsFileWatcherRegistry implements FileWatcherRegistry {
+public class WindowsFileWatcherRegistry extends AbstractEventDrivenFileWatcherRegistry {
     private static final Logger LOGGER = LoggerFactory.getLogger(WindowsFileWatcherRegistry.class);
 
-    private final FileWatcher watcher;
-    private final List<WatcherEvent> events = new ArrayList<>();
-
     public WindowsFileWatcherRegistry(Set<Path> watchRoots) {
-        this.watcher = Native.get(WindowsFileEventFunctions.class)
+        super(events -> Native.get(WindowsFileEventFunctions.class)
             .startWatching(
                 watchRoots.stream()
                     .map(Path::toString)
                     .collect(Collectors.toList()),
                 (type, path) -> events.add(WatcherEvent.createEvent(type, path))
-            );
-    }
-
-    @Override
-    public void stopWatching(ChangeHandler handler) throws IOException {
-        WatcherEvent.dispatch(events, handler);
-    }
-
-    @Override
-    public void close() throws IOException {
-        watcher.close();
+            ));
     }
 
     public static class Factory implements FileWatcherRegistryFactory {
