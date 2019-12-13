@@ -255,7 +255,7 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
             ':deck:compileReleaseCpp', ':deck:linkRelease', ':deck:stripSymbolsRelease', ':deck:_xcode___Deck_Release')
     }
 
-    @Ignore
+    @Ignore("https://github.com/gradle/gradle-native-private/issues/274")
     def "can create xcode project for C++ application inside composite build"() {
         given:
         settingsFile.text = """

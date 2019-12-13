@@ -33,6 +33,17 @@ plugins {
     id("org.gradle.ci.tag-single-build") version("0.74")
 }
 
+buildscript {
+    dependencies {
+        constraints {
+            classpath("xerces:xercesImpl:2.12.0") {
+                // it's unclear why we don't get this version directly from buildSrc constraints
+                because("Maven Central and JCenter disagree on version 2.9.1 metadata")
+            }
+        }
+    }
+}
+
 defaultTasks("assemble")
 
 base.archivesBaseName = "gradle"
@@ -81,6 +92,11 @@ buildTypes {
     // Run the integration tests using instant execution
     create("instantTest") {
         tasks("instantIntegTest")
+    }
+
+    // Run the integration tests with vfs retention enabled
+    create("vfsRetentionTest") {
+        tasks("vfsRetentionIntegTest")
     }
 
     create("performanceTests") {

@@ -40,13 +40,21 @@ import javax.xml.parsers.SAXParserFactory;
 import java.io.IOException;
 import java.io.InputStream;
 
+import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.ALSO_TRUST;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.ARTIFACT;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.COMPONENT;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.COMPONENTS;
+import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.CONFIG;
+import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.FILE;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.GROUP;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.NAME;
+import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.REGEX;
+import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.TRUST;
+import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.TRUSTED_ARTIFACTS;
+import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.ORIGIN;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.VALUE;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.VERIFICATION_METADATA;
+import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.VERIFY_METADATA;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.VERSION;
 
 public class DependencyVerificationsXmlReader {
@@ -87,8 +95,12 @@ public class DependencyVerificationsXmlReader {
         private final DependencyVerifierBuilder builder;
         private boolean inMetadata;
         private boolean inComponents;
+        private boolean inConfiguration;
+        private boolean inVerifyMetadata;
+        private boolean inTrustedArtifacts;
         private ModuleComponentIdentifier currentComponent;
         private ModuleComponentArtifactIdentifier currentArtifact;
+        private ChecksumKind currentChecksum;
 
         public VerifiersHandler(DependencyVerifierBuilder builder) {
             this.builder = builder;
@@ -96,7 +108,9 @@ public class DependencyVerificationsXmlReader {
 
         @Override
         public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
-            if (VERIFICATION_METADATA.equals(qName)) {
+            if (CONFIG.equals(qName)) {
+                inConfiguration = true;
+            } else if (VERIFICATION_METADATA.equals(qName)) {
                 inMetadata = true;
             } else if (COMPONENTS.equals(qName)) {
                 assertInMetadata();
@@ -107,24 +121,69 @@ public class DependencyVerificationsXmlReader {
             } else if (ARTIFACT.equals(qName)) {
                 assertValidComponent();
                 currentArtifact = createArtifactId(attributes);
+            } else if (VERIFY_METADATA.equals(qName)) {
+                assertInConfiguration(VERIFY_METADATA);
+                inVerifyMetadata = true;
+            } else if (TRUSTED_ARTIFACTS.equals(qName)) {
+                assertInConfiguration(TRUSTED_ARTIFACTS);
+                inTrustedArtifacts = true;
+            } else if (TRUST.equals(qName)) {
+                assertInTrustedArtifacts();
+                addTrustedArtifact(attributes);
             } else {
-                if (currentArtifact != null) {
-                    ChecksumKind kind = ChecksumKind.valueOf(qName);
-                    builder.addChecksum(currentArtifact, kind, getAttribute(attributes, VALUE));
+                if (currentChecksum != null && ALSO_TRUST.equals(qName)) {
+                    builder.addChecksum(currentArtifact, currentChecksum, getAttribute(attributes, VALUE), null);
+                } else if (currentArtifact != null) {
+                    currentChecksum = ChecksumKind.valueOf(qName);
+                    builder.addChecksum(currentArtifact, currentChecksum, getAttribute(attributes, VALUE), getNullableAttribute(attributes, ORIGIN));
                 }
             }
         }
 
+        private void assertInTrustedArtifacts() {
+            assertContext(inTrustedArtifacts, TRUST, TRUSTED_ARTIFACTS);
+        }
+
+        private void addTrustedArtifact(Attributes attributes) {
+            boolean regex = false;
+            String regexAttr = getNullableAttribute(attributes, REGEX);
+            if (regexAttr != null) {
+                regex = Boolean.parseBoolean(regexAttr);
+            }
+            builder.addTrustedArtifact(
+                getAttribute(attributes, GROUP),
+                getNullableAttribute(attributes, NAME),
+                getNullableAttribute(attributes, VERSION),
+                getNullableAttribute(attributes, FILE),
+                regex
+            );
+        }
+
+        @Override
+        public void characters(char[] ch, int start, int length) throws SAXException {
+            if (inVerifyMetadata) {
+                builder.setVerifyMetadata(Boolean.parseBoolean(new String(ch, start, length)));
+            }
+        }
+
+        private void assertInConfiguration(String tag) {
+            assertContext(inConfiguration, tag, CONFIG);
+        }
+
         private void assertInComponents() {
-            assertContext(inComponents, "<component> must be found under the <components> tag");
+            assertContext(inComponents, COMPONENT, COMPONENTS);
         }
 
         private void assertInMetadata() {
-            assertContext(inMetadata, "<components> must be found under the <verification-metadata> tag");
+            assertContext(inMetadata, COMPONENTS, VERIFICATION_METADATA);
         }
 
         private void assertValidComponent() {
-            assertContext(currentComponent != null, "<artifact> must be found  under the <component> tag");
+            assertContext(currentComponent != null, ARTIFACT, COMPONENT);
+        }
+
+        private static void assertContext(boolean test, String innerTag, String outerTag) {
+            assertContext(test, "<" + innerTag + "> must be found under the <" + outerTag + "> tag");
         }
 
         private static void assertContext(boolean test, String message) {
@@ -135,14 +194,21 @@ public class DependencyVerificationsXmlReader {
 
         @Override
         public void endElement(String uri, String localName, String qName) throws SAXException {
-            if (VERIFICATION_METADATA.equals(qName)) {
+            if (CONFIG.equals(qName)) {
+                inConfiguration = false;
+            } else if (VERIFY_METADATA.equals(qName)) {
+                inVerifyMetadata = false;
+            } else if (VERIFICATION_METADATA.equals(qName)) {
                 inMetadata = false;
             } else if (COMPONENTS.equals(qName)) {
                 inComponents = false;
             } else if (COMPONENT.equals(qName)) {
                 currentComponent = null;
+            } else if (TRUSTED_ARTIFACTS.equals(qName)) {
+                inTrustedArtifacts = false;
             } else if (ARTIFACT.equals(qName)) {
                 currentArtifact = null;
+                currentChecksum = null;
             }
         }
 
@@ -167,6 +233,14 @@ public class DependencyVerificationsXmlReader {
         private String getAttribute(Attributes attributes, String name) {
             String value = attributes.getValue(name);
             assertContext(value != null, "Missing attribute: " + name);
+            return stringInterner.intern(value);
+        }
+
+        private String getNullableAttribute(Attributes attributes, String name) {
+            String value = attributes.getValue(name);
+            if (value == null) {
+                return null;
+            }
             return stringInterner.intern(value);
         }
 

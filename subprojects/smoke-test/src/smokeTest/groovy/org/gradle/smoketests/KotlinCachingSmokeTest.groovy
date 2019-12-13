@@ -17,10 +17,12 @@
 package org.gradle.smoketests
 
 import org.eclipse.jgit.api.Git
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 
 class KotlinCachingSmokeTest extends AbstractSmokeTest {
 
+    @ToBeFixedForInstantExecution
     def "can cache Spek framework build"() {
         def testRepoUri = "https://github.com/gradle/kotlin-relocation-test"
         def testRepoBranch = "gradle-6.0"

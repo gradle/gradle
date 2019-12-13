@@ -105,7 +105,7 @@ model {
 
     def "fails when trying to build for multiple play platforms"() {
         given:
-        executer.expectDeprecationWarnings(6)
+        executer.expectDeprecationWarnings(9)
         new BasicPlayApp().writeSources(testDirectory)
 
         when:

@@ -20,11 +20,14 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
+import org.gradle.api.artifacts.verification.DependencyVerificationMode;
 import org.gradle.api.component.Artifact;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DependencyVerifyingModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
 import org.gradle.api.internal.artifacts.verification.DependencyVerifier;
 import org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationsXmlReader;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.hash.ChecksumService;
@@ -39,6 +42,8 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ChecksumVerificationOverride implements DependencyVerificationOverride, ArtifactVerificationOperation {
+    private final static Logger LOGGER = Logging.getLogger(ChecksumVerificationOverride.class);
+
     private static final Comparator<Map.Entry<ModuleComponentArtifactIdentifier, DependencyVerifier.VerificationFailure>> DELETED_LAST = Comparator.comparing(e -> e.getValue() == DependencyVerifier.VerificationFailure.DELETED ? 1 : 0);
     private static final Comparator<Map.Entry<ModuleComponentArtifactIdentifier, DependencyVerifier.VerificationFailure>> MISSING_LAST = Comparator.comparing(e -> e.getValue() == DependencyVerifier.VerificationFailure.MISSING ? 1 : 0);
     private static final Comparator<Map.Entry<ModuleComponentArtifactIdentifier, DependencyVerifier.VerificationFailure>> BY_MODULE_ID = Comparator.comparing(e -> e.getKey().getDisplayName());
@@ -47,10 +52,12 @@ public class ChecksumVerificationOverride implements DependencyVerificationOverr
     private final Map<ModuleComponentArtifactIdentifier, DependencyVerifier.VerificationFailure> failures = Maps.newLinkedHashMapWithExpectedSize(2);
     private final BuildOperationExecutor buildOperationExecutor;
     private final ChecksumService checksumService;
+    private final DependencyVerificationMode verificationMode;
 
-    public ChecksumVerificationOverride(BuildOperationExecutor buildOperationExecutor, File verificationsFile, ChecksumService checksumService) {
+    public ChecksumVerificationOverride(BuildOperationExecutor buildOperationExecutor, File verificationsFile, ChecksumService checksumService, DependencyVerificationMode verificationMode) {
         this.buildOperationExecutor = buildOperationExecutor;
         this.checksumService = checksumService;
+        this.verificationMode = verificationMode;
         try {
             this.verifier = DependencyVerificationsXmlReader.readFromXml(
                 new FileInputStream(verificationsFile)
@@ -61,8 +68,8 @@ public class ChecksumVerificationOverride implements DependencyVerificationOverr
     }
 
     @Override
-    public void onArtifact(ModuleComponentArtifactIdentifier artifact, File path) {
-        verifier.verify(buildOperationExecutor, checksumService, artifact, path, f -> {
+    public void onArtifact(ArtifactKind kind, ModuleComponentArtifactIdentifier artifact, File path) {
+        verifier.verify(buildOperationExecutor, checksumService, kind, artifact, path, f -> {
             synchronized (failures) {
                 failures.put(artifact, f);
             }
@@ -106,7 +113,13 @@ public class ChecksumVerificationOverride implements DependencyVerificationOverr
                     // the else is just to avoid telling people to use `--write-verification-metadata` if we suspect compromised dependencies
                     formatter.node("Please update the file either manually (preferred) or by adding the --write-verification-metadata flag (unsafe).");
                 }
-                throw new InvalidUserDataException(formatter.toString());
+                String message = formatter.toString();
+                if (verificationMode == DependencyVerificationMode.LENIENT) {
+                    LOGGER.error(message);
+                    failures.clear();
+                } else {
+                    throw new InvalidUserDataException(message);
+                }
             }
         }
     }

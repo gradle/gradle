@@ -20,7 +20,9 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.ArtifactVerificationOperation;
 import org.gradle.api.internal.artifacts.verification.model.ArtifactVerificationMetadata;
+import org.gradle.api.internal.artifacts.verification.model.Checksum;
 import org.gradle.api.internal.artifacts.verification.model.ChecksumKind;
 import org.gradle.api.internal.artifacts.verification.model.ComponentVerificationMetadata;
 import org.gradle.internal.UncheckedException;
@@ -37,14 +39,17 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class DependencyVerifier {
     private final Map<ComponentIdentifier, ComponentVerificationMetadata> verificationMetadata;
+    private final DependencyVerificationConfiguration config;
 
-    DependencyVerifier(Map<ComponentIdentifier, ComponentVerificationMetadata> verificationMetadata) {
+    DependencyVerifier(Map<ComponentIdentifier, ComponentVerificationMetadata> verificationMetadata, DependencyVerificationConfiguration config) {
         this.verificationMetadata = ImmutableMap.copyOf(verificationMetadata);
+        this.config = config;
     }
 
     // This cache is a mapping from a file to its verification failure state
@@ -56,15 +61,39 @@ public class DependencyVerifier {
         .weakValues()
         .build();
 
-    public void verify(BuildOperationExecutor buildOperationExecutor, ChecksumService checksumService, ModuleComponentArtifactIdentifier foundArtifact, File file, Action<VerificationFailure> onFailure) {
+    public void verify(BuildOperationExecutor buildOperationExecutor, ChecksumService checksumService, ArtifactVerificationOperation.ArtifactKind kind, ModuleComponentArtifactIdentifier foundArtifact, File file, Action<VerificationFailure> onFailure) {
+        if (shouldSkipVerification(kind, foundArtifact)) {
+            return;
+        }
         try {
             Optional<VerificationFailure> verificationFailure = verificationCache.get(file, () -> {
                 return performVerification(buildOperationExecutor, foundArtifact, checksumService, file);
             });
-            verificationFailure.ifPresent(f -> onFailure.execute(f));
+            verificationFailure.ifPresent(f -> {
+                // In order to avoid going through the list for every artifact, we only
+                // check if it's trusted if an error is thrown
+                if (isTrustedArtifact(foundArtifact)) {
+                    return;
+                }
+                onFailure.execute(f);
+            });
         } catch (ExecutionException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
+    }
+
+    private boolean shouldSkipVerification(ArtifactVerificationOperation.ArtifactKind kind, ModuleComponentArtifactIdentifier id) {
+        if (kind == ArtifactVerificationOperation.ArtifactKind.METADATA && !config.isVerifyMetadata()) {
+            return true;
+        }
+        return false;
+    }
+
+    private boolean isTrustedArtifact(ModuleComponentArtifactIdentifier id) {
+        if (config.getTrustedArtifacts().stream().anyMatch(artifact -> artifact.isTrusted(id))) {
+            return true;
+        }
+        return false;
     }
 
     private Optional<VerificationFailure> performVerification(BuildOperationExecutor buildOperationExecutor, ModuleComponentArtifactIdentifier foundArtifact, ChecksumService checksumService, File file) {
@@ -91,11 +120,11 @@ public class DependencyVerifier {
             String foundArtifactFileName = foundArtifact.getFileName();
             List<ArtifactVerificationMetadata> verifications = componentVerification.getArtifactVerifications();
             for (ArtifactVerificationMetadata verification : verifications) {
-                ModuleComponentArtifactIdentifier verifiedArtifact = verification.getArtifact();
-                if (verifiedArtifact.getFileName().equals(foundArtifactFileName)) {
-                    Map<ChecksumKind, String> checksums = verification.getChecksums();
-                    for (Map.Entry<ChecksumKind, String> entry : checksums.entrySet()) {
-                        verify(entry.getKey(), file, checksumService, entry.getValue(), f -> failure.set(f));
+                String verifiedArtifact = verification.getArtifactName();
+                if (verifiedArtifact.equals(foundArtifactFileName)) {
+                    List<Checksum> checksums = verification.getChecksums();
+                    for (Checksum checksum : checksums) {
+                        verifyChecksum(checksum.getKind(), file, checksum.getValue(), checksum.getAlternatives(), checksumService, f -> failure.set(f));
                         if (failure.get() != null) {
                             return Optional.of(failure.get());
                         }
@@ -108,7 +137,22 @@ public class DependencyVerifier {
         return VerificationFailure.OPT_MISSING;
     }
 
-    private static void verify(ChecksumKind algorithm, File file, ChecksumService cache, String expected, Action<VerificationFailure> onFailure) {
+    private static void verifyChecksum(ChecksumKind algorithm, File file, String expected, Set<String> alternatives, ChecksumService cache, Action<VerificationFailure> onFailure) {
+        String actualChecksum = checksumOf(algorithm, file, cache);
+        if (expected.equals(actualChecksum)) {
+            return;
+        }
+        if (alternatives != null) {
+            for (String alternative : alternatives) {
+                if (actualChecksum.equals(alternative)) {
+                    return;
+                }
+            }
+        }
+        onFailure.execute(new VerificationFailure(algorithm, expected, actualChecksum));
+    }
+
+    private static String checksumOf(ChecksumKind algorithm, File file, ChecksumService cache) {
         HashCode hashValue = null;
         switch (algorithm) {
             case md5:
@@ -124,14 +168,15 @@ public class DependencyVerifier {
                 hashValue = cache.sha512(file);
                 break;
         }
-        String actual = hashValue.toString();
-        if (!actual.equals(expected)) {
-            onFailure.execute(new VerificationFailure(algorithm, expected, actual));
-        }
+        return hashValue.toString();
     }
 
     public Collection<ComponentVerificationMetadata> getVerificationMetadata() {
         return verificationMetadata.values();
+    }
+
+    public DependencyVerificationConfiguration getConfiguration() {
+        return config;
     }
 
     public static class VerificationFailure {

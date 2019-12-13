@@ -30,7 +30,7 @@ class IdeIntegrationPerformanceTest extends AbstractCrossVersionGradleProfilerPe
         runner.testProject = testProject
         runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
         runner.tasksToRun = ['eclipse']
-        runner.targetVersions = ["6.0-20190823180744+0000"]
+        runner.targetVersions = ["6.1-20191209153604+0000"]
 
         when:
         def result = runner.run()
@@ -50,7 +50,7 @@ class IdeIntegrationPerformanceTest extends AbstractCrossVersionGradleProfilerPe
         runner.testProject = testProject
         runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
         runner.tasksToRun = ['idea']
-        runner.targetVersions = ["6.0-20190823180744+0000"]
+        runner.targetVersions = ["6.1-20191209153604+0000"]
 
         when:
         def result = runner.run()

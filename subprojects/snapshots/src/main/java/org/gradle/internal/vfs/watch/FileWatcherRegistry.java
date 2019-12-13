@@ -25,19 +25,15 @@ public interface FileWatcherRegistry extends Closeable {
     interface ChangeHandler {
         void handleChange(Type type, Path path);
 
-        void handleOverflow();
+        void handleLostState();
     }
 
     enum Type {
-        ADDED,
+        CREATED,
         MODIFIED,
-        REMOVED
+        REMOVED,
+        INVALIDATE
     }
-
-    /**
-     * Registers the given location to watch for changes.
-     */
-    void registerWatchPoint(Path path) throws IOException;
 
     /**
      * Stop watching and handle the accumulated changes.

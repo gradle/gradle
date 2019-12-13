@@ -19,8 +19,6 @@ package org.gradle.internal.vfs
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import spock.lang.IgnoreIf
 
 import static org.gradle.internal.service.scopes.VirtualFileSystemServices.VFS_DROP_PROPERTY
@@ -28,8 +26,6 @@ import static org.gradle.internal.service.scopes.VirtualFileSystemServices.VFS_R
 
 // The whole test makes no sense if there isn't a daemon to retain the state.
 @IgnoreIf({ GradleContextualExecuter.noDaemon })
-// TODO Re-enable for other OSs once we have macOS and Windows native watchers merged
-@Requires(TestPrecondition.LINUX)
 class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
@@ -240,6 +236,6 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
     }
 
     private static void waitForChangesToBePickedUp() {
-        Thread.sleep(100)
+        Thread.sleep(1000)
     }
 }

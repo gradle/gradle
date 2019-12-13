@@ -610,13 +610,12 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         }
 
         public void addSetter(Method method) {
-            for (Method setter : setters) {
-                if (setter.getParameterTypes()[0].equals(method.getParameterTypes()[0])) {
-                    return;
-                }
+            if (method.isBridge()) {
+                // Ignore bridge methods and use the real method instead
+                return;
             }
             setters.add(method);
-            if (!Modifier.isFinal(method.getModifiers()) && !method.isBridge()) {
+            if (!Modifier.isFinal(method.getModifiers())) {
                 overridableSetters.add(method);
             }
         }

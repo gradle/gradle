@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.jvm.JavaInfo
 import org.gradle.internal.jvm.Jvm
+import org.gradle.util.GradleVersion
 import spock.lang.Unroll
 
 class JdkDeclarationIntegrationTest extends AbstractIntegrationSpec {
@@ -32,6 +33,7 @@ class JdkDeclarationIntegrationTest extends AbstractIntegrationSpec {
                 id 'jvm-component'
             }
         """
+        executer.expectDeprecationWarning("The jvm-component plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
     }
 
     //@Requires(TestPrecondition.NOT_WINDOWS)

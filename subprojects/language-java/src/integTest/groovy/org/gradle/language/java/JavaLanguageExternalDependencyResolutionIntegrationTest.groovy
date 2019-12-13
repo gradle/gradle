@@ -25,7 +25,7 @@ import static org.gradle.language.java.JavaIntegrationTesting.applyJavaPlugin
 class JavaLanguageExternalDependencyResolutionIntegrationTest extends AbstractIntegrationSpec {
 
     def theModel(String model) {
-        applyJavaPlugin(buildFile)
+        applyJavaPlugin(buildFile, executer)
         buildFile << """
             repositories {
                 maven { url '${mavenRepo.uri}' }

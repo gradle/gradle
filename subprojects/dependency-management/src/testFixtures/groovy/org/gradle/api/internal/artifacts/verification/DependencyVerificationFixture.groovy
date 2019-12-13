@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.verification
 
+import com.google.common.io.Files
 import groovy.transform.CompileStatic
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.verification.model.ArtifactVerificationMetadata
@@ -30,11 +31,13 @@ import org.gradle.util.TextUtil
 @CompileStatic
 class DependencyVerificationFixture {
     private final File verificationFile
+    private final File dryRunVerificationFile
 
     private DependencyVerifier verifier
 
     DependencyVerificationFixture(File verificationFile) {
         this.verificationFile = verificationFile
+        this.dryRunVerificationFile = new File(verificationFile.parentFile, "${Files.getNameWithoutExtension(verificationFile.name)}.dryrun.xml")
     }
 
     void assertMetadataExists() {
@@ -65,6 +68,11 @@ class DependencyVerificationFixture {
 
     void assertXmlContents(String expected) {
         def actualContents = TextUtil.normaliseLineSeparators(verificationFile.text)
+        assert actualContents == expected
+    }
+
+    void assertDryRunXmlContents(String expected) {
+        def actualContents = TextUtil.normaliseLineSeparators(dryRunVerificationFile.text)
         assert actualContents == expected
     }
 
@@ -104,6 +112,19 @@ class DependencyVerificationFixture {
         }
     }
 
+    void hasNoModule(String id) {
+        withVerifier {
+            def list = id.split(":")
+            def group = list[0]
+            def name = list[1]
+            def version = list.size() == 3 ? list[2] : "1.0"
+            def md = verificationMetadata.find {
+                it.componentId.group == group && it.componentId.module == name && it.componentId.version == version
+            }
+            assert md == null : "Didn't expect module $id to be present but it was"
+        }
+    }
+
     static class ComponentVerification {
         private final ComponentVerificationMetadata metadata
 
@@ -113,13 +134,13 @@ class DependencyVerificationFixture {
 
         void artifact(String name, @DelegatesTo(value = ArtifactVerification, strategy = Closure.DELEGATE_FIRST) Closure action) {
             def artifacts = metadata.artifactVerifications.findAll {
-                name == it.artifact.fileName
+                name == it.artifactName
             }
             if (artifacts.size() > 1) {
                 throw new AssertionError("Expected only one artifact named ${name} for module ${metadata.componentId} but found ${artifacts}")
             }
             ArtifactVerificationMetadata md = artifacts ? artifacts[0] : null
-            assert md: "Artifact file $name not found in verification file for module ${metadata.componentId}. Artifact names: ${metadata.artifactVerifications.collect { it.artifact.fileName } }"
+            assert md: "Artifact file $name not found in verification file for module ${metadata.componentId}. Artifact names: ${metadata.artifactVerifications.collect { it.artifactName } }"
             action.delegate = new ArtifactVerification(md)
             action.resolveStrategy = Closure.DELEGATE_FIRST
             action()
@@ -134,17 +155,31 @@ class DependencyVerificationFixture {
         }
 
         void declaresChecksum(String checksum, String algorithm = "sha1") {
-            def expectedChecksum = metadata.checksums.get(ChecksumKind.valueOf(algorithm))
-            assert expectedChecksum == checksum : "On ${metadata.artifact}, expected a ${algorithm} checksum of ${checksum} but was ${expectedChecksum}"
+            def expectedChecksum = metadata.checksums.find { it.kind == ChecksumKind.valueOf(algorithm) }.value
+            assert expectedChecksum == checksum : "On ${metadata.artifactName}, expected a ${algorithm} checksum of ${checksum} but was ${expectedChecksum}"
         }
 
-        void declaresChecksums(Map<String, String> checksums, boolean strict = true) {
+        void declaresChecksums(List<String> checksums, String algorithm = "sha1") {
+            def expectedChecksum = metadata.checksums.find { it.kind == ChecksumKind.valueOf(algorithm) }
+            Set<String> allChecksums = [expectedChecksum.value] as Set<String>
+            if (expectedChecksum.alternatives) {
+                allChecksums.addAll(expectedChecksum.alternatives)
+            }
+
+            assert allChecksums == checksums as Set : "On ${metadata.artifactName}, expected ${algorithm} checksums of ${checksums} but was ${allChecksums}"
+        }
+
+        void declaresChecksums(Map<String, ?> checksums, boolean strict = true) {
             checksums.forEach { algo, value ->
-                declaresChecksum(value, algo)
+                if (value instanceof CharSequence) {
+                    declaresChecksum(value.toString(), algo)
+                } else {
+                    declaresChecksums((List) value, algo)
+                }
             }
             if (strict) {
                 def expectedChecksums = checksums.keySet()
-                def actualChecksums = metadata.checksums.keySet()*.name() as Set
+                def actualChecksums = metadata.checksums*.kind*.name() as Set
                 assert expectedChecksums == actualChecksums
             }
         }
@@ -153,7 +188,15 @@ class DependencyVerificationFixture {
     static class Builder {
         private final DependencyVerifierBuilder builder = new DependencyVerifierBuilder()
 
-        void addChecksum(String id, String algo, String checksum, String type="jar", String ext="jar") {
+        void noMetadataVerification() {
+            builder.verifyMetadata = false
+        }
+
+        void trust(String group, String name = null, String version = null, String fileName = null, boolean regex = false) {
+            builder.addTrustedArtifact(group, name, version, fileName, regex)
+        }
+
+        void addChecksum(String id, String algo, String checksum, String type="jar", String ext="jar", String origin = null) {
             def parts = id.split(":")
             def group = parts[0]
             def name = parts[1]
@@ -169,7 +212,8 @@ class DependencyVerificationFixture {
                     ext
                 ),
                 ChecksumKind.valueOf(algo),
-                checksum
+                checksum,
+                origin
             )
         }
 

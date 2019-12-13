@@ -19,12 +19,19 @@ package org.gradle.integtests.resolve.transform
 import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.console.AbstractConsoleGroupedTaskFunctionalTest
+import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.junit.Rule
 import spock.lang.Unroll
+
+import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
 class TransformationLoggingIntegrationTest extends AbstractConsoleGroupedTaskFunctionalTest {
     ConsoleOutput consoleType
 
     private static final List<ConsoleOutput> TESTED_CONSOLE_TYPES = [ConsoleOutput.Plain, ConsoleOutput.Verbose, ConsoleOutput.Rich, ConsoleOutput.Auto]
+
+    @Rule
+    BlockingHttpServer server
 
     def setup() {
         settingsFile << """
@@ -170,6 +177,62 @@ class TransformationLoggingIntegrationTest extends AbstractConsoleGroupedTaskFun
 
         where:
         type << TESTED_CONSOLE_TYPES
+    }
+
+    @ToBeFixedForInstantExecution
+    def "progress display name is 'Transforming' for top level transforms"() {
+        // Build scan plugin filters artifact transform logging by the name of the progress display name
+        // since that is the only way it currently can distinguish transforms.
+        // When it has a better way, then this test can be removed.
+        consoleType = ConsoleOutput.Rich
+        server.start()
+        buildFile << """
+            allprojects {
+                dependencies {
+                    registerTransform(Red) {
+                        from.attribute(artifactType, "jar")
+                        to.attribute(artifactType, "red")
+                    }
+                }                            
+                tasks.register("resolveRed") {
+                    def artifacts = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'red') }
+                    }.artifacts
+
+                    inputs.files artifacts.artifactFiles
+                    
+                    doLast {
+                        println "files: " + artifacts.collect { it.file.name }
+                    }
+                }
+            }
+
+            // NOTE: This is named "Red" so that the status message fits on one line
+            abstract class Red extends Multiplier {
+                Red() {
+                    super("red")
+                }
+
+                @Override
+                void transform(TransformOutputs outputs) {
+                    ${server.callFromBuildUsingExpression("inputArtifact.get().asFile.name")}
+                    super.transform(outputs)
+                }
+            }
+        """
+
+        when:
+        def block = server.expectConcurrentAndBlock("lib1.jar", "lib2.jar")
+        def build = executer.withTasks(":util:resolveRed").start()
+        then:
+        block.waitForAllPendingCalls()
+        poll {
+            assertHasWorkInProgress(build, "> Transforming artifact lib1.jar (project :lib) with Red > Red lib1.jar")
+            assertHasWorkInProgress(build, "> Transforming artifact lib2.jar (project :lib) with Red > Red lib2.jar")
+        }
+
+        block.releaseAll()
+        build.waitForFinish()
     }
 
     @ToBeFixedForInstantExecution

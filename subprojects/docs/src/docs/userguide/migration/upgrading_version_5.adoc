@@ -793,7 +793,7 @@ The incubating `operatingSystems` property on native components has been replace
 
 ===== Change in behavior for tasks extending `AbstractArchiveTask`
 
-The `AbstractArchiveTask` has several new properties using the <<lazy_configuration.adoc#sec:lazy_configuration_reference,Provider API>>.
+The `AbstractArchiveTask` has several new properties using the <<lazy_configuration.adoc#lazy_configuration_reference,Provider API>>.
 Plugins that extend these types and override methods from the base class may no longer behave the same way.
 Internally, `AbstractArchiveTask` prefers the new properties and methods like `getArchiveName()` are façades over the new properties.
 

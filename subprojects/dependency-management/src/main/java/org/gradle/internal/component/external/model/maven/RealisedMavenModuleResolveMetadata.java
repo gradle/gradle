@@ -31,6 +31,7 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.descriptor.MavenScope;
 import org.gradle.internal.component.external.model.AbstractRealisedModuleComponentResolveMetadata;
+import org.gradle.internal.component.external.model.AdditionalVariant;
 import org.gradle.internal.component.external.model.ComponentVariant;
 import org.gradle.internal.component.external.model.ConfigurationBoundExternalDependencyMetadata;
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetadata;
@@ -110,37 +111,39 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
     }
 
     private static List<ConfigurationMetadata> addVariantsFromRules(ModuleComponentResolveMetadata componentMetadata, ImmutableList<ConfigurationMetadata> derivedVariants, VariantMetadataRules variantMetadataRules) {
-        Map<String, String> additionalVariants = variantMetadataRules.getAdditionalVariants();
+        List<AdditionalVariant> additionalVariants = variantMetadataRules.getAdditionalVariants();
         if (additionalVariants.isEmpty()) {
             return derivedVariants;
         }
         ImmutableList.Builder<ConfigurationMetadata> builder = new ImmutableList.Builder<>();
         builder.addAll(derivedVariants);
         Map<String, ConfigurationMetadata> variantsByName = derivedVariants.stream().collect(Collectors.toMap(ConfigurationMetadata::getName, Function.identity()));
-        for (Map.Entry<String, String> variantName : additionalVariants.entrySet()) {
-            String name = variantName.getKey();
-            String baseName = variantName.getValue();
+        for (AdditionalVariant additionalVariant : additionalVariants) {
+            String name = additionalVariant.getName();
+            String baseName = additionalVariant.getBase();
             ImmutableAttributes attributes;
             ImmutableCapabilities capabilities;
             List<? extends ModuleDependencyMetadata> dependencies;
             ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts;
 
-            if (baseName == null) {
+            ConfigurationMetadata baseConf = variantsByName.get(baseName);
+            if (baseConf == null) {
                 attributes = componentMetadata.getAttributes();
                 capabilities = ImmutableCapabilities.EMPTY;
                 dependencies = ImmutableList.of();
                 artifacts = ImmutableList.of();
             } else {
-                ConfigurationMetadata baseConf = variantsByName.get(baseName);
-                if (baseConf == null) {
-                    throw new InvalidUserDataException("Variant '" + baseName + "' not defined in module " + componentMetadata.getId().getDisplayName());
-                }
                 attributes = baseConf.getAttributes();
                 capabilities = (ImmutableCapabilities) baseConf.getCapabilities();
                 dependencies = ((ModuleConfigurationMetadata) baseConf).getDependencies();
                 artifacts = Cast.uncheckedCast(baseConf.getArtifacts());
             }
-            builder.add(applyRules(componentMetadata.getId(), name, variantMetadataRules, attributes, capabilities, dependencies, artifacts, true, true, ImmutableSet.of(), true));
+
+            if (baseName == null || baseConf != null) {
+                builder.add(applyRules(componentMetadata.getId(), name, variantMetadataRules, attributes, capabilities, dependencies, artifacts, true, true, ImmutableSet.of(), true));
+            } else if (!additionalVariant.isLenient()) {
+                throw new InvalidUserDataException("Variant '" + baseName + "' not defined in module " + componentMetadata.getId().getDisplayName());
+            }
         }
         return builder.build();
     }

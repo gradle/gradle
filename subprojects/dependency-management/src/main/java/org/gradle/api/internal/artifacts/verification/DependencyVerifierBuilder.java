@@ -16,27 +16,61 @@
 package org.gradle.api.internal.artifacts.verification;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.verification.model.ArtifactVerificationMetadata;
+import org.gradle.api.internal.artifacts.verification.model.Checksum;
 import org.gradle.api.internal.artifacts.verification.model.ChecksumKind;
 import org.gradle.api.internal.artifacts.verification.model.ComponentVerificationMetadata;
 import org.gradle.api.internal.artifacts.verification.model.ImmutableArtifactVerificationMetadata;
 import org.gradle.api.internal.artifacts.verification.model.ImmutableComponentVerificationMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 
-import java.util.EnumMap;
+import javax.annotation.Nullable;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class DependencyVerifierBuilder {
     private final Map<ModuleComponentIdentifier, ComponentVerificationsBuilder> byComponent = Maps.newLinkedHashMap();
+    private final List<DependencyVerificationConfiguration.TrustedArtifact> trustedArtifacts = Lists.newArrayList();
+    private boolean isVerifyMetadata = true;
 
-    public void addChecksum(ModuleComponentArtifactIdentifier artifact, ChecksumKind kind, String value) {
+    public void addChecksum(ModuleComponentArtifactIdentifier artifact, ChecksumKind kind, String value, @Nullable String origin) {
         ModuleComponentIdentifier componentIdentifier = artifact.getComponentIdentifier();
         byComponent.computeIfAbsent(componentIdentifier, id -> new ComponentVerificationsBuilder(id))
-            .addChecksum(artifact, kind, value);
+            .addChecksum(artifact, kind, value, origin);
+    }
+
+    public void setVerifyMetadata(boolean verifyMetadata) {
+        isVerifyMetadata = verifyMetadata;
+    }
+
+    public boolean isVerifyMetadata() {
+        return isVerifyMetadata;
+    }
+
+    public void addTrustedArtifact(String group, @Nullable String name, @Nullable String version, @Nullable String fileName, boolean regex) {
+        validateUserInput(group, name, version, fileName);
+        trustedArtifacts.add(new DependencyVerificationConfiguration.TrustedArtifact(group, name, version, fileName, regex));
+    }
+
+    private void validateUserInput(@Nullable String group, @Nullable String name, @Nullable String version, @Nullable String fileName) {
+        // because this can be called from parsing XML, we need to perform additional verification
+        if (group == null) {
+            throw new InvalidUserDataException("group cannot be null");
+        }
+        if (name == null && (version != null || fileName != null)) {
+            throw new InvalidUserDataException("name cannot be null");
+        }
+        if (version == null && fileName != null) {
+            throw new InvalidUserDataException("version cannot be null");
+        }
     }
 
     public DependencyVerifier build() {
@@ -44,23 +78,27 @@ public class DependencyVerifierBuilder {
         for (Map.Entry<ModuleComponentIdentifier, ComponentVerificationsBuilder> entry : byComponent.entrySet()) {
             builder.put(entry.getKey(), entry.getValue().build());
         }
-        return new DependencyVerifier(builder.build());
+        return new DependencyVerifier(builder.build(), new DependencyVerificationConfiguration(isVerifyMetadata, trustedArtifacts));
+    }
+
+    public List<DependencyVerificationConfiguration.TrustedArtifact> getTrustedArtifacts() {
+        return trustedArtifacts;
     }
 
     private static class ComponentVerificationsBuilder {
         private final ModuleComponentIdentifier component;
-        private final Map<ModuleComponentArtifactIdentifier, EnumMap<ChecksumKind, String>> checksums = Maps.newLinkedHashMap();
+        private final Map<String, ChecksumsBuilder> checksums = Maps.newLinkedHashMap();
 
         private ComponentVerificationsBuilder(ModuleComponentIdentifier component) {
             this.component = component;
         }
 
-        void addChecksum(ModuleComponentArtifactIdentifier artifact, ChecksumKind kind, String value) {
-            checksums.computeIfAbsent(artifact, id -> Maps.newEnumMap(ChecksumKind.class)).put(kind, value);
+        void addChecksum(ModuleComponentArtifactIdentifier artifact, ChecksumKind kind, String value, @Nullable String origin) {
+            checksums.computeIfAbsent(artifact.getFileName(), id -> new ChecksumsBuilder()).addChecksum(kind, value, origin);
         }
 
-        private static ArtifactVerificationMetadata toArtifactVerification(Map.Entry<ModuleComponentArtifactIdentifier, EnumMap<ChecksumKind, String>> entry) {
-            return new ImmutableArtifactVerificationMetadata(entry.getKey(), entry.getValue());
+        private static ArtifactVerificationMetadata toArtifactVerification(Map.Entry<String, ChecksumsBuilder> entry) {
+            return new ImmutableArtifactVerificationMetadata(entry.getKey(), entry.getValue().build());
         }
 
         ComponentVerificationMetadata build() {
@@ -69,7 +107,67 @@ public class DependencyVerifierBuilder {
                     .stream()
                     .map(ComponentVerificationsBuilder::toArtifactVerification)
                     .collect(Collectors.toList())
-                );
+            );
+        }
+    }
+
+    private static class ChecksumsBuilder {
+        private final Map<ChecksumKind, ChecksumBuilder> builder = Maps.newEnumMap(ChecksumKind.class);
+
+        void addChecksum(ChecksumKind kind, String value, @Nullable String origin) {
+            ChecksumBuilder builder = this.builder.computeIfAbsent(kind, ChecksumBuilder::new);
+            builder.addChecksum(value);
+            if (origin != null) {
+                builder.withOrigin(origin);
+            }
+        }
+
+        List<Checksum> build() {
+            return builder.values()
+                .stream()
+                .map(ChecksumBuilder::build)
+                .collect(Collectors.toList());
+        }
+    }
+
+    private static class ChecksumBuilder {
+        private final ChecksumKind kind;
+        private String value;
+        private String origin;
+        private Set<String> alternatives;
+
+        private ChecksumBuilder(ChecksumKind kind) {
+            this.kind = kind;
+        }
+
+        /**
+         * Sets the origin, if not set already. This is
+         * mostly used for automatic generation of checksums
+         */
+        void withOrigin(String origin) {
+            if (this.origin == null) {
+                this.origin = origin;
+            }
+        }
+
+        void addChecksum(String checksum) {
+            if (value == null) {
+                value = checksum;
+            } else if (!value.equals(checksum)) {
+                if (alternatives == null) {
+                    alternatives = Sets.newLinkedHashSet();
+                }
+                alternatives.add(checksum);
+            }
+        }
+
+        Checksum build() {
+            return new Checksum(
+                kind,
+                value,
+                alternatives,
+                origin
+            );
         }
     }
 }

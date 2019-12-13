@@ -186,5 +186,6 @@ public interface MapProperty<K, V> extends Provider<Map<K, V>>, HasConfigurableV
      *
      * <p>Note that although the value of the property will not change, the resulting map may contain mutable objects. Calling this method does not guarantee that the value will become immutable.</p>
      */
+    @Override
     void finalizeValue();
 }

@@ -15,27 +15,48 @@
  */
 package org.gradle.api.internal.artifacts.verification.model;
 
-import com.google.common.collect.ImmutableMap;
-import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
-
-import java.util.Map;
+import java.util.List;
 
 public class ImmutableArtifactVerificationMetadata implements ArtifactVerificationMetadata {
-    private final ModuleComponentArtifactIdentifier artifact;
-    private final Map<ChecksumKind, String> checksums;
+    private final String artifactName;
+    private final List<Checksum> checksums;
 
-    public ImmutableArtifactVerificationMetadata(ModuleComponentArtifactIdentifier artifact, Map<ChecksumKind, String> checksums) {
-        this.artifact = artifact;
-        this.checksums = ImmutableMap.copyOf(checksums);
+    public ImmutableArtifactVerificationMetadata(String artifactName, List<Checksum> checksums) {
+        this.artifactName = artifactName;
+        this.checksums = checksums;
     }
 
     @Override
-    public ModuleComponentArtifactIdentifier getArtifact() {
-        return artifact;
+    public String getArtifactName() {
+        return artifactName;
     }
 
     @Override
-    public Map<ChecksumKind, String> getChecksums() {
+    public List<Checksum> getChecksums() {
         return checksums;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        ImmutableArtifactVerificationMetadata that = (ImmutableArtifactVerificationMetadata) o;
+
+        if (!artifactName.equals(that.artifactName)) {
+            return false;
+        }
+        return checksums.equals(that.checksums);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = artifactName.hashCode();
+        result = 31 * result + checksums.hashCode();
+        return result;
     }
 }

@@ -61,7 +61,7 @@ public class LazyToRealisedModuleComponentResolveMetadataHelper {
     }
 
     private static ImmutableList<AbstractRealisedModuleComponentResolveMetadata.ImmutableRealisedVariantImpl> addVariantsFromRules(ModuleComponentResolveMetadata componentMetadata, List<AbstractRealisedModuleComponentResolveMetadata.ImmutableRealisedVariantImpl> declaredVariants, VariantMetadataRules variantMetadataRules) {
-        Map<String, String> additionalVariants = variantMetadataRules.getAdditionalVariants();
+        List<AdditionalVariant> additionalVariants = variantMetadataRules.getAdditionalVariants();
         if (additionalVariants.isEmpty()) {
             return ImmutableList.copyOf(declaredVariants);
         }
@@ -69,35 +69,37 @@ public class LazyToRealisedModuleComponentResolveMetadataHelper {
         ImmutableList.Builder<AbstractRealisedModuleComponentResolveMetadata.ImmutableRealisedVariantImpl> builder = new ImmutableList.Builder<>();
         builder.addAll(declaredVariants);
         Map<String, ComponentVariant> variantsByName = declaredVariants.stream().collect(Collectors.toMap(ComponentVariant::getName, Function.identity()));
-        for (Map.Entry<String, String> variantName : additionalVariants.entrySet()) {
-            String baseName = variantName.getValue();
+        for (AdditionalVariant additionalVariant : additionalVariants) {
+            String baseName = additionalVariant.getBase();
             ImmutableAttributes attributes;
             ImmutableCapabilities capabilities;
             ImmutableList<? extends ComponentVariant.Dependency> dependencies;
             ImmutableList<? extends ComponentVariant.DependencyConstraint> dependencyConstraints;
             ImmutableList<? extends ComponentVariant.File> files;
 
-            if (baseName == null) {
+            ComponentVariant baseVariant = variantsByName.get(baseName);
+            if (baseVariant == null) {
                 attributes = componentMetadata.getAttributes();
                 capabilities = ImmutableCapabilities.EMPTY;
                 dependencies = ImmutableList.of();
                 dependencyConstraints = ImmutableList.of();
                 files = ImmutableList.of();
             } else {
-                ComponentVariant baseVariant = variantsByName.get(baseName);
-                if (baseVariant == null) {
-                    throw new InvalidUserDataException("Variant '" + baseName + "' not defined in module " + componentMetadata.getId().getDisplayName());
-                }
                 attributes = (ImmutableAttributes) baseVariant.getAttributes();
                 capabilities = (ImmutableCapabilities) baseVariant.getCapabilities();
                 dependencies = baseVariant.getDependencies();
                 dependencyConstraints = baseVariant.getDependencyConstraints();
                 files = baseVariant.getFiles();
             }
-            AbstractRealisedModuleComponentResolveMetadata.ImmutableRealisedVariantImpl variant = applyRules(new AbstractMutableModuleComponentResolveMetadata.ImmutableVariantImpl(
-                componentMetadata.getId(), variantName.getKey(), attributes, dependencies, dependencyConstraints, files, capabilities),
-                variantMetadataRules, componentMetadata.getId());
-            builder.add(variant);
+
+            if (baseName == null || baseVariant != null) {
+                AbstractRealisedModuleComponentResolveMetadata.ImmutableRealisedVariantImpl variant = applyRules(new AbstractMutableModuleComponentResolveMetadata.ImmutableVariantImpl(
+                        componentMetadata.getId(), additionalVariant.getName(), attributes, dependencies, dependencyConstraints, files, capabilities),
+                    variantMetadataRules, componentMetadata.getId());
+                builder.add(variant);
+            } else if (!additionalVariant.isLenient()) {
+                throw new InvalidUserDataException("Variant '" + baseName + "' not defined in module " + componentMetadata.getId().getDisplayName());
+            }
         }
         return builder.build();
     }

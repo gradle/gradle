@@ -97,7 +97,7 @@ abstract class GroovyCompilerIntegrationSpec extends BasicGroovyCompilerIntegrat
 
     @Issue("gradle/gradle#5908")
     def "canUseAstTransformWithAsm"() {
-        if (versionLowerThan('1.6')) {
+        if (versionLowerThan('1.8')) {
             return
         }
 

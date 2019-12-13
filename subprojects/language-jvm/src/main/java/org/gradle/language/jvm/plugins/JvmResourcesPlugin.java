@@ -36,6 +36,7 @@ import org.gradle.model.RuleSource;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.ComponentType;
 import org.gradle.platform.base.TypeBuilder;
+import org.gradle.util.DeprecationLogger;
 
 import java.util.Collections;
 import java.util.Map;
@@ -46,10 +47,12 @@ import static org.gradle.util.CollectionUtils.first;
  * Plugin for packaging JVM resources. Applies the {@link org.gradle.language.base.plugins.ComponentModelBasePlugin}. Registers "resources" language support with the {@link
  * org.gradle.language.jvm.JvmResourceSet}.
  */
+@Deprecated
 public class JvmResourcesPlugin implements Plugin<Project> {
 
     @Override
     public void apply(final Project project) {
+        DeprecationLogger.nagUserOfDeprecatedPlugin("jvm-resources", 6, "upgrading_jvm_plugins");
         project.getPluginManager().apply(ComponentModelBasePlugin.class);
     }
 
