@@ -88,6 +88,9 @@
                 <td>commandLine</td>
                 <td/>
             </tr>
+            <tr>
+                <td>executionResult</td>
+            </tr>
         </table>
     </section>
     <section>
