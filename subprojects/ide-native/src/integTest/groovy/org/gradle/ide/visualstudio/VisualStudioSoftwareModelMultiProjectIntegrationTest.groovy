@@ -633,6 +633,7 @@ class VisualStudioSoftwareModelMultiProjectIntegrationTest extends AbstractVisua
         generatedFiles*.assertDoesNotExist()
     }
 
+    @ToBeFixedForInstantExecution
     @IgnoreIf({ GradleContextualExecuter.isParallel() })
     def "can create Visual Studio solution for multiproject depending on the same prebuilt binary from another project in parallel"() {
         given:
