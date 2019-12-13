@@ -236,6 +236,6 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
     }
 
     private static void waitForChangesToBePickedUp() {
-        Thread.sleep(300)
+        Thread.sleep(1000)
     }
 }

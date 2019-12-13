@@ -16,82 +16,38 @@
 
 package org.gradle.internal.vfs;
 
-import com.google.common.annotations.VisibleForTesting;
 import net.rubygrapefruit.platform.Native;
-import net.rubygrapefruit.platform.file.FileWatcher;
 import net.rubygrapefruit.platform.internal.jni.WindowsFileEventFunctions;
+import org.gradle.internal.vfs.impl.WatchRootUtil;
+import org.gradle.internal.vfs.impl.WatcherEvent;
 import org.gradle.internal.vfs.watch.FileWatcherRegistry;
 import org.gradle.internal.vfs.watch.FileWatcherRegistryFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class WindowsFileWatcherRegistry implements FileWatcherRegistry {
-
-    private final FileWatcher watcher;
-    private final List<String> changedPaths = new ArrayList<>();
+public class WindowsFileWatcherRegistry extends AbstractEventDrivenFileWatcherRegistry {
+    private static final Logger LOGGER = LoggerFactory.getLogger(WindowsFileWatcherRegistry.class);
 
     public WindowsFileWatcherRegistry(Set<Path> watchRoots) {
-        this.watcher = Native.get(WindowsFileEventFunctions.class)
+        super(events -> Native.get(WindowsFileEventFunctions.class)
             .startWatching(
                 watchRoots.stream()
                     .map(Path::toString)
                     .collect(Collectors.toList()),
-                changedPaths::add
-            );
-    }
-
-    @Override
-    public void stopWatching(ChangeHandler handler) throws IOException {
-        try {
-            changedPaths
-                .forEach(changedPath -> handler.handleChange(Type.MODIFIED, Paths.get(changedPath)));
-        } catch (Exception ex) {
-            throw new IOException("Couldn't get watches", ex);
-        }
-    }
-
-    @Override
-    public void close() throws IOException {
-        watcher.close();
-    }
-
-    /**
-     * Filters out directories whose ancestor is also among the watched directories.
-     */
-    @VisibleForTesting
-    static Set<Path> resolveRootsToWatch(Set<Path> directories) {
-        Set<Path> roots = new HashSet<>();
-        directories.stream()
-            .sorted(Comparator.comparingInt(Path::getNameCount))
-            .filter(path -> {
-                Path parent = path;
-                while (true) {
-                    parent = parent.getParent();
-                    if (parent == null) {
-                        break;
-                    }
-                    if (roots.contains(parent)) {
-                        return false;
-                    }
-                }
-                return true;
-            })
-            .forEach(roots::add);
-        return roots;
+                (type, path) -> events.add(WatcherEvent.createEvent(type, path))
+            ));
     }
 
     public static class Factory implements FileWatcherRegistryFactory {
         @Override
         public FileWatcherRegistry startWatching(Set<Path> directories) {
-            return new WindowsFileWatcherRegistry(resolveRootsToWatch(directories));
+            Set<Path> watchRoots = WatchRootUtil.resolveRootsToWatch(directories);
+            LOGGER.warn("Watching {} directory hierarchies to track changes between builds in {} directories", watchRoots.size(), directories.size());
+            return new WindowsFileWatcherRegistry(watchRoots);
         }
     }
 }

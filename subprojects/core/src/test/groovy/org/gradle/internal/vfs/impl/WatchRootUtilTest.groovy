@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.vfs
+package org.gradle.internal.vfs.impl
 
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -23,10 +23,10 @@ import spock.lang.Unroll
 
 import java.nio.file.Paths
 
-@Requires(TestPrecondition.MAC_OS_X)
-class DarwinFileWatcherRegistryTest extends Specification {
-    @Unroll
-    def "resolves recursive roots #directories to #resolvedRoots"() {
+@Unroll
+class WatchRootUtilTest extends Specification {
+    @Requires(TestPrecondition.UNIX_DERIVATIVE)
+    def "resolves recursive UNIX roots #directories to #resolvedRoots"() {
         expect:
         resolveRecursiveRoots(directories) == resolvedRoots
 
@@ -43,8 +43,26 @@ class DarwinFileWatcherRegistryTest extends Specification {
         ["/b/a", "/a"]     | ["/a", "/b/a"]
     }
 
+    @Requires(TestPrecondition.WINDOWS)
+    def "resolves recursive Windows roots #directories to #resolvedRoots"() {
+        expect:
+        resolveRecursiveRoots(directories) == resolvedRoots
+
+        where:
+        directories                 | resolvedRoots
+        []                          | []
+        ["C:\\a"]                   | ["C:\\a"]
+        ["C:\\a", "C:\\b"]          | ["C:\\a", "C:\\b"]
+        ["C:\\a", "C:\\a\\b"]       | ["C:\\a"]
+        ["C:\\a\\b", "C:\\a"]       | ["C:\\a"]
+        ["C:\\a", "C:\\a\\b\\c\\d"] | ["C:\\a"]
+        ["C:\\a\\b\\c\\d", "C:\\a"] | ["C:\\a"]
+        ["C:\\a", "C:\\b\\a"]       | ["C:\\a", "C:\\b\\a"]
+        ["C:\\b\\a", "C:\\a"]       | ["C:\\a", "C:\\b\\a"]
+    }
+
     private static List<String> resolveRecursiveRoots(List<String> directories) {
-        DarwinFileWatcherRegistry.resolveRootsToWatch(directories.collect { Paths.get(it) } as Set)
+        WatchRootUtil.resolveRootsToWatch(directories.collect { Paths.get(it) } as Set)
             .collect { it.toString() }
             .sort()
     }

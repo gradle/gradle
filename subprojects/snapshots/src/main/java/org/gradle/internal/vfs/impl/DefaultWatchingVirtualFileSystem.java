@@ -59,7 +59,7 @@ public class DefaultWatchingVirtualFileSystem extends AbstractDelegatingVirtualF
             throw new IllegalStateException("Watch service already started");
         }
         try {
-            Set<Path> watchRoots = new HashSet<>();
+            Set<Path> watchedDirectories = new HashSet<>();
             getRoot().visitSnapshots(snapshot -> {
                 Path path = Paths.get(snapshot.getAbsolutePath());
 
@@ -79,7 +79,7 @@ public class DefaultWatchingVirtualFileSystem extends AbstractDelegatingVirtualF
                         break;
                     }
                     if (Files.exists(ancestor)) {
-                        watchRoots.add(ancestor);
+                        watchedDirectories.add(ancestor);
                         break;
                     }
                 }
@@ -89,11 +89,10 @@ public class DefaultWatchingVirtualFileSystem extends AbstractDelegatingVirtualF
                 // has children, it would be watched through them already.
                 // This is here to make sure we also watch empty directories.
                 if (snapshot.getType() == FileType.Directory) {
-                    watchRoots.add(path);
+                    watchedDirectories.add(path);
                 }
             });
-            LOGGER.warn("Watching {} directories", watchRoots.size());
-            watchRegistry = watcherRegistryFactory.startWatching(watchRoots);
+            watchRegistry = watcherRegistryFactory.startWatching(watchedDirectories);
         } catch (Exception ex) {
             LOGGER.error("Couldn't create watch service, not tracking changes between builds", ex);
             invalidateAll();
@@ -108,31 +107,31 @@ public class DefaultWatchingVirtualFileSystem extends AbstractDelegatingVirtualF
         }
 
         AtomicInteger count = new AtomicInteger();
-        AtomicBoolean overflow = new AtomicBoolean();
+        AtomicBoolean unknownEventEncountered = new AtomicBoolean();
         try {
             watchRegistry.stopWatching(new FileWatcherRegistry.ChangeHandler() {
                 @Override
                 public void handleChange(FileWatcherRegistry.Type type, Path path) {
                     count.incrementAndGet();
+                    LOGGER.debug("Handling VFS change {} {}", type, path);
                     update(Collections.singleton(path.toString()), () -> {});
                 }
 
                 @Override
-                public void handleOverflow() {
-                    overflow.set(true);
+                public void handleLostState() {
+                    unknownEventEncountered.set(true);
+                    LOGGER.warn("Dropped VFS state due to lost state");
                     invalidateAll();
                 }
             });
+            if (!unknownEventEncountered.get()) {
+                LOGGER.warn("Received {} file system events since last build", count);
+            }
         } catch (IOException ex) {
             LOGGER.error("Couldn't fetch file changes, dropping VFS state", ex);
             invalidateAll();
         } finally {
             close();
-        }
-        if (!overflow.get()) {
-            LOGGER.warn("Invalidated {} VFS paths due to changes since last build", count);
-        } else {
-            LOGGER.warn("Invalidated all VFS paths after {} changes due to overflow", count);
         }
     }
 

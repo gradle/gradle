@@ -31,7 +31,7 @@ public class NoopFileWatcherRegistry implements FileWatcherRegistry {
 
     @Override
     public void stopWatching(ChangeHandler handler) {
-        handler.handleOverflow();
+        handler.handleLostState();
     }
 
     @Override

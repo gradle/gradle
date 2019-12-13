@@ -66,14 +66,14 @@ public class JdkFileWatcherRegistry implements FileWatcherRegistry {
                     WatchEvent.Kind<?> kind = event.kind();
                     if (kind == OVERFLOW) {
                         LOGGER.warn("Too many modifications for path {} since last build, dropping all VFS state", watchRoot);
-                        handler.handleOverflow();
+                        handler.handleLostState();
                         overflow = true;
                         break;
                     }
                     Path changedPath = watchRoot.resolve((Path) event.context());
                     Type type;
                     if (kind == ENTRY_CREATE) {
-                        type = Type.ADDED;
+                        type = Type.CREATED;
                     } else if (kind == ENTRY_MODIFY) {
                         type = Type.MODIFIED;
                     } else if (kind == ENTRY_DELETE) {
@@ -98,6 +98,7 @@ public class JdkFileWatcherRegistry implements FileWatcherRegistry {
         @Override
         public FileWatcherRegistry startWatching(Set<Path> directories) throws IOException {
             WatchService watchService = FileSystems.getDefault().newWatchService();
+            LOGGER.warn("Watching {} directories to track changes between builds", directories.size());
             return new JdkFileWatcherRegistry(watchService, directories);
         }
     }
