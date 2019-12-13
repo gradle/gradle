@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.provider.sources;
 
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.ValueSource;
 import org.gradle.api.provider.ValueSourceParameters;
@@ -35,8 +36,15 @@ public abstract class FileContentValueSource<T> implements ValueSource<T, FileCo
     @Nullable
     @Override
     public T obtain() {
-        final File file = getParameters().getFile().get().getAsFile();
-        return file.isFile() ? obtainFrom(file) : null;
+        @Nullable final RegularFile regularFile = getParameters().getFile().getOrNull();
+        if (regularFile == null) {
+            return null;
+        }
+        final File file = regularFile.getAsFile();
+        if (!file.isFile()) {
+            return null;
+        }
+        return obtainFrom(file);
     }
 
     protected abstract T obtainFrom(File file);

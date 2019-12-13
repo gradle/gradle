@@ -352,4 +352,49 @@ class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecuti
         output.count("ThreadPoolSize = 3") == 1
         instant.assertStateLoaded()
     }
+
+    @Unroll
+    def "file contents provider used as #usage has no value when underlying file provider has no value"() {
+        given:
+        def instant = newInstantExecutionFixture()
+        buildKotlinFile """
+
+            abstract class Greet : DefaultTask() {
+
+                @get:Input
+                abstract val greeting: Property<String>
+
+                @TaskAction
+                fun act() {
+                    println(greeting.get().capitalize() + "!")
+                }
+            }
+
+            val emptyFileProperty = objects.fileProperty()
+            val fileContents = providers.fileContents(emptyFileProperty).asText
+            val greetingFromFile: $operatorType = fileContents.$operator("hello")
+            tasks.register<Greet>("greet") {
+                greeting.set(greetingFromFile)
+            }
+        """
+
+        when:
+        instantRun("greet")
+
+        then:
+        output.count("Hello!") == 1
+        instant.assertStateStored()
+
+        when:
+        instantRun("greet")
+
+        then:
+        output.count("Hello!") == 1
+        instant.assertStateLoaded()
+
+        where:
+        operator    | operatorType       | usage
+        "getOrElse" | "String"           | "build logic input"
+        "orElse"    | "Provider<String>" | "task input"
+    }
 }
