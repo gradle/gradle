@@ -17,17 +17,16 @@ package org.gradle.model.internal.fixture;
 
 import org.gradle.api.internal.rules.RuleAwarePolymorphicNamedEntityInstantiator;
 import org.gradle.model.internal.inspect.ModelRuleExtractor;
-import org.gradle.model.internal.registry.BoringProjectState;
 import org.gradle.model.internal.registry.DefaultModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 
 public class ModelRegistryHelper extends DefaultModelRegistry {
     public ModelRegistryHelper() {
-        super(ProjectRegistrySpec.MODEL_RULE_EXTRACTOR, null, BoringProjectState.IDENTITY);
+        super(ProjectRegistrySpec.MODEL_RULE_EXTRACTOR, null);
     }
 
     public ModelRegistryHelper(ModelRuleExtractor ruleExtractor) {
-        super(ruleExtractor, null, BoringProjectState.IDENTITY);
+        super(ruleExtractor, null);
     }
 
     public static <T> ModelType<RuleAwarePolymorphicNamedEntityInstantiator<T>> instantiatorType(Class<T> typeClass) {

@@ -84,6 +84,10 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
     // And list will see a lot of removals, which ArrayList isn't very well suited for.
     private final List<RuleBinder> unboundRules = new LinkedList<RuleBinder>();
 
+    public DefaultModelRegistry(ModelRuleExtractor ruleExtractor, String projectPath) {
+        this(ruleExtractor, projectPath, BoringProjectState.IDENTITY);
+    }
+
     public DefaultModelRegistry(ModelRuleExtractor ruleExtractor, String projectPath, BoringProjectState projectState) {
         this.ruleExtractor = ruleExtractor;
         this.projectPath = projectPath;
