@@ -5,6 +5,8 @@
       <trusted-artifacts>
          <trust group="gradle" name="gradle"/>
          <trust group="net[.]rubygrapefruit" name="native-platform.*" version=".*snapshot.*" regex="true"/>
+         <trust group=".*" name=".*" version=".*" file=".*-javadoc[.]jar" regex="true"/>
+         <trust group=".*" name=".*" version=".*" file=".*-sources[.]jar" regex="true"/>
       </trusted-artifacts>
    </configuration>
    <components>
