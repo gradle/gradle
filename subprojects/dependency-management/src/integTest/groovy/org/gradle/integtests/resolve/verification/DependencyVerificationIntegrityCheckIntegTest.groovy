@@ -318,7 +318,7 @@ This can indicate that a dependency has been compromised. Please verify carefull
         if (failsFooSources) {
             return """Dependency verification failed for org:foo:1.0:
   - Artifact foo-1.0-sources.jar (org:foo:1.0) checksum is missing from verification metadata.
-Please update the file either manually (preferred) or by adding the --write-verification-metadata flag (unsafe)."""
+If the dependency is legit, update the gradle/dependency-verification.xml manually (safest) or run with the --write-verification-metadata flag (unsecure)."""
         }
 
         String message = """Dependency verification failed for configuration ':compileClasspath':
@@ -443,7 +443,7 @@ Please update the file either manually (preferred) or by adding the --write-veri
         failure.assertHasCause("""Dependency verification failed for configuration ':compileClasspath':
   - Artifact foo-1.0.jar (org:foo:1.0) checksum is missing from verification metadata.
   - Artifact foo-1.0.pom (org:foo:1.0) checksum is missing from verification metadata.
-Please update the file either manually (preferred) or by adding the --write-verification-metadata flag (unsafe).""")
+If the dependency is legit, update the gradle/dependency-verification.xml manually (safest) or run with the --write-verification-metadata flag (unsecure).""")
     }
 
     def "ignores project and file dependencies"() {
