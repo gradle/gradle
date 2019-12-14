@@ -115,15 +115,14 @@ class DependencyVerificationsXmlReaderTest extends Specification {
         trusted[4].regex == true
     }
 
-    @Unroll
-    def "reasonable error message when trusted artifact notation is incorrect (#notation)"() {
+    def "reasonable error message when trusted artifact isn't well defined"() {
         when:
         parse """<?xml version="1.0" encoding="UTF-8"?>
 <verification-metadata>
    <configuration>
       <verify-metadata>true</verify-metadata>
       <trusted-artifacts>
-         <trust $notation/>
+         <trust/>
       </trusted-artifacts>
    </configuration>
 </verification-metadata>
@@ -131,14 +130,7 @@ class DependencyVerificationsXmlReaderTest extends Specification {
         then:
         InvalidUserDataException ex = thrown()
         ex.message == "Unable to read dependency verification metadata"
-        ex.cause.message == error
-
-        where:
-        notation                                  | error
-        'name="name"'                             | "Invalid dependency verification metadata file: Missing attribute: group"
-        'group="foo" version="1.0"'               | "name cannot be null"
-        'group="foo" file="file.jar"'             | "name cannot be null"
-        'group="foo" name="name" file="file.jar"' | "version cannot be null"
+        ex.cause.message == "A trusted artifact must have at least one of group, name, version or file name not null"
     }
 
     def "can parse dependency verification metadata"() {

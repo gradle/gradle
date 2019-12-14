@@ -46,7 +46,7 @@ public class DependencyVerificationConfiguration {
         private final String fileName;
         private final boolean regex;
 
-        TrustedArtifact(String group, @Nullable String name, @Nullable String version, @Nullable String fileName, boolean regex) {
+        TrustedArtifact(@Nullable String group, @Nullable String name, @Nullable String version, @Nullable String fileName, boolean regex) {
             this.group = group;
             this.name = name;
             this.version = version;
