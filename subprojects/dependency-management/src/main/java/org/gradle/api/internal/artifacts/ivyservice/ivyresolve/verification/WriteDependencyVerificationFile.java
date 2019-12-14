@@ -15,11 +15,11 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
 import org.gradle.api.Action;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Configuration;
@@ -64,7 +64,6 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
     };
     private static final Set<String> SUPPORTED_CHECKSUMS = ImmutableSet.of("md5", "sha1", "sha256", "sha512");
     private static final Set<String> SECURE_CHECKSUMS = ImmutableSet.of("sha256", "sha512");
-    private static final List<String> DEFAULT_CHECKSUMS = ImmutableList.of("sha1", "sha512");
 
     private final DependencyVerifierBuilder verificationsBuilder = new DependencyVerifierBuilder();
     private final BuildOperationExecutor buildOperationExecutor;
@@ -101,8 +100,7 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
                 }
             }
             if (copy.isEmpty()) {
-                LOGGER.warn("Falling back to the default checksums: sha1 and sha512");
-                copy = DEFAULT_CHECKSUMS;
+                throw new InvalidUserDataException("You must specify at least one checksum type to use. You must choose one or more in " + SUPPORTED_CHECKSUMS);
             }
             return copy;
         }

@@ -53,7 +53,7 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
 
         where:
         checksums << [
-            "unknown",
+            "unknown,md5",
             "sha1,unknown",
             "md5,unknown,sha1",
             "unknown , sha512"
