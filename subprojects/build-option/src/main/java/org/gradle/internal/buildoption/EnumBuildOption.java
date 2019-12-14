@@ -19,6 +19,9 @@ package org.gradle.internal.buildoption;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -28,16 +31,15 @@ import java.util.Map;
  */
 public abstract class EnumBuildOption<E extends Enum<E>, T> extends AbstractBuildOption<T, CommandLineOptionConfiguration> {
 
+    private final String displayName;
     private final Class<E> enumClass;
+    private final List<E> possibleValues;
 
-    public EnumBuildOption(Class<E> enumClass, String gradleProperty) {
-        super(gradleProperty);
-        this.enumClass = enumClass;
-    }
-
-    public EnumBuildOption(Class<E> enumClass, String gradleProperty, CommandLineOptionConfiguration... commandLineOptionConfigurations) {
+    public EnumBuildOption(String displayName, Class<E> enumClass, E[] possibleValues, String gradleProperty, CommandLineOptionConfiguration... commandLineOptionConfigurations) {
         super(gradleProperty, commandLineOptionConfigurations);
+        this.displayName = displayName;
         this.enumClass = enumClass;
+        this.possibleValues = Collections.unmodifiableList(Arrays.asList(possibleValues));;
     }
 
     @Override
@@ -82,7 +84,7 @@ public abstract class EnumBuildOption<E extends Enum<E>, T> extends AbstractBuil
             }
         }
         if (enumValue == null) {
-            throw new RuntimeException("No such value '" + value + "'");
+            throw new RuntimeException("Option " + displayName + " doesn't accept value '" + value + "'. Possible values are " + possibleValues);
         }
         return enumValue;
     }
