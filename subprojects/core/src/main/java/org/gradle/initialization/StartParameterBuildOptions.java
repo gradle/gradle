@@ -355,7 +355,7 @@ public class StartParameterBuildOptions {
                 DependencyVerificationMode.values(),
                 GRADLE_PROPERTY,
                 CommandLineOptionConfiguration.create(
-                LONG_OPTION, SHORT_OPTION, "Configures the dependency verification mode (strict, lenient or off)")
+                LONG_OPTION, SHORT_OPTION, "Configures the dependency verification mode (strict, lenient or off)").incubating()
             );
         }
 

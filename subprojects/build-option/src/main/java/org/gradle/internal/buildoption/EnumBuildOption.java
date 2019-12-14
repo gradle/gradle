@@ -39,7 +39,7 @@ public abstract class EnumBuildOption<E extends Enum<E>, T> extends AbstractBuil
         super(gradleProperty, commandLineOptionConfigurations);
         this.displayName = displayName;
         this.enumClass = enumClass;
-        this.possibleValues = Collections.unmodifiableList(Arrays.asList(possibleValues));;
+        this.possibleValues = Collections.unmodifiableList(Arrays.asList(possibleValues));
     }
 
     @Override
