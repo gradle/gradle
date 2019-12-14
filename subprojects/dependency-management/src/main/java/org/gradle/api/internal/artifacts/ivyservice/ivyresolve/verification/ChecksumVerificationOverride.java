@@ -111,7 +111,7 @@ public class ChecksumVerificationOverride implements DependencyVerificationOverr
                     formatter.node("This can indicate that a dependency has been compromised. Please verify carefully the checksums.");
                 } else if (hasMissing.get()) {
                     // the else is just to avoid telling people to use `--write-verification-metadata` if we suspect compromised dependencies
-                    formatter.node("Please update the file either manually (preferred) or by adding the --write-verification-metadata flag (unsafe).");
+                    formatter.node("If the dependency is legit, update the gradle/dependency-verification.xml manually (safest) or run with the --write-verification-metadata flag (unsecure).");
                 }
                 String message = formatter.toString();
                 if (verificationMode == DependencyVerificationMode.LENIENT) {
