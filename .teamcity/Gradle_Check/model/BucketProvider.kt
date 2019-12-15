@@ -124,11 +124,11 @@ class StatisticBasedGradleBuildBucketProvider(private val model: CIBuildModel, t
  * the result buckets will be [[10], [9], [5], [4, 1], [2]]
  */
 fun <T> split(list: List<T>, function: (T) -> Int, expectedBucketSize: Int): List<List<T>> {
-    val originalList = ArrayList(list)
+    val sortedList = ArrayList(list.sortedBy { -function(it) })
     val ret = mutableListOf<List<T>>()
 
-    while (originalList.isNotEmpty()) {
-        val largest = originalList.removeAt(0)
+    while (sortedList.isNotEmpty()) {
+        val largest = sortedList.removeAt(0)
         val bucket = mutableListOf<T>()
         var restCapacity = expectedBucketSize - function(largest)
 
@@ -136,12 +136,13 @@ fun <T> split(list: List<T>, function: (T) -> Int, expectedBucketSize: Int): Lis
 
         while (true) {
             // Find next largest object which can fit in resetCapacity
-            val index = originalList.indexOfFirst { function(it) < restCapacity }
-            if (index == -1 || originalList.isEmpty()) {
+            val index = sortedList.indexOfFirst { function(it) < restCapacity }
+            if (index == -1 || sortedList.isEmpty() || bucket.size >= 5) {
+                // TeamCity has length constraint, don't make a bucket containing too many subprojects.
                 break
             }
 
-            val nextElementToAddToBucket = originalList.removeAt(index)
+            val nextElementToAddToBucket = sortedList.removeAt(index)
             restCapacity -= function(nextElementToAddToBucket)
             bucket.add(nextElementToAddToBucket)
         }
