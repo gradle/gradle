@@ -16,6 +16,7 @@
 
 package org.gradle.internal.logging.text;
 
+import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.util.TextUtil;
 
 import javax.annotation.Nullable;
@@ -105,7 +106,7 @@ public class TreeFormatter implements DiagnosticsVisitor {
     public void appendType(Type type) {
         // Implementation is currently dumb, can be made smarter
         if (type instanceof Class) {
-            Class<?> classType = (Class<?>) type;
+            Class<?> classType = GeneratedSubclasses.unpack((Class<?>) type);
             appendOuter(classType);
             append(classType.getSimpleName());
         } else if (type instanceof ParameterizedType) {
@@ -160,6 +161,8 @@ public class TreeFormatter implements DiagnosticsVisitor {
         // Implementation is currently dumb, can be made smarter
         if (value == null) {
             append("null");
+        } else if (value.getClass().isArray()) {
+            appendValues((Object[]) value);
         } else if (value instanceof String) {
             append("'");
             append(value.toString());
@@ -172,11 +175,11 @@ public class TreeFormatter implements DiagnosticsVisitor {
     /**
      * Appends some user provided values to the current node.
      */
-    public void appendValues(Object[] values) {
+    public <T> void appendValues(T[] values) {
         // Implementation is currently dumb, can be made smarter
         append("[");
         for (int i = 0; i < values.length; i++) {
-            Object value = values[i];
+            T value = values[i];
             if (i > 0) {
                 append(", ");
             }
