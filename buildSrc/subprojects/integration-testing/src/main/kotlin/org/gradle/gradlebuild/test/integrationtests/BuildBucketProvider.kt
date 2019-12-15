@@ -34,18 +34,16 @@ interface BuildBucketProvider {
 
         fun getInstance(project: Project): BuildBucketProvider {
             if (instance == null) {
-                val includeProperties = project.rootProject.buildDir.resolve("include-test-classes.properties")
-                val excludeProperties = project.rootProject.buildDir.resolve("exclude-test-classes.properties")
                 instance = when {
-                    includeProperties.isFile -> {
-                        val content = includeProperties.readText()
+                    project.stringPropertyOrEmpty("includeTestClasses").isNotBlank() -> {
+                        val content = project.rootProject.buildDir.resolve("include-test-classes.properties").readText()
                         println("Tests to be included:\n$content")
                         IncludeTestClassProvider(readTestClasses(content))
                     }
-                    excludeProperties.isFile -> {
-                        val content = excludeProperties.readText()
-                        println("Tests to be excluded:\n$content")
-                        ExcludeTestClassProvider(readTestClasses(content))
+                    project.stringPropertyOrEmpty("excludeTestClasses").isNotBlank() -> {
+                        val content = project.rootProject.buildDir.resolve("exclude-test-classes.properties").readText()
+                        println("Tests to be included:\n$content")
+                        IncludeTestClassProvider(readTestClasses(content))
                     }
                     project.stringPropertyOrEmpty("onlyTestGradleMajorVersion").isNotBlank() -> {
                         CrossVersionBucketProvider(project.stringPropertyOrEmpty("onlyTestGradleMajorVersion"))
@@ -87,8 +85,9 @@ class CrossVersionBucketProvider(private val onlyTestGradleMajorVersion: String)
     fun currentVersionEnabled(currentVersionUnderTest: String): Boolean {
         val versionUnderTest = GradleVersion.version(currentVersionUnderTest)
         // if onlyTestGradleMajorVersion=1, we test Gradle 0.x and Gradle 1.x
-        val testGradleVersion = GradleVersion.version("${if (onlyTestGradleMajorVersion == "1") "0" else onlyTestGradleMajorVersion}.0.0")
-        return testGradleVersion <= versionUnderTest && versionUnderTest <= testGradleVersion.nextMajor
+        val majorVersion = GradleVersion.version("${if (onlyTestGradleMajorVersion == "1") "0" else onlyTestGradleMajorVersion}.0")
+        val nextMajorVersion = GradleVersion.version("${onlyTestGradleMajorVersion.toInt() + 1}.0")
+        return majorVersion <= versionUnderTest && versionUnderTest < nextMajorVersion
     }
 
     private

@@ -163,10 +163,15 @@ class CIConfigIntegrationTests {
         fun assertCorrectParameters(subProjectName: String, functionalTests: List<FunctionalTest>) {
             functionalTests.forEach { assertTrue(it.getGradleTasks().startsWith("clean $subProjectName")) }
             if (functionalTests.size == 1) {
-                assertFalse(functionalTests[0].getGradleParams().contains("-PrunTestClassesInBucket"))
+                assertFalse(functionalTests[0].getGradleParams().contains("-PincludeTestClasses"))
+                assertFalse(functionalTests[0].getGradleParams().contains("-PexcludeTestClasses"))
             } else {
                 functionalTests.forEachIndexed { index, it ->
-                    assertTrue(it.getGradleParams().contains("-PrunTestClassesInBucket"))
+                    if (index == functionalTests.size - 1) {
+                        assertTrue(it.getGradleParams().contains("-PexcludeTestClasses"))
+                    } else {
+                        assertTrue(it.getGradleParams().contains("-PincludeTestClasses"))
+                    }
                 }
             }
         }
