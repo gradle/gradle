@@ -30,6 +30,7 @@ import java.util.Set;
  * Definition of a Jar file binary that is to be built by Gradle.
  */
 @Incubating @HasInternalProtocol
+@Deprecated
 public interface JarBinarySpec extends LibraryBinarySpec, JvmBinarySpec {
     /**
      * {@inheritDoc}

@@ -23,5 +23,6 @@ import org.gradle.platform.base.Library;
  * A Library component that runs on the Java Virtual Machine.
  */
 @Incubating
+@Deprecated
 public interface JvmLibrary extends Library {
 }

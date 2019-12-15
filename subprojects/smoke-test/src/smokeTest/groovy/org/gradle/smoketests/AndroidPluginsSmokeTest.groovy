@@ -16,6 +16,7 @@
 
 package org.gradle.smoketests
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.android.AndroidHome
 import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.util.VersionNumber
@@ -39,6 +40,7 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "android application plugin #pluginVersion"(String pluginVersion) {
         given:
 
@@ -105,6 +107,7 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "android library plugin #pluginVersion"(String pluginVersion) {
         given:
 

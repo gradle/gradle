@@ -18,6 +18,7 @@ package org.gradle.initialization;
 
 import com.google.common.base.Splitter;
 import org.gradle.api.Transformer;
+import org.gradle.api.artifacts.verification.DependencyVerificationMode;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.file.BasicFileResolver;
 import org.gradle.cli.CommandLineOption;
@@ -27,6 +28,7 @@ import org.gradle.internal.buildoption.BooleanCommandLineOptionConfiguration;
 import org.gradle.internal.buildoption.BuildOption;
 import org.gradle.internal.buildoption.CommandLineOptionConfiguration;
 import org.gradle.internal.buildoption.EnabledOnlyBooleanBuildOption;
+import org.gradle.internal.buildoption.EnumBuildOption;
 import org.gradle.internal.buildoption.ListBuildOption;
 import org.gradle.internal.buildoption.Origin;
 import org.gradle.internal.buildoption.StringBuildOption;
@@ -63,6 +65,7 @@ public class StartParameterBuildOptions {
         options.add(new BuildScanOption());
         options.add(new DependencyLockingWriteOption());
         options.add(new DependencyVerificationWriteOption());
+        options.add(new DependencyVerificationModeOption());
         options.add(new DependencyLockingUpdateOption());
         StartParameterBuildOptions.options = Collections.unmodifiableList(options);
     }
@@ -314,10 +317,11 @@ public class StartParameterBuildOptions {
     }
 
     public static class DependencyVerificationWriteOption extends StringBuildOption<StartParameterInternal> {
+        public static final String SHORT_OPTION = "wv";
         public static final String LONG_OPTION = "write-verification-metadata";
 
         DependencyVerificationWriteOption() {
-            super(null, CommandLineOptionConfiguration.create(LONG_OPTION,
+            super(null, CommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION,
                 "Generates checksums for dependencies used in the project (comma-separated list)").incubating());
         }
 
@@ -336,6 +340,28 @@ public class StartParameterBuildOptions {
                 .map(String::toLowerCase)
                 .collect(Collectors.toList());
             settings.setWriteDependencyVerifications(checksums);
+        }
+    }
+
+    public static class DependencyVerificationModeOption extends EnumBuildOption<DependencyVerificationMode, StartParameterInternal> {
+
+        private static final String GRADLE_PROPERTY = "org.gradle.dependency.verification";
+        private static final String LONG_OPTION = "dependency-verification";
+        private static final String SHORT_OPTION = "dv";
+
+        public DependencyVerificationModeOption() {
+            super(LONG_OPTION,
+                DependencyVerificationMode.class,
+                DependencyVerificationMode.values(),
+                GRADLE_PROPERTY,
+                CommandLineOptionConfiguration.create(
+                LONG_OPTION, SHORT_OPTION, "Configures the dependency verification mode (strict, lenient or off)").incubating()
+            );
+        }
+
+        @Override
+        public void applyTo(DependencyVerificationMode value, StartParameterInternal settings, Origin origin) {
+            settings.setDependencyVerificationMode(value);
         }
     }
 

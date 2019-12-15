@@ -61,8 +61,12 @@ public abstract class DaemonClientServicesSupport extends DefaultServiceRegistry
         return buildStandardInput;
     }
 
-    DaemonStopClient createDaemonStopClient(DaemonConnector connector, IdGenerator idGenerator) {
+    DaemonStopClient createDaemonStopClient(DaemonConnector connector, IdGenerator<UUID> idGenerator) {
         return new DaemonStopClient(connector, idGenerator);
+    }
+
+    NotifyDaemonAboutChangedPathsClient createNotifyDaemonAboutChangedPathsClient(DaemonConnector connector, IdGenerator<UUID> idGenerator, DaemonRegistry daemonRegistry) {
+        return new NotifyDaemonAboutChangedPathsClient(connector, idGenerator, daemonRegistry);
     }
 
     ReportDaemonStatusClient createReportDaemonStatusClient(DaemonRegistry registry, DaemonConnector connector, IdGenerator<UUID> idGenerator, DocumentationRegistry documentationRegistry) {

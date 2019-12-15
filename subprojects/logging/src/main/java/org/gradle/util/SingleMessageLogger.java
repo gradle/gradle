@@ -18,6 +18,7 @@ package org.gradle.util;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.internal.Factory;
 import org.gradle.internal.featurelifecycle.DeprecatedFeatureUsage;
@@ -91,6 +92,16 @@ public class SingleMessageLogger {
      */
     public static void nagUserOfDeprecatedPlugin(String pluginName) {
         nagUserOfDeprecatedPlugin(pluginName, null);
+    }
+
+    /**
+     * Output format:
+     * <p>
+     * The ${pluginName} plugin has been deprecated. This is scheduled to be removed in Gradle X. Consult the upgrading guide for further information: link-to-user-manual/upgrading_version_${majorVersion}.html#${replacement}
+     */
+    public static void nagUserOfDeprecatedPlugin(String pluginName, int majorVersion, String upgradeGuideSection) {
+        nagUserOfDeprecatedPlugin(pluginName, "Consult the upgrading guide for further information: " +
+            new DocumentationRegistry().getDocumentationFor("upgrading_version_" + majorVersion, upgradeGuideSection));
     }
 
     /**

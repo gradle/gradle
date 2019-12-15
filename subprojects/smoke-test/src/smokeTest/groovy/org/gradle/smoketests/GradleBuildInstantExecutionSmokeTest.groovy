@@ -16,13 +16,14 @@
 
 package org.gradle.smoketests
 
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 
-@Requires(TestPrecondition.JDK9_OR_LATER)
+@Requires(value = TestPrecondition.JDK9_OR_LATER, adhoc = { !GradleContextualExecuter.isInstant() })
 class GradleBuildInstantExecutionSmokeTest extends AbstractSmokeTest {
 
     def "can build gradle with instant execution enabled"() {

@@ -21,6 +21,7 @@ import com.google.common.collect.Sets;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.gradle.api.Incubating;
+import org.gradle.api.artifacts.verification.DependencyVerificationMode;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
@@ -98,6 +99,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     private boolean writeDependencyLocks;
     private List<String> writeDependencyVerifications = emptyList();
     private List<String> lockedDependenciesToUpdate = emptyList();
+    private DependencyVerificationMode verificationMode = DependencyVerificationMode.STRICT;
 
     /**
      * {@inheritDoc}
@@ -840,7 +842,6 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      *
      * @param lockedDependenciesToUpdate the modules to update
      * @see #isWriteDependencyLocks()
-     *
      * @since 4.8
      */
     public void setLockedDependenciesToUpdate(List<String> lockedDependenciesToUpdate) {
@@ -866,7 +867,6 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * of this build.
      *
      * @param checksums the list of checksums to generate
-     *
      * @since 6.1
      */
     @Incubating
@@ -878,10 +878,36 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * Returns the list of modules that are to be allowed to update their version compared to the lockfile.
      *
      * @return a list of modules allowed to have a version update
-     *
      * @since 4.8
      */
     public List<String> getLockedDependenciesToUpdate() {
         return lockedDependenciesToUpdate;
+    }
+
+    /**
+     * Sets the dependency verification mode. There are three different modes:
+     * <ul>
+     *     <li><i>strict</i>, the default, verification is enabled as soon as a dependency verification file is present.</li>
+     *     <li><i>lenient</i>, in this mode, failure to verify a checksum, missing checksums or signatures will be logged
+     *     but will not fail the build. This mode should only be used when updating dependencies as it is inherently unsafe.</li>
+     *     <li><i>off</i>, this mode disables all verifications</li>
+     * </ul>
+     *
+     * @param verificationMode if true, enables lenient dependency verification
+     * @since 6.2
+     */
+    @Incubating
+    public void setDependencyVerificationMode(DependencyVerificationMode verificationMode) {
+        this.verificationMode = verificationMode;
+    }
+
+    /**
+     * Returns the dependency verification mode.
+     *
+     * @since 6.2
+     */
+    @Incubating
+    public DependencyVerificationMode getDependencyVerificationMode() {
+        return verificationMode;
     }
 }

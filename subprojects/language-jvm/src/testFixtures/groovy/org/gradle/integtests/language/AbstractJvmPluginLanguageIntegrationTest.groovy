@@ -20,6 +20,7 @@ import org.apache.commons.lang.StringUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.archive.JarTestFixture
+import org.gradle.util.GradleVersion
 
 import java.util.regex.Pattern
 
@@ -41,6 +42,9 @@ abstract class AbstractJvmPluginLanguageIntegrationTest extends AbstractIntegrat
             id 'jvm-component'
             id '${languageName}-lang'
         }"""
+        executer.expectDeprecationWarning("The ${languageName}-lang plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
+        executer.expectDeprecationWarning("The jvm-component plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
+        executer.expectDeprecationWarning("The jvm-resources plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
     }
 
     @ToBeFixedForInstantExecution

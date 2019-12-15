@@ -50,7 +50,7 @@ public class ConnectionScopeServices {
     }
 
     ShutdownCoordinator createShutdownCoordinator(ListenerManager listenerManager, DaemonClientFactory daemonClientFactory, OutputEventListener outputEventListener, FileCollectionFactory fileCollectionFactory) {
-        ServiceRegistry clientServices = daemonClientFactory.createStopDaemonServices(outputEventListener, new DaemonParameters(new BuildLayoutParameters(), fileCollectionFactory));
+        ServiceRegistry clientServices = daemonClientFactory.createMessageDaemonServices(outputEventListener, new DaemonParameters(new BuildLayoutParameters(), fileCollectionFactory));
         DaemonStopClient client = clientServices.get(DaemonStopClient.class);
         ShutdownCoordinator shutdownCoordinator = new ShutdownCoordinator(client);
         listenerManager.addListener(shutdownCoordinator);

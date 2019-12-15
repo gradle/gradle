@@ -213,6 +213,36 @@ samples {
         }
     }
 
+    kotlinApplication {
+        sampleDirectory = file("src/samples/kotlin/application")
+        description = "Demonstrate how to build a Kotlin application"
+
+        def sourceFiles = installSourceFromTemplate(it) {
+            from("$templateDir/kotlin-application")
+            from("$templateDir/kotlin-list-library")
+            from("$templateDir/kotlin-utilities-library")
+        }
+        archiveContent.from sourceFiles
+        exemplar.source {
+            from(sourceFiles) { into('groovy') }
+            from(sourceFiles) { into('kotlin') }
+        }
+    }
+    kotlinLibrary {
+        sampleDirectory = file("src/samples/kotlin/library")
+        description = "Demonstrate how to build a Kotlin library"
+
+        def sourceFiles = installSourceFromTemplate(it) {
+            from("$templateDir/kotlin-list-library")
+            from("$templateDir/kotlin-utilities-library")
+        }
+        archiveContent.from sourceFiles
+        exemplar.source {
+            from(sourceFiles) { into('groovy') }
+            from(sourceFiles) { into('kotlin') }
+        }
+    }
+
     javaApplication {
         sampleDirectory = file("src/samples/java/application")
         description = "Demonstrate how to build a Java application"

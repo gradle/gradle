@@ -21,8 +21,9 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.test.fixtures.archive.JarTestFixture
+import org.gradle.util.GradleVersion
 
-public class MixedNativeAndJvmProjectIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+class MixedNativeAndJvmProjectIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
     @ToBeFixedForInstantExecution
     def "can combine legacy java and cpp plugins in a single project"() {
@@ -62,6 +63,7 @@ model {
 
     @ToBeFixedForInstantExecution
     def "can combine jvm and native components in the same project"() {
+        executer.expectDeprecationWarning("The jvm-component plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
         buildFile << """
 plugins {
     id 'native-component'
@@ -144,6 +146,7 @@ model {
 }
 """
         when:
+        expectJavaLangDeprecationWarnings()
         succeeds "jvmLibJar"
 
         then:
@@ -151,6 +154,7 @@ model {
         notExecuted  ":nativeAppExecutable"
 
         when:
+        expectJavaLangDeprecationWarnings()
         succeeds  "nativeAppExecutable"
 
         then:
@@ -158,6 +162,7 @@ model {
         notExecuted ":jvmLibJar"
 
         when:
+        expectJavaLangDeprecationWarnings()
         succeeds "assemble"
 
         then:
@@ -167,5 +172,11 @@ model {
         new JarTestFixture(file("build/jars/jvmLib/jar/jvmLib.jar")).hasDescendants("org/gradle/test/Test.class", "test.txt");
         def nativeExeName = OperatingSystem.current().getExecutableName("nativeApp")
         file("build/exe/nativeApp/${nativeExeName}").assertExists()
+    }
+
+    private void expectJavaLangDeprecationWarnings() {
+        executer.expectDeprecationWarning("The jvm-component plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
+        executer.expectDeprecationWarning("The java-lang plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
+        executer.expectDeprecationWarning("The jvm-resources plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
     }
 }

@@ -40,6 +40,7 @@ import org.gradle.platform.base.Platform;
  * </pre>
  */
 @Incubating
+@Deprecated
 public interface JavaPlatform extends Platform {
     @Internal
     JavaVersion getTargetCompatibility();

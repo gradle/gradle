@@ -17,13 +17,15 @@
 package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.tooling.BuildAction;
-import org.gradle.tooling.internal.consumer.PhasedBuildAction;
 import org.gradle.tooling.internal.consumer.ConnectionParameters;
+import org.gradle.tooling.internal.consumer.PhasedBuildAction;
 import org.gradle.tooling.internal.consumer.TestExecutionRequest;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 import org.gradle.tooling.model.internal.Exceptions;
+
+import java.util.List;
 
 public abstract class AbstractConsumerConnection extends HasCompatibilityMapping implements ConsumerConnection {
     private final ConnectionVersion4 delegate;
@@ -77,4 +79,8 @@ public abstract class AbstractConsumerConnection extends HasCompatibilityMapping
         throw Exceptions.unsupportedFeature(operationParameters.getEntryPointName(), getVersionDetails().getVersion(), "2.6");
     }
 
+    @Override
+    public void notifyDaemonsAboutChangedPaths(List<String> changedPaths, ConsumerOperationParameters operationParameters) {
+        // Default is no-op
+    }
 }

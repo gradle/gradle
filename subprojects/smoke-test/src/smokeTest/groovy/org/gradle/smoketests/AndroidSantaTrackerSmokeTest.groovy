@@ -16,6 +16,7 @@
 
 package org.gradle.smoketests
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.internal.scan.config.fixtures.GradleEnterprisePluginSettingsFixture
 import org.gradle.profiler.mutations.ApplyNonAbiChangeToJavaSourceFileMutator
@@ -44,6 +45,7 @@ class AndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
         homeDir = temporaryFolder.createDir("test-kit-home")
     }
 
+    @ToBeFixedForInstantExecution
     def "check deprecation warnings produced by building Santa Tracker"() {
         def checkoutDir = temporaryFolder.createDir ("checkout")
         setupCopyOfSantaTracker(checkoutDir)
@@ -70,6 +72,7 @@ class AndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
         )
     }
 
+    @ToBeFixedForInstantExecution
     def "can cache Santa Tracker Android application"() {
         def originalDir = temporaryFolder.createDir ("original")
         def relocatedDir = temporaryFolder.createDir("relocated")
@@ -84,6 +87,7 @@ class AndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
         verify(relocatedResult, EXPECTED_RESULTS)
     }
 
+    @ToBeFixedForInstantExecution
     def "incremental Java compilation works for Santa Tracker"() {
         def checkoutDir = temporaryFolder.createDir ("checkout")
         setupCopyOfSantaTracker(checkoutDir)

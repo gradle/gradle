@@ -359,6 +359,11 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
         }
 
         @Override
+        public void maybeAddVariant(String name, String base, Action<? super VariantMetadata> action) {
+
+        }
+
+        @Override
         public void belongsTo(Object notation) {
 
         }

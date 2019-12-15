@@ -1,0 +1,10 @@
+> Task :compileKotlin
+> Task :compileJava NO-SOURCE
+> Task :processResources NO-SOURCE
+> Task :classes UP-TO-DATE
+
+> Task :run
+Hello, World!
+
+BUILD SUCCESSFUL in 0s
+2 actionable tasks: 2 executed

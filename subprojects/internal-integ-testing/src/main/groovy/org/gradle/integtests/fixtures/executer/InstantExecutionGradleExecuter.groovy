@@ -23,6 +23,13 @@ import org.gradle.util.GradleVersion
 
 class InstantExecutionGradleExecuter extends DaemonGradleExecuter {
 
+    static final List<String> INSTANT_EXECUTION_ARGS = [
+        "-D${SystemProperties.isEnabled}=true",
+        "-D${SystemProperties.isQuiet}=true",
+        "-D${SystemProperties.maxProblems}=0",
+        "-D${SystemProperties.failOnProblems}=true"
+    ].collect { it.toString() }
+
     InstantExecutionGradleExecuter(
         GradleDistribution distribution,
         TestDirectoryProvider testDirectoryProvider,
@@ -34,11 +41,6 @@ class InstantExecutionGradleExecuter extends DaemonGradleExecuter {
 
     @Override
     protected List<String> getAllArgs() {
-        return super.getAllArgs() + [
-            "-D${SystemProperties.isEnabled}=true",
-            "-D${SystemProperties.isQuiet}=true",
-            "-D${SystemProperties.maxProblems}=0",
-            "-D${SystemProperties.failOnProblems}=true"
-        ].collect { it.toString() }
+        return super.getAllArgs() + INSTANT_EXECUTION_ARGS
     }
 }

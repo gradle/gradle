@@ -23,6 +23,7 @@ import org.gradle.language.base.DependentSourceSet;
  * A set of sources passed to the Java compiler.
  */
 @Incubating
+@Deprecated
 public interface JavaSourceSet extends DependentSourceSet {
     Classpath getCompileClasspath();
 }

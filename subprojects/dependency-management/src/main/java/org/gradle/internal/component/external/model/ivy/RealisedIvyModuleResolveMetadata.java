@@ -31,6 +31,7 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.model.AbstractRealisedModuleComponentResolveMetadata;
+import org.gradle.internal.component.external.model.AdditionalVariant;
 import org.gradle.internal.component.external.model.ComponentVariant;
 import org.gradle.internal.component.external.model.ConfigurationBoundExternalDependencyMetadata;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
@@ -83,35 +84,37 @@ public class RealisedIvyModuleResolveMetadata extends AbstractRealisedModuleComp
     }
 
     private static void addVariantsFromRules(DefaultIvyModuleResolveMetadata componentMetadata, Map<String, ConfigurationMetadata> declaredConfigurations, VariantMetadataRules variantMetadataRules) {
-        Map<String, String> additionalVariants = variantMetadataRules.getAdditionalVariants();
+        List<AdditionalVariant> additionalVariants = variantMetadataRules.getAdditionalVariants();
         if (additionalVariants.isEmpty()) {
             return;
         }
 
-        for (Map.Entry<String, String> variantName : additionalVariants.entrySet()) {
-            String name = variantName.getKey();
-            String baseName = variantName.getValue();
+        for (AdditionalVariant additionalVariant : additionalVariants) {
+            String name = additionalVariant.getName();
+            String baseName = additionalVariant.getBase();
             ImmutableAttributes attributes;
             ImmutableCapabilities capabilities;
             List<ModuleDependencyMetadata> dependencies;
             ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts;
 
-            if (baseName == null) {
+            ModuleConfigurationMetadata baseConf = (ModuleConfigurationMetadata) declaredConfigurations.get(baseName);
+            if (baseConf == null) {
                 attributes = componentMetadata.getAttributes();
                 capabilities = ImmutableCapabilities.EMPTY;
                 dependencies = ImmutableList.of();
                 artifacts = ImmutableList.of();
             } else {
-                ModuleConfigurationMetadata baseConf = (ModuleConfigurationMetadata) declaredConfigurations.get(baseName);
-                if (baseConf == null) {
-                    throw new InvalidUserDataException("Configuration '" + baseName + "' not defined in module " + componentMetadata.getId().getDisplayName());
-                }
                 attributes = baseConf.getAttributes();
                 capabilities = (ImmutableCapabilities) baseConf.getCapabilities();
                 dependencies = Cast.uncheckedCast(baseConf.getDependencies());
                 artifacts = Cast.uncheckedCast(baseConf.getArtifacts());
             }
-            declaredConfigurations.put(name, applyRules(componentMetadata.getId(), name, variantMetadataRules, attributes, capabilities, artifacts, ImmutableList.of(), true, true, ImmutableSet.of(), null, dependencies, true));
+
+            if (baseName == null || baseConf != null) {
+                declaredConfigurations.put(name, applyRules(componentMetadata.getId(), name, variantMetadataRules, attributes, capabilities, artifacts, ImmutableList.of(), true, true, ImmutableSet.of(), null, dependencies, true));
+            } else if (!additionalVariant.isLenient()) {
+                throw new InvalidUserDataException("Configuration '" + baseName + "' not defined in module " + componentMetadata.getId().getDisplayName());
+            }
         }
     }
 

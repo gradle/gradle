@@ -27,6 +27,7 @@ enum class StageNames(override val stageName: String, override val description: 
     EXPERIMENTAL("Experimental", "On demand: Run experimental tests", "Experimental"),
     WINDOWS_10_EVALUATION_QUICK("Experimental Windows10 Quick", "On demand checks to test Windows 10 agents (quick tests)", "ExperimentalWindows10quick"),
     WINDOWS_10_EVALUATION_PLATFORM("Experimental Windows10 Platform", "On demand checks to test Windows 10 agents (platform tests)", "ExperimentalWindows10platform"),
+    EXPERIMENTAL_VFS_RETENTION("Experimental VFS Retention", "On demand checks to run tests with VFS retention enabled", "ExperimentalVfsRetention"),
 }
 
 data class CIBuildModel(
@@ -55,7 +56,9 @@ data class CIBuildModel(
                 SpecificBuild.BuildDistributions,
                 SpecificBuild.Gradleception,
                 SpecificBuild.SmokeTestsMinJavaVersion,
-                SpecificBuild.SmokeTestsMaxJavaVersion
+                SpecificBuild.SmokeTestsMaxJavaVersion,
+                SpecificBuild.InstantSmokeTestsMinJavaVersion,
+                SpecificBuild.InstantSmokeTestsMaxJavaVersion
             ),
             functionalTests = listOf(
                 TestCoverage(3, TestType.platform, Os.linux, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor),
@@ -100,7 +103,7 @@ data class CIBuildModel(
             runsIndependent = true,
             disablesBuildCache = true,
             functionalTests = listOf(
-                TestCoverage(20, TestType.quick, Os.windows, JvmCategory.MAX_VERSION.version, vendor = JvmCategory.MAX_VERSION.vendor))),
+                TestCoverage(26, TestType.quick, Os.windows, JvmCategory.MAX_VERSION.version, vendor = JvmCategory.MAX_VERSION.vendor))),
         Stage(StageNames.WINDOWS_10_EVALUATION_PLATFORM,
             trigger = Trigger.never,
             runsIndependent = true,
@@ -110,8 +113,18 @@ data class CIBuildModel(
                 TestCoverage(22, TestType.quickFeedbackCrossVersion, Os.windows, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor),
                 TestCoverage(23, TestType.soak, Os.windows, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor),
                 TestCoverage(24, TestType.allVersionsCrossVersion, Os.windows, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor),
-                TestCoverage(25, TestType.noDaemon, Os.windows, JvmCategory.MAX_VERSION.version, vendor = JvmCategory.MAX_VERSION.vendor)))
-    ),
+                TestCoverage(25, TestType.noDaemon, Os.windows, JvmCategory.MAX_VERSION.version, vendor = JvmCategory.MAX_VERSION.vendor))),
+        Stage(StageNames.EXPERIMENTAL_VFS_RETENTION,
+            trigger = Trigger.never,
+            runsIndependent = true,
+            functionalTests = listOf(
+                TestCoverage(27, TestType.vfsRetention, Os.linux, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor),
+                TestCoverage(28, TestType.vfsRetention, Os.linux, JvmCategory.MAX_VERSION.version, vendor = JvmCategory.MAX_VERSION.vendor),
+                TestCoverage(29, TestType.vfsRetention, Os.windows, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor),
+                TestCoverage(30, TestType.vfsRetention, Os.windows, JvmCategory.MAX_VERSION.version, vendor = JvmCategory.MAX_VERSION.vendor),
+                TestCoverage(31, TestType.vfsRetention, Os.macos, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor),
+                TestCoverage(32, TestType.vfsRetention, Os.macos, JvmCategory.MAX_VERSION.version, vendor = JvmCategory.MAX_VERSION.vendor)))
+        ),
 
     val subProjects: List<GradleSubproject> = listOf(
         GradleSubproject("antlr"),
@@ -296,15 +309,18 @@ data class SubprojectSplit(val subproject: GradleSubproject, val total: Int) : B
 }
 
 data class SubprojectBucket(val name: String, val subprojects: List<GradleSubproject>) : BuildTypeBucket, Validatable {
-    override fun createFunctionalTestsFor(model: CIBuildModel, stage: Stage, testCoverage: TestCoverage) = listOf(
-        FunctionalTest(model, testCoverage.asConfigurationId(model, name),
-            "${testCoverage.asName()} (${subprojects.joinToString(", ") { it.name }})",
-            "${testCoverage.asName()} for ${subprojects.joinToString(", ") { it.name }}",
-            testCoverage,
-            stage,
-            subprojects.map { it.name }
+    override fun createFunctionalTestsFor(model: CIBuildModel, stage: Stage, testCoverage: TestCoverage): List<FunctionalTest> {
+        val subprojectsForCoverage = subprojects.filter { !it.shouldBeSkipped(testCoverage) }
+        return listOf(
+            FunctionalTest(model, testCoverage.asConfigurationId(model, name),
+                "${testCoverage.asName()} (${subprojectsForCoverage.joinToString(", ") { it.name }})",
+                "${testCoverage.asName()} for ${subprojectsForCoverage.joinToString(", ") { it.name }}",
+                testCoverage,
+                stage,
+                subprojectsForCoverage.map { it.name }
+            )
         )
-    )
+    }
 
     override fun getSubprojectNames(): List<String> {
         return subprojects.map { it.name }
@@ -333,7 +349,7 @@ data class SubprojectBucket(val name: String, val subprojects: List<GradleSubpro
         return count == 0 || count == subprojects.size
     }
 
-    override fun shouldBeSkipped(testCoverage: TestCoverage) = subprojects.any { it.shouldBeSkipped(testCoverage) }
+    override fun shouldBeSkipped(testCoverage: TestCoverage) = subprojects.all { it.shouldBeSkipped(testCoverage) }
 
     override fun containsSlowTests() = subprojects.any { it.containsSlowTests }
 
@@ -424,6 +440,7 @@ enum class TestType(val unitTests: Boolean = true, val functionalTests: Boolean 
     parallel(false, true, false),
     noDaemon(false, true, false, 240),
     instant(false, true, false),
+    vfsRetention(false, true, false),
     soak(false, false, false),
     forceRealizeDependencyManagement(false, true, false)
 }
@@ -475,6 +492,16 @@ enum class SpecificBuild {
     SmokeTestsMaxJavaVersion {
         override fun create(model: CIBuildModel, stage: Stage): BuildType {
             return SmokeTests(model, stage, JvmCategory.MAX_VERSION)
+        }
+    },
+    InstantSmokeTestsMinJavaVersion {
+        override fun create(model: CIBuildModel, stage: Stage): BuildType {
+            return SmokeTests(model, stage, JvmCategory.MIN_VERSION, "instantSmokeTest")
+        }
+    },
+    InstantSmokeTestsMaxJavaVersion {
+        override fun create(model: CIBuildModel, stage: Stage): BuildType {
+            return SmokeTests(model, stage, JvmCategory.MAX_VERSION, "instantSmokeTest")
         }
     },
     DependenciesCheck {

@@ -306,14 +306,14 @@ class PerformanceTestPlugin : Plugin<Project> {
 
     private
     fun Project.configureIdePlugins(performanceTestSourceSet: SourceSet) {
-        val performanceTestCompile by configurations
-        val performanceTestRuntime by configurations
+        val performanceTestCompileClasspath by configurations
+        val performanceTestRuntimeClasspath by configurations
         plugins.withType<EclipsePlugin> {
             configure<EclipseModel> {
                 classpath {
                     plusConfigurations.apply {
-                        add(performanceTestCompile)
-                        add(performanceTestRuntime)
+                        add(performanceTestCompileClasspath)
+                        add(performanceTestRuntimeClasspath)
                     }
                 }
             }
@@ -325,8 +325,8 @@ class PerformanceTestPlugin : Plugin<Project> {
                     testSourceDirs = testSourceDirs + performanceTestSourceSet.groovy.srcDirs
                     testResourceDirs = testResourceDirs + performanceTestSourceSet.resources.srcDirs
                     scopes["TEST"]!!["plus"]!!.apply {
-                        add(performanceTestCompile)
-                        add(performanceTestRuntime)
+                        add(performanceTestCompileClasspath)
+                        add(performanceTestRuntimeClasspath)
                     }
                 }
             }

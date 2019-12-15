@@ -17,11 +17,13 @@
 package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.tooling.BuildAction;
-import org.gradle.tooling.internal.consumer.PhasedBuildAction;
 import org.gradle.tooling.internal.consumer.Distribution;
+import org.gradle.tooling.internal.consumer.PhasedBuildAction;
 import org.gradle.tooling.internal.consumer.TestExecutionRequest;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.model.internal.Exceptions;
+
+import java.util.List;
 
 /**
  * A {@code ConsumerConnection} implementation for a Gradle version that does not support the tooling API.
@@ -62,6 +64,11 @@ public class NoToolingApiConnection implements ConsumerConnection {
     @Override
     public void runTests(TestExecutionRequest testExecutionRequest, ConsumerOperationParameters operationParameters) {
         throw Exceptions.unsupportedFeature(operationParameters.getEntryPointName(), distribution, "2.6");
+    }
+
+    @Override
+    public void notifyDaemonsAboutChangedPaths(List<String> changedPaths, ConsumerOperationParameters operationParameters) {
+        throw Exceptions.unsupportedFeature(operationParameters.getEntryPointName(), distribution, "6.1");
     }
 
 }

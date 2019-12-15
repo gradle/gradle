@@ -19,6 +19,7 @@ package org.gradle.language.java
 import org.gradle.api.tasks.compile.AbstractComponentCompilerDaemonReuseIntegrationTest
 import org.gradle.integtests.fixtures.jvm.TestJvmComponent
 import org.gradle.language.fixtures.TestJavaComponent
+import org.gradle.util.GradleVersion
 
 
 class JavaComponentCompilerDaemonReuseIntegrationTest extends AbstractComponentCompilerDaemonReuseIntegrationTest {
@@ -29,6 +30,9 @@ class JavaComponentCompilerDaemonReuseIntegrationTest extends AbstractComponentC
 
     @Override
     String getApplyAndConfigure() {
+        executer.expectDeprecationWarning("The jvm-component plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
+        executer.expectDeprecationWarning("The java-lang plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
+        executer.expectDeprecationWarning("The jvm-resources plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
         return """
             apply plugin: 'jvm-component'
             apply plugin: 'java-lang'

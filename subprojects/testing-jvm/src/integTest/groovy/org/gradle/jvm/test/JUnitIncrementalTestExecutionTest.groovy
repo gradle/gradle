@@ -36,6 +36,7 @@ class JUnitIncrementalTestExecutionTest extends AbstractJUnitTestExecutionIntegr
         executedAndNotSkipped ':compileMyTestBinaryMyTestJava', ':myTestBinaryTest'
 
         and:
+        expectDeprecationWarnings()
         succeeds ':myTestBinaryTest'
 
         and:
@@ -54,6 +55,7 @@ class JUnitIncrementalTestExecutionTest extends AbstractJUnitTestExecutionIntegr
         changeTestSource()
 
         then:
+        expectDeprecationWarnings()
         succeeds ':myTestBinaryTest'
 
         and:
@@ -72,6 +74,7 @@ class JUnitIncrementalTestExecutionTest extends AbstractJUnitTestExecutionIntegr
         changeTestResource()
 
         then:
+        expectDeprecationWarnings()
         succeeds ':myTestBinaryTest'
 
         and:
@@ -91,6 +94,7 @@ class JUnitIncrementalTestExecutionTest extends AbstractJUnitTestExecutionIntegr
         executedAndNotSkipped ':myUtilsApiJar', ':myTestBinaryTest'
 
         when:
+        expectDeprecationWarnings()
         succeeds ':myTestBinaryTest'
 
         then:
@@ -100,6 +104,7 @@ class JUnitIncrementalTestExecutionTest extends AbstractJUnitTestExecutionIntegr
         updateUtilsLibrary()
 
         then:
+        expectDeprecationWarnings()
         succeeds ':myTestBinaryTest'
         executedAndNotSkipped ':myUtilsApiJar', ':myTestBinaryTest'
     }

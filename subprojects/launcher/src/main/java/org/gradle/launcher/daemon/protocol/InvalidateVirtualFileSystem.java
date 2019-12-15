@@ -14,17 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.vfs.watch.impl;
+package org.gradle.launcher.daemon.protocol;
 
-import org.gradle.internal.vfs.watch.FileWatcherRegistry;
-import org.gradle.internal.vfs.watch.FileWatcherRegistryFactory;
+import java.util.List;
+import java.util.UUID;
 
-import java.io.IOException;
-import java.nio.file.FileSystems;
+public class InvalidateVirtualFileSystem extends Command {
+    private final List<String> changedPaths;
 
-public class JdkFileWatcherRegistryFactory implements FileWatcherRegistryFactory {
-    @Override
-    public FileWatcherRegistry createRegistry() throws IOException {
-        return new JdkFileWatcherRegistry(FileSystems.getDefault().newWatchService());
+    public InvalidateVirtualFileSystem(List<String> changedPaths, UUID identifier, byte[] token) {
+        super(identifier, token);
+        this.changedPaths = changedPaths;
+    }
+
+    public List<String> getChangedPaths() {
+        return changedPaths;
     }
 }

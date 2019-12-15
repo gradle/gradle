@@ -15,10 +15,11 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import com.google.common.io.Files;
 import org.gradle.api.Action;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Configuration;
@@ -52,6 +53,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 public class WriteDependencyVerificationFile implements DependencyVerificationOverride, ArtifactVerificationOperation {
@@ -62,20 +64,22 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
     };
     private static final Set<String> SUPPORTED_CHECKSUMS = ImmutableSet.of("md5", "sha1", "sha256", "sha512");
     private static final Set<String> SECURE_CHECKSUMS = ImmutableSet.of("sha256", "sha512");
-    private static final List<String> DEFAULT_CHECKSUMS = ImmutableList.of("sha1", "sha512");
 
     private final DependencyVerifierBuilder verificationsBuilder = new DependencyVerifierBuilder();
-    private final File buildDirectory;
     private final BuildOperationExecutor buildOperationExecutor;
     private final List<String> checksums;
     private final Set<ChecksumEntry> entriesToBeWritten = Sets.newLinkedHashSetWithExpectedSize(512);
     private final ChecksumService checksumService;
+    private final File verificationFile;
+    private final AtomicBoolean initialized = new AtomicBoolean();
+    private final boolean isDryRun;
 
-    public WriteDependencyVerificationFile(File buildDirectory, BuildOperationExecutor buildOperationExecutor, List<String> checksums, ChecksumService checksumService) {
-        this.buildDirectory = buildDirectory;
+    public WriteDependencyVerificationFile(File buildDirectory, BuildOperationExecutor buildOperationExecutor, List<String> checksums, ChecksumService checksumService, boolean isDryRun) {
         this.buildOperationExecutor = buildOperationExecutor;
         this.checksums = validateChecksums(checksums);
         this.checksumService = checksumService;
+        this.verificationFile = DependencyVerificationOverride.dependencyVerificationsFile(buildDirectory);
+        this.isDryRun = isDryRun;
     }
 
     private List<String> validateChecksums(List<String> checksums) {
@@ -96,8 +100,7 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
                 }
             }
             if (copy.isEmpty()) {
-                LOGGER.warn("Falling back to the default checksums: sha1 and sha512");
-                copy = DEFAULT_CHECKSUMS;
+                throw new InvalidUserDataException("You must specify at least one checksum type to use. You must choose one or more in " + SUPPORTED_CHECKSUMS);
             }
             return copy;
         }
@@ -117,36 +120,39 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
 
     @Override
     public void buildFinished(Gradle gradle) {
-        File verifFile = DependencyVerificationOverride.dependencyVerificationsFile(buildDirectory);
         try {
-            maybeReadExistingFile(verifFile);
             computeHashsConcurrently(gradle);
             writeEntriesSerially();
-            serializeResult(verifFile);
+            serializeResult();
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
-    private void serializeResult(File verifFile) throws IOException {
+    private void serializeResult() throws IOException {
+        File out = verificationFile;
+        if (isDryRun) {
+            out = new File(verificationFile.getParent(), Files.getNameWithoutExtension(verificationFile.getName()) + ".dryrun.xml");
+        }
         DependencyVerificationsXmlWriter.serialize(
             verificationsBuilder.build(),
-            new FileOutputStream(verifFile)
+            new FileOutputStream(out)
         );
     }
 
-    private void maybeReadExistingFile(File verifFile) throws FileNotFoundException {
-        if (verifFile.exists()) {
+    private void maybeReadExistingFile() throws FileNotFoundException {
+        if (verificationFile.exists()) {
             LOGGER.info("Found dependency verification metadata file, updating");
-            DependencyVerificationsXmlReader.readFromXml(new FileInputStream(verifFile), verificationsBuilder);
+            DependencyVerificationsXmlReader.readFromXml(new FileInputStream(verificationFile), verificationsBuilder);
         }
     }
 
     private void writeEntriesSerially() {
         entriesToBeWritten.stream()
             .sorted()
+            .filter(entry -> !isTrustedArtifact(entry.id))
             .forEachOrdered(entry -> {
-                verificationsBuilder.addChecksum(entry.id, entry.checksumKind, entry.checksum);
+                verificationsBuilder.addChecksum(entry.id, entry.checksumKind, entry.checksum, "Generated by Gradle");
             });
     }
 
@@ -169,11 +175,32 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
         });
     }
 
+    private void initialize() {
+        if (!initialized.getAndSet(true)) {
+            try {
+                maybeReadExistingFile();
+            } catch (FileNotFoundException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+        }
+    }
+
     @Override
-    public void onArtifact(ModuleComponentArtifactIdentifier id, File file) {
+    public void onArtifact(ArtifactKind kind, ModuleComponentArtifactIdentifier id, File file) {
+        initialize();
+        if (shouldSkipVerification(kind)) {
+            return;
+        }
         for (String checksum : checksums) {
             addChecksum(id, file, ChecksumKind.valueOf(checksum));
         }
+    }
+
+    private boolean shouldSkipVerification(ArtifactVerificationOperation.ArtifactKind kind) {
+        if (kind == ArtifactVerificationOperation.ArtifactKind.METADATA && !verificationsBuilder.isVerifyMetadata()) {
+            return true;
+        }
+        return false;
     }
 
     private void addChecksum(ModuleComponentArtifactIdentifier id, File file, ChecksumKind kind) {
@@ -198,6 +225,13 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
                 entriesToBeWritten.add(entry);
             }
         }
+    }
+
+    private boolean isTrustedArtifact(ModuleComponentArtifactIdentifier id) {
+        if (verificationsBuilder.getTrustedArtifacts().stream().anyMatch(artifact -> artifact.isTrusted(id))) {
+            return true;
+        }
+        return false;
     }
 
     private String createHash(File file, ChecksumKind kind) {
@@ -227,7 +261,8 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
             .thenComparing(ChecksumEntry::getModule)
             .thenComparing(ChecksumEntry::getVersion)
             .thenComparing(ChecksumEntry::getFile)
-            .thenComparing(ChecksumEntry::getChecksumKind);
+            .thenComparing(ChecksumEntry::getChecksumKind)
+            .thenComparing(ChecksumEntry::getChecksum);
 
         private final ModuleComponentArtifactIdentifier id;
         private final File file;
@@ -246,6 +281,7 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
         private int precomputeHashCode() {
             int result = id.hashCode();
             result = 31 * result + file.getName().hashCode();
+            result = 31 * result + checksum.hashCode();
             result = 31 * result + checksumKind.hashCode();
             return result;
         }
@@ -260,6 +296,10 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
 
         String getVersion() {
             return id.getComponentIdentifier().getVersion();
+        }
+
+        String getChecksum() {
+            return checksum;
         }
 
         @Override
@@ -287,6 +327,9 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
             ChecksumEntry that = (ChecksumEntry) o;
 
             if (!id.equals(that.id)) {
+                return false;
+            }
+            if (!checksum.equals(that.checksum)) {
                 return false;
             }
             if (!getFile().equals(that.getFile())) {

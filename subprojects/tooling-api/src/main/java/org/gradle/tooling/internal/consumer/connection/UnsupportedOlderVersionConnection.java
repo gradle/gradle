@@ -27,6 +27,8 @@ import org.gradle.tooling.internal.protocol.ConnectionMetaDataVersion1;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 import org.gradle.tooling.model.build.BuildEnvironment;
 
+import java.util.List;
+
 /**
  * An adapter for unsupported connection using a {@code ConnectionVersion4} based provider.
  *
@@ -76,6 +78,11 @@ public class UnsupportedOlderVersionConnection implements ConsumerConnection {
 
     @Override
     public void runTests(TestExecutionRequest testExecutionRequest, ConsumerOperationParameters operationParameters) {
+        throw unsupported();
+    }
+
+    @Override
+    public void notifyDaemonsAboutChangedPaths(List<String> changedPaths, ConsumerOperationParameters operationParameters) {
         throw unsupported();
     }
 

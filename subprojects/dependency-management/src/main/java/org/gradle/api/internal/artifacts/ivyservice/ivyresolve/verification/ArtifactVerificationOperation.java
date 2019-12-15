@@ -20,5 +20,10 @@ import org.gradle.internal.component.external.model.ModuleComponentArtifactIdent
 import java.io.File;
 
 public interface ArtifactVerificationOperation {
-    void onArtifact(ModuleComponentArtifactIdentifier artifact, File path);
+    void onArtifact(ArtifactKind kind, ModuleComponentArtifactIdentifier artifact, File path);
+
+    enum ArtifactKind {
+        METADATA,
+        REGULAR
+    }
 }

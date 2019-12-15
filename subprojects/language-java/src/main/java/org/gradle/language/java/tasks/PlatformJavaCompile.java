@@ -24,6 +24,7 @@ import org.gradle.jvm.platform.JavaPlatform;
  * A platform-aware Java compile task.
  */
 @Incubating
+@Deprecated
 public class PlatformJavaCompile extends JavaCompile {
     private JavaPlatform platform;
 

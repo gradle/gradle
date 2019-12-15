@@ -30,6 +30,7 @@ import org.gradle.util.TestPrecondition
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import spock.lang.Issue
 
 @SuppressWarnings('IntegrationTestFixtures')
 class CommandLineIntegrationTest extends AbstractIntegrationTest {
@@ -136,6 +137,8 @@ class CommandLineIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @Requires(TestPrecondition.NOT_EC2_AGENT)
+    @Issue('https://github.com/gradle/gradle-private/issues/2876')
     void checkDefaultGradleUserHome() {
         // the actual testing is done in the build script.
         File userHome = file('customUserHome')

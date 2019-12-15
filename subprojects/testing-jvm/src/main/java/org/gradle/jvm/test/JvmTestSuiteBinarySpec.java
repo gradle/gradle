@@ -28,6 +28,7 @@ import org.gradle.testing.base.TestSuiteTaskCollection;
  *
  * @since 2.11
  */
+@Deprecated
 public interface JvmTestSuiteBinarySpec extends TestSuiteBinarySpec, JvmBinarySpec, WithDependencies {
 
     /**

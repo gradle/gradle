@@ -27,6 +27,7 @@ import javax.annotation.Nullable;
 public class DefaultModuleComponentArtifactIdentifier implements ModuleComponentArtifactIdentifier, DisplayName {
     private final ModuleComponentIdentifier componentIdentifier;
     private final IvyArtifactName name;
+    private final int hashCode;
 
     public DefaultModuleComponentArtifactIdentifier(ModuleComponentIdentifier componentIdentifier, String name, String type, @Nullable String extension) {
         this(componentIdentifier, new DefaultIvyArtifactName(name, type, extension));
@@ -39,6 +40,7 @@ public class DefaultModuleComponentArtifactIdentifier implements ModuleComponent
     public DefaultModuleComponentArtifactIdentifier(ModuleComponentIdentifier componentIdentifier, IvyArtifactName artifact) {
         this.componentIdentifier = componentIdentifier;
         this.name = artifact;
+        this.hashCode = 31 * name.hashCode() + componentIdentifier.hashCode();
     }
 
     @Override
@@ -76,7 +78,7 @@ public class DefaultModuleComponentArtifactIdentifier implements ModuleComponent
 
     @Override
     public int hashCode() {
-        return componentIdentifier.hashCode() ^ name.hashCode();
+        return hashCode;
     }
 
     @Override

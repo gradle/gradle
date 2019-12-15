@@ -132,7 +132,7 @@ Java builds::
 +
 With the removal of Maven 2 support, the methods that configure unique snapshot behavior have also been removed. Maven 3 only supports unique snapshots, so we decided to remove them.
 Tasks & properties::
- * The following legacy classes and methods related to <<lazy_configuration#sec:lazy_properties,lazy properties>> have been removed — use link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#property-java.lang.Class-[ObjectFactory.property()] to create `Property` instances:
+ * The following legacy classes and methods related to <<lazy_configuration#lazy_properties,lazy properties>> have been removed — use link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#property-java.lang.Class-[ObjectFactory.property()] to create `Property` instances:
  ** `PropertyState`
  ** `DirectoryVar`
  ** `RegularFileVar`
