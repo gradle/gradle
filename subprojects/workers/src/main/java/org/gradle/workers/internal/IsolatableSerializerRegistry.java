@@ -57,7 +57,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import static org.gradle.internal.classloader.ClassLoaderUtils.*;
+import static org.gradle.internal.classloader.ClassLoaderUtils.classFromContextLoader;
 
 public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
     private static final byte STRING_VALUE = (byte) 0;
@@ -81,6 +81,7 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
     private static final byte ISOLATABLE_TYPE = (byte) 0;
     private static final byte ARRAY_TYPE = (byte) 1;
     private static final byte OTHER_TYPE = (byte) 2;
+    private static final byte NULL_TYPE = (byte) 3;
 
     private final Map<Byte, IsolatableSerializer<?>> isolatableSerializers = Maps.newHashMap();
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
@@ -144,29 +145,31 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
 
     private Object readState(Decoder decoder) throws Exception {
         byte stateType = decoder.readByte();
-        Object state;
-        if (stateType == ISOLATABLE_TYPE) {
-            state = readIsolatable(decoder);
+        if (stateType == NULL_TYPE) {
+            return null;
+        } else if (stateType == ISOLATABLE_TYPE) {
+            return readIsolatable(decoder);
         } else if (stateType == ARRAY_TYPE) {
             String stateClassName = decoder.readString();
             Class<?> stateClass = fromClassName(stateClassName);
             int size = decoder.readInt();
-            state = Array.newInstance(stateClass, size);
+            Object state = Array.newInstance(stateClass, size);
             for (int i = 0; i < size; i++) {
                 Array.set(state, i, readState(decoder));
             }
+            return state;
         } else {
             String stateClassName = decoder.readString();
             Class<?> stateClass = fromClassName(stateClassName);
             useJavaSerialization(stateClass);
-            state = build(stateClass).read(decoder);
+            return build(stateClass).read(decoder);
         }
-
-        return state;
     }
 
     private void writeState(Encoder encoder, Object state) throws Exception {
-        if (state instanceof Isolatable) {
+        if (state == null) {
+            encoder.writeByte(NULL_TYPE);
+        } else if (state instanceof Isolatable) {
             encoder.writeByte(ISOLATABLE_TYPE);
             writeIsolatable(encoder, (Isolatable<?>) state);
         } else if (state.getClass().isArray()) {

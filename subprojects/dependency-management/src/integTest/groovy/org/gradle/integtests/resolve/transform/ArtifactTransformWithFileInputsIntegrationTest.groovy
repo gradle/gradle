@@ -37,10 +37,10 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                     $inputAnnotations
                     ConfigurableFileCollection getSomeFiles()
                 }
-            
+
                 @InputArtifact
                 abstract Provider<FileSystemLocation> getInputArtifact()
-                
+
                 void transform(TransformOutputs outputs) {
                     def input = inputArtifact.get().asFile
                     println "processing \${input.name} using \${parameters.someFiles*.name}"
@@ -61,7 +61,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
             allprojects {
                 ext.inputFiles = files('a.txt', 'b.txt')
             }
-            
+
             project(':a') {
                 dependencies {
                     implementation project(':b')
@@ -96,7 +96,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                 repositories.maven { url = '${mavenRepo.uri}' }
                 ext.inputFiles = configurations.tools
             }
-            
+
             project(':a') {
                 dependencies {
                     tools 'test:tool-a:1.2'
@@ -150,10 +150,10 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                     @Nested
                     NestedInputFiles getNestedBean()
                 }
-            
+
                 @InputArtifact
                 abstract Provider<FileSystemLocation> getInputArtifact()
-                
+
                 void transform(TransformOutputs outputs) {
                     def inputFiles = parameters.nestedBean.inputFiles
                     def input = inputArtifact.get().asFile
@@ -183,7 +183,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                 task tool(type: FileProducer) {
                     output = file("build/tool-\${project.name}.jar")
                 }
-                ext.inputFiles = files(tool.output)                
+                ext.inputFiles = files(tool.output)
             }
 
             project(':a') {
@@ -214,7 +214,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
             abstract class MakeRed implements TransformAction<TransformParameters.None> {
                 @InputArtifact
                 abstract Provider<FileSystemLocation> getInputArtifact()
-                
+
                 void transform(TransformOutputs outputs) {
                     def input = inputArtifact.get().asFile
                     println "processing \${input.name} wit MakeRedAction"
@@ -245,7 +245,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                     }
                 }
             }
-            
+
             project(':a') {
                 dependencies {
                     tools project(':d')
@@ -273,7 +273,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
             include 'tool-a', 'tool-b'
         """
         file("tools/build.gradle") << """
-            allprojects { 
+            allprojects {
                 group = 'test'
                 configurations.create("default")
                 task producer(type: Producer) {
@@ -281,11 +281,11 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                 }
                 artifacts."default" producer.outputFile
             }
-            
+
             class Producer extends DefaultTask {
                 @OutputFile
                 final RegularFileProperty outputFile = project.objects.fileProperty()
-            
+
                 @TaskAction
                 def go() {
                     outputFile.get().asFile.text = "output"
@@ -302,7 +302,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                 configurations.create("tools") { }
                 ext.inputFiles = configurations.tools
             }
-            
+
             project(':a') {
                 dependencies {
                     tools 'test:tool-a:1.2'
@@ -324,6 +324,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         outputContains("result = [b.jar.green, c.jar.green]")
     }
 
+    @ToBeFixedForInstantExecution
     def "transform can receive a task output file as parameter"() {
         settingsFile << """
                 include 'a', 'b', 'c', 'd', 'e'
@@ -354,10 +355,10 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                     @InputFile
                     RegularFileProperty getSomeFile()
                 }
-            
+
                 @InputArtifact
                 abstract Provider<FileSystemLocation> getInputArtifact()
-                
+
                 void transform(TransformOutputs outputs) {
                     def input = inputArtifact.get().asFile
                     println "processing \${input.name} using \${parameters.someFile.get().asFile.name}"
@@ -376,6 +377,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         outputContains("processing c.jar using tool-a.jar")
     }
 
+    @ToBeFixedForInstantExecution
     def "transform can receive a task output directory as parameter"() {
         settingsFile << """
                 include 'a', 'b', 'c', 'd', 'e'
@@ -406,10 +408,10 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                     @InputDirectory
                     DirectoryProperty getSomeDir()
                 }
-            
+
                 @InputArtifact
                 abstract Provider<FileSystemLocation> getInputArtifact()
-                
+
                 void transform(TransformOutputs outputs) {
                     def input = inputArtifact.get().asFile
                     println "processing \${input.name} using \${parameters.someDir.get().asFile.name}"
@@ -439,7 +441,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                     output = file("build/tool-\${project.name}.jar")
                     doLast { throw new RuntimeException('broken') }
                 }
-                ext.inputFiles = files(tool.output)                
+                ext.inputFiles = files(tool.output)
             }
 
             project(':a') {
@@ -473,7 +475,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
             allprojects {
                 ext.inputFiles = files(rootProject.file(project.property('fileName')))
             }
-            
+
             project(':a') {
                 dependencies {
                     implementation project(':b')
@@ -528,7 +530,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
             allprojects {
                 ext.inputFiles = files(rootProject.file("inputDir"), rootProject.file("input.jar"))
             }
-            
+
             project(':a') {
                 dependencies {
                     implementation project(':b')
