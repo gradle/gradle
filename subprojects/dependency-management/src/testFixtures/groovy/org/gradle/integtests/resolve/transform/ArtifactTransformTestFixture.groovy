@@ -54,7 +54,7 @@ trait ArtifactTransformTestFixture extends TasksWithInputsAndOutputs {
 
         buildFile << """
 import ${javax.inject.Inject.name}
-// TODO: Default imports should work for of inner classes 
+// TODO: Default imports should work for of inner classes
 import ${org.gradle.api.artifacts.transform.TransformParameters.name}
 
 def color = Attribute.of('color', String)
@@ -127,8 +127,6 @@ class JarProducer extends DefaultTask {
      * Each project produces a 'blue' variant, and has a `resolve` task that resolves the 'green' variant and a transform that converts 'blue' to 'red'
      * and another transform that converts 'red' to 'green'.
      * By default the 'blue' variant will contain a single file, and the transform will produce a single 'green' file from this.
-     *
-     *
      */
     void setupBuildWithChainedSimpleColorTransform() {
         setupBuildWithColorAttributes()
@@ -147,16 +145,16 @@ class JarProducer extends DefaultTask {
                     }
                 }
             }
-            
+
             interface TargetColor extends TransformParameters {
                 @Input
                 Property<String> getTargetColor()
             }
-            
+
             abstract class MakeColor implements TransformAction<TargetColor> {
                 @InputArtifact
                 abstract Provider<FileSystemLocation> getInputArtifact()
-                
+
                 void transform(TransformOutputs outputs) {
                     def input = inputArtifact.get().asFile
                     println "processing \${input.name}"
@@ -177,7 +175,7 @@ class JarProducer extends DefaultTask {
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 @InputArtifact
                 abstract Provider<FileSystemLocation> getInputArtifact()
-                
+
                 void transform(TransformOutputs outputs) {
                     def input = inputArtifact.get().asFile
                     println "processing \${input.name}"
@@ -321,7 +319,7 @@ allprojects { p ->
             producerTaskClassName = "DirProducer"
             producerConfig = """
                 output = layout.buildDir.dir("\${project.name}-dir")
-                content = project.name  
+                content = project.name
                 names = [project.name]
             """.stripIndent()
             producerConfigOverrides = """

@@ -16,9 +16,13 @@
 
 package org.gradle.workers.internal
 
+import org.gradle.api.services.BuildServiceParameters
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.workers.IsolationMode
 import org.gradle.workers.fixtures.WorkerExecutorFixture
 import spock.lang.Unroll
+
+import java.util.concurrent.atomic.AtomicInteger
 
 import static org.gradle.workers.fixtures.WorkerExecutorFixture.ISOLATION_MODES
 
@@ -30,7 +34,7 @@ class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             import javax.inject.Inject
             import org.gradle.workers.WorkerExecutor
-            
+
             class ParameterTask extends DefaultTask {
                 private final WorkerExecutor workerExecutor
 
@@ -49,13 +53,13 @@ class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
                     def parameterAction = paramConfig != null ? paramConfig : {}
                     workerExecutor."\${getWorkerMethod(isolationMode)}"().submit(ParameterWorkAction.class, parameterAction)
                 }
-                
+
                 void parameters(Closure closure) {
                     paramConfig = closure
                 }
-                
+
                 ${fixture.workerMethodTranslation}
-            }  
+            }
         """
     }
 
@@ -71,7 +75,7 @@ class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
                 parameters {
                     testParam = testObject
                 }
-            } 
+            }
         """
 
         when:
@@ -93,7 +97,7 @@ class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
                 parameters {
                     testParam.set("bar")
                 }
-            } 
+            }
         """
 
         when:
@@ -115,7 +119,7 @@ class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
                 parameters {
                     testParam.from("bar")
                 }
-            } 
+            }
         """
 
         when:
@@ -139,7 +143,7 @@ class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
                 parameters {
                     testParam = testObject
                 }
-            } 
+            }
         """
 
         when:
@@ -163,7 +167,7 @@ class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
                 parameters {
                     testParam = testObject
                 }
-            } 
+            }
         """
 
         when:
@@ -186,7 +190,7 @@ class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
                     testParam.add("foo")
                     testParam.add("bar")
                 }
-            } 
+            }
         """
 
         when:
@@ -209,7 +213,7 @@ class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
                     testParam.add("foo")
                     testParam.add("bar")
                 }
-            } 
+            }
         """
 
         when:
@@ -232,7 +236,7 @@ class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
                     testParam.put("foo", "bar")
                     testParam.put("bar", "baz")
                 }
-            } 
+            }
         """
 
         when:
@@ -256,7 +260,7 @@ class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
                     testParam.setProperty("foo", "bar")
                     testParam.setProperty("bar", "baz")
                 }
-            } 
+            }
         """
 
         when:
@@ -278,7 +282,7 @@ class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
                 parameters {
                     testParam.set(new File("bar"))
                 }
-            } 
+            }
         """
 
         when:
@@ -300,7 +304,7 @@ class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
                 parameters {
                     testParam.set(new File("bar"))
                 }
-            } 
+            }
         """
 
         when:
@@ -311,6 +315,45 @@ class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         isolationMode << ISOLATION_MODES
+    }
+
+    def "can provide build service parameters with isolation mode #isolationMode"() {
+        buildFile << """
+            import ${BuildServiceParameters.name}
+            import ${AtomicInteger.name}
+
+            ${parameterWorkAction('Property<CountingService>', 'println "value = " + parameters.testParam.get().increment()')}
+
+            abstract class CountingService implements BuildService<BuildServiceParameters.None> {
+                private final value = new AtomicInteger()
+
+                int increment() {
+                    def value = value.incrementAndGet()
+                    println("service: value is \${value}")
+                    return value
+                }
+            }
+
+            def countingService = gradle.sharedServices.registerIfAbsent("counting", CountingService) { }
+
+            task runWork(type: ParameterTask) {
+                isolationMode = ${isolationMode}
+                parameters {
+                    testParam.set(countingService)
+                }
+            }
+        """
+
+        when:
+        succeeds("runWork")
+
+        then:
+        outputContains("service: value is 1")
+        outputContains("value = 1")
+
+        where:
+        // TODO - this should work with classloader isolation too
+        isolationMode << ["IsolationMode.NONE"]
     }
 
     def "can provide managed object parameters with isolation mode #isolationMode"() {
@@ -357,7 +400,7 @@ class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
                 parameters {
                     testParam = null
                 }
-            } 
+            }
         """
 
         when:
@@ -376,7 +419,7 @@ class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
 
             task runWork(type: ParameterTask) {
                 isolationMode = ${isolationMode}
-            } 
+            }
         """
 
         when:
@@ -398,7 +441,7 @@ class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
                 ${type} getTestParam();
                 ${-> requiresSetter ? "void setTestParam(${type} testParam);" : ''}
             }
-            
+
             abstract class ParameterWorkAction implements WorkAction<TestParameters> {
                 void execute() {
                     ${action}

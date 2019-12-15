@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.transform.InputArtifact
 import org.gradle.api.artifacts.transform.InputArtifactDependencies
 import org.gradle.api.file.FileCollection
 import org.gradle.api.provider.Provider
+import org.gradle.api.services.BuildServiceParameters
 import org.gradle.api.tasks.Console
 import org.gradle.api.tasks.Destroys
 import org.gradle.api.tasks.Input
@@ -36,6 +37,8 @@ import org.gradle.api.tasks.options.OptionValues
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Unroll
+
+import java.util.concurrent.atomic.AtomicInteger
 
 import static org.gradle.util.Matchers.matchesRegexp
 
@@ -59,14 +62,14 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                     }
                 }
             }
-            
+
             project(':a') {
                 dependencies {
                     implementation project(':b')
                     implementation project(':c')
                 }
             }
-            
+
             abstract class MakeGreen implements TransformAction<Parameters> {
                 interface Parameters extends TransformParameters {
                     @Input
@@ -76,7 +79,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
 
                 @InputArtifact
                 abstract ${inputArtifactType} getInput()
-                
+
                 void transform(TransformOutputs outputs) {
                     File inputFile = input${convertToFile}
                     println "processing \${inputFile.name}"
@@ -124,7 +127,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                     implementation project(':c')
                 }
             }
-            
+
             interface NestedType {
                 @Input
                 ${type} getNestedProp()
@@ -139,7 +142,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                     @Nested
                     NestedType getNested()
                 }
-            
+
                 void transform(TransformOutputs outputs) {
                     println "processing using prop: \${parameters.prop.get()}, nested: \${parameters.nested.nestedProp.get()}"
                     assert parameters.otherProp.getOrNull() == ${expectedNullValue}
@@ -160,6 +163,60 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         "MapProperty<String, Number>" | "[a: 1, b: 2]" | "[a:1, b:2]" | "[:]"
     }
 
+    def "transform can receive a build service as a parameter"() {
+        settingsFile << """
+            include 'a', 'b'
+        """
+        buildFile << """
+            import ${BuildServiceParameters.name}
+            import ${AtomicInteger.name}
+
+            abstract class CountingService implements BuildService<BuildServiceParameters.None> {
+                private final value = new AtomicInteger()
+
+                int increment() {
+                    def value = value.incrementAndGet()
+                    println("service: value is \${value}")
+                    return value
+                }
+            }
+
+            def countingService = gradle.sharedServices.registerIfAbsent("counting", CountingService) {
+            }
+        """
+        setupBuildWithColorTransform {
+            params("""
+                service = countingService
+            """)
+        }
+        buildFile << """
+            project(':a') {
+                dependencies {
+                    implementation project(':b')
+                }
+            }
+
+            abstract class MakeGreen implements TransformAction<Parameters> {
+                interface Parameters extends TransformParameters {
+                    @Internal
+                    Property<CountingService> getService()
+                }
+
+                void transform(TransformOutputs outputs) {
+                    def n = parameters.service.get().increment()
+                    outputs.file("out-\${n}.txt").text = n
+                }
+            }
+        """
+
+        when:
+        run(":a:resolve")
+
+        then:
+        outputContains("service: value is 1")
+        outputContains("result = [out-1.txt]")
+    }
+
     @ToBeFixedForInstantExecution
     def "transform parameters are validated for input output annotations"() {
         settingsFile << """
@@ -177,7 +234,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         setupBuildWithColorTransform {
             params("""
                 extension = 'green'
-                nested.inputFile = file("some")    
+                nested.inputFile = file("some")
             """)
         }
         buildFile << """
@@ -186,40 +243,40 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                     implementation project(':b')
                 }
             }
-            
+
             @CacheableTransform
             abstract class MakeGreen implements TransformAction<Parameters> {
                 interface Parameters extends TransformParameters {
                     String getExtension()
                     void setExtension(String value)
-    
+
                     @OutputDirectory
                     File getOutputDir()
                     void setOutputDir(File outputDir)
-    
+
                     @Input
                     String getMissingInput()
                     void setMissingInput(String missing)
-    
+
                     @Input
                     File getFileInput()
                     void setFileInput(File file)
-    
+
                     @InputFiles
                     ConfigurableFileCollection getNoPathSensitivity()
-    
+
                     @InputFile
                     File getNoPathSensitivityFile()
                     void setNoPathSensitivityFile(File file)
-    
+
                     @InputDirectory
                     File getNoPathSensitivityDir()
                     void setNoPathSensitivityDir(File file)
-    
+
                     @PathSensitive(PathSensitivity.ABSOLUTE)
                     @InputFiles
                     ConfigurableFileCollection getAbsolutePathSensitivity()
-                    
+
                     @Incremental
                     @Input
                     String getIncrementalNonFileInput()
@@ -228,7 +285,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                     @Nested
                     NestedType getNested()
                 }
-            
+
                 void transform(TransformOutputs outputs) {
                     throw new RuntimeException()
                 }
@@ -275,7 +332,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                     implementation project(':c')
                 }
             }
-            
+
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 void transform(TransformOutputs outputs) {
                     println getParameters()
@@ -308,7 +365,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                     implementation project(':c')
                 }
             }
-            
+
             abstract class MakeGreen implements TransformAction<Parameters> {
                 @CacheableTask @CacheableTransform
                 interface Parameters extends TransformParameters {
@@ -316,7 +373,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                     String getExtension()
                     void setExtension(String value)
                 }
-                
+
                 void transform(TransformOutputs outputs) {
                     throw new RuntimeException()
                 }
@@ -350,7 +407,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                     implementation project(':b')
                 }
             }
-            
+
             abstract class MakeGreen implements TransformAction<Parameters> {
                 interface Parameters extends TransformParameters {
                     @Input
@@ -360,7 +417,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                     String getBad()
                     void setBad(String value)
                 }
-            
+
                 void transform(TransformOutputs outputs) {
                     throw new RuntimeException()
                 }
@@ -396,7 +453,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                     implementation project(':c')
                 }
             }
-            
+
             abstract class MakeGreen implements TransformAction<Parameters> {
                 interface Parameters extends TransformParameters {
                     String getExtension()
@@ -405,7 +462,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                     String getBad()
                     void setBad(String value)
                 }
-            
+
                 void transform(TransformOutputs outputs) {
                     throw new RuntimeException()
                 }
@@ -441,7 +498,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                     implementation project(':c')
                 }
             }
-            
+
             @CacheableTransform
             abstract class MakeGreen implements TransformAction<Parameters> {
                 interface Parameters extends TransformParameters {
@@ -449,23 +506,23 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                     String getExtension()
                     void setExtension(String value)
                 }
-            
+
                 @InputFile
-                File inputFile 
-                
-                File notAnnotated 
+                File inputFile
+
+                File notAnnotated
 
                 @InputArtifact
-                abstract Provider<FileSystemLocation> getNoPathSensitivity() 
+                abstract Provider<FileSystemLocation> getNoPathSensitivity()
 
                 @PathSensitive(PathSensitivity.ABSOLUTE)
                 @InputArtifactDependencies
-                abstract FileCollection getAbsolutePathSensitivityDependencies() 
+                abstract FileCollection getAbsolutePathSensitivityDependencies()
 
                 @PathSensitive(PathSensitivity.NAME_ONLY)
                 @InputFile @InputArtifact @InputArtifactDependencies
-                Provider<FileSystemLocation> getConflictingAnnotations() { } 
-                
+                Provider<FileSystemLocation> getConflictingAnnotations() { }
+
                 void transform(TransformOutputs outputs) {
                     throw new RuntimeException()
                 }
@@ -502,7 +559,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                     implementation project(':c')
                 }
             }
-            
+
             @CacheableTask
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 void transform(TransformOutputs outputs) {
@@ -537,17 +594,17 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                     implementation project(':c')
                 }
             }
-            
+
             abstract class MakeGreen implements TransformAction<Parameters> {
                 interface Parameters extends TransformParameters {
                     @Input
                     String getExtension()
                     void setExtension(String value)
                 }
-            
+
                 @${annotation.simpleName}
                 String getBad() { }
-                
+
                 void transform(TransformOutputs outputs) {
                     throw new RuntimeException()
                 }
@@ -591,7 +648,7 @@ abstract class MakeGreen implements TransformAction<TransformParameters.None> {
     abstract ${targetType} getDependencies()
     @InputArtifact
     abstract Provider<FileSystemLocation> getInputArtifact()
-    
+
     void transform(TransformOutputs outputs) {
         def input = inputArtifact.get().asFile
         println "received dependencies files \${dependencies*.name} for processing \${input.name}"
@@ -641,7 +698,7 @@ project(':a') {
 abstract class MakeGreen extends ArtifactTransform {
     @${annotation.name}
     abstract File getInputFile()
-    
+
     List<File> transform(File input) {
         println "processing \${input.name}"
         def output = new File(outputDirectory, input.name + ".green")
@@ -678,21 +735,21 @@ abstract class MakeGreen extends ArtifactTransform {
                     implementation project(':c')
                 }
             }
-            
+
             abstract class MakeGreen implements TransformAction<Parameters> {
                 interface Parameters extends TransformParameters {
                     @Input
                     String getExtension()
                     void setExtension(String value)
                 }
-            
+
                 private Parameters conf
-                
+
                 @Inject
                 MakeGreen(Parameters conf) {
                     this.conf = conf
                 }
-                
+
                 void transform(TransformOutputs outputs) {
                 }
             }
@@ -720,7 +777,7 @@ project(':a') {
 abstract class MakeGreen implements TransformAction<TransformParameters.None> {
     @InputArtifact
     abstract ${typeName} getInput()
-    
+
     void transform(TransformOutputs outputs) {
         input
         throw new RuntimeException("broken")
@@ -757,7 +814,7 @@ project(':a') {
 abstract class MakeGreen implements TransformAction<TransformParameters.None> {
     @${annotation.name}
     abstract ${propertyType.name} getDependencies()
-    
+
     void transform(TransformOutputs outputs) {
         dependencies
         throw new RuntimeException("broken")
@@ -795,7 +852,7 @@ project(':a') {
 abstract class MakeGreen implements TransformAction<TransformParameters.None> {
     @Inject
     abstract File getWorkspace()
-    
+
     void transform(TransformOutputs outputs) {
         workspace
         throw new RuntimeException("broken")
@@ -834,11 +891,11 @@ abstract class MakeGreen implements TransformAction<TransformParameters.None> {
             class MyTask extends DefaultTask {
                 @Nested
                 Options getThing() { new Options() }
-                
+
                 @TaskAction
                 void go() { }
             }
-            
+
             @CacheableTransform @CacheableTask
             class Options {
             }
