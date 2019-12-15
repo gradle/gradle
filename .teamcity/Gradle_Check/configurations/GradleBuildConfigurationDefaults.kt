@@ -161,12 +161,27 @@ fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTas
     applyDefaultDependencies(model, buildType, notQuick)
 }
 
-fun applyTestDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTasks: String, notQuick: Boolean = false, os: Os = Os.linux, extraParameters: String = "", timeout: Int = 90, extraSteps: BuildSteps.() -> Unit = {}, daemon: Boolean = true) {
+fun applyTestDefaults(
+    model: CIBuildModel,
+    buildType: BaseGradleBuildType,
+    gradleTasks: String,
+    notQuick: Boolean = false,
+    os: Os = Os.linux,
+    extraParameters: String = "",
+    timeout: Int = 90,
+    extraSteps: BuildSteps.() -> Unit = {}, // the steps after runner steps
+    daemon: Boolean = true,
+    preSteps: BuildSteps.() -> Unit = {} // the steps before runner steps
+) {
     if (os == Os.macos) {
         buildType.params.param("env.REPO_MIRROR_URLS", "")
     }
 
     buildType.applyDefaultSettings(os, timeout)
+
+    buildType.steps {
+        preSteps()
+    }
 
     buildType.gradleRunnerStep(model, gradleTasks, os, extraParameters, daemon)
     buildType.killProcessStepIfNecessary("KILL_PROCESSES_STARTED_BY_GRADLE", os)
