@@ -81,7 +81,7 @@ public class DependencyVerificationsXmlWriter {
         writer.startElement(TRUSTED_ARTIFACTS);
         for (DependencyVerificationConfiguration.TrustedArtifact trustedArtifact : configuration.getTrustedArtifacts()) {
             writer.startElement(TRUST);
-            writeAttribute(GROUP, trustedArtifact.getGroup());
+            writeNullableAttribute(GROUP, trustedArtifact.getGroup());
             writeNullableAttribute(NAME, trustedArtifact.getName());
             writeNullableAttribute(VERSION, trustedArtifact.getVersion());
             writeNullableAttribute(FILE, trustedArtifact.getFileName());

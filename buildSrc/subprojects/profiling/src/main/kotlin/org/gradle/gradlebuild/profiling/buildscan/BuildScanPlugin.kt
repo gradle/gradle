@@ -27,6 +27,7 @@ import org.gradle.build.ClasspathManifest
 import org.gradle.gradlebuild.BuildEnvironment.isCiServer
 import org.gradle.gradlebuild.BuildEnvironment.isJenkins
 import org.gradle.gradlebuild.BuildEnvironment.isTravis
+import org.gradle.internal.service.scopes.VirtualFileSystemServices
 import org.gradle.kotlin.dsl.*
 import org.jsoup.Jsoup
 import org.jsoup.parser.Parser
@@ -34,8 +35,6 @@ import java.net.URLEncoder
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.collections.component1
 import kotlin.collections.component2
-import kotlin.collections.filter
-import kotlin.collections.forEach
 
 
 const val serverUrl = "https://e.grdev.net"
@@ -47,6 +46,10 @@ const val gitCommitName = "Git Commit ID"
 
 private
 const val ciBuildTypeName = "CI Build Type"
+
+
+private
+const val vfsRetentionEnabledName = "vfsRetentionEnabled"
 
 
 @Suppress("unused") // consumed as plugin gradlebuild.buildscan
@@ -71,6 +74,7 @@ open class BuildScanPlugin : Plugin<Project> {
 
         extractCheckstyleAndCodenarcData()
         extractBuildCacheData()
+        extractVfsRetentionData()
     }
 
     private
@@ -248,6 +252,12 @@ open class BuildScanPlugin : Plugin<Project> {
         if (gradle.startParameter.isBuildCacheEnabled) {
             buildScan.tag("CACHED")
         }
+    }
+
+    private
+    fun Project.extractVfsRetentionData() {
+        val vfsRetentionEnabled = VirtualFileSystemServices.isRetentionEnabled(gradle.startParameter.systemPropertiesArgs)
+        buildScan.value(vfsRetentionEnabledName, vfsRetentionEnabled.toString())
     }
 
     private

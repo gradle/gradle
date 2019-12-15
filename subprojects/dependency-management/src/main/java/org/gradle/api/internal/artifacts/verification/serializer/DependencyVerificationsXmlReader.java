@@ -151,7 +151,7 @@ public class DependencyVerificationsXmlReader {
                 regex = Boolean.parseBoolean(regexAttr);
             }
             builder.addTrustedArtifact(
-                getAttribute(attributes, GROUP),
+                getNullableAttribute(attributes, GROUP),
                 getNullableAttribute(attributes, NAME),
                 getNullableAttribute(attributes, VERSION),
                 getNullableAttribute(attributes, FILE),

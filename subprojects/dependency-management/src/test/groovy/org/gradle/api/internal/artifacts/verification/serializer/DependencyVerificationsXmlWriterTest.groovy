@@ -57,6 +57,7 @@ class DependencyVerificationsXmlWriterTest extends Specification {
             addTrustedArtifact("group", "module", "1.0", null, true)
             addTrustedArtifact("group", "module", "1.1", "somefile.jar", false)
             addTrustedArtifact("group2", "module2", "1.2", "somefile.jar", true)
+            addTrustedArtifact(null, "module2", null, "somefile.jar", true)
         }
         serialize()
 
@@ -71,6 +72,7 @@ class DependencyVerificationsXmlWriterTest extends Specification {
          <trust group="group" name="module" version="1.0" regex="true"/>
          <trust group="group" name="module" version="1.1" file="somefile.jar"/>
          <trust group="group2" name="module2" version="1.2" file="somefile.jar" regex="true"/>
+         <trust name="module2" file="somefile.jar" regex="true"/>
       </trusted-artifacts>
    </configuration>
    <components/>
