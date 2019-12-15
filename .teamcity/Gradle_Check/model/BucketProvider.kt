@@ -102,7 +102,7 @@ class StatisticBasedGradleBuildBucketProvider(private val model: CIBuildModel, t
 
     private
     fun split(subprojects: List<SubprojectTestClassTime>, expectedBucketSize: Int): List<BuildTypeBucket> {
-        val buckets: List<List<SubprojectTestClassTime>> = split(subprojects, SubprojectTestClassTime::totalTime, expectedBucketSize)
+        val buckets: List<List<SubprojectTestClassTime>> = split(subprojects, SubprojectTestClassTime::totalTime, expectedBucketSize, 5)
         val ret = mutableListOf<BuildTypeBucket>()
         var bucketNumber = 1
         buckets.forEach { subprojectsInBucket ->
@@ -123,7 +123,7 @@ class StatisticBasedGradleBuildBucketProvider(private val model: CIBuildModel, t
  * For example, we have a list of number [9, 1, 2, 10, 4, 5] and the expected size is 5,
  * the result buckets will be [[10], [9], [5], [4, 1], [2]]
  */
-fun <T> split(list: List<T>, function: (T) -> Int, expectedBucketSize: Int): List<List<T>> {
+fun <T> split(list: List<T>, function: (T) -> Int, expectedBucketSize: Int, maxItemNumberInBucket: Int): List<List<T>> {
     val sortedList = ArrayList(list.sortedBy { -function(it) })
     val ret = mutableListOf<List<T>>()
 
@@ -137,7 +137,7 @@ fun <T> split(list: List<T>, function: (T) -> Int, expectedBucketSize: Int): Lis
         while (true) {
             // Find next largest object which can fit in resetCapacity
             val index = sortedList.indexOfFirst { function(it) < restCapacity }
-            if (index == -1 || sortedList.isEmpty() || bucket.size >= 5) {
+            if (index == -1 || sortedList.isEmpty() || bucket.size >= maxItemNumberInBucket) {
                 // TeamCity has length constraint, don't make a bucket containing too many subprojects.
                 break
             }
@@ -260,7 +260,7 @@ class SubprojectTestClassTime(val subProject: GradleSubproject, private val test
         return if (totalTime < 1.1 * expectedBuildTimePerBucket) {
             listOf(subProject)
         } else {
-            val buckets: List<List<TestClassTime>> = split(testClassTimes, TestClassTime::buildTimeMs, expectedBuildTimePerBucket)
+            val buckets: List<List<TestClassTime>> = split(testClassTimes, TestClassTime::buildTimeMs, expectedBuildTimePerBucket, Integer.MAX_VALUE)
             return if (buckets.size == 1) {
                 listOf(subProject)
             } else {
