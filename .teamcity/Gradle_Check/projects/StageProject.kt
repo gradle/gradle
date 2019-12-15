@@ -1,7 +1,6 @@
 package projects
 
 import Gradle_Check.configurations.FunctionalTestsPass
-import Gradle_Check.model.GradleBuildBucketProvider
 import configurations.FunctionalTest
 import configurations.PerformanceTestCoordinator
 import configurations.SanityCheck
@@ -16,7 +15,7 @@ import model.SpecificBuild
 import model.Stage
 import model.TestType
 
-class StageProject(model: CIBuildModel, gradleBuildBucketProvider: GradleBuildBucketProvider, stage: Stage, rootProjectUuid: String) : Project({
+class StageProject(model: CIBuildModel, stage: Stage, rootProjectUuid: String, deferredFunctionalTests: MutableList<(Stage) -> List<FunctionalTest>>) : Project({
     this.uuid = "${model.projectPrefix}Stage_${stage.stageName.uuid}"
     this.id = AbsoluteId("${model.projectPrefix}Stage_${stage.stageName.id}")
     this.name = stage.stageName.stageName
@@ -54,7 +53,7 @@ class StageProject(model: CIBuildModel, gradleBuildBucketProvider: GradleBuildBu
 
         val functionalTestProjects = allCoverage
             .map { testCoverage ->
-                val functionalTestProject = FunctionalTestProject(model, gradleBuildBucketProvider, testCoverage, stage)
+                val functionalTestProject = FunctionalTestProject(model, testCoverage, stage, deferredFunctionalTests)
                 if (stage.functionalTestsDependOnSpecificBuilds) {
                     specificBuildTypes.forEach { specificBuildType ->
                         functionalTestProject.addDependencyForAllBuildTypes(specificBuildType)
@@ -71,8 +70,9 @@ class StageProject(model: CIBuildModel, gradleBuildBucketProvider: GradleBuildBu
             this@StageProject.buildType(FunctionalTestsPass(model, functionalTestProject))
         }
 
-        val deferredTestsForThisStage = gradleBuildBucketProvider.createDeferredFunctionalTestsFor(stage)
+        val deferredTestsForThisStage = if (stage.omitsSlowProjects) emptyList() else deferredFunctionalTests.toList().flatMap { it(stage) }
         if (deferredTestsForThisStage.isNotEmpty()) {
+            deferredFunctionalTests.clear()
             val deferredTestsProject = Project {
                 uuid = "${rootProjectUuid}_deferred_tests"
                 id = AbsoluteId(uuid)

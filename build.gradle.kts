@@ -30,7 +30,7 @@ plugins {
     gradlebuild.`build-types`
     gradlebuild.`ci-reporting`
     gradlebuild.security
-    id("org.gradle.ci.tag-single-build") version ("0.74")
+    id("org.gradle.ci.tag-single-build") version("0.74")
 }
 
 defaultTasks("assemble")
@@ -123,11 +123,6 @@ buildTypes {
     // Used for cross version tests on CI
     create("allVersionsCrossVersionTest") {
         tasks("allVersionsCrossVersionTests", "integMultiVersionTest")
-        projectProperties("testAllVersions" to true)
-    }
-
-    create("allVersionsIntegMultiVersionTest") {
-        tasks("integMultiVersionTest")
         projectProperties("testAllVersions" to true)
     }
 
@@ -388,12 +383,12 @@ tasks.register<Install>("installAll") {
 tasks.register<UpdateBranchStatus>("updateBranchStatus")
 
 fun distributionImage(named: String) =
-    project(":distributions").property(named) as CopySpec
+        project(":distributions").property(named) as CopySpec
 
 val allIncubationReports = tasks.register<IncubatingApiAggregateReportTask>("allIncubationReports") {
     val allReports = collectAllIncubationReports()
     dependsOn(allReports)
-    reports = allReports.associateBy({ it.title.get() }) { it.textReportFile.asFile.get() }
+    reports = allReports.associateBy({ it.title.get()}) { it.textReportFile.asFile.get() }
 }
 tasks.register<Zip>("allIncubationReportsZip") {
     destinationDir = file("$buildDir/reports/incubation")
