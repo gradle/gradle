@@ -112,6 +112,10 @@ fun BaseGradleBuildType.gradleRunnerStep(model: CIBuildModel, gradleTasks: Strin
 private
 fun BaseGradleBuildType.gradleRerunnerStep(model: CIBuildModel, gradleTasks: String, os: Os = Os.linux, extraParameters: String = "", daemon: Boolean = true) {
     val buildScanTags = model.buildScanTags + listOfNotNull(stage?.id)
+    val cleanedExtraParameters = extraParameters
+        .replace("-PincludeTestClasses=true", "")
+        .replace("-PexcludeTestClasses=true", "")
+        .replace("-PonlyTestGradleMajorVersion=\\d+".toRegex(), "")
 
     steps {
         gradleWrapper {
@@ -121,7 +125,7 @@ fun BaseGradleBuildType.gradleRerunnerStep(model: CIBuildModel, gradleTasks: Str
             gradleParams = (
                 buildToolGradleParameters(daemon, os = os) +
                     this@gradleRerunnerStep.buildCache.gradleParameters(os) +
-                    listOf(extraParameters) +
+                    listOf(cleanedExtraParameters) +
                     "-PteamCityToken=%teamcity.user.bot-gradle.token%" +
                     "-PteamCityBuildId=%teamcity.build.id%" +
                     buildScanTags.map { buildScanTag(it) } +

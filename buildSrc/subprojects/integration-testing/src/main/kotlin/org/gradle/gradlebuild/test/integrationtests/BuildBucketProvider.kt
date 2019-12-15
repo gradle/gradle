@@ -25,51 +25,47 @@ import java.io.StringReader
 import java.util.Properties
 
 
-interface BuildBucketProvider {
-    fun configureTest(testTask: Test, sourceSet: SourceSet, testType: TestType)
-
-    companion object {
-        private
-        var instance: BuildBucketProvider? = null
-
-        fun getInstance(project: Project): BuildBucketProvider {
-            if (instance == null) {
-                instance = when {
-                    project.stringPropertyOrEmpty("includeTestClasses").isNotBlank() -> {
-                        val content = project.rootProject.buildDir.resolve("include-test-classes.properties").readText()
-                        println("Tests to be included:\n$content")
-                        IncludeTestClassProvider(readTestClasses(content))
-                    }
-                    project.stringPropertyOrEmpty("excludeTestClasses").isNotBlank() -> {
-                        val content = project.rootProject.buildDir.resolve("exclude-test-classes.properties").readText()
-                        println("Tests to be excluded:\n$content")
-                        ExcludeTestClassProvider(readTestClasses(content))
-                    }
-                    project.stringPropertyOrEmpty("onlyTestGradleMajorVersion").isNotBlank() -> {
-                        CrossVersionBucketProvider(project.stringPropertyOrEmpty("onlyTestGradleMajorVersion"))
-                    }
-                    else -> {
-                        NoOpTestClassProvider()
-                    }
-                }
+fun Project.bucketProvider(): BuildBucketProvider {
+    if (!rootProject.extra.has("bucketProvider")) {
+        rootProject.extra["bucketProvider"] = when {
+            project.stringPropertyOrEmpty("includeTestClasses").isNotBlank() -> {
+                val content = project.rootProject.buildDir.resolve("include-test-classes.properties").readText()
+                println("Tests to be included:\n$content")
+                IncludeTestClassProvider(readTestClasses(content))
             }
-
-            return instance!!
-        }
-
-        private
-        fun readTestClasses(content: String): Map<String, List<String>> {
-            val properties = Properties()
-            val ret = mutableMapOf<String, MutableList<String>>()
-            properties.load(StringReader(content))
-            properties.forEach { key, value ->
-                val list = ret.getOrDefault(value, mutableListOf())
-                list.add(key!!.toString())
-                ret[value!!.toString()] = list
+            project.stringPropertyOrEmpty("excludeTestClasses").isNotBlank() -> {
+                val content = project.rootProject.buildDir.resolve("exclude-test-classes.properties").readText()
+                println("Tests to be excluded:\n$content")
+                ExcludeTestClassProvider(readTestClasses(content))
             }
-            return ret
+            project.stringPropertyOrEmpty("onlyTestGradleMajorVersion").isNotBlank() -> {
+                CrossVersionBucketProvider(project.stringPropertyOrEmpty("onlyTestGradleMajorVersion"))
+            }
+            else -> {
+                NoOpTestClassProvider()
+            }
         }
     }
+    return rootProject.extra["bucketProvider"] as BuildBucketProvider
+}
+
+
+private
+fun readTestClasses(content: String): Map<String, List<String>> {
+    val properties = Properties()
+    val ret = mutableMapOf<String, MutableList<String>>()
+    properties.load(StringReader(content))
+    properties.forEach { key, value ->
+        val list = ret.getOrDefault(value, mutableListOf())
+        list.add(key!!.toString())
+        ret[value!!.toString()] = list
+    }
+    return ret
+}
+
+
+interface BuildBucketProvider {
+    fun configureTest(testTask: Test, sourceSet: SourceSet, testType: TestType)
 }
 
 
