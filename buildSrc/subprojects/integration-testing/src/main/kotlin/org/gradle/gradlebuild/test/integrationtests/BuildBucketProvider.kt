@@ -91,7 +91,7 @@ class CrossVersionBucketProvider(private val onlyTestGradleMajorVersion: String)
     }
 
     private
-    fun extractTestTaskGradleVersion(name: String): String? = "gradle([\\d.]+)CrossVersionTest".toRegex().find(name)?.groupValues?.get(1)
+    fun extractTestTaskGradleVersion(name: String): String? = "gradle(.+)CrossVersionTest".toRegex().find(name)?.groupValues?.get(1)
 }
 
 
