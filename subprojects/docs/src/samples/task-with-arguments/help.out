@@ -1,10 +1,3 @@
-> Task :project-info-plugin:compileJava
-> Task :project-info-plugin:pluginDescriptors
-> Task :project-info-plugin:processResources
-> Task :project-info-plugin:classes
-> Task :project-info-plugin:jar
-
-> Task :help
 Detailed task information for projectInfo
 
 Path
@@ -24,6 +17,3 @@ Description
 
 Group
      help
-
-BUILD SUCCESSFUL in 0s
-1 actionable task: 1 executed

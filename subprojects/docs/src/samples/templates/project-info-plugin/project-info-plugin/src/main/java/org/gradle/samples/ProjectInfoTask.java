@@ -29,10 +29,10 @@ public class ProjectInfoTask extends DefaultTask {
     public void projectInfo() {
         switch (format) {
             case PLAIN:
-                getLogger().lifecycle(getProject().getName() + ":" + getProject().getVersion());
+                System.out.println(getProject().getName() + ":" + getProject().getVersion());
                 break;
             case JSON:
-                getLogger().lifecycle("{\n" +
+                System.out.println("{\n" +
                     "    \"projectName\": \"" + getProject().getName() + "\"\n" +
                     "    \"version\": \"" + getProject().getVersion() + "\"\n}");
                 break;

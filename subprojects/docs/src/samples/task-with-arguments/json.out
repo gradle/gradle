@@ -1,14 +1,4 @@
-> Task :project-info-plugin:compileJava
-> Task :project-info-plugin:pluginDescriptors
-> Task :project-info-plugin:processResources
-> Task :project-info-plugin:classes
-> Task :project-info-plugin:jar
-
-> Task :projectInfo
 {
     "projectName": "task-with-arguments"
     "version": "1.0.2"
 }
-
-BUILD SUCCESSFUL in 0s
-1 actionable task: 1 executed
