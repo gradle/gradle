@@ -15,6 +15,8 @@
  */
 package org.gradle.api.capabilities;
 
+import javax.annotation.Nullable;
+
 /**
  * Represents a capability. Capabilities are versioned. Only one component for a specific capability
  * can be found on a dependency graph.
@@ -24,5 +26,6 @@ package org.gradle.api.capabilities;
 public interface Capability {
     String getGroup();
     String getName();
+    @Nullable
     String getVersion();
 }

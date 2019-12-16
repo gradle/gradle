@@ -659,6 +659,47 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
     }
 
     @ToBeFixedForInstantExecution
+    def "can publish java-library with capability requests"() {
+        given:
+        createBuildScripts("""
+            dependencies {
+                implementation("org.test:foo:1.0") {
+                    capabilities {
+                        requireCapability("org.test:foo-feature2")
+                    }
+                }
+            }
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                    }
+                }
+            }
+        """)
+
+        when:
+        run "publish"
+
+        then:
+        for (def feature : features().findAll { it != MavenJavaModule.MAIN_FEATURE }) {
+            outputContains """
+  - Variant ${feature}SourceSetApiElements:
+      - Declares capability org.gradle.test:publishTest-${feature}:1.9 which cannot be mapped to Maven"""
+        }
+
+        javaLibrary.assertPublished()
+
+        and:
+        javaLibrary.parsedModuleMetadata.variant("runtimeElements") {
+            dependency("org.test:foo:1.0") {
+                hasRequestedCapability("org.test", "foo-feature2")
+                noMoreCapabilities()
+            }
+        }
+    }
+
+    @ToBeFixedForInstantExecution
     def "does not warn for the default capability if it was declared explicitly"() {
         given:
         createBuildScripts("""

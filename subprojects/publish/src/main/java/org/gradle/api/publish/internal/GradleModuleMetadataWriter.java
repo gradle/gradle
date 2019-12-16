@@ -584,7 +584,9 @@ public class GradleModuleMetadataWriter {
                 jsonWriter.beginObject();
                 jsonWriter.name("group").value(capability.getGroup());
                 jsonWriter.name("name").value(capability.getName());
-                jsonWriter.name("version").value(capability.getVersion());
+                if (StringUtils.isNotEmpty(capability.getVersion())) {
+                    jsonWriter.name("version").value(capability.getVersion());
+                }
                 jsonWriter.endObject();
             }
             jsonWriter.endArray();

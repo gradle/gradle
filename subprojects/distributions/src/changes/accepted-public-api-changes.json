@@ -52,6 +52,14 @@
             "changes": [
                 "From non-null returning to null returning breaking change"
             ]
+        },
+        {
+            "type": "org.gradle.api.capabilities.Capability",
+            "member": "Method org.gradle.api.capabilities.Capability.getVersion()",
+            "acceptation": "The annotation was missing: if the Capability instance is representing a required capability, the version can be null",
+            "changes": [
+                "From non-null returning to null returning breaking change"
+            ]
         }
     ]
 }
