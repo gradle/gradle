@@ -84,10 +84,6 @@ Development of these plugins has been discontinued since Gradle 3.
 Instead, the regular Java and Scala plugins have been extended, and new plugins such as `java-library` and `java-platform` have been added over the past years, to offer the same functionality and more.
 If you are still using one of these old plugins (`java-lang`, `scala-lang`, `jvm-component`, `jvm-resources`, `junit-test-suite`) please consult the documentation on <<building_java_projects.adoc#,Building Java & JVM projects>> to determine to which of the stable JVM plugins to migrate to.
 
-==== Deprecated methods
-
-- `AbstractExecTask#getExecResult()` has been replaced by `AbstractExecTask#getExecutionResult()` for consistency with `JavaExec#getExecutionResult()`. The return type is a <<lazy_configuration.adoc#,lazy value provider>>.
-
 === Potential breaking changes
 
 ==== `ProjectLayout` is no longer available to worker actions as a service
