@@ -156,6 +156,32 @@ class DefaultProjectLayoutTest extends Specification {
         dir3.getAsFile() == tmpDir.file("target")
     }
 
+    def "does layout resolve directories recursive"() {
+        def layoutDir = tmpDir.createDir("layoutDir")
+        def buildDirName = "build";
+        def buildDir = layoutDir.createDir(buildDirName)
+        def pathProvider = Stub(ProviderInternal)
+        _ * pathProvider.get() >> layoutDir
+        _ * pathProvider.present >> true
+        def layoutDirProvider = layout.dir(pathProvider)
+
+        expect:
+        layoutDirProvider.get().dir(buildDirName).getAsFile() == buildDir
+    }
+
+    def "does layout resolve files recursive"() {
+        def layoutDir = tmpDir.createDir("layoutDir")
+        def helpTxtName = "help.txt";
+        def helpFile = layoutDir.createFile(helpTxtName)
+        def pathProvider = Stub(ProviderInternal)
+        _ * pathProvider.get() >> layoutDir
+        _ * pathProvider.present >> true
+        def layoutDirProvider = layout.dir(pathProvider)
+
+        expect:
+        layoutDirProvider.get().file(helpTxtName).getAsFile() == helpFile
+    }
+
     def "can set the build directory location using an absolute File"() {
         def dir = tmpDir.createDir("dir")
 
