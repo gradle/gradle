@@ -32,6 +32,7 @@ class VfsRetentionGradleExecuter extends DaemonGradleExecuter {
         IntegrationTestBuildContext buildContext
     ) {
         super(distribution, testDirectoryProvider, gradleVersion, buildContext)
+        requireIsolatedDaemons()
     }
 
     @Override
