@@ -42,6 +42,7 @@ import org.gradle.api.internal.CompositeDomainObjectSet;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependencyConstraint;
 import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MavenVersionUtils;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.MavenVersionSelectorScheme;
@@ -315,11 +316,15 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
             }
             Set<MavenDependency> dependencyConstraints = dependencyConstraintsFor(usageContext);
             for (DependencyConstraint dependency : usageContext.getDependencyConstraints()) {
-                if (seenConstraints.add(dependency) && dependency.getVersion() != null) {
-                    if (!versionMappingInUse && isVersionMavenIncompatible(dependency.getVersion())) {
-                        publicationWarningsCollector.addIncompatible(String.format("constraint %s:%s:%s declared with a Maven incompatible version notation", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
+                if (seenConstraints.add(dependency)) {
+                    if (dependency instanceof DefaultProjectDependencyConstraint) {
+                        addDependencyConstraint((DefaultProjectDependencyConstraint) dependency, dependencyConstraints);
+                    } else if (dependency.getVersion() != null) {
+                        if (!versionMappingInUse && isVersionMavenIncompatible(dependency.getVersion())) {
+                            publicationWarningsCollector.addIncompatible(String.format("constraint %s:%s:%s declared with a Maven incompatible version notation", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
+                        }
+                        addDependencyConstraint(dependency, dependencyConstraints);
                     }
-                    addDependencyConstraint(dependency, dependencyConstraints);
                 }
             }
             if (!usageContext.getCapabilities().isEmpty()) {
@@ -437,6 +442,12 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
 
     private void addDependencyConstraint(DependencyConstraint dependency, Set<MavenDependency> dependencies) {
         dependencies.add(new DefaultMavenDependency(dependency.getGroup(), dependency.getName(), dependency.getVersion()));
+    }
+
+    private void addDependencyConstraint(DefaultProjectDependencyConstraint dependency, Set<MavenDependency> dependencies) {
+        ProjectDependency projectDependency = dependency.getProjectDependency();
+        ModuleVersionIdentifier identifier = projectDependencyResolver.resolve(ModuleVersionIdentifier.class, projectDependency);
+        dependencies.add(new DefaultMavenDependency(identifier.getGroup(), identifier.getName(), identifier.getVersion()));
     }
 
     private static Set<ExcludeRule> getExcludeRules(Set<ExcludeRule> globalExcludes, ModuleDependency dependency) {
