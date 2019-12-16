@@ -34,7 +34,7 @@ public abstract class TaskGeneratedSingleFileReport extends TaskGeneratedReport 
         getOutputLocation().convention(getProjectLayout().file(new DefaultProvider<>(() -> {
             return (File) ((IConventionAware) TaskGeneratedSingleFileReport.this).getConventionMapping().getConventionValue(null, "destination", false);
         })));
-        getActivated().convention(false);
+        getRequired().convention(false);
     }
 
     @Inject

@@ -132,7 +132,7 @@ class DefaultReportContainerTest extends Specification {
     }
 
     static class TestReport extends SimpleReport {
-        final Property<Boolean> activated = new DefaultProperty<>(Boolean).value(false)
+        final Property<Boolean> required = new DefaultProperty<>(Boolean).value(false)
 
         TestReport(String name, Describable displayName, OutputType outputType) {
             super(name, displayName, outputType)

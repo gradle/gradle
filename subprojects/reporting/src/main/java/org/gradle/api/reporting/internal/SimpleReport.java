@@ -82,16 +82,16 @@ public abstract class SimpleReport implements ConfigurableReport {
 
     @Override
     public boolean isEnabled() {
-        return getActivated().get();
+        return getRequired().get();
     }
 
     @Override
     public void setEnabled(boolean enabled) {
-        getActivated().set(enabled);
+        getRequired().set(enabled);
     }
 
     @Override
     public void setEnabled(Provider<Boolean> enabled) {
-        getActivated().set(enabled);
+        getRequired().set(enabled);
     }
 }
