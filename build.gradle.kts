@@ -232,30 +232,6 @@ subprojects {
     }
 
     apply(plugin = "gradlebuild.test-files-cleanup")
-
-    plugins.withType<JavaPlugin> {
-        extensions.getByType<JavaPluginExtension>().apply {
-            withSourcesJar()
-        }
-        val sourcesElements: Configuration by configurations.getting {
-            extendsFrom(configurations["implementation"])
-            outgoing.variants.create("sourcesDirectory") {
-                attributes.attribute(Attribute.of("artifactType", String::class.java), "java-sources-directory")
-                val sourceSet = the<SourceSetContainer>()[SourceSet.MAIN_SOURCE_SET_NAME]
-                sourceSet.java.srcDirs.forEach {
-                    artifact(it)
-                }
-            }
-        }
-
-        val sourcesPath: Configuration by configurations.creating {
-            isCanBeConsumed = false
-            extendsFrom(configurations["implementation"])
-            attributes {
-                attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType.SOURCES))
-            }
-        }
-    }
 }
 
 val runtimeUsage = objects.named(Usage::class.java, Usage.JAVA_RUNTIME)
