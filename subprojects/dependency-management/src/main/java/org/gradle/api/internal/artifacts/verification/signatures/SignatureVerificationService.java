@@ -13,17 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification;
+package org.gradle.api.internal.artifacts.verification.signatures;
 
-import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
+import org.gradle.api.internal.artifacts.verification.verifier.SignatureVerificationFailure;
 
 import java.io.File;
+import java.util.Optional;
+import java.util.Set;
 
-public interface ArtifactVerificationOperation {
-    void onArtifact(ArtifactKind kind, ModuleComponentArtifactIdentifier artifact, File mainFile, File signatureFile);
-
-    enum ArtifactKind {
-        METADATA,
-        REGULAR
-    }
+public interface SignatureVerificationService {
+    Optional<SignatureVerificationFailure> verify(File origin, File signature, Set<String> trustedKeys);
 }

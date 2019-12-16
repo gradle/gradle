@@ -44,7 +44,7 @@ subprojects {
         }
 
         dependencies {
-            api(platform(project(":buildPlatform")))
+            "api"(platform(project(":buildPlatform")))
             implementation(gradleApi())
         }
 

@@ -34,4 +34,6 @@ public interface ModuleComponentArtifactIdentifier extends ComponentArtifactIden
      */
     String getFileName();
 
+    ModuleComponentArtifactIdentifier getSignatureArtifactId();
+
 }

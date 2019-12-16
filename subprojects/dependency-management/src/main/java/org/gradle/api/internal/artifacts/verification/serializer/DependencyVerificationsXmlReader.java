@@ -21,8 +21,8 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
-import org.gradle.api.internal.artifacts.verification.DependencyVerifier;
-import org.gradle.api.internal.artifacts.verification.DependencyVerifierBuilder;
+import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifier;
+import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifierBuilder;
 import org.gradle.api.internal.artifacts.verification.model.ChecksumKind;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
@@ -39,6 +39,8 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.ALSO_TRUST;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.ARTIFACT;
@@ -47,14 +49,19 @@ import static org.gradle.api.internal.artifacts.verification.serializer.Dependen
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.CONFIG;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.FILE;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.GROUP;
+import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.KEY_SERVER;
+import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.KEY_SERVERS;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.NAME;
+import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.ORIGIN;
+import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.PGP;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.REGEX;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.TRUST;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.TRUSTED_ARTIFACTS;
-import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.ORIGIN;
+import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.URI;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.VALUE;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.VERIFICATION_METADATA;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.VERIFY_METADATA;
+import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.VERIFY_SIGNATURES;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.VERSION;
 
 public class DependencyVerificationsXmlReader {
@@ -97,7 +104,9 @@ public class DependencyVerificationsXmlReader {
         private boolean inComponents;
         private boolean inConfiguration;
         private boolean inVerifyMetadata;
+        private boolean inVerifySignatures;
         private boolean inTrustedArtifacts;
+        private boolean inKeyServers;
         private ModuleComponentIdentifier currentComponent;
         private ModuleComponentArtifactIdentifier currentArtifact;
         private ChecksumKind currentChecksum;
@@ -124,18 +133,36 @@ public class DependencyVerificationsXmlReader {
             } else if (VERIFY_METADATA.equals(qName)) {
                 assertInConfiguration(VERIFY_METADATA);
                 inVerifyMetadata = true;
+            } else if (VERIFY_SIGNATURES.equals(qName)) {
+                assertInConfiguration(VERIFY_SIGNATURES);
+                inVerifySignatures = true;
             } else if (TRUSTED_ARTIFACTS.equals(qName)) {
                 assertInConfiguration(TRUSTED_ARTIFACTS);
                 inTrustedArtifacts = true;
             } else if (TRUST.equals(qName)) {
                 assertInTrustedArtifacts();
                 addTrustedArtifact(attributes);
+            } else if (KEY_SERVERS.equals(qName)) {
+                assertInConfiguration(KEY_SERVERS);
+                inKeyServers = true;
+            } else if (KEY_SERVER.equals(qName)) {
+                assertContext(inKeyServers, KEY_SERVER, KEY_SERVERS);
+                String server = getAttribute(attributes, URI);
+                try {
+                    builder.addKeyServer(new URI(server));
+                } catch (URISyntaxException e) {
+                    throw new InvalidUserDataException("Unsupported URI for key server: " + server);
+                }
             } else {
                 if (currentChecksum != null && ALSO_TRUST.equals(qName)) {
                     builder.addChecksum(currentArtifact, currentChecksum, getAttribute(attributes, VALUE), null);
                 } else if (currentArtifact != null) {
-                    currentChecksum = ChecksumKind.valueOf(qName);
-                    builder.addChecksum(currentArtifact, currentChecksum, getAttribute(attributes, VALUE), getNullableAttribute(attributes, ORIGIN));
+                    if (PGP.equals(qName)) {
+                        builder.addTrustedKey(currentArtifact, getAttribute(attributes, VALUE));
+                    } else {
+                        currentChecksum = ChecksumKind.valueOf(qName);
+                        builder.addChecksum(currentArtifact, currentChecksum, getAttribute(attributes, VALUE), getNullableAttribute(attributes, ORIGIN));
+                    }
                 }
             }
         }
@@ -160,10 +187,16 @@ public class DependencyVerificationsXmlReader {
         }
 
         @Override
-        public void characters(char[] ch, int start, int length) throws SAXException {
+        public void characters(char[] ch, int start, int length) {
             if (inVerifyMetadata) {
-                builder.setVerifyMetadata(Boolean.parseBoolean(new String(ch, start, length)));
+                builder.setVerifyMetadata(readBoolean(ch, start, length));
+            } else if (inVerifySignatures) {
+                builder.setVerifySignatures(readBoolean(ch, start, length));
             }
+        }
+
+        private boolean readBoolean(char[] ch, int start, int length) {
+            return Boolean.parseBoolean(new String(ch, start, length));
         }
 
         private void assertInConfiguration(String tag) {
@@ -198,6 +231,8 @@ public class DependencyVerificationsXmlReader {
                 inConfiguration = false;
             } else if (VERIFY_METADATA.equals(qName)) {
                 inVerifyMetadata = false;
+            } else if (VERIFY_SIGNATURES.equals(qName)) {
+                inVerifySignatures = false;
             } else if (VERIFICATION_METADATA.equals(qName)) {
                 inMetadata = false;
             } else if (COMPONENTS.equals(qName)) {
@@ -206,6 +241,8 @@ public class DependencyVerificationsXmlReader {
                 currentComponent = null;
             } else if (TRUSTED_ARTIFACTS.equals(qName)) {
                 inTrustedArtifacts = false;
+            } else if (KEY_SERVERS.equals(qName)) {
+                inKeyServers = false;
             } else if (ARTIFACT.equals(qName)) {
                 currentArtifact = null;
                 currentChecksum = null;

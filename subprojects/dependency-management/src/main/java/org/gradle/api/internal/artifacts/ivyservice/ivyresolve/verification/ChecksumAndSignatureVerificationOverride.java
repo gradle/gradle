@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
@@ -24,8 +25,11 @@ import org.gradle.api.artifacts.verification.DependencyVerificationMode;
 import org.gradle.api.component.Artifact;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DependencyVerifyingModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
-import org.gradle.api.internal.artifacts.verification.DependencyVerifier;
 import org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationsXmlReader;
+import org.gradle.api.internal.artifacts.verification.signatures.SignatureVerificationService;
+import org.gradle.api.internal.artifacts.verification.signatures.SignatureVerificationServiceFactory;
+import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifier;
+import org.gradle.api.internal.artifacts.verification.verifier.VerificationFailure;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
@@ -37,24 +41,35 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class ChecksumVerificationOverride implements DependencyVerificationOverride, ArtifactVerificationOperation {
-    private final static Logger LOGGER = Logging.getLogger(ChecksumVerificationOverride.class);
+public class ChecksumAndSignatureVerificationOverride implements DependencyVerificationOverride, ArtifactVerificationOperation {
+    private final static Logger LOGGER = Logging.getLogger(ChecksumAndSignatureVerificationOverride.class);
 
-    private static final Comparator<Map.Entry<ModuleComponentArtifactIdentifier, DependencyVerifier.VerificationFailure>> DELETED_LAST = Comparator.comparing(e -> e.getValue() == DependencyVerifier.VerificationFailure.DELETED ? 1 : 0);
-    private static final Comparator<Map.Entry<ModuleComponentArtifactIdentifier, DependencyVerifier.VerificationFailure>> MISSING_LAST = Comparator.comparing(e -> e.getValue() == DependencyVerifier.VerificationFailure.MISSING ? 1 : 0);
-    private static final Comparator<Map.Entry<ModuleComponentArtifactIdentifier, DependencyVerifier.VerificationFailure>> BY_MODULE_ID = Comparator.comparing(e -> e.getKey().getDisplayName());
+    private static final Comparator<Map.Entry<ModuleComponentArtifactIdentifier, VerificationFailure>> DELETED_LAST = Comparator.comparing(e -> e.getValue() == VerificationFailure.DELETED ? 1 : 0);
+    private static final Comparator<Map.Entry<ModuleComponentArtifactIdentifier, VerificationFailure>> MISSING_LAST = Comparator.comparing(e -> e.getValue() == VerificationFailure.MISSING ? 1 : 0);
+    private static final Comparator<Map.Entry<ModuleComponentArtifactIdentifier, VerificationFailure>> BY_MODULE_ID = Comparator.comparing(e -> e.getKey().getDisplayName());
+    private static final ImmutableList<URI> DEFAULT_KEYSERVERS = ImmutableList.of(
+        uri("https://pgp.key-server.io"),
+        uri("hkp://pool.sks-keyservers.net"),
+        uri("https://keys.fedoraproject.org"),
+        uri("https://keyserver.ubuntu.com"),
+        uri("hkp://keys.openpgp.org")
+    );
 
     private final DependencyVerifier verifier;
-    private final Map<ModuleComponentArtifactIdentifier, DependencyVerifier.VerificationFailure> failures = Maps.newLinkedHashMapWithExpectedSize(2);
+    private final Map<ModuleComponentArtifactIdentifier, VerificationFailure> failures = Maps.newLinkedHashMapWithExpectedSize(2);
     private final BuildOperationExecutor buildOperationExecutor;
     private final ChecksumService checksumService;
+    private final SignatureVerificationService signatureVerificationService;
     private final DependencyVerificationMode verificationMode;
 
-    public ChecksumVerificationOverride(BuildOperationExecutor buildOperationExecutor, File verificationsFile, ChecksumService checksumService, DependencyVerificationMode verificationMode) {
+    public ChecksumAndSignatureVerificationOverride(BuildOperationExecutor buildOperationExecutor, File verificationsFile, ChecksumService checksumService, SignatureVerificationServiceFactory signatureVerificationServiceFactory, DependencyVerificationMode verificationMode) {
         this.buildOperationExecutor = buildOperationExecutor;
         this.checksumService = checksumService;
         this.verificationMode = verificationMode;
@@ -65,11 +80,24 @@ public class ChecksumVerificationOverride implements DependencyVerificationOverr
         } catch (FileNotFoundException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
+        this.signatureVerificationService = signatureVerificationServiceFactory.create(keyServers());
+    }
+
+    private List<URI> keyServers() {
+        return verifier.getConfiguration().getKeyServers().isEmpty() ? DEFAULT_KEYSERVERS : verifier.getConfiguration().getKeyServers();
+    }
+
+    private static URI uri(String uri) {
+        try {
+            return new URI(uri);
+        } catch (URISyntaxException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
     }
 
     @Override
-    public void onArtifact(ArtifactKind kind, ModuleComponentArtifactIdentifier artifact, File path) {
-        verifier.verify(buildOperationExecutor, checksumService, kind, artifact, path, f -> {
+    public void onArtifact(ArtifactKind kind, ModuleComponentArtifactIdentifier artifact, File mainFile, File signatureFile) {
+        verifier.verify(buildOperationExecutor, checksumService, signatureVerificationService, kind, artifact, mainFile, signatureFile, f -> {
             synchronized (failures) {
                 failures.put(artifact, f);
             }
@@ -78,7 +106,7 @@ public class ChecksumVerificationOverride implements DependencyVerificationOverr
 
     @Override
     public ModuleComponentRepository overrideDependencyVerification(ModuleComponentRepository original) {
-        return new DependencyVerifyingModuleComponentRepository(original, this);
+        return new DependencyVerifyingModuleComponentRepository(original, this, verifier.getConfiguration().isVerifySignatures());
     }
 
     @Override
@@ -95,15 +123,15 @@ public class ChecksumVerificationOverride implements DependencyVerificationOverr
                     .stream()
                     .sorted(DELETED_LAST.thenComparing(MISSING_LAST).thenComparing(BY_MODULE_ID))
                     .forEachOrdered(entry -> {
-                        DependencyVerifier.VerificationFailure failure = entry.getValue();
-                        if (failure == DependencyVerifier.VerificationFailure.DELETED) {
+                        VerificationFailure failure = entry.getValue();
+                        if (failure == VerificationFailure.DELETED) {
                             formatter.node("Artifact " + entry.getKey() + " has been deleted from local cache so verification cannot be performed");
-                        } else if (failure == DependencyVerifier.VerificationFailure.MISSING) {
+                        } else if (failure == VerificationFailure.MISSING) {
                             hasMissing.set(true);
                             formatter.node("Artifact " + entry.getKey() + " checksum is missing from verification metadata.");
                         } else {
                             maybeCompromised.set(true);
-                            formatter.node("On artifact " + entry.getKey() + ": expected a '" + failure.getKind() + "' checksum of '" + failure.getExpected() + "' but was '" + failure.getActual() + "'");
+                            formatter.node("On artifact " + entry.getKey() + ": " + failure.getMessage());
                         }
                     });
                 formatter.endChildren();

@@ -13,22 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.verification;
+package org.gradle.api.internal.artifacts.verification.verifier;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 
 import javax.annotation.Nullable;
+import java.net.URI;
 import java.util.List;
 
 public class DependencyVerificationConfiguration {
     private final boolean verifyMetadata;
+    private final boolean verifySignatures;
     private final List<TrustedArtifact> trustedArtifacts;
+    private final List<URI> keyServers;
 
-    public DependencyVerificationConfiguration(boolean verifyMetadata, List<TrustedArtifact> trustedArtifacts) {
+    public DependencyVerificationConfiguration(boolean verifyMetadata, boolean verifySignatures, List<TrustedArtifact> trustedArtifacts, List<URI> keyServers) {
         this.verifyMetadata = verifyMetadata;
+        this.verifySignatures = verifySignatures;
         this.trustedArtifacts = ImmutableList.copyOf(trustedArtifacts);
+        this.keyServers = keyServers;
+    }
+
+    public boolean isVerifySignatures() {
+        return verifySignatures;
     }
 
     public boolean isVerifyMetadata() {
@@ -39,14 +48,18 @@ public class DependencyVerificationConfiguration {
         return trustedArtifacts;
     }
 
-    public static class TrustedArtifact {
+    public List<URI> getKeyServers() {
+        return keyServers;
+    }
+
+    public abstract static class TrustCoordinates {
         private final String group;
         private final String name;
         private final String version;
         private final String fileName;
         private final boolean regex;
 
-        TrustedArtifact(@Nullable String group, @Nullable String name, @Nullable String version, @Nullable String fileName, boolean regex) {
+        TrustCoordinates(@Nullable String group, @Nullable String name, @Nullable String version, @Nullable String fileName, boolean regex) {
             this.group = group;
             this.name = name;
             this.version = version;
@@ -74,7 +87,7 @@ public class DependencyVerificationConfiguration {
             return regex;
         }
 
-        public boolean isTrusted(ModuleComponentArtifactIdentifier id) {
+        public boolean matches(ModuleComponentArtifactIdentifier id) {
             ModuleComponentIdentifier moduleComponentIdentifier = id.getComponentIdentifier();
             return matches(group, moduleComponentIdentifier.getGroup())
                 && matches(name, moduleComponentIdentifier.getModule())
@@ -90,6 +103,12 @@ public class DependencyVerificationConfiguration {
                 return expr.equals(value);
             }
             return expr.matches(value);
+        }
+    }
+
+    public static class TrustedArtifact extends TrustCoordinates {
+        TrustedArtifact(@Nullable String group, @Nullable String name, @Nullable String version, @Nullable String fileName, boolean regex) {
+            super(group, name, version, fileName, regex);
         }
     }
 }

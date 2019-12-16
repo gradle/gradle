@@ -581,6 +581,7 @@ class IvyFileModule extends AbstractModule implements IvyModule {
     @Override
     protected onPublish(TestFile file) {
         sha1File(file)
+        postPublish(file)
     }
 
     private String getArtifactContent() {

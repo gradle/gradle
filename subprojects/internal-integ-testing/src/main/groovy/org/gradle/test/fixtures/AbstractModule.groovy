@@ -31,6 +31,7 @@ abstract class AbstractModule implements Module {
     private static Date lmd = new Date(0)
 
     private boolean hasModuleMetadata
+    private Closure<?> onEveryFile
 
     Map<String, String> attributes = [:]
 
@@ -42,7 +43,7 @@ abstract class AbstractModule implements Module {
         def hashBefore = file.exists() ? getHash(file, "sha1") : null
         def tmpFile = file.parentFile.file("${file.name}.tmp")
 
-        if(isJarFile(file)) {
+        if (isJarFile(file)) {
             writeZipped(tmpFile, cl)
         } else {
             writeContents(tmpFile, cl)
@@ -87,6 +88,15 @@ abstract class AbstractModule implements Module {
     }
 
     protected abstract onPublish(TestFile file)
+
+    protected void postPublish(TestFile file) {
+        if (onEveryFile) {
+            Closure cl = onEveryFile.clone()
+            cl.delegate = file
+            cl.resolveStrategy = Closure.DELEGATE_FIRST
+            cl(file)
+        }
+    }
 
     TestFile getSha1File(TestFile file) {
         getHashFile(file, "sha1")
@@ -142,5 +152,11 @@ abstract class AbstractModule implements Module {
 
     boolean isHasModuleMetadata() {
         hasModuleMetadata
+    }
+
+    @Override
+    Module withSignature(@DelegatesTo(value = File, strategy = Closure.DELEGATE_FIRST) Closure<?> signer) {
+        onEveryFile = signer
+        this
     }
 }

@@ -13,17 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification;
+package org.gradle.security.internal;
 
-import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
+import org.bouncycastle.openpgp.PGPPublicKey;
+import org.bouncycastle.openpgp.PGPPublicKeyRing;
 
-import java.io.File;
+import java.util.Optional;
 
-public interface ArtifactVerificationOperation {
-    void onArtifact(ArtifactKind kind, ModuleComponentArtifactIdentifier artifact, File mainFile, File signatureFile);
-
-    enum ArtifactKind {
-        METADATA,
-        REGULAR
-    }
+public interface PublicKeyService {
+    Optional<PGPPublicKey> findPublicKey(long id);
+    Optional<PGPPublicKeyRing> findKeyRing(long id);
 }

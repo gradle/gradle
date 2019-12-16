@@ -84,6 +84,7 @@ public class TestResolver extends ExternalResourceResolver<ModuleComponentResolv
             protected void resolveSourceArtifacts(ModuleComponentResolveMetadata module, BuildableArtifactSetResolveResult result) {
                 throw new UnsupportedOperationException();
             }
+
         };
     }
 

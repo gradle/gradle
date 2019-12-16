@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.verification.serializer
 
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.internal.artifacts.verification.DependencyVerifier
+import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifier
 import org.gradle.api.internal.artifacts.verification.model.ChecksumKind
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -48,22 +48,48 @@ class DependencyVerificationsXmlReaderTest extends Specification {
     }
 
     @Unroll
-    def "parses configuration"() {
+    def "parses configuration (metadata=#verifyMetadata, signatures=#verifySignatures)"() {
         when:
         parse """<?xml version="1.0" encoding="UTF-8"?>
 <verification-metadata>
    <configuration>
       <verify-metadata>$verifyMetadata</verify-metadata>
+      <verify-signatures>$verifySignatures</verify-signatures>
    </configuration>
 </verification-metadata>
 """
         then:
         verifier.configuration.verifyMetadata == verifyMetadata
+        verifier.configuration.verifySignatures == verifySignatures
+        verifier.configuration.keyServers == []
 
         where:
-        verifyMetadata << [true, false]
+        verifyMetadata | verifySignatures
+        false          | false
+        false          | true
+        true           | false
+        true           | true
+
     }
 
+    def "parses key servers"() {
+        when:
+        parse """<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata>
+   <configuration>
+      <key-servers>
+         <key-server uri="https://pgp.key-server.io"/>
+         <key-server uri="hkp://keys.openpgp.org"/>
+      </key-servers>
+   </configuration>
+</verification-metadata>
+"""
+        then:
+        verifier.configuration.keyServers == [
+            new URI("https://pgp.key-server.io"),
+            new URI("hkp://keys.openpgp.org")
+        ]
+    }
     def "parses trusted artifacts"() {
         when:
         parse """<?xml version="1.0" encoding="UTF-8"?>

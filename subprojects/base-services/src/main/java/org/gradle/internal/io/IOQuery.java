@@ -13,17 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification;
+package org.gradle.internal.io;
 
-import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
+import java.io.IOException;
 
-import java.io.File;
-
-public interface ArtifactVerificationOperation {
-    void onArtifact(ArtifactKind kind, ModuleComponentArtifactIdentifier artifact, File mainFile, File signatureFile);
-
-    enum ArtifactKind {
-        METADATA,
-        REGULAR
-    }
+public interface IOQuery<T> {
+    T run() throws IOException, InterruptedException;
 }
