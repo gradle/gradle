@@ -28,6 +28,7 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.DocsType
+import org.gradle.api.component.AdhocComponentWithVariants
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.plugins.JavaPluginExtension
@@ -148,6 +149,13 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
                 extendsFrom(configurations["implementation"])
                 attributes {
                     attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType.SOURCES))
+                }
+            }
+
+            val javaComponent = components.findByName("java") as AdhocComponentWithVariants
+            javaComponent.withVariantsFromConfiguration(sourcesElements) {
+                if (configurationVariant.attributes.getAttribute(Attribute.of("artifactType", String::class.java)) == "java-sources-directory") {
+                    skip()
                 }
             }
         }
