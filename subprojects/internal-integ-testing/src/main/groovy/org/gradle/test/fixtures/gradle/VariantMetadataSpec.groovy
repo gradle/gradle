@@ -53,11 +53,11 @@ class VariantMetadataSpec {
     }
 
     void dependsOn(String group, String module, String version, String reason = null, Map<String, ?> attributes = [:]) {
-        dependencies << new DependencySpec(group, module, version, null, null, null, null, null, reason, attributes, null)
+        dependencies << new DependencySpec(group, module, version, null, null, null, null, null, reason, attributes, null, null)
     }
 
     void dependsOn(String group, String module, String version, @DelegatesTo(value=DependencySpec, strategy=Closure.DELEGATE_FIRST) Closure<?> config) {
-        def spec = new DependencySpec(group, module, version, null, null, null, null, null, null, [:], null)
+        def spec = new DependencySpec(group, module, version, null, null, null, null, null, null, [:], null, null)
         config.delegate = spec
         config.resolveStrategy = Closure.DELEGATE_FIRST
         config()
