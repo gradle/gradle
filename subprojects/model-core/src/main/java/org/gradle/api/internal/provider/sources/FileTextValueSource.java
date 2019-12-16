@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.platform;
+package org.gradle.api.internal.provider.sources;
 
-import org.gradle.api.JavaVersion;
-import org.gradle.api.tasks.Internal;
-import org.gradle.platform.base.Platform;
+import java.io.File;
 
-/**
- * Defines and configures a Java SE runtime environment, consisting of a JVM runtime and a set of class libraries.
- */
-public interface JavaPlatform extends Platform {
-    @Internal
-    JavaVersion getTargetCompatibility();
-    void setTargetCompatibility(JavaVersion targetCompatibility);
+import static org.gradle.util.GFileUtils.readFile;
+
+public abstract class FileTextValueSource extends FileContentValueSource<String> {
+
+    @Override
+    protected String obtainFrom(File file) {
+        return readFile(file);
+    }
 }

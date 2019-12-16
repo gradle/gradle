@@ -267,7 +267,7 @@ public class DependencyGraphBuilder {
             SelectorState selector = dependency.getSelector();
             ModuleResolveState module = selector.getTargetModule();
 
-            if (!selector.isResolved()) {
+            if (selector.canResolve()) {
                 // Have an unprocessed/new selector for this module. Need to re-select the target version.
                 performSelection(resolveState, module);
             }
