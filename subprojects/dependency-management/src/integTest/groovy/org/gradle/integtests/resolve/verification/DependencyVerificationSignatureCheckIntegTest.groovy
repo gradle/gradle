@@ -1,0 +1,262 @@
+/*
+ * Copyright 2019 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.integtests.resolve.verification
+
+import org.gradle.security.fixtures.KeyServer
+import org.gradle.security.fixtures.SigningFixtures
+
+import static org.gradle.security.fixtures.SigningFixtures.signAsciiArmored
+import static org.gradle.security.internal.SecuritySupport.toHexString
+
+class DependencyVerificationSignatureCheckIntegTest extends AbstractSignatureVerificationIntegrationTest {
+
+    def "doesn't need checksums if signature is verified"() {
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+            verifySignatures()
+            addTrustedKey("org:foo:1.0", SigningFixtures.validPublicKeyHexString)
+            addTrustedKey("org:foo:1.0", SigningFixtures.validPublicKeyHexString, "pom", "pom")
+        }
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0") {
+            withSignature {
+                signAsciiArmored(it)
+            }
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        serveValidKey()
+        succeeds ":compileJava"
+
+        then:
+        outputContains("Dependency verification is an incubating feature.")
+    }
+
+    def "fails verification is key is missing"() {
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+            verifySignatures()
+            addTrustedKey("org:foo:1.0", SigningFixtures.validPublicKeyHexString)
+            addTrustedKey("org:foo:1.0", SigningFixtures.validPublicKeyHexString, "pom", "pom")
+        }
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0") {
+            withSignature {
+                signAsciiArmored(it)
+            }
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        fails ":compileJava"
+
+        then:
+        failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
+  - On artifact foo-1.0.jar (org:foo:1.0): Artifact was signed with key '14f53f0824875d73' but it wasn't found in any key server so it couldn't be verified
+  - On artifact foo-1.0.pom (org:foo:1.0): Artifact was signed with key '14f53f0824875d73' but it wasn't found in any key server so it couldn't be verified
+This can indicate that a dependency has been compromised. Please verify carefully the checksums."""
+    }
+
+    def "fails verification is signature is incorrect"() {
+        createMetadataFile {
+            noMetadataVerification()
+            keyServer(keyServerFixture.uri)
+            verifySignatures()
+            addTrustedKey("org:foo:1.0", SigningFixtures.validPublicKeyHexString)
+        }
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0") {
+            withSignature {
+                signAsciiArmored(it)
+                if (name.endsWith(".jar")) {
+                    // change contents of original file so that the signature doesn't match anymore
+                    bytes = [0, 1, 2, 3]
+                }
+            }
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        serveValidKey()
+        fails ":compileJava"
+
+        then:
+        failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
+  - On artifact foo-1.0.jar (org:foo:1.0): Artifact was signed with key '14f53f0824875d73' but signature didn't match
+This can indicate that a dependency has been compromised. Please verify carefully the checksums."""
+    }
+
+
+    def "fails verification is signature is not trusted"() {
+        def keyring = newKeyRing()
+        keyServerFixture.registerPublicKey(keyring.publicKey)
+        def pkId = toHexString(keyring.publicKey.keyID)
+
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+            verifySignatures()
+            addTrustedKey("org:foo:1.0", SigningFixtures.validPublicKeyHexString)
+            addTrustedKey("org:foo:1.0", SigningFixtures.validPublicKeyHexString, "pom", "pom")
+        }
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0") {
+            withSignature {
+                keyring.sign(it)
+            }
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        fails ":compileJava"
+
+        then:
+        failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
+  - On artifact foo-1.0.jar (org:foo:1.0): Artifact was signed with key '$pkId' (test-user@gradle.com) and passed verification but the key isn't in your trusted keys list.
+  - On artifact foo-1.0.pom (org:foo:1.0): Artifact was signed with key '$pkId' (test-user@gradle.com) and passed verification but the key isn't in your trusted keys list.
+This can indicate that a dependency has been compromised. Please verify carefully the checksums."""
+    }
+
+    def "reasonable error message if key server fails to answer"() {
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+            verifySignatures()
+            addTrustedKey("org:foo:1.0", SigningFixtures.validPublicKeyHexString)
+            addTrustedKey("org:foo:1.0", SigningFixtures.validPublicKeyHexString, "pom", "pom")
+        }
+
+        given:
+        keyServerFixture.stop()
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0") {
+            withSignature {
+                signAsciiArmored(it)
+            }
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        fails ":compileJava"
+
+        then:
+        failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
+  - On artifact foo-1.0.jar (org:foo:1.0): Artifact was signed with key '14f53f0824875d73' but it wasn't found in any key server so it couldn't be verified
+  - On artifact foo-1.0.pom (org:foo:1.0): Artifact was signed with key '14f53f0824875d73' but it wasn't found in any key server so it couldn't be verified
+This can indicate that a dependency has been compromised. Please verify carefully the checksums."""
+    }
+
+    def "can fetch key from different keyserver"() {
+        def keyring = newKeyRing()
+        def secondServer = new KeyServer(temporaryFolder.createDir("keyserver-${UUID.randomUUID()}"))
+        secondServer.registerPublicKey(keyring.publicKey)
+        def pkId = toHexString(keyring.publicKey.keyID)
+        secondServer.start()
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+            keyServer(secondServer.uri)
+            verifySignatures()
+            addTrustedKey("org:foo:1.0", pkId)
+            addTrustedKey("org:foo:1.0", pkId, "pom", "pom")
+        }
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0") {
+            withSignature {
+                keyring.sign(it)
+            }
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        succeeds ":compileJava"
+
+        then:
+        outputContains("Dependency verification is an incubating feature.")
+
+        cleanup:
+        secondServer.stop()
+    }
+
+    def "must verify all signatures"() {
+        def keyring = newKeyRing()
+        keyServerFixture.withDefaultSigningKey()
+        keyServerFixture.registerPublicKey(keyring.publicKey)
+        def pkId = toHexString(keyring.publicKey.keyID)
+
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+            verifySignatures()
+            addTrustedKey("org:foo:1.0", SigningFixtures.validPublicKeyHexString)
+            addTrustedKey("org:foo:1.0", SigningFixtures.validPublicKeyHexString, "pom", "pom")
+        }
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0") {
+            withSignature {
+                keyring.sign(it, [(SigningFixtures.validSecretKey): SigningFixtures.validPassword])
+            }
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        fails ":compileJava"
+
+        then:
+        failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
+  - On artifact foo-1.0.jar (org:foo:1.0): Artifact was signed with key '$pkId' (test-user@gradle.com) and passed verification but the key isn't in your trusted keys list.
+  - On artifact foo-1.0.pom (org:foo:1.0): Artifact was signed with key '$pkId' (test-user@gradle.com) and passed verification but the key isn't in your trusted keys list.
+This can indicate that a dependency has been compromised. Please verify carefully the checksums."""
+    }
+}

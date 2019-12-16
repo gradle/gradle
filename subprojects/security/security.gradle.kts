@@ -23,11 +23,13 @@ description = "Shared classes for projects requiring GPG support"
 
 dependencies {
     api(project(":coreApi"))
+    api(project(":resources"))
     implementation(project(":baseServices"))
     implementation(project(":logging"))
     implementation(project(":processServices"))
+    implementation(project(":resourcesHttp"))
 
-    implementation(library("bouncycastle_pgp"))
+    api(library("bouncycastle_pgp"))
 
     implementation(library("groovy")) {
         because("Project.exec() depends on Groovy")
@@ -37,6 +39,12 @@ dependencies {
     testRuntimeOnly(project(":dependencyManagement"))
     testRuntimeOnly(project(":workers"))
     testRuntimeOnly(project(":runtimeApiInfo"))
+
+    testFixturesImplementation(project(":baseServices"))
+    testFixturesImplementation(library("slf4j_api"))
+    testFixturesImplementation(testLibrary("jetty"))
+    testFixturesImplementation(testFixtures(project(":core")))
+    testFixturesImplementation(project(":internalIntegTesting"))
 
 }
 

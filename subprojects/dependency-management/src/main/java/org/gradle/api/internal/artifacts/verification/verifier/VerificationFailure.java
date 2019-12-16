@@ -13,17 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification;
+package org.gradle.api.internal.artifacts.verification.verifier;
 
-import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
+import java.util.Optional;
 
-import java.io.File;
+@SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+public interface VerificationFailure {
+    VerificationFailure MISSING = new VerificationFailure() {
+    };
+    VerificationFailure DELETED = new VerificationFailure() {
+    };
+    Optional<VerificationFailure> OPT_MISSING = Optional.of(MISSING);
+    Optional<VerificationFailure> OPT_DELETED = Optional.of(DELETED);
 
-public interface ArtifactVerificationOperation {
-    void onArtifact(ArtifactKind kind, ModuleComponentArtifactIdentifier artifact, File mainFile, File signatureFile);
-
-    enum ArtifactKind {
-        METADATA,
-        REGULAR
+    default String getMessage() {
+        return null;
     }
 }

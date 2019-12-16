@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.verification;
+package org.gradle.api.internal.artifacts.verification.verifier;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -25,6 +25,7 @@ import org.gradle.api.internal.artifacts.verification.model.ArtifactVerification
 import org.gradle.api.internal.artifacts.verification.model.Checksum;
 import org.gradle.api.internal.artifacts.verification.model.ChecksumKind;
 import org.gradle.api.internal.artifacts.verification.model.ComponentVerificationMetadata;
+import org.gradle.api.internal.artifacts.verification.signatures.SignatureVerificationService;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.hash.ChecksumService;
@@ -56,18 +57,18 @@ public class DependencyVerifier {
     // This avoids recomputing the same checksums multiple times, especially
     // when different subprojects use the same dependencies. It uses weak keys/values
     // because it's only intended as a performance optimization.
-    private final Cache<File, Optional<VerificationFailure>> verificationCache = CacheBuilder.newBuilder()
+    private final Cache<File, Optional<? extends VerificationFailure>> verificationCache = CacheBuilder.newBuilder()
         .weakKeys()
         .weakValues()
         .build();
 
-    public void verify(BuildOperationExecutor buildOperationExecutor, ChecksumService checksumService, ArtifactVerificationOperation.ArtifactKind kind, ModuleComponentArtifactIdentifier foundArtifact, File file, Action<VerificationFailure> onFailure) {
-        if (shouldSkipVerification(kind, foundArtifact)) {
+    public void verify(BuildOperationExecutor buildOperationExecutor, ChecksumService checksumService, SignatureVerificationService signatureVerificationService, ArtifactVerificationOperation.ArtifactKind kind, ModuleComponentArtifactIdentifier foundArtifact, File artifactFile, File signatureFile, Action<VerificationFailure> onFailure) {
+        if (shouldSkipVerification(kind)) {
             return;
         }
         try {
-            Optional<VerificationFailure> verificationFailure = verificationCache.get(file, () -> {
-                return performVerification(buildOperationExecutor, foundArtifact, checksumService, file);
+            Optional<? extends VerificationFailure> verificationFailure = verificationCache.get(artifactFile, () -> {
+                return performVerification(buildOperationExecutor, foundArtifact, checksumService, signatureVerificationService, artifactFile, signatureFile);
             });
             verificationFailure.ifPresent(f -> {
                 // In order to avoid going through the list for every artifact, we only
@@ -82,7 +83,7 @@ public class DependencyVerifier {
         }
     }
 
-    private boolean shouldSkipVerification(ArtifactVerificationOperation.ArtifactKind kind, ModuleComponentArtifactIdentifier id) {
+    private boolean shouldSkipVerification(ArtifactVerificationOperation.ArtifactKind kind) {
         if (kind == ArtifactVerificationOperation.ArtifactKind.METADATA && !config.isVerifyMetadata()) {
             return true;
         }
@@ -90,20 +91,20 @@ public class DependencyVerifier {
     }
 
     private boolean isTrustedArtifact(ModuleComponentArtifactIdentifier id) {
-        if (config.getTrustedArtifacts().stream().anyMatch(artifact -> artifact.isTrusted(id))) {
+        if (config.getTrustedArtifacts().stream().anyMatch(artifact -> artifact.matches(id))) {
             return true;
         }
         return false;
     }
 
-    private Optional<VerificationFailure> performVerification(BuildOperationExecutor buildOperationExecutor, ModuleComponentArtifactIdentifier foundArtifact, ChecksumService checksumService, File file) {
-        return buildOperationExecutor.call(new CallableBuildOperation<Optional<VerificationFailure>>() {
+    private Optional<? extends VerificationFailure> performVerification(BuildOperationExecutor buildOperationExecutor, ModuleComponentArtifactIdentifier foundArtifact, ChecksumService checksumService, SignatureVerificationService signatureVerificationService, File file, File signature) {
+        return buildOperationExecutor.call(new CallableBuildOperation<Optional<? extends VerificationFailure>>() {
             @Override
-            public Optional<VerificationFailure> call(BuildOperationContext context) {
+            public Optional<? extends VerificationFailure> call(BuildOperationContext context) {
                 if (!file.exists()) {
                     return VerificationFailure.OPT_DELETED;
                 }
-                return doVerifyArtifact(foundArtifact, checksumService, file);
+                return doVerifyArtifact(foundArtifact, checksumService, signatureVerificationService, file, signature);
             }
 
             @Override
@@ -113,7 +114,7 @@ public class DependencyVerifier {
         });
     }
 
-    private Optional<VerificationFailure> doVerifyArtifact(ModuleComponentArtifactIdentifier foundArtifact, ChecksumService checksumService, File file) {
+    private Optional<? extends VerificationFailure> doVerifyArtifact(ModuleComponentArtifactIdentifier foundArtifact, ChecksumService checksumService, SignatureVerificationService signatureVerificationService, File file, File signature) {
         AtomicReference<VerificationFailure> failure = new AtomicReference<>();
         ComponentVerificationMetadata componentVerification = verificationMetadata.get(foundArtifact.getComponentIdentifier());
         if (componentVerification != null) {
@@ -122,19 +123,30 @@ public class DependencyVerifier {
             for (ArtifactVerificationMetadata verification : verifications) {
                 String verifiedArtifact = verification.getArtifactName();
                 if (verifiedArtifact.equals(foundArtifactFileName)) {
-                    List<Checksum> checksums = verification.getChecksums();
-                    for (Checksum checksum : checksums) {
-                        verifyChecksum(checksum.getKind(), file, checksum.getValue(), checksum.getAlternatives(), checksumService, f -> failure.set(f));
-                        if (failure.get() != null) {
-                            return Optional.of(failure.get());
+                    if (signature != null) {
+                        Set<String> trustedKeys = verification.getTrustedPgpKeys();
+                        Optional<SignatureVerificationFailure> verificationFailure = signatureVerificationService.verify(file, signature, trustedKeys);
+                        if (verificationFailure.isPresent()) {
+                            return verificationFailure;
                         }
                     }
-                    return Optional.empty();
+                    return verifyChecksums(checksumService, file, failure, verification);
                 }
             }
         }
 
         return VerificationFailure.OPT_MISSING;
+    }
+
+    private Optional<VerificationFailure> verifyChecksums(ChecksumService checksumService, File file, AtomicReference<VerificationFailure> failure, ArtifactVerificationMetadata verification) {
+        List<Checksum> checksums = verification.getChecksums();
+        for (Checksum checksum : checksums) {
+            verifyChecksum(checksum.getKind(), file, checksum.getValue(), checksum.getAlternatives(), checksumService, f -> failure.set(f));
+            if (failure.get() != null) {
+                return Optional.of(failure.get());
+            }
+        }
+        return Optional.empty();
     }
 
     private static void verifyChecksum(ChecksumKind algorithm, File file, String expected, Set<String> alternatives, ChecksumService cache, Action<VerificationFailure> onFailure) {
@@ -149,7 +161,7 @@ public class DependencyVerifier {
                 }
             }
         }
-        onFailure.execute(new VerificationFailure(algorithm, expected, actualChecksum));
+        onFailure.execute(new ChecksumVerificationFailure(algorithm, expected, actualChecksum));
     }
 
     private static String checksumOf(ChecksumKind algorithm, File file, ChecksumService cache) {
@@ -179,32 +191,4 @@ public class DependencyVerifier {
         return config;
     }
 
-    public static class VerificationFailure {
-        public static final VerificationFailure MISSING = new VerificationFailure(null, null, null);
-        public static final VerificationFailure DELETED = new VerificationFailure(null, null, null);
-        private static final Optional<VerificationFailure> OPT_MISSING = Optional.of(MISSING);
-        private static final Optional<VerificationFailure> OPT_DELETED = Optional.of(DELETED);
-
-        private final ChecksumKind kind;
-        private final String expected;
-        private final String actual;
-
-        VerificationFailure(ChecksumKind kind, String expected, String actual) {
-            this.kind = kind;
-            this.expected = expected;
-            this.actual = actual;
-        }
-
-        public ChecksumKind getKind() {
-            return kind;
-        }
-
-        public String getExpected() {
-            return expected;
-        }
-
-        public String getActual() {
-            return actual;
-        }
-    }
 }

@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.verification.serializer
 
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
-import org.gradle.api.internal.artifacts.verification.DependencyVerifierBuilder
+import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifierBuilder
 import org.gradle.api.internal.artifacts.verification.model.ChecksumKind
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier
@@ -33,6 +33,7 @@ class DependencyVerificationsXmlWriterTest extends Specification {
     def "can write an empty file"() {
         when:
         builder.verifyMetadata = verifyMetadata
+        builder.verifySignatures = verifySignatures
         serialize()
 
         then:
@@ -40,14 +41,43 @@ class DependencyVerificationsXmlWriterTest extends Specification {
 <verification-metadata>
    <configuration>
       <verify-metadata>$verifyMetadata</verify-metadata>
+      <verify-signatures>$verifySignatures</verify-signatures>
       <trusted-artifacts/>
    </configuration>
    <components/>
 </verification-metadata>
 """
         where:
-        verifyMetadata << [true, false]
+        verifyMetadata | verifySignatures
+        false          | false
+        false          | true
+        true           | false
+        true           | true
     }
+
+    def "can declare key servers"() {
+        when:
+        builder.addKeyServer(new URI("https://pgp.key-server.io"))
+        builder.addKeyServer(new URI("hkp://keys.openpgp.org"))
+        serialize()
+
+        then:
+        contents == """<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata>
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+      <verify-signatures>false</verify-signatures>
+      <key-servers>
+         <key-server uri="https://pgp.key-server.io"/>
+         <key-server uri="hkp://keys.openpgp.org"/>
+      </key-servers>
+      <trusted-artifacts/>
+   </configuration>
+   <components/>
+</verification-metadata>
+"""
+    }
+
 
     def "can declare trusted artifacts"() {
         when:
@@ -66,6 +96,7 @@ class DependencyVerificationsXmlWriterTest extends Specification {
 <verification-metadata>
    <configuration>
       <verify-metadata>true</verify-metadata>
+      <verify-signatures>false</verify-signatures>
       <trusted-artifacts>
          <trust group="group"/>
          <trust group="group" name="module"/>
@@ -102,6 +133,7 @@ class DependencyVerificationsXmlWriterTest extends Specification {
 <verification-metadata>
    <configuration>
       <verify-metadata>true</verify-metadata>
+      <verify-signatures>false</verify-signatures>
       <trusted-artifacts/>
    </configuration>
    <components>
@@ -141,6 +173,7 @@ class DependencyVerificationsXmlWriterTest extends Specification {
 <verification-metadata>
    <configuration>
       <verify-metadata>true</verify-metadata>
+      <verify-signatures>false</verify-signatures>
       <trusted-artifacts/>
    </configuration>
    <components>
@@ -173,6 +206,7 @@ class DependencyVerificationsXmlWriterTest extends Specification {
 <verification-metadata>
    <configuration>
       <verify-metadata>true</verify-metadata>
+      <verify-signatures>false</verify-signatures>
       <trusted-artifacts/>
    </configuration>
    <components>
@@ -205,6 +239,7 @@ class DependencyVerificationsXmlWriterTest extends Specification {
 <verification-metadata>
    <configuration>
       <verify-metadata>true</verify-metadata>
+      <verify-signatures>false</verify-signatures>
       <trusted-artifacts/>
    </configuration>
    <components>

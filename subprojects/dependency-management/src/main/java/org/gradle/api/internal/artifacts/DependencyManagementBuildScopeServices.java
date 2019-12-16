@@ -80,6 +80,8 @@ import org.gradle.api.internal.artifacts.repositories.resolver.DefaultExternalRe
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceAccessor;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
+import org.gradle.api.internal.artifacts.verification.signatures.DefaultSignatureVerificationServiceFactory;
+import org.gradle.api.internal.artifacts.verification.signatures.SignatureVerificationServiceFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.TemporaryFileProvider;
@@ -128,6 +130,7 @@ import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.gradle.internal.resource.local.ivy.LocallyAvailableResourceFinderFactory;
 import org.gradle.internal.resource.transfer.CachingTextUriResourceLoader;
+import org.gradle.internal.resource.transport.http.HttpConnectorFactory;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.typeconversion.NotationParser;
@@ -208,6 +211,7 @@ class DependencyManagementBuildScopeServices {
         );
         return new ModuleSourcesSerializer(codecs);
     }
+
     ModuleRepositoryCacheProvider createModuleRepositoryCacheProvider(BuildCommencedTimeProvider timeProvider, ArtifactCacheLockingManager artifactCacheLockingManager, ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                                                       ArtifactCacheMetadata artifactCacheMetadata, AttributeContainerSerializer attributeContainerSerializer, MavenMutableModuleMetadataFactory mavenMetadataFactory, IvyMutableModuleMetadataFactory ivyMetadataFactory, SimpleMapInterner stringInterner,
                                                                       ArtifactIdentifierFileStore artifactIdentifierFileStore,
@@ -338,8 +342,11 @@ class DependencyManagementBuildScopeServices {
         return new StartParameterResolutionOverride(startParameter);
     }
 
-    DependencyVerificationOverride createDependencyVerificationOverride(StartParameterResolutionOverride startParameterResolutionOverride, BuildOperationExecutor buildOperationExecutor, ChecksumService checksumService) {
-        return startParameterResolutionOverride.dependencyVerificationOverride(buildOperationExecutor, checksumService);
+    DependencyVerificationOverride createDependencyVerificationOverride(StartParameterResolutionOverride startParameterResolutionOverride,
+                                                                        BuildOperationExecutor buildOperationExecutor,
+                                                                        ChecksumService checksumService,
+                                                                        SignatureVerificationServiceFactory signatureVerificationServiceFactory) {
+        return startParameterResolutionOverride.dependencyVerificationOverride(buildOperationExecutor, checksumService, signatureVerificationServiceFactory);
     }
 
     ResolveIvyFactory createResolveIvyFactory(StartParameterResolutionOverride startParameterResolutionOverride, ModuleRepositoryCacheProvider moduleRepositoryCacheProvider,
@@ -448,4 +455,17 @@ class DependencyManagementBuildScopeServices {
         return new ComponentMetadataSupplierRuleExecutor(cacheRepository, cacheDecoratorFactory, snapshotter, timeProvider, suppliedComponentMetadataSerializer);
     }
 
+    SignatureVerificationServiceFactory createSignatureVerificationServiceFactory(CacheRepository cacheRepository, InMemoryCacheDecoratorFactory decoratorFactory, List<ResourceConnectorFactory> resourceConnectorFactories, BuildOperationExecutor buildOperationExecutor) {
+        HttpConnectorFactory httpConnectorFactory = null;
+        for (ResourceConnectorFactory factory : resourceConnectorFactories) {
+            if (factory instanceof HttpConnectorFactory) {
+                httpConnectorFactory = (HttpConnectorFactory) factory;
+                break;
+            }
+        }
+        if (httpConnectorFactory == null) {
+            throw new IllegalStateException("Cannot find HttpConnectorFactory");
+        }
+        return new DefaultSignatureVerificationServiceFactory(httpConnectorFactory, cacheRepository, decoratorFactory, buildOperationExecutor);
+    }
 }

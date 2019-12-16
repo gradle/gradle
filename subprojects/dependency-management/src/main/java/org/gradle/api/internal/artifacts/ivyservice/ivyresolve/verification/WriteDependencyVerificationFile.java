@@ -26,7 +26,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DependencyVerifyingModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
-import org.gradle.api.internal.artifacts.verification.DependencyVerifierBuilder;
+import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifierBuilder;
 import org.gradle.api.internal.artifacts.verification.model.ChecksumKind;
 import org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationsXmlReader;
 import org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationsXmlWriter;
@@ -115,7 +115,7 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
 
     @Override
     public ModuleComponentRepository overrideDependencyVerification(ModuleComponentRepository original) {
-        return new DependencyVerifyingModuleComponentRepository(original, this);
+        return new DependencyVerifyingModuleComponentRepository(original, this, false);
     }
 
     @Override
@@ -186,13 +186,13 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
     }
 
     @Override
-    public void onArtifact(ArtifactKind kind, ModuleComponentArtifactIdentifier id, File file) {
+    public void onArtifact(ArtifactKind kind, ModuleComponentArtifactIdentifier id, File mainFile, File signatureFile) {
         initialize();
         if (shouldSkipVerification(kind)) {
             return;
         }
         for (String checksum : checksums) {
-            addChecksum(id, file, ChecksumKind.valueOf(checksum));
+            addChecksum(id, mainFile, ChecksumKind.valueOf(checksum));
         }
     }
 
@@ -228,7 +228,7 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
     }
 
     private boolean isTrustedArtifact(ModuleComponentArtifactIdentifier id) {
-        if (verificationsBuilder.getTrustedArtifacts().stream().anyMatch(artifact -> artifact.isTrusted(id))) {
+        if (verificationsBuilder.getTrustedArtifacts().stream().anyMatch(artifact -> artifact.matches(id))) {
             return true;
         }
         return false;

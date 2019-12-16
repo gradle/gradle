@@ -24,6 +24,7 @@ interface Module {
     Module publish()
     Module publishWithChangedContent()
     Module withModuleMetadata()
+    Module withSignature(@DelegatesTo(value = File, strategy = Closure.DELEGATE_FIRST) Closure<?> signer)
 
     String getGroup()
     String getModule()

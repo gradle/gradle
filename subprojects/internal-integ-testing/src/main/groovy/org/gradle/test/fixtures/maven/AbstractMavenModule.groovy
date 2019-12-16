@@ -769,4 +769,10 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
         variants.clear()
         this
     }
+
+    @Override
+    MavenModule withSignature(@DelegatesTo(value = File, strategy = Closure.DELEGATE_FIRST) Closure<?> signer) {
+        super.withSignature(signer)
+        this
+    }
 }

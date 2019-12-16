@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.verification;
+package org.gradle.api.internal.artifacts.verification.verifier;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -31,6 +32,7 @@ import org.gradle.api.internal.artifacts.verification.model.ImmutableComponentVe
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 
 import javax.annotation.Nullable;
+import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -39,12 +41,20 @@ import java.util.stream.Collectors;
 public class DependencyVerifierBuilder {
     private final Map<ModuleComponentIdentifier, ComponentVerificationsBuilder> byComponent = Maps.newLinkedHashMap();
     private final List<DependencyVerificationConfiguration.TrustedArtifact> trustedArtifacts = Lists.newArrayList();
+    private final List<URI> keyServers = Lists.newArrayList();
     private boolean isVerifyMetadata = true;
+    private boolean isVerifySignatures = false;
 
     public void addChecksum(ModuleComponentArtifactIdentifier artifact, ChecksumKind kind, String value, @Nullable String origin) {
         ModuleComponentIdentifier componentIdentifier = artifact.getComponentIdentifier();
         byComponent.computeIfAbsent(componentIdentifier, id -> new ComponentVerificationsBuilder(id))
             .addChecksum(artifact, kind, value, origin);
+    }
+
+    public void addTrustedKey(ModuleComponentArtifactIdentifier artifact, String key) {
+        ModuleComponentIdentifier componentIdentifier = artifact.getComponentIdentifier();
+        byComponent.computeIfAbsent(componentIdentifier, id -> new ComponentVerificationsBuilder(id))
+            .addTrustedKey(artifact, key);
     }
 
     public void setVerifyMetadata(boolean verifyMetadata) {
@@ -55,6 +65,14 @@ public class DependencyVerifierBuilder {
         return isVerifyMetadata;
     }
 
+    public boolean isVerifySignatures() {
+        return isVerifySignatures;
+    }
+
+    public void setVerifySignatures(boolean verifySignatures) {
+        isVerifySignatures = verifySignatures;
+    }
+
     public void addTrustedArtifact(@Nullable String group, @Nullable String name, @Nullable String version, @Nullable String fileName, boolean regex) {
         validateUserInput(group, name, version, fileName);
         trustedArtifacts.add(new DependencyVerificationConfiguration.TrustedArtifact(group, name, version, fileName, regex));
@@ -62,7 +80,7 @@ public class DependencyVerifierBuilder {
 
     private void validateUserInput(@Nullable String group, @Nullable String name, @Nullable String version, @Nullable String fileName) {
         // because this can be called from parsing XML, we need to perform additional verification
-        if (group == null && name==null && version==null && fileName==null) {
+        if (group == null && name == null && version == null && fileName == null) {
             throw new InvalidUserDataException("A trusted artifact must have at least one of group, name, version or file name not null");
         }
     }
@@ -72,32 +90,40 @@ public class DependencyVerifierBuilder {
         for (Map.Entry<ModuleComponentIdentifier, ComponentVerificationsBuilder> entry : byComponent.entrySet()) {
             builder.put(entry.getKey(), entry.getValue().build());
         }
-        return new DependencyVerifier(builder.build(), new DependencyVerificationConfiguration(isVerifyMetadata, trustedArtifacts));
+        return new DependencyVerifier(builder.build(), new DependencyVerificationConfiguration(isVerifyMetadata, isVerifySignatures, trustedArtifacts, ImmutableList.copyOf(keyServers)));
     }
 
     public List<DependencyVerificationConfiguration.TrustedArtifact> getTrustedArtifacts() {
         return trustedArtifacts;
     }
 
+    public void addKeyServer(URI uri) {
+        keyServers.add(uri);
+    }
+
     private static class ComponentVerificationsBuilder {
         private final ModuleComponentIdentifier component;
-        private final Map<String, ChecksumsBuilder> checksums = Maps.newLinkedHashMap();
+        private final Map<String, ArtifactVerificationBuilder> byArtifact = Maps.newLinkedHashMap();
 
         private ComponentVerificationsBuilder(ModuleComponentIdentifier component) {
             this.component = component;
         }
 
         void addChecksum(ModuleComponentArtifactIdentifier artifact, ChecksumKind kind, String value, @Nullable String origin) {
-            checksums.computeIfAbsent(artifact.getFileName(), id -> new ChecksumsBuilder()).addChecksum(kind, value, origin);
+            byArtifact.computeIfAbsent(artifact.getFileName(), id -> new ArtifactVerificationBuilder()).addChecksum(kind, value, origin);
         }
 
-        private static ArtifactVerificationMetadata toArtifactVerification(Map.Entry<String, ChecksumsBuilder> entry) {
-            return new ImmutableArtifactVerificationMetadata(entry.getKey(), entry.getValue().build());
+        void addTrustedKey(ModuleComponentArtifactIdentifier artifact, String key) {
+            byArtifact.computeIfAbsent(artifact.getFileName(), id -> new ArtifactVerificationBuilder()).addTrustedKey(key);
+        }
+
+        private static ArtifactVerificationMetadata toArtifactVerification(Map.Entry<String, ArtifactVerificationBuilder> entry) {
+            return new ImmutableArtifactVerificationMetadata(entry.getKey(), entry.getValue().buildChecksums(), entry.getValue().buildPgpKeys());
         }
 
         ComponentVerificationMetadata build() {
             return new ImmutableComponentVerificationMetadata(component,
-                checksums.entrySet()
+                byArtifact.entrySet()
                     .stream()
                     .map(ComponentVerificationsBuilder::toArtifactVerification)
                     .collect(Collectors.toList())
@@ -105,8 +131,9 @@ public class DependencyVerifierBuilder {
         }
     }
 
-    private static class ChecksumsBuilder {
+    private static class ArtifactVerificationBuilder {
         private final Map<ChecksumKind, ChecksumBuilder> builder = Maps.newEnumMap(ChecksumKind.class);
+        private final Set<String> pgpKeys = Sets.newLinkedHashSet();
 
         void addChecksum(ChecksumKind kind, String value, @Nullable String origin) {
             ChecksumBuilder builder = this.builder.computeIfAbsent(kind, ChecksumBuilder::new);
@@ -116,11 +143,19 @@ public class DependencyVerifierBuilder {
             }
         }
 
-        List<Checksum> build() {
+        List<Checksum> buildChecksums() {
             return builder.values()
                 .stream()
                 .map(ChecksumBuilder::build)
                 .collect(Collectors.toList());
+        }
+
+        public void addTrustedKey(String key) {
+            pgpKeys.add(key);
+        }
+
+        public Set<String> buildPgpKeys() {
+            return pgpKeys;
         }
     }
 
