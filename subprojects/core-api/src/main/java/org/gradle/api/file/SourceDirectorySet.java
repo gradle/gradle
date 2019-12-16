@@ -146,7 +146,7 @@ public interface SourceDirectorySet extends FileTree, PatternFilterable, Named, 
      * @return The output directory for this set of sources.
      * @since 4.0
      */
-    @ReplacedBy("destinationDirectory")
+    @ReplacedBy("classesDirectory")
     File getOutputDir();
 
     /**
