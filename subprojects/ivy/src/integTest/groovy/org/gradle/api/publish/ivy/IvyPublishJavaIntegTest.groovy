@@ -181,7 +181,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         createBuildScripts("""
             $dependencies
 
-            task sourceJar(type: Jar) {
+            task sourcesJar(type: Jar) {
                 from sourceSets.main.allJava
                 archiveBaseName = "publishTest-source"
             }
@@ -190,7 +190,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
                 publications {
                     ivy(IvyPublication) {
                         from components.java
-                        artifact(sourceJar) {
+                        artifact(sourcesJar) {
                             classifier "source"
                             type "sources"
                             conf "runtime"

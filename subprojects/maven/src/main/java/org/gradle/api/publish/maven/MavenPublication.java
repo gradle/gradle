@@ -60,7 +60,7 @@ import org.gradle.internal.HasInternalProtocol;
  * apply plugin: "java"
  * apply plugin: "maven-publish"
  *
- * task sourceJar(type: Jar) {
+ * task sourcesJar(type: Jar) {
  *   from sourceSets.main.allJava
  *   archiveClassifier = "sources"
  * }
@@ -69,7 +69,7 @@ import org.gradle.internal.HasInternalProtocol;
  *   publications {
  *     myPublication(MavenPublication) {
  *       from components.java
- *       artifact sourceJar
+ *       artifact sourcesJar
  *       pom {
  *         name = "Demo"
  *         description = "A demonstration of Maven POM customization"
@@ -167,16 +167,16 @@ public interface MavenPublication extends Publication {
      * <pre class='autoTested'>
      * apply plugin: "maven-publish"
      *
-     * task sourceJar(type: Jar) {
+     * task sourcesJar(type: Jar) {
      *   archiveClassifier = "sources"
      * }
      *
      * publishing {
      *   publications {
      *     maven(MavenPublication) {
-     *       artifact sourceJar // Publish the output of the sourceJar task
+     *       artifact sourcesJar // Publish the output of the sourcesJar task
      *       artifact 'my-file-name.jar' // Publish a file created outside of the build
-     *       artifact source: sourceJar, classifier: 'src', extension: 'zip'
+     *       artifact source: sourcesJar, classifier: 'src', extension: 'zip'
      *     }
      *   }
      * }
@@ -196,14 +196,14 @@ public interface MavenPublication extends Publication {
      * <pre class='autoTested'>
      * apply plugin: "maven-publish"
      *
-     * task sourceJar(type: Jar) {
+     * task sourcesJar(type: Jar) {
      *   archiveClassifier = "sources"
      * }
      *
      * publishing {
      *   publications {
      *     maven(MavenPublication) {
-     *       artifact(sourceJar) {
+     *       artifact(sourcesJar) {
      *         // These values will be used instead of the values from the task. The task values will not be updated.
      *         classifier "src"
      *         extension "zip"
@@ -231,7 +231,7 @@ public interface MavenPublication extends Publication {
      * apply plugin: "java"
      * apply plugin: "maven-publish"
      *
-     * task sourceJar(type: Jar) {
+     * task sourcesJar(type: Jar) {
      *   archiveClassifier = "sources"
      * }
 
@@ -239,7 +239,7 @@ public interface MavenPublication extends Publication {
      *   publications {
      *     maven(MavenPublication) {
      *       from components.java
-     *       artifacts = ["my-custom-jar.jar", sourceJar]
+     *       artifacts = ["my-custom-jar.jar", sourcesJar]
      *     }
      *   }
      * }

@@ -517,7 +517,7 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
     def "can publish java-library with attached artifacts"() {
         given:
         createBuildScripts("""
-            task sourceJar(type: Jar) {
+            task sourcesJar(type: Jar) {
                 from sourceSets.main.allJava
                 archiveClassifier = "source"
             }
@@ -526,7 +526,7 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
                 publications {
                     maven(MavenPublication) {
                         from components.java
-                        artifact sourceJar
+                        artifact sourcesJar
                     }
                 }
             }
