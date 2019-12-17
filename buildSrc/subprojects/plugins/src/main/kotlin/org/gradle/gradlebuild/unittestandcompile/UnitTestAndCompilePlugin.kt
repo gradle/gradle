@@ -144,14 +144,6 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
                 }
             }
 
-            val sourcesPath: Configuration by configurations.creating {
-                isCanBeConsumed = false
-                extendsFrom(configurations["implementation"])
-                attributes {
-                    attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType.SOURCES))
-                }
-            }
-
             val javaComponent = components.findByName("java") as AdhocComponentWithVariants
             javaComponent.withVariantsFromConfiguration(sourcesElements) {
                 if (configurationVariant.attributes.getAttribute(Attribute.of("artifactType", String::class.java)) == "java-sources-directory") {

@@ -97,8 +97,16 @@ gradlebuildJava {
 
 apply(from = "buildship.gradle")
 
+val sourcesPath: Configuration by configurations.creating {
+    isCanBeConsumed = false
+    extendsFrom(configurations["implementation"])
+    attributes {
+        attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType.SOURCES))
+    }
+}
+
 tasks.named<Jar>("sourcesJar") {
-    from(configurations["sourcesPath"].incoming.artifactView {
+    from(sourcesPath.incoming.artifactView {
         attributes.attribute(Attribute.of("artifactType", String::class.java), "java-sources-directory")
     }.files)
 }
