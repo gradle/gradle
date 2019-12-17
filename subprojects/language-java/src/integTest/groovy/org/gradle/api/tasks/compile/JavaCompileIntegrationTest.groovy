@@ -36,7 +36,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
 
     def "uses default platform settings when applying java plugin"() {
         buildFile << """
-            apply plugin:"java"
+            apply plugin: "java"
         """
 
         file("src/main/java/Foo.java") << "public class Foo {}"
@@ -138,7 +138,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
             task compile(type: JavaCompile) {
                 sourceCompatibility = JavaVersion.current()
                 targetCompatibility = JavaVersion.current()
-                destinationDir = file("build/classes")
+                destinationDirectory = file("build/classes")
                 source "src/main/java"
                 classpath = files('${dependencies.join("', '")}')
             }

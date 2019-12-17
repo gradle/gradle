@@ -84,7 +84,7 @@ class VariantAwareResolutionWithConfigurationAttributesIntegrationTest extends A
                                 def compileTask = p.tasks.create("compileJava${f.capitalize()}${bt.capitalize()}", JavaCompile) { task ->
                                     def taskName = task.name
                                     task.source(p.tasks.compileJava.source)
-                                    task.destinationDir = project.file("${p.buildDir}/classes/$taskName")
+                                    task.destinationDirectory = project.file("${p.buildDir}/classes/$taskName")
                                     task.classpath = _compileConfig
                                     task.doFirst {
                                        // this is only for assertions in tests

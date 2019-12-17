@@ -51,6 +51,31 @@ Gradle now supports compiling Groovy code with [method parameter names](https://
 
 This was contributed by [Andrew Malyhin](https://github.com/katoquro).
 
+## Defining compilation order between Groovy, Scala and Java sources in the same project
+
+Previously, the relationship between Java, Groovy and Scala compilation was hardcoded with task dependencies.
+Gradle assumed Groovy and Scala compilation always depended on Java compilation.
+That is, `compileGroovy` and `compileScala` would directly depend on `compileJava`.
+
+These task dependencies have been remodelled with [directory properties](userguide/lazy_configuration.html#) that represent the destination folders of the compile tasks.
+Adding such a destination folder to the classpath of another task automatically adds the corresponding task dependencies.
+Removing such a destination folder from the classpath also removes the corresponding task dependency.
+This can be used to remove the above mentioned dependencies and to add different ones.
+This is helpful, for example, when combining Groovy and Kotlin in the same project.
+
+```
+tasks.named('compileGroovy') {
+    // Groovy only needs the declared dependencies
+    // (and not longer the output of compileJava)
+    classpath = sourceSets.main.compileClasspath
+}
+tasks.named('compileKotlin') {
+    // Kotlin also depends on the result of Groovy compilation 
+    // (which automatically makes it depend of compileGroovy)
+    classpath += files(sourceSets.main.groovy.classesDirectory)
+}
+```
+
 ## Improvements for plugin authors
 
 ### Finalize property value only when the value is queried
