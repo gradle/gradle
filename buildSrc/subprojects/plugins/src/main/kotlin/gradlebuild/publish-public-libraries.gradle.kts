@@ -16,8 +16,6 @@
 package gradlebuild
 
 import accessors.base
-import accessors.groovy
-import accessors.java
 
 import groovy.lang.MissingPropertyException
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
