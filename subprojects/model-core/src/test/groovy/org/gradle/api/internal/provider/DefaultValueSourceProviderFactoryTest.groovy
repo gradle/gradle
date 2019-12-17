@@ -19,6 +19,7 @@ package org.gradle.api.internal.provider
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
+import org.gradle.internal.state.Managed
 
 import static org.gradle.api.internal.provider.ValueSourceProviderFactory.Listener.ObtainedValue
 
@@ -74,6 +75,15 @@ class DefaultValueSourceProviderFactoryTest extends ValueSourceBasedSpec {
         expect:
         !provider.isPresent()
         provider.getOrNull() == null
+    }
+
+    def "provider assumes graph is immutable"() {
+
+        given:
+        def provider = createProviderOf(EchoValueSource) {}
+
+        expect:
+        ((Managed) provider).immutable()
     }
 
     static abstract class EchoValueSource implements ValueSource<String, Parameters> {

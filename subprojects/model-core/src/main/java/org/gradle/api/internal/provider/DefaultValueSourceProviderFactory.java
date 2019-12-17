@@ -173,6 +173,11 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
             return value == null;
         }
 
+        @Override
+        public boolean immutable() {
+            return true;
+        }
+
         @Nullable
         public Try<T> getObtainedValueOrNull() {
             return value;
