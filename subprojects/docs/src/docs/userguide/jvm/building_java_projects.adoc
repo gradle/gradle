@@ -521,8 +521,8 @@ You can change this default behavior by adjusting the classpath of the involved 
 
 .Changing the classpath of compile tasks
 ====
-include::sample[dir="userguide/tutorial/compileTaskClasspath/groovy",files="build.gradle[tags=compile-task-classpath]"]
-include::sample[dir="userguide/tutorial/compileTaskClasspath/kotlin",files="build.gradle.kts[tags=compile-task-classpath]"]
+include::sample[dir="snippets/userguide/tutorial/compileTaskClasspath/groovy",files="build.gradle[tags=compile-task-classpath]"]
+include::sample[dir="snippets/userguide/tutorial/compileTaskClasspath/kotlin",files="build.gradle.kts[tags=compile-task-classpath]"]
 ====
 
 Beyond core Gradle, there are other https://plugins.gradle.org/search?term=jvm[great plugins] for more JVM languages!
