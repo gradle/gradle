@@ -19,6 +19,7 @@ package org.gradle.instantexecution
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.junit.Rule
+import spock.lang.Unroll
 
 @LeaksFileHandles("TODO: AGP (intentionally) does not get a ‘build finished’ event and so does not close some files")
 class InstantExecutionAndroidIntegrationTest extends AbstractInstantExecutionAndroidIntegrationTest {
@@ -41,32 +42,42 @@ class InstantExecutionAndroidIntegrationTest extends AbstractInstantExecutionAnd
         instantExecution = newInstantExecutionFixture()
     }
 
-    def "android 3.6 minimal build assembleDebug up-to-date"() {
+    @Unroll
+    def "android 3.6 minimal build assembleDebug up-to-date (fromIde=#fromIde)"() {
+
         when:
-        instantRun("assembleDebug")
+        instantRun("assembleDebug", "-Pandroid.injected.invoked.from.ide=$fromIde")
 
         then:
         instantExecution.assertStateStored()
 
         when:
-        instantRun("assembleDebug")
+        instantRun("assembleDebug", "-Pandroid.injected.invoked.from.ide=$fromIde")
 
         then:
         instantExecution.assertStateLoaded()
+
+        where:
+        fromIde << [false, true]
     }
 
-    def "android 3.6 minimal build clean assembleDebug"() {
+    @Unroll
+    def "android 3.6 minimal build clean assembleDebug (fromIde=#fromIde)"() {
+
         when:
-        instantRun("assembleDebug")
+        instantRun("assembleDebug", "-Pandroid.injected.invoked.from.ide=$fromIde")
 
         then:
         instantExecution.assertStateStored()
 
         when:
         run 'clean'
-        instantRun("assembleDebug")
+        instantRun("assembleDebug", "-Pandroid.injected.invoked.from.ide=$fromIde")
 
         then:
         instantExecution.assertStateLoaded()
+
+        where:
+        fromIde << [false, true]
     }
 }
