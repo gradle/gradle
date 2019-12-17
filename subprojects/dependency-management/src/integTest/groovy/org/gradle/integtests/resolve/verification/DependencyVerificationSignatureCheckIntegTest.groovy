@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve.verification
 
 import org.gradle.security.fixtures.KeyServer
 import org.gradle.security.fixtures.SigningFixtures
+import spock.lang.Unroll
 
 import static org.gradle.security.fixtures.SigningFixtures.signAsciiArmored
 import static org.gradle.security.internal.SecuritySupport.toHexString
@@ -83,6 +84,98 @@ class DependencyVerificationSignatureCheckIntegTest extends AbstractSignatureVer
   - On artifact foo-1.0.pom (org:foo:1.0): Artifact was signed with key '14f53f0824875d73' but it wasn't found in any key server so it couldn't be verified
 This can indicate that a dependency has been compromised. Please verify carefully the checksums."""
     }
+
+    @Unroll
+    def "can verify signature for artifacts downloaded in a previous build (stop in between = #stopInBetween)"() {
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0") {
+            withSignature {
+                signAsciiArmored(it)
+            }
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        succeeds ":compileJava"
+
+        then:
+        outputDoesNotContain "Dependency verification is an incubating feature."
+
+        when:
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+            verifySignatures()
+            addTrustedKey("org:foo:1.0", SigningFixtures.validPublicKeyHexString)
+            addTrustedKey("org:foo:1.0", SigningFixtures.validPublicKeyHexString, "pom", "pom")
+        }
+        if (stopInBetween) {
+            executer.stop()
+        }
+        fails ":compileJava"
+
+        then:
+        failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
+  - On artifact foo-1.0.jar (org:foo:1.0): Artifact was signed with key '14f53f0824875d73' but it wasn't found in any key server so it couldn't be verified
+  - On artifact foo-1.0.pom (org:foo:1.0): Artifact was signed with key '14f53f0824875d73' but it wasn't found in any key server so it couldn't be verified
+This can indicate that a dependency has been compromised. Please verify carefully the checksums."""
+
+        where:
+        stopInBetween << [false, true]
+    }
+
+    @Unroll
+    def "can verify classified artifacts downloaded in previous builds (stop in between = #stopInBetween)"() {
+        def keyring = newKeyRing()
+        keyServerFixture.registerPublicKey(keyring.publicKey)
+        def pkId = toHexString(keyring.publicKey.keyID)
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0") {
+            artifact(classifier: 'classy')
+            withSignature {
+                keyring.sign(it)
+            }
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0:classy"
+            }
+        """
+
+        when:
+        succeeds ":compileJava"
+
+        then:
+        outputDoesNotContain "Dependency verification is an incubating feature."
+
+        when:
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+            verifySignatures()
+            addTrustedKeyByFileName("org:foo:1.0", "foo-1.0-classy.jar", SigningFixtures.validPublicKeyHexString)
+            addTrustedKey("org:foo:1.0", SigningFixtures.validPublicKeyHexString, "pom", "pom")
+        }
+        if (stopInBetween) {
+            executer.stop()
+        }
+        fails ":compileJava"
+
+        then:
+        failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
+  - On artifact foo-1.0-classy.jar (org:foo:1.0): Artifact was signed with key '$pkId' (test-user@gradle.com) and passed verification but the key isn't in your trusted keys list.
+  - On artifact foo-1.0.pom (org:foo:1.0): Artifact was signed with key '$pkId' (test-user@gradle.com) and passed verification but the key isn't in your trusted keys list.
+This can indicate that a dependency has been compromised. Please verify carefully the checksums."""
+
+        where:
+        stopInBetween << [false, true]
+    }
+
 
     def "fails verification is signature is incorrect"() {
         createMetadataFile {
@@ -151,6 +244,42 @@ This can indicate that a dependency has been compromised. Please verify carefull
         then:
         failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
   - On artifact foo-1.0.jar (org:foo:1.0): Artifact was signed with key '$pkId' (test-user@gradle.com) and passed verification but the key isn't in your trusted keys list.
+  - On artifact foo-1.0.pom (org:foo:1.0): Artifact was signed with key '$pkId' (test-user@gradle.com) and passed verification but the key isn't in your trusted keys list.
+This can indicate that a dependency has been compromised. Please verify carefully the checksums."""
+    }
+
+    def "can verify classified artifacts"() {
+        def keyring = newKeyRing()
+        keyServerFixture.registerPublicKey(keyring.publicKey)
+        def pkId = toHexString(keyring.publicKey.keyID)
+
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+            verifySignatures()
+            addTrustedKeyByFileName("org:foo:1.0", "foo-1.0-classy.jar", SigningFixtures.validPublicKeyHexString)
+            addTrustedKey("org:foo:1.0", SigningFixtures.validPublicKeyHexString, "pom", "pom")
+        }
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0") {
+            artifact(classifier: 'classy')
+            withSignature {
+                keyring.sign(it)
+            }
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0:classy"
+            }
+        """
+
+        when:
+        fails ":compileJava"
+
+        then:
+        failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
+  - On artifact foo-1.0-classy.jar (org:foo:1.0): Artifact was signed with key '$pkId' (test-user@gradle.com) and passed verification but the key isn't in your trusted keys list.
   - On artifact foo-1.0.pom (org:foo:1.0): Artifact was signed with key '$pkId' (test-user@gradle.com) and passed verification but the key isn't in your trusted keys list.
 This can indicate that a dependency has been compromised. Please verify carefully the checksums."""
     }

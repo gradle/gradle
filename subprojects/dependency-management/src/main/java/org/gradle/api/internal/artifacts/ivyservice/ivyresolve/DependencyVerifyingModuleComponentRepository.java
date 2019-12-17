@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import com.google.common.io.Files;
 import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
@@ -37,6 +38,7 @@ import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
+import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleDescriptorArtifactMetadata;
 import org.gradle.internal.component.model.ModuleSources;
@@ -145,12 +147,17 @@ public class DependencyVerifyingModuleComponentRepository implements ModuleCompo
                 return null;
             }
             SignatureFileDefaultBuildableArtifactResolveResult signatureResult = new SignatureFileDefaultBuildableArtifactResolveResult();
-            resolveArtifact(new SignatureArtifactMetadata(moduleComponentIdentifier, artifact), moduleSources, signatureResult);
+            SignatureArtifactMetadata signatureArtifactMetadata = new SignatureArtifactMetadata(moduleComponentIdentifier, artifact);
+            getLocalAccess().resolveArtifact(signatureArtifactMetadata, moduleSources, signatureResult);
             if (signatureResult.hasResult() && signatureResult.isSuccessful()) {
                 return signatureResult.getResult();
             } else {
-                return null;
+                getRemoteAccess().resolveArtifact(signatureArtifactMetadata, moduleSources, signatureResult);
             }
+            if (signatureResult.hasResult() && signatureResult.isSuccessful()) {
+                return signatureResult.getResult();
+            }
+            return null;
         }
 
         @Override
@@ -229,7 +236,16 @@ public class DependencyVerifyingModuleComponentRepository implements ModuleCompo
                 if (artifactIdentifier instanceof DefaultModuleComponentArtifactIdentifier) {
                     return ((DefaultModuleComponentArtifactIdentifier) artifactIdentifier).getName();
                 }
-                throw new UnsupportedOperationException();
+                // This is a bit hackish but the mapping from file names to ivy artifact names is completely broken
+                String fileName = artifactIdentifier.getFileName().replace("-" + artifactIdentifier.getComponentIdentifier().getVersion(), "");
+                fileName = Files.getNameWithoutExtension(fileName); // removes the .asc
+                DefaultIvyArtifactName base = DefaultIvyArtifactName.forFileName(fileName, null);
+                DefaultIvyArtifactName result = new DefaultIvyArtifactName(
+                    base.getName(),
+                    "asc",
+                    base.getExtension() + ".asc"
+                );
+                return result;
             }
 
             @Override
