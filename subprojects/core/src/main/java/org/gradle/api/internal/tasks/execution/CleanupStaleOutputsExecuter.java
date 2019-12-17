@@ -40,6 +40,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class CleanupStaleOutputsExecuter implements TaskExecuter {
 
@@ -82,7 +83,11 @@ public class CleanupStaleOutputsExecuter implements TaskExecuter {
             }
         }
         if (!filesToDelete.isEmpty()) {
-            outputChangeListener.beforeOutputChange();
+            outputChangeListener.beforeOutputChange(
+                filesToDelete.stream()
+                    .map(File::getAbsolutePath)
+                    .collect(Collectors.toList())
+            );
             buildOperationExecutor.run(new RunnableBuildOperation() {
                 @Override
                 public void run(BuildOperationContext context) {
