@@ -19,26 +19,10 @@ package org.gradle.api.internal.provider
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
-import org.gradle.internal.event.DefaultListenerManager
-import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter
-import org.gradle.util.TestUtil
-import spock.lang.Specification
 
 import static org.gradle.api.internal.provider.ValueSourceProviderFactory.Listener.ObtainedValue
 
-class DefaultValueSourceProviderFactoryTest extends Specification {
-
-    def listenerManager = new DefaultListenerManager()
-    def isolatableFactory = new DefaultValueSnapshotter(
-        null,
-        TestUtil.managedFactoryRegistry()
-    )
-    def subject = new DefaultValueSourceProviderFactory(
-        listenerManager,
-        TestUtil.instantiatorFactory(),
-        isolatableFactory,
-        TestUtil.services()
-    )
+class DefaultValueSourceProviderFactoryTest extends ValueSourceBasedSpec {
 
     def "parameters are configured eagerly"() {
 
@@ -46,7 +30,7 @@ class DefaultValueSourceProviderFactoryTest extends Specification {
         def configured = false
 
         when:
-        def provider = subject.createProviderOf(EchoValueSource) {
+        def provider = createProviderOf(EchoValueSource) {
             configured = true
         }
 
@@ -57,11 +41,11 @@ class DefaultValueSourceProviderFactoryTest extends Specification {
     def "listener is notified when value is obtained"() {
 
         given: "a listener is connected to the provider factory"
-        def provider = subject.createProviderOf(EchoValueSource) {
+        def provider = createProviderOf(EchoValueSource) {
             it.parameters.value.set("42")
         }
         List<ObtainedValue<?, ValueSourceParameters>> obtainedValues = []
-        subject.addListener { obtainedValues.add(it) }
+        valueSourceProviderFactory.addListener { obtainedValues.add(it) }
 
         when: "value is obtained for the 1st time"
         provider.get()
@@ -83,7 +67,7 @@ class DefaultValueSourceProviderFactoryTest extends Specification {
     def "provider maps null returned from obtain to not present"() {
 
         given:
-        def provider = subject.createProviderOf(EchoValueSource) {
+        def provider = createProviderOf(EchoValueSource) {
             // give no value so `getParameters().getValue().getOrNull()` returns null
         }
 
