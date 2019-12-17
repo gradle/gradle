@@ -108,7 +108,7 @@ tasks.named("stageDocs") {
 samples {
     templates {
         javaAndroidApplication
-        springBoot
+        springBootWebApplication
 
         javaApplication
         javaListLibrary
@@ -177,7 +177,7 @@ samples {
             description = "Demonstrates a simple Spring Boot application."
             category = "Spring"
             common {
-                from(templates.springBoot)
+                from(templates.springBootWebApplication)
             }
         }
 

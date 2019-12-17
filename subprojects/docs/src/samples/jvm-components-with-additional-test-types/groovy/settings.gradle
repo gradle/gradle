@@ -1,2 +1,2 @@
 rootProject.name = 'components-with-additional-test-types'
-include 'application', 'library'
+include 'application', 'list', 'utilities'
