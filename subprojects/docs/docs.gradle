@@ -24,7 +24,7 @@ plugins {
     // TODO: Apply asciidoctor in documentation plugin instead.
     id 'org.asciidoctor.convert'
     id 'gradlebuild.documentation'
-    id 'org.gradle.samples' version "0.15.25"
+    id 'org.gradle.samples' version "0.15.26"
 }
 
 repositories {

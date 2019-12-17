@@ -276,6 +276,14 @@ public interface GradleExecuter extends Stoppable {
     TestDirectoryProvider getTestDirectoryProvider();
 
     /**
+     * Default is enabled = true.
+     *
+     * All our tests should work with partial VFS invalidation.
+     * As soon as partial invalidation is enabled by default, we can remove this method and the field again.
+     */
+    GradleExecuter withPartialVfsInvalidation(boolean enabled);
+
+    /**
      * Expects exactly one deprecation warning in the build output. If more than one warning is produced,
      * or no warning is produced at all, the assertion fails.
      *

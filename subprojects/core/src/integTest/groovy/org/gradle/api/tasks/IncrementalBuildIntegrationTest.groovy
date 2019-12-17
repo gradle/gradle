@@ -961,8 +961,10 @@ task generate(type: TransformerTask) {
         writeDirTransformerTask()
         buildFile << """
             def srcDir = file('src')
-            // Note: task mutates inputs _without_ declaring any inputs or outputs
+            // Note: task mutates inputs of transform1 just before transform1 executes
             task src1 {
+                outputs.dir(srcDir)
+                outputs.upToDateWhen { false }
                 doLast {
                     srcDir.mkdirs()
                     new File(srcDir, "src.txt").text = "123"
@@ -973,9 +975,11 @@ task generate(type: TransformerTask) {
                 inputDir = srcDir
                 outputDir = file("out-1")
             }
-            // Note: task mutates inputs _without_ declaring any inputs or outputs
+            // Note: task mutates inputs of transform2 just before transform2 executes
             task src2 {
                 mustRunAfter transform1
+                outputs.dir(srcDir)
+                outputs.upToDateWhen { false }
                 doLast {
                     srcDir.mkdirs()
                     new File(srcDir, "src.txt").text = "abcd"

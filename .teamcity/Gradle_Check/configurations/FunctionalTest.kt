@@ -24,6 +24,13 @@ class FunctionalTest(model: CIBuildModel, uuid: String, name: String, descriptio
         "coverageJvmVendor" to testCoverage.vendor.name,
         "coverageJvmVersion" to testCoverage.testJvmVersion.name
     )
+
+    if (name.contains("(instantExecution)")) {
+        requirements {
+            doesNotContain("teamcity.agent.name", "ec2")
+        }
+    }
+
     applyTestDefaults(model, this, testTasks, notQuick = !quickTest, os = testCoverage.os,
         extraParameters = (
             listOf(""""-PtestJavaHome=%${testCoverage.os}.${testCoverage.testJvmVersion}.${testCoverage.vendor}.64bit%"""") +

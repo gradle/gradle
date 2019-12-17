@@ -101,6 +101,7 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
         ForwardingBuildOperationListener subscription = new ForwardingBuildOperationListener(listenerProvider, executorFactory);
         subscriptions.put(listenerProvider, subscription);
         buildOperationListenerManager.addListener(subscription);
+        listeners.add(subscription);
     }
 
     @Override

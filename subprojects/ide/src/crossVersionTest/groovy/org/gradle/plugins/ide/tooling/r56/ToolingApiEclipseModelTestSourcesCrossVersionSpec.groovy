@@ -22,6 +22,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.eclipse.EclipseClasspathEntry
 import org.gradle.tooling.model.eclipse.EclipseProject
+import org.gradle.util.GradleVersion
 
 @ToolingApiVersion('>=5.6')
 @TargetGradleVersion(">=5.6")
@@ -66,5 +67,85 @@ class ToolingApiEclipseModelTestSourcesCrossVersionSpec extends ToolingApiSpecif
 
     private boolean hasTestAttributes(EclipseClasspathEntry entry) {
         entry.classpathAttributes.find { it.name == 'test' && it.value == 'true' }
+    }
+
+    def "can use compile classpath for API and implementation separation"() {
+        given:
+        settingsFile << "include('a', 'b', 'c', 'd')"
+        buildFile << """
+            subprojects {
+                apply plugin: 'java-library'
+                apply plugin: 'eclipse'
+
+                configurations {
+                    compileClasspath {
+                        attributes {
+                            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.JAR))
+                        }
+                    }
+                }
+                eclipse {
+                    classpath {
+                        plusConfigurations = [configurations.compileClasspath]
+                    }
+                }
+
+                ${RepoScriptBlockUtil.jcenterRepository()}
+            }
+            project(':a') {
+                dependencies {
+                    implementation project(':b')
+                }
+            }
+            project(':b') {
+                dependencies {
+                    implementation project(':c')
+                    api 'org.apache.commons:commons-lang3:3.9'
+                    implementation 'commons-io:commons-io:1.4'
+                }
+            }
+            project(':c') {
+                dependencies {
+                    api project(':d')
+                }
+            }
+        """
+
+        if (targetVersion.baseVersion < GradleVersion.version('6.1')) {
+            // workaround for https://github.com/gradle/gradle/pull/11677
+            buildFile << """
+                subprojects {
+                    configurations {
+                        apiElements {
+                            attributes {
+                                attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+                            }
+                        }
+                        runtimeElements {
+                            attributes {
+                                attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, "UNUSED"))
+                            }
+                        }
+                    }
+                }
+            """
+        }
+
+        when:
+        EclipseProject project = loadToolingModel(EclipseProject)
+        EclipseProject projectA = project.children[0]
+        EclipseProject projectB = project.children[1]
+        EclipseProject projectC = project.children[2]
+        EclipseProject projectD = project.children[3]
+
+        then:
+        projectA.classpath.collect { it.file.name } as Set == [ 'commons-lang3-3.9.jar' ] as Set
+        projectA.projectDependencies.collect { it.path } as Set == [ 'b' ] as Set
+        projectB.classpath.collect { it.file.name } as Set == [ 'commons-lang3-3.9.jar', 'commons-io-1.4.jar' ] as Set
+        projectB.projectDependencies.collect { it.path } as Set == [ 'c', 'd' ] as Set
+        projectC.classpath.empty
+        projectC.projectDependencies.collect { it.path } as Set == [ 'd' ] as Set
+        projectD.classpath.empty
+        projectD.projectDependencies.empty
     }
 }

@@ -1023,7 +1023,13 @@ public class NodeState implements DependencyGraphNode {
      * There may be some incoming edges left at that point, but they must all be coming from constraints.
      */
     public void clearConstraintEdges(PendingDependencies pendingDependencies, NodeState backToPendingSource) {
-        for (EdgeState incomingEdge : incomingEdges) {
+        if (incomingEdges.isEmpty()) {
+            return;
+        }
+        // Cleaning has to be done on a copied collection because of the recompute happening on selector removal
+        List<EdgeState> remainingIncomingEdges = ImmutableList.copyOf(incomingEdges);
+        clearIncomingEdges();
+        for (EdgeState incomingEdge : remainingIncomingEdges) {
             assert isConstraint(incomingEdge);
             NodeState from = incomingEdge.getFrom();
             if (from != backToPendingSource) {
@@ -1034,7 +1040,6 @@ public class NodeState implements DependencyGraphNode {
             }
             pendingDependencies.addNode(from);
         }
-        clearIncomingEdges();
     }
 
     void forEachCapability(CapabilitiesConflictHandler capabilitiesConflictHandler, Action<? super Capability> action) {

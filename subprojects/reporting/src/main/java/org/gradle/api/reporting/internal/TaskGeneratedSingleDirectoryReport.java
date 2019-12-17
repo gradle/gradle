@@ -35,7 +35,7 @@ public abstract class TaskGeneratedSingleDirectoryReport extends TaskGeneratedRe
         getOutputLocation().convention(getProjectLayout().dir(new DefaultProvider<>(() -> {
             return (File) ((IConventionAware) TaskGeneratedSingleDirectoryReport.this).getConventionMapping().getConventionValue(null, "destination", false);
         })));
-        getActivated().convention(false);
+        getRequired().convention(false);
     }
 
     @Inject

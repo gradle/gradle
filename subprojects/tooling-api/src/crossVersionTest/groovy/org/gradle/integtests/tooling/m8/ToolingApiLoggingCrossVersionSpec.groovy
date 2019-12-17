@@ -102,7 +102,7 @@ project.logger.info ("info logging");
 project.logger.debug("debug logging");
 """
         when:
-        def commandLineResult = runUsingCommandLine();
+        def commandLineResult = runUsingCommandLine()
 
         and:
         def op = withBuild()
@@ -138,7 +138,7 @@ project.logger.debug("debug logging");
         err.count("debug") == 0
     }
 
-    private removeStartupWarnings(String output) {
+    private static removeStartupWarnings(String output) {
         while (output.startsWith('Starting a Gradle Daemon') || output.startsWith('Parallel execution is an incubating feature.')) {
             output = output.substring(output.indexOf('\n') + 1)
         }
@@ -148,6 +148,7 @@ project.logger.debug("debug logging");
     private ExecutionResult runUsingCommandLine() {
         def executer = targetDist.executer(temporaryFolder, getBuildContext())
             .requireGradleDistribution()
+            .withPartialVfsInvalidation(false) // Don't show incubating message for logging tests
             .withCommandLineGradleOpts("-Dorg.gradle.deprecation.trace=false") //suppress deprecation stack trace
 
         if (targetDist.toolingApiMergesStderrIntoStdout) {

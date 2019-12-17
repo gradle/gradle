@@ -15,7 +15,6 @@
  */
 package org.gradle.integtests.resolve
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
@@ -1549,10 +1548,10 @@ task checkDeps(dependsOn: configurations.compile) {
         noExceptionThrown()
     }
 
-    @NotYetImplemented
     def "evicted hard dependency shouldn't add constraint on range"() {
         given:
-        4.times { mavenRepo.module("org", "a", "${it+1}").publish() }
+        4.times { mavenRepo.module("org", "e", "${it+1}").publish() }
+        4.times { mavenRepo.module("org", "a", "${it+1}").dependsOn('org', 'e', "${it+1}").publish() }
         mavenRepo.module("org", "b", "1").dependsOn('org', 'a', '4').publish() // this will be evicted
         mavenRepo.module('org', 'c', '1').dependsOn('org', 'd', '1').publish()
         mavenRepo.module('org', 'd', '1').dependsOn('org', 'b', '2').publish()
@@ -1571,7 +1570,7 @@ task checkDeps(dependsOn: configurations.compile) {
             task checkDeps {
                 doLast {
                     def files = configurations.conf*.name.sort()
-                    assert files == ['a-3.jar', 'b-2.jar', 'c-1.jar', 'd-1.jar']
+                    assert files == ['a-3.jar', 'b-2.jar', 'c-1.jar', 'd-1.jar', 'e-3.jar']
                 }
             }
         """
@@ -1583,7 +1582,6 @@ task checkDeps(dependsOn: configurations.compile) {
         noExceptionThrown()
     }
 
-    @NotYetImplemented
     def "evicted hard dependency shouldn't add constraint on version"() {
         given:
         mavenRepo.module("org", "a", "1").publish()
@@ -1618,7 +1616,6 @@ task checkDeps(dependsOn: configurations.compile) {
         noExceptionThrown()
     }
 
-    @NotYetImplemented
     def "doesn't include evicted version from branch which has been deselected"() {
         given:
         mavenRepo.module('org', 'a', '1').dependsOn('org', 'b', '2').publish()
@@ -1750,14 +1747,14 @@ task checkDeps(dependsOn: configurations.compile) {
                 maven { url "${mavenRepo.uri}" }
             }
             configurations {
-                conf { 
+                conf {
                    resolutionStrategy {
                       force "org:moduleA:1.+"
-                      failOnVersionConflict() 
+                      failOnVersionConflict()
                    }
                 }
             }
-            
+
             dependencies {
                conf("org:moduleA:1.+")
                conf("org:moduleA:1.1")
@@ -1869,10 +1866,10 @@ dependencies {
 
 project(':sub') {
     apply plugin: 'java'
-    
+
     group = 'org'
     version = '1.0'
-    
+
     dependencies {
         constraints {
             implementation 'org:lib:1.0'
@@ -1885,6 +1882,33 @@ project(':sub') {
 """
         expect:
         succeeds 'dependencies', '--configuration', 'runtimeClasspath'
+    }
+
+    @ToBeFixedForInstantExecution
+    def "can resolve a graph with an obvious version cycle by breaking the cycle"() {
+        given:
+        def direct2 = mavenRepo.module('org', 'direct', '2.0').publish()
+        def trans = mavenRepo.module('org', 'transitive', '1.0').dependsOn(direct2).publish()
+        mavenRepo.module('org', 'direct', '1.0').dependsOn(trans).publish()
+
+        buildFile << """
+repositories {
+    maven {
+        name 'repo'
+        url '${mavenRepo.uri}'
+    }
+}
+
+configurations {
+    conf
+}
+
+dependencies {
+    conf "org:direct:1.0"
+}
+"""
+        expect:
+        succeeds 'dependencies', '--configuration', 'conf'
     }
 
 }
