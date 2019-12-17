@@ -28,6 +28,7 @@ import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifie
 import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifierBuilder
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
+import org.gradle.internal.component.external.model.ModuleComponentFileArtifactIdentifier
 import org.gradle.util.TextUtil
 
 @CompileStatic
@@ -245,6 +246,23 @@ class DependencyVerificationFixture {
                     name,
                     type,
                     ext
+                ),
+                key
+            )
+        }
+
+        void addTrustedKeyByFileName(String id, String fileName, String key) {
+            def parts = id.split(":")
+            def group = parts[0]
+            def name = parts[1]
+            def version = parts.size() == 3 ? parts[2] : "1.0"
+            builder.addTrustedKey(
+                new ModuleComponentFileArtifactIdentifier(
+                    DefaultModuleComponentIdentifier.newId(
+                        DefaultModuleIdentifier.newId(group, name),
+                        version
+                    ),
+                    fileName
                 ),
                 key
             )
