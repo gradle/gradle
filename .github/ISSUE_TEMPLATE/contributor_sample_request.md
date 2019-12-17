@@ -1,6 +1,6 @@
 ---
 name: 'Sample Use Case'
-about: 'Suggest a use case that could be demonstrated by a sample in Gradle's documentation.'
+about: 'Suggest a use case that could be demonstrated by a sample in our documentation.'
 labels: 'a:sample, from:contributor'
 ---
 
