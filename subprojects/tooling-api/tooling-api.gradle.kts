@@ -98,10 +98,12 @@ gradlebuildJava {
 apply(from = "buildship.gradle")
 
 tasks.sourceJar {
-    configurations.compile.allDependencies.withType<ProjectDependency>().forEach {
-        val sourceSet = it.dependencyProject.java.sourceSets[SourceSet.MAIN_SOURCE_SET_NAME]
-        from(sourceSet.groovy.srcDirs)
-        from(sourceSet.java.srcDirs)
+    configurations.implementation.get().allDependencies.withType<ProjectDependency>().forEach {
+        if (it.dependencyProject.plugins.hasPlugin(JavaBasePlugin::class)) {
+            val sourceSet = it.dependencyProject.the<SourceSetContainer>()[SourceSet.MAIN_SOURCE_SET_NAME]
+            from(sourceSet.groovy.srcDirs)
+            from(sourceSet.java.srcDirs)
+        }
     }
 }
 
