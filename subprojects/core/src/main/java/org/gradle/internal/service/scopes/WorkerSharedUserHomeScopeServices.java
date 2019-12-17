@@ -37,7 +37,7 @@ public class WorkerSharedUserHomeScopeServices {
         ListenerManager listenerManager
     ) {
         return new DefaultValueSourceProviderFactory(
-            listenerManager.createAnonymousBroadcaster(ValueSourceProviderFactory.Listener.class),
+            listenerManager,
             instantiatorFactory,
             isolatableFactory,
             services
