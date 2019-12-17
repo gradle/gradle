@@ -327,6 +327,11 @@ samples {
     }
 }
 
+// TODO: Fix upstream plugin to disable Checkstyle checks for the generated sources
+tasks.named("checkstyleSamplesExemplarFunctionalTest") {
+    enabled = false
+}
+
 // Publications for the docs subproject:
 
 configurations {
