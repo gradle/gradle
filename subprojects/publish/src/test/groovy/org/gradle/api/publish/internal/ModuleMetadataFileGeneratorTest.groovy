@@ -853,6 +853,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         def runtimeDependency = Stub(ExternalDependency)
         runtimeDependency.group >> "com.acme"
         runtimeDependency.name >> "runtime"
+        runtimeDependency.versionConstraint >> DefaultImmutableVersionConstraint.of()
         runtimeDependency.transitive >> true
         runtimeDependency.excludeRules >> [new DefaultExcludeRule("com.example.bad", "runtime")]
         runtimeDependency.attributes >> ImmutableAttributes.EMPTY
@@ -860,6 +861,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         def intransitiveDependency = Stub(ExternalDependency)
         intransitiveDependency.group >> "com.acme"
         intransitiveDependency.name >> "intransitive"
+        intransitiveDependency.versionConstraint >> DefaultImmutableVersionConstraint.of()
         intransitiveDependency.transitive >> false
         intransitiveDependency.attributes >> ImmutableAttributes.EMPTY
 
@@ -946,6 +948,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         def apiDependency = Stub(ExternalDependency)
         apiDependency.group >> "com.acme"
         apiDependency.name >> "api"
+        apiDependency.versionConstraint >> DefaultImmutableVersionConstraint.of()
         apiDependency.transitive >> true
         apiDependency.excludeRules >> [new DefaultExcludeRule("com.example.bad", "api")]
         apiDependency.attributes >> ImmutableAttributes.EMPTY
