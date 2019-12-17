@@ -16,8 +16,8 @@
 
 package org.gradle.binarycompatibility.rules
 
-import com.google.common.base.Optional
 import japicmp.model.JApiCompatibilityChange
+import japicmp.util.Optional
 import javassist.CtClass
 import me.champeau.gradle.japicmp.report.Violation
 
@@ -25,13 +25,13 @@ class MethodsRemovedInInternalSuperClassRuleTest extends AbstractContextAwareRul
     MethodsRemovedInInternalSuperClassRule rule = new MethodsRemovedInInternalSuperClassRule(getInitializationParams())
 
     static class OldSuperInternal {
-        public void publicMethod() {}
+        void publicMethod() {}
 
         private void privateMethod() {}
     }
 
     static class OldBase extends OldSuperInternal {
-        public void anotherPublicMethod() {}
+        void anotherPublicMethod() {}
     }
 
     static class OldSub extends OldBase {}

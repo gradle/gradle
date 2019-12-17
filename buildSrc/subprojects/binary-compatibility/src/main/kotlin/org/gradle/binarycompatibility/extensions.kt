@@ -18,5 +18,6 @@ package org.gradle.binarycompatibility
 
 import japicmp.util.Optional
 
+
 internal
 fun <T> Optional<T>.orNull(): T? = if (isPresent) get() else null
