@@ -300,7 +300,7 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
             apply plugin: 'maven-publish'
             ${keyInfo.addAsPropertiesScript()}
 
-            task sourcesJar(type: Jar) {
+            task sourceJar(type: Jar) {
                 from sourceSets.main.allJava
             }
 
@@ -309,7 +309,7 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
                     mavenJava(MavenPublication) {
                         from components.java
                         artifactId '$artifactId'
-                        artifact sourcesJar {
+                        artifact sourceJar {
                             archiveClassifier = "sources"
                         }
                     }
@@ -352,7 +352,7 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
             apply plugin: 'ivy-publish'
             ${keyInfo.addAsPropertiesScript()}
 
-            task sourcesJar(type: Jar) {
+            task sourceJar(type: Jar) {
                 from sourceSets.main.allJava
                 archiveClassifier = "source"
             }
@@ -362,7 +362,7 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
                     ivyJava(IvyPublication) {
                         from components.java
                         module '$artifactId'
-                        artifact(sourcesJar) {
+                        artifact(sourceJar) {
                             type "source"
                             conf "compile"
                         }
@@ -409,7 +409,7 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
             apply plugin: 'maven-publish'
             ${keyInfo.addAsPropertiesScript()}
 
-            task sourcesJar(type: Jar) {
+            task sourceJar(type: Jar) {
                 from sourceSets.main.allJava
                 archiveClassifier = "source"
             }
@@ -428,7 +428,7 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
             }
 
             publishing.publications.mavenJava.artifacts = []
-            publishing.publications.mavenJava.artifact(sourcesJar)
+            publishing.publications.mavenJava.artifact(sourceJar)
             generateMetadataFileForMavenJavaPublication.enabled = false
         """
 

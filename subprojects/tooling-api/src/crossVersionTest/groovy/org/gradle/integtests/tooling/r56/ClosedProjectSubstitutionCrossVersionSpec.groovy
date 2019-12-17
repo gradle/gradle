@@ -232,7 +232,7 @@ class ClosedProjectSubstitutionCrossVersionSpec extends ToolingApiSpecification 
                 apply plugin: 'eclipse'
             }
             project(":child1") {
-                task sourcesJar(type: Jar) {
+                task sourceJar(type: Jar) {
                     archiveClassifier = "sources"
                     from sourceSets.main.allJava
                 }
@@ -240,7 +240,7 @@ class ClosedProjectSubstitutionCrossVersionSpec extends ToolingApiSpecification 
                     from tasks.javadoc
                     archiveClassifier = "javadoc"
                 }
-            }
+            }            
             project(":child2") {
                 dependencies {
                     implementation project(":child1");
@@ -248,10 +248,10 @@ class ClosedProjectSubstitutionCrossVersionSpec extends ToolingApiSpecification 
                 eclipse {
                     classpath.file.whenMerged { cp ->
                         def dep = entries.find { it.path.endsWith('child1') }
-                        def sourcesJar = this.project(":child1").tasks.getByName("sourcesJar")
+                        def sourceJar = this.project(":child1").tasks.getByName("sourceJar")
                         def javadocJar = this.project(":child1").tasks.getByName("javadocJar")
-                        dep.buildDependencies(sourcesJar, javadocJar)
-                        dep.publicationSourcePath = cp.fileReference(sourcesJar.archiveFile.get().asFile)
+                        dep.buildDependencies(sourceJar, javadocJar)
+                        dep.publicationSourcePath = cp.fileReference(sourceJar.archiveFile.get().asFile)
                         dep.publicationJavadocPath = cp.fileReference(javadocJar.archiveFile.get().asFile)
                     }
                 }
@@ -281,7 +281,7 @@ class ClosedProjectSubstitutionCrossVersionSpec extends ToolingApiSpecification 
         child2.classpath[0].javadoc.name == 'child1-1.0-javadoc.jar'
         taskExecuted(out, ":eclipseClosedDependencies")
         taskExecuted(out, ":child1:javadocJar")
-        taskExecuted(out, ":child1:sourcesJar")
+        taskExecuted(out, ":child1:sourceJar")
 
     }
 

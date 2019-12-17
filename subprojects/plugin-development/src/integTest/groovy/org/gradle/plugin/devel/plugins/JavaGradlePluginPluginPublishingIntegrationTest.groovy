@@ -162,18 +162,18 @@ class JavaGradlePluginPluginPublishingIntegrationTest extends AbstractIntegratio
         and:
         buildFile << """
 
-            task sourcesJar(type: Jar) {
+            task sourceJar(type: Jar) {
                 archiveClassifier = "sources"
                 from sourceSets.main.allSource
             }
-
+            
             publishing {
                 publications {
                     pluginMaven(MavenPublication) {
-                        artifact sourcesJar
+                        artifact sourceJar
                     }
                     pluginIvy(IvyPublication) {
-                        artifact sourcesJar
+                        artifact sourceJar
                     }
                 }
             }

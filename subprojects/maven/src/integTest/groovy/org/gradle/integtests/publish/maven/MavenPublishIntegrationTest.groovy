@@ -150,11 +150,11 @@ apply plugin: 'maven'
 group = 'group'
 version = 1.0
 
-task sourcesJar(type: Jar) {
+task sourceJar(type: Jar) {
     classifier = 'source'
 }
 artifacts {
-    archives sourcesJar
+    archives sourceJar
 }
 uploadArchives {
     repositories {
