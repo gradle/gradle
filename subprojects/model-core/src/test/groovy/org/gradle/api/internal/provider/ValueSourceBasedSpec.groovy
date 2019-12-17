@@ -20,7 +20,6 @@ import org.gradle.api.Action
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
-import org.gradle.api.provider.ValueSourceSpec
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter
 import org.gradle.util.TestUtil
