@@ -132,9 +132,9 @@ abstract class PatchKotlinCompilerEmbeddable : DefaultTask() {
         }
 
     private
-    fun copyEntry(sourcesJar: ZipFile, sourceEntry: ZipEntry, destinationJar: ZipOutputStream) {
+    fun copyEntry(sourceJar: ZipFile, sourceEntry: ZipEntry, destinationJar: ZipOutputStream) {
         destinationJar.putNextEntry(ZipEntry(sourceEntry))
-        sourcesJar.getInputStream(sourceEntry).buffered().use { input ->
+        sourceJar.getInputStream(sourceEntry).buffered().use { input ->
             input.copyTo(destinationJar)
         }
         destinationJar.closeEntry()
