@@ -42,12 +42,13 @@ import static org.gradle.util.Path.path
 class ComponentSelectorSerializerTest extends SerializerSpec {
     private final ComponentSelectorSerializer serializer = new ComponentSelectorSerializer(new DesugaredAttributeContainerSerializer(AttributeTestUtil.attributesFactory(), TestUtil.objectInstantiator()))
 
-    private static ImmutableVersionConstraint constraint(String version, String preferredVersion = '', String strictVersion = '', List<String> rejectVersions = []) {
+    private static ImmutableVersionConstraint constraint(String version, String preferredVersion = '', String strictVersion = '', List<String> rejectVersions = [], String branch = null) {
         return new DefaultImmutableVersionConstraint(
             preferredVersion,
             version,
             strictVersion,
-            rejectVersions
+            rejectVersions,
+            branch
         )
     }
 
@@ -209,6 +210,24 @@ class ComponentSelectorSerializerTest extends SerializerSpec {
         result.versionConstraint.preferredVersion == 'pref'
         result.versionConstraint.strictVersion == 'strict'
         result.versionConstraint.rejectedVersions == ['rej']
+    }
+
+    def "serializes version constraint with branch"() {
+        given:
+        ModuleComponentSelector selection = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId('group-one', 'name-one'), constraint('', '', '', [], "custom-branch"))
+
+        when:
+        ModuleComponentSelector result = serialize(selection, serializer)
+
+        then:
+        result.group == 'group-one'
+        result.module == 'name-one'
+        result.version == ''
+        result.versionConstraint.requiredVersion == ''
+        result.versionConstraint.preferredVersion == ''
+        result.versionConstraint.strictVersion == ''
+        result.versionConstraint.rejectedVersions == []
+        result.versionConstraint.branch == 'custom-branch'
     }
 
     def "serializes attributes"() {
