@@ -30,10 +30,12 @@ import org.gradle.api.internal.artifacts.verification.signatures.SignatureVerifi
 import org.gradle.api.internal.artifacts.verification.signatures.SignatureVerificationServiceFactory;
 import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifier;
 import org.gradle.api.internal.artifacts.verification.verifier.VerificationFailure;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -176,5 +178,12 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
                 return artifact.getType();
             }
         };
+    }
+
+    @Override
+    public void buildFinished(Gradle gradle) {
+        if (signatureVerificationService instanceof Stoppable) {
+            ((Stoppable) signatureVerificationService).stop();
+        }
     }
 }

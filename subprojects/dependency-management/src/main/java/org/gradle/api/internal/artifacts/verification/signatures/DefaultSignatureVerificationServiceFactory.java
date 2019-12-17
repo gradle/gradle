@@ -25,12 +25,12 @@ import org.gradle.api.internal.artifacts.verification.verifier.SignatureVerifica
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.resource.connector.ResourceConnectorSpecification;
 import org.gradle.internal.resource.transfer.ExternalResourceConnector;
 import org.gradle.internal.resource.transport.http.HttpConnectorFactory;
 import org.gradle.security.internal.PublicKeyDownloadService;
-import org.gradle.security.internal.PublicKeyService;
 import org.gradle.security.internal.SecuritySupport;
 
 import javax.annotation.Nullable;
@@ -63,38 +63,8 @@ public class DefaultSignatureVerificationServiceFactory implements SignatureVeri
         ExternalResourceConnector connector = httpConnectorFactory.createResourceConnector(new ResourceConnectorSpecification() {
         });
         PublicKeyDownloadService keyDownloadService = new PublicKeyDownloadService(ImmutableList.copyOf(keyServers), connector);
-        PublicKeyService keyService = new CrossBuildCachingKeyService(cacheRepository, decoratorFactory, buildOperationExecutor, keyDownloadService);
-        return new SignatureVerificationService() {
-            @Override
-            public Optional<SignatureVerificationFailure> verify(File origin, File signature, Set<String> trustedKeys) {
-                PGPSignatureList pgpSignatures = SecuritySupport.readSignatures(signature);
-                Map<String, SignatureVerificationFailure.SignatureError> errors = Maps.newHashMap();
-                for (PGPSignature pgpSignature : pgpSignatures) {
-                    String key = SecuritySupport.toHexString(pgpSignature.getKeyID());
-                    Optional<PGPPublicKey> publicKey = keyService.findPublicKey(pgpSignature.getKeyID());
-                    if (publicKey.isPresent()) {
-                        PGPPublicKey pgpPublicKey = publicKey.get();
-                        try {
-                            boolean verified = SecuritySupport.verify(origin, pgpSignature, pgpPublicKey);
-                            if (!verified) {
-                                errors.put(key, error(pgpPublicKey, FAILED));
-                            }
-                            if (!trustedKeys.contains(key)) {
-                                errors.put(key, error(pgpPublicKey, PASSED_NOT_TRUSTED));
-                            }
-                        } catch (PGPException e) {
-                            throw UncheckedException.throwAsUncheckedException(e);
-                        }
-                    } else {
-                        errors.put(key, error(null, KEY_NOT_FOUND));
-                    }
-                }
-                if (errors.isEmpty()) {
-                    return Optional.empty();
-                }
-                return Optional.of(new SignatureVerificationFailure(errors, keyService));
-            }
-        };
+        CrossBuildCachingKeyService keyService = new CrossBuildCachingKeyService(cacheRepository, decoratorFactory, buildOperationExecutor, keyDownloadService);
+        return new DefaultSignatureVerificationService(keyService);
     }
 
 
@@ -102,4 +72,46 @@ public class DefaultSignatureVerificationServiceFactory implements SignatureVeri
         return new SignatureVerificationFailure.SignatureError(key, kind);
     }
 
+    private static class DefaultSignatureVerificationService implements SignatureVerificationService, Stoppable {
+        private final CrossBuildCachingKeyService keyService;
+
+        public DefaultSignatureVerificationService(CrossBuildCachingKeyService keyService) {
+            this.keyService = keyService;
+        }
+
+        @Override
+        public Optional<SignatureVerificationFailure> verify(File origin, File signature, Set<String> trustedKeys) {
+            PGPSignatureList pgpSignatures = SecuritySupport.readSignatures(signature);
+            Map<String, SignatureVerificationFailure.SignatureError> errors = Maps.newHashMap();
+            for (PGPSignature pgpSignature : pgpSignatures) {
+                String key = SecuritySupport.toHexString(pgpSignature.getKeyID());
+                Optional<PGPPublicKey> publicKey = keyService.findPublicKey(pgpSignature.getKeyID());
+                if (publicKey.isPresent()) {
+                    PGPPublicKey pgpPublicKey = publicKey.get();
+                    try {
+                        boolean verified = SecuritySupport.verify(origin, pgpSignature, pgpPublicKey);
+                        if (!verified) {
+                            errors.put(key, error(pgpPublicKey, FAILED));
+                        }
+                        if (!trustedKeys.contains(key)) {
+                            errors.put(key, error(pgpPublicKey, PASSED_NOT_TRUSTED));
+                        }
+                    } catch (PGPException e) {
+                        throw UncheckedException.throwAsUncheckedException(e);
+                    }
+                } else {
+                    errors.put(key, error(null, KEY_NOT_FOUND));
+                }
+            }
+            if (errors.isEmpty()) {
+                return Optional.empty();
+            }
+            return Optional.of(new SignatureVerificationFailure(errors, keyService));
+        }
+
+        @Override
+        public void stop() {
+            keyService.close();
+        }
+    }
 }
