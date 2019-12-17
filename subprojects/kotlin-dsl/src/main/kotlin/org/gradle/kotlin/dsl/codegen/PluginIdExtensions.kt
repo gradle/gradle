@@ -253,7 +253,7 @@ fun pluginEntriesFrom(jar: File): List<PluginEntry> = try {
     }
 } catch (cause: IOException) {
     throw IllegalArgumentException(
-        "Failed to open '" + jar.path + "'",
+        "Failed to extract plugin metadata from '" + jar.path + "'",
         cause
     )
 }
