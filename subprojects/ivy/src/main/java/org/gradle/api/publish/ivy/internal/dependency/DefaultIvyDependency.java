@@ -20,6 +20,7 @@ import com.google.common.base.Strings;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ExternalDependency;
+import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 
 import java.util.ArrayList;
@@ -32,6 +33,7 @@ public class DefaultIvyDependency implements IvyDependencyInternal {
     private final String revision;
     private final String confMapping;
     private final boolean transitive;
+    private final String branch;
     private final List<DependencyArtifact> artifacts = new ArrayList<DependencyArtifact>();
     private final List<ExcludeRule> excludeRules = new ArrayList<ExcludeRule>();
     private final ImmutableAttributes attributes;
@@ -42,6 +44,7 @@ public class DefaultIvyDependency implements IvyDependencyInternal {
         this.revision = Strings.nullToEmpty(revision);
         this.confMapping = confMapping;
         this.transitive = transitive;
+        this.branch = null;
         this.attributes = ImmutableAttributes.EMPTY;
     }
 
@@ -64,6 +67,12 @@ public class DefaultIvyDependency implements IvyDependencyInternal {
         this.artifacts.addAll(dependency.getArtifacts());
         this.excludeRules.addAll(dependency.getExcludeRules());
         this.attributes = attributes;
+
+        if (dependency instanceof DefaultExternalModuleDependency) {
+            this.branch = ((DefaultExternalModuleDependency) dependency).getBranch();
+        } else {
+            this.branch = null;
+        }
     }
 
     @Override
@@ -89,6 +98,11 @@ public class DefaultIvyDependency implements IvyDependencyInternal {
     @Override
     public boolean isTransitive() {
         return transitive;
+    }
+
+    @Override
+    public String getBranch() {
+        return branch;
     }
 
     @Override

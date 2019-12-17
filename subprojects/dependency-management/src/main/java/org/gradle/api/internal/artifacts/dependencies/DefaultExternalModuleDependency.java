@@ -39,7 +39,7 @@ public class DefaultExternalModuleDependency extends AbstractExternalModuleDepen
 
     @Override
     public DefaultExternalModuleDependency copy() {
-        DefaultExternalModuleDependency copiedModuleDependency = new DefaultExternalModuleDependency(getGroup(), getName(), getVersion(), getTargetConfiguration());
+        DefaultExternalModuleDependency copiedModuleDependency = new DefaultExternalModuleDependency(getGroup(), getName(), getVersion(), getTargetConfiguration(), getBranch());
         copyTo(copiedModuleDependency);
         return copiedModuleDependency;
     }

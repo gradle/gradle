@@ -268,6 +268,7 @@ public class IvyDescriptorFileGenerator {
             xmlWriter.startElement("dependency")
                 .attribute("org", org)
                 .attribute("name", module)
+                .attribute("branch", dependency.getBranch())
                 .attribute("rev", resolvedVersion != null ? resolvedVersion.getVersion() : dependency.getRevision())
                 .attribute("conf", dependency.getConfMapping());
 
