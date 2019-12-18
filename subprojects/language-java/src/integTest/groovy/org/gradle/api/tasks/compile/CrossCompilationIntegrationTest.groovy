@@ -46,19 +46,19 @@ class CrossCompilationIntegrationTest extends AbstractIntegrationSpec {
             java {
                 sourceCompatibility = JavaVersion.${version.name()}
             }
-            
+
             def javaInstallation = project.javaInstalls.installationForDirectory(file("${jvm.javaHome.toURI()}"))
 
             tasks.named("compileJava") {
                 options.fork = true
-                options.forkOptions.javaHome = javaInstallation.get().installationDirectory
+                options.forkOptions.javaHome = javaInstallation.get().installationDirectory.asFile
             }
             tasks.named("compileTestJava") {
                 options.fork = true
-                options.forkOptions.javaHome = javaInstallation.get().installationDirectory
+                options.forkOptions.javaHome = javaInstallation.get().installationDirectory.asFile
             }
             tasks.named("test") {
-                executable = javaInstallation.get().javaExecutable
+                executable = javaInstallation.get().javaExecutable.asFile
             }
         """
 
@@ -66,7 +66,7 @@ class CrossCompilationIntegrationTest extends AbstractIntegrationSpec {
         sourceFile << """
             import java.util.List;
             import java.util.ArrayList;
-            
+
             public class Thing {
                 public Thing() {
                     // Uses Java 8 features
@@ -81,7 +81,7 @@ class CrossCompilationIntegrationTest extends AbstractIntegrationSpec {
             import org.junit.Test;
             import org.junit.Assert;
             import java.io.File;
-            
+
             public class ThingTest {
                 @Test
                 public void check() {

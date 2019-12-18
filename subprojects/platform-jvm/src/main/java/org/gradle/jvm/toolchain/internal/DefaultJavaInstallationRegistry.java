@@ -18,8 +18,12 @@ package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.JavaVersion;
+import org.gradle.api.file.Directory;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.FileFactory;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.exceptions.Contextual;
@@ -36,17 +40,18 @@ public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry
     private final JavaInstallationProbe installationProbe;
     private final ProviderFactory providerFactory;
     private final FileCollectionFactory fileCollectionFactory;
+    private final FileFactory fileFactory;
 
-    public DefaultJavaInstallationRegistry(JavaInstallationProbe installationProbe, ProviderFactory providerFactory, FileCollectionFactory fileCollectionFactory) {
+    public DefaultJavaInstallationRegistry(JavaInstallationProbe installationProbe, ProviderFactory providerFactory, FileCollectionFactory fileCollectionFactory, FileFactory fileFactory) {
         this.installationProbe = installationProbe;
         this.providerFactory = providerFactory;
         this.fileCollectionFactory = fileCollectionFactory;
+        this.fileFactory = fileFactory;
     }
 
     @Override
-    public JavaInstallation getInstallationForCurrentVirtualMachine() {
-        // TODO - should probably return a provider too
-        return new DefaultJavaInstallation(installationProbe.current(), fileCollectionFactory);
+    public Provider<JavaInstallation> getInstallationForCurrentVirtualMachine() {
+        return Providers.of(new DefaultJavaInstallation(installationProbe.current(), fileCollectionFactory, fileFactory));
     }
 
     @Override
@@ -55,7 +60,7 @@ public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry
         // TODO - provider should advertise the type of value it produces
         return providerFactory.provider(() -> {
             try {
-                return new DefaultJavaInstallation(installationProbe.checkJdk(javaHomeDir), fileCollectionFactory);
+                return new DefaultJavaInstallation(installationProbe.checkJdk(javaHomeDir), fileCollectionFactory, fileFactory);
             } catch (Exception e) {
                 throw new JavaInstallationDiscoveryException(String.format("Could not determine the details of Java installation in directory %s.", javaHomeDir), e);
             }
@@ -73,11 +78,13 @@ public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry
         private final Jvm jvm;
         private final String implementationName;
         private final FileCollectionFactory fileCollectionFactory;
+        private final FileFactory fileFactory;
 
-        public DefaultJavaInstallation(JavaInstallationProbe.ProbeResult probeResult, FileCollectionFactory fileCollectionFactory) {
+        public DefaultJavaInstallation(JavaInstallationProbe.ProbeResult probeResult, FileCollectionFactory fileCollectionFactory, FileFactory fileFactory) {
             this.jvm = Jvm.discovered(probeResult.getJavaHome(), probeResult.getImplementationJavaVersion(), probeResult.getJavaVersion());
             this.implementationName = probeResult.getImplementationName();
             this.fileCollectionFactory = fileCollectionFactory;
+            this.fileFactory = fileFactory;
         }
 
         @Override
@@ -86,13 +93,13 @@ public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry
         }
 
         @Override
-        public File getInstallationDirectory() {
-            return jvm.getJavaHome();
+        public Directory getInstallationDirectory() {
+            return fileFactory.dir(jvm.getJavaHome());
         }
 
         @Override
-        public File getJavaExecutable() {
-            return jvm.getJavaExecutable();
+        public RegularFile getJavaExecutable() {
+            return fileFactory.file(jvm.getJavaExecutable());
         }
 
         @Override
@@ -105,13 +112,13 @@ public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry
             if (jvm.isJdk()) {
                 return Optional.of(new JavaDevelopmentKit() {
                     @Override
-                    public File getJavacExecutable() {
-                        return jvm.getJavacExecutable();
+                    public RegularFile getJavacExecutable() {
+                        return fileFactory.file(jvm.getJavacExecutable());
                     }
 
                     @Override
-                    public File getJavadocExecutable() {
-                        return jvm.getJavadocExecutable();
+                    public RegularFile getJavadocExecutable() {
+                        return fileFactory.file(jvm.getJavadocExecutable());
                     }
 
                     @Override

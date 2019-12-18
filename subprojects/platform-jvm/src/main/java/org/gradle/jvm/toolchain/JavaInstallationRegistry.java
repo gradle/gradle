@@ -26,14 +26,14 @@ import java.io.File;
  *
  * <p>An instance of this service is available for injection into tasks, plugins and other types.
  *
- * @since 6.1
+ * @since 6.2
  */
 @Incubating
 public interface JavaInstallationRegistry {
     /**
      * Returns the Java installation for the current virtual machine.
      */
-    JavaInstallation getInstallationForCurrentVirtualMachine();
+    Provider<JavaInstallation> getInstallationForCurrentVirtualMachine();
 
     /**
      * Returns information about the Java installation at the given location.
