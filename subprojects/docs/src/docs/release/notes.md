@@ -111,7 +111,9 @@ The [`ObjectFactory`](javadoc/org/gradle/api/model/ObjectFactory.html) type, whi
 
 Please see the [user manual](userguide/custom_gradle_types.html#collection_types) for more details.
 
-## Tooling API: `TestLauncher` can run specific `Test` task tests
+## Improvements for Gradle tooling providers
+
+### Tooling API: `TestLauncher` can run specific `Test` task tests
 
 The `TestLauncher` interface in the Tooling API could already launch tests by specifying the name of the test classes or methods; however, if there are multiple `Test` tasks, then all `Test` tasks would be executed. 
 
