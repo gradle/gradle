@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
-import javax.annotation.concurrent.NotThreadSafe;
 import org.gradle.model.ConfigurationCycleException;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.RuleSource;
@@ -47,6 +46,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.NotThreadSafe;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -65,13 +65,18 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import static org.gradle.model.internal.core.ModelNode.State.*;
+import static org.gradle.model.internal.core.ModelNode.State.Created;
+import static org.gradle.model.internal.core.ModelNode.State.Discovered;
+import static org.gradle.model.internal.core.ModelNode.State.GraphClosed;
+import static org.gradle.model.internal.core.ModelNode.State.Registered;
+import static org.gradle.model.internal.core.ModelNode.State.SelfClosed;
 
 @NotThreadSafe
 public class DefaultModelRegistry implements ModelRegistryInternal {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultModelRegistry.class);
 
     private final String projectPath;
+    private final BoringProjectState projectState;
     private final ModelGraph modelGraph;
     private final RuleBindings ruleBindings;
     private final ModelRuleExtractor ruleExtractor;
@@ -80,8 +85,13 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
     private final List<RuleBinder> unboundRules = new LinkedList<RuleBinder>();
 
     public DefaultModelRegistry(ModelRuleExtractor ruleExtractor, String projectPath) {
+        this(ruleExtractor, projectPath, BoringProjectState.IDENTITY);
+    }
+
+    public DefaultModelRegistry(ModelRuleExtractor ruleExtractor, String projectPath, BoringProjectState projectState) {
         this.ruleExtractor = ruleExtractor;
         this.projectPath = projectPath;
+        this.projectState = projectState;
         ModelRegistration rootRegistration = ModelRegistrations.of(ModelPath.ROOT).descriptor("<root>").withProjection(EmptyModelProjection.INSTANCE).build();
         modelGraph = new ModelGraph(new ModelElementNode(this, rootRegistration, null));
         ruleBindings = new RuleBindings();
@@ -366,52 +376,54 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
      */
     // TODO - reuse graph, discard state once not required
     private void transitionTo(GoalGraph goalGraph, ModelGoal targetGoal) {
-        Deque<ModelGoal> queue = new ArrayDeque<ModelGoal>();
-        queue.add(targetGoal);
-        List<ModelGoal> newDependencies = new ArrayList<ModelGoal>();
-        while (!queue.isEmpty()) {
-            ModelGoal goal = queue.getFirst();
+        projectState.withMutableState(() -> {
+            Deque<ModelGoal> queue = new ArrayDeque<ModelGoal>();
+            queue.add(targetGoal);
+            List<ModelGoal> newDependencies = new ArrayList<ModelGoal>();
+            while (!queue.isEmpty()) {
+                ModelGoal goal = queue.getFirst();
 
-            if (goal.state == ModelGoal.State.Achieved) {
-                // Already reached this goal
-                queue.removeFirst();
-                continue;
-            }
-            if (goal.state == ModelGoal.State.NotSeen) {
-                if (goal.isAchieved()) {
-                    // Goal has previously been achieved or is no longer required
+                if (goal.state == ModelGoal.State.Achieved) {
+                    // Already reached this goal
+                    queue.removeFirst();
+                    continue;
+                }
+                if (goal.state == ModelGoal.State.NotSeen) {
+                    if (goal.isAchieved()) {
+                        // Goal has previously been achieved or is no longer required
+                        goal.state = ModelGoal.State.Achieved;
+                        queue.removeFirst();
+                        continue;
+                    }
+                }
+                if (goal.state == ModelGoal.State.VisitingDependencies) {
+                    // All dependencies visited
+                    goal.apply();
                     goal.state = ModelGoal.State.Achieved;
                     queue.removeFirst();
                     continue;
                 }
-            }
-            if (goal.state == ModelGoal.State.VisitingDependencies) {
-                // All dependencies visited
-                goal.apply();
-                goal.state = ModelGoal.State.Achieved;
-                queue.removeFirst();
-                continue;
-            }
 
-            // Add dependencies for this goal
-            newDependencies.clear();
-            goal.attachNode();
-            boolean done = goal.calculateDependencies(goalGraph, newDependencies);
-            goal.state = done || newDependencies.isEmpty() ? ModelGoal.State.VisitingDependencies : ModelGoal.State.DiscoveringDependencies;
+                // Add dependencies for this goal
+                newDependencies.clear();
+                goal.attachNode();
+                boolean done = goal.calculateDependencies(goalGraph, newDependencies);
+                goal.state = done || newDependencies.isEmpty() ? ModelGoal.State.VisitingDependencies : ModelGoal.State.DiscoveringDependencies;
 
-            // Add dependencies to the start of the queue
-            for (int i = newDependencies.size() - 1; i >= 0; i--) {
-                ModelGoal dependency = newDependencies.get(i);
-                if (dependency.state == ModelGoal.State.Achieved) {
-                    continue;
+                // Add dependencies to the start of the queue
+                for (int i = newDependencies.size() - 1; i >= 0; i--) {
+                    ModelGoal dependency = newDependencies.get(i);
+                    if (dependency.state == ModelGoal.State.Achieved) {
+                        continue;
+                    }
+                    if (dependency.state == ModelGoal.State.NotSeen) {
+                        queue.addFirst(dependency);
+                        continue;
+                    }
+                    throw ruleCycle(dependency, Lists.newArrayList(queue));
                 }
-                if (dependency.state == ModelGoal.State.NotSeen) {
-                    queue.addFirst(dependency);
-                    continue;
-                }
-                throw ruleCycle(dependency, Lists.newArrayList(queue));
             }
-        }
+        });
     }
 
     private ConfigurationCycleException ruleCycle(ModelGoal brokenGoal, List<ModelGoal> queue) {
