@@ -14,31 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.toolchain;
+package org.gradle.api.internal.file;
 
-import org.gradle.api.Incubating;
-import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.Directory;
 import org.gradle.api.file.RegularFile;
 
-/**
- * Information about a Java development kit.
- *
- * @since 6.2
- */
-@Incubating
-public interface JavaDevelopmentKit {
-    /**
-     * Returns the java compiler executable for this JDK.
-     */
-    RegularFile getJavacExecutable();
+import java.io.File;
 
-    /**
-     * Returns the javadoc executable for this JDK.
-     */
-    RegularFile getJavadocExecutable();
+public interface FileFactory {
+    Directory dir(File dir);
 
-    /**
-     * Returns the classpath required to compile against the tools APIs of this JDK. This will be empty when no additional files are required.
-     */
-    FileCollection getToolsClasspath();
+    RegularFile file(File file);
 }

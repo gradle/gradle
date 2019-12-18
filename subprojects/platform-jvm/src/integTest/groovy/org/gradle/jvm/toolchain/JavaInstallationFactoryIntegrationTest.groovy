@@ -245,18 +245,18 @@ class JavaInstallationFactoryIntegrationTest extends AbstractIntegrationSpec {
             abstract class ShowTask extends DefaultTask {
                 @Internal
                 abstract Property<JavaInstallation> getInstallation()
-                
+
                 @TaskAction
                 def show() {
                     def javaInstallation = installation.get()
-                    println("install dir = \${javaInstallation.installationDirectory}")
+                    println("install dir = \${javaInstallation.installationDirectory.asFile}")
                     println("java version = \${javaInstallation.javaVersion}")
-                    println("java executable = \${javaInstallation.javaExecutable}")
+                    println("java executable = \${javaInstallation.javaExecutable.asFile}")
                     println("implementation name = \${javaInstallation.implementationName}")
                     println("JDK? = \${javaInstallation.jdk.present}")
                     if (javaInstallation.jdk.present) {
-                        println("javac executable = \${javaInstallation.jdk.get().javacExecutable}")
-                        println("javadoc executable = \${javaInstallation.jdk.get().javadocExecutable}")
+                        println("javac executable = \${javaInstallation.jdk.get().javacExecutable.asFile}")
+                        println("javadoc executable = \${javaInstallation.jdk.get().javadocExecutable.asFile}")
                         println("tools classpath = \${javaInstallation.jdk.get().toolsClasspath.files}")
                     }
                 }

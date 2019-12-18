@@ -18,8 +18,9 @@ package org.gradle.jvm.toolchain;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
+import org.gradle.api.file.Directory;
+import org.gradle.api.file.RegularFile;
 
-import java.io.File;
 import java.util.Optional;
 
 /**
@@ -27,7 +28,7 @@ import java.util.Optional;
  *
  * <p>You can obtain an instance of this type using {@link JavaInstallationRegistry}.</p>
  *
- * @since 6.1
+ * @since 6.2
  */
 @Incubating
 public interface JavaInstallation {
@@ -39,13 +40,13 @@ public interface JavaInstallation {
     /**
      * Returns the root directory of this installation.
      */
-    File getInstallationDirectory();
+    Directory getInstallationDirectory();
 
     /**
      * Returns a Java executable packaged in this installation that can be used for running applications.
      * This will be the Java executable from the stand alone JRE, if present, otherwise the Java executable from the JDK.
      */
-    File getJavaExecutable();
+    RegularFile getJavaExecutable();
 
     /**
      * Returns a name that identifies the implementation of this installation.
