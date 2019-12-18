@@ -50,8 +50,8 @@ class ToBeFixedForInstantExecutionRule implements TestRule {
         void evaluate() throws Throwable {
             try {
                 next.evaluate()
-                throw new ToBeFixedForInstantExecutionExtension.UnexpectedSuccessException()
-            } catch (ToBeFixedForInstantExecutionExtension.UnexpectedSuccessException ex) {
+                throw new CatchFeatureFailuresRunListener.UnexpectedSuccessException()
+            } catch (CatchFeatureFailuresRunListener.UnexpectedSuccessException ex) {
                 throw ex
             } catch (Throwable ex) {
                 System.err.println("Failed with instant execution as expected:")

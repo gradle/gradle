@@ -21,26 +21,21 @@ import org.spockframework.runtime.extension.AbstractAnnotationDrivenExtension
 import org.spockframework.runtime.model.FeatureInfo
 import org.spockframework.runtime.model.SpecInfo
 
-class ToBeFixedForInstantExecutionExtension extends AbstractAnnotationDrivenExtension<ToBeFixedForInstantExecution> {
-
+class ToBeFixedForVfsRetentionExtension extends AbstractAnnotationDrivenExtension<ToBeFixedForVfsRetention> {
     @Override
     void visitSpec(SpecInfo spec) {
-        if (GradleContextualExecuter.isInstant()) {
+        if (GradleContextualExecuter.isVfsRetention()) {
             spec.allFeatures.each { feature ->
-                def annotation = feature.featureMethod.reflection.getAnnotation(ToBeFixedForInstantExecution)
+                def annotation = feature.featureMethod.reflection.getAnnotation(ToBeFixedForVfsRetention)
                 if (annotation != null) {
-                    if (annotation.value() == ToBeFixedForInstantExecution.Skip.DO_NOT_SKIP) {
-                        spec.addListener(new CatchFeatureFailuresRunListener("instant execution", feature))
-                    } else {
-                        feature.skipped = true
-                    }
+                    spec.addListener(new CatchFeatureFailuresRunListener("vfs retention", feature))
                 }
             }
         }
     }
 
     @Override
-    void visitFeatureAnnotation(ToBeFixedForInstantExecution annotation, FeatureInfo feature) {
+    void visitFeatureAnnotation(ToBeFixedForVfsRetention annotation, FeatureInfo feature) {
         // This override is required to satisfy spock's zealous runtime checks
     }
 }

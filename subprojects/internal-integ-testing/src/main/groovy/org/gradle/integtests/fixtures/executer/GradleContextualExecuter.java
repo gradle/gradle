@@ -80,6 +80,10 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
         return getSystemPropertyExecuter() == Executer.instant;
     }
 
+    public static boolean isVfsRetention() {
+        return getSystemPropertyExecuter() == Executer.vfsRetention;
+    }
+
     private GradleExecuter gradleExecuter;
 
     public GradleContextualExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider, IntegrationTestBuildContext buildContext) {
