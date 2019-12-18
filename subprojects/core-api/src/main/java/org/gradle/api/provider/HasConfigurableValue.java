@@ -37,9 +37,10 @@ public interface HasConfigurableValue {
     /**
      * Calculates the final value of this object and disallows further changes to this object.
      *
-     * <p>To calculate the final value of this object, any source for the value is queried and the result used as the final value for this object. The source is discarded.</p>
+     * <p>To calculate the final value of this object any source for the value is queried and the result used as the final value for this object. The source is discarded
+     * so that this object no longer tracks the value of the source.</p>
      *
-     * <p>Subsequent attempts to change the value of this object or the source from which the value is derived will fail with an exception.
+     * <p>Subsequent attempts to change the value of this object or to replace the source from which the value is derived will fail with an exception.
      *
      * <p>Note that although the value of this object will no longer change, the value may itself be mutable.
      * Calling this method does not guarantee that the value will become immutable, though some implementations may support this.</p>
@@ -50,6 +51,8 @@ public interface HasConfigurableValue {
 
     /**
      * Requests that the final value of this object be calculated on the next read of the value, if not already known.
+     *
+     * <p>Changes to the value of this object or to the source for the value are still permitted until the final value is calculated, after which time attempts to make changes will fail with an exception.</p>
      *
      * <p>You can use this method along with {@link #disallowChanges()} to indicate that the value has been configured and that the final value is ready to calculate,
      * without actually calculating the final value until it is required. This can be a useful alternative to {@link #finalizeValue()} for values that are expensive to calculate.
