@@ -62,9 +62,11 @@ class SimpleKeyRing {
             }
         }
         def signed = new File(toSign.parentFile, "${toSign.name}.asc")
-        new ArmoredOutputStream(signed.newOutputStream()).withCloseable { out ->
-            generators.each {
-                it.generate().encode(out)
+        signed.newOutputStream().withCloseable { stream ->
+            new ArmoredOutputStream(stream).withCloseable { out ->
+                generators.each {
+                    it.generate().encode(out)
+                }
             }
         }
         signed

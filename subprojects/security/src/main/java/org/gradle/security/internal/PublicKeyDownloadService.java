@@ -84,7 +84,7 @@ public class PublicKeyDownloadService implements PublicKeyService {
                     URI query = toQuery(baseUri, id);
                     ExternalResourceReadResponse response = client.openResource(query, false);
                     if (response != null) {
-                        return Optional.of(findKeyRing(id, response));
+                        return Optional.of(findKeyRing(response));
                     } else {
                         logKeyDownloadAttempt(id, baseUri);
                         // null means the resource is missing from this repo
@@ -116,8 +116,10 @@ public class PublicKeyDownloadService implements PublicKeyService {
         return Optional.empty();
     }
 
-    private PGPPublicKeyRing findKeyRing(long id, ExternalResourceReadResponse response) throws IOException {
-        try (InputStream decoderStream = PGPUtil.getDecoderStream(response.openStream())) {
+    private PGPPublicKeyRing findKeyRing(ExternalResourceReadResponse response) throws IOException {
+
+        try (InputStream stream = response.openStream();
+             InputStream decoderStream = PGPUtil.getDecoderStream(stream)) {
             PGPObjectFactory objectFactory = new PGPObjectFactory(
                 decoderStream, new BcKeyFingerprintCalculator());
             return (PGPPublicKeyRing) objectFactory.nextObject();
