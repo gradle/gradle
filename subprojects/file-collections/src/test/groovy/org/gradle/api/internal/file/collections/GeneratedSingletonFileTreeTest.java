@@ -124,7 +124,7 @@ public class GeneratedSingletonFileTreeTest {
     }
 
     private GeneratedSingletonFileTree tree(String fileName, Action<OutputStream> action) {
-        return new GeneratedSingletonFileTree(fileFactory, fileName, action);
+        return new GeneratedSingletonFileTree(fileFactory, fileName, it -> {}, action);
     }
 
     private Action<OutputStream> getAction() {
