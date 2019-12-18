@@ -74,32 +74,32 @@ A simple option for logging in your build file is to write messages to standard 
 
 .Using stdout to write log messages
 ====
-include::sample[dir="userguide/tutorial/logging/groovy",files="build.gradle[tags=use-println]"]
-include::sample[dir="userguide/tutorial/logging/kotlin",files="build.gradle.kts[tags=use-println]"]
+include::sample[dir="snippets/userguide/tutorial/logging/groovy",files="build.gradle[tags=use-println]"]
+include::sample[dir="snippets/userguide/tutorial/logging/kotlin",files="build.gradle.kts[tags=use-println]"]
 ====
 
 Gradle also provides a `logger` property to a build script, which is an instance of link:{javadocPath}/org/gradle/api/logging/Logger.html[Logger]. This interface extends the SLF4J `Logger` interface and adds a few Gradle specific methods to it. Below is an example of how this is used in the build script:
 
 .Writing your own log messages
 ====
-include::sample[dir="userguide/tutorial/logging/groovy",files="build.gradle[tags=use-logger]"]
-include::sample[dir="userguide/tutorial/logging/kotlin",files="build.gradle.kts[tags=use-logger]"]
+include::sample[dir="snippets/userguide/tutorial/logging/groovy",files="build.gradle[tags=use-logger]"]
+include::sample[dir="snippets/userguide/tutorial/logging/kotlin",files="build.gradle.kts[tags=use-logger]"]
 ====
 
 Use the link:https://www.slf4j.org/manual.html#typical_usage[typical SLF4J pattern] to replace a placeholder with an actual value as part of the log message.
 
 .Writing a log message with placeholder
 ====
-include::sample[dir="userguide/tutorial/logging/groovy",files="build.gradle[tags=use-logger-placeholder]"]
-include::sample[dir="userguide/tutorial/logging/kotlin",files="build.gradle.kts[tags=use-logger-placeholder]"]
+include::sample[dir="snippets/userguide/tutorial/logging/groovy",files="build.gradle[tags=use-logger-placeholder]"]
+include::sample[dir="snippets/userguide/tutorial/logging/kotlin",files="build.gradle.kts[tags=use-logger-placeholder]"]
 ====
 
 You can also hook into Gradle's logging system from within other classes used in the build (classes from the `buildSrc` directory for example). Simply use an SLF4J logger. You can use this logger the same way as you use the provided logger in the build script.
 
 .Using SLF4J to write log messages
 ====
-include::sample[dir="userguide/tutorial/logging/groovy",files="build.gradle[tags=use-slf4j]"]
-include::sample[dir="userguide/tutorial/logging/kotlin",files="build.gradle.kts[tags=use-slf4j]"]
+include::sample[dir="snippets/userguide/tutorial/logging/groovy",files="build.gradle[tags=use-slf4j]"]
+include::sample[dir="snippets/userguide/tutorial/logging/kotlin",files="build.gradle.kts[tags=use-slf4j]"]
 ====
 
 [[sec:external_tools]]
@@ -111,16 +111,16 @@ There are many tools out there which still use standard output for logging. By d
 
 .Configuring standard output capture
 ====
-include::sample[dir="userguide/tutorial/logging/groovy",files="build.gradle[tags=capture-stdout]"]
-include::sample[dir="userguide/tutorial/logging/kotlin",files="build.gradle.kts[tags=capture-stdout]"]
+include::sample[dir="snippets/userguide/tutorial/logging/groovy",files="build.gradle[tags=capture-stdout]"]
+include::sample[dir="snippets/userguide/tutorial/logging/kotlin",files="build.gradle.kts[tags=capture-stdout]"]
 ====
 
 To change the log level for standard out or error during task execution, tasks also provide a link:{javadocPath}/org/gradle/api/logging/LoggingManager.html[LoggingManager].
 
 .Configuring standard output capture for a task
 ====
-include::sample[dir="userguide/tutorial/logging/groovy",files="build.gradle[tags=task-capture-stdout]"]
-include::sample[dir="userguide/tutorial/logging/kotlin",files="build.gradle.kts[tags=task-capture-stdout]"]
+include::sample[dir="snippets/userguide/tutorial/logging/groovy",files="build.gradle[tags=task-capture-stdout]"]
+include::sample[dir="snippets/userguide/tutorial/logging/kotlin",files="build.gradle.kts[tags=task-capture-stdout]"]
 ====
 
 Gradle also provides integration with the Java Util Logging, Jakarta Commons Logging and Log4j logging toolkits. Any log messages which your build classes write using these logging toolkits will be redirected to Gradle's logging system.
@@ -132,8 +132,8 @@ You can replace much of Gradle's logging UI with your own. You might do this, fo
 
 .Customizing what Gradle logs
 ====
-include::sample[dir="userguide/initScripts/customLogger/groovy",files="customLogger.init.gradle[]"]
-include::sample[dir="userguide/initScripts/customLogger/kotlin",files="customLogger.init.gradle.kts[]"]
+include::sample[dir="snippets/userguide/initScripts/customLogger/groovy",files="customLogger.init.gradle[]"]
+include::sample[dir="snippets/userguide/initScripts/customLogger/kotlin",files="customLogger.init.gradle.kts[]"]
 ====
 
 [.multi-language-text.lang-groovy]

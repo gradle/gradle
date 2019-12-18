@@ -395,7 +395,7 @@ class DefaultInstantExecution internal constructor(
             valueSnapshotter = service(),
             fileCollectionFingerprinterRegistry = service(),
             buildServiceRegistry = service(),
-            isolatableSerializerRegistry = service(),
+            managedFactoryRegistry = service(),
             parameterScheme = service(),
             actionScheme = service(),
             attributesFactory = service(),

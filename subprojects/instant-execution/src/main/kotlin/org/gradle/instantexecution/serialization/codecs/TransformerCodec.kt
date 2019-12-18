@@ -26,7 +26,6 @@ import org.gradle.api.internal.artifacts.transform.LegacyTransformer
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileLookup
-import org.gradle.instantexecution.extensions.uncheckedCast
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
@@ -39,7 +38,6 @@ import org.gradle.internal.isolation.IsolatableFactory
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.snapshot.ValueSnapshotter
 import org.gradle.internal.snapshot.impl.IsolatedArray
-import org.gradle.workers.internal.IsolatableSerializerRegistry
 
 
 internal
@@ -51,7 +49,6 @@ class DefaultTransformerCodec(
     private val fileCollectionFactory: FileCollectionFactory,
     private val fileLookup: FileLookup,
     private val fileCollectionFingerprinterRegistry: FileCollectionFingerprinterRegistry,
-    private val isolatableSerializerRegistry: IsolatableSerializerRegistry,
     private val parameterScheme: ArtifactTransformParameterScheme,
     private val actionScheme: ArtifactTransformActionScheme
 ) : Codec<DefaultTransformer> {
@@ -61,7 +58,7 @@ class DefaultTransformerCodec(
         // Write isolated parameters
         value.isolateParameters(fileCollectionFingerprinterRegistry)
         writeBinary(value.isolatedParameters.secondaryInputsHash.toByteArray())
-        isolatableSerializerRegistry.writeIsolatable(this, value.isolatedParameters.isolatedParameterObject)
+        write(value.isolatedParameters.isolatedParameterObject)
 
         // TODO - write more state
     }
@@ -69,14 +66,7 @@ class DefaultTransformerCodec(
     override suspend fun ReadContext.decode(): DefaultTransformer? {
         val implementationClass = readClass().asSubclass(TransformAction::class.java)
         val secondaryInputsHash = HashCode.fromBytes(readBinary())
-        // TODO - should not need to do anything with the context classloader
-        val previousContextClassLoader = Thread.currentThread().contextClassLoader
-        Thread.currentThread().contextClassLoader = implementationClass.classLoader
-        val isolatedParameters = try {
-            isolatableSerializerRegistry.readIsolatable(this).uncheckedCast<Isolatable<out TransformParameters>>()
-        } finally {
-            Thread.currentThread().contextClassLoader = previousContextClassLoader
-        }
+        val isolatedParameters = read() as Isolatable<TransformParameters>
         return DefaultTransformer(
             implementationClass,
             null,

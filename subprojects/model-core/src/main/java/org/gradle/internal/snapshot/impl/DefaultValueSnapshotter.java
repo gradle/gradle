@@ -22,6 +22,7 @@ import org.gradle.api.attributes.Attribute;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.isolation.IsolatableFactory;
+import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.snapshot.ValueSnapshottingException;
@@ -171,7 +172,10 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
             objectStr.writeObject(value);
             objectStr.flush();
         } catch (IOException e) {
-            throw new ValueSnapshottingException(String.format("Could not serialize value of type '%s'", value.getClass().getName()), e);
+            TreeFormatter formatter = new TreeFormatter();
+            formatter.node("Could not serialize value of type ");
+            formatter.appendType(value.getClass());
+            throw new ValueSnapshottingException(formatter.toString(), e);
         }
 
         return visitor.serialized(value, outputStream.toByteArray());

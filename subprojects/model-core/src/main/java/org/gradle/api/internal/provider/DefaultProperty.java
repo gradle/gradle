@@ -39,6 +39,11 @@ public class DefaultProperty<T> extends AbstractProperty<T> implements Property<
     }
 
     @Override
+    public Object unpackState() {
+        return getProvider();
+    }
+
+    @Override
     public Class<?> publicType() {
         return Property.class;
     }

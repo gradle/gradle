@@ -40,7 +40,7 @@ class JavaCompileRelocationIntegrationTest extends AbstractProjectRelocationInte
             task compile(type: JavaCompile) {
                 sourceCompatibility = JavaVersion.current()
                 targetCompatibility = JavaVersion.current()
-                destinationDir = file("build/classes")
+                destinationDirectory = file("build/classes")
                 source "src/main/java"
                 classpath = files('libs')
             }

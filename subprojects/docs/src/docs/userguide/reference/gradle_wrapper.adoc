@@ -165,8 +165,8 @@ Let’s assume you grew tired of defining the `-all` distribution type on the co
 
 .Customizing the Wrapper task
 ====
-include::sample[dir="userguide/wrapper/customized-task/groovy",files="build.gradle[tags=customized-wrapper-task]"]
-include::sample[dir="userguide/wrapper/customized-task/kotlin",files="build.gradle.kts[tags=customized-wrapper-task]"]
+include::sample[dir="snippets/userguide/wrapper/customized-task/groovy",files="build.gradle[tags=customized-wrapper-task]"]
+include::sample[dir="snippets/userguide/wrapper/customized-task/kotlin",files="build.gradle.kts[tags=customized-wrapper-task]"]
 ====
 
 With the configuration in place running `./gradlew wrapper --gradle-version {gradleVersion}` is enough to produce a `distributionUrl` value in the Wrapper properties file that will request the `-all` distribution.

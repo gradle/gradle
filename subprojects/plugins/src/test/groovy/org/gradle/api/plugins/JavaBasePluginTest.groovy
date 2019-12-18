@@ -131,7 +131,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         SourceSet set = project.sourceSets.custom
         set.java.srcDirs == toLinkedSet(project.file('src/custom/java'))
         set.resources.srcDirs == toLinkedSet(project.file('src/custom/resources'))
-        set.java.outputDir == new File(project.buildDir, 'classes/java/custom')
+        set.java.destinationDirectory.set(new File(project.buildDir, 'classes/java/custom'))
         set.output.resourcesDir == new File(project.buildDir, 'resources/custom')
         set.output.generatedSourcesDirs.files == toLinkedSet(new File(project.buildDir, 'generated/sources/annotationProcessor/java/custom'))
 
@@ -169,7 +169,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         SourceSet set = project.sourceSets.main
         set.java.srcDirs == toLinkedSet(project.file('src/main/java'))
         set.resources.srcDirs == toLinkedSet(project.file('src/main/resources'))
-        set.java.outputDir == new File(project.buildDir, 'classes/java/main')
+        set.java.destinationDirectory.set(new File(project.buildDir, 'classes/java/main'))
         set.output.resourcesDir == new File(project.buildDir, 'resources/main')
         set.output.generatedSourcesDirs.files == toLinkedSet(new File(project.buildDir, 'generated/sources/annotationProcessor/java/main'))
 

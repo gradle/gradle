@@ -49,16 +49,16 @@ To implement a custom task class, you extend link:{groovyDslPath}/org.gradle.api
 
 .Defining a custom task
 ====
-include::sample[dir="userguide/tasks/customTask/groovy",files="build.gradle[tags=define-task]"]
-include::sample[dir="userguide/tasks/customTask/kotlin",files="build.gradle.kts[tags=define-task]"]
+include::sample[dir="snippets/userguide/tasks/customTask/groovy",files="build.gradle[tags=define-task]"]
+include::sample[dir="snippets/userguide/tasks/customTask/kotlin",files="build.gradle.kts[tags=define-task]"]
 ====
 
 This task doesn't do anything useful, so let's add some behaviour. To do so, we add a method to the task and mark it with the link:{javadocPath}/org/gradle/api/tasks/TaskAction.html[TaskAction] annotation. Gradle will call the method when the task executes. You don't have to use a method to define the behaviour for the task. You could, for instance, call `doFirst()` or `doLast()` with a closure in the task constructor to add behaviour.
 
 .A hello world task
 ====
-include::sample[dir="userguide/tasks/customTask/groovy",files="build.gradle[tags=add-action]"]
-include::sample[dir="userguide/tasks/customTask/kotlin",files="build.gradle.kts[tags=add-action]"]
+include::sample[dir="snippets/userguide/tasks/customTask/groovy",files="build.gradle[tags=add-action]"]
+include::sample[dir="snippets/userguide/tasks/customTask/kotlin",files="build.gradle.kts[tags=add-action]"]
 ====
 
 .Output of **`gradle -q hello`**
@@ -71,8 +71,8 @@ Let's add a property to the task, so we can customize it. Tasks are simply POGOs
 
 .A customizable hello world task
 ====
-include::sample[dir="userguide/tasks/customTaskWithProperty/groovy",files="build.gradle[tags=add-property]"]
-include::sample[dir="userguide/tasks/customTaskWithProperty/kotlin",files="build.gradle.kts[tags=add-property]"]
+include::sample[dir="snippets/userguide/tasks/customTaskWithProperty/groovy",files="build.gradle[tags=add-property]"]
+include::sample[dir="snippets/userguide/tasks/customTaskWithProperty/kotlin",files="build.gradle.kts[tags=add-property]"]
 ====
 
 .Output of **`gradle -q hello greeting`**
@@ -89,8 +89,8 @@ Now we will move our task to a standalone project, so we can publish it and shar
 
 .A build for a custom task
 ====
-include::sample[dir="customPlugin/groovy/plugin",files="build.gradle[tags=use-plugin]"]
-include::sample[dir="customPlugin/kotlin/plugin",files="build.gradle.kts[tags=use-plugin]"]
+include::sample[dir="snippets/customPlugin/groovy/plugin",files="build.gradle[tags=use-plugin]"]
+include::sample[dir="snippets/customPlugin/kotlin/plugin",files="build.gradle.kts[tags=use-plugin]"]
 ====
 
 NOTE: The code for this example can be found at **`samples/customPlugin`** in the ‘-all’ distribution of Gradle.
@@ -112,8 +112,8 @@ To use a task class in a build script, you need to add the class to the build sc
 
 .Using a custom task in another project
 ====
-include::sample[dir="customPlugin/groovy/consumer",files="build.gradle[tags=use-task]"]
-include::sample[dir="customPlugin/kotlin/consumer",files="build.gradle.kts[tags=use-task]"]
+include::sample[dir="snippets/customPlugin/groovy/consumer",files="build.gradle[tags=use-task]"]
+include::sample[dir="snippets/customPlugin/kotlin/consumer",files="build.gradle.kts[tags=use-task]"]
 ====
 
 [[sec:writing_tests_for_your_task_class]]
@@ -181,8 +181,8 @@ You can also see how the action deletes a target file if the corresponding input
 [[taskDefinition]]
 .Defining an incremental task action
 ====
-include::sample[dir="userguide/tasks/incrementalTask/groovy",files="build.gradle[tags=incremental-task]"]
-include::sample[dir="userguide/tasks/incrementalTask/kotlin",files="build.gradle.kts[tags=incremental-task]"]
+include::sample[dir="snippets/userguide/tasks/incrementalTask/groovy",files="build.gradle[tags=incremental-task]"]
+include::sample[dir="snippets/userguide/tasks/incrementalTask/kotlin",files="build.gradle.kts[tags=incremental-task]"]
 ====
 
 NOTE: The code for this example can be found at **`samples/userguide/tasks/incrementalTask`** in the ‘-all’ distribution of Gradle.
@@ -228,8 +228,8 @@ In this case, all inputs will be considered added, as shown here:
 [[ex:incremental_task_definition]]
 .Running the incremental task for the first time
 ====
-include::sample[dir="userguide/tasks/incrementalTask/groovy",files="build.gradle[tags=reverse]"]
-include::sample[dir="userguide/tasks/incrementalTask/kotlin",files="build.gradle.kts[tags=reverse]"]
+include::sample[dir="snippets/userguide/tasks/incrementalTask/groovy",files="build.gradle[tags=reverse]"]
+include::sample[dir="snippets/userguide/tasks/incrementalTask/kotlin",files="build.gradle.kts[tags=reverse]"]
 
 .Build layout
 ----
@@ -264,8 +264,8 @@ The following example modifies the content of one file and adds another before r
 
 .Running the incremental task with updated input files
 ====
-include::sample[dir="userguide/tasks/incrementalTask/groovy",files="build.gradle[tags=updated-inputs]"]
-include::sample[dir="userguide/tasks/incrementalTask/kotlin",files="build.gradle.kts[tags=updated-inputs]"]
+include::sample[dir="snippets/userguide/tasks/incrementalTask/groovy",files="build.gradle[tags=updated-inputs]"]
+include::sample[dir="snippets/userguide/tasks/incrementalTask/kotlin",files="build.gradle.kts[tags=updated-inputs]"]
 
 .Output of `gradle -q updateInputs incrementalReverse`
 ----
@@ -282,8 +282,8 @@ The following example removes one of the existing files before executing the inc
 
 .Running the incremental task with an input file removed
 ====
-include::sample[dir="userguide/tasks/incrementalTask/groovy",files="build.gradle[tags=removed-input]"]
-include::sample[dir="userguide/tasks/incrementalTask/kotlin",files="build.gradle.kts[tags=removed-input]"]
+include::sample[dir="snippets/userguide/tasks/incrementalTask/groovy",files="build.gradle[tags=removed-input]"]
+include::sample[dir="snippets/userguide/tasks/incrementalTask/kotlin",files="build.gradle.kts[tags=removed-input]"]
 
 .Output of `gradle -q removeInput incrementalReverse`
 ----
@@ -298,8 +298,8 @@ The following example removes just one of the output files from the build direct
 
 .Running the incremental task with an output file removed
 ====
-include::sample[dir="userguide/tasks/incrementalTask/groovy",files="build.gradle[tags=removed-output]"]
-include::sample[dir="userguide/tasks/incrementalTask/kotlin",files="build.gradle.kts[tags=removed-output]"]
+include::sample[dir="snippets/userguide/tasks/incrementalTask/groovy",files="build.gradle[tags=removed-output]"]
+include::sample[dir="snippets/userguide/tasks/incrementalTask/kotlin",files="build.gradle.kts[tags=removed-output]"]
 
 .Output of `gradle -q removeOutput incrementalReverse`
 ----
@@ -371,8 +371,8 @@ Getting back to the previous example, the build script creates a task instance o
 
 .Using a command line option
 ====
-include::sample[dir="userguide/tasks/commandLineOption/stringOption/groovy",files="build.gradle[tags=task]"]
-include::sample[dir="userguide/tasks/commandLineOption/stringOption/kotlin",files="build.gradle.kts[tags=task]"]
+include::sample[dir="snippets/userguide/tasks/commandLineOption/stringOption/groovy",files="build.gradle[tags=task]"]
+include::sample[dir="snippets/userguide/tasks/commandLineOption/stringOption/kotlin",files="build.gradle.kts[tags=task]"]
 ====
 
 .Output of **`gradle -q verifyUrl --url=http://www.google.com/`**
@@ -467,8 +467,8 @@ The implementation is a class that extends link:{javadocPath}/org/gradle/workers
 
 .Defining the unit of work parameters and implementation
 ====
-include::sample[dir="workerApi/noIsolation/groovy",files="build.gradle[tags=unit-of-work]"]
-include::sample[dir="workerApi/noIsolation/kotlin",files="build.gradle.kts[tags=unit-of-work]"]
+include::sample[dir="snippets/workerApi/noIsolation/groovy",files="build.gradle[tags=unit-of-work]"]
+include::sample[dir="snippets/workerApi/noIsolation/kotlin",files="build.gradle.kts[tags=unit-of-work]"]
 ====
 
 A `WorkAction` implementation can inject services that provide capabilities during work execution, such as the link:{javadocPath}/org/gradle/api/file/FileSystemOperations.html[FileSystemOperations] service in the example above.  See <<custom_gradle_types.adoc#service_injection,Service Injection>> for further information on injecting service types.
@@ -477,8 +477,8 @@ In order to submit the unit of work, it is necessary to first acquire the link:{
 
 .Submitting a unit of work for execution
 ====
-include::sample[dir="workerApi/noIsolation/groovy",files="build.gradle[tags=task-implementation]"]
-include::sample[dir="workerApi/noIsolation/kotlin",files="build.gradle.kts[tags=task-implementation]"]
+include::sample[dir="snippets/workerApi/noIsolation/groovy",files="build.gradle[tags=task-implementation]"]
+include::sample[dir="snippets/workerApi/noIsolation/kotlin",files="build.gradle.kts[tags=task-implementation]"]
 ====
 
 Once all of the work for a task action has been submitted, it is safe to exit the task action. The work will be executed asynchronously and in parallel (up to the setting of `max-workers`). Of course, any tasks that are dependent on this task (and any subsequent task actions of this task) will not begin executing until all of the asynchronous work completes. However, other independent tasks that have no relationship to this task can begin executing immediately.
@@ -496,8 +496,8 @@ Note that Gradle will only begin running other independent tasks in parallel whe
 
 .Waiting for asynchronous work to complete
 ====
-include::sample[dir="workerApi/waitForCompletion/groovy",files="build.gradle[tags=wait-for-completion]"]
-include::sample[dir="workerApi/waitForCompletion/kotlin",files="build.gradle.kts[tags=wait-for-completion]"]
+include::sample[dir="snippets/workerApi/waitForCompletion/groovy",files="build.gradle[tags=wait-for-completion]"]
+include::sample[dir="snippets/workerApi/waitForCompletion/kotlin",files="build.gradle.kts[tags=wait-for-completion]"]
 ====
 
 [[isolation-modes]]
@@ -521,8 +521,8 @@ When using `processIsolation()`, gradle will start a long-lived _Worker Daemon_ 
 
 .Submitting an item of work to run in a worker daemon
 ====
-include::sample[dir="workerApi/workerDaemon/groovy",files="build.gradle[tags=worker-daemon]"]
-include::sample[dir="workerApi/workerDaemon/kotlin",files="build.gradle.kts[tags=worker-daemon]"]
+include::sample[dir="snippets/workerApi/workerDaemon/groovy",files="build.gradle[tags=worker-daemon]"]
+include::sample[dir="snippets/workerApi/workerDaemon/kotlin",files="build.gradle.kts[tags=worker-daemon]"]
 ====
 
 When a unit of work for a Worker Daemon is submitted, Gradle will first look to see if a compatible, idle daemon already exists. If so, it will send the unit of work to the idle daemon, marking it as busy. If not, it will start a new daemon. When evaluating compatibility, Gradle looks at a number of criteria, all of which can be controlled through link:{javadocPath}/org/gradle/workers/ProcessWorkerSpec.html#forkOptions-org.gradle.api.Action-[ProcessWorkerSpec.forkOptions(org.gradle.api.Action)].

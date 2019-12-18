@@ -129,8 +129,8 @@ By pointing an instance of a source set to one or many source code directories, 
 
 .Integration test source set
 ====
-include::sample[dir="userguide/organizingGradleProjects/separatedTestTypes/groovy",files="gradle/integration-test.gradle[tags=custom-source-set]"]
-include::sample[dir="userguide/organizingGradleProjects/separatedTestTypes/kotlin",files="gradle/integration-test.gradle.kts[tags=custom-source-set]"]
+include::sample[dir="snippets/userguide/organizingGradleProjects/separatedTestTypes/groovy",files="gradle/integration-test.gradle[tags=custom-source-set]"]
+include::sample[dir="snippets/userguide/organizingGradleProjects/separatedTestTypes/kotlin",files="gradle/integration-test.gradle.kts[tags=custom-source-set]"]
 ====
 
 Source sets are only responsible for compiling source code, but do not deal with executing the byte code.
@@ -138,8 +138,8 @@ For the purpose of test execution, a corresponding task of type link:{groovyDslP
 
 .Integration test task
 ====
-include::sample[dir="userguide/organizingGradleProjects/separatedTestTypes/groovy",files="gradle/integration-test.gradle[tags=test-task]"]
-include::sample[dir="userguide/organizingGradleProjects/separatedTestTypes/kotlin",files="gradle/integration-test.gradle.kts[tags=test-task]"]
+include::sample[dir="snippets/userguide/organizingGradleProjects/separatedTestTypes/groovy",files="gradle/integration-test.gradle[tags=test-task]"]
+include::sample[dir="snippets/userguide/organizingGradleProjects/separatedTestTypes/kotlin",files="gradle/integration-test.gradle.kts[tags=test-task]"]
 ====
 
 [[sec:use_standard_conventions]]
@@ -206,8 +206,8 @@ It also provides direct access to the Gradle API. Additional dependencies can be
 
 .Custom buildSrc build script
 ====
-include::sample[dir="java/multiproject/groovy",files="buildSrc/build.gradle[]"]
-include::sample[dir="java/multiproject/kotlin",files="buildSrc/build.gradle.kts[]"]
+include::sample[dir="snippets/java/multiproject/groovy",files="buildSrc/build.gradle[]"]
+include::sample[dir="snippets/java/multiproject/kotlin",files="buildSrc/build.gradle.kts[]"]
 ====
 
 A typical project including `buildSrc` has the following layout.
@@ -342,5 +342,5 @@ You can find a sample (`userguide/organizingGradleProjects/customGradleDistribut
 
 .Building a custom Gradle distribution
 ====
-include::sample[dir="userguide/organizingGradleProjects/customGradleDistribution",files="build.gradle[]"]
+include::sample[dir="snippets/userguide/organizingGradleProjects/customGradleDistribution",files="build.gradle[]"]
 ====

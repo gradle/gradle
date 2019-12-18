@@ -31,14 +31,15 @@ To use the Scala plugin, include the following in your build script:
 
 .Using the Scala plugin
 ====
-include::sample[dir="scala/quickstart/groovy",files="build.gradle[tags=use-plugin]"]
-include::sample[dir="scala/quickstart/kotlin",files="build.gradle.kts[tags=use-plugin]"]
+include::sample[dir="snippets/scala/quickstart/groovy",files="build.gradle[tags=use-plugin]"]
+include::sample[dir="snippets/scala/quickstart/kotlin",files="build.gradle.kts[tags=use-plugin]"]
 ====
 
 [[sec:scala_tasks]]
 == Tasks
 
 The Scala plugin adds the following tasks to the project.
+Information about altering the dependencies to Java compile tasks are found <<building_java_projects.adoc#sec:building_jvm_lang,here>>.
 
 `compileScala` — link:{groovyDslPath}/org.gradle.api.tasks.scala.ScalaCompile.html[ScalaCompile]::
 _Depends on_: `compileJava`
@@ -109,8 +110,8 @@ Just like the Java plugin, the Scala plugin allows you to configure custom locat
 
 .Custom Scala source layout
 ====
-include::sample[dir="scala/customizedLayout/groovy",files="build.gradle[tags=custom-source-locations]"]
-include::sample[dir="scala/customizedLayout/kotlin",files="build.gradle.kts[tags=custom-source-locations]"]
+include::sample[dir="snippets/scala/customizedLayout/groovy",files="build.gradle[tags=custom-source-locations]"]
+include::sample[dir="snippets/scala/customizedLayout/kotlin",files="build.gradle.kts[tags=custom-source-locations]"]
 ====
 
 [[sec:scala_dependency_management]]
@@ -122,16 +123,16 @@ If Scala is used for production code, the `scala-library` dependency should be a
 
 .Declaring a Scala dependency for production code
 ====
-include::sample[dir="scala/quickstart/groovy",files="build.gradle[tags=scala-dependency]"]
-include::sample[dir="scala/quickstart/kotlin",files="build.gradle.kts[tags=scala-dependency]"]
+include::sample[dir="snippets/scala/quickstart/groovy",files="build.gradle[tags=scala-dependency]"]
+include::sample[dir="snippets/scala/quickstart/kotlin",files="build.gradle.kts[tags=scala-dependency]"]
 ====
 
 If Scala is only used for test code, the `scala-library` dependency should be added to the `testCompile` configuration:
 
 .Declaring a Scala dependency for test code
 ====
-include::sample[dir="userguide/scala/scalaDependency/groovy",files="build.gradle[tags=scala-test-dependency]"]
-include::sample[dir="userguide/scala/scalaDependency/kotlin",files="build.gradle.kts[tags=scala-test-dependency]"]
+include::sample[dir="snippets/userguide/scala/scalaDependency/groovy",files="build.gradle[tags=scala-test-dependency]"]
+include::sample[dir="snippets/userguide/scala/scalaDependency/kotlin",files="build.gradle.kts[tags=scala-test-dependency]"]
 ====
 
 [[sec:configure_scala_classpath]]
@@ -154,8 +155,8 @@ Gradle supports version 1.2.0 of Zinc and above.
 
 .Declaring a version of the Zinc compiler to use
 ====
-include::sample[dir="userguide/scala/zincDependency/groovy",files="build.gradle[tags=zinc-dependency]"]
-include::sample[dir="userguide/scala/zincDependency/kotlin",files="build.gradle.kts[tags=zinc-dependency]"]
+include::sample[dir="snippets/userguide/scala/zincDependency/groovy",files="build.gradle[tags=zinc-dependency]"]
+include::sample[dir="snippets/userguide/scala/zincDependency/kotlin",files="build.gradle.kts[tags=zinc-dependency]"]
 ====
 
 The Zinc compiler itself needs a compatible version of `scala-library` that may be different from the version required by your application.
@@ -217,8 +218,8 @@ Memory settings for the external process default to the defaults of the JVM. To 
 
 .Adjusting memory settings
 ====
-include::sample[dir="scala/zinc/groovy",files="build.gradle[tags=adjust-memory]"]
-include::sample[dir="scala/zinc/kotlin",files="build.gradle.kts[tags=adjust-memory]"]
+include::sample[dir="snippets/scala/zinc/groovy",files="build.gradle[tags=adjust-memory]"]
+include::sample[dir="snippets/scala/zinc/kotlin",files="build.gradle.kts[tags=adjust-memory]"]
 ====
 
 [[sec:scala_incremental_compilation]]
@@ -230,8 +231,8 @@ The Scala plugin defaults to incremental compilation by integrating with https:/
 
 .Forcing all code to be compiled
 ====
-include::sample[dir="scala/force/groovy",files="build.gradle[tags=force-compilation]"]
-include::sample[dir="scala/force/kotlin",files="build.gradle.kts[tags=force-compilation]"]
+include::sample[dir="snippets/scala/force/groovy",files="build.gradle[tags=force-compilation]"]
+include::sample[dir="snippets/scala/force/kotlin",files="build.gradle.kts[tags=force-compilation]"]
 ====
 
 _Note:_ This will only cause all classes to be recompiled if at least one input source file has changed. If there are no changes to the source files, the `compileScala` task will still be considered `UP-TO-DATE` as usual.
@@ -256,8 +257,8 @@ include::{samplesPath}/scala/crossCompilation/groovy/gradle.properties[]
 ----
 
 ====
-include::sample[dir="scala/crossCompilation/groovy",files="build.gradle[tags=scala-cross-compilation]"]
-include::sample[dir="scala/crossCompilation/kotlin",files="build.gradle.kts[tags=scala-cross-compilation]"]
+include::sample[dir="snippets/scala/crossCompilation/groovy",files="build.gradle[tags=scala-cross-compilation]"]
+include::sample[dir="snippets/scala/crossCompilation/kotlin",files="build.gradle.kts[tags=scala-cross-compilation]"]
 ====
 
 [[sec:eclipse_integration]]
@@ -272,8 +273,8 @@ When the IDEA plugin encounters a Scala project, it adds additional configuratio
 
 .Explicitly specify a target IntelliJ IDEA version
 ====
-include::sample[dir="userguide/scala/ideaTargetVersion/groovy",files="build.gradle[tags=scala-idea-target-version]"]
-include::sample[dir="userguide/scala/ideaTargetVersion/kotlin",files="build.gradle.kts[tags=scala-idea-target-version]"]
+include::sample[dir="snippets/userguide/scala/ideaTargetVersion/groovy",files="build.gradle[tags=scala-idea-target-version]"]
+include::sample[dir="snippets/userguide/scala/ideaTargetVersion/kotlin",files="build.gradle.kts[tags=scala-idea-target-version]"]
 ====
 
 

@@ -47,6 +47,7 @@ abstract class AbstractCompileTest extends AbstractConventionTaskTest {
 
         expect:
         compile.getDestinationDir() == null
+        compile.getDestinationDirectory().getOrNull() == null
         compile.getSourceCompatibility() == null
         compile.getTargetCompatibility() == null
         compile.getSource().isEmpty()

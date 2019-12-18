@@ -950,7 +950,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Override
     public void usesService(Provider<? extends BuildService<?>> service) {
-        taskMutator.mutate("Task.requiresResource(String)", () -> {
+        taskMutator.mutate("Task.usesService(Provider)", () -> {
             if (requiredServices == null) {
                 requiredServices = new HashSet<>();
             }

@@ -632,4 +632,63 @@ class VisualStudioSoftwareModelMultiProjectIntegrationTest extends AbstractVisua
         then:
         generatedFiles*.assertDoesNotExist()
     }
+
+    @ToBeFixedForInstantExecution
+    @IgnoreIf({ GradleContextualExecuter.isParallel() })
+    def "can create Visual Studio solution for multiproject depending on the same prebuilt binary from another project in parallel"() {
+        given:
+        settingsFile.text = """
+            rootProject.name = 'root'
+            include ':projectA', ':projectB', ':library'
+        """
+        buildFile << """
+            allprojects {
+                apply plugin: 'visual-studio'
+            }
+        """
+        file("projectA/build.gradle") << """
+            apply plugin: 'cpp'
+            model {
+                components {
+                    main(NativeExecutableSpec) {
+                        sources {
+                            cpp.lib project: ':library', library: 'hello', linkage: 'api'
+                        }
+                    }
+                }
+            }
+        """
+
+        file("projectB/build.gradle") << """
+            apply plugin: 'cpp'
+            model {
+                components {
+                    main(NativeExecutableSpec) {
+                        sources {
+                            cpp.lib project: ':library', library: 'hello', linkage: 'api'
+                        }
+                    }
+                }
+            }
+        """
+
+        file("library/build.gradle") << """
+            apply plugin: 'cpp'
+            model {
+                repositories {
+                    libs(PrebuiltLibraries) {
+                        hello {
+                            headers.srcDir "libs/src/hello/headers"
+                        }
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds '--parallel', "visualStudio"
+
+        then:
+        executedAndNotSkipped(':rootVisualStudioSolution', ':visualStudio', ':projectB:projectB_mainExeVisualStudioFilters', ':projectB:projectB_mainExeVisualStudioProject', ':projectB:visualStudio', ':projectA:projectA_mainExeVisualStudioFilters', ':projectA:projectA_mainExeVisualStudioProject', ':projectA:visualStudio')
+    }
 }

@@ -128,7 +128,7 @@ public class JvmPluginsHelper {
         classpath.from(new Callable<Object>() {
             @Override
             public Object call() {
-                return sourceSet.getCompileClasspath().plus(target.files(sourceSet.getJava().getOutputDir()));
+                return sourceSet.getCompileClasspath().plus(target.files(sourceSet.getJava().getClassesDirectory()));
             }
         });
 
@@ -138,12 +138,6 @@ public class JvmPluginsHelper {
                 return classpath;
             }
         });
-        compile.setDestinationDir(target.provider(new Callable<File>() {
-            @Override
-            public File call() {
-                return sourceDirectorySet.getOutputDir();
-            }
-        }));
     }
 
     public static void configureAnnotationProcessorPath(final SourceSet sourceSet, SourceDirectorySet sourceDirectorySet, CompileOptions options, final Project target) {
@@ -163,20 +157,15 @@ public class JvmPluginsHelper {
         });
     }
 
-    public static void configureOutputDirectoryForSourceSet(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, final Project target, Provider<? extends AbstractCompile> compileTask, Provider<CompileOptions> options) {
+    public static void configureOutputDirectoryForSourceSet(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, final Project target, TaskProvider<? extends AbstractCompile> compileTask, Provider<CompileOptions> options) {
         final String sourceSetChildPath = "classes/" + sourceDirectorySet.getName() + "/" + sourceSet.getName();
-        sourceDirectorySet.setOutputDir(target.provider(new Callable<File>() {
-            @Override
-            public File call() {
-                return new File(target.getBuildDir(), sourceSetChildPath);
-            }
-        }));
+        sourceDirectorySet.getDestinationDirectory().convention(target.getLayout().getBuildDirectory().dir(sourceSetChildPath));
 
         DefaultSourceSetOutput sourceSetOutput = Cast.cast(DefaultSourceSetOutput.class, sourceSet.getOutput());
         sourceSetOutput.addClassesDir(new Callable<File>() {
             @Override
             public File call() {
-                return sourceDirectorySet.getOutputDir();
+                return sourceDirectorySet.getDestinationDirectory().getAsFile().get();
             }
         });
         sourceSetOutput.registerCompileTask(compileTask);
@@ -187,6 +176,7 @@ public class JvmPluginsHelper {
             }
         })).builtBy(compileTask);
 
+        sourceDirectorySet.compiledBy(compileTask, AbstractCompile::getDestinationDirectory);
     }
 
     public static void configureClassesDirectoryVariant(SourceSet sourceSet, Project target, String targetConfigName, final String usage) {

@@ -16,6 +16,8 @@
 
 package org.gradle.internal.state;
 
+import javax.annotation.Nullable;
+
 /**
  * Implemented by types whose state is fully managed by Gradle. Mixed into generated classes whose state is fully managed.
  */
@@ -26,6 +28,7 @@ public interface Managed {
      *
      * <p><em>Note that currently the state should reference only JVM and core Gradle types when {@link #immutable()} returns true.</em></p>
      */
+    @Nullable
     Object unpackState();
 
     /**

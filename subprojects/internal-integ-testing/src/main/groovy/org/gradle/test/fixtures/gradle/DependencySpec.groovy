@@ -35,7 +35,7 @@ class DependencySpec {
     List<CapabilitySpec> requestedCapabilities = []
     ArtifactSelectorSpec artifactSelector
 
-    DependencySpec(String g, String m, String v, String preferredVersion, String strictVersion, List<String> rejects, Collection<Map> excludes, Boolean endorseStrictVersions, String reason, Map<String, Object> attributes, ArtifactSelectorSpec artifactSelector) {
+    DependencySpec(String g, String m, String v, String preferredVersion, String strictVersion, List<String> rejects, Collection<Map> excludes, Boolean endorseStrictVersions, String reason, Map<String, Object> attributes, ArtifactSelectorSpec artifactSelector, String requestedCapability) {
         group = g
         module = m
         version = v
@@ -53,6 +53,10 @@ class DependencySpec {
         this.reason = reason
         this.attributes = attributes
         this.artifactSelector = artifactSelector
+        if (requestedCapability) {
+            def parts = requestedCapability.split(':')
+            this.requestedCapabilities << new CapabilitySpec(parts[0], parts[1], parts.size() > 2 ? parts[2] : null)
+        }
     }
 
     DependencySpec attribute(String name, Object value) {

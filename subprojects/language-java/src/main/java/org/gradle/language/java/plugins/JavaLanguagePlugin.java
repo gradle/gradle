@@ -171,7 +171,7 @@ public class JavaLanguagePlugin implements Plugin<Project> {
                 assembly.builtBy(compile);
 
                 compile.setDescription("Compiles " + javaSourceSet + ".");
-                compile.setDestinationDir(conventionalCompilationOutputDirFor(assembly));
+                compile.getDestinationDirectory().set(conventionalCompilationOutputDirFor(assembly));
                 compile.dependsOn(javaSourceSet);
                 compile.setSource(javaSourceSet.getSource());
 

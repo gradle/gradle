@@ -1,19 +1,11 @@
-= Java Library Publishing Sample
-
-ifndef::env-github[]
-[.download]
-- link:{zip-base-file-name}-groovy-dsl.zip[icon:download[] Groovy DSL ZIP]
-- link:{zip-base-file-name}-kotlin-dsl.zip[icon:download[] Kotlin DSL ZIP]
-endif::[]
-
 NOTE: You can open the samples inside an IDE using the https://www.jetbrains.com/help/idea/gradle.html#gradle_import_project_start[IntelliJ native importer] or https://projects.eclipse.org/projects/tools.buildship[Eclipse Buildship].
 
 This sample shows how a simple Java library can be built with Gradle.
 The library has no dependencies and the build has minimal configuration.
 
 ====
-include::sample[dir="groovy",files="build.gradle[]"]
-include::sample[dir="kotlin",files="build.gradle.kts[]"]
+include::sample[dir="samples/java-library-publishing/groovy",files="build.gradle[]"]
+include::sample[dir="samples/java-library-publishing/kotlin",files="build.gradle.kts[]"]
 ====
 
 To publish the library:

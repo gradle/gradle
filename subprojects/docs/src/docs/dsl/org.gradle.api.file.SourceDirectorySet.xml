@@ -34,6 +34,14 @@
                 <td></td>
             </tr>
             <tr>
+                <td>destinationDirectory</td>
+                <td><literal><replaceable>${project.buildDir}</replaceable>/classes/<replaceable>${sourceDirectorySet.name}</replaceable>/<replaceable>${sourceSet.name}</replaceable></literal></td>
+            </tr>
+            <tr>
+                <td>classesDirectory</td>
+                <td><literal><replaceable>${project.buildDir}</replaceable>/classes/<replaceable>${sourceDirectorySet.name}</replaceable>/<replaceable>${sourceSet.name}</replaceable></literal></td>
+            </tr>
+            <tr>
                 <td>outputDir</td>
                 <td><literal><replaceable>${project.buildDir}</replaceable>/classes/<replaceable>${sourceDirectorySet.name}</replaceable>/<replaceable>${sourceSet.name}</replaceable></literal></td>
             </tr>
@@ -55,6 +63,9 @@
             </tr>
             <tr>
                 <td>source</td>
+            </tr>
+            <tr>
+                <td>compiledBy</td>
             </tr>
         </table>
     </section>

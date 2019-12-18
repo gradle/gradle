@@ -102,9 +102,9 @@ Note here that there are 2 sample projects under `userguide/initScripts/customLo
 ```asciidoc
 .Customizing what Gradle logs
 ====
-include::sample[dir="userguide/initScripts/customLogger/groovy",files="init.gradle[]"]
+include::sample[dir="snippets/userguide/initScripts/customLogger/groovy",files="init.gradle[]"]
 
-include::sample[dir="userguide/initScripts/customLogger/kotlin",files="customLogger.init.gradle.kts[]"]
+include::sample[dir="snippets/userguide/initScripts/customLogger/kotlin",files="customLogger.init.gradle.kts[]"]
 ====
 
 [.multi-language-text.lang-groovy]

@@ -18,6 +18,6 @@ javadoc {
         locale = 'de_DE'
         breakIterator = true
         taglets 'LocaleAwareTaglet'
-        tagletPath sourceSets.taglet.java.outputDir
+        tagletPath sourceSets.taglet.java.destinationDirectory.get().asFile
     }
 }

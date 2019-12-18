@@ -25,11 +25,11 @@ class AttributeValuesIntegrationTest extends AbstractIntegrationSpec {
     def "cannot use an attribute value that cannot be made isolated - #type"() {
         given:
         buildFile << """
-    class Thing implements Named { 
+    class Thing implements Named {
         String name
     }
     def attr = Attribute.of($type)
-    
+
     configurations {
         broken
     }
@@ -40,8 +40,8 @@ class AttributeValuesIntegrationTest extends AbstractIntegrationSpec {
         fails()
 
         then:
-        failure.assertHasCause("Could not isolate value: [")
-        failure.assertHasCause("Could not serialize value of type '")
+        failure.assertHasCause("Could not isolate value ")
+        failure.assertHasCause("Could not serialize value of type ")
 
         where:
         type      | value
@@ -56,7 +56,7 @@ class AttributeValuesIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
     interface Flavor extends Named { }
     def attr = Attribute.of($type)
-    
+
     configurations {
         ok
     }
@@ -81,17 +81,17 @@ class AttributeValuesIntegrationTest extends AbstractIntegrationSpec {
     def "attribute value is isolated from original value"() {
         given:
         buildFile << """
-    class Thing implements Named, Serializable { 
+    class Thing implements Named, Serializable {
         String name
     }
     def attr = Attribute.of(List)
-    
+
     configurations {
         ok
     }
     def value = [new Thing(name: 'a'), new Thing(name: 'b')]
     configurations.ok.attributes.attribute(attr, value)
-    
+
     value[0].name = 'other'
     value.add(new Thing(name: 'c'))
 

@@ -22,6 +22,7 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.file.DefaultFilePropertyFactory.FixedDirectory;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.state.ManagedFactory;
 
 import java.io.File;
@@ -63,7 +64,7 @@ public class ManagedFactories {
             if (!type.isAssignableFrom(PUBLIC_TYPE)) {
                 return null;
             }
-            return type.cast(new DefaultFilePropertyFactory.DefaultRegularFileVar(fileResolver).value((RegularFile) state));
+            return type.cast(new DefaultFilePropertyFactory.DefaultRegularFileVar(fileResolver).value((Provider<RegularFile>) state));
         }
 
         @Override
@@ -117,7 +118,7 @@ public class ManagedFactories {
             if (!type.isAssignableFrom(PUBLIC_TYPE)) {
                 return null;
             }
-            return type.cast(new DefaultFilePropertyFactory.DefaultDirectoryVar(fileResolver, fileCollectionFactory).value((Directory) state));
+            return type.cast(new DefaultFilePropertyFactory.DefaultDirectoryVar(fileResolver, fileCollectionFactory).value((Provider<Directory>) state));
         }
 
         @Override

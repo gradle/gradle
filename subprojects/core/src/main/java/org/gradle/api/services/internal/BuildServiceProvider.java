@@ -23,11 +23,12 @@ import org.gradle.internal.Try;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.state.Managed;
 
 import javax.annotation.Nullable;
 
 // TODO - complain when used at configuration time, except when opted in to this
-public class BuildServiceProvider<T extends BuildService<P>, P extends BuildServiceParameters> extends AbstractReadOnlyProvider<T> {
+public class BuildServiceProvider<T extends BuildService<P>, P extends BuildServiceParameters> extends AbstractReadOnlyProvider<T> implements Managed {
     private final String name;
     private final Class<T> implementationType;
     private final InstantiationScheme instantiationScheme;
@@ -67,6 +68,16 @@ public class BuildServiceProvider<T extends BuildService<P>, P extends BuildServ
     @Override
     public boolean isPresent() {
         return true;
+    }
+
+    @Override
+    public boolean immutable() {
+        return true;
+    }
+
+    @Override
+    public Object unpackState() {
+        throw new UnsupportedOperationException("Build services cannot be serialized.");
     }
 
     // TODO - rename this method

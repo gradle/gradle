@@ -33,62 +33,48 @@ Some plugins will break with this new version of Gradle, for example because the
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
-////
-
-Template for new sections
-
-[[changes_6.???]]
-== Upgrading from 6.??? and earlier
-
-=== Deprecations
-
-Nothing was deprecated.
-
-=== Potential breaking changes
-
-No potential breaking changes were introduced.
-////
-
 [[changes_6.1]]
 == Upgrading from 6.0 and earlier
 
 === Deprecations
 
-==== Query a mapped task output property before the task has completed
+==== Querying a mapped output property of a task before the task has completed
 
-It is now deprecated to query the value of a mapped task output property before the task has completed. Here is an example of this case, where a task's output file is parsed to produce an `Integer` and
-the result used as input to another task:
+Querying the value of a mapped output property before the task has completed can cause strange build failures because it indicates stale or non-existent outputs may be used by mistake. This behavior is deprecated and will emit a deprecation warning. This will become an error in Gradle 7.0.
 
+The following example demonstrates this problem where the Producer's output file is parsed before the Producer executes:
 ```
-class TaskA: DefaultTask {
+class Consumer extends DefaultTask {
     @Input
     final Property<Integer> threadPoolSize = ...
 }
 
-class TaskB: DefaultTask {
+class Producer extends DefaultTask {
     @OutputFile
     final RegularFileProperty outputFile = ...
 }
 
-taskA.threadPoolSize = taskB.outputFile.map { it.text.toInteger() }
+// threadPoolSize is read from the producer's outputFile
+consumer.threadPoolSize = producer.outputFile.map { it.text.toInteger() }
+
+// Emits deprecation warning
+println("thread pool size = " + consumer.threadPoolSize.get())
 ```
 
-In this case, calling `get()`, or any other query method, on `taskA.threadPoolSize` will produce a deprecation warning if done prior to `taskB` completing, as the file has not yet been generated.
-This will become an error in Gradle 7.0
+Querying the value of `consumer.threadPoolSize` will produce a deprecation warning if done prior to `producer` completing, as the output file has not yet been generated.
 
 [[upgrading_jvm_plugins]]
-==== Alternative JVM plugins
+==== Alternative JVM plugins (a.k.a "Software Model")
 
-A set of alternative plugins for Java and Scala development that have been introduced in Gradle 2 as an experiment are now deprecated.
-Development of these plugins has been discontinued since Gradle 3.
-Instead, the regular Java and Scala plugins have been extended, and new plugins such as `java-library` and `java-platform` have been added over the past years, to offer the same functionality and more.
-If you are still using one of these old plugins (`java-lang`, `scala-lang`, `jvm-component`, `jvm-resources`, `junit-test-suite`) please consult the documentation on <<building_java_projects.adoc#,Building Java & JVM projects>> to determine to which of the stable JVM plugins to migrate to.
-
-==== Deprecated methods
-
-- `AbstractExecTask#getExecResult()` has been replaced by `AbstractExecTask#getExecutionResult()` for consistency with `JavaExec#getExecutionResult()`. The return type is a <<lazy_configuration.adoc#,lazy value provider>>.
+A set of alternative plugins for Java and Scala development were introduced in Gradle 2.x as an experiment based on the "software model".  These plugins are now deprecated and will eventually be removed.  If you are still using one of these old plugins (`java-lang`, `scala-lang`, `jvm-component`, `jvm-resources`, `junit-test-suite`) please consult the documentation on <<building_java_projects.adoc#,Building Java & JVM projects>> to determine which of the stable JVM plugins are appropriate for your project.
 
 === Potential breaking changes
+
+==== `ProjectLayout` is no longer available to worker actions as a service
+
+In Gradle 6.0, the `ProjectLayout` service was made available to worker actions via service injection. This service allowed for mutable state to leak into a worker action and introduced a way for dependencies to go undeclared in the worker action.
+
+`ProjectLayout` has been removed from the available services.  Worker actions that were using `ProjectLayout` should switch to injecting the `projectDirectory` or `buildDirectory` as a parameter instead.
 
 ==== Updates to bundled Gradle dependencies
 

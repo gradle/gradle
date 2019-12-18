@@ -367,6 +367,15 @@ Some thing.''')
         formatter.toString() == toPlatformLineSeparators("thing 'value'")
     }
 
+    def "can append array value"() {
+        when:
+        formatter.node("thing ")
+        formatter.appendValue([12, "value", null] as Object[])
+
+        then:
+        formatter.toString() == toPlatformLineSeparators("thing [12, 'value', null]")
+    }
+
     def "can append null value"() {
         when:
         formatter.node("thing ")
@@ -383,6 +392,15 @@ Some thing.''')
 
         then:
         formatter.toString() == toPlatformLineSeparators("thing ['a', 12, null]")
+    }
+
+    def "can append typed array of values"() {
+        when:
+        formatter.node("thing ")
+        formatter.appendValues([1, 2, 3] as Number[])
+
+        then:
+        formatter.toString() == toPlatformLineSeparators("thing [1, 2, 3]")
     }
 
     def "can append empty array of values"() {
