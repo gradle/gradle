@@ -21,6 +21,7 @@ import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForVfsRetention
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Issue
@@ -74,6 +75,7 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("https://github.com/gradle/gradle/issues/1365")
     @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FLAKY)
+    @ToBeFixedForVfsRetention("symlinks")
     def "detect changes to broken symlink outputs in OutputDirectory"() {
         def root = file("root").createDir()
         def target = file("target")
@@ -133,6 +135,7 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("https://github.com/gradle/gradle/issues/1365")
     @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FLAKY)
+    @ToBeFixedForVfsRetention("symlinks")
     def "detect changes to broken symlink outputs in OutputFile"() {
         def root = file("root").createDir()
         def target = file("target")
@@ -220,6 +223,7 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue('https://github.com/gradle/gradle/issues/9904')
     @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FLAKY)
+    @ToBeFixedForVfsRetention("symlinks")
     def "task with broken symlink in InputDirectory is valid"() {
         def inputFileTarget = file("brokenInputFileTarget")
         def inputDirectoryWithBrokenLink = file('inputDirectoryWithBrokenLink')
@@ -267,6 +271,7 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue('https://github.com/gradle/gradle/issues/9904')
     @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FLAKY)
+    @ToBeFixedForVfsRetention("symlinks")
     def "task with broken symlink in InputFiles is valid"() {
         def inputFileTarget = file("brokenInputFileTarget")
         def brokenInputFile = file('brokenInputFile').createLink(inputFileTarget)
@@ -314,6 +319,7 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue('https://github.com/gradle/gradle/issues/9904')
     @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FLAKY)
+    @ToBeFixedForVfsRetention("symlinks")
     def "unbreaking a symlink in InputFiles is detected incrementally"() {
         def inputFileTarget = file("brokenInputFileTarget")
         def brokenInputFile = file('brokenInputFile').createLink(inputFileTarget)
