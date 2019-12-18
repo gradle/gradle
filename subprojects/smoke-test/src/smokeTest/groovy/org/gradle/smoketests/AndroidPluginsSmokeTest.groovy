@@ -44,7 +44,7 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
     def "android application plugin #pluginVersion"(String pluginVersion) {
         given:
 
-        def basedir='.'
+        def basedir = '.'
 
         def packageName = 'org.gradle.android.example'
         def activity = 'MyActivity'
@@ -90,7 +90,9 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
             '-x', 'lint').build()
 
         then:
-        if (VersionNumber.parse(pluginVersion).baseVersion < VersionNumber.parse("3.6.0").baseVersion) {
+        def pluginBaseVersion = VersionNumber.parse(pluginVersion).baseVersion
+        def threeDotSixBaseVersion = VersionNumber.parse("3.6.0").baseVersion
+        if (pluginBaseVersion < threeDotSixBaseVersion) {
             assert result.output.contains(JAVA_COMPILE_DEPRECATION_MESSAGE)
         } else {
             assert !result.output.contains(JAVA_COMPILE_DEPRECATION_MESSAGE)
@@ -98,7 +100,7 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
         result.task(':assemble').outcome == TaskOutcome.SUCCESS
         result.task(':compileReleaseJavaWithJavac').outcome == TaskOutcome.SUCCESS
 
-        if (pluginVersion == TestedVersions.androidGradle.latest()) {
+        if (pluginBaseVersion >= threeDotSixBaseVersion) {
             expectNoDeprecationWarnings(result)
         }
 
@@ -267,7 +269,7 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
                 ${changed ? "public void doStuff() {}" : ""}
             }""".stripIndent()
 
-        file("${basedir}/src/main/res/layout/${resourceName}_layout.xml").text =  '''<?xml version="1.0" encoding="utf-8"?>
+        file("${basedir}/src/main/res/layout/${resourceName}_layout.xml").text = '''<?xml version="1.0" encoding="utf-8"?>
             <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
                 android:orientation="vertical"
                 android:layout_width="fill_parent"
