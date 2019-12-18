@@ -45,6 +45,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import static org.gradle.api.internal.artifacts.verification.verifier.SignatureVerificationFailure.FailureKind.FAILED;
+import static org.gradle.api.internal.artifacts.verification.verifier.SignatureVerificationFailure.FailureKind.IGNORED_KEY;
 import static org.gradle.api.internal.artifacts.verification.verifier.SignatureVerificationFailure.FailureKind.KEY_NOT_FOUND;
 import static org.gradle.api.internal.artifacts.verification.verifier.SignatureVerificationFailure.FailureKind.PASSED_NOT_TRUSTED;
 
@@ -111,11 +112,15 @@ public class DefaultSignatureVerificationServiceFactory implements SignatureVeri
         }
 
         @Override
-        public Optional<SignatureVerificationFailure> verify(File origin, File signature, Set<String> trustedKeys) {
+        public Optional<SignatureVerificationFailure> verify(File origin, File signature, Set<String> trustedKeys, Set<String> ignoredKeys) {
             PGPSignatureList pgpSignatures = SecuritySupport.readSignatures(signature);
             Map<String, SignatureVerificationFailure.SignatureError> errors = Maps.newHashMap();
             for (PGPSignature pgpSignature : pgpSignatures) {
                 String key = SecuritySupport.toHexString(pgpSignature.getKeyID());
+                if (ignoredKeys.contains(key)) {
+                    errors.put(key, error(null, IGNORED_KEY));
+                    continue;
+                }
                 Optional<PGPPublicKey> publicKey = keyService.findPublicKey(pgpSignature.getKeyID());
                 if (publicKey.isPresent()) {
                     PGPPublicKey pgpPublicKey = publicKey.get();

@@ -22,18 +22,21 @@ import org.gradle.internal.component.external.model.ModuleComponentArtifactIdent
 import javax.annotation.Nullable;
 import java.net.URI;
 import java.util.List;
+import java.util.Set;
 
 public class DependencyVerificationConfiguration {
     private final boolean verifyMetadata;
     private final boolean verifySignatures;
     private final List<TrustedArtifact> trustedArtifacts;
     private final List<URI> keyServers;
+    private final Set<String> ignoredKeys;
 
-    public DependencyVerificationConfiguration(boolean verifyMetadata, boolean verifySignatures, List<TrustedArtifact> trustedArtifacts, List<URI> keyServers) {
+    public DependencyVerificationConfiguration(boolean verifyMetadata, boolean verifySignatures, List<TrustedArtifact> trustedArtifacts, List<URI> keyServers, Set<String> ignoredKeys) {
         this.verifyMetadata = verifyMetadata;
         this.verifySignatures = verifySignatures;
         this.trustedArtifacts = ImmutableList.copyOf(trustedArtifacts);
         this.keyServers = keyServers;
+        this.ignoredKeys = ignoredKeys;
     }
 
     public boolean isVerifySignatures() {
@@ -50,6 +53,10 @@ public class DependencyVerificationConfiguration {
 
     public List<URI> getKeyServers() {
         return keyServers;
+    }
+
+    public Set<String> getIgnoredKeys() {
+        return ignoredKeys;
     }
 
     public abstract static class TrustCoordinates {

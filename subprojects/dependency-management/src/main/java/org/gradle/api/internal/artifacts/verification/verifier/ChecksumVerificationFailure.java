@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.verification.verifier;
 
 import org.gradle.api.internal.artifacts.verification.model.ChecksumKind;
+import org.gradle.internal.logging.text.TreeFormatter;
 
 public class ChecksumVerificationFailure implements VerificationFailure {
 
@@ -42,7 +43,7 @@ public class ChecksumVerificationFailure implements VerificationFailure {
     }
 
     @Override
-    public String getMessage() {
-        return "expected a '" + kind + "' checksum of '" + expected + "' but was '" + actual + "'";
+    public void explainTo(TreeFormatter formatter) {
+        formatter.append("expected a '" + kind + "' checksum of '" + expected + "' but was '" + actual + "'");
     }
 }

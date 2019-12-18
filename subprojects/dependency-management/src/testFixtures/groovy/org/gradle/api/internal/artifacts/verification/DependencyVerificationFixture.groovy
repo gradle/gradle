@@ -217,6 +217,10 @@ class DependencyVerificationFixture {
             builder.addTrustedArtifact(group, name, version, fileName, regex)
         }
 
+        void addIgnoredKey(String id) {
+            builder.addIgnoredKey(id)
+        }
+
         void addChecksum(String id, String algo, String checksum, String type="jar", String ext="jar", String origin = null) {
             def parts = id.split(":")
             def group = parts[0]

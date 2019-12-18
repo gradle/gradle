@@ -81,24 +81,24 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
     }
 
     @Override
-    public Optional<SignatureVerificationFailure> verify(File origin, File signature, Set<String> trustedKeys) {
+    public Optional<SignatureVerificationFailure> verify(File origin, File signature, Set<String> trustedKeys, Set<String> ignoredKeys) {
         CacheKey cacheKey = new CacheKey(origin.getAbsolutePath(), signature.getAbsolutePath());
         HashCode originHash = fileHasher.hash(origin);
         HashCode signatureHash = fileHasher.hash(signature);
         CacheEntry entry = null;
         if (!refreshKeys) {
-            entry = cache.get(cacheKey, key -> performActualVerification(origin, signature, trustedKeys, originHash, signatureHash));
+            entry = cache.get(cacheKey, key -> performActualVerification(origin, signature, trustedKeys, ignoredKeys, originHash, signatureHash));
         }
-        if (entry == null || !entry.matches(originHash, signatureHash, trustedKeys)) {
-            entry = performActualVerification(origin, signature, trustedKeys, originHash, signatureHash);
+        if (entry == null || !entry.matches(originHash, signatureHash, trustedKeys, ignoredKeys)) {
+            entry = performActualVerification(origin, signature, trustedKeys, ignoredKeys, originHash, signatureHash);
             cache.put(cacheKey, entry);
         }
         return Optional.ofNullable(entry.verificationFailure);
     }
 
-    private CacheEntry performActualVerification(File origin, File signature, Set<String> trustedKeys, HashCode originHash, HashCode signatureHash) {
-        Optional<SignatureVerificationFailure> verificationFailure = delegate.verify(origin, signature, trustedKeys);
-        return new CacheEntry(originHash, signatureHash, trustedKeys, verificationFailure.orElse(null));
+    private CacheEntry performActualVerification(File origin, File signature, Set<String> trustedKeys, Set<String> ignoredKeys, HashCode originHash, HashCode signatureHash) {
+        Optional<SignatureVerificationFailure> verificationFailure = delegate.verify(origin, signature, trustedKeys, ignoredKeys);
+        return new CacheEntry(originHash, signatureHash, trustedKeys, ignoredKeys, verificationFailure.orElse(null));
     }
 
     @Override
@@ -140,19 +140,22 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
         private final HashCode originHash;
         private final HashCode signatureHash;
         private final Set<String> trustedKeys;
+        private final Set<String> ignoredKeys;
         private final SignatureVerificationFailure verificationFailure;
 
-        private CacheEntry(HashCode originHash, HashCode signatureHash, Set<String> trustedKeys, SignatureVerificationFailure verificationFailure) {
+        private CacheEntry(HashCode originHash, HashCode signatureHash, Set<String> trustedKeys, Set<String> ignoredKeys, SignatureVerificationFailure verificationFailure) {
             this.originHash = originHash;
             this.signatureHash = signatureHash;
             this.trustedKeys = trustedKeys;
+            this.ignoredKeys = ignoredKeys;
             this.verificationFailure = verificationFailure;
         }
 
-        private boolean matches(HashCode originHash, HashCode signatureHash, Set<String> trustedKeys) {
+        private boolean matches(HashCode originHash, HashCode signatureHash, Set<String> trustedKeys, Set<String> ignoredKeys) {
             return this.originHash.equals(originHash)
                 && this.signatureHash.equals(signatureHash)
-                && this.trustedKeys.equals(trustedKeys);
+                && this.trustedKeys.equals(trustedKeys)
+                && this.ignoredKeys.equals(ignoredKeys);
         }
     }
 
@@ -171,8 +174,9 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
             HashCode originHash = HashCode.fromBytes(decoder.readBinary());
             HashCode signatureHash = HashCode.fromBytes(decoder.readBinary());
             Set<String> trustedKeys = stringSetSerializer.read(decoder);
+            Set<String> ignoredKeys = stringSetSerializer.read(decoder);
             SignatureVerificationFailure verificationFailure = signatureVerificationFailureSerializer.read(decoder);
-            return new CacheEntry(originHash, signatureHash, trustedKeys, verificationFailure);
+            return new CacheEntry(originHash, signatureHash, trustedKeys, ignoredKeys, verificationFailure);
         }
 
         @Override
@@ -180,6 +184,7 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
             encoder.writeBinary(value.originHash.toByteArray());
             encoder.writeBinary(value.signatureHash.toByteArray());
             stringSetSerializer.write(encoder, value.trustedKeys);
+            stringSetSerializer.write(encoder, value.ignoredKeys);
             signatureVerificationFailureSerializer.write(encoder, value.verificationFailure);
         }
     }

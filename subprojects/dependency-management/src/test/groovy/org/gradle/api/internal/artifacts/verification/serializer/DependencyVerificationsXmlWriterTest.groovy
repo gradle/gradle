@@ -42,7 +42,6 @@ class DependencyVerificationsXmlWriterTest extends Specification {
    <configuration>
       <verify-metadata>$verifyMetadata</verify-metadata>
       <verify-signatures>$verifySignatures</verify-signatures>
-      <trusted-artifacts/>
    </configuration>
    <components/>
 </verification-metadata>
@@ -71,7 +70,6 @@ class DependencyVerificationsXmlWriterTest extends Specification {
          <key-server uri="https://pgp.key-server.io"/>
          <key-server uri="hkp://keys.openpgp.org"/>
       </key-servers>
-      <trusted-artifacts/>
    </configuration>
    <components/>
 </verification-metadata>
@@ -111,6 +109,29 @@ class DependencyVerificationsXmlWriterTest extends Specification {
 """
     }
 
+    def "can declare ignores keys"() {
+        when:
+        builder.addIgnoredKey("ABCDEF")
+        builder.addIgnoredKey("012345")
+        serialize()
+
+        then:
+        contents == """<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata>
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+      <verify-signatures>false</verify-signatures>
+      <ignored-keys>
+         <ignored-key id="ABCDEF"/>
+         <ignored-key id="012345"/>
+      </ignored-keys>
+   </configuration>
+   <components/>
+</verification-metadata>
+"""
+    }
+
+
     // In context of future dependency verification file update, we try
     // to preserve the order of insertion when building the file.
     // There's the exception of checksums themselves, which are ordered
@@ -134,7 +155,6 @@ class DependencyVerificationsXmlWriterTest extends Specification {
    <configuration>
       <verify-metadata>true</verify-metadata>
       <verify-signatures>false</verify-signatures>
-      <trusted-artifacts/>
    </configuration>
    <components>
       <component group="org" name="foo" version="1.0">
@@ -174,7 +194,6 @@ class DependencyVerificationsXmlWriterTest extends Specification {
    <configuration>
       <verify-metadata>true</verify-metadata>
       <verify-signatures>false</verify-signatures>
-      <trusted-artifacts/>
    </configuration>
    <components>
       <component group="org" name="foo" version="1.0">
@@ -207,7 +226,6 @@ class DependencyVerificationsXmlWriterTest extends Specification {
    <configuration>
       <verify-metadata>true</verify-metadata>
       <verify-signatures>false</verify-signatures>
-      <trusted-artifacts/>
    </configuration>
    <components>
       <component group="org" name="foo" version="1.0">
@@ -240,7 +258,6 @@ class DependencyVerificationsXmlWriterTest extends Specification {
    <configuration>
       <verify-metadata>true</verify-metadata>
       <verify-signatures>false</verify-signatures>
-      <trusted-artifacts/>
    </configuration>
    <components>
       <component group="org" name="foo" version="1.0">
