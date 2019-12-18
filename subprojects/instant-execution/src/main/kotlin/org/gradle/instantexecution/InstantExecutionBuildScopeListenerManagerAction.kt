@@ -16,20 +16,16 @@
 
 package org.gradle.instantexecution
 
-import org.gradle.api.internal.BuildDefinition
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.service.scopes.BuildScopeListenerManagerAction
 
 
 internal
 class InstantExecutionBuildScopeListenerManagerAction(
-    val buildDefinition: BuildDefinition,
-    val listener: InstantExecutionClassLoaderScopeRegistryListener
+    private val listener: InstantExecutionClassLoaderScopeRegistryListener
 ) : BuildScopeListenerManagerAction {
 
     override fun execute(manager: ListenerManager) {
-        if (SystemProperties.isEnabled in buildDefinition.startParameter.systemPropertiesArgs) {
-            listener.attach(manager)
-        }
+        listener.attach(manager)
     }
 }
