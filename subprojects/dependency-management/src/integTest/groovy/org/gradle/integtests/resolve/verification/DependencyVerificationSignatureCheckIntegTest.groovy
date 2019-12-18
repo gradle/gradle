@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.resolve.verification
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.security.fixtures.KeyServer
 import org.gradle.security.fixtures.SigningFixtures
 import spock.lang.Unroll
@@ -85,6 +86,7 @@ class DependencyVerificationSignatureCheckIntegTest extends AbstractSignatureVer
 This can indicate that a dependency has been compromised. Please verify carefully the checksums."""
     }
 
+    @ToBeFixedForInstantExecution
     @Unroll
     def "can verify signature for artifacts downloaded in a previous build (stop in between = #stopInBetween)"() {
         given:
@@ -128,6 +130,7 @@ This can indicate that a dependency has been compromised. Please verify carefull
         stopInBetween << [false, true]
     }
 
+    @ToBeFixedForInstantExecution
     @Unroll
     def "can verify classified artifacts downloaded in previous builds (stop in between = #stopInBetween)"() {
         def keyring = newKeyRing()
