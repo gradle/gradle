@@ -528,4 +528,30 @@ This can indicate that a dependency has been compromised. Please verify carefull
   - Artifact foo-1.0.jar (org:foo:1.0) checksum is missing from verification metadata."""
     }
 
+    def "unsigned artifacts require checksum verification"() {
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+            verifySignatures()
+            addChecksum("org:foo:1.0", "sha256", "nope")
+            addChecksum("org:foo:1.0", "sha256", "nope", "pom", "pom")
+        }
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0")
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        fails ":compileJava"
+
+        then:
+        failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
+  - On artifact foo-1.0.jar (org:foo:1.0): expected a 'sha256' checksum of 'nope' but was '20ae575ede776e5e06ee6b168652d11ee23069e92de110fdec13fbeaa5cf3bbc'
+  - On artifact foo-1.0.pom (org:foo:1.0): expected a 'sha256' checksum of 'nope' but was 'f331cce36f6ce9ea387a2c8719fabaf67dc5a5862227ebaa13368ff84eb69481'
+This can indicate that a dependency has been compromised. Please verify carefully the checksums."""
+    }
 }
