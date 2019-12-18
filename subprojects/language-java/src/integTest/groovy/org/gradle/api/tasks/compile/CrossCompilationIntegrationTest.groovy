@@ -21,9 +21,9 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
-import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.archive.JarTestFixture
+import org.gradle.test.fixtures.file.ClassFile
 import org.junit.Assume
-import org.objectweb.asm.Opcodes
 import spock.lang.Unroll
 
 class CrossCompilationIntegrationTest extends AbstractIntegrationSpec {
@@ -33,6 +33,7 @@ class CrossCompilationIntegrationTest extends AbstractIntegrationSpec {
         def jvm = AvailableJavaHomes.getJdk(version)
         Assume.assumeTrue(jvm != null)
 
+        settingsFile << "rootProject.name = 'oldjava'"
         buildFile << """
             plugins {
                 id "java"
@@ -101,28 +102,15 @@ class CrossCompilationIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         sourceFile.replace("() -> { }", "new Runnable() { public void run() { } }")
-        run("build", "-i")
+        run("build")
 
         then:
-        versionFromByteCode(file("build/classes/java/main/Thing.class")) == version
-        versionFromByteCode(file("build/classes/java/test/ThingTest.class")) == version
-        def results = new DefaultTestExecutionResult(testDirectory)
-        results.assertTestClassesExecuted("ThingTest")
+        new JarTestFixture(file("build/libs/oldjava.jar")).javaVersion == version
+        new ClassFile(file("build/classes/java/main/Thing.class")).javaVersion == version
+        new ClassFile(file("build/classes/java/test/ThingTest.class")).javaVersion == version
+        new DefaultTestExecutionResult(testDirectory).assertTestClassesExecuted("ThingTest")
 
         where:
         version << [JavaVersion.VERSION_1_6, JavaVersion.VERSION_1_7]
-    }
-
-    JavaVersion versionFromByteCode(TestFile file) {
-        def bytes = file.bytes
-        def majorVersion = (((bytes[6] & 0xFF) << 8) | (bytes[7] & 0xFF))
-        switch (majorVersion) {
-            case Opcodes.V1_6:
-                return JavaVersion.VERSION_1_6
-            case Opcodes.V1_7:
-                return JavaVersion.VERSION_1_7
-            default:
-                throw new UnsupportedOperationException("Unexpected major version ${majorVersion}")
-        }
     }
 }
