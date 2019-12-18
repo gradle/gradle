@@ -24,7 +24,7 @@ import spock.lang.Unroll
 @Unroll
 class BuildScanEndOfBuildNotifierIntegrationTest extends AbstractIntegrationSpec {
 
-    private static final VFS_RETENTION_OUTPUT = '''(Watching \\d* directory hierarchies to track changes between builds in \\d* directories
+    private static final VFS_RETENTION_OUTPUT = '''(Watching \\d* (directory hierarchies to track changes between builds in \\d* directories|directories to track changes between builds)
 )?'''
 
     def setup() {
