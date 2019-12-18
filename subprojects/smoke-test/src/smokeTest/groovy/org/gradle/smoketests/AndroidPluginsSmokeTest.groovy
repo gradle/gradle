@@ -90,7 +90,9 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
             '-x', 'lint').build()
 
         then:
-        if (VersionNumber.parse(pluginVersion).baseVersion < VersionNumber.parse("3.6.0").baseVersion) {
+        def pluginBaseVersion = VersionNumber.parse(pluginVersion).baseVersion
+        def threeDotSixBaseVersion = VersionNumber.parse("3.6.0").baseVersion
+        if (pluginBaseVersion < threeDotSixBaseVersion) {
             assert result.output.contains(JAVA_COMPILE_DEPRECATION_MESSAGE)
         } else {
             assert !result.output.contains(JAVA_COMPILE_DEPRECATION_MESSAGE)
@@ -98,7 +100,7 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
         result.task(':assemble').outcome == TaskOutcome.SUCCESS
         result.task(':compileReleaseJavaWithJavac').outcome == TaskOutcome.SUCCESS
 
-        if (pluginVersion == TestedVersions.androidGradle.latest()) {
+        if (pluginBaseVersion >= threeDotSixBaseVersion) {
             expectNoDeprecationWarnings(result)
         }
 
