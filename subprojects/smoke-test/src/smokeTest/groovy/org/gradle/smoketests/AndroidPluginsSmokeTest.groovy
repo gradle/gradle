@@ -44,7 +44,7 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
     def "android application plugin #pluginVersion"(String pluginVersion) {
         given:
 
-        def basedir='.'
+        def basedir = '.'
 
         def packageName = 'org.gradle.android.example'
         def activity = 'MyActivity'
@@ -267,7 +267,7 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
                 ${changed ? "public void doStuff() {}" : ""}
             }""".stripIndent()
 
-        file("${basedir}/src/main/res/layout/${resourceName}_layout.xml").text =  '''<?xml version="1.0" encoding="utf-8"?>
+        file("${basedir}/src/main/res/layout/${resourceName}_layout.xml").text = '''<?xml version="1.0" encoding="utf-8"?>
             <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
                 android:orientation="vertical"
                 android:layout_width="fill_parent"
