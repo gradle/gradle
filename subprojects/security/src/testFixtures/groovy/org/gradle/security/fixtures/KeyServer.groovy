@@ -48,8 +48,11 @@ class KeyServer extends HttpServer {
     void registerPublicKey(PGPPublicKey key) {
         String keyId = toHexString(key.keyID)
         def keyFile = baseDirectory.createFile("${keyId}.asc")
-        new ArmoredOutputStream(keyFile.newOutputStream()).withCloseable {
-            key.encode(it)
+        keyFile.deleteOnExit()
+        keyFile.newOutputStream().withCloseable { out ->
+            new ArmoredOutputStream(out).withCloseable {
+                key.encode(it)
+            }
         }
         registerKey(keyId, keyFile)
     }
@@ -61,6 +64,7 @@ class KeyServer extends HttpServer {
     void withDefaultSigningKey() {
         File dir = baseDirectory.createDir("default-key")
         File publicKeyFile = new File(dir, "public-key.asc")
+        publicKeyFile.deleteOnExit()
         SigningFixtures.writeValidPublicKeyTo(publicKeyFile)
         registerKey(SigningFixtures.validPublicKeyHexString, publicKeyFile)
     }

@@ -74,9 +74,10 @@ public class SecuritySupport {
     }
 
     public static PGPSignatureList readSignatures(InputStream source) {
-        try (InputStream stream = source) {
+        try (InputStream stream = source;
+             InputStream decoderStream = PGPUtil.getDecoderStream(stream)) {
             PGPObjectFactory objectFactory = new PGPObjectFactory(
-                PGPUtil.getDecoderStream(stream), new BcKeyFingerprintCalculator());
+                decoderStream, new BcKeyFingerprintCalculator());
             return (PGPSignatureList) objectFactory.nextObject();
         } catch (IOException e) {
             throw new UncheckedIOException(e);

@@ -98,8 +98,10 @@ class SigningFixtures {
     }
 
     static void writeValidPublicKeyTo(File file) {
-        new ArmoredOutputStream(file.newOutputStream()).withCloseable {
-            Holder.VALID_KEYRING.publicKey.encode(it)
+        file.newOutputStream().withCloseable { stream ->
+            new ArmoredOutputStream(stream).withCloseable {
+                Holder.VALID_KEYRING.publicKey.encode(it)
+            }
         }
     }
 
@@ -119,13 +121,17 @@ class SigningFixtures {
         PGPSecretKeyRingCollection ring = new BcPGPSecretKeyRingCollection(
             [secret]
         )
-        ring.encode(new FileOutputStream(secring))
+        new FileOutputStream(secring).withCloseable {
+            ring.encode(it)
+        }
         def publicKeys = generator.generatePublicKeyRing().publicKeys.collect { it }
         PGPPublicKeyRing pub = new PGPPublicKeyRing(publicKeys)
         PGPPublicKeyRingCollection pubcol = new BcPGPPublicKeyRingCollection(
             [pub]
         )
-        pubcol.encode(new FileOutputStream(pubring))
+        new FileOutputStream(pubring).withCloseable {
+            pubcol.encode(it)
+        }
         directory
     }
 
