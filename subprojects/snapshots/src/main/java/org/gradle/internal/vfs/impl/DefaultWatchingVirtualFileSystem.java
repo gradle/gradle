@@ -78,7 +78,7 @@ public class DefaultWatchingVirtualFileSystem extends AbstractDelegatingVirtualF
                     if (ancestor == null) {
                         break;
                     }
-                    if (Files.exists(ancestor)) {
+                    if (Files.isDirectory(ancestor)) {
                         watchedDirectories.add(ancestor);
                         break;
                     }
