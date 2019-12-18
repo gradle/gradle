@@ -1,6 +1,6 @@
 The Gradle team is excited to announce Gradle @version@.
 
-This release finishes off 2019 with a few new features. Gradle now supports [a relocatable dependency cache](#cache), makes [compilation order between Java, Groovy and Scala classes configurable](#compilation-order) and kicks off a [new set of downloadable samples](#samples).
+This release supports [a relocatable dependency cache](#cache), makes [compilation order between Java, Groovy and Scala classes configurable](#compilation-order) and kicks off a [new set of downloadable samples](#samples).
 
 There are also several [bug fixes](#fixed-issues), conveniences for [Gradle plugin authors](#plugin-dev) and more.
 
