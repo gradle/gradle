@@ -32,7 +32,6 @@ class VfsRetentionGradleExecuter extends DaemonGradleExecuter {
         IntegrationTestBuildContext buildContext
     ) {
         super(distribution, testDirectoryProvider, gradleVersion, buildContext)
-        requireIsolatedDaemons()
         beforeExecute {
             // Wait a second to pick up changes
             Thread.sleep(1000)
@@ -46,5 +45,11 @@ class VfsRetentionGradleExecuter extends DaemonGradleExecuter {
         super.getAllArgs() + ([
             "-D${VirtualFileSystemServices.VFS_RETENTION_ENABLED_PROPERTY}=true",
         ] + conditionalArgs).collect { it.toString() }
+    }
+
+    @Override
+    protected Map<String, String> getImplicitJvmSystemProperties() {
+        requireIsolatedDaemons()
+        return super.getImplicitJvmSystemProperties()
     }
 }
