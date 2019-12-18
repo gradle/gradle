@@ -50,6 +50,8 @@ import static org.gradle.api.internal.artifacts.verification.serializer.Dependen
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.TRUST;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.TRUSTED_ARTIFACTS;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.ORIGIN;
+import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.TRUSTED_KEY;
+import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.TRUSTED_KEYS;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.URI;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.VALUE;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.VERIFICATION_METADATA;
@@ -89,6 +91,26 @@ public class DependencyVerificationsXmlWriter {
         writeKeyServers(configuration);
         writeTrustedArtifacts(configuration);
         writIgnoredKeys(configuration);
+        writeGloballyTrustedKeys(configuration);
+        writer.endElement();
+    }
+
+    private void writeGloballyTrustedKeys(DependencyVerificationConfiguration configuration) throws IOException {
+        final List<DependencyVerificationConfiguration.TrustedKey> keys = configuration.getTrustedKeys();
+        if (keys.isEmpty()) {
+            return;
+        }
+        writer.startElement(TRUSTED_KEYS);
+        for (DependencyVerificationConfiguration.TrustedKey key : keys) {
+            writeTrustedKey(key);
+        }
+        writer.endElement();
+    }
+
+    private void writeTrustedKey(DependencyVerificationConfiguration.TrustedKey key) throws IOException {
+        writer.startElement(TRUSTED_KEY);
+        writeAttribute(ID, key.getKeyId());
+        writeTrustCoordinates(key);
         writer.endElement();
     }
 
@@ -123,6 +145,11 @@ public class DependencyVerificationsXmlWriter {
 
     private void writeTrustedArtifact(DependencyVerificationConfiguration.TrustedArtifact trustedArtifact) throws IOException {
         writer.startElement(TRUST);
+        writeTrustCoordinates(trustedArtifact);
+        writer.endElement();
+    }
+
+    private void writeTrustCoordinates(DependencyVerificationConfiguration.TrustCoordinates trustedArtifact) throws IOException {
         writeNullableAttribute(GROUP, trustedArtifact.getGroup());
         writeNullableAttribute(NAME, trustedArtifact.getName());
         writeNullableAttribute(VERSION, trustedArtifact.getVersion());
@@ -130,7 +157,6 @@ public class DependencyVerificationsXmlWriter {
         if (trustedArtifact.isRegex()) {
             writeAttribute(REGEX, "true");
         }
-        writer.endElement();
     }
 
     private void writeSignatureCheck(DependencyVerificationConfiguration configuration) throws IOException {

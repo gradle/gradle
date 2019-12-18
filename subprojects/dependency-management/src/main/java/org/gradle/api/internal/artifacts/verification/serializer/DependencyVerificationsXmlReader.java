@@ -60,6 +60,8 @@ import static org.gradle.api.internal.artifacts.verification.serializer.Dependen
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.REGEX;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.TRUST;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.TRUSTED_ARTIFACTS;
+import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.TRUSTED_KEY;
+import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.TRUSTED_KEYS;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.URI;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.VALUE;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.VERIFICATION_METADATA;
@@ -111,6 +113,7 @@ public class DependencyVerificationsXmlReader {
         private boolean inTrustedArtifacts;
         private boolean inKeyServers;
         private boolean inIgnoredKeys;
+        private boolean inTrustedKeys;
         private ModuleComponentIdentifier currentComponent;
         private ModuleComponentArtifactIdentifier currentArtifact;
         private ChecksumKind currentChecksum;
@@ -151,6 +154,14 @@ public class DependencyVerificationsXmlReader {
                 case TRUSTED_ARTIFACTS:
                     assertInConfiguration(TRUSTED_ARTIFACTS);
                     inTrustedArtifacts = true;
+                    break;
+                case TRUSTED_KEY:
+                    assertContext(inTrustedKeys, TRUSTED_KEY, TRUSTED_KEYS);
+                    addTrustedKey(attributes);
+                    break;
+                case TRUSTED_KEYS:
+                    assertInConfiguration(TRUSTED_KEYS);
+                    inTrustedKeys = true;
                     break;
                 case TRUST:
                     assertInTrustedArtifacts();
@@ -206,6 +217,22 @@ public class DependencyVerificationsXmlReader {
                 regex = Boolean.parseBoolean(regexAttr);
             }
             builder.addTrustedArtifact(
+                getNullableAttribute(attributes, GROUP),
+                getNullableAttribute(attributes, NAME),
+                getNullableAttribute(attributes, VERSION),
+                getNullableAttribute(attributes, FILE),
+                regex
+            );
+        }
+
+        private void addTrustedKey(Attributes attributes) {
+            boolean regex = false;
+            String regexAttr = getNullableAttribute(attributes, REGEX);
+            if (regexAttr != null) {
+                regex = Boolean.parseBoolean(regexAttr);
+            }
+            builder.addTrustedKey(
+                getAttribute(attributes, ID),
                 getNullableAttribute(attributes, GROUP),
                 getNullableAttribute(attributes, NAME),
                 getNullableAttribute(attributes, VERSION),
@@ -276,6 +303,9 @@ public class DependencyVerificationsXmlReader {
                     break;
                 case TRUSTED_ARTIFACTS:
                     inTrustedArtifacts = false;
+                    break;
+                case TRUSTED_KEYS:
+                    inTrustedKeys = false;
                     break;
                 case KEY_SERVERS:
                     inKeyServers = false;

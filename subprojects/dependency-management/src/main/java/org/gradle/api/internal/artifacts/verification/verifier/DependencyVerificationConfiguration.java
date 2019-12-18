@@ -30,13 +30,15 @@ public class DependencyVerificationConfiguration {
     private final List<TrustedArtifact> trustedArtifacts;
     private final List<URI> keyServers;
     private final Set<String> ignoredKeys;
+    private final List<TrustedKey> trustedKeys;
 
-    public DependencyVerificationConfiguration(boolean verifyMetadata, boolean verifySignatures, List<TrustedArtifact> trustedArtifacts, List<URI> keyServers, Set<String> ignoredKeys) {
+    public DependencyVerificationConfiguration(boolean verifyMetadata, boolean verifySignatures, List<TrustedArtifact> trustedArtifacts, List<URI> keyServers, Set<String> ignoredKeys, List<TrustedKey> trustedKeys) {
         this.verifyMetadata = verifyMetadata;
         this.verifySignatures = verifySignatures;
         this.trustedArtifacts = ImmutableList.copyOf(trustedArtifacts);
         this.keyServers = keyServers;
         this.ignoredKeys = ignoredKeys;
+        this.trustedKeys = trustedKeys;
     }
 
     public boolean isVerifySignatures() {
@@ -57,6 +59,10 @@ public class DependencyVerificationConfiguration {
 
     public Set<String> getIgnoredKeys() {
         return ignoredKeys;
+    }
+
+    public List<TrustedKey> getTrustedKeys() {
+        return trustedKeys;
     }
 
     public abstract static class TrustCoordinates {
@@ -116,6 +122,19 @@ public class DependencyVerificationConfiguration {
     public static class TrustedArtifact extends TrustCoordinates {
         TrustedArtifact(@Nullable String group, @Nullable String name, @Nullable String version, @Nullable String fileName, boolean regex) {
             super(group, name, version, fileName, regex);
+        }
+    }
+
+    public static class TrustedKey extends TrustCoordinates {
+        private final String keyId;
+
+        TrustedKey(String keyId, @Nullable String group, @Nullable String name, @Nullable String version, @Nullable String fileName, boolean regex) {
+            super(group, name, version, fileName, regex);
+            this.keyId = keyId;
+        }
+
+        public String getKeyId() {
+            return keyId;
         }
     }
 }

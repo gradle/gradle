@@ -278,6 +278,10 @@ class DependencyVerificationFixture {
             )
         }
 
+        void addGloballyTrustedKey(String keyId, String group = null, String name = null, String version = null, String fileName = null, boolean regex = false) {
+            builder.addTrustedKey(keyId, group, name, version, fileName, regex)
+        }
+
         DependencyVerifier build() {
             builder.build()
         }
