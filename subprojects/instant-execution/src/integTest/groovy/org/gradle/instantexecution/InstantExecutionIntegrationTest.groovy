@@ -46,10 +46,14 @@ import javax.inject.Inject
 
 class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegrationTest {
 
+    private static final VFS_WATCHING_MESSAGE_PATTERN = 'Watching \\d* directories to track changes between builds\n'
+
     def "instant execution for help on empty project"() {
         given:
         instantRun "help"
-        def firstRunOutput = result.normalizedOutput.replace('Calculating task graph as no instant execution cache is available for tasks: help', '')
+        def firstRunOutput = result.normalizedOutput
+            .replace('Calculating task graph as no instant execution cache is available for tasks: help', '')
+            .replaceAll(VFS_WATCHING_MESSAGE_PATTERN, '')
 
         when:
         instantRun "help"
@@ -58,6 +62,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         firstRunOutput == result.normalizedOutput
             .replace('Reusing instant execution cache. This is not guaranteed to work in any way.', '')
             .replaceAll('Received \\d* file system events since last build\n', '')
+            .replaceAll(VFS_WATCHING_MESSAGE_PATTERN, '')
     }
 
     def "restores some details of the project structure"() {
