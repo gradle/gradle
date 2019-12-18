@@ -88,7 +88,7 @@ public class DefaultWatchingVirtualFileSystem extends AbstractDelegatingVirtualF
                 // so we learn about new children spawning. If the directory
                 // has children, it would be watched through them already.
                 // This is here to make sure we also watch empty directories.
-                if (snapshot.getType() == FileType.Directory && Files.exists(path)) {
+                if (snapshot.getType() == FileType.Directory) {
                     watchedDirectories.add(path);
                 }
             });
