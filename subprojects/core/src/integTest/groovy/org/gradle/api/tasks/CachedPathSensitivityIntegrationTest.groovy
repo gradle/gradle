@@ -25,6 +25,10 @@ class CachedPathSensitivityIntegrationTest extends AbstractPathSensitivityIntegr
     def setup() {
         buildFile << """
             task clean {
+                def cleanTask = delegate
+                tasks.all { otherTask ->
+                    cleanTask.destroyables.register(otherTask.outputs.files)
+                }
                 doLast {
                     delete(tasks*.outputs*.files)
                 }
