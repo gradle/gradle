@@ -16,8 +16,6 @@
 package gradlebuild
 
 import accessors.base
-import accessors.groovy
-import accessors.java
 
 import groovy.lang.MissingPropertyException
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
@@ -32,12 +30,6 @@ plugins {
 
 val generatePom = tasks.register("generatePom", GeneratePom::class.java)
 
-val main by java.sourceSets
-val sourceJar = tasks.register("sourceJar", Jar::class.java) {
-    archiveClassifier.set("sources")
-    from(main.java.srcDirs + main.groovy.srcDirs)
-}
-
 configureUploadArchivesTask(generatePom)
 
 artifacts {
@@ -46,7 +38,7 @@ artifacts {
         add(generatePom.get().publishRuntime.name, artifact) // TODO: This prevent `generatePom` from being lazy
 
     publishRuntime(tasks.named("jar").get()) // TODO: LazyPublishArtifact has custom provider unpacking, see https://github.com/gradle/gradle-native/issues/719
-    publishRuntime(sourceJar.get()) // TODO: LazyPublishArtifact has custom provider unpacking, see https://github.com/gradle/gradle-native/issues/719
+    publishRuntime(tasks.named("sourcesJar").get()) // TODO: LazyPublishArtifact has custom provider unpacking, see https://github.com/gradle/gradle-native/issues/719
     publishRuntime(
         DefaultPublishArtifact(
             base.archivesBaseName,

@@ -97,14 +97,18 @@ gradlebuildJava {
 
 apply(from = "buildship.gradle")
 
-tasks.sourceJar {
-    configurations.implementation.get().allDependencies.withType<ProjectDependency>().forEach {
-        if (it.dependencyProject.plugins.hasPlugin(JavaBasePlugin::class)) {
-            val sourceSet = it.dependencyProject.the<SourceSetContainer>()[SourceSet.MAIN_SOURCE_SET_NAME]
-            from(sourceSet.groovy.srcDirs)
-            from(sourceSet.java.srcDirs)
-        }
+val sourcesPath: Configuration by configurations.creating {
+    isCanBeConsumed = false
+    extendsFrom(configurations["implementation"])
+    attributes {
+        attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType.SOURCES))
     }
+}
+
+tasks.named<Jar>("sourcesJar") {
+    from(sourcesPath.incoming.artifactView {
+        attributes.attribute(Attribute.of("artifactType", String::class.java), "java-sources-directory")
+    }.files)
 }
 
 eclipse {
