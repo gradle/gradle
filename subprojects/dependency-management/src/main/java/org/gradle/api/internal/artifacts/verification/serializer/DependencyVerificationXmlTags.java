@@ -34,6 +34,8 @@ abstract class DependencyVerificationXmlTags {
     static final String REGEX = "regex";
     static final String TRUST = "trust";
     static final String TRUSTED_ARTIFACTS = "trusted-artifacts";
+    static final String TRUSTED_KEY = "trusted-key";
+    static final String TRUSTED_KEYS = "trusted-keys";
     static final String URI = "uri";
     static final String VALUE = "value";
     static final String VERIFICATION_METADATA = "verification-metadata";

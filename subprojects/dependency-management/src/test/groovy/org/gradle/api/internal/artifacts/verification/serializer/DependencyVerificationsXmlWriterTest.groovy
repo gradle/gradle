@@ -131,6 +131,31 @@ class DependencyVerificationsXmlWriterTest extends Specification {
 """
     }
 
+    def "can declare trusted keys"() {
+        when:
+        builder.addTrustedKey("ABCDEF", "g1", null, null, null, false)
+        builder.addTrustedKey("012345", "g2", "m1", null, "file.jar", true)
+        builder.addTrustedKey("ABC123", "g3", "m2", "1.0", null, true)
+        builder.addTrustedKey("456DEF", null, "m3", "1.4", "file.zip", false)
+        serialize()
+
+        then:
+        contents == """<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata>
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+      <verify-signatures>false</verify-signatures>
+      <trusted-keys>
+         <trusted-key id="ABCDEF" group="g1"/>
+         <trusted-key id="012345" group="g2" name="m1" file="file.jar" regex="true"/>
+         <trusted-key id="ABC123" group="g3" name="m2" version="1.0" regex="true"/>
+         <trusted-key id="456DEF" name="m3" version="1.4" file="file.zip"/>
+      </trusted-keys>
+   </configuration>
+   <components/>
+</verification-metadata>
+"""
+    }
 
     // In context of future dependency verification file update, we try
     // to preserve the order of insertion when building the file.

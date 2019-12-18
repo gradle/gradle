@@ -42,6 +42,7 @@ import java.util.stream.Collectors;
 public class DependencyVerifierBuilder {
     private final Map<ModuleComponentIdentifier, ComponentVerificationsBuilder> byComponent = Maps.newLinkedHashMap();
     private final List<DependencyVerificationConfiguration.TrustedArtifact> trustedArtifacts = Lists.newArrayList();
+    private final List<DependencyVerificationConfiguration.TrustedKey> trustedKeys = Lists.newArrayList();
     private final List<URI> keyServers = Lists.newArrayList();
     private final Set<String> ignoredKeys = Sets.newLinkedHashSet();
     private boolean isVerifyMetadata = true;
@@ -84,6 +85,11 @@ public class DependencyVerifierBuilder {
         ignoredKeys.add(keyId);
     }
 
+    public void addTrustedKey(String keyId, @Nullable String group, @Nullable String name, @Nullable String version, @Nullable String fileName, boolean regex) {
+        validateUserInput(group, name, version, fileName);
+        trustedKeys.add(new DependencyVerificationConfiguration.TrustedKey(keyId, group, name, version, fileName, regex));
+    }
+
     private void validateUserInput(@Nullable String group, @Nullable String name, @Nullable String version, @Nullable String fileName) {
         // because this can be called from parsing XML, we need to perform additional verification
         if (group == null && name == null && version == null && fileName == null) {
@@ -96,7 +102,7 @@ public class DependencyVerifierBuilder {
         for (Map.Entry<ModuleComponentIdentifier, ComponentVerificationsBuilder> entry : byComponent.entrySet()) {
             builder.put(entry.getKey(), entry.getValue().build());
         }
-        return new DependencyVerifier(builder.build(), new DependencyVerificationConfiguration(isVerifyMetadata, isVerifySignatures, trustedArtifacts, ImmutableList.copyOf(keyServers), ImmutableSet.copyOf(ignoredKeys)));
+        return new DependencyVerifier(builder.build(), new DependencyVerificationConfiguration(isVerifyMetadata, isVerifySignatures, trustedArtifacts, ImmutableList.copyOf(keyServers), ImmutableSet.copyOf(ignoredKeys), trustedKeys));
     }
 
     public List<DependencyVerificationConfiguration.TrustedArtifact> getTrustedArtifacts() {

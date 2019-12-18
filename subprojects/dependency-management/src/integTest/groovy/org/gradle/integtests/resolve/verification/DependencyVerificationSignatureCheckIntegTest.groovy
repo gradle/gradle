@@ -657,4 +657,82 @@ This can indicate that a dependency has been compromised. Please verify carefull
 This can indicate that a dependency has been compromised. Please verify carefully the checksums."""
     }
 
+    def "can declare globally trusted keys"() {
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+            verifySignatures()
+            addGloballyTrustedKey(validPublicKeyHexString, "org")
+        }
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0") {
+            withSignature {
+                signAsciiArmored(it)
+            }
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        serveValidKey()
+        succeeds ":compileJava"
+
+        then:
+        outputContains("Dependency verification is an incubating feature.")
+    }
+
+    @Unroll
+    def "can mix globally trusted keys and artifact specific keys (trust artifact key = #addLocalKey)"() {
+        def keyring = newKeyRing()
+        keyServerFixture.registerPublicKey(keyring.publicKey)
+        def pkId = toHexString(keyring.publicKey.keyID)
+
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+            verifySignatures()
+            addGloballyTrustedKey(validPublicKeyHexString, "o.*", "foo", null, null, true)
+            if (addLocalKey) {
+                addTrustedKey("org:foo:1.0", pkId)
+                addTrustedKey("org:foo:1.0", pkId, "pom", "pom")
+            }
+        }
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0") {
+            withSignature {
+                keyring.sign(it, [(SigningFixtures.validSecretKey): SigningFixtures.validPassword])
+            }
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        serveValidKey()
+        if (addLocalKey) {
+            succeeds ":compileJava"
+        } else {
+            fails ":compileJava"
+        }
+
+        then:
+        if (addLocalKey) {
+            outputContains("Dependency verification is an incubating feature.")
+        } else {
+            failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
+  - On artifact foo-1.0.jar (org:foo:1.0): Artifact was signed with key '${pkId}' (test-user@gradle.com) and passed verification but the key isn't in your trusted keys list.
+  - On artifact foo-1.0.pom (org:foo:1.0): Artifact was signed with key '${pkId}' (test-user@gradle.com) and passed verification but the key isn't in your trusted keys list.
+This can indicate that a dependency has been compromised. Please verify carefully the checksums."""
+        }
+
+        where:
+        addLocalKey << [true, false]
+    }
 }
