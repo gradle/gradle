@@ -23,5 +23,5 @@ import java.util.Optional;
 import java.util.Set;
 
 public interface SignatureVerificationService extends Stoppable {
-    Optional<SignatureVerificationFailure> verify(File origin, File signature, Set<String> trustedKeys);
+    Optional<SignatureVerificationFailure> verify(File origin, File signature, Set<String> trustedKeys, Set<String> ignoredKeys);
 }

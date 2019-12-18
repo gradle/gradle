@@ -21,9 +21,9 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
+import org.gradle.api.internal.artifacts.verification.model.ChecksumKind;
 import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifier;
 import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifierBuilder;
-import org.gradle.api.internal.artifacts.verification.model.ChecksumKind;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
@@ -49,6 +49,9 @@ import static org.gradle.api.internal.artifacts.verification.serializer.Dependen
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.CONFIG;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.FILE;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.GROUP;
+import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.ID;
+import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.IGNORED_KEY;
+import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.IGNORED_KEYS;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.KEY_SERVER;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.KEY_SERVERS;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.NAME;
@@ -107,6 +110,7 @@ public class DependencyVerificationsXmlReader {
         private boolean inVerifySignatures;
         private boolean inTrustedArtifacts;
         private boolean inKeyServers;
+        private boolean inIgnoredKeys;
         private ModuleComponentIdentifier currentComponent;
         private ModuleComponentArtifactIdentifier currentArtifact;
         private ChecksumKind currentChecksum;
@@ -117,54 +121,78 @@ public class DependencyVerificationsXmlReader {
 
         @Override
         public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
-            if (CONFIG.equals(qName)) {
-                inConfiguration = true;
-            } else if (VERIFICATION_METADATA.equals(qName)) {
-                inMetadata = true;
-            } else if (COMPONENTS.equals(qName)) {
-                assertInMetadata();
-                inComponents = true;
-            } else if (COMPONENT.equals(qName)) {
-                assertInComponents();
-                currentComponent = createComponentId(attributes);
-            } else if (ARTIFACT.equals(qName)) {
-                assertValidComponent();
-                currentArtifact = createArtifactId(attributes);
-            } else if (VERIFY_METADATA.equals(qName)) {
-                assertInConfiguration(VERIFY_METADATA);
-                inVerifyMetadata = true;
-            } else if (VERIFY_SIGNATURES.equals(qName)) {
-                assertInConfiguration(VERIFY_SIGNATURES);
-                inVerifySignatures = true;
-            } else if (TRUSTED_ARTIFACTS.equals(qName)) {
-                assertInConfiguration(TRUSTED_ARTIFACTS);
-                inTrustedArtifacts = true;
-            } else if (TRUST.equals(qName)) {
-                assertInTrustedArtifacts();
-                addTrustedArtifact(attributes);
-            } else if (KEY_SERVERS.equals(qName)) {
-                assertInConfiguration(KEY_SERVERS);
-                inKeyServers = true;
-            } else if (KEY_SERVER.equals(qName)) {
-                assertContext(inKeyServers, KEY_SERVER, KEY_SERVERS);
-                String server = getAttribute(attributes, URI);
-                try {
-                    builder.addKeyServer(new URI(server));
-                } catch (URISyntaxException e) {
-                    throw new InvalidUserDataException("Unsupported URI for key server: " + server);
-                }
-            } else {
-                if (currentChecksum != null && ALSO_TRUST.equals(qName)) {
-                    builder.addChecksum(currentArtifact, currentChecksum, getAttribute(attributes, VALUE), null);
-                } else if (currentArtifact != null) {
-                    if (PGP.equals(qName)) {
-                        builder.addTrustedKey(currentArtifact, getAttribute(attributes, VALUE));
-                    } else {
-                        currentChecksum = ChecksumKind.valueOf(qName);
-                        builder.addChecksum(currentArtifact, currentChecksum, getAttribute(attributes, VALUE), getNullableAttribute(attributes, ORIGIN));
+            switch (qName) {
+                case CONFIG:
+                    inConfiguration = true;
+                    break;
+                case VERIFICATION_METADATA:
+                    inMetadata = true;
+                    break;
+                case COMPONENTS:
+                    assertInMetadata();
+                    inComponents = true;
+                    break;
+                case COMPONENT:
+                    assertInComponents();
+                    currentComponent = createComponentId(attributes);
+                    break;
+                case ARTIFACT:
+                    assertValidComponent();
+                    currentArtifact = createArtifactId(attributes);
+                    break;
+                case VERIFY_METADATA:
+                    assertInConfiguration(VERIFY_METADATA);
+                    inVerifyMetadata = true;
+                    break;
+                case VERIFY_SIGNATURES:
+                    assertInConfiguration(VERIFY_SIGNATURES);
+                    inVerifySignatures = true;
+                    break;
+                case TRUSTED_ARTIFACTS:
+                    assertInConfiguration(TRUSTED_ARTIFACTS);
+                    inTrustedArtifacts = true;
+                    break;
+                case TRUST:
+                    assertInTrustedArtifacts();
+                    addTrustedArtifact(attributes);
+                    break;
+                case KEY_SERVERS:
+                    assertInConfiguration(KEY_SERVERS);
+                    inKeyServers = true;
+                    break;
+                case KEY_SERVER:
+                    assertContext(inKeyServers, KEY_SERVER, KEY_SERVERS);
+                    String server = getAttribute(attributes, URI);
+                    try {
+                        builder.addKeyServer(new URI(server));
+                    } catch (URISyntaxException e) {
+                        throw new InvalidUserDataException("Unsupported URI for key server: " + server);
                     }
-                }
+                    break;
+                case IGNORED_KEYS:
+                    assertInConfiguration(IGNORED_KEYS);
+                    inIgnoredKeys = true;
+                    break;
+                case IGNORED_KEY:
+                    assertContext(inIgnoredKeys, IGNORED_KEY, IGNORED_KEYS);
+                    addIgnoredKey(attributes);
+                    break;
+                default:
+                    if (currentChecksum != null && ALSO_TRUST.equals(qName)) {
+                        builder.addChecksum(currentArtifact, currentChecksum, getAttribute(attributes, VALUE), null);
+                    } else if (currentArtifact != null) {
+                        if (PGP.equals(qName)) {
+                            builder.addTrustedKey(currentArtifact, getAttribute(attributes, VALUE));
+                        } else {
+                            currentChecksum = ChecksumKind.valueOf(qName);
+                            builder.addChecksum(currentArtifact, currentChecksum, getAttribute(attributes, VALUE), getNullableAttribute(attributes, ORIGIN));
+                        }
+                    }
             }
+        }
+
+        private void addIgnoredKey(Attributes attributes) {
+            builder.addIgnoredKey(getAttribute(attributes, ID));
         }
 
         private void assertInTrustedArtifacts() {
@@ -227,25 +255,38 @@ public class DependencyVerificationsXmlReader {
 
         @Override
         public void endElement(String uri, String localName, String qName) throws SAXException {
-            if (CONFIG.equals(qName)) {
-                inConfiguration = false;
-            } else if (VERIFY_METADATA.equals(qName)) {
-                inVerifyMetadata = false;
-            } else if (VERIFY_SIGNATURES.equals(qName)) {
-                inVerifySignatures = false;
-            } else if (VERIFICATION_METADATA.equals(qName)) {
-                inMetadata = false;
-            } else if (COMPONENTS.equals(qName)) {
-                inComponents = false;
-            } else if (COMPONENT.equals(qName)) {
-                currentComponent = null;
-            } else if (TRUSTED_ARTIFACTS.equals(qName)) {
-                inTrustedArtifacts = false;
-            } else if (KEY_SERVERS.equals(qName)) {
-                inKeyServers = false;
-            } else if (ARTIFACT.equals(qName)) {
-                currentArtifact = null;
-                currentChecksum = null;
+            switch (qName) {
+                case CONFIG:
+                    inConfiguration = false;
+                    break;
+                case VERIFY_METADATA:
+                    inVerifyMetadata = false;
+                    break;
+                case VERIFY_SIGNATURES:
+                    inVerifySignatures = false;
+                    break;
+                case VERIFICATION_METADATA:
+                    inMetadata = false;
+                    break;
+                case COMPONENTS:
+                    inComponents = false;
+                    break;
+                case COMPONENT:
+                    currentComponent = null;
+                    break;
+                case TRUSTED_ARTIFACTS:
+                    inTrustedArtifacts = false;
+                    break;
+                case KEY_SERVERS:
+                    inKeyServers = false;
+                    break;
+                case ARTIFACT:
+                    currentArtifact = null;
+                    currentChecksum = null;
+                    break;
+                case IGNORED_KEYS:
+                    inIgnoredKeys = false;
+                    break;
             }
         }
 

@@ -844,7 +844,6 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
    <configuration>
       <verify-metadata>false</verify-metadata>
       <verify-signatures>false</verify-signatures>
-      <trusted-artifacts/>
    </configuration>
    <components>
       <component group="org" name="foo" version="1.0">
@@ -897,7 +896,6 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
    <configuration>
       <verify-metadata>false</verify-metadata>
       <verify-signatures>false</verify-signatures>
-      <trusted-artifacts/>
    </configuration>
    <components>
       <component group="org" name="foo" version="1.0">
@@ -938,7 +936,6 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
    <configuration>
       <verify-metadata>true</verify-metadata>
       <verify-signatures>false</verify-signatures>
-      <trusted-artifacts/>
    </configuration>
    <components>
       <component group="org" name="bar" version="1.0">
@@ -975,7 +972,6 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
    <configuration>
       <verify-metadata>true</verify-metadata>
       <verify-signatures>false</verify-signatures>
-      <trusted-artifacts/>
    </configuration>
    <components>
       <component group="org" name="bar" version="1.0">
@@ -1166,7 +1162,6 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
    <configuration>
       <verify-metadata>true</verify-metadata>
       <verify-signatures>false</verify-signatures>
-      <trusted-artifacts/>
    </configuration>
    <components>
       <component group="org" name="foo" version="1.0">
@@ -1198,7 +1193,6 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
    <configuration>
       <verify-metadata>true</verify-metadata>
       <verify-signatures>false</verify-signatures>
-      <trusted-artifacts/>
    </configuration>
    <components>
       <component group="org" name="foo" version="1.0">
@@ -1221,7 +1215,6 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
    <configuration>
       <verify-metadata>true</verify-metadata>
       <verify-signatures>false</verify-signatures>
-      <trusted-artifacts/>
    </configuration>
    <components>
       <component group="org" name="foo" version="1.0">

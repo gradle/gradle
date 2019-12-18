@@ -132,7 +132,8 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
                             formatter.node("Artifact " + entry.getKey() + " checksum is missing from verification metadata.");
                         } else {
                             maybeCompromised.set(true);
-                            formatter.node("On artifact " + entry.getKey() + ": " + failure.getMessage());
+                            formatter.node("On artifact " + entry.getKey() + ": ");
+                            failure.explainTo(formatter);
                         }
                     });
                 formatter.endChildren();

@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.verification.verifier;
 
+import org.gradle.internal.logging.text.TreeFormatter;
+
 import java.util.Optional;
 
 @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
@@ -26,7 +28,7 @@ public interface VerificationFailure {
     Optional<VerificationFailure> OPT_MISSING = Optional.of(MISSING);
     Optional<VerificationFailure> OPT_DELETED = Optional.of(DELETED);
 
-    default String getMessage() {
-        return null;
+    default void explainTo(TreeFormatter formatter) {
+
     }
 }

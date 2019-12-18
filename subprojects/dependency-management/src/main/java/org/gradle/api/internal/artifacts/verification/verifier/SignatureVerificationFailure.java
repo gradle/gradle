@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.verification.verifier;
 import com.google.common.collect.Sets;
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.bouncycastle.openpgp.PGPPublicKeyRing;
+import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.security.internal.PublicKeyService;
 
 import javax.annotation.Nullable;
@@ -36,6 +37,22 @@ public class SignatureVerificationFailure implements VerificationFailure {
 
     public Map<String, SignatureError> getErrors() {
         return errors;
+    }
+
+    @Override
+    public void explainTo(TreeFormatter formatter) {
+        if (errors.size() == 1) {
+            Map.Entry<String, SignatureError> entry = errors.entrySet().iterator().next();
+            formatter.append(toMessage(entry.getKey(), entry.getValue()));
+            return;
+        }
+        formatter.append("Multiple signature verification errors found");
+        formatter.startChildren();
+        errors.entrySet()
+            .stream()
+            .sorted(Map.Entry.comparingByKey())
+            .forEachOrdered(entry -> formatter.node(toMessage(entry.getKey(), entry.getValue())));
+        formatter.endChildren();
     }
 
     public String getMessage() {
@@ -79,7 +96,8 @@ public class SignatureVerificationFailure implements VerificationFailure {
     public enum FailureKind {
         PASSED_NOT_TRUSTED,
         KEY_NOT_FOUND,
-        FAILED
+        FAILED,
+        IGNORED_KEY
     }
 
     private void appendKeyDetails(StringBuilder sb, PGPPublicKey key) {
@@ -114,6 +132,10 @@ public class SignatureVerificationFailure implements VerificationFailure {
 
         public FailureKind getKind() {
             return kind;
+        }
+
+        public boolean isIgnoredKey() {
+            return kind == FailureKind.IGNORED_KEY;
         }
     }
 }

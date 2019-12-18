@@ -126,9 +126,8 @@ public class DependencyVerifier {
                 String verifiedArtifact = verification.getArtifactName();
                 if (verifiedArtifact.equals(foundArtifactFileName)) {
                     if (signature != null) {
-                        Set<String> trustedKeys = verification.getTrustedPgpKeys();
-                        Optional<SignatureVerificationFailure> verificationFailure = signatureVerificationService.verify(file, signature, trustedKeys);
-                        if (verificationFailure.isPresent()) {
+                        Optional<? extends SignatureVerificationFailure> verificationFailure = verifySignature(signatureVerificationService, file, signature, verification.getTrustedPgpKeys());
+                        if (!onlyConsistsOfIgnoredKeys(verificationFailure)) {
                             return verificationFailure;
                         }
                     }
@@ -138,6 +137,17 @@ public class DependencyVerifier {
         }
 
         return VerificationFailure.OPT_MISSING;
+    }
+
+    private Optional<? extends SignatureVerificationFailure> verifySignature(SignatureVerificationService signatureVerificationService, File file, File signature, Set<String> trustedKeys) {
+        return signatureVerificationService.verify(file, signature, trustedKeys, config.getIgnoredKeys());
+    }
+
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+    private static boolean onlyConsistsOfIgnoredKeys(Optional<? extends SignatureVerificationFailure> verificationFailure) {
+        return verificationFailure
+            .map(f -> f.getErrors().values().stream().allMatch(SignatureVerificationFailure.SignatureError::isIgnoredKey))
+            .orElse(false);
     }
 
     private Optional<VerificationFailure> verifyChecksums(ChecksumService checksumService, File file, AtomicReference<VerificationFailure> failure, ArtifactVerificationMetadata verification) {
