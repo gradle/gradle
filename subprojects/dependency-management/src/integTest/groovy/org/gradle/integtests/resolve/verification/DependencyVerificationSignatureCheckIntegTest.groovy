@@ -23,6 +23,7 @@ import org.gradle.security.fixtures.SigningFixtures
 import spock.lang.Unroll
 
 import static org.gradle.security.fixtures.SigningFixtures.signAsciiArmored
+import static org.gradle.security.fixtures.SigningFixtures.validPublicKeyHexString
 import static org.gradle.security.internal.SecuritySupport.toHexString
 
 class DependencyVerificationSignatureCheckIntegTest extends AbstractSignatureVerificationIntegrationTest {
@@ -31,8 +32,8 @@ class DependencyVerificationSignatureCheckIntegTest extends AbstractSignatureVer
         createMetadataFile {
             keyServer(keyServerFixture.uri)
             verifySignatures()
-            addTrustedKey("org:foo:1.0", SigningFixtures.validPublicKeyHexString)
-            addTrustedKey("org:foo:1.0", SigningFixtures.validPublicKeyHexString, "pom", "pom")
+            addTrustedKey("org:foo:1.0", validPublicKeyHexString)
+            addTrustedKey("org:foo:1.0", validPublicKeyHexString, "pom", "pom")
         }
 
         given:
@@ -60,8 +61,8 @@ class DependencyVerificationSignatureCheckIntegTest extends AbstractSignatureVer
         createMetadataFile {
             keyServer(keyServerFixture.uri)
             verifySignatures()
-            addTrustedKey("org:foo:1.0", SigningFixtures.validPublicKeyHexString)
-            addTrustedKey("org:foo:1.0", SigningFixtures.validPublicKeyHexString, "pom", "pom")
+            addTrustedKey("org:foo:1.0", validPublicKeyHexString)
+            addTrustedKey("org:foo:1.0", validPublicKeyHexString, "pom", "pom")
         }
 
         given:
@@ -113,8 +114,8 @@ This can indicate that a dependency has been compromised. Please verify carefull
         createMetadataFile {
             keyServer(keyServerFixture.uri)
             verifySignatures()
-            addTrustedKey("org:foo:1.0", SigningFixtures.validPublicKeyHexString)
-            addTrustedKey("org:foo:1.0", SigningFixtures.validPublicKeyHexString, "pom", "pom")
+            addTrustedKey("org:foo:1.0", validPublicKeyHexString)
+            addTrustedKey("org:foo:1.0", validPublicKeyHexString, "pom", "pom")
         }
         if (stopInBetween) {
             executer.stop()
@@ -162,8 +163,8 @@ This can indicate that a dependency has been compromised. Please verify carefull
         createMetadataFile {
             keyServer(keyServerFixture.uri)
             verifySignatures()
-            addTrustedKeyByFileName("org:foo:1.0", "foo-1.0-classy.jar", SigningFixtures.validPublicKeyHexString)
-            addTrustedKey("org:foo:1.0", SigningFixtures.validPublicKeyHexString, "pom", "pom")
+            addTrustedKeyByFileName("org:foo:1.0", "foo-1.0-classy.jar", validPublicKeyHexString)
+            addTrustedKey("org:foo:1.0", validPublicKeyHexString, "pom", "pom")
         }
         if (stopInBetween) {
             executer.stop()
@@ -186,7 +187,7 @@ This can indicate that a dependency has been compromised. Please verify carefull
             noMetadataVerification()
             keyServer(keyServerFixture.uri)
             verifySignatures()
-            addTrustedKey("org:foo:1.0", SigningFixtures.validPublicKeyHexString)
+            addTrustedKey("org:foo:1.0", validPublicKeyHexString)
         }
 
         given:
@@ -225,8 +226,8 @@ This can indicate that a dependency has been compromised. Please verify carefull
         createMetadataFile {
             keyServer(keyServerFixture.uri)
             verifySignatures()
-            addTrustedKey("org:foo:1.0", SigningFixtures.validPublicKeyHexString)
-            addTrustedKey("org:foo:1.0", SigningFixtures.validPublicKeyHexString, "pom", "pom")
+            addTrustedKey("org:foo:1.0", validPublicKeyHexString)
+            addTrustedKey("org:foo:1.0", validPublicKeyHexString, "pom", "pom")
         }
 
         given:
@@ -260,8 +261,8 @@ This can indicate that a dependency has been compromised. Please verify carefull
         createMetadataFile {
             keyServer(keyServerFixture.uri)
             verifySignatures()
-            addTrustedKeyByFileName("org:foo:1.0", "foo-1.0-classy.jar", SigningFixtures.validPublicKeyHexString)
-            addTrustedKey("org:foo:1.0", SigningFixtures.validPublicKeyHexString, "pom", "pom")
+            addTrustedKeyByFileName("org:foo:1.0", "foo-1.0-classy.jar", validPublicKeyHexString)
+            addTrustedKey("org:foo:1.0", validPublicKeyHexString, "pom", "pom")
         }
 
         given:
@@ -292,8 +293,8 @@ This can indicate that a dependency has been compromised. Please verify carefull
         createMetadataFile {
             keyServer(keyServerFixture.uri)
             verifySignatures()
-            addTrustedKey("org:foo:1.0", SigningFixtures.validPublicKeyHexString)
-            addTrustedKey("org:foo:1.0", SigningFixtures.validPublicKeyHexString, "pom", "pom")
+            addTrustedKey("org:foo:1.0", validPublicKeyHexString)
+            addTrustedKey("org:foo:1.0", validPublicKeyHexString, "pom", "pom")
         }
 
         given:
@@ -366,8 +367,8 @@ This can indicate that a dependency has been compromised. Please verify carefull
         createMetadataFile {
             keyServer(keyServerFixture.uri)
             verifySignatures()
-            addTrustedKey("org:foo:1.0", SigningFixtures.validPublicKeyHexString)
-            addTrustedKey("org:foo:1.0", SigningFixtures.validPublicKeyHexString, "pom", "pom")
+            addTrustedKey("org:foo:1.0", validPublicKeyHexString)
+            addTrustedKey("org:foo:1.0", validPublicKeyHexString, "pom", "pom")
         }
 
         given:
@@ -554,4 +555,106 @@ This can indicate that a dependency has been compromised. Please verify carefull
   - On artifact foo-1.0.pom (org:foo:1.0): expected a 'sha256' checksum of 'nope' but was 'f331cce36f6ce9ea387a2c8719fabaf67dc5a5862227ebaa13368ff84eb69481'
 This can indicate that a dependency has been compromised. Please verify carefully the checksums."""
     }
+
+    def "can ignore a key and fallback to checksum verification"() {
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+            verifySignatures()
+            addIgnoredKey(validPublicKeyHexString)
+        }
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0") {
+            withSignature {
+                signAsciiArmored(it)
+            }
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        fails ":compileJava"
+
+        then:
+        failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
+  - Artifact foo-1.0.jar (org:foo:1.0) checksum is missing from verification metadata.
+  - Artifact foo-1.0.pom (org:foo:1.0) checksum is missing from verification metadata."""
+    }
+
+    def "passes verification if an artifact is signed with multiple keys and one of them is ignored"() {
+        def keyring = newKeyRing()
+        keyServerFixture.registerPublicKey(keyring.publicKey)
+        def pkId = toHexString(keyring.publicKey.keyID)
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+            verifySignatures()
+            // only the new keyring key is published and available
+            addIgnoredKey(validPublicKeyHexString)
+            addTrustedKey("org:foo:1.0", pkId)
+            addTrustedKey("org:foo:1.0", pkId, "pom", "pom")
+        }
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0") {
+            withSignature {
+                keyring.sign(it, [(SigningFixtures.validSecretKey): SigningFixtures.validPassword])
+            }
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        succeeds ":compileJava"
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "can collect multiple errors for single dependency"() {
+        def keyring = newKeyRing()
+        keyServerFixture.registerPublicKey(keyring.publicKey)
+        def pkId = toHexString(keyring.publicKey.keyID)
+
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+            verifySignatures()
+            addTrustedKey("org:foo:1.0", validPublicKeyHexString)
+            addTrustedKey("org:foo:1.0", validPublicKeyHexString, "pom", "pom")
+        }
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0") {
+            withSignature {
+                keyring.sign(it, [(SigningFixtures.validSecretKey): SigningFixtures.validPassword])
+            }
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        fails ":compileJava"
+
+        then:
+        failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
+  - On artifact foo-1.0.jar (org:foo:1.0): Multiple signature verification errors found:
+      - Artifact was signed with key '14f53f0824875d73' but it wasn't found in any key server so it couldn't be verified
+      - Artifact was signed with key '${pkId}' (test-user@gradle.com) and passed verification but the key isn't in your trusted keys list.
+  - On artifact foo-1.0.pom (org:foo:1.0): Multiple signature verification errors found:
+      - Artifact was signed with key '14f53f0824875d73' but it wasn't found in any key server so it couldn't be verified
+      - Artifact was signed with key '${pkId}' (test-user@gradle.com) and passed verification but the key isn't in your trusted keys list.
+This can indicate that a dependency has been compromised. Please verify carefully the checksums."""
+    }
+
 }

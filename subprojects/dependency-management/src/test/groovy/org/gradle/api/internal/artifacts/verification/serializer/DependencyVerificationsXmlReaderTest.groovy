@@ -159,6 +159,23 @@ class DependencyVerificationsXmlReaderTest extends Specification {
         ex.cause.message == "A trusted artifact must have at least one of group, name, version or file name not null"
     }
 
+    def "can parse ignored keys"() {
+        when:
+        parse """<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata>
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+      <ignored-keys>
+         <ignored-key id="ABCDEF"/>
+         <ignored-key id="012345"/>
+      </ignored-keys>
+   </configuration>
+</verification-metadata>
+"""
+        then:
+        verifier.configuration.ignoredKeys == ["ABCDEF", "012345"] as Set
+    }
+
     def "can parse dependency verification metadata"() {
         when:
         parse """<?xml version="1.0" encoding="UTF-8"?>

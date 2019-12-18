@@ -39,6 +39,9 @@ import static org.gradle.api.internal.artifacts.verification.serializer.Dependen
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.CONFIG;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.FILE;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.GROUP;
+import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.ID;
+import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.IGNORED_KEY;
+import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.IGNORED_KEYS;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.KEY_SERVER;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.KEY_SERVERS;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.NAME;
@@ -81,29 +84,64 @@ public class DependencyVerificationsXmlWriter {
 
     private void writeConfiguration(DependencyVerificationConfiguration configuration) throws IOException {
         writer.startElement(CONFIG);
-        writer.startElement(VERIFY_METADATA);
-        writer.write(String.valueOf(configuration.isVerifyMetadata()));
-        writer.endElement();
-
-        writer.startElement(VERIFY_SIGNATURES);
-        writer.write(String.valueOf(configuration.isVerifySignatures()));
-        writer.endElement();
-
+        writeVerifyMetadata(configuration);
+        writeSignatureCheck(configuration);
         writeKeyServers(configuration);
+        writeTrustedArtifacts(configuration);
+        writIgnoredKeys(configuration);
+        writer.endElement();
+    }
 
-        writer.startElement(TRUSTED_ARTIFACTS);
-        for (DependencyVerificationConfiguration.TrustedArtifact trustedArtifact : configuration.getTrustedArtifacts()) {
-            writer.startElement(TRUST);
-            writeNullableAttribute(GROUP, trustedArtifact.getGroup());
-            writeNullableAttribute(NAME, trustedArtifact.getName());
-            writeNullableAttribute(VERSION, trustedArtifact.getVersion());
-            writeNullableAttribute(FILE, trustedArtifact.getFileName());
-            if (trustedArtifact.isRegex()) {
-                writeAttribute(REGEX, "true");
+    private void writIgnoredKeys(DependencyVerificationConfiguration configuration) throws IOException {
+        Set<String> ignoredKeys = configuration.getIgnoredKeys();
+        if (!ignoredKeys.isEmpty()) {
+            writer.startElement(IGNORED_KEYS);
+            for (String ignoredKey : ignoredKeys) {
+                writeIgnoredKey(ignoredKey);
             }
             writer.endElement();
         }
+    }
+
+    private void writeIgnoredKey(String ignoredKey) throws IOException {
+        writer.startElement(IGNORED_KEY);
+        writer.attribute(ID, ignoredKey);
         writer.endElement();
+    }
+
+    private void writeTrustedArtifacts(DependencyVerificationConfiguration configuration) throws IOException {
+        List<DependencyVerificationConfiguration.TrustedArtifact> trustedArtifacts = configuration.getTrustedArtifacts();
+        if (trustedArtifacts.isEmpty()) {
+            return;
+        }
+        writer.startElement(TRUSTED_ARTIFACTS);
+        for (DependencyVerificationConfiguration.TrustedArtifact trustedArtifact : trustedArtifacts) {
+            writeTrustedArtifact(trustedArtifact);
+        }
+        writer.endElement();
+    }
+
+    private void writeTrustedArtifact(DependencyVerificationConfiguration.TrustedArtifact trustedArtifact) throws IOException {
+        writer.startElement(TRUST);
+        writeNullableAttribute(GROUP, trustedArtifact.getGroup());
+        writeNullableAttribute(NAME, trustedArtifact.getName());
+        writeNullableAttribute(VERSION, trustedArtifact.getVersion());
+        writeNullableAttribute(FILE, trustedArtifact.getFileName());
+        if (trustedArtifact.isRegex()) {
+            writeAttribute(REGEX, "true");
+        }
+        writer.endElement();
+    }
+
+    private void writeSignatureCheck(DependencyVerificationConfiguration configuration) throws IOException {
+        writer.startElement(VERIFY_SIGNATURES);
+        writer.write(String.valueOf(configuration.isVerifySignatures()));
+        writer.endElement();
+    }
+
+    private void writeVerifyMetadata(DependencyVerificationConfiguration configuration) throws IOException {
+        writer.startElement(VERIFY_METADATA);
+        writer.write(String.valueOf(configuration.isVerifyMetadata()));
         writer.endElement();
     }
 
