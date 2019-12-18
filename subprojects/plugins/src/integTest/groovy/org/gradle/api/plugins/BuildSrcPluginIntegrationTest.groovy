@@ -18,6 +18,8 @@ package org.gradle.api.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 class BuildSrcPluginIntegrationTest extends AbstractIntegrationSpec {
@@ -127,6 +129,8 @@ class BuildSrcPluginIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasDescription("Could not compile build file '$buildFile.canonicalPath'.")
     }
 
+    // Removes directory at configuration time - no chance for VFS to pick that up
+    @IgnoreIf({ GradleContextualExecuter.vfsRetention })
     def "build uses jar from buildSrc"() {
         writeBuildSrcPlugin("buildSrc", "MyPlugin")
         buildFile << """
@@ -140,6 +144,8 @@ class BuildSrcPluginIntegrationTest extends AbstractIntegrationSpec {
         outputContains("From MyPlugin")
     }
 
+    // Removes directory at configuration time - no chance for VFS to pick that up
+    @IgnoreIf({ GradleContextualExecuter.vfsRetention })
     def "build uses jars from multi-project buildSrc"() {
         writeBuildSrcPlugin("buildSrc", "MyPlugin")
         writeBuildSrcPlugin("buildSrc/subproject", "MyPluginSub")
