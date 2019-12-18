@@ -120,7 +120,8 @@ class JvmTest extends Specification {
 
     def "locates JDK and JRE installs for a typical Java 8 JDK installation"() {
         given:
-        TestFile software = tmpDir.createDir('software')
+        def java8ImplementationVersion = "1.8.0.221"
+        def software = tmpDir.createDir('software')
         software.create {
             jdk {
                 lib {
@@ -139,7 +140,7 @@ class JvmTest extends Specification {
         }
 
         when:
-        def jvm = new Jvm(os, software.file('jdk'), "1.8.0.221", JavaVersion.VERSION_1_8)
+        def jvm = new Jvm(os, software.file('jdk'), java8ImplementationVersion, JavaVersion.VERSION_1_8)
 
         then:
         jvm.javaHome == software.file('jdk')
@@ -156,7 +157,8 @@ class JvmTest extends Specification {
 
     def "locates JDK install for a typical Java 9 JDK installation"() {
         given:
-        TestFile software = tmpDir.createDir('software')
+        def java9ImplementationVersion = "9.0.3"
+        def software = tmpDir.createDir('software')
         software.create {
             jdk {
                 lib {
@@ -171,7 +173,7 @@ class JvmTest extends Specification {
         }
 
         when:
-        def jvm = new Jvm(os, software.file('jdk'), "9.0.3", JavaVersion.VERSION_1_9)
+        def jvm = new Jvm(os, software.file('jdk'), java9ImplementationVersion, JavaVersion.VERSION_1_9)
 
         then:
         jvm.javaHome == software.file('jdk')
