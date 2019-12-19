@@ -74,7 +74,7 @@ class DefaultEmptySourceTaskSkipperTest extends Specification {
         1 * sourceFiles.empty >> true
 
         then:
-        1 * outputChangeListener.beforeOutputChange()
+        1 * outputChangeListener.beforeOutputChange(rootPaths(previousFile))
 
         then:
         1 * cleanupRegistry.isOutputOwnedByBuild(previousFile) >> true
@@ -103,7 +103,7 @@ class DefaultEmptySourceTaskSkipperTest extends Specification {
         1 * sourceFiles.empty >> true
 
         then:
-        1 * outputChangeListener.beforeOutputChange()
+        1 * outputChangeListener.beforeOutputChange(rootPaths(previousFile))
 
         then:
         1 * cleanupRegistry.isOutputOwnedByBuild(previousFile) >> false
@@ -148,7 +148,7 @@ class DefaultEmptySourceTaskSkipperTest extends Specification {
         1 * sourceFiles.empty >> true
 
         then:
-        1 * outputChangeListener.beforeOutputChange()
+        1 * outputChangeListener.beforeOutputChange(rootPaths(outputDir, outputFile))
 
         then:
         _ * cleanupRegistry.isOutputOwnedByBuild(subDir) >> true
@@ -187,7 +187,7 @@ class DefaultEmptySourceTaskSkipperTest extends Specification {
         1 * sourceFiles.empty >> true
 
         then:
-        1 * outputChangeListener.beforeOutputChange()
+        1 * outputChangeListener.beforeOutputChange(rootPaths(previousFile))
 
         then: "deleting the previous file fails"
         1 * cleanupRegistry.isOutputOwnedByBuild(previousFile) >> {
@@ -229,5 +229,9 @@ class DefaultEmptySourceTaskSkipperTest extends Specification {
         ImmutableSortedMap.<String, CurrentFileCollectionFingerprint>of(
             "output", fingerprinter.fingerprint(ImmutableFileCollection.of(files))
         )
+    }
+
+    Set<String> rootPaths(File... files) {
+        files*.absolutePath as Set
     }
 }
