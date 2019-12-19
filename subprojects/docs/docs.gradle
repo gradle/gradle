@@ -23,7 +23,7 @@ plugins {
     // TODO: Apply asciidoctor in documentation plugin instead.
     id 'org.asciidoctor.convert'
     id 'gradlebuild.documentation'
-    id 'org.gradle.samples' version "0.15.27"
+    id 'org.gradle.samples' version "0.15.28"
 }
 
 repositories {
@@ -109,6 +109,8 @@ samples {
     templates {
         javaAndroidApplication
         springBootWebApplication
+        gradlePluginInJava
+        precompiledScriptPlugin
 
         javaApplication
         javaListLibrary
@@ -165,16 +167,17 @@ samples {
         kotlinListLibrary
         kotlinUtilitiesLibrary
     }
+
     publishedSamples {
         androidApplication {
-            description = "Demonstrates building a simple Android application."
+            description = "Build a simple Android application."
             category = "Android"
             common {
                 from(templates.javaAndroidApplication)
             }
         }
         springBootWebApplication {
-            description = "Demonstrates a simple Spring Boot application."
+            description = "Build a simple Spring Boot application."
             category = "Spring"
             common {
                 from(templates.springBootWebApplication)
@@ -182,8 +185,8 @@ samples {
         }
 
         jvmComponentsWithAdditionalTestTypes {
-            displayName = "JVM project with additional test types"
-            description = "Demonstrates how to add an additional test type (e.g. integration tests) to a JVM project."
+            displayName = "Additional test types"
+            description = "Add an additional test type (e.g. integration tests) to a project."
             category = "JVM"
 
             common {
@@ -200,8 +203,8 @@ samples {
         }
 
         jvmMultiProjectBuild {
-            displayName = "JVM Multi-project build"
-            description = "Demonstrates how transitive dependencies work in a multi-project build."
+            displayName = "Multi-project build"
+            description = "Use dependencies in a multi-project build."
             category = "JVM"
             common {
                 from(templates.javaApplicationAsSubproject)
@@ -212,7 +215,7 @@ samples {
 
         javaApplication {
             sampleDirectory = samplesRoot.dir("java/application")
-            description = "Demonstrates how to build a Java application."
+            description = "Build a Java application."
             category = "Java"
             common {
                 from(templates.javaApplication)
@@ -222,7 +225,7 @@ samples {
         }
         javaLibrary {
             sampleDirectory = samplesRoot.dir("java/library")
-            description = "Demonstrates how to build a Java library."
+            description = "Build a Java library."
             category = "Java"
             common {
                 from(templates.javaListLibrary)
@@ -231,7 +234,8 @@ samples {
         }
         javaComponentsWithSpockTests {
             sampleDirectory = samplesRoot.dir("java/components-with-spock-tests")
-            description = "Demonstrates how to test Java components with the Spock framework."
+            displayName = "Testing with Spock"
+            description = "Test a Java application and library with link:https://github.com/spockframework/spock[Spock]."
             category = "Java"
             common {
                 from(templates.javaApplicationAsSubproject)
@@ -243,8 +247,8 @@ samples {
         }
         javaComponentsWithJUnit4Tests {
             sampleDirectory = samplesRoot.dir("java/components-with-junit-4-tests")
-            displayName = "Java Components With JUnit 4 Tests"
-            description = "Demonstrates how to test Java components with JUnit4."
+            displayName = "Testing with JUnit4"
+            description = "Test a Java application and library with link:https://junit.org/junit4/[JUnit4]."
             category = "Java"
             common {
                 from(templates.javaApplicationAsSubproject)
@@ -256,7 +260,7 @@ samples {
         }
         javaLibraryPublishing {
             sampleDirectory = samplesRoot.dir("java/library-publishing")
-            description = "Demonstrates how to publish a Java library to a binary repository."
+            description = "Publish a Java library to a binary repository."
             category = "Java"
             common {
                 from(templates.javaListLibrary)
@@ -266,7 +270,7 @@ samples {
 
         kotlinApplication {
             sampleDirectory = samplesRoot.dir("kotlin/application")
-            description = "Demonstrates how to build a Kotlin application."
+            description = "Build a Kotlin application."
             category = "Kotlin"
             common {
                 from(templates.kotlinApplication)
@@ -276,7 +280,7 @@ samples {
         }
         kotlinLibrary {
             sampleDirectory = samplesRoot.dir("kotlin/library")
-            description = "Demonstrates how to build a Kotlin library."
+            description = "Build a Kotlin library."
             category = "Kotlin"
             common {
                 from(templates.kotlinListLibrary)
@@ -286,7 +290,7 @@ samples {
 
         groovyApplication {
             sampleDirectory = samplesRoot.dir("groovy/application")
-            description = "Demonstrates how to build a Groovy application."
+            description = "Build a Groovy application."
             category = "Groovy"
             common {
                 from(templates.groovyApplication)
@@ -296,7 +300,7 @@ samples {
         }
         groovyLibrary {
             sampleDirectory = samplesRoot.dir("groovy/library")
-            description = "Demonstrates how to build a Groovy library."
+            description = "Build a Groovy library."
             category = "Groovy"
             common {
                 from(templates.groovyListLibrary)
@@ -305,7 +309,8 @@ samples {
         }
         groovyComponentsWithSpockTests {
             sampleDirectory = samplesRoot.dir("groovy/components-with-spock-tests")
-            description = "Demonstrates how to test Groovy components with the Spock framework."
+            displayName = "Testing with Spock"
+            description = "Test a Groovy application and library with link:https://github.com/spockframework/spock[Spock]."
             category = "Groovy"
             common {
                 from(templates.groovyApplicationAsSubproject)
@@ -317,11 +322,27 @@ samples {
         }
         groovyLibraryPublishing {
             sampleDirectory = samplesRoot.dir("groovy/library-publishing")
-            description = "Demonstrates how to publish a Groovy library to a binary repository."
+            description = "Publish a Groovy library to a binary repository."
             category = "Groovy"
             common {
                 from(templates.groovyListLibrary)
                 from(templates.groovyUtilitiesLibrary)
+            }
+        }
+
+        precompiledScriptPlugin {
+            description = "Use Kotlin DSL in a precompiled script plugin."
+            category = "Build organization"
+            common {
+                from(templates.precompiledScriptPlugin)
+            }
+        }
+
+        gradlePlugin {
+            description = "Organize your build logic into a Gradle plugin written in Java."
+            category = "Build organization"
+            common {
+                from(templates.gradlePluginInJava)
             }
         }
     }

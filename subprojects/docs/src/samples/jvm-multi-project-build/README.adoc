@@ -1,7 +1,6 @@
-NOTE: You can open the samples inside an IDE using the https://www.jetbrains.com/help/idea/gradle.html#gradle_import_project_start[IntelliJ native importer] or https://projects.eclipse.org/projects/tools.buildship[Eclipse Buildship].
+NOTE: You can open this sample inside an IDE using the https://www.jetbrains.com/help/idea/gradle.html#gradle_import_project_start[IntelliJ native importer] or https://projects.eclipse.org/projects/tools.buildship[Eclipse Buildship].
 
-This sample shows how to transitivity dependencies are declared within JVM multi-project in Gradle.
-It is important to note that the dependency configuration is consistent across JVM languages.
+This sample shows how to use dependencies within a JVM multi-project build in Gradle. This is the same pattern used by all JVM languages (Java, Groovy, Scala).
 
 The `application` project has an implementation dependency on the `utilities` project:
 
@@ -17,7 +16,7 @@ include::sample[dir="samples/jvm-multi-project-build/groovy",files="utilities/bu
 include::sample[dir="samples/jvm-multi-project-build/kotlin",files="utilities/build.gradle.kts[]"]
 ====
 
-To build the projects, you simply needs to build the application:
+To build the projects, you simply need to build the application:
 
 ====
 [.testable-sample,dir="groovy"]
