@@ -39,4 +39,16 @@ public interface GeneratedGradleJarCache {
      * @return the generated file.
      */
     File get(String identifier, Action<File> creator);
+
+    /**
+     * Returns the generated jar uniquely identified by {@code identifier} and {@code classifier}.
+     *
+     * If the jar is not found in the cache the given {@code creator} action will be invoked to create it.
+     *
+     * @param identifier the jar identifier (for example, {@code "api"}).
+     * @param classifier the jar classifier (for example, {@code "sources"}).
+     * @param creator the action that will create the file should it not be found in the cache.
+     * @return the generated file.
+     */
+    File get(String identifier, String classifier, Action<File> creator);
 }

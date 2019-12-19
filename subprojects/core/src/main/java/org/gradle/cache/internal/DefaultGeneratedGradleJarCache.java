@@ -54,7 +54,25 @@ public class DefaultGeneratedGradleJarCache implements GeneratedGradleJarCache, 
 
     @Override
     public File get(final String identifier, final Action<File> creator) {
-        final File jarFile = jarFile(identifier);
+        return get(jarFile(identifier), creator);
+    }
+
+    @Override
+    public File get(String identifier, String classifier, Action<File> creator) {
+        return get(jarFile(identifier, classifier), creator);
+    }
+
+    @Override
+    public void close() {
+        cache.close();
+    }
+
+    @Override
+    public List<File> getAdditiveCacheRoots() {
+        return Collections.singletonList(cache.getBaseDir());
+    }
+
+    private File get(File jarFile, Action<File> creator) {
         cache.useCache(new Runnable() {
             @Override
             public void run() {
@@ -66,17 +84,11 @@ public class DefaultGeneratedGradleJarCache implements GeneratedGradleJarCache, 
         return jarFile;
     }
 
-    @Override
-    public void close() {
-        cache.close();
-    }
-
     private File jarFile(String identifier) {
         return new File(cache.getBaseDir(), "gradle-" + identifier + "-" + gradleVersion + ".jar");
     }
 
-    @Override
-    public List<File> getAdditiveCacheRoots() {
-        return Collections.singletonList(cache.getBaseDir());
+    private File jarFile(String identifier, String classifier) {
+        return new File(cache.getBaseDir(), "gradle-" + identifier + "-" + gradleVersion + "-" + classifier + ".jar");
     }
 }

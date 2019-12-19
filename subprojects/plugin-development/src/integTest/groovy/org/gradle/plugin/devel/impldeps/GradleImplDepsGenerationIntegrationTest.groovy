@@ -16,6 +16,8 @@
 
 package org.gradle.plugin.devel.impldeps
 
+import org.gradle.test.fixtures.file.TestFile
+
 class GradleImplDepsGenerationIntegrationTest extends BaseGradleImplDepsIntegrationTest {
 
     def "Gradle API is not generated if not declared by build"() {
@@ -68,5 +70,43 @@ class GradleImplDepsGenerationIntegrationTest extends BaseGradleImplDepsIntegrat
         """
 
         succeeds 'resolveDependencyArtifacts'
+    }
+
+    def "Gradle API sources jar is generated when -all distribution is used"() {
+        given:
+        requireOwnGradleUserHomeDir()
+        TestFile sourcesDir = distribution.gradleHomeDir.createDir("src")
+        sourcesDir.createFile("org/gradle/Test.java").writelns("package org.gradle;", "public class Test {}")
+
+        buildFile << """
+            configurations {
+                deps
+            }
+
+            dependencies {
+                deps gradleApi()
+            }
+
+            task resolveDependencyArtifacts {
+                doLast {
+                    def resolvedArtifacts = configurations.deps.incoming.files.files
+                    assert resolvedArtifacts.find { (it.name =~ 'gradle-api-(.*)-sources\\\\.jar').matches() }
+                }
+            }
+        """
+
+        when:
+        succeeds 'resolveDependencyArtifacts'
+
+        then:
+        TestFile sourcesJar = file("user-home/caches/${distribution.version.version}/generated-gradle-jars/gradle-api-${distribution.version.version}-sources.jar")
+        sourcesJar.assertExists()
+
+        TestFile sources = temporaryFolder.createDir("sources")
+        sourcesJar.unzipTo(sources)
+        sources.assertHasDescendants("org/gradle/Test.java")
+
+        cleanup:
+        sourcesDir.forceDeleteDir()
     }
 }

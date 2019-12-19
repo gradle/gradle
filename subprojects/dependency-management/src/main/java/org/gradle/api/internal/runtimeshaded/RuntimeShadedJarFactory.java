@@ -74,4 +74,30 @@ public class RuntimeShadedJarFactory {
         LOGGER.debug("Using Gradle runtime shaded JAR file: {}", jarFile);
         return jarFile;
     }
+
+    public File buildSourcesJar(RuntimeShadedJarType type, File sourcesDir) {
+        File sourcesJar = cache.get(type.getIdentifier(), "sources", new Action<File>() {
+            @Override
+            public void execute(File file) {
+                executor.run(new RunnableBuildOperation() {
+                    @Override
+                    public void run(BuildOperationContext context) {
+                        SourcesJarCreator creator = new SourcesJarCreator(progressLoggerFactory);
+                        creator.create(file, sourcesDir);
+                    }
+
+                    @Override
+                    public BuildOperationDescriptor.Builder description() {
+                        return BuildOperationDescriptor
+                            .displayName("Generate " + file)
+                            .progressDisplayName("Generating " + file.getName());
+                    }
+                });
+            }
+        });
+
+        LOGGER.debug("Using Gradle runtime sources JAR file: {}", sourcesJar);
+        return sourcesJar;
+    }
+
 }

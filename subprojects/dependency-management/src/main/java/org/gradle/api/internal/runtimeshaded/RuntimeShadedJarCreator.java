@@ -26,10 +26,10 @@ import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.archive.ZipCopyAction;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
-import org.gradle.internal.classanalysis.AsmConstants;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.classanalysis.AsmConstants;
 import org.gradle.internal.installation.GradleRuntimeShadedJarDetector;
 import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.internal.logging.progress.ProgressLogger;
@@ -56,6 +56,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -67,6 +68,7 @@ import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
+
 import static java.util.Arrays.asList;
 
 class RuntimeShadedJarCreator {
@@ -281,15 +283,15 @@ class RuntimeShadedJarCreator {
         }
     }
 
-    private String[] slashesToPeriods(String... slashClassNames) {
+    private static String[] slashesToPeriods(String... slashClassNames) {
         return asList(slashClassNames).stream().filter(clsName -> clsName != null)
-            .map(clsName ->  clsName.replace('/', '.')).map(String::trim)
+            .map(clsName -> clsName.replace('/', '.')).map(String::trim)
             .toArray(String[]::new);
     }
 
-    private String[] periodsToSlashes(String... periodClassNames) {
+    private static String[] periodsToSlashes(String... periodClassNames) {
         return asList(periodClassNames).stream().filter(clsName -> clsName != null)
-            .map(clsName ->  clsName.replace('.', '/'))
+            .map(clsName -> clsName.replace('.', '/'))
             .toArray(String[]::new);
     }
 
@@ -315,20 +317,20 @@ class RuntimeShadedJarCreator {
         }
     }
 
-    private void writeResourceEntry(ZipOutputStream outputStream, InputStream inputStream, byte[] buffer, String resourceFileName) throws IOException {
+    private static void writeResourceEntry(ZipOutputStream outputStream, InputStream inputStream, byte[] buffer, String resourceFileName) throws IOException {
         outputStream.putNextEntry(newZipEntryWithFixedTime(resourceFileName));
         pipe(inputStream, outputStream, buffer);
         outputStream.closeEntry();
     }
 
-    private void writeEntry(ZipOutputStream outputStream, String name, byte[] content) throws IOException {
+    private static void writeEntry(ZipOutputStream outputStream, String name, byte[] content) throws IOException {
         ZipEntry zipEntry = newZipEntryWithFixedTime(name);
         outputStream.putNextEntry(zipEntry);
         outputStream.write(content);
         outputStream.closeEntry();
     }
 
-    private ZipEntry newZipEntryWithFixedTime(String name) {
+    private static ZipEntry newZipEntryWithFixedTime(String name) {
         ZipEntry entry = new ZipEntry(name);
         entry.setTime(ZipCopyAction.CONSTANT_TIME_FOR_ZIP_ENTRIES);
         return entry;
@@ -362,7 +364,7 @@ class RuntimeShadedJarCreator {
         return classWriter.toByteArray();
     }
 
-    private byte[] readEntry(InputStream inputStream, ZipEntry zipEntry, byte[] buffer) throws IOException {
+    private static byte[] readEntry(InputStream inputStream, ZipEntry zipEntry, byte[] buffer) throws IOException {
         int size = (int) zipEntry.getSize();
         if (size == -1) {
             ByteArrayOutputStream out = new ByteArrayOutputStream(buffer.length);
@@ -382,7 +384,7 @@ class RuntimeShadedJarCreator {
         }
     }
 
-    private void pipe(InputStream inputStream, OutputStream outputStream, byte[] buffer) throws IOException {
+    private static void pipe(InputStream inputStream, OutputStream outputStream, byte[] buffer) throws IOException {
         int read = inputStream.read(buffer);
         while (read != -1) {
             outputStream.write(buffer, 0, read);
@@ -390,7 +392,7 @@ class RuntimeShadedJarCreator {
         }
     }
 
-    private ZipInputStream openJarFile(File file) throws IOException {
+    private static ZipInputStream openJarFile(File file) throws IOException {
         return new ZipInputStream(new FileInputStream(file));
     }
 
@@ -456,12 +458,12 @@ class RuntimeShadedJarCreator {
     }
 
     private String[] maybeRelocateResources(String... resources) {
-        return asList(resources).stream().filter(resource -> resource != null)
-            .map(resource ->  remapper.maybeRelocateResource(resource)).filter(resource -> resource != null)
+        return Arrays.stream(resources).filter(resource -> resource != null)
+            .map(resource -> remapper.maybeRelocateResource(resource)).filter(resource -> resource != null)
             .toArray(String[]::new);
     }
 
-    private String[] separateLines(String entry){
+    private static String[] separateLines(String entry) {
         return entry.split("\\n");
     }
 }
