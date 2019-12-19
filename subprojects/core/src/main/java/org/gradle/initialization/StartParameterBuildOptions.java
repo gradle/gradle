@@ -67,6 +67,7 @@ public class StartParameterBuildOptions {
         options.add(new DependencyVerificationWriteOption());
         options.add(new DependencyVerificationModeOption());
         options.add(new DependencyLockingUpdateOption());
+        options.add(new RefreshKeysOption());
         StartParameterBuildOptions.options = Collections.unmodifiableList(options);
     }
 
@@ -374,6 +375,21 @@ public class StartParameterBuildOptions {
         @Override
         public void applyTo(List<String> modulesToUpdate, StartParameterInternal settings, Origin origin) {
             settings.setLockedDependenciesToUpdate(modulesToUpdate);
+        }
+    }
+
+    public static class RefreshKeysOption extends EnabledOnlyBooleanBuildOption<StartParameterInternal> {
+
+        private static final String LONG_OPTION = "refresh-keys";
+
+        public RefreshKeysOption() {
+            super(null,
+                CommandLineOptionConfiguration.create(LONG_OPTION, "Refresh the public keys used for dependency verification.").incubating());
+        }
+
+        @Override
+        public void applyTo(StartParameterInternal settings, Origin origin) {
+            settings.setRefreshKeys(true);
         }
     }
 }

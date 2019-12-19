@@ -32,6 +32,7 @@ import org.gradle.internal.resource.transfer.ExternalResourceConnector;
 import org.gradle.internal.resource.transport.http.HttpConnectorFactory;
 import org.gradle.security.internal.PublicKeyDownloadService;
 import org.gradle.security.internal.SecuritySupport;
+import org.gradle.util.BuildCommencedTimeProvider;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -50,12 +51,21 @@ public class DefaultSignatureVerificationServiceFactory implements SignatureVeri
     private final CacheRepository cacheRepository;
     private final InMemoryCacheDecoratorFactory decoratorFactory;
     private final BuildOperationExecutor buildOperationExecutor;
+    private final BuildCommencedTimeProvider timeProvider;
+    private final boolean refreshKeys;
 
-    public DefaultSignatureVerificationServiceFactory(HttpConnectorFactory httpConnectorFactory, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory decoratorFactory, BuildOperationExecutor buildOperationExecutor) {
+    public DefaultSignatureVerificationServiceFactory(HttpConnectorFactory httpConnectorFactory,
+                                                      CacheRepository cacheRepository,
+                                                      InMemoryCacheDecoratorFactory decoratorFactory,
+                                                      BuildOperationExecutor buildOperationExecutor,
+                                                      BuildCommencedTimeProvider timeProvider,
+                                                      boolean refreshKeys) {
         this.httpConnectorFactory = httpConnectorFactory;
         this.cacheRepository = cacheRepository;
         this.decoratorFactory = decoratorFactory;
         this.buildOperationExecutor = buildOperationExecutor;
+        this.timeProvider = timeProvider;
+        this.refreshKeys = refreshKeys;
     }
 
     @Override
@@ -63,7 +73,7 @@ public class DefaultSignatureVerificationServiceFactory implements SignatureVeri
         ExternalResourceConnector connector = httpConnectorFactory.createResourceConnector(new ResourceConnectorSpecification() {
         });
         PublicKeyDownloadService keyDownloadService = new PublicKeyDownloadService(ImmutableList.copyOf(keyServers), connector);
-        CrossBuildCachingKeyService keyService = new CrossBuildCachingKeyService(cacheRepository, decoratorFactory, buildOperationExecutor, keyDownloadService);
+        CrossBuildCachingKeyService keyService = new CrossBuildCachingKeyService(cacheRepository, decoratorFactory, buildOperationExecutor, keyDownloadService, timeProvider, refreshKeys);
         return new DefaultSignatureVerificationService(keyService);
     }
 

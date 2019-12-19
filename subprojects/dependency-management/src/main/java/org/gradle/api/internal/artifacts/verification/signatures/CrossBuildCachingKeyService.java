@@ -37,23 +37,30 @@ import org.gradle.internal.serialize.BaseSerializerFactory;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.security.internal.PublicKeyService;
+import org.gradle.util.BuildCommencedTimeProvider;
 
 import java.io.ByteArrayInputStream;
 import java.io.Closeable;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 public class CrossBuildCachingKeyService implements PublicKeyService, Closeable {
+    private final static long MISSING_KEY_TIMEOUT = TimeUnit.MILLISECONDS.convert(24, TimeUnit.HOURS);
 
     private final PersistentCache cache;
     private final BuildOperationExecutor buildOperationExecutor;
     private final PublicKeyService delegate;
-    private final PersistentIndexedCache<Long, PGPPublicKey> publicKeys;
-    private final PersistentIndexedCache<Long, PGPPublicKeyRing> publicKeyRings;
+    private final BuildCommencedTimeProvider timeProvider;
+    private final boolean refreshKeys;
+    private final PersistentIndexedCache<Long, CacheEntry<PGPPublicKey>> publicKeys;
+    private final PersistentIndexedCache<Long, CacheEntry<PGPPublicKeyRing>> publicKeyRings;
 
     public CrossBuildCachingKeyService(CacheRepository cacheRepository,
                                        InMemoryCacheDecoratorFactory decoratorFactory,
                                        BuildOperationExecutor buildOperationExecutor,
-                                       PublicKeyService delegate) {
+                                       PublicKeyService delegate,
+                                       BuildCommencedTimeProvider timeProvider,
+                                       boolean refreshKeys) {
         cache = cacheRepository
             .cache("signatures")
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
@@ -61,7 +68,9 @@ public class CrossBuildCachingKeyService implements PublicKeyService, Closeable 
             .open();
         this.buildOperationExecutor = buildOperationExecutor;
         this.delegate = delegate;
-        PersistentIndexedCacheParameters<Long, PGPPublicKey> publicKeyParams = PersistentIndexedCacheParameters.of(
+        this.timeProvider = timeProvider;
+        this.refreshKeys = refreshKeys;
+        PersistentIndexedCacheParameters<Long, CacheEntry<PGPPublicKey>> publicKeyParams = PersistentIndexedCacheParameters.of(
             "publickeys",
             BaseSerializerFactory.LONG_SERIALIZER,
             new PublicKeySerializer()
@@ -70,7 +79,7 @@ public class CrossBuildCachingKeyService implements PublicKeyService, Closeable 
         );
         publicKeys = cache.createCache(publicKeyParams);
 
-        PersistentIndexedCacheParameters<Long, PGPPublicKeyRing> keyringParams = PersistentIndexedCacheParameters.of(
+        PersistentIndexedCacheParameters<Long, CacheEntry<PGPPublicKeyRing>> keyringParams = PersistentIndexedCacheParameters.of(
             "keyrings",
             BaseSerializerFactory.LONG_SERIALIZER,
             new PublicKeyRingSerializer()
@@ -85,10 +94,19 @@ public class CrossBuildCachingKeyService implements PublicKeyService, Closeable 
         cache.close();
     }
 
+    private boolean hasExpired(CacheEntry<PGPPublicKey> key) {
+        if (key.value != null) {
+            // if a key was found in the cache, it's permanent
+            return false;
+        }
+        long elapsed = key.timestamp - timeProvider.getCurrentTime();
+        return refreshKeys || elapsed > MISSING_KEY_TIMEOUT;
+    }
+
     @Override
     public Optional<PGPPublicKey> findPublicKey(long id) {
-        PGPPublicKey pgpPublicKey = publicKeys.get(id);
-        if (pgpPublicKey == null) {
+        CacheEntry<PGPPublicKey> cacheEntry = publicKeys.get(id);
+        if (cacheEntry == null || hasExpired(cacheEntry)) {
             return buildOperationExecutor.call(new CallableBuildOperation<Optional<PGPPublicKey>>() {
                 @Override
                 public BuildOperationDescriptor.Builder description() {
@@ -98,18 +116,23 @@ public class CrossBuildCachingKeyService implements PublicKeyService, Closeable 
                 @Override
                 public Optional<PGPPublicKey> call(BuildOperationContext context) {
                     Optional<PGPPublicKey> result = delegate.findPublicKey(id);
-                    result.ifPresent(key -> publicKeys.put(id, key));
+                    long currentTime = timeProvider.getCurrentTime();
+                    if (result.isPresent()) {
+                        publicKeys.put(id, new CacheEntry<>(currentTime, result.get()));
+                    } else {
+                        publicKeys.put(id, new CacheEntry<>(currentTime, null));
+                    }
                     return result;
                 }
             });
         }
-        return Optional.of(pgpPublicKey);
+        return Optional.ofNullable(cacheEntry.value);
     }
 
     @Override
     public Optional<PGPPublicKeyRing> findKeyRing(long id) {
-        PGPPublicKeyRing pgpPublicKeyRing = publicKeyRings.get(id);
-        if (pgpPublicKeyRing == null) {
+        CacheEntry<PGPPublicKeyRing> cacheEntry = publicKeyRings.get(id);
+        if (cacheEntry == null) {
             return buildOperationExecutor.call(new CallableBuildOperation<Optional<PGPPublicKeyRing>>() {
                 @Override
                 public BuildOperationDescriptor.Builder description() {
@@ -119,54 +142,94 @@ public class CrossBuildCachingKeyService implements PublicKeyService, Closeable 
                 @Override
                 public Optional<PGPPublicKeyRing> call(BuildOperationContext context) {
                     Optional<PGPPublicKeyRing> result = delegate.findKeyRing(id);
-                    result.ifPresent(key -> publicKeyRings.put(id, key));
+                    long currentTime = timeProvider.getCurrentTime();
+                    if (result.isPresent()) {
+                        publicKeyRings.put(id, new CacheEntry<>(currentTime, result.get()));
+                    } else {
+                        publicKeyRings.put(id, new CacheEntry<>(currentTime, null));
+                    }
                     return result;
                 }
             });
         }
-        return Optional.of(pgpPublicKeyRing);
+        return Optional.ofNullable(cacheEntry.value);
     }
 
-    private static class PublicKeyRingSerializer extends AbstractSerializer<PGPPublicKeyRing> {
+    private static class PublicKeyRingSerializer extends AbstractSerializer<CacheEntry<PGPPublicKeyRing>> {
 
         @Override
-        public PGPPublicKeyRing read(Decoder decoder) throws Exception {
-            byte[] encoded = decoder.readBinary();
-            PGPObjectFactory objectFactory = new PGPObjectFactory(
-                PGPUtil.getDecoderStream(new ByteArrayInputStream(encoded)), new BcKeyFingerprintCalculator());
-            Object object = objectFactory.nextObject();
-            if (object instanceof PGPPublicKeyRing) {
-                return (PGPPublicKeyRing) object;
+        public CacheEntry<PGPPublicKeyRing> read(Decoder decoder) throws Exception {
+            long timestamp = decoder.readLong();
+            boolean present = decoder.readBoolean();
+            if (present) {
+                byte[] encoded = decoder.readBinary();
+                PGPObjectFactory objectFactory = new PGPObjectFactory(
+                    PGPUtil.getDecoderStream(new ByteArrayInputStream(encoded)), new BcKeyFingerprintCalculator());
+                Object object = objectFactory.nextObject();
+                if (object instanceof PGPPublicKeyRing) {
+                    return new CacheEntry<>(timestamp, (PGPPublicKeyRing) object);
+                }
+                throw new IllegalStateException("Unexpected key in cache: " + object.getClass());
             }
-            throw new IllegalStateException("Unexpected key in cache: " + object.getClass());
+            return new CacheEntry<>(timestamp, null);
         }
 
         @Override
-        public void write(Encoder encoder, PGPPublicKeyRing value) throws Exception {
-            encoder.writeBinary(value.getEncoded());
+        public void write(Encoder encoder, CacheEntry<PGPPublicKeyRing> value) throws Exception {
+            encoder.writeLong(value.timestamp);
+            PGPPublicKeyRing key = value.value;
+            if (key != null) {
+                encoder.writeBoolean(true);
+                encoder.writeBinary(key.getEncoded());
+            } else {
+                encoder.writeBoolean(false);
+            }
         }
     }
 
-    private static class PublicKeySerializer extends AbstractSerializer<PGPPublicKey> {
+    private static class PublicKeySerializer extends AbstractSerializer<CacheEntry<PGPPublicKey>> {
 
         @Override
-        public PGPPublicKey read(Decoder decoder) throws Exception {
-            byte[] encoded = decoder.readBinary();
-            PGPObjectFactory objectFactory = new PGPObjectFactory(
-                PGPUtil.getDecoderStream(new ByteArrayInputStream(encoded)), new BcKeyFingerprintCalculator());
-            Object object = objectFactory.nextObject();
-            if (object instanceof PGPPublicKey) {
-                return (PGPPublicKey) object;
-            } else if (object instanceof PGPPublicKeyRing) {
-                return ((PGPPublicKeyRing) object).getPublicKey();
+        public CacheEntry<PGPPublicKey> read(Decoder decoder) throws Exception {
+            long timestamp = decoder.readLong();
+            boolean present = decoder.readBoolean();
+            if (present) {
+                byte[] encoded = decoder.readBinary();
+                PGPObjectFactory objectFactory = new PGPObjectFactory(
+                    PGPUtil.getDecoderStream(new ByteArrayInputStream(encoded)), new BcKeyFingerprintCalculator());
+                Object object = objectFactory.nextObject();
+                if (object instanceof PGPPublicKey) {
+                    return new CacheEntry<>(timestamp, (PGPPublicKey) object);
+                } else if (object instanceof PGPPublicKeyRing) {
+                    return new CacheEntry<>(timestamp, ((PGPPublicKeyRing) object).getPublicKey());
+                }
+                throw new IllegalStateException("Unexpected key in cache: " + object.getClass());
+            } else {
+                return new CacheEntry<>(timestamp, null);
             }
-            throw new IllegalStateException("Unexpected key in cache: " + object.getClass());
         }
 
         @Override
-        public void write(Encoder encoder, PGPPublicKey value) throws Exception {
-            encoder.writeBinary(value.getEncoded());
+        public void write(Encoder encoder, CacheEntry<PGPPublicKey> value) throws Exception {
+            encoder.writeLong(value.timestamp);
+            PGPPublicKey key = value.value;
+            if (key != null) {
+                encoder.writeBoolean(true);
+                encoder.writeBinary(key.getEncoded());
+            } else {
+                encoder.writeBoolean(false);
+            }
         }
 
+    }
+
+    private static class CacheEntry<T> {
+        private final long timestamp;
+        private final T value;
+
+        private CacheEntry(long timestamp, T value) {
+            this.timestamp = timestamp;
+            this.value = value;
+        }
     }
 }
