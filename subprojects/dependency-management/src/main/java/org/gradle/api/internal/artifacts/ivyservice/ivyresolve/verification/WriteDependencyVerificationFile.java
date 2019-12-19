@@ -168,7 +168,9 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
 
                     @Override
                     public BuildOperationDescriptor.Builder description() {
-                        return BuildOperationDescriptor.displayName("Computing dependency verification metadata for " + project.getDisplayName());
+                        String displayName = "Computing dependency verification metadata for " + project.getDisplayName();
+                        return BuildOperationDescriptor.displayName(displayName)
+                            .progressDisplayName(displayName);
                     }
                 });
             }
