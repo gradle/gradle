@@ -76,6 +76,7 @@ configurations {
         canBeConsumed = true
         attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
         attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.LIBRARY))
+        attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling, Bundling.EXTERNAL))
         attributes.attribute(Attribute.of("org.gradle.runtime", String), "minimal")
     }
 }

@@ -27,8 +27,9 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.attributes.Attribute
-import org.gradle.api.component.AdhocComponentWithVariants
-import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.attributes.Category
+import org.gradle.api.attributes.DocsType
+import org.gradle.api.attributes.Usage
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.tasks.Internal
@@ -128,26 +129,23 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
 
     private
     fun Project.configureSourcesVariant() {
-        plugins.withType<JavaPlugin> {
-            extensions.getByType<JavaPluginExtension>().apply {
-                withSourcesJar()
+        extensions.getByType<JavaPluginExtension>().apply {
+            withSourcesJar()
+        }
+        val implementation by configurations
+        val transitiveSourcesElements: Configuration by configurations.creating {
+            isCanBeResolved = false
+            isCanBeConsumed = true
+            extendsFrom(implementation)
+            attributes {
+                attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
+                attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.DOCUMENTATION))
+                attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType.SOURCES))
+                attribute(Attribute.of("org.gradle.docselements", String::class.java), "sources")
             }
-            val sourcesElements: Configuration by configurations.getting {
-                extendsFrom(configurations["implementation"])
-                outgoing.variants.create("sourcesDirectory") {
-                    attributes.attribute(Attribute.of("artifactType", String::class.java), "java-sources-directory")
-                    val sourceSet = the<SourceSetContainer>()[SourceSet.MAIN_SOURCE_SET_NAME]
-                    sourceSet.java.srcDirs.forEach {
-                        artifact(it)
-                    }
-                }
-            }
-
-            val javaComponent = components.findByName("java") as AdhocComponentWithVariants
-            javaComponent.withVariantsFromConfiguration(sourcesElements) {
-                if (configurationVariant.attributes.getAttribute(Attribute.of("artifactType", String::class.java)) == "java-sources-directory") {
-                    skip()
-                }
+            val sourceSet = the<SourceSetContainer>()[SourceSet.MAIN_SOURCE_SET_NAME]
+            sourceSet.java.srcDirs.forEach {
+                outgoing.artifact(it)
             }
         }
     }

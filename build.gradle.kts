@@ -152,7 +152,7 @@ buildTypes {
     create("promotionBuild") {
         tasks(
             "verifyIsProductionBuildEnvironment", "clean", "docs:check",
-            "buildDists", "distributions:integTest", "uploadArchives")
+            "buildDists", "distributions:integTest", "publish")
     }
 
     create("soakTest") {

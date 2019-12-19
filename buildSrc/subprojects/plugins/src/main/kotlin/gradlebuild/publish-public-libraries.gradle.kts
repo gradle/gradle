@@ -17,81 +17,67 @@ package gradlebuild
 
 import accessors.base
 
-import groovy.lang.MissingPropertyException
-import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
-import org.gradle.plugins.publish.GeneratePom
-import org.gradle.plugins.publish.createArtifactPattern
-
-import java.util.*
-
 plugins {
-    maven
+    `maven-publish`
 }
 
-val generatePom = tasks.register("generatePom", GeneratePom::class.java)
-
-configureUploadArchivesTask(generatePom)
-
-artifacts {
-
-    fun publishRuntime(artifact: Any) =
-        add(generatePom.get().publishRuntime.name, artifact) // TODO: This prevent `generatePom` from being lazy
-
-    publishRuntime(tasks.named("jar").get()) // TODO: LazyPublishArtifact has custom provider unpacking, see https://github.com/gradle/gradle-native/issues/719
-    publishRuntime(tasks.named("sourcesJar").get()) // TODO: LazyPublishArtifact has custom provider unpacking, see https://github.com/gradle/gradle-native/issues/719
-    publishRuntime(
-        DefaultPublishArtifact(
-            base.archivesBaseName,
-            "pom",
-            "pom",
-            null,
-            Date(),
-            generatePom.get().pomFile,
-            generatePom))
+publishing {
+    publications {
+        create<MavenPublication>("gradleDistribution") {
+            from(components["java"])
+            artifactId = base.archivesBaseName
+        }
+    }
+    repositories {
+        maven {
+            name = "remote"
+            val libsType = if (rootProject.extra["isSnapshot"] as Boolean) "snapshots" else "releases"
+            url = uri("https://repo.gradle.org/gradle/libs-$libsType-local")
+            credentials {
+                username = artifactoryUserName
+                password = artifactoryUserPassword
+            }
+        }
+        maven {
+            name = "local"
+            url = uri(rootProject.file("build/repo"))
+        }
+    }
+    configurePublishingTasks()
 }
 
-fun Project.configureUploadArchivesTask(generatePom: TaskProvider<GeneratePom>) {
-    // TODO: Make this lazy, see https://github.com/gradle/gradle-native/issues/718
-    tasks.getByName<Upload>("uploadArchives") {
-        // TODO Add magic property to upcoming configuration interface
+fun Project.configurePublishingTasks() {
+    tasks.named("publishGradleDistributionPublicationToRemoteRepository") {
         onlyIf { !project.hasProperty("noUpload") }
-        configuration = generatePom.get().publishRuntime
-        dependsOn(generatePom)
-        isUploadDescriptor = false
-
-        // TODO Remove once task configuration on demand is available and we can enforce properties at task configuration time
         failEarlyIfCredentialsAreNotSet(this)
-
-        repositories {
-            ivy {
-                artifactPattern(createArtifactPattern(rootProject.extra["isSnapshot"] as Boolean, project.group.toString(), base.archivesBaseName))
-                credentials {
-                    username = artifactoryUserName
-                    password = artifactoryUserPassword
-                }
+    }
+    tasks.named("publishGradleDistributionPublicationToLocalRepository") {
+        doFirst {
+            val repoBaseDir = rootProject.file("build/repo")
+            if (repoBaseDir.exists()) {
+                // Make sure artifacts do not pile up locally
+                repoBaseDir.deleteRecursively()
             }
         }
     }
 }
 
-fun Project.failEarlyIfCredentialsAreNotSet(upload: Upload) {
-    gradle.taskGraph.whenReady({
-        if (hasTask(upload)) {
+fun Project.failEarlyIfCredentialsAreNotSet(publish: Task) {
+    gradle.taskGraph.whenReady {
+        if (hasTask(publish)) {
             if (artifactoryUserName.isNullOrEmpty()) {
-                throw MissingPropertyException("artifactoryUserName is not set!")
+                throw GradleException("artifactoryUserName is not set!")
             }
             if (artifactoryUserPassword.isNullOrEmpty()) {
-                throw MissingPropertyException("artifactoryUserPassword is not set!")
+                throw GradleException("artifactoryUserPassword is not set!")
             }
         }
-    })
+    }
 }
 
-// TODO Add magic property to upcoming configuration interface
 val Project.artifactoryUserName
     get() = findProperty("artifactoryUserName") as String?
 
-// TODO Add magic property to upcoming configuration interface
 val Project.artifactoryUserPassword
     get() = findProperty("artifactoryUserPassword") as String?
 

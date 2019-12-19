@@ -18,6 +18,7 @@ package org.gradle.gradlebuild.packaging
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.attributes.Bundling
 import org.gradle.api.attributes.Category
 
 import org.gradle.gradlebuild.packaging.Attributes.artifactType
@@ -68,13 +69,14 @@ open class MinifyPlugin : Plugin<Project> {
                 }
                 configurations.all {
                     afterEvaluate {
-                        // everywhere where we resolve,prefer the minified version
+                        // everywhere where we resolve, prefer the minified version
                         if (isCanBeResolved && !isCanBeConsumed) {
                             attributes.attribute(minified, true)
                         }
-                        // local libraries are already minified
+                        // local projects are already minified
                         if (isCanBeConsumed && !isCanBeResolved) {
-                            if (attributes.getAttribute(Category.CATEGORY_ATTRIBUTE)?.name == Category.LIBRARY) {
+                            if (attributes.getAttribute(Category.CATEGORY_ATTRIBUTE)?.name == Category.LIBRARY
+                                    && attributes.getAttribute(Bundling.BUNDLING_ATTRIBUTE)?.name == Bundling.EXTERNAL) {
                                 attributes.attribute(minified, true)
                             }
                         }
