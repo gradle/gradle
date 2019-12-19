@@ -46,6 +46,7 @@ public class RegularFileSnapshot extends AbstractCompleteFileSystemLocationSnaps
         return contentHash;
     }
 
+    // Used by the Maven caching client. Do not remove
     public FileMetadata getMetadata() {
         return metadata;
     }
