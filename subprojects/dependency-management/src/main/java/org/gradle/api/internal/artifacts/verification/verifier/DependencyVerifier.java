@@ -109,7 +109,9 @@ public class DependencyVerifier {
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor.displayName("Verifying dependency " + foundArtifact);
+                String displayName = "Verifying dependency " + foundArtifact;
+                return BuildOperationDescriptor.displayName(displayName)
+                    .progressDisplayName(displayName);
             }
         });
     }
