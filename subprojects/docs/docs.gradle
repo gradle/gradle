@@ -110,6 +110,7 @@ samples {
         javaAndroidApplication
         springBootWebApplication
         gradlePluginInJava
+        precompiledScriptPlugin
 
         javaApplication
         javaListLibrary
@@ -328,7 +329,15 @@ samples {
                 from(templates.groovyUtilitiesLibrary)
             }
         }
-        
+
+        precompiledScriptPlugin {
+            description = "Use Kotlin DSL in a precompiled script plugin."
+            category = "Build organization"
+            common {
+                from(templates.precompiledScriptPlugin)
+            }
+        }
+
         gradlePlugin {
             description = "Organize your build logic into a Gradle plugin written in Java."
             category = "Build organization"
