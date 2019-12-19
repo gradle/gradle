@@ -9,4 +9,4 @@ include::sample[dir="samples/gradle-plugin/kotlin",files="build.gradle.kts[tags=
 
 For a more guided tour with plugin development, see link:https://gradle.org/guides/?q=Plugin%20Development[the guides for plugin development].
 
-You can also generate this project locally using the link:{userManualPath}/build_init_plugin.html#sec:java_gradle_plugin[gradle init].
+You can also generate this project locally using link:{userManualPath}/build_init_plugin.html#sec:java_gradle_plugin[`gradle init`].

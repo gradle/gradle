@@ -29,4 +29,5 @@ BUILD SUCCESSFUL in 1s
 ====
 
 For more information, see link:{userManualPath}/application_plugin.html[Application Plugin reference chapter].
-You can also get started quickly using the link:{userManualPath}/build_init_plugin.html#sec:java_application[Build Init Plugin].
+
+You can also generate this project locally using link:{userManualPath}/build_init_plugin.html#sec:java_application[`gradle init`].

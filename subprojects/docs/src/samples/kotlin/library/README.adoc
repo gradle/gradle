@@ -26,4 +26,5 @@ BUILD SUCCESSFUL in 1s
 ====
 
 For more information, see link:https://kotlinlang.org/docs/reference/using-gradle.html[building a Kotlin project with Gradle reference].
-You can also get started quickly using the link:{userManualPath}/build_init_plugin.html#sec:java_library[Build Init Plugin].
+
+You can also generate this project locally using link:{userManualPath}/build_init_plugin.html#sec:kotlin_library[`gradle init`].
