@@ -17,6 +17,7 @@
 package org.gradle.instantexecution.serialization.codecs
 
 import org.gradle.api.Project
+import org.gradle.api.Script
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.initialization.Settings
@@ -65,6 +66,7 @@ import org.gradle.internal.serialize.BaseSerializerFactory.STRING_SERIALIZER
 import org.gradle.internal.serialize.HashCodeSerializer
 import org.gradle.internal.snapshot.ValueSnapshotter
 import org.gradle.internal.state.ManagedFactoryRegistry
+import org.gradle.kotlin.dsl.*
 import org.gradle.process.ExecOperations
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
@@ -104,6 +106,8 @@ class Codecs(
         bind(unsupported<Settings>())
         bind(unsupported<TaskContainer>())
         bind(unsupported<ConfigurationContainer>())
+        bind(unsupported<KotlinScript>())
+        bind(unsupported<Script>())
 
         baseTypes()
 
