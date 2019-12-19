@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.resolve.verification
 
+import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.security.fixtures.KeyServer
 import org.gradle.security.fixtures.SigningFixtures
@@ -437,6 +438,91 @@ This can indicate that a dependency has been compromised. Please verify carefull
 
         then:
         noExceptionThrown()
+    }
+
+    // This test exercises the fact that the signature cache is aware
+    // of changes of the artifact
+    def "can detect tampered file between builds"() {
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+            verifySignatures()
+            addTrustedKey("org:foo:1.0", SigningFixtures.validPublicKeyHexString)
+            addTrustedKey("org:foo:1.0", SigningFixtures.validPublicKeyHexString, "pom", "pom")
+        }
+        keyServerFixture.withDefaultSigningKey()
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0") {
+            withSignature {
+                signAsciiArmored(it)
+            }
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        succeeds ":compileJava"
+
+        then:
+        noExceptionThrown()
+
+        when:
+        def group = new File(CacheLayout.FILE_STORE.getPath(metadataCacheDir), "org")
+        def module = new File(group, "foo")
+        def version = new File(module, "1.0")
+        def originHash = new File(version, "16e066e005a935ac60f06216115436ab97c5da02")
+        def artifactFile = new File(originHash, "foo-1.0.jar")
+        artifactFile.text = "tampered"
+        fails ":compileJava"
+
+        then:
+        failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
+  - On artifact foo-1.0.jar (org:foo:1.0): Artifact was signed with key '14f53f0824875d73' but signature didn't match"""
+    }
+
+    def "caching takes trusted keys into account"() {
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+            verifySignatures()
+            addTrustedKey("org:foo:1.0", SigningFixtures.validPublicKeyHexString)
+            addTrustedKey("org:foo:1.0", SigningFixtures.validPublicKeyHexString, "pom", "pom")
+        }
+        keyServerFixture.withDefaultSigningKey()
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0") {
+            withSignature {
+                signAsciiArmored(it)
+            }
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        succeeds ":compileJava"
+
+        then:
+        noExceptionThrown()
+
+        when:
+        replaceMetadataFile {
+            keyServer(keyServerFixture.uri)
+            verifySignatures()
+            addTrustedKey("org:foo:1.0", SigningFixtures.validPublicKeyHexString, "pom", "pom")
+        }
+        fails ":compileJava"
+
+        then:
+        failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
+  - Artifact foo-1.0.jar (org:foo:1.0) checksum is missing from verification metadata."""
     }
 
 }

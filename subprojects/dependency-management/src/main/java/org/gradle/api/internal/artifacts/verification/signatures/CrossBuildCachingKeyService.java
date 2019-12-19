@@ -73,7 +73,7 @@ public class CrossBuildCachingKeyService implements PublicKeyService, Closeable 
         PersistentIndexedCacheParameters<Long, CacheEntry<PGPPublicKey>> publicKeyParams = PersistentIndexedCacheParameters.of(
             "publickeys",
             BaseSerializerFactory.LONG_SERIALIZER,
-            new PublicKeySerializer()
+            new PublicKeyEntrySerializer()
         ).withCacheDecorator(
             decoratorFactory.decorator(2000, true)
         );
@@ -187,23 +187,15 @@ public class CrossBuildCachingKeyService implements PublicKeyService, Closeable 
         }
     }
 
-    private static class PublicKeySerializer extends AbstractSerializer<CacheEntry<PGPPublicKey>> {
+    private static class PublicKeyEntrySerializer extends AbstractSerializer<CacheEntry<PGPPublicKey>> {
+        private final PublicKeySerializer keySerializer = new PublicKeySerializer();
 
         @Override
         public CacheEntry<PGPPublicKey> read(Decoder decoder) throws Exception {
             long timestamp = decoder.readLong();
             boolean present = decoder.readBoolean();
             if (present) {
-                byte[] encoded = decoder.readBinary();
-                PGPObjectFactory objectFactory = new PGPObjectFactory(
-                    PGPUtil.getDecoderStream(new ByteArrayInputStream(encoded)), new BcKeyFingerprintCalculator());
-                Object object = objectFactory.nextObject();
-                if (object instanceof PGPPublicKey) {
-                    return new CacheEntry<>(timestamp, (PGPPublicKey) object);
-                } else if (object instanceof PGPPublicKeyRing) {
-                    return new CacheEntry<>(timestamp, ((PGPPublicKeyRing) object).getPublicKey());
-                }
-                throw new IllegalStateException("Unexpected key in cache: " + object.getClass());
+                return new CacheEntry<>(timestamp, keySerializer.read(decoder));
             } else {
                 return new CacheEntry<>(timestamp, null);
             }
@@ -215,7 +207,7 @@ public class CrossBuildCachingKeyService implements PublicKeyService, Closeable 
             PGPPublicKey key = value.value;
             if (key != null) {
                 encoder.writeBoolean(true);
-                encoder.writeBinary(key.getEncoded());
+                keySerializer.write(encoder, key);
             } else {
                 encoder.writeBoolean(false);
             }

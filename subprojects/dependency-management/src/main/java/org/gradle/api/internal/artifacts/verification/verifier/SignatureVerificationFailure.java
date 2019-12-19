@@ -107,5 +107,13 @@ public class SignatureVerificationFailure implements VerificationFailure {
             this.kind = kind;
         }
 
+        @Nullable
+        public PGPPublicKey getPublicKey() {
+            return publicKey;
+        }
+
+        public FailureKind getKind() {
+            return kind;
+        }
     }
 }

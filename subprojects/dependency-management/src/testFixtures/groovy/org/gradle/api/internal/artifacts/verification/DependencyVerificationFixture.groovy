@@ -89,6 +89,12 @@ class DependencyVerificationFixture {
         action()
     }
 
+    void replaceMetadataFile(@DelegatesTo(value = Builder, strategy = Closure.DELEGATE_FIRST) Closure config) {
+        assertMetadataExists()
+        verificationFile.delete()
+        createMetadataFile(config)
+    }
+
     void createMetadataFile(@DelegatesTo(value = Builder, strategy = Closure.DELEGATE_FIRST) Closure config) {
         assertMetadataIsMissing()
         verificationFile.parentFile.mkdirs()
