@@ -31,6 +31,7 @@ import org.gradle.internal.operations.BuildOperationExecutor
 
 internal
 abstract class AbstractTransformationNodeCodec<T : TransformationNode> : Codec<T> {
+
     override suspend fun WriteContext.encode(value: T) {
         encodePreservingSharedIdentityOf(value) { doEncode(value) }
     }
@@ -53,6 +54,7 @@ class InitialTransformationNodeCodec(
     private val buildOperationExecutor: BuildOperationExecutor,
     private val transformListener: ArtifactTransformListener
 ) : AbstractTransformationNodeCodec<TransformationNode.InitialTransformationNode>() {
+
     override suspend fun WriteContext.doEncode(value: TransformationNode.InitialTransformationNode) {
         write(value.transformationStep)
         write(value.dependenciesResolver)
@@ -73,6 +75,7 @@ class ChainedTransformationNodeCodec(
     private val buildOperationExecutor: BuildOperationExecutor,
     private val transformListener: ArtifactTransformListener
 ) : AbstractTransformationNodeCodec<TransformationNode.ChainedTransformationNode>() {
+
     override suspend fun WriteContext.doEncode(value: TransformationNode.ChainedTransformationNode) {
         write(value.transformationStep)
         write(value.dependenciesResolver)
