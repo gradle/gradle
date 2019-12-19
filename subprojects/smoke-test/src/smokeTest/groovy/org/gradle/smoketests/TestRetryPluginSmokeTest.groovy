@@ -53,9 +53,12 @@ class TestRetryPluginSmokeTest extends AbstractSmokeTest {
             }"""
 
         then:
-        def build = runner('test').buildAndFail()
-        build.task(":test").outcome == TaskOutcome.FAILED
-        def output = build.output
+        def result = runner('test').buildAndFail()
+        expectNoDeprecationWarnings(result)
+
+        and:
+        result.task(":test").outcome == TaskOutcome.FAILED
+        def output = result.output
         output.findAll("flaky\\(\\) FAILED").size() == 1
         output.findAll("failing\\(\\) FAILED").size() == 3
         output.contains("6 tests completed, 4 failed")
