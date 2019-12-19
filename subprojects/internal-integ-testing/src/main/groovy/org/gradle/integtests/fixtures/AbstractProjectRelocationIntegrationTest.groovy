@@ -76,7 +76,7 @@ abstract class AbstractProjectRelocationIntegrationTest extends AbstractIntegrat
 
     @SuppressWarnings("GrMethodMayBeStatic")
     protected void removeResults(TestFile projectDir) {
-        projectDir.file("build").deleteDir()
+        inDirectory(projectDir).withTasks(":clean").run()
     }
 
     @SuppressWarnings("GrMethodMayBeStatic")
