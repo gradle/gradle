@@ -149,8 +149,11 @@ public class DependencyVerifyingModuleComponentRepository implements ModuleCompo
             SignatureFileDefaultBuildableArtifactResolveResult signatureResult = new SignatureFileDefaultBuildableArtifactResolveResult();
             SignatureArtifactMetadata signatureArtifactMetadata = new SignatureArtifactMetadata(moduleComponentIdentifier, artifact);
             getLocalAccess().resolveArtifact(signatureArtifactMetadata, moduleSources, signatureResult);
-            if (signatureResult.hasResult() && signatureResult.isSuccessful()) {
-                return signatureResult.getResult();
+            if (signatureResult.hasResult()) {
+                if (signatureResult.isSuccessful()) {
+                    return signatureResult.getResult();
+                }
+                return null;
             } else {
                 getRemoteAccess().resolveArtifact(signatureArtifactMetadata, moduleSources, signatureResult);
             }

@@ -70,7 +70,7 @@ class AbstractDependencyVerificationIntegTest extends AbstractHttpDependencyReso
 
     }
 
-    protected void uncheckedModule(String group, String name, String version = "1.0", @DelegatesTo(value = MavenHttpModule, strategy = Closure.DELEGATE_FIRST) Closure conf = null) {
+    protected MavenHttpModule uncheckedModule(String group, String name, String version = "1.0", @DelegatesTo(value = MavenHttpModule, strategy = Closure.DELEGATE_FIRST) Closure conf = null) {
         def mod = mavenHttpRepo.module(group, name, version)
             .allowAll()
         if (conf) {

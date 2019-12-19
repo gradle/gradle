@@ -16,11 +16,12 @@
 package org.gradle.api.internal.artifacts.verification.signatures;
 
 import org.gradle.api.internal.artifacts.verification.verifier.SignatureVerificationFailure;
+import org.gradle.internal.concurrent.Stoppable;
 
 import java.io.File;
 import java.util.Optional;
 import java.util.Set;
 
-public interface SignatureVerificationService {
+public interface SignatureVerificationService extends Stoppable {
     Optional<SignatureVerificationFailure> verify(File origin, File signature, Set<String> trustedKeys);
 }

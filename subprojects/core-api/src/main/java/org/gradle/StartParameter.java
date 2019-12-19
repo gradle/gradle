@@ -917,6 +917,8 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     }
 
     /**
+     * Sets the key refresh flag.
+     *
      * @param refresh If set to true, missing keys will be checked again. By default missing keys are cached for 24 hours.
      *
      * @since 6.2

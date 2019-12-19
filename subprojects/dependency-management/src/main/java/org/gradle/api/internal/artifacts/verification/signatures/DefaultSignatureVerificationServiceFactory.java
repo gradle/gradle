@@ -23,9 +23,11 @@ import org.bouncycastle.openpgp.PGPSignature;
 import org.bouncycastle.openpgp.PGPSignatureList;
 import org.gradle.api.internal.artifacts.verification.verifier.SignatureVerificationFailure;
 import org.gradle.cache.CacheRepository;
+import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
+import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.resource.connector.ResourceConnectorSpecification;
 import org.gradle.internal.resource.transfer.ExternalResourceConnector;
@@ -51,6 +53,9 @@ public class DefaultSignatureVerificationServiceFactory implements SignatureVeri
     private final CacheRepository cacheRepository;
     private final InMemoryCacheDecoratorFactory decoratorFactory;
     private final BuildOperationExecutor buildOperationExecutor;
+    private final FileHasher fileHasher;
+    private final CacheScopeMapping scopeCacheMapping;
+    private final ProjectCacheDir projectCacheDir;
     private final BuildCommencedTimeProvider timeProvider;
     private final boolean refreshKeys;
 
@@ -58,12 +63,18 @@ public class DefaultSignatureVerificationServiceFactory implements SignatureVeri
                                                       CacheRepository cacheRepository,
                                                       InMemoryCacheDecoratorFactory decoratorFactory,
                                                       BuildOperationExecutor buildOperationExecutor,
+                                                      FileHasher fileHasher,
+                                                      CacheScopeMapping scopeCacheMapping,
+                                                      ProjectCacheDir projectCacheDir,
                                                       BuildCommencedTimeProvider timeProvider,
                                                       boolean refreshKeys) {
         this.httpConnectorFactory = httpConnectorFactory;
         this.cacheRepository = cacheRepository;
         this.decoratorFactory = decoratorFactory;
         this.buildOperationExecutor = buildOperationExecutor;
+        this.fileHasher = fileHasher;
+        this.scopeCacheMapping = scopeCacheMapping;
+        this.projectCacheDir = projectCacheDir;
         this.timeProvider = timeProvider;
         this.refreshKeys = refreshKeys;
     }
@@ -74,7 +85,17 @@ public class DefaultSignatureVerificationServiceFactory implements SignatureVeri
         });
         PublicKeyDownloadService keyDownloadService = new PublicKeyDownloadService(ImmutableList.copyOf(keyServers), connector);
         CrossBuildCachingKeyService keyService = new CrossBuildCachingKeyService(cacheRepository, decoratorFactory, buildOperationExecutor, keyDownloadService, timeProvider, refreshKeys);
-        return new DefaultSignatureVerificationService(keyService);
+        DefaultSignatureVerificationService delegate = new DefaultSignatureVerificationService(keyService);
+        return new CrossBuildSignatureVerificationService(
+            delegate,
+            fileHasher,
+            scopeCacheMapping,
+            projectCacheDir,
+            cacheRepository,
+            decoratorFactory,
+            keyService,
+            refreshKeys
+        );
     }
 
 
@@ -82,7 +103,7 @@ public class DefaultSignatureVerificationServiceFactory implements SignatureVeri
         return new SignatureVerificationFailure.SignatureError(key, kind);
     }
 
-    private static class DefaultSignatureVerificationService implements SignatureVerificationService, Stoppable {
+    private static class DefaultSignatureVerificationService implements SignatureVerificationService {
         private final CrossBuildCachingKeyService keyService;
 
         public DefaultSignatureVerificationService(CrossBuildCachingKeyService keyService) {
