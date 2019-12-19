@@ -157,13 +157,7 @@ class DependencyVerificationsXmlWriterTest extends Specification {
 """
     }
 
-    // In context of future dependency verification file update, we try
-    // to preserve the order of insertion when building the file.
-    // There's the exception of checksums themselves, which are ordered
-    // based on the ChecksumKind enum.
-    // This documents the current behavior, not necessarily what should
-    // be done eventually.
-    def "order of declaration is preserved (except for checksums)"() {
+    def "entries are sorted"() {
         given:
         declareChecksum("org:foo:1.0", "sha1", "abc")
         declareChecksum("org:foo:1.0", "sha256", "bcd")
@@ -182,6 +176,12 @@ class DependencyVerificationsXmlWriterTest extends Specification {
       <verify-signatures>false</verify-signatures>
    </configuration>
    <components>
+      <component group="org" name="bar" version="1.2">
+         <artifact name="bar-1.2.jar">
+            <sha1 value="9876"/>
+            <sha512 value="123def"/>
+         </artifact>
+      </component>
       <component group="org" name="foo" version="1.0">
          <artifact name="foo-1.0.jar">
             <sha1 value="abc"/>
@@ -191,12 +191,6 @@ class DependencyVerificationsXmlWriterTest extends Specification {
       <component group="org" name="foo" version="1.1">
          <artifact name="foo-1.1.jar">
             <md5 value="1234"/>
-         </artifact>
-      </component>
-      <component group="org" name="bar" version="1.2">
-         <artifact name="bar-1.2.jar">
-            <sha1 value="9876"/>
-            <sha512 value="123def"/>
          </artifact>
       </component>
    </components>
@@ -222,14 +216,14 @@ class DependencyVerificationsXmlWriterTest extends Specification {
    </configuration>
    <components>
       <component group="org" name="foo" version="1.0">
+         <artifact name="foo-1.0-classy.jar">
+            <sha1 value="123"/>
+         </artifact>
          <artifact name="foo-1.0.jar">
             <sha1 value="abc"/>
          </artifact>
          <artifact name="foo-1.0.zip">
             <sha256 value="def"/>
-         </artifact>
-         <artifact name="foo-1.0-classy.jar">
-            <sha1 value="123"/>
          </artifact>
       </component>
    </components>
@@ -253,14 +247,14 @@ class DependencyVerificationsXmlWriterTest extends Specification {
       <verify-signatures>false</verify-signatures>
    </configuration>
    <components>
-      <component group="org" name="foo" version="1.0">
-         <artifact name="foo-1.0.jar">
-            <sha1 value="abc" origin="from test"/>
-         </artifact>
-      </component>
       <component group="org" name="bar" version="1.0">
          <artifact name="bar-1.0.jar">
             <md5 value="abc" origin="other"/>
+            <sha1 value="abc" origin="from test"/>
+         </artifact>
+      </component>
+      <component group="org" name="foo" version="1.0">
+         <artifact name="foo-1.0.jar">
             <sha1 value="abc" origin="from test"/>
          </artifact>
       </component>
