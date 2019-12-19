@@ -207,6 +207,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         outputDoesNotContain(incubatingMessage)
     }
 
+    @ToBeFixedForInstantExecution
     def "detects when outputs are removed for tasks without sources"() {
         buildFile << """
             apply plugin: 'base'
