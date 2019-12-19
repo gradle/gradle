@@ -426,7 +426,7 @@ configurations {
     stale
 }
 configurations.fresh.resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
- 
+
 dependencies {
     stale "org.gradle.integtests.resolve:unique:1.0-SNAPSHOT"
     fresh "org.gradle.integtests.resolve:unique:1.0-SNAPSHOT"
@@ -857,10 +857,14 @@ task retrieve(type: Sync) {
         file('libs').assertHasDescendants('projectA-1.0-SNAPSHOT.jar')
     }
 
-    def "can find and cache a unique snapshot in a Maven HTTP repository"() {
+    @Unroll
+    def "can find and cache a unique snapshot in a Maven HTTP repository (GMM redirection #redirection)"() {
         given:
         def repo1 = mavenHttpRepo("repo1")
-        def projectA = repo1.module("org.gradle.integtests.resolve", "projectA", "1.0-SNAPSHOT")
+        def projectA = repo1.module("org.gradle.integtests.resolve", "projectA", "1.0-SNAPSHOT").withModuleMetadata()
+        if (!redirection) {
+            projectA.withoutGradleMetadataRedirection()
+        }
         def published = projectA.publish()
         buildFile << """
 repositories {
@@ -887,6 +891,9 @@ task retrieve(type: Sync) {
 
         when:
         published.pom.expectGet()
+        if (redirection) {
+            published.moduleMetadata.expectGet()
+        }
         published.artifact.expectGet()
 
         and:
@@ -901,6 +908,9 @@ task retrieve(type: Sync) {
 
         then:
         file('libs').assertHasDescendants("projectA-${published.publishArtifactVersion}.jar")
+
+        where:
+        redirection << [true, false]
     }
 
     def "can find a unique snapshot in a Maven file repository"() {
@@ -1058,8 +1068,8 @@ Required by:
         settingsFile << "rootProject.name = 'test'"
         buildFile << """
 repositories {
-    maven { 
-      url "${mavenHttpRepo.uri}" 
+    maven {
+      url "${mavenHttpRepo.uri}"
       metadataSources {
           ${metadataSources.code}
       }
@@ -1071,7 +1081,7 @@ configurations {
 dependencies {
     compile "org.gradle.integtests.resolve:unique:1.0-SNAPSHOT"
     compile "org.gradle.integtests.resolve:nonunique:1.0-SNAPSHOT"
-    
+
     components {
         all(CheckIsChangingRule)
     }
@@ -1085,6 +1095,7 @@ class CheckIsChangingRule implements ComponentMetadataRule {
 }
 
 """
+
         def resolve = new ResolveTestFixture(buildFile, "compile")
         def usesGradleMetadata = metadataSources == Sources.GRADLE || redirection
         resolve.prepare()

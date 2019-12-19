@@ -56,7 +56,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
         generateDefaultImports(project, tasks, extension);
         generateUserManual(project, tasks, objects, layout, extension);
 
-        checkXrefLinksInUserManualAreValid(layout, tasks, objects, extension);
+        checkXrefLinksInUserManualAreValid(layout, tasks, extension);
     }
 
     // TODO: This doesn't really make sense to be part of the user manual generation, but it's so tied up into it
@@ -109,7 +109,6 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             }
 
             task.setSeparateOutputDirs(false);
-            task.options(Collections.singletonMap("doctype", "book"));
             task.backends("html5");
 
             // TODO: Break the paths assumed here
@@ -120,14 +119,16 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             inputs.dir("src/main/resources")
                     .withPropertyName("resources")
                     .withPathSensitivity(PathSensitivity.RELATIVE);
-            inputs.files(extension.getUserManual().getSnippets())
+            inputs.dir(extension.getUserManual().getSnippets())
                     .withPropertyName("snippets")
                     .withPathSensitivity(PathSensitivity.RELATIVE);
 
-            Map<String, Object> attributes = new HashMap<>();
             // TODO: Break the paths assumed here
-            attributes.put("stylesdir", "css/");
+            Map<String, Object> attributes = new HashMap<>();
+            // TODO: This breaks the provider
+            attributes.put("stylesdir", extension.getUserManual().getStagedDocumentation().dir("css").get().getAsFile().getAbsolutePath());
             attributes.put("stylesheet", "manual.css");
+            attributes.put("doctype", "book");
             attributes.put("imagesdir", "img");
             attributes.put("nofooter", true);
             attributes.put("sectanchors", true);
@@ -154,8 +155,6 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             // TODO: This breaks if the version is changed later.
             attributes.put("gradleVersion", project.getVersion().toString());
             attributes.put("samplesPath", "snippets");
-            // Used by SampleIncludeProcessor from `gradle/dotorg-docs`
-            attributes.put("samples-dir", "src/snippets"); // TODO:
             task.attributes(attributes);
         });
 
@@ -197,6 +196,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             task.setGroup("documentation");
             task.setDescription("Generates single-page user manual.");
             task.dependsOn(extension.getUserManual().getStagedDocumentation());
+            task.onlyIf(t -> !extension.getQuickFeedback().get());
 
             task.sources(new Closure(null) {
                 public Object doCall(Object ignore) {
@@ -221,6 +221,9 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             attributes.put("groovyDslPath", "https://docs.gradle.org/" + project.getVersion() + "/dsl");
             attributes.put("javadocPath", "https://docs.gradle.org/" + project.getVersion() + "/javadoc");
             attributes.put("kotlinDslPath", "https://gradle.github.io/kotlin-dsl-docs/api");
+            // Used by SampleIncludeProcessor from `gradle/dotorg-docs`
+            // TODO: This breaks the provider
+            attributes.put("samples-dir", extension.getUserManual().getStagedDocumentation().get().getAsFile()); // TODO:
             task.attributes(attributes);
         });
 
@@ -252,6 +255,9 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             attributes.put("groovyDslPath", "../dsl");
             attributes.put("javadocPath", "../javadoc");
             attributes.put("kotlinDslPath", "https://gradle.github.io/kotlin-dsl-docs/api");
+            // Used by SampleIncludeProcessor from `gradle/dotorg-docs`
+            // TODO: This breaks the provider
+            attributes.put("samples-dir", extension.getUserManual().getStagedDocumentation().get().getAsFile()); // TODO:
             task.attributes(attributes);
         });
 
@@ -275,13 +281,14 @@ public class GradleUserManualPlugin implements Plugin<Project> {
         extension.userManual(userManual -> {
             userManual.getRoot().convention(extension.getSourceRoot().dir("userguide"));
             userManual.getStagingRoot().convention(extension.getStagingRoot().dir("usermanual"));
+            // TODO: These should be generated too
             userManual.getSnippets().convention(layout.getProjectDirectory().dir("src/snippets"));
             userManual.getStagedDocumentation().convention(userguideFlattenSources.flatMap(task -> (DirectoryProperty) task.getExtensions().getExtraProperties().get("destinationDirectory")));
             userManual.getRenderedDocumentation().from(userguide);
         });
     }
 
-    private void checkXrefLinksInUserManualAreValid(ProjectLayout layout, TaskContainer tasks, ObjectFactory objects, GradleDocumentationExtension extension) {
+    private void checkXrefLinksInUserManualAreValid(ProjectLayout layout, TaskContainer tasks, GradleDocumentationExtension extension) {
         TaskProvider<FindBrokenInternalLinks> checkDeadInternalLinks = tasks.register("checkDeadInternalLinks", FindBrokenInternalLinks.class, task -> {
             task.getReportFile().convention(layout.getBuildDirectory().file("reports/dead-internal-links.txt"));
             task.getDocumentationRoot().convention(extension.getUserManual().getStagedDocumentation());

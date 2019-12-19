@@ -23,7 +23,7 @@ To execute the sample task:
 =====
 [.sample-command]
 ----
-$ ./gradlew --include-build project-info-plugin projectInfo --format json
+$ ./gradlew --include-build project-info projectInfo --format json
 {
     "projectName": "task-with-arguments"
     "version": "1.0.2"

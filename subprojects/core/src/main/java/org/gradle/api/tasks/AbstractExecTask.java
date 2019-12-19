@@ -26,7 +26,6 @@ import org.gradle.process.ExecSpec;
 import org.gradle.process.ProcessForkOptions;
 import org.gradle.process.internal.ExecAction;
 import org.gradle.process.internal.ExecActionFactory;
-import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -369,12 +368,14 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
      * Returns the result for the command run by this task. Returns {@code null} if this task has not been executed yet.
      *
      * @return The result. Returns {@code null} if this task has not been executed yet.
+     *
+     * @see #getExecutionResult() for the preferred way of accessing this property.
      */
     @Internal
     @Nullable
-    @Deprecated
     public ExecResult getExecResult() {
-        DeprecationLogger.nagUserOfReplacedMethod("AbstractExecTask.getExecResult()", "AbstractExecTask.getExecutionResult()");
+        // TODO: Once getExecutionResult is stable, make this deprecated
+        // DeprecationLogger.nagUserOfReplacedMethod("AbstractExecTask.getExecResult()", "AbstractExecTask.getExecutionResult()");
         return execResult.getOrNull();
     }
 

@@ -17,19 +17,27 @@
 package org.gradle.internal.snapshot.impl;
 
 import org.gradle.internal.exceptions.Contextual;
+import org.gradle.internal.logging.text.TreeFormatter;
 
 /**
  * Represents a problem while attempting to isolate an instance.
  */
 @Contextual
 public class IsolationException extends RuntimeException {
-    private static final String MSG_FORMAT="Could not isolate value: [%s] of type: [%s]";
-
     public IsolationException(Object value) {
-        super(String.format(MSG_FORMAT, value, value.getClass()));
+        super(format(value));
     }
 
     public IsolationException(Object value, Throwable cause) {
-        super(String.format(MSG_FORMAT, value, value.getClass()), cause);
+        super(format(value), cause);
+    }
+
+    private static String format(Object value) {
+        TreeFormatter formatter = new TreeFormatter();
+        formatter.node("Could not isolate value ");
+        formatter.appendValue(value);
+        formatter.append(" of type ");
+        formatter.appendType(value.getClass());
+        return formatter.toString();
     }
 }

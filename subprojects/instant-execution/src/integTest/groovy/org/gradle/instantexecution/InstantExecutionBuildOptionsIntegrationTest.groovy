@@ -244,6 +244,59 @@ class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecuti
         "isCi.isPresent"                               | "presence"
     }
 
+    def "environment variable used as task and build logic input"() {
+
+        given:
+        def instant = newInstantExecutionFixture()
+        buildKotlinFile """
+
+            abstract class Greet : DefaultTask() {
+
+                @get:Input
+                abstract val greeting: Property<String>
+
+                @TaskAction
+                fun act() {
+                    println(greeting.get().capitalize() + "!")
+                }
+            }
+
+            val greetingVar = providers.environmentVariable("GREETING")
+            if (greetingVar.get().startsWith("hello")) {
+                tasks.register<Greet>("greet") {
+                    greeting.set("hello, hello")
+                }
+            } else {
+                tasks.register<Greet>("greet") {
+                    greeting.set(greetingVar)
+                }
+            }
+        """
+        when:
+        withEnvironmentVars(GREETING: "hi")
+        instantRun("greet")
+
+        then:
+        output.count("Hi!") == 1
+        instant.assertStateStored()
+
+        when:
+        withEnvironmentVars(GREETING: "hi")
+        instantRun("greet")
+
+        then:
+        output.count("Hi!") == 1
+        instant.assertStateLoaded()
+
+        when:
+        withEnvironmentVars(GREETING: "hello")
+        instantRun("greet")
+
+        then:
+        output.count("Hello, hello!") == 1
+        instant.assertStateStored()
+    }
+
     @Unroll
     def "file contents #usage used as build logic input"() {
 
@@ -396,5 +449,9 @@ class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecuti
         operator    | operatorType       | usage
         "getOrElse" | "String"           | "build logic input"
         "orElse"    | "Provider<String>" | "task input"
+    }
+
+    private void withEnvironmentVars(Map<String, String> environment) {
+        executer.withEnvironmentVars(environment)
     }
 }

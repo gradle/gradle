@@ -63,7 +63,6 @@ public class DefaultEmptySourceTaskSkipper implements EmptySourceTaskSkipper {
                 LOGGER.info("Skipping {} as it has no source files and no previous output files.", task);
                 skipOutcome = ExecutionOutcome.SHORT_CIRCUITED;
             } else {
-                outputChangeListener.beforeOutputChange();
                 OutputsCleaner outputsCleaner = new OutputsCleaner(
                     deleter,
                     buildOutputCleanupRegistry::isOutputOwnedByBuild,
@@ -71,6 +70,7 @@ public class DefaultEmptySourceTaskSkipper implements EmptySourceTaskSkipper {
                 );
                 for (FileCollectionFingerprint outputFingerprints : outputFileSnapshots.values()) {
                     try {
+                        outputChangeListener.beforeOutputChange(outputFingerprints.getRootHashes().keySet());
                         outputsCleaner.cleanupOutputs(outputFingerprints);
                     } catch (IOException e) {
                         throw new UncheckedIOException(e);

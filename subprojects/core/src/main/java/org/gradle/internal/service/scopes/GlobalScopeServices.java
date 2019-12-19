@@ -115,7 +115,7 @@ import java.util.List;
 
 /**
  * Defines the extended global services of a given process. This includes the CLI, daemon and tooling API provider. The CLI
- * only needs these advances services if it is running in --no-daemon mode.
+ * only needs these services if it is running in --no-daemon mode.
  */
 public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
 

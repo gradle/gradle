@@ -1,19 +1,11 @@
-= Kotlin Application Sample
-
-ifndef::env-github[]
-[.download]
-- link:{zip-base-file-name}-groovy-dsl.zip[icon:download[] Groovy DSL ZIP]
-- link:{zip-base-file-name}-kotlin-dsl.zip[icon:download[] Kotlin DSL ZIP]
-endif::[]
-
 NOTE: You can open the samples inside an IDE using the https://www.jetbrains.com/help/idea/gradle.html#gradle_import_project_start[IntelliJ native importer] or https://projects.eclipse.org/projects/tools.buildship[Eclipse Buildship].
 
 This sample shows how a Kotlin application can be built with Gradle.
 The application has no dependencies aside from the Kotlin standard library and the build has minimal configuration.
 
 ====
-include::sample[dir="groovy",files="build.gradle[]"]
-include::sample[dir="kotlin",files="build.gradle.kts[]"]
+include::sample[dir="samples/kotlin-application/groovy",files="build.gradle[]"]
+include::sample[dir="samples/kotlin-application/kotlin",files="build.gradle.kts[]"]
 ====
 
 To build and run the application:
@@ -34,5 +26,6 @@ BUILD SUCCESSFUL in 1s
 =====
 ====
 
-For more information, see link:{userManualPath}/application_plugin.html[Application Plugin reference chapter] and link:https://kotlinlang.org/docs/reference/using-gradle.html[building a Kotlin project with Gradle reference].
-You can also get started quickly using the link:{userManualPath}/build_init_plugin.html#sec:kotlin_application[Build Init Plugin].
+For more information, see link:{userManualPath}/application_plugin.html[Application Plugin] and link:https://kotlinlang.org/docs/reference/using-gradle.html[building a Kotlin project with Gradle reference].
+
+You can also get started quickly using the link:{userManualPath}/build_init_plugin.html[Build Init Plugin].

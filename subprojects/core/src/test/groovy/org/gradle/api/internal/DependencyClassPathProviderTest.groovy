@@ -32,16 +32,15 @@ class DependencyClassPathProviderTest extends Specification {
         def classpath = provider.findClassPath("GRADLE_API")
 
         then:
-        classpath.asFiles.collect{it.name} == ["gradle-worker-processes-runtime", "gradle-core-runtime", "gradle-cli-runtime", "gradle-workers-runtime", "gradle-dependency-management-runtime", "gradle-plugin-use-runtime", "gradle-tooling-api-runtime", "gradle-build-events-runtime", "plugin1-runtime", "plugin2-runtime"]
+        classpath.asFiles.collect{it.name} == ["gradle-worker-processes-runtime", "gradle-launcher-runtime", "gradle-cli-runtime", "gradle-workers-runtime", "gradle-dependency-management-runtime", "gradle-plugin-use-runtime", "gradle-tooling-api-runtime", "plugin1-runtime", "plugin2-runtime"]
 
         and:
         1 * moduleRegistry.getModule("gradle-worker-processes") >> module("gradle-worker-processes")
-        1 * moduleRegistry.getModule("gradle-core") >> module("gradle-core", module("gradle-cli"))
+        1 * moduleRegistry.getModule("gradle-launcher") >> module("gradle-launcher", module("gradle-cli"))
         1 * moduleRegistry.getModule("gradle-workers") >> module("gradle-workers")
         1 * moduleRegistry.getModule("gradle-dependency-management") >> module("gradle-dependency-management")
         1 * moduleRegistry.getModule("gradle-plugin-use") >> module("gradle-plugin-use")
         1 * moduleRegistry.getModule("gradle-tooling-api") >> module("gradle-tooling-api")
-        1 * moduleRegistry.getModule("gradle-build-events") >> module("gradle-build-events")
         1 * pluginModuleRegistry.getApiModules() >> ([module("plugin1"), module("plugin2")] as LinkedHashSet)
     }
 

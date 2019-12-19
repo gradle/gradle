@@ -7,19 +7,19 @@ repositories {
 task compileWithOptimization(type: GroovyCompile) {
     source = sourceSets.main.groovy
     classpath = configurations.compileClasspath
-    destinationDir = file("$buildDir/classes/optimized")
+    destinationDirectory = file("$buildDir/classes/optimized")
     groovyOptions.optimizationOptions.indy = true
 }
 
 task compileWithoutOptimization(type: GroovyCompile) {
     source = sourceSets.main.groovy
     classpath = configurations.compileClasspath
-    destinationDir = file("$buildDir/classes/unoptimized")
+    destinationDirectory = file("$buildDir/classes/unoptimized")
     groovyOptions.optimizationOptions.indy = false
 }
 
 task sanityCheck(dependsOn: [compileWithOptimization, compileWithoutOptimization]) {
     doLast {
-        assert file("$compileWithOptimization.destinationDir/MethodInvocations.class").size() != file("$compileWithoutOptimization.destinationDir/MethodInvocations.class").size()
+        assert file("${compileWithOptimization.destinationDirectory.get()}/MethodInvocations.class").size() != file("${compileWithoutOptimization.destinationDirectory.get()}/MethodInvocations.class").size()
     }
 }

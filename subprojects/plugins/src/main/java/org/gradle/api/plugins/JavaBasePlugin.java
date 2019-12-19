@@ -47,6 +47,7 @@ import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
+import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.compile.JavaCompile;
@@ -56,6 +57,7 @@ import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.component.external.model.JavaEcosystemVariantDerivationStrategy;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.internal.model.RuleBasedPluginListener;
+import org.gradle.jvm.toolchain.JavaInstallationRegistry;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.jvm.tasks.ProcessResources;
 
@@ -102,11 +104,13 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     );
 
     private final ObjectFactory objectFactory;
+    private final JavaInstallationRegistry javaInstallationRegistry;
     private final boolean javaClasspathPackaging;
 
     @Inject
-    public JavaBasePlugin(ObjectFactory objectFactory) {
+    public JavaBasePlugin(ObjectFactory objectFactory, JavaInstallationRegistry javaInstallationRegistry) {
         this.objectFactory = objectFactory;
+        this.javaInstallationRegistry = javaInstallationRegistry;
         this.javaClasspathPackaging = Boolean.getBoolean(COMPILE_CLASSPATH_PACKAGING_SYSTEM_PROPERTY);
     }
 
@@ -139,6 +143,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         project.getConvention().getPlugins().put("java", javaConvention);
         project.getExtensions().add(SourceSetContainer.class, "sourceSets", javaConvention.getSourceSets());
         project.getExtensions().create(JavaPluginExtension.class, "java", DefaultJavaPluginExtension.class, javaConvention, project);
+        project.getExtensions().add(JavaInstallationRegistry.class, "javaInstalls", javaInstallationRegistry);
         return javaConvention;
     }
 
@@ -159,8 +164,6 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
                 .attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, LibraryElements.JAR));
     }
 
-
-
     private void configureSourceSetDefaults(final JavaPluginConvention pluginConvention) {
         final Project project = pluginConvention.getProject();
         pluginConvention.getSourceSets().all(new Action<SourceSet>() {
@@ -174,7 +177,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
                 definePathsForSourceSet(sourceSet, outputConventionMapping, project);
 
                 createProcessResourcesTask(sourceSet, sourceSet.getResources(), project);
-                Provider<JavaCompile> compileTask = createCompileJavaTask(sourceSet, sourceSet.getJava(), project);
+                TaskProvider<JavaCompile> compileTask = createCompileJavaTask(sourceSet, sourceSet.getJava(), project);
                 createClassesTask(sourceSet, project);
 
                 JvmPluginsHelper.configureOutputDirectoryForSourceSet(sourceSet, sourceSet.getJava(), project, compileTask, compileTask.map(new Transformer<CompileOptions, JavaCompile>() {
@@ -187,7 +190,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         });
     }
 
-    private Provider<JavaCompile> createCompileJavaTask(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, final Project target) {
+    private TaskProvider<JavaCompile> createCompileJavaTask(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, final Project target) {
         return target.getTasks().register(sourceSet.getCompileJavaTaskName(), JavaCompile.class, new Action<JavaCompile>() {
             @Override
             public void execute(JavaCompile compileTask) {
@@ -201,12 +204,6 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
                     }
                 });
                 JvmPluginsHelper.configureAnnotationProcessorPath(sourceSet, sourceDirectorySet, compileTask.getOptions(), target);
-                compileTask.setDestinationDir(target.provider(new Callable<File>() {
-                    @Override
-                    public File call() {
-                        return sourceDirectorySet.getOutputDir();
-                    }
-                }));
             }
         });
     }

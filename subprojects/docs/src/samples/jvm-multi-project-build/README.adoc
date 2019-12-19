@@ -1,11 +1,3 @@
-= JVM Multi-project Build Sample
-
-ifndef::env-github[]
-[.download]
-- link:{zip-base-file-name}-groovy-dsl.zip[icon:download[] Groovy DSL ZIP]
-- link:{zip-base-file-name}-kotlin-dsl.zip[icon:download[] Kotlin DSL ZIP]
-endif::[]
-
 NOTE: You can open the samples inside an IDE using the https://www.jetbrains.com/help/idea/gradle.html#gradle_import_project_start[IntelliJ native importer] or https://projects.eclipse.org/projects/tools.buildship[Eclipse Buildship].
 
 This sample shows how to transitivity dependencies are declared within JVM multi-project in Gradle.
@@ -14,15 +6,15 @@ It is important to note that the dependency configuration is consistent across J
 The `application` project has an implementation dependency on the `utilities` project:
 
 ====
-include::sample[dir="groovy",files="application/build.gradle[]"]
-include::sample[dir="kotlin",files="application/build.gradle.kts[]"]
+include::sample[dir="samples/jvm-multi-project-build/groovy",files="application/build.gradle[]"]
+include::sample[dir="samples/jvm-multi-project-build/kotlin",files="application/build.gradle.kts[]"]
 ====
 
 Which in turn has an API dependency on the `list` project:
 
 ====
-include::sample[dir="groovy",files="utilities/build.gradle[]"]
-include::sample[dir="kotlin",files="utilities/build.gradle.kts[]"]
+include::sample[dir="samples/jvm-multi-project-build/groovy",files="utilities/build.gradle[]"]
+include::sample[dir="samples/jvm-multi-project-build/kotlin",files="utilities/build.gradle.kts[]"]
 ====
 
 To build the projects, you simply needs to build the application:

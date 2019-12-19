@@ -25,6 +25,7 @@ import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.Exec;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SourceSetContainer;
@@ -43,9 +44,12 @@ public class GradleBuildDocumentationPlugin implements Plugin<Project> {
         ProjectLayout layout = project.getLayout();
         TaskContainer tasks = project.getTasks();
         ObjectFactory objects = project.getObjects();
+        ProviderFactory providers = project.getProviders();
 
         GradleDocumentationExtension extension = project.getExtensions().create("gradleDocumentation", GradleDocumentationExtension.class);
         applyConventions(project, tasks, objects, layout, extension);
+
+        extension.getQuickFeedback().convention(providers.provider(() -> project.hasProperty("quickDocs")));
 
         project.apply(target -> target.plugin(GradleReleaseNotesPlugin.class));
         project.apply(target -> target.plugin(GradleJavadocsPlugin.class));
@@ -54,10 +58,11 @@ public class GradleBuildDocumentationPlugin implements Plugin<Project> {
 
         addUtilityTasks(tasks, extension);
 
-        checkDocumentation(layout, tasks, extension);
+        checkDocumentation(tasks, extension);
     }
 
     private void applyConventions(Project project, TaskContainer tasks, ObjectFactory objects, ProjectLayout layout, GradleDocumentationExtension extension) {
+
         TaskProvider<Sync> stageDocs = tasks.register("stageDocs", Sync.class, task -> {
             // release notes goes in the root of the docs
             task.from(extension.getReleaseNotes().getRenderedDocumentation());
@@ -71,14 +76,12 @@ public class GradleBuildDocumentationPlugin implements Plugin<Project> {
             // User manual goes into userguide/ (for historical reasons)
             task.from(extension.getUserManual().getRenderedDocumentation(), sub -> sub.into("userguide"));
 
-            // TODO: Samples
-
             task.into(extension.getDocumentationRenderedRoot());
         });
 
         extension.getSourceRoot().convention(layout.getProjectDirectory().dir("src/docs"));
         extension.getDocumentationRenderedRoot().convention(layout.getBuildDirectory().dir("docs"));
-        extension.getStagingRoot().convention(layout.getBuildDirectory().dir("docs-working"));
+        extension.getStagingRoot().convention(layout.getBuildDirectory().dir("working"));
 
         ConfigurableFileTree css = objects.fileTree();
         css.from(extension.getSourceRoot().dir("css"));
@@ -129,7 +132,7 @@ public class GradleBuildDocumentationPlugin implements Plugin<Project> {
         });
     }
 
-    private void checkDocumentation(ProjectLayout layout, TaskContainer tasks, GradleDocumentationExtension extension) {
+    private void checkDocumentation(TaskContainer tasks, GradleDocumentationExtension extension) {
         tasks.named("test", Test.class).configure(task -> {
             task.getInputs().file(extension.getReleaseNotes().getRenderedDocumentation()).withPropertyName("releaseNotes").withPathSensitivity(PathSensitivity.NONE);
             task.getInputs().file(extension.getReleaseFeatures().getReleaseFeaturesFile()).withPropertyName("releaseFeatures").withPathSensitivity(PathSensitivity.NONE);

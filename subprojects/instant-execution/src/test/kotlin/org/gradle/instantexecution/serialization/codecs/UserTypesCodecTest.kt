@@ -346,7 +346,7 @@ class UserTypesCodecTest {
         valueSnapshotter = mock(),
         fileCollectionFingerprinterRegistry = mock(),
         buildServiceRegistry = mock(),
-        isolatableSerializerRegistry = mock(),
+        managedFactoryRegistry = mock(),
         parameterScheme = mock(),
         actionScheme = mock(),
         attributesFactory = mock(),

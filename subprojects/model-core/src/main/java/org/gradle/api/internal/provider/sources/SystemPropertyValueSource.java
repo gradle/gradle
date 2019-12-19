@@ -31,6 +31,10 @@ public abstract class SystemPropertyValueSource implements ValueSource<String, S
     @Nullable
     @Override
     public String obtain() {
-        return System.getProperty(getParameters().getPropertyName().get());
+        @Nullable String propertyName = getParameters().getPropertyName().getOrNull();
+        if (propertyName == null) {
+            return null;
+        }
+        return System.getProperty(propertyName);
     }
 }

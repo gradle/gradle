@@ -1,2 +1,2 @@
 rootProject.name = "components-with-spock-tests"
-include("application", "library")
+include("application", "list", "utilities")

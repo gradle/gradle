@@ -53,15 +53,6 @@ configurations {
         attributes.attribute(Attribute.of("org.gradle.api", String), "build-receipt")
     }
 
-    gradleSamples {
-        visible = false
-        canBeResolved = true
-        canBeConsumed = false
-        extendsFrom(gradleDocumentation)
-        attributes.attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, "docs"))
-        attributes.attribute(Attribute.of("type", String), "samples")
-    }
-
     gradleFullDocs {
         visible = false
         canBeResolved = true
@@ -136,6 +127,7 @@ ext {
         }
         into('docs') {
             from configurations.gradleFullDocs
+            exclude "samples/**"
         }
     }
 
@@ -144,9 +136,6 @@ ext {
         from('src/toplevel')
         into('docs') {
             from configurations.gradleFullDocs
-            into('samples') {
-                from configurations.gradleSamples
-            }
         }
     }
 }

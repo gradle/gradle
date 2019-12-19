@@ -1,11 +1,3 @@
-= Java Components with Spock Tests Sample
-
-ifndef::env-github[]
-[.download]
-- link:{zip-base-file-name}-groovy-dsl.zip[icon:download[] Groovy DSL ZIP]
-- link:{zip-base-file-name}-kotlin-dsl.zip[icon:download[] Kotlin DSL ZIP]
-endif::[]
-
 NOTE: You can open the samples inside an IDE using the https://www.jetbrains.com/help/idea/gradle.html#gradle_import_project_start[IntelliJ native importer] or https://projects.eclipse.org/projects/tools.buildship[Eclipse Buildship].
 
 This sample shows how to test Java projects using Spock Framework in Gradle.
@@ -13,15 +5,15 @@ This sample shows how to test Java projects using Spock Framework in Gradle.
 Applications can be configured as follow:
 
 ====
-include::sample[dir="groovy",files="application/build.gradle[]"]
-include::sample[dir="kotlin",files="application/build.gradle.kts[]"]
+include::sample[dir="samples/java-components-with-spock-tests/groovy",files="application/build.gradle[]"]
+include::sample[dir="samples/java-components-with-spock-tests/kotlin",files="application/build.gradle.kts[]"]
 ====
 
 Libraries can be configured as follow:
 
 ====
-include::sample[dir="groovy",files="library/build.gradle[]"]
-include::sample[dir="kotlin",files="library/build.gradle.kts[]"]
+include::sample[dir="samples/java-components-with-spock-tests/groovy",files="list/build.gradle[]"]
+include::sample[dir="samples/java-components-with-spock-tests/kotlin",files="list/build.gradle.kts[]"]
 ====
 
 To test the projects:

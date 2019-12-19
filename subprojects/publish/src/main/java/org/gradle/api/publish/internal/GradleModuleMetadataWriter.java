@@ -44,6 +44,7 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
+import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependencyConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -532,14 +533,26 @@ public class GradleModuleMetadataWriter {
 
     private void writeDependencyConstraint(DependencyConstraint dependencyConstraint, VariantVersionMappingStrategyInternal variantVersionMappingStrategy, JsonWriter jsonWriter, InvalidPublicationChecker checker) throws IOException {
         jsonWriter.beginObject();
-        String group = dependencyConstraint.getGroup();
-        String module = dependencyConstraint.getName();
-        ModuleVersionIdentifier resolvedVersion = variantVersionMappingStrategy != null ? variantVersionMappingStrategy.maybeResolveVersion(group, module) : null;
+        String group;
+        String module;
+        String resolvedVersion = null;
+        if (dependencyConstraint instanceof DefaultProjectDependencyConstraint) {
+            DefaultProjectDependencyConstraint dependency = (DefaultProjectDependencyConstraint) dependencyConstraint;
+            ProjectDependency projectDependency = dependency.getProjectDependency();
+            ModuleVersionIdentifier identifier = projectDependencyResolver.resolve(ModuleVersionIdentifier.class, projectDependency);
+            group = identifier.getGroup();
+            module = identifier.getName();
+            resolvedVersion = identifier.getVersion();
+        } else {
+            group = dependencyConstraint.getGroup();
+            module = dependencyConstraint.getName();
+        }
+        ModuleVersionIdentifier resolvedVersionId = variantVersionMappingStrategy != null ? variantVersionMappingStrategy.maybeResolveVersion(group, module) : null;
         jsonWriter.name("group");
-        jsonWriter.value(resolvedVersion != null ? resolvedVersion.getGroup() : group);
+        jsonWriter.value(resolvedVersionId != null ? resolvedVersionId.getGroup() : group);
         jsonWriter.name("module");
-        jsonWriter.value(resolvedVersion != null ? resolvedVersion.getName() : module);
-        writeVersionConstraint(DefaultImmutableVersionConstraint.of(dependencyConstraint.getVersionConstraint()), resolvedVersion != null ? resolvedVersion.getVersion() : null, jsonWriter, checker);
+        jsonWriter.value(resolvedVersionId != null ? resolvedVersionId.getName() : module);
+        writeVersionConstraint(DefaultImmutableVersionConstraint.of(dependencyConstraint.getVersionConstraint()), resolvedVersionId != null ? resolvedVersionId.getVersion() : resolvedVersion, jsonWriter, checker);
         writeAttributes(dependencyConstraint.getAttributes(), jsonWriter);
         String reason = dependencyConstraint.getReason();
         if (StringUtils.isNotEmpty(reason)) {
@@ -584,7 +597,9 @@ public class GradleModuleMetadataWriter {
                 jsonWriter.beginObject();
                 jsonWriter.name("group").value(capability.getGroup());
                 jsonWriter.name("name").value(capability.getName());
-                jsonWriter.name("version").value(capability.getVersion());
+                if (StringUtils.isNotEmpty(capability.getVersion())) {
+                    jsonWriter.name("version").value(capability.getVersion());
+                }
                 jsonWriter.endObject();
             }
             jsonWriter.endArray();

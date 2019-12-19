@@ -126,7 +126,7 @@ class WarPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         def task = project.tasks[WarPlugin.WAR_TASK_NAME]
-        task.classpath.files as List == [project.sourceSets.main.java.outputDir, project.sourceSets.main.output.resourcesDir, compileJar, runtimeJar]
+        task.classpath.files as List == [project.sourceSets.main.java.destinationDirectory.get().asFile, project.sourceSets.main.output.resourcesDir, compileJar, runtimeJar]
     }
 
     def "applies mappings to archive tasks"() {

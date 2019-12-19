@@ -14,9 +14,6 @@
  * limitations under the License.
  */
 
-import org.gradle.kotlin.dsl.plugins.dsl.KotlinDslPlugin
-
-import java.io.File
 import java.util.Properties
 
 plugins {
@@ -44,7 +41,7 @@ subprojects {
         }
 
         dependencies {
-            api(platform(project(":buildPlatform")))
+            "api"(platform(project(":buildPlatform")))
             implementation(gradleApi())
         }
 

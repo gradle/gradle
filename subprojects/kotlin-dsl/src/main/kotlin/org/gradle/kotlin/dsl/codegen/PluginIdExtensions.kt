@@ -20,6 +20,8 @@ import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependencySpec
 
 import java.io.File
+import java.io.IOException
+import java.lang.IllegalArgumentException
 
 import java.util.Properties
 import java.util.jar.JarEntry
@@ -238,8 +240,8 @@ data class PluginEntry(val pluginId: String, val implementationClass: String)
 
 
 internal
-fun pluginEntriesFrom(jar: File): List<PluginEntry> =
-    JarFile(jar).use { jarFile ->
+fun pluginEntriesFrom(jar: File): List<PluginEntry> = try {
+    JarFile(jar, false).use { jarFile ->
         jarFile.entries().asSequence().filter {
             isGradlePluginPropertiesFile(it)
         }.map { pluginEntry ->
@@ -249,6 +251,12 @@ fun pluginEntriesFrom(jar: File): List<PluginEntry> =
             PluginEntry(id, implementationClass)
         }.toList()
     }
+} catch (cause: IOException) {
+    throw IllegalArgumentException(
+        "Failed to extract plugin metadata from '" + jar.path + "'",
+        cause
+    )
+}
 
 
 private

@@ -17,11 +17,13 @@
 package org.gradle.api.plugins
 
 import org.gradle.api.reporting.ReportingExtension
+import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.compile.GroovyCompile
 import org.gradle.api.tasks.javadoc.Groovydoc
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
+import static org.hamcrest.core.IsNot.not
 
 class GroovyPluginTest extends AbstractProjectBuilderSpec {
     private final GroovyPlugin groovyPlugin = new GroovyPlugin()
@@ -94,6 +96,34 @@ class GroovyPluginTest extends AbstractProjectBuilderSpec {
         task instanceof GroovyCompile
         task.description == 'Compiles the test Groovy source.'
         dependsOn(JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME, JavaPlugin.CLASSES_TASK_NAME).matches(task)
+    }
+
+    def "compile dependency to java compilation can be turned off by changing the compile task classpath"() {
+        given:
+        groovyPlugin.apply(project)
+        SourceSet mainSourceSet = project.sourceSets.main
+
+        when:
+        def task = project.tasks['compileGroovy']
+        task.classpath = project.sourceSets.main.compileClasspath
+
+        then:
+        task instanceof GroovyCompile
+        task.classpath.files as List == []
+        not(dependsOn(JavaPlugin.COMPILE_JAVA_TASK_NAME)).matches(task)
+
+        when:
+        task = project.tasks['compileTestGroovy']
+        task.classpath = project.sourceSets.test.compileClasspath
+
+        then:
+        task instanceof GroovyCompile
+        task.classpath.files as List == [
+            mainSourceSet.java.destinationDirectory.get().asFile,
+            mainSourceSet.groovy.destinationDirectory.get().asFile,
+            mainSourceSet.output.resourcesDir
+        ]
+        not(dependsOn(JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME, JavaPlugin.CLASSES_TASK_NAME)).matches(task)
     }
 
     def "dependencies of Java plugin tasks include Groovy compile tasks"() {

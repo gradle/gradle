@@ -18,6 +18,7 @@ package org.gradle.groovy.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
+import spock.lang.Unroll
 
 class GroovyJavaJointCompileSourceOrderIntegrationTest extends AbstractIntegrationSpec {
 
@@ -54,6 +55,66 @@ class GroovyJavaJointCompileSourceOrderIntegrationTest extends AbstractIntegrati
         reversedAgainBytes == originalBytes
     }
 
+    @Unroll
+    def "groovy and java source directory compilation order can be reversed (task configuration #configurationStyle)"() {
+        given:
+        file("src/main/groovy/Groovy.groovy") << "class Groovy { }"
+        file("src/main/java/Java.java") << "public class Java { Groovy groovy = new Groovy(); }"
+        buildFile << """
+            plugins {
+                id 'groovy'
+            }
+            $setup
+            tasks.named('compileGroovy') {
+                classpath = sourceSets.main.compileClasspath
+            }
+            dependencies {
+                implementation localGroovy()
+            }
+        """
+
+        when:
+        succeeds 'compileJava'
+
+        then:
+        result.assertTasksExecutedInOrder(':compileGroovy', ':compileJava')
+
+        where:
+        configurationStyle | setup
+        'lazy'             | "tasks.named('compileJava') { classpath += files(sourceSets.main.groovy.classesDirectory) }"
+        'eager'            | "compileJava { classpath += files(sourceSets.main.groovy.classesDirectory) }"
+    }
+
+    def "groovy and java source directory compilation order can be reversed for a custom source set"() {
+        given:
+        file("src/main/groovy/Groovy.groovy") << "class Groovy { }"
+        file("src/main/java/Java.java") << "public class Java { Groovy groovy = new Groovy(); }"
+        buildFile << """
+            plugins {
+                id 'groovy'
+            }
+            sourceSets {
+                mySources
+            }
+
+            tasks.named('compileMySourcesJava') {
+                classpath += files(sourceSets.mySources.groovy.classesDirectory)
+            }
+            tasks.named('compileMySourcesGroovy') {
+                classpath = sourceSets.mySources.compileClasspath
+            }
+            dependencies {
+                mySourcesImplementation localGroovy()
+            }
+        """
+
+        when:
+        succeeds 'compileMySourcesJava'
+
+        then:
+        result.assertTasksExecutedInOrder(':compileMySourcesGroovy', ':compileMySourcesJava')
+    }
+
     private static String buildFileWithSources(String... sourceFiles) {
         """
             configurations {
@@ -66,11 +127,11 @@ class GroovyJavaJointCompileSourceOrderIntegrationTest extends AbstractIntegrati
 
             task compile(type: GroovyCompile) {
                 source ${sourceFiles.collect { "'src/main/groovy/$it'" }.join(", ")}
-                classpath = files(configurations.compile, file("\$buildDir/classes"))
+                classpath = configurations.compile
                 groovyClasspath = configurations.compile
                 sourceCompatibility = JavaVersion.current()
                 targetCompatibility = JavaVersion.current()
-                destinationDir = file("\$buildDir/classes")
+                destinationDirectory = file("\$buildDir/classes")
             }
         """
     }

@@ -488,6 +488,43 @@ class GradleModuleMetadataParserTest extends Specification {
         0 * _
     }
 
+    def "parses requested capabilities without version"() {
+        def metadata = Mock(MutableModuleComponentResolveMetadata)
+        def variant1 = Mock(MutableComponentVariant)
+        def variant2 = Mock(MutableComponentVariant)
+
+        when:
+        parser.parse(resource('''
+    {
+        "formatVersion": "1.1",
+        "variants": [
+            {
+                "attributes": { "usage": "runtime"},
+                "dependencies": [
+                    { "module": "m3", "group": "g3", "requestedCapabilities":[{"group":"org", "name":"foo"}]}
+                ],
+                "name": "runtime"
+            },
+            {
+                "attributes": { "usage": "api"},
+                "dependencies": [
+                    { "module": "m3", "group": "g3", "requestedCapabilities":[{"group":"org", "name":"foo", "version": null}]}
+                ],
+                "name": "api"
+            }
+        ]
+    }
+'''), metadata)
+
+        then:
+        1 * metadata.addVariant("runtime", attributes(usage: "runtime")) >> variant1
+        1 * variant1.addDependency("g3", "m3", emptyConstraint(), [], null, ImmutableAttributes.EMPTY, { it[0].group == 'org' && it[0].name == 'foo' && it[0].version == null }, false, null)
+        1 * metadata.addVariant("api", attributes(usage: "api")) >> variant2
+        1 * variant2.addDependency("g3", "m3", emptyConstraint(), [], null, ImmutableAttributes.EMPTY, { it[0].group == 'org' && it[0].name == 'foo' && it[0].version == null }, false, null)
+        1 * metadata.getMutableVariants()
+        0 * _
+    }
+
     def "parses content with boolean attributes"() {
         def metadata = Mock(MutableModuleComponentResolveMetadata)
         def variant = Mock(MutableComponentVariant)
@@ -724,7 +761,6 @@ class GradleModuleMetadataParserTest extends Specification {
 
         'req capability group'         | '/variants[0]/dependencies[0]/requestedCapabilities[0]'                 | 'group'   | '"name": "v", "dependencies": [{ "group": "g", "name": "c", "requestedCapabilities": [{ "name": "c", "version": "1.0" }] }]'
         'req capability name'          | '/variants[0]/dependencies[0]/requestedCapabilities[0]'                 | 'name'    | '"name": "v", "dependencies": [{ "group": "g", "name": "c", "requestedCapabilities": [{ "group": "g", "version": "1.0" }] }]'
-        'req capability version'       | '/variants[0]/dependencies[0]/requestedCapabilities[0]'                 | 'version' | '"name": "v", "dependencies": [{ "group": "g", "name": "c", "requestedCapabilities": [{ "group": "g", "name": "c" }] }]'
 
         'dependency constraint group'  | '/variants[0]/dependencyConstraints[0]'                                 | 'group'   | '"name": "v", "dependencyConstraints": [{ "module": "c" }]'
         'dependency constraint module' | '/variants[0]/dependencyConstraints[0]'                                 | 'module'  | '"name": "v", "dependencyConstraints": [{ "group": "g" }]'

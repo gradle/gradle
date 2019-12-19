@@ -2,12 +2,9 @@ plugins {
     application
 }
 
-repositories {
-    jcenter()
-}
-
 dependencies {
-    implementation(project(":library"))
+    implementation(project(":list"))
+    implementation(project(":utilities"))
     testImplementation("junit:junit:4.12")
 }
 

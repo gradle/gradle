@@ -45,6 +45,26 @@ public interface ProviderFactory {
     <T> Provider<T> provider(Callable<? extends T> value);
 
     /**
+     * Creates a {@link Provider} whose value is fetched from the environment variable with the given name.
+     *
+     * @param variableName The name of the environment variable.
+     * @return The provider. Never returns null.
+     * @since 6.1
+     */
+    @Incubating
+    Provider<String> environmentVariable(String variableName);
+
+    /**
+     * Creates a {@link Provider} whose value is fetched from the environment variable with the given name.
+     *
+     * @param variableName The provider for the name of the environment variable; when the given provider has no value, the returned provider has no value.
+     * @return The provider. Never returns null.
+     * @since 6.1
+     */
+    @Incubating
+    Provider<String> environmentVariable(Provider<String> variableName);
+
+    /**
      * Creates a {@link Provider} whose value is fetched from system properties using the given property name.
      *
      * @param propertyName the name of the system property

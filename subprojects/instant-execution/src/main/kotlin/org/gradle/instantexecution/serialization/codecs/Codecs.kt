@@ -64,11 +64,11 @@ import org.gradle.internal.serialize.BaseSerializerFactory.SHORT_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.STRING_SERIALIZER
 import org.gradle.internal.serialize.HashCodeSerializer
 import org.gradle.internal.snapshot.ValueSnapshotter
+import org.gradle.internal.state.ManagedFactoryRegistry
 import org.gradle.process.ExecOperations
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.workers.WorkerExecutor
-import org.gradle.workers.internal.IsolatableSerializerRegistry
 
 
 class Codecs(
@@ -89,7 +89,7 @@ class Codecs(
     valueSnapshotter: ValueSnapshotter,
     fileCollectionFingerprinterRegistry: FileCollectionFingerprinterRegistry,
     buildServiceRegistry: BuildServiceRegistryInternal,
-    isolatableSerializerRegistry: IsolatableSerializerRegistry,
+    managedFactoryRegistry: ManagedFactoryRegistry,
     parameterScheme: ArtifactTransformParameterScheme,
     actionScheme: ArtifactTransformActionScheme,
     attributesFactory: ImmutableAttributesFactory,
@@ -105,51 +105,12 @@ class Codecs(
         bind(unsupported<TaskContainer>())
         bind(unsupported<ConfigurationContainer>())
 
-        bind(STRING_SERIALIZER)
-        bind(BOOLEAN_SERIALIZER)
-        bind(INTEGER_SERIALIZER)
-        bind(CHAR_SERIALIZER)
-        bind(SHORT_SERIALIZER)
-        bind(LONG_SERIALIZER)
-        bind(BYTE_SERIALIZER)
-        bind(FLOAT_SERIALIZER)
-        bind(DOUBLE_SERIALIZER)
-        bind(FILE_SERIALIZER)
-        bind(PATH_SERIALIZER)
+        baseTypes()
+
         bind(HashCodeSerializer())
-        bind(ClassCodec)
-        bind(MethodCodec)
-
-        // Only serialize certain List implementations
-        bind(arrayListCodec)
-        bind(linkedListCodec)
-        bind(ImmutableListCodec)
-
-        // Only serialize certain Set implementations for now, as some custom types extend Set (eg DomainObjectContainer)
-        bind(linkedHashSetCodec)
-        bind(hashSetCodec)
-        bind(treeSetCodec)
-        bind(ImmutableSetCodec)
-
-        // Only serialize certain Map implementations for now, as some custom types extend Map (eg DefaultManifest)
-        bind(linkedHashMapCodec)
-        bind(hashMapCodec)
-        bind(treeMapCodec)
-        bind(concurrentHashMapCodec)
-        bind(ImmutableMapCodec)
-
-        bind(arrayCodec)
         bind(BrokenValueCodec)
 
-        bind(ListPropertyCodec)
-        bind(SetPropertyCodec)
-        bind(MapPropertyCodec)
-        bind(DirectoryPropertyCodec(filePropertyFactory))
-        bind(RegularFilePropertyCodec(filePropertyFactory))
-        bind(PropertyCodec)
-        bind(BuildServiceProviderCodec(buildServiceRegistry))
-        bind(ValueSourceProviderCodec(valueSourceProviderFactory))
-        bind(ProviderCodec)
+        providerTypes(filePropertyFactory, buildServiceRegistry, valueSourceProviderFactory)
 
         bind(ListenerBroadcastCodec(listenerManager))
         bind(LoggerCodec)
@@ -189,7 +150,6 @@ class Codecs(
         bind(ownerService<WorkerExecutor>())
         bind(ownerService<ListenerManager>())
 
-        bind(EnumCodec)
         bind(ProxyCodec)
 
         bind(SerializableWriteObjectCodec())
@@ -203,15 +163,82 @@ class Codecs(
 
     val internalTypesCodec = BindingsBackedCodec {
 
-        bind(INTEGER_SERIALIZER)
+        baseTypes()
+
+        providerTypes(filePropertyFactory, buildServiceRegistry, valueSourceProviderFactory)
 
         bind(TaskNodeCodec(projectStateRegistry, userTypesCodec, taskNodeFactory))
         bind(InitialTransformationNodeCodec(buildOperationExecutor, transformListener))
         bind(ChainedTransformationNodeCodec(buildOperationExecutor, transformListener))
         bind(ResolvableArtifactCodec)
         bind(TransformationStepCodec(projectStateRegistry, fingerprinterRegistry, projectFinder))
-        bind(DefaultTransformerCodec(buildOperationExecutor, classLoaderHierarchyHasher, isolatableFactory, valueSnapshotter, fileCollectionFactory, fileLookup, fileCollectionFingerprinterRegistry, isolatableSerializerRegistry, parameterScheme, actionScheme))
+        bind(DefaultTransformerCodec(buildOperationExecutor, classLoaderHierarchyHasher, isolatableFactory, valueSnapshotter, fileCollectionFactory, fileLookup, fileCollectionFingerprinterRegistry, parameterScheme, actionScheme))
         bind(LegacyTransformerCodec(actionScheme))
         bind(ExecutionGraphDependenciesResolverCodec)
+
+        bind(IsolatedManagedValueCodec(managedFactoryRegistry))
+        bind(IsolatedImmutableManagedValueCodec(managedFactoryRegistry))
+        bind(IsolatedArrayCodec)
+        bind(IsolatedSetCodec)
+        bind(IsolatedListCodec)
+        bind(IsolatedMapCodec)
+        bind(MapEntrySnapshotCodec)
+        bind(IsolatedEnumValueSnapshotCodec)
+        bind(StringValueSnapshotCodec)
+        bind(IntegerValueSnapshotCodec)
+        bind(FileValueSnapshotCodec)
+        bind(BooleanValueSnapshotCodec)
+        bind(NullValueSnapshotCodec)
+    }
+
+    private
+    fun BindingsBuilder.providerTypes(filePropertyFactory: FilePropertyFactory, buildServiceRegistry: BuildServiceRegistryInternal, valueSourceProviderFactory: ValueSourceProviderFactory) {
+        bind(ListPropertyCodec)
+        bind(SetPropertyCodec)
+        bind(MapPropertyCodec)
+        bind(DirectoryPropertyCodec(filePropertyFactory))
+        bind(RegularFilePropertyCodec(filePropertyFactory))
+        bind(PropertyCodec)
+        bind(BuildServiceProviderCodec(buildServiceRegistry))
+        bind(ValueSourceProviderCodec(valueSourceProviderFactory))
+        bind(ProviderCodec)
+    }
+
+    private
+    fun BindingsBuilder.baseTypes() {
+        bind(STRING_SERIALIZER)
+        bind(BOOLEAN_SERIALIZER)
+        bind(INTEGER_SERIALIZER)
+        bind(CHAR_SERIALIZER)
+        bind(SHORT_SERIALIZER)
+        bind(LONG_SERIALIZER)
+        bind(BYTE_SERIALIZER)
+        bind(FLOAT_SERIALIZER)
+        bind(DOUBLE_SERIALIZER)
+        bind(FILE_SERIALIZER)
+        bind(PATH_SERIALIZER)
+        bind(ClassCodec)
+        bind(MethodCodec)
+
+        // Only serialize certain List implementations
+        bind(arrayListCodec)
+        bind(linkedListCodec)
+        bind(ImmutableListCodec)
+
+        // Only serialize certain Set implementations for now, as some custom types extend Set (eg DomainObjectContainer)
+        bind(linkedHashSetCodec)
+        bind(hashSetCodec)
+        bind(treeSetCodec)
+        bind(ImmutableSetCodec)
+
+        // Only serialize certain Map implementations for now, as some custom types extend Map (eg DefaultManifest)
+        bind(linkedHashMapCodec)
+        bind(hashMapCodec)
+        bind(treeMapCodec)
+        bind(concurrentHashMapCodec)
+        bind(ImmutableMapCodec)
+
+        bind(arrayCodec)
+        bind(EnumCodec)
     }
 }

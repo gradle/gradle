@@ -1,11 +1,3 @@
-= JVM Components with Additional Test Types Sample
-
-ifndef::env-github[]
-[.download]
-- link:{zip-base-file-name}-groovy-dsl.zip[icon:download[] Groovy DSL ZIP]
-- link:{zip-base-file-name}-kotlin-dsl.zip[icon:download[] Kotlin DSL ZIP]
-endif::[]
-
 NOTE: You can open the samples inside an IDE using the https://www.jetbrains.com/help/idea/gradle.html#gradle_import_project_start[IntelliJ native importer] or https://projects.eclipse.org/projects/tools.buildship[Eclipse Buildship].
 
 This sample shows how to add additional test types to JVM projects in Gradle.
@@ -15,15 +7,15 @@ In this sample, we are testing Java projects with JUnit 4, however, adding addit
 Applications can be configured as follow:
 
 ====
-include::sample[dir="groovy",files="application/build.gradle[]"]
-include::sample[dir="kotlin",files="application/build.gradle.kts[]"]
+include::sample[dir="samples/jvm-components-with-additional-test-types/groovy",files="application/build.gradle[]"]
+include::sample[dir="samples/jvm-components-with-additional-test-types/kotlin",files="application/build.gradle.kts[]"]
 ====
 
 Libraries can be configured as follow:
 
 ====
-include::sample[dir="groovy",files="library/build.gradle[]"]
-include::sample[dir="kotlin",files="library/build.gradle.kts[]"]
+include::sample[dir="samples/jvm-components-with-additional-test-types/groovy",files="list/build.gradle[]"]
+include::sample[dir="samples/jvm-components-with-additional-test-types/kotlin",files="list/build.gradle.kts[]"]
 ====
 
 The additional tests for the projects can be executed via the `integrationTest` task or as part of lifecycle `check` task as demonstrated:

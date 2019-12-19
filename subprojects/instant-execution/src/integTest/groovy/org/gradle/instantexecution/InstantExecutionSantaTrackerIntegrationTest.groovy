@@ -34,44 +34,50 @@ class InstantExecutionSantaTrackerIntegrationTest extends AbstractInstantExecuti
     }
 
     @Unroll
-    def "assembleDebug up-to-date on Santa Tracker #flavor"() {
+    def "assembleDebug up-to-date on Santa Tracker #flavor (fromIde=#fromIde)"() {
 
         given:
         copyRemoteProject(remoteProject)
         withAgpNightly()
 
         when:
-        instantRun("assembleDebug", "--no-build-cache")
+        instantRun("assembleDebug", "--no-build-cache", "-Pandroid.injected.invoked.from.ide=$fromIde")
 
         then:
-        instantRun("assembleDebug", "--no-build-cache")
+        instantRun("assembleDebug", "--no-build-cache", "-Pandroid.injected.invoked.from.ide=$fromIde")
 
         where:
-        flavor | remoteProject
-        'Java' | "santaTrackerJava"
-        // 'Kotlin' | "santaTrackerKotlin" // TODO:instant-execution Kotlin 1.3.70
+        flavor | remoteProject      | fromIde
+        'Java' | "santaTrackerJava" | false
+        'Java' | "santaTrackerJava" | true
+        // TODO:instant-execution Kotlin 1.3.70
+        // 'Kotlin' | "santaTrackerKotlin" | false
+        // 'Kotlin' | "santaTrackerKotlin" | true
     }
 
     @Unroll
-    def "clean assembleDebug on Santa Tracker #flavor"() {
+    def "clean assembleDebug on Santa Tracker #flavor (fromIde=#fromIde)"() {
 
         given:
         copyRemoteProject(remoteProject)
         withAgpNightly()
 
         when:
-        instantRun("assembleDebug", "--no-build-cache")
+        instantRun("assembleDebug", "--no-build-cache", "-Pandroid.injected.invoked.from.ide=$fromIde")
 
         and:
         run 'clean'
 
         then:
         // Instant execution avoid registering the listener inside Android plugin
-        instantRun("assembleDebug", "--no-build-cache")
+        instantRun("assembleDebug", "--no-build-cache", "-Pandroid.injected.invoked.from.ide=$fromIde")
 
         where:
-        flavor | remoteProject
-        'Java' | "santaTrackerJava"
-        // 'Kotlin' | "santaTrackerKotlin" // TODO:instant-execution Kotlin 1.3.70
+        flavor | remoteProject      | fromIde
+        'Java' | "santaTrackerJava" | false
+        'Java' | "santaTrackerJava" | true
+        // TODO:instant-execution Kotlin 1.3.70
+        // 'Kotlin' | "santaTrackerKotlin" | false
+        // 'Kotlin' | "santaTrackerKotlin" | true
     }
 }
