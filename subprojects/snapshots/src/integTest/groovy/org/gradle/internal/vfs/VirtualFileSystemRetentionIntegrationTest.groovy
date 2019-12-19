@@ -31,6 +31,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
     def setup() {
         // Make the first build in each test drop the VFS state
         executer.withArgument("-D$VFS_DROP_PROPERTY=true")
+        executer.requireIsolatedDaemons()
     }
 
     @ToBeFixedForInstantExecution
