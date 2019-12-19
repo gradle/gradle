@@ -143,8 +143,8 @@ class CachedPlatformScalaCompileIntegrationTest extends AbstractCachedCompileInt
         classes.analysisFile.assertDoesNotExist()
 
         when:
-        expectDeprecationWarnings()
         cleanBuildDir()
+        expectDeprecationWarnings()
         withBuildCache().succeeds compilationTask
 
         then:
@@ -166,7 +166,9 @@ class CachedPlatformScalaCompileIntegrationTest extends AbstractCachedCompileInt
     }
 
     private void cleanBuildDir() {
-        file("build").assertIsDir().deleteDir()
+        file("build").assertIsDir()
+        expectDeprecationWarnings()
+        run(":clean")
     }
 
     private static void assertAllRecompiled(List<Long> lastModified, List<Long> oldLastModified) {

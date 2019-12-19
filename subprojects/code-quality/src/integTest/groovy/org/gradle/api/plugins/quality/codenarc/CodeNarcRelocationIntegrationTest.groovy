@@ -47,6 +47,7 @@ class CodeNarcRelocationIntegrationTest extends AbstractProjectRelocationIntegra
         """
 
         projectDir.file("build.gradle") << """
+            apply plugin: 'base'
             apply plugin: "codenarc"
 
             ${mavenCentralRepository()}

@@ -17,9 +17,8 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.TestBuildCache
-import org.gradle.test.fixtures.file.TestFile
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Issue
@@ -35,6 +34,7 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         executer.beforeExecute { withBuildCacheEnabled() }
         settingsFile << localCache.localCacheConfiguration()
+        buildFile << 'apply plugin: "base"'
     }
 
     def "fails build when packing archive fails"() {
@@ -43,7 +43,6 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
 
         // Just a way to induce a packing error, i.e. corrupt/partial archive
         buildFile << """
-            apply plugin: "base"
             task customTask {
                 inputs.file "input.txt"
                 outputs.file "build/output" withPropertyName "output"
@@ -71,7 +70,6 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
 
         // Just a way to induce a packing error, i.e. corrupt/partial archive
         buildFile << """
-            apply plugin: "base"
             task customTask {
                 inputs.file "input.txt"
                 outputs.file "build/output" withPropertyName "output"
@@ -96,7 +94,6 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
         file("input.txt") << "data"
         settingsFile << remoteCache.remoteCacheConfiguration()
         buildFile << """
-            apply plugin: "base"
             task customTask {
                 inputs.file "input.txt"
                 outputs.file "build/output" withPropertyName "output"
@@ -129,7 +126,6 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
         when:
         file("input.txt") << "data"
         buildFile << """
-            apply plugin: "base"
             task customTask {
                 inputs.file "input.txt"
                 outputs.file "build/output" withPropertyName "output"
@@ -223,8 +219,8 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
         errorOutput.contains("Couldn't read content of file '${link}'")
     }
 
-    private TestFile cleanBuildDir() {
-        file("build").deleteDir()
+    private void cleanBuildDir() {
+        run(":clean")
     }
 
     def corruptMetadata(Consumer<File> corrupter, Predicate<File> matcher = { true }) {

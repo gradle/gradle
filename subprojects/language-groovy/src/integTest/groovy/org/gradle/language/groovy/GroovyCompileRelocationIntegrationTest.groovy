@@ -37,6 +37,8 @@ class GroovyCompileRelocationIntegrationTest extends AbstractProjectRelocationIn
         projectDir.file("src/main/groovy/Foo.java") << "class Foo {}"
 
         projectDir.file("build.gradle") << """
+            apply plugin: 'base'
+
             task compile(type: GroovyCompile) {
                 sourceCompatibility = JavaVersion.current()
                 targetCompatibility = JavaVersion.current()

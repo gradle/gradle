@@ -108,6 +108,10 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
                     localStateFile.text = message
                 }
             }
+
+            task clean(type: Delete) {
+                delete('build')
+            }
         """
     }
 
@@ -664,7 +668,7 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
     }
 
     private void cleanBuildDir() {
-        file("build").deleteDir()
+        run(":clean")
     }
 
     // We ignore external.txt as an input because the file doesn't change after executing A

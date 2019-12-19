@@ -53,6 +53,7 @@ class CheckstyleRelocationIntegrationTest extends AbstractProjectRelocationInteg
             "package org.gradle; class Class1Test { public boolean is() { return true; } }"
 
         projectDir.file("build.gradle") << """
+            apply plugin: 'base'
             apply plugin: "checkstyle"
 
             ${mavenCentralRepository()}

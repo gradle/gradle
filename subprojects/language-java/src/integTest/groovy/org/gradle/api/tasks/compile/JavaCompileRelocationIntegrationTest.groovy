@@ -37,6 +37,8 @@ class JavaCompileRelocationIntegrationTest extends AbstractProjectRelocationInte
         projectDir.file("src/main/java/Foo.java") << "public class Foo {}"
 
         projectDir.file("build.gradle") << """
+            apply plugin: 'base'
+
             task compile(type: JavaCompile) {
                 sourceCompatibility = JavaVersion.current()
                 targetCompatibility = JavaVersion.current()
