@@ -46,6 +46,7 @@ dependencies {
     testRuntimeOnly(project(":runtimeApiInfo"))
     testRuntimeOnly(kotlin("reflect"))
 
+    integTestImplementation(project(":jvmServices"))
     integTestImplementation(project(":toolingApi"))
 
     integTestImplementation(library("guava"))
