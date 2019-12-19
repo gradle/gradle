@@ -24,7 +24,6 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.ComponentMetadataContext
 import org.gradle.api.artifacts.ComponentMetadataRule
 import org.gradle.api.artifacts.ConfigurationContainer
-import org.gradle.api.artifacts.ResolutionStrategy
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler
 import org.gradle.kotlin.dsl.dependencies
 import org.gradle.kotlin.dsl.extra
