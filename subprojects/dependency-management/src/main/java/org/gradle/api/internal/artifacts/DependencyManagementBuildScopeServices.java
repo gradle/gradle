@@ -455,7 +455,12 @@ class DependencyManagementBuildScopeServices {
         return new ComponentMetadataSupplierRuleExecutor(cacheRepository, cacheDecoratorFactory, snapshotter, timeProvider, suppliedComponentMetadataSerializer);
     }
 
-    SignatureVerificationServiceFactory createSignatureVerificationServiceFactory(CacheRepository cacheRepository, InMemoryCacheDecoratorFactory decoratorFactory, List<ResourceConnectorFactory> resourceConnectorFactories, BuildOperationExecutor buildOperationExecutor) {
+    SignatureVerificationServiceFactory createSignatureVerificationServiceFactory(CacheRepository cacheRepository,
+                                                                                  InMemoryCacheDecoratorFactory decoratorFactory,
+                                                                                  List<ResourceConnectorFactory> resourceConnectorFactories,
+                                                                                  BuildOperationExecutor buildOperationExecutor,
+                                                                                  BuildCommencedTimeProvider timeProvider,
+                                                                                  StartParameter startParameter) {
         HttpConnectorFactory httpConnectorFactory = null;
         for (ResourceConnectorFactory factory : resourceConnectorFactories) {
             if (factory instanceof HttpConnectorFactory) {
@@ -466,6 +471,6 @@ class DependencyManagementBuildScopeServices {
         if (httpConnectorFactory == null) {
             throw new IllegalStateException("Cannot find HttpConnectorFactory");
         }
-        return new DefaultSignatureVerificationServiceFactory(httpConnectorFactory, cacheRepository, decoratorFactory, buildOperationExecutor);
+        return new DefaultSignatureVerificationServiceFactory(httpConnectorFactory, cacheRepository, decoratorFactory, buildOperationExecutor, timeProvider, startParameter.isRefreshKeys());
     }
 }

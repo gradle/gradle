@@ -100,6 +100,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     private List<String> writeDependencyVerifications = emptyList();
     private List<String> lockedDependenciesToUpdate = emptyList();
     private DependencyVerificationMode verificationMode = DependencyVerificationMode.STRICT;
+    private boolean isRefreshKeys;
 
     /**
      * {@inheritDoc}
@@ -254,6 +255,8 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
         p.writeDependencyLocks = writeDependencyLocks;
         p.writeDependencyVerifications = writeDependencyVerifications;
         p.lockedDependenciesToUpdate = new ArrayList<>(lockedDependenciesToUpdate);
+        p.verificationMode = verificationMode;
+        p.isRefreshKeys = isRefreshKeys;
         return p;
     }
 
@@ -747,6 +750,8 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
             + ", maxWorkerCount=" + getMaxWorkerCount()
             + ", buildCacheEnabled=" + buildCacheEnabled
             + ", writeDependencyLocks=" + writeDependencyLocks
+            + ", verificationMode=" + verificationMode
+            + ", refreshKeys=" + isRefreshKeys
             + '}';
     }
 
@@ -909,5 +914,25 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     @Incubating
     public DependencyVerificationMode getDependencyVerificationMode() {
         return verificationMode;
+    }
+
+    /**
+     * @param refresh If set to true, missing keys will be checked again. By default missing keys are cached for 24 hours.
+     *
+     * @since 6.2
+     */
+    @Incubating
+    public void setRefreshKeys(boolean refresh) {
+        isRefreshKeys = refresh;
+    }
+
+    /**
+     * If true, Gradle will try to download missing keys again.
+     *
+     * @since 6.2
+     */
+    @Incubating
+    public boolean isRefreshKeys() {
+        return isRefreshKeys;
     }
 }
