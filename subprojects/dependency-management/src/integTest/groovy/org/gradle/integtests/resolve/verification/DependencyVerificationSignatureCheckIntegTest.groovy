@@ -213,7 +213,7 @@ This can indicate that a dependency has been compromised. Please verify carefull
 
         then:
         failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
-  - On artifact foo-1.0.jar (org:foo:1.0): Artifact was signed with key '14f53f0824875d73' but signature didn't match
+  - On artifact foo-1.0.jar (org:foo:1.0): Artifact was signed with key '14f53f0824875d73' (Gradle Test (This is used for testing the gradle-signing-plugin) <test@gradle.org>) but signature didn't match
 This can indicate that a dependency has been compromised. Please verify carefully the checksums."""
     }
 
@@ -484,7 +484,7 @@ This can indicate that a dependency has been compromised. Please verify carefull
 
         then:
         failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
-  - On artifact foo-1.0.jar (org:foo:1.0): Artifact was signed with key '14f53f0824875d73' but signature didn't match"""
+  - On artifact foo-1.0.jar (org:foo:1.0): Artifact was signed with key '14f53f0824875d73' (Gradle Test (This is used for testing the gradle-signing-plugin) <test@gradle.org>) but signature didn't match"""
     }
 
     @ToBeFixedForInstantExecution
@@ -492,8 +492,8 @@ This can indicate that a dependency has been compromised. Please verify carefull
         createMetadataFile {
             keyServer(keyServerFixture.uri)
             verifySignatures()
-            addTrustedKey("org:foo:1.0", SigningFixtures.validPublicKeyHexString)
-            addTrustedKey("org:foo:1.0", SigningFixtures.validPublicKeyHexString, "pom", "pom")
+            addTrustedKey("org:foo:1.0", validPublicKeyHexString)
+            addTrustedKey("org:foo:1.0", validPublicKeyHexString, "pom", "pom")
         }
         keyServerFixture.withDefaultSigningKey()
 
