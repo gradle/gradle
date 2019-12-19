@@ -220,9 +220,6 @@ subprojects {
 
     if (project in publicJavaProjects) {
         apply(plugin = "gradlebuild.public-java-projects")
-        if (project.name != "kotlinDslPlugins") {
-            apply(plugin = "gradlebuild.publish-public-libraries")
-        }
     }
 
     apply(from = "$rootDir/gradle/shared-with-buildSrc/code-quality-configuration.gradle.kts")

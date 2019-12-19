@@ -24,6 +24,7 @@ import org.gradle.plugins.ide.eclipse.model.SourceFolder
 
 plugins {
     `java-library`
+    gradlebuild.`publish-public-libraries`
     gradlebuild.`shaded-jar`
 }
 
