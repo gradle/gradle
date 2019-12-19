@@ -46,6 +46,10 @@ public class RegularFileSnapshot extends AbstractCompleteFileSystemLocationSnaps
         return contentHash;
     }
 
+    public FileMetadata getMetadata() {
+        return metadata;
+    }
+
     @Override
     public boolean isContentAndMetadataUpToDate(CompleteFileSystemLocationSnapshot other) {
         if (!(other instanceof RegularFileSnapshot)) {
