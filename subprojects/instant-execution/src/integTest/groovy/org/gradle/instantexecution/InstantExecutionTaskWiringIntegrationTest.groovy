@@ -16,6 +16,10 @@
 
 package org.gradle.instantexecution
 
+import org.gradle.api.internal.tasks.NodeExecutionContext
+import org.gradle.api.internal.tasks.TaskDependencyContainer
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext
+import org.gradle.api.internal.tasks.WorkNodeAction
 import org.gradle.api.tasks.TasksWithInputsAndOutputs
 
 class InstantExecutionTaskWiringIntegrationTest extends AbstractInstantExecutionIntegrationTest implements TasksWithInputsAndOutputs {
@@ -173,5 +177,29 @@ class InstantExecutionTaskWiringIntegrationTest extends AbstractInstantExecution
         then:
         instantExecution.assertStateLoaded()
         result.assertTasksSkipped(":producer", ":transformer")
+    }
+
+    def "ActionNode serialization failure carries related task information"() {
+        given: "a task with a WorkNodeAction dependency"
+        buildFile << """
+            task run {
+                dependsOn(
+                    { ${TaskDependencyResolveContext.name} resolveContext ->
+                        resolveContext.add(
+                            new ${WorkNodeAction.name}() {
+                                Project getProject() { null }
+                                void run(${NodeExecutionContext.name} executionContext) {}
+                            }
+                        )
+                    } as ${TaskDependencyContainer.name}
+                )
+            }
+        """
+
+        when:
+        instantRun("run")
+
+        then: "failure message should point to related task"
+        outputContains("- task `:run` of type `org.gradle.api.DefaultTask`: cannot serialize object of type 'org.gradle.execution.plan.ActionNode' as these are not supported with instant execution.")
     }
 }

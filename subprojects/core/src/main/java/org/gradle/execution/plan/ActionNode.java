@@ -18,6 +18,7 @@ package org.gradle.execution.plan;
 
 import org.gradle.api.Action;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.WorkNodeAction;
 import org.gradle.internal.resources.ResourceLock;
@@ -29,9 +30,16 @@ import java.util.Set;
 
 public class ActionNode extends Node implements SelfExecutingNode {
     private final WorkNodeAction action;
+    @Nullable
+    private final Task dependentTask;
 
     public ActionNode(WorkNodeAction action) {
+        this(action, null);
+    }
+
+    public ActionNode(WorkNodeAction action, @Nullable Task dependentTask) {
         this.action = action;
+        this.dependentTask = dependentTask;
     }
 
     @Nullable
@@ -102,5 +110,10 @@ public class ActionNode extends Node implements SelfExecutingNode {
     @Override
     public void execute(NodeExecutionContext context) {
         action.run(context);
+    }
+
+    @Nullable
+    public Task getDependentTask() {
+        return dependentTask;
     }
 }

@@ -167,6 +167,7 @@ class Codecs(
 
         providerTypes(filePropertyFactory, buildServiceRegistry, valueSourceProviderFactory)
 
+        bind(ActionNodeCodec)
         bind(TaskNodeCodec(projectStateRegistry, userTypesCodec, taskNodeFactory))
         bind(InitialTransformationNodeCodec(buildOperationExecutor, transformListener))
         bind(ChainedTransformationNodeCodec(buildOperationExecutor, transformListener))

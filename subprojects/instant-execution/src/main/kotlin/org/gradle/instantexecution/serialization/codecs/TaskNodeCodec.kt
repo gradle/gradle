@@ -84,7 +84,7 @@ class TaskNodeCodec(
 
     private
     suspend fun WriteContext.writeTask(task: TaskInternal) {
-        val taskType = GeneratedSubclasses.unpack(task.javaClass)
+        val taskType = taskTypeOf(task)
         writeClass(taskType)
         writeString(task.project.path)
         writeString(task.name)
@@ -97,6 +97,7 @@ class TaskNodeCodec(
             writeRegisteredServicesOf(task)
         }
     }
+
 
     private
     suspend fun ReadContext.readTask(): Task {
@@ -149,9 +150,21 @@ inline fun <T> T.withTaskOf(
     action: () -> Unit
 ) where T : IsolateContext, T : MutableIsolateContext {
     withIsolate(IsolateOwner.OwnerTask(task), codec) {
-        withPropertyTrace(PropertyTrace.Task(taskType, task.path)) {
+        withTaskPropertyTrace(taskType, task) {
             action()
         }
+    }
+}
+
+
+internal
+inline fun <T> T.withTaskPropertyTrace(
+    taskType: Class<*>,
+    task: Task,
+    action: () -> Unit
+) where T : IsolateContext, T : MutableIsolateContext {
+    withPropertyTrace(PropertyTrace.Task(taskType, task.path)) {
+        action()
     }
 }
 
@@ -379,6 +392,11 @@ suspend fun ReadContext.readOutputPropertiesOf(task: Task) =
             }
         }
     }
+
+
+internal
+fun taskTypeOf(task: Task): Class<*> =
+    GeneratedSubclasses.unpack(task.javaClass)
 
 
 private
