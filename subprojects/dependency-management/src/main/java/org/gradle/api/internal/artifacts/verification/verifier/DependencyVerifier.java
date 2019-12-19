@@ -31,10 +31,6 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.operations.CallableBuildOperation;
 
 import java.io.File;
 import java.util.Collection;
@@ -64,13 +60,13 @@ public class DependencyVerifier {
         .weakValues()
         .build();
 
-    public void verify(BuildOperationExecutor buildOperationExecutor, ChecksumService checksumService, SignatureVerificationService signatureVerificationService, ArtifactVerificationOperation.ArtifactKind kind, ModuleComponentArtifactIdentifier foundArtifact, File artifactFile, File signatureFile, Action<VerificationFailure> onFailure) {
+    public void verify(ChecksumService checksumService, SignatureVerificationService signatureVerificationService, ArtifactVerificationOperation.ArtifactKind kind, ModuleComponentArtifactIdentifier foundArtifact, File artifactFile, File signatureFile, Action<VerificationFailure> onFailure) {
         if (shouldSkipVerification(kind)) {
             return;
         }
         try {
             Optional<? extends VerificationFailure> verificationFailure = verificationCache.get(artifactFile, () -> {
-                return performVerification(buildOperationExecutor, foundArtifact, checksumService, signatureVerificationService, artifactFile, signatureFile);
+                return performVerification(foundArtifact, checksumService, signatureVerificationService, artifactFile, signatureFile);
             });
             verificationFailure.ifPresent(f -> {
                 // In order to avoid going through the list for every artifact, we only
@@ -99,23 +95,11 @@ public class DependencyVerifier {
         return false;
     }
 
-    private Optional<? extends VerificationFailure> performVerification(BuildOperationExecutor buildOperationExecutor, ModuleComponentArtifactIdentifier foundArtifact, ChecksumService checksumService, SignatureVerificationService signatureVerificationService, File file, File signature) {
-        return buildOperationExecutor.call(new CallableBuildOperation<Optional<? extends VerificationFailure>>() {
-            @Override
-            public Optional<? extends VerificationFailure> call(BuildOperationContext context) {
-                if (!file.exists()) {
-                    return VerificationFailure.OPT_DELETED;
-                }
-                return doVerifyArtifact(foundArtifact, checksumService, signatureVerificationService, file, signature);
-            }
-
-            @Override
-            public BuildOperationDescriptor.Builder description() {
-                String displayName = "Verifying dependency " + foundArtifact;
-                return BuildOperationDescriptor.displayName(displayName)
-                    .progressDisplayName(displayName);
-            }
-        });
+    private Optional<? extends VerificationFailure> performVerification(ModuleComponentArtifactIdentifier foundArtifact, ChecksumService checksumService, SignatureVerificationService signatureVerificationService, File file, File signature) {
+        if (!file.exists()) {
+            return VerificationFailure.OPT_DELETED;
+        }
+        return doVerifyArtifact(foundArtifact, checksumService, signatureVerificationService, file, signature);
     }
 
     private Optional<? extends VerificationFailure> doVerifyArtifact(ModuleComponentArtifactIdentifier foundArtifact, ChecksumService checksumService, SignatureVerificationService signatureVerificationService, File file, File signature) {

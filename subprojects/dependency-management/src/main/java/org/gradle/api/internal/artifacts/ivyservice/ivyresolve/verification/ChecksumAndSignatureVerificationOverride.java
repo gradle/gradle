@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Queues;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
@@ -33,11 +34,15 @@ import org.gradle.api.internal.artifacts.verification.verifier.VerificationFailu
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.logging.text.TreeFormatter;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.RunnableBuildOperation;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -45,6 +50,7 @@ import java.io.FileNotFoundException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Comparator;
+import java.util.Deque;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -69,6 +75,7 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
     private final ChecksumService checksumService;
     private final SignatureVerificationService signatureVerificationService;
     private final DependencyVerificationMode verificationMode;
+    private final Deque<VerificationEvent> verificationEvents = Queues.newArrayDeque();
 
     public ChecksumAndSignatureVerificationOverride(BuildOperationExecutor buildOperationExecutor, File verificationsFile, ChecksumService checksumService, SignatureVerificationServiceFactory signatureVerificationServiceFactory, DependencyVerificationMode verificationMode) {
         this.buildOperationExecutor = buildOperationExecutor;
@@ -97,12 +104,44 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
     }
 
     @Override
-    public void onArtifact(ArtifactKind kind, ModuleComponentArtifactIdentifier artifact, File mainFile, File signatureFile) {
-        verifier.verify(buildOperationExecutor, checksumService, signatureVerificationService, kind, artifact, mainFile, signatureFile, f -> {
-            synchronized (failures) {
-                failures.put(artifact, f);
+    public void onArtifact(ArtifactKind kind, ModuleComponentArtifactIdentifier artifact, File mainFile, Factory<File> signatureFile) {
+        VerificationEvent event = new VerificationEvent(kind, artifact, mainFile, signatureFile);
+        synchronized (verificationEvents) {
+            verificationEvents.add(event);
+        }
+    }
+
+    private void verifyConcurrently() {
+        synchronized (verificationEvents) {
+            if (verificationEvents.isEmpty()) {
+                return;
+            }
+        }
+        buildOperationExecutor.runAll(queue -> {
+            VerificationEvent event;
+            synchronized (verificationEvents) {
+                while ((event = verificationEvents.poll()) != null) {
+                    VerificationEvent ve = event;
+                    queue.add(new RunnableBuildOperation() {
+                        @Override
+                        public void run(BuildOperationContext context) {
+                            verifier.verify(checksumService, signatureVerificationService, ve.kind, ve.artifact, ve.mainFile, ve.signatureFile.create(), f -> {
+                                synchronized (failures) {
+                                    failures.put(ve.artifact, f);
+                                }
+                            });
+                        }
+
+                        @Override
+                        public BuildOperationDescriptor.Builder description() {
+                            return BuildOperationDescriptor.displayName("Dependency verification")
+                                .progressDisplayName("Verifying " + ve.artifact);
+                        }
+                    });
+                }
             }
         });
+
     }
 
     @Override
@@ -112,6 +151,7 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
 
     @Override
     public void artifactsAccessed(String displayName) {
+        verifyConcurrently();
         synchronized (failures) {
             if (!failures.isEmpty()) {
                 TreeFormatter formatter = new TreeFormatter();
@@ -183,5 +223,19 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
     @Override
     public void buildFinished(Gradle gradle) {
         signatureVerificationService.stop();
+    }
+
+    private static class VerificationEvent {
+        private final ArtifactKind kind;
+        private final ModuleComponentArtifactIdentifier artifact;
+        private final File mainFile;
+        private final Factory<File> signatureFile;
+
+        private VerificationEvent(ArtifactKind kind, ModuleComponentArtifactIdentifier artifact, File mainFile, Factory<File> signatureFile) {
+            this.kind = kind;
+            this.artifact = artifact;
+            this.mainFile = mainFile;
+            this.signatureFile = signatureFile;
+        }
     }
 }

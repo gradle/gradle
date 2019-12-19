@@ -32,6 +32,7 @@ import org.gradle.api.internal.artifacts.verification.serializer.DependencyVerif
 import org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationsXmlWriter;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
+import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
@@ -188,7 +189,7 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
     }
 
     @Override
-    public void onArtifact(ArtifactKind kind, ModuleComponentArtifactIdentifier id, File mainFile, File signatureFile) {
+    public void onArtifact(ArtifactKind kind, ModuleComponentArtifactIdentifier id, File mainFile, Factory<File> signatureFile) {
         initialize();
         if (shouldSkipVerification(kind)) {
             return;
