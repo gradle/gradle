@@ -17,7 +17,6 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
@@ -98,7 +97,6 @@ class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)
     @Unroll
-    @ToBeFixedForInstantExecution
     def "file and directory permissions are preserved for unpacked #taskName archives"() {
         given:
         TestFile testDir = createDir('testdir') {

@@ -38,6 +38,11 @@ public class DefaultSingletonFileTree extends AbstractSingletonFileTree {
     }
 
     @Override
+    public String toString() {
+        return getDisplayName();
+    }
+
+    @Override
     public String getDisplayName() {
         return String.format("file '%s'", file);
     }

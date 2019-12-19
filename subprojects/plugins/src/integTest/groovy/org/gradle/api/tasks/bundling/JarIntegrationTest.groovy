@@ -155,7 +155,6 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         jar.assertContainsFile('dir1/file1.txt')
     }
 
-    @ToBeFixedForInstantExecution
     def usesManifestFromJarTaskWhenMergingJars() {
         given:
         createDir('src1') {
@@ -684,9 +683,9 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             task jar(type: Jar) {
-                manifest { 
+                manifest {
                     attributes(attr: provider { "value" })
-                    attributes(version: archiveVersion) 
+                    attributes(version: archiveVersion)
                 }
                 destinationDirectory = buildDir
                 archiveFileName = 'test.jar'

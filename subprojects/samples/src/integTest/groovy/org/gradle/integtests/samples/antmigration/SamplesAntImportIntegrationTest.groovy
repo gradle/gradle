@@ -17,8 +17,8 @@
 package org.gradle.integtests.samples.antmigration
 
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.util.Requires
 import org.junit.Rule
@@ -75,7 +75,6 @@ class SamplesAntImportIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample("userguide/antMigration/fileDeps")
-    @ToBeFixedForInstantExecution
     def "can use task properties to link tasks (#dsl)"() {
         given: "A sample Java project"
         def dslDir = sample.dir.file(dsl)

@@ -100,7 +100,7 @@ class CollectingVisitor : FileCollectionStructureVisitor {
     }
 
     override fun visitFileTreeBackedByFile(file: File, fileTree: FileTreeInternal) {
-        elements.addAll(fileTree)
+        elements.add(fileTree)
     }
 }
 

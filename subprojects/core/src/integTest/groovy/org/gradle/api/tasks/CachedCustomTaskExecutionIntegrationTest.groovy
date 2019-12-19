@@ -57,7 +57,6 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         result.groupedOutput.task(":buildSrc:compileGroovy").outcome == "FROM-CACHE"
     }
 
-    @ToBeFixedForInstantExecution
     def "tasks stay cached after buildSrc with custom Groovy task is rebuilt"() {
         configureCacheForBuildSrc()
         file("buildSrc/src/main/groovy/CustomTask.groovy") << customGroovyTask()
@@ -202,7 +201,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
             @CacheableTask
             class CustomTask extends DefaultTask {
                 @OutputFiles Iterable<File> out
-                
+
                 @TaskAction
                 void execute() {
                     out.eachWithIndex { file, index ->
@@ -544,7 +543,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
                     project.delete(missing)
                 }
             }
-            
+
             task customTask(type: CustomTask)
         """
 
@@ -642,10 +641,10 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
                     @InputFile
                     @PathSensitive(PathSensitivity.NONE)
                     File inputFile
-    
+
                     @OutputFile
                     File outputFile
-    
+
                     @TaskAction
                     void action() {
                         outputFile.text = inputFile.text
@@ -911,7 +910,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
                 task test {
                     def outputFile = file("\${project.buildDir}/output.txt")
                     outputs.cacheIf { true }
-                    outputs.file(outputFile).withPropertyName("outputFile") 
+                    outputs.file(outputFile).withPropertyName("outputFile")
                     doFirst {
                         Thread.sleep(new Random().nextInt(30))
                         outputFile.text = "output"

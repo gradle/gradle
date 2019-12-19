@@ -57,6 +57,11 @@ public class ZipFileTree implements MinimalFileTree, ArchiveFileTree {
     }
 
     @Override
+    public String toString() {
+        return getDisplayName();
+    }
+
+    @Override
     public String getDisplayName() {
         return String.format("ZIP '%s'", zipFile);
     }

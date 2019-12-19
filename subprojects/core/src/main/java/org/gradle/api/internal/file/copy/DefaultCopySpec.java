@@ -27,6 +27,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.file.CopyProcessingSpec;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DuplicatesStrategy;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
@@ -83,12 +84,22 @@ public class DefaultCopySpec implements CopySpecInternal {
     private final List<CopySpecListener> listeners = Lists.newLinkedList();
 
     public DefaultCopySpec(FileResolver resolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator) {
+        this(resolver, fileCollectionFactory, instantiator, resolver.getPatternSetFactory().create());
+    }
+
+    public DefaultCopySpec(FileResolver resolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, PatternSet patternSet) {
         this.fileResolver = resolver;
         this.fileCollectionFactory = fileCollectionFactory;
         this.instantiator = instantiator;
-        PatternSet patternSet = resolver.getPatternSetFactory().create();
-        assert patternSet != null;
         this.patternSet = patternSet;
+    }
+
+    public DefaultCopySpec(FileResolver resolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, FileCollection source, PatternSet patternSet, Collection<CopySpecInternal> children) {
+        this(resolver, fileCollectionFactory, instantiator, patternSet);
+        sourcePaths.add(source);
+        for (CopySpecInternal child : children) {
+            addChildSpec(child);
+        }
     }
 
     @Override
@@ -299,6 +310,10 @@ public class DefaultCopySpec implements CopySpecInternal {
         return eachFile(new MatchingCopyAction(matcher.negate(), action));
     }
 
+    public PatternSet getPatterns() {
+        return patternSet;
+    }
+
     @Override
     public CopySpec include(String... includes) {
         patternSet.include(includes);
@@ -468,7 +483,7 @@ public class DefaultCopySpec implements CopySpecInternal {
     }
 
     @Override
-    public Iterable<CopySpecInternal> getChildren() {
+    public Collection<CopySpecInternal> getChildren() {
         return childSpecs;
     }
 
@@ -487,9 +502,8 @@ public class DefaultCopySpec implements CopySpecInternal {
         return this.new DefaultCopySpecResolver(null);
     }
 
-    // TODO:instant-execution - remove this
-    public Set<File> resolveSourceFiles() {
-        return fileCollectionFactory.resolving(sourcePaths).getFiles();
+    public FileCollection resolveSourceFiles() {
+        return fileCollectionFactory.resolving(sourcePaths);
     }
 
     @Override
@@ -538,7 +552,7 @@ public class DefaultCopySpec implements CopySpecInternal {
 
         @Override
         public FileTree getSource() {
-            return fileCollectionFactory.resolving(sourcePaths).getAsFileTree().matching(this.getPatternSet());
+            return resolveSourceFiles().getAsFileTree().matching(this.getPatternSet());
         }
 
         @Override
