@@ -17,6 +17,7 @@
 package org.gradle.smoketests
 
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.testkit.runner.TaskOutcome
 import spock.lang.Issue
 
 class TestRetryPluginSmokeTest extends AbstractSmokeTest {
@@ -52,27 +53,32 @@ class TestRetryPluginSmokeTest extends AbstractSmokeTest {
             }"""
 
         then:
-        runner('test').build()
+        def build = runner('test').buildAndFail()
+        build.task(":test").outcome == TaskOutcome.FAILED
+        def output = build.output
+        output.findAll("flaky\\(\\) FAILED").size() == 1
+        output.findAll("failing\\(\\) FAILED").size() == 3
+        output.contains("6 tests completed, 4 failed")
     }
 
     private TestFile testSourceFile() {
-        file("src/test/java/org.acme/AcmeTest.java") << """
+        file("src/test/java/org/acme/AcmeTest.java") << """
 package org.acme;
 
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.fail;
 
-class SampleTests {
+class AcmeTest {
 
     @Test
     void successful() {
-        new Sample().otherFunctionality();
+        new Acme().otherFunctionality();
     }
 
     @Test
     void flaky() {
-        new Sample().functionality();
+        new Acme().functionality();
     }
 
     @Test
