@@ -80,14 +80,14 @@ public class SignatureVerificationFailure implements VerificationFailure {
         PGPPublicKey publicKey = error.publicKey;
         switch (error.kind) {
             case PASSED_NOT_TRUSTED:
-                sb.append("(");
                 appendKeyDetails(sb, publicKey);
-                sb.append(") and passed verification but the key isn't in your trusted keys list.");
+                sb.append("and passed verification but the key isn't in your trusted keys list.");
                 break;
             case KEY_NOT_FOUND:
                 sb.append("but it wasn't found in any key server so it couldn't be verified");
                 break;
             case FAILED:
+                appendKeyDetails(sb, publicKey);
                 sb.append("but signature didn't match");
                 break;
         }
@@ -109,7 +109,13 @@ public class SignatureVerificationFailure implements VerificationFailure {
                 collectUserIds(userIds, userkey);
             });
         });
+        if (!userIds.isEmpty()) {
+            sb.append("(");
+        }
         sb.append(String.join(", ", userIds));
+        if (!userIds.isEmpty()) {
+            sb.append(") ");
+        }
     }
 
     private void collectUserIds(Set<String> userIds, PGPPublicKey userkey) {
