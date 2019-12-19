@@ -109,6 +109,7 @@ samples {
     templates {
         javaAndroidApplication
         springBootWebApplication
+        gradlePluginInJava
 
         javaApplication
         javaListLibrary
@@ -165,6 +166,7 @@ samples {
         kotlinListLibrary
         kotlinUtilitiesLibrary
     }
+
     publishedSamples {
         androidApplication {
             description = "Build a simple Android application."
@@ -324,6 +326,14 @@ samples {
             common {
                 from(templates.groovyListLibrary)
                 from(templates.groovyUtilitiesLibrary)
+            }
+        }
+        
+        gradlePlugin {
+            description = "Organize your build logic into a Gradle plugin written in Java."
+            category = "Build organization"
+            common {
+                from(templates.gradlePluginInJava)
             }
         }
     }
