@@ -46,10 +46,4 @@ class VfsRetentionGradleExecuter extends DaemonGradleExecuter {
             "-D${VirtualFileSystemServices.VFS_RETENTION_ENABLED_PROPERTY}=true",
         ] + conditionalArgs).collect { it.toString() }
     }
-
-    @Override
-    protected Map<String, String> getImplicitJvmSystemProperties() {
-        requireIsolatedDaemons()
-        return super.getImplicitJvmSystemProperties()
-    }
 }
