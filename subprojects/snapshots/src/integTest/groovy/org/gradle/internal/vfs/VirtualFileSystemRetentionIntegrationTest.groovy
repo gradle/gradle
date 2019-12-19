@@ -207,6 +207,63 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         outputDoesNotContain(incubatingMessage)
     }
 
+    def "detects when outputs are removed for tasks without sources"() {
+        buildFile << """
+            apply plugin: 'base'
+
+            abstract class Producer extends DefaultTask {
+                @InputDirectory
+                @SkipWhenEmpty
+                abstract DirectoryProperty getSources()
+                
+                @OutputDirectory
+                abstract DirectoryProperty getOutputDir()
+                
+                @TaskAction
+                void listSources() {
+                    outputDir.file("output.txt").get().asFile.text = sources.get().asFile.list().join("\\n")
+                }
+            }
+
+            task sourceTask(type: Producer) {
+                sources = file("sources")
+                outputDir = file("build/output")
+            }
+
+            task consumer {
+                def outputFile = file("build/consumer.txt")
+                inputs.files(sourceTask.outputDir)
+                outputs.file("build/consumer.txt")
+                doLast {
+                    def input = file("build/output/output.txt")
+                    if (input.file) {
+                        outputFile.text = input.text
+                    } else {
+                        outputFile.text = "<empty>"
+                    }
+                }
+            }
+        """
+
+        def sourcesDir = file("sources")
+        def sourceFile = sourcesDir.file("source.txt").createFile()
+        def outputFile = file("build/output/output.txt")
+
+        when:
+        withRetention().run ":consumer"
+        then:
+        executedAndNotSkipped(":sourceTask", ":consumer")
+        outputFile.assertExists()
+
+        when:
+        sourceFile.delete()
+        waitForChangesToBePickedUp()
+        withRetention().run ":consumer"
+        then:
+        executedAndNotSkipped(":sourceTask", ":consumer")
+        outputFile.assertDoesNotExist()
+    }
+
     private def withRetention() {
         executer.withArgument  "-D${VFS_RETENTION_ENABLED_PROPERTY}"
         this
