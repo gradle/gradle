@@ -29,7 +29,7 @@ It is however interesting to use _rules_ to declare component capabilities in or
 
 A typical example is whenever a component is relocated at different coordinates in a new release.
 For example, the ASM library lived at `asm:asm` coordinates until version `3.3.1`, then changed to `org.ow2.asm:asm` since `4.0`.
-It is illegal to have both ASM <=3.3.1 and 4.0+ on the classpath, because they provide the same feature, it's just that the component has been relocated.
+It is illegal to have both ASM \<= 3.3.1 and 4.0+ on the classpath, because they provide the same feature, it's just that the component has been relocated.
 Because each component has an implicit capability corresponding to its GAV coordinates, we can "fix" this by having a rule that will declare that the `asm:asm` module provides the `org.ow2.asm:asm` capability:
 
 .Conflict resolution by capability
