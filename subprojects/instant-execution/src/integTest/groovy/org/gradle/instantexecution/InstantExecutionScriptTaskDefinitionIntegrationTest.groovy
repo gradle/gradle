@@ -18,9 +18,9 @@ package org.gradle.instantexecution
 
 import org.gradle.api.tasks.TasksWithInputsAndOutputs
 
-class InstantExecutionTaskActionsIntegrationTest extends AbstractInstantExecutionIntegrationTest implements TasksWithInputsAndOutputs {
+class InstantExecutionScriptTaskDefinitionIntegrationTest extends AbstractInstantExecutionIntegrationTest implements TasksWithInputsAndOutputs {
 
-    def "task can have doFirst/doLast groovy script closures"() {
+    def "task can have doFirst/doLast Groovy script closures"() {
 
         given:
         settingsFile << """
@@ -83,7 +83,7 @@ class InstantExecutionTaskActionsIntegrationTest extends AbstractInstantExecutio
         result.groupedOutput.task(":b:some").assertOutputContains("FIRST").assertOutputContains("LAST")
     }
 
-    def "task can have doFirst/doLast anonymous script actions"() {
+    def "task can have doFirst/doLast anonymous Groovy script actions"() {
 
         given:
         buildFile << """
@@ -135,7 +135,7 @@ class InstantExecutionTaskActionsIntegrationTest extends AbstractInstantExecutio
         result.groupedOutput.task(":other").assertOutputContains("OTHER")
     }
 
-    def "task can have doFirst/doLast kotlin script lambdas"() {
+    def "task can have doFirst/doLast Kotlin script lambdas"() {
 
         given:
         settingsFile << """
@@ -151,7 +151,7 @@ class InstantExecutionTaskActionsIntegrationTest extends AbstractInstantExecutio
                         println("LAST")
                     }
                 }
-    
+
                 tasks.register("other") {
                     doFirst {
                         println("OTHER")
@@ -199,7 +199,26 @@ class InstantExecutionTaskActionsIntegrationTest extends AbstractInstantExecutio
         result.groupedOutput.task(":b:some").assertOutputContains("FIRST").assertOutputContains("LAST")
     }
 
-    def "task with type declared in Groovy DSL script is up-to-date when no inputs have changed"() {
+    def "warns when closure defined in Kotlin script captures state from the script"() {
+        given:
+        buildKotlinFile << """
+            val message = "message"
+            tasks.register("some") {
+                doFirst {
+                    println(message)
+                }
+            }
+        """
+
+        when:
+        instantRun ":some"
+
+        then:
+        outputContains("instant-execution > cannot serialize object of type 'Build_gradle', a subtype of 'org.gradle.kotlin.dsl.KotlinScript', as these are not supported with instant execution.")
+        noExceptionThrown()
+    }
+
+    def "task with type declared in Groovy script is up-to-date when no inputs have changed"() {
 
         given:
         taskTypeWithOutputFileProperty()
@@ -232,7 +251,7 @@ class InstantExecutionTaskActionsIntegrationTest extends AbstractInstantExecutio
         outputFile.assertIsFile()
     }
 
-    def "task with type declared in Kotlin DSL script is up-to-date when no inputs have changed"() {
+    def "task with type declared in Kotlin script is up-to-date when no inputs have changed"() {
 
         given:
         kotlinTaskTypeWithOutputFileProperty()
@@ -265,7 +284,7 @@ class InstantExecutionTaskActionsIntegrationTest extends AbstractInstantExecutio
         outputFile.assertIsFile()
     }
 
-    def "name conflicts of types declared in groovy scripts"() {
+    def "name conflicts of types declared in Groovy scripts"() {
 
         given:
         settingsFile << """include("a", "b")"""
@@ -297,7 +316,7 @@ class InstantExecutionTaskActionsIntegrationTest extends AbstractInstantExecutio
         outputContains("B")
     }
 
-    def "name conflicts of types declared in kotlin scripts"() {
+    def "name conflicts of types declared in Kotlin scripts"() {
 
         given:
         settingsFile << """include("a", "b")"""
