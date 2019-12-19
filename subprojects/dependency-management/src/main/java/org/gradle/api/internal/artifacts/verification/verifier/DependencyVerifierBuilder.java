@@ -34,13 +34,17 @@ import org.gradle.internal.component.external.model.ModuleComponentArtifactIdent
 
 import javax.annotation.Nullable;
 import java.net.URI;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 public class DependencyVerifierBuilder {
-    private final Map<ModuleComponentIdentifier, ComponentVerificationsBuilder> byComponent = Maps.newLinkedHashMap();
+    private static final Comparator<ModuleComponentIdentifier> MODULE_COMPONENT_IDENTIFIER_COMPARATOR = Comparator.comparing(ModuleComponentIdentifier::getGroup)
+        .thenComparing(ModuleComponentIdentifier::getModule)
+        .thenComparing(ModuleComponentIdentifier::getVersion);
+    private final Map<ModuleComponentIdentifier, ComponentVerificationsBuilder> byComponent = Maps.newHashMap();
     private final List<DependencyVerificationConfiguration.TrustedArtifact> trustedArtifacts = Lists.newArrayList();
     private final List<DependencyVerificationConfiguration.TrustedKey> trustedKeys = Lists.newArrayList();
     private final List<URI> keyServers = Lists.newArrayList();
@@ -99,9 +103,12 @@ public class DependencyVerifierBuilder {
 
     public DependencyVerifier build() {
         ImmutableMap.Builder<ComponentIdentifier, ComponentVerificationMetadata> builder = ImmutableMap.builderWithExpectedSize(byComponent.size());
-        for (Map.Entry<ModuleComponentIdentifier, ComponentVerificationsBuilder> entry : byComponent.entrySet()) {
-            builder.put(entry.getKey(), entry.getValue().build());
-        }
+        byComponent.entrySet()
+            .stream()
+            .sorted(Map.Entry.comparingByKey(MODULE_COMPONENT_IDENTIFIER_COMPARATOR))
+            .forEachOrdered(entry -> {
+                builder.put(entry.getKey(), entry.getValue().build());
+            });
         return new DependencyVerifier(builder.build(), new DependencyVerificationConfiguration(isVerifyMetadata, isVerifySignatures, trustedArtifacts, ImmutableList.copyOf(keyServers), ImmutableSet.copyOf(ignoredKeys), trustedKeys));
     }
 
@@ -115,7 +122,7 @@ public class DependencyVerifierBuilder {
 
     private static class ComponentVerificationsBuilder {
         private final ModuleComponentIdentifier component;
-        private final Map<String, ArtifactVerificationBuilder> byArtifact = Maps.newLinkedHashMap();
+        private final Map<String, ArtifactVerificationBuilder> byArtifact = Maps.newHashMap();
 
         private ComponentVerificationsBuilder(ModuleComponentIdentifier component) {
             this.component = component;
@@ -138,6 +145,7 @@ public class DependencyVerifierBuilder {
                 byArtifact.entrySet()
                     .stream()
                     .map(ComponentVerificationsBuilder::toArtifactVerification)
+                    .sorted(Comparator.comparing(ArtifactVerificationMetadata::getArtifactName))
                     .collect(Collectors.toList())
             );
         }
@@ -159,6 +167,7 @@ public class DependencyVerifierBuilder {
             return builder.values()
                 .stream()
                 .map(ChecksumBuilder::build)
+                .sorted(Comparator.comparing(Checksum::getKind))
                 .collect(Collectors.toList());
         }
 
