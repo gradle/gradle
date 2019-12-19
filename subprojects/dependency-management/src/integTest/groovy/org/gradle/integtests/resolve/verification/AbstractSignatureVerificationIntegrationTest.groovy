@@ -22,6 +22,7 @@ import org.gradle.security.fixtures.SigningFixtures
 import org.gradle.security.fixtures.SimpleKeyRing
 
 import static org.gradle.security.fixtures.SigningFixtures.createSimpleKeyRing
+import static org.gradle.security.internal.SecuritySupport.toHexString
 
 abstract class AbstractSignatureVerificationIntegrationTest extends AbstractDependencyVerificationIntegTest implements CachingIntegrationFixture {
     KeyServer keyServerFixture
@@ -45,6 +46,16 @@ abstract class AbstractSignatureVerificationIntegrationTest extends AbstractDepe
     }
 
     protected SimpleKeyRing newKeyRing() {
+        def ring = createKeyRing()
+        // This loop is just to avoid some flakiness in tests which
+        // expect error messages in a certain order
+        while (toHexString(ring.publicKey.keyID).startsWith('0') || toHexString(ring.publicKey.keyID).startsWith('1')) {
+            ring = createKeyRing()
+        }
+        ring
+    }
+
+    private SimpleKeyRing createKeyRing() {
         createSimpleKeyRing(temporaryFolder.createDir("keys-${UUID.randomUUID()}"))
     }
 }
