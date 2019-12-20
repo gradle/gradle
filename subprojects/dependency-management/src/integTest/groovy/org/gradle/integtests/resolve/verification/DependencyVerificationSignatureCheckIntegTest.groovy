@@ -393,6 +393,7 @@ This can indicate that a dependency has been compromised. Please verify carefull
 This can indicate that a dependency has been compromised. Please verify carefully the checksums."""
     }
 
+    @ToBeFixedForInstantExecution
     def "caches missing keys"() {
         createMetadataFile {
             keyServer(keyServerFixture.uri)
@@ -442,6 +443,7 @@ This can indicate that a dependency has been compromised. Please verify carefull
 
     // This test exercises the fact that the signature cache is aware
     // of changes of the artifact
+    @ToBeFixedForInstantExecution
     def "can detect tampered file between builds"() {
         createMetadataFile {
             keyServer(keyServerFixture.uri)
@@ -484,6 +486,7 @@ This can indicate that a dependency has been compromised. Please verify carefull
   - On artifact foo-1.0.jar (org:foo:1.0): Artifact was signed with key '14f53f0824875d73' but signature didn't match"""
     }
 
+    @ToBeFixedForInstantExecution
     def "caching takes trusted keys into account"() {
         createMetadataFile {
             keyServer(keyServerFixture.uri)
