@@ -96,7 +96,7 @@ class GradleImplDepsGenerationIntegrationTest extends BaseGradleImplDepsIntegrat
                 doLast {
                     def resolvedArtifacts = configurations.deps.incoming.files.files
                     assert resolvedArtifacts.size() == 8
-                    assert resolvedArtifacts.find { (it.name =~ 'gradle-api-(.*)\\\\.jar').matches() }
+                    assert resolvedArtifacts.find { (it.name =~ 'gradle-api-src-(.*)\\\\.jar').matches() }
                     assert resolvedArtifacts.find { (it.name =~ 'gradle-installation-beacon-(.*)\\\\.jar').matches() }
                     assert resolvedArtifacts.find { (it.name =~ 'groovy-all-(.*)\\\\.jar').matches() }
                     assert resolvedArtifacts.findAll { (it.name =~ 'kotlin-stdlib-(.*)\\\\.jar').matches() }.size() == 4
@@ -109,7 +109,7 @@ class GradleImplDepsGenerationIntegrationTest extends BaseGradleImplDepsIntegrat
         succeeds 'resolveDependencyArtifacts'
 
         then:
-        TestFile apiJar = file("user-home/caches/${distribution.version.version}/generated-gradle-jars/gradle-api-${distribution.version.version}.jar")
+        TestFile apiJar = file("user-home/caches/${distribution.version.version}/generated-gradle-jars/gradle-api-src-${distribution.version.version}.jar")
         apiJar.assertExists()
 
         handleAsJarFile(apiJar) { JarFile file ->
