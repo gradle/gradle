@@ -196,7 +196,7 @@ trait HttpServerFixture {
                 }
             }
             if (logRequests) {
-                println("handling http request: $request.method $target")
+                println("handling http request: $request.method $target${request.queryString ? "?" + request.queryString : ''}")
             }
         }
 

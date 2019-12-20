@@ -55,7 +55,7 @@ class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionGradleProf
         given:
         runner.tasksToRun = ['resolveDependencies']
         runner.gradleOpts = [MIN_MEMORY, MAX_MEMORY]
-        runner.targetVersions = ['6.0-20190919220024+0000']
+        runner.targetVersions = ["6.1-20191217025822+0000"]
         runner.args = ['-PuseHttp', "-PhttpPort=${serverPort}", '-PnoExcludes']
         if (parallel) {
             runner.args += '--parallel'

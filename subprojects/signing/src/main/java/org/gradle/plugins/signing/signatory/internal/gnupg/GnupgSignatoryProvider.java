@@ -15,52 +15,27 @@
  */
 package org.gradle.plugins.signing.signatory.internal.gnupg;
 
-import groovy.lang.Closure;
 import org.gradle.api.Project;
-import org.gradle.plugins.signing.SigningExtension;
 import org.gradle.plugins.signing.signatory.SignatoryProvider;
-import org.gradle.util.ConfigureUtil;
+import org.gradle.plugins.signing.signatory.internal.ConfigurableSignatoryProvider;
+import org.gradle.security.internal.gnupg.BaseGnupgSignatoryProvider;
+import org.gradle.security.internal.gnupg.GnupgSignatory;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-
-import static org.codehaus.groovy.runtime.DefaultGroovyMethods.asType;
+import java.util.Arrays;
 
 /**
  * A {@link SignatoryProvider} of {@link GnupgSignatory} instances.
  *
  * @since 4.5
  */
-public class GnupgSignatoryProvider implements SignatoryProvider<GnupgSignatory> {
-
-    private final GnupgSignatoryFactory factory = new GnupgSignatoryFactory();
-    private final Map<String, GnupgSignatory> signatories = new LinkedHashMap<String, GnupgSignatory>();
+public class GnupgSignatoryProvider extends BaseGnupgSignatoryProvider implements ConfigurableSignatoryProvider<GnupgSignatory> {
 
     @Override
-    public void configure(final SigningExtension settings, Closure closure) {
-        ConfigureUtil.configure(closure, new Object() {
-            @SuppressWarnings("unused") // invoked by Groovy
-            public void methodMissing(String name, Object args) {
-                createSignatoryFor(settings.getProject(), name, asType(args, Object[].class));
-            }
-        });
-    }
-
-    private void createSignatoryFor(Project project, String name, Object[] args) {
+    public void createSignatoryFor(Project project, String name, Object[] args) {
         if (args.length != 0) {
-            throw new IllegalArgumentException("Invalid args (" + name + ": " + String.valueOf(args) + ")");
+            throw new IllegalArgumentException("Invalid args (" + name + ": " + Arrays.toString(args) + ")");
         }
-        signatories.put(name, factory.createSignatory(project, name, name));
-    }
-
-    @Override
-    public GnupgSignatory getDefaultSignatory(Project project) {
-        return factory.createSignatory(project);
-    }
-
-    @Override
-    public GnupgSignatory getSignatory(String name) {
-        return signatories.get(name);
+        addSignatory(project, name);
     }
 
     @SuppressWarnings("unused") // invoked by Groovy

@@ -596,6 +596,7 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
 <verification-metadata>
    <configuration>
       <verify-metadata>true</verify-metadata>
+      <verify-signatures>false</verify-signatures>
       <trusted-artifacts>
          <trust group="dummy" name="artifact"/>
          <trust group="other" name="artifact" version="with" file="file.jar" regex="true"/>
@@ -842,6 +843,7 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
 <verification-metadata>
    <configuration>
       <verify-metadata>false</verify-metadata>
+      <verify-signatures>false</verify-signatures>
       <trusted-artifacts/>
    </configuration>
    <components>
@@ -894,6 +896,7 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
 <verification-metadata>
    <configuration>
       <verify-metadata>false</verify-metadata>
+      <verify-signatures>false</verify-signatures>
       <trusted-artifacts/>
    </configuration>
    <components>
@@ -934,6 +937,7 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
 <verification-metadata>
    <configuration>
       <verify-metadata>true</verify-metadata>
+      <verify-signatures>false</verify-signatures>
       <trusted-artifacts/>
    </configuration>
    <components>
@@ -970,6 +974,7 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
 <verification-metadata>
    <configuration>
       <verify-metadata>true</verify-metadata>
+      <verify-signatures>false</verify-signatures>
       <trusted-artifacts/>
    </configuration>
    <components>
@@ -1160,6 +1165,7 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
 <verification-metadata>
    <configuration>
       <verify-metadata>true</verify-metadata>
+      <verify-signatures>false</verify-signatures>
       <trusted-artifacts/>
    </configuration>
    <components>
@@ -1191,6 +1197,7 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
 <verification-metadata>
    <configuration>
       <verify-metadata>true</verify-metadata>
+      <verify-signatures>false</verify-signatures>
       <trusted-artifacts/>
    </configuration>
    <components>
@@ -1213,6 +1220,7 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
 <verification-metadata>
    <configuration>
       <verify-metadata>true</verify-metadata>
+      <verify-signatures>false</verify-signatures>
       <trusted-artifacts/>
    </configuration>
    <components>

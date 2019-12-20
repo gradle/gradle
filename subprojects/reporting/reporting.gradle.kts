@@ -1,9 +1,7 @@
-import accessors.javaScript
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
     `java-library`
-    `javascript-base`
 }
 
 configurations {
@@ -11,7 +9,7 @@ configurations {
 }
 
 repositories {
-    javaScript.googleApis()
+    googleApisJs()
 }
 
 dependencies {
@@ -31,7 +29,7 @@ dependencies {
     testImplementation(project(":baseServicesGroovy"))
     testImplementation(testLibrary("jsoup"))
     testImplementation(testFixtures(project(":core")))
-    
+
     testRuntimeOnly(project(":runtimeApiInfo"))
     testRuntimeOnly(project(":workers"))
     testRuntimeOnly(project(":dependencyManagement"))

@@ -24,8 +24,11 @@ import org.gradle.api.internal.artifacts.verification.model.ChecksumKind
 import org.gradle.api.internal.artifacts.verification.model.ComponentVerificationMetadata
 import org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationsXmlReader
 import org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationsXmlWriter
+import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifier
+import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifierBuilder
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
+import org.gradle.internal.component.external.model.ModuleComponentFileArtifactIdentifier
 import org.gradle.util.TextUtil
 
 @CompileStatic
@@ -84,6 +87,12 @@ class DependencyVerificationFixture {
         action.delegate = verifier
         action.resolveStrategy = Closure.DELEGATE_FIRST
         action()
+    }
+
+    void replaceMetadataFile(@DelegatesTo(value = Builder, strategy = Closure.DELEGATE_FIRST) Closure config) {
+        assertMetadataExists()
+        verificationFile.delete()
+        createMetadataFile(config)
     }
 
     void createMetadataFile(@DelegatesTo(value = Builder, strategy = Closure.DELEGATE_FIRST) Closure config) {
@@ -192,6 +201,18 @@ class DependencyVerificationFixture {
             builder.verifyMetadata = false
         }
 
+        void verifySignatures() {
+            builder.verifySignatures = true
+        }
+
+        void keyServer(String uri) {
+            builder.addKeyServer(new URI(uri))
+        }
+
+        void keyServer(URI uri) {
+            builder.addKeyServer(uri)
+        }
+
         void trust(String group, String name = null, String version = null, String fileName = null, boolean regex = false) {
             builder.addTrustedArtifact(group, name, version, fileName, regex)
         }
@@ -214,6 +235,42 @@ class DependencyVerificationFixture {
                 ChecksumKind.valueOf(algo),
                 checksum,
                 origin
+            )
+        }
+
+        void addTrustedKey(String id, String key, String type="jar", String ext="jar") {
+            def parts = id.split(":")
+            def group = parts[0]
+            def name = parts[1]
+            def version = parts.size() == 3 ? parts[2] : "1.0"
+            builder.addTrustedKey(
+                new DefaultModuleComponentArtifactIdentifier(
+                    DefaultModuleComponentIdentifier.newId(
+                        DefaultModuleIdentifier.newId(group, name),
+                        version
+                    ),
+                    name,
+                    type,
+                    ext
+                ),
+                key
+            )
+        }
+
+        void addTrustedKeyByFileName(String id, String fileName, String key) {
+            def parts = id.split(":")
+            def group = parts[0]
+            def name = parts[1]
+            def version = parts.size() == 3 ? parts[2] : "1.0"
+            builder.addTrustedKey(
+                new ModuleComponentFileArtifactIdentifier(
+                    DefaultModuleComponentIdentifier.newId(
+                        DefaultModuleIdentifier.newId(group, name),
+                        version
+                    ),
+                    fileName
+                ),
+                key
             )
         }
 

@@ -84,6 +84,7 @@ class MavenFileModule extends AbstractMavenModule {
     protected onPublish(TestFile file) {
         sha1File(file)
         md5File(file)
+        postPublish(file)
     }
 
     @Override

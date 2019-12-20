@@ -16,8 +16,8 @@
 package org.gradle.api.internal.artifacts.verification.serializer;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.verification.DependencyVerificationConfiguration;
-import org.gradle.api.internal.artifacts.verification.DependencyVerifier;
+import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerificationConfiguration;
+import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifier;
 import org.gradle.api.internal.artifacts.verification.model.ArtifactVerificationMetadata;
 import org.gradle.api.internal.artifacts.verification.model.Checksum;
 import org.gradle.api.internal.artifacts.verification.model.ComponentVerificationMetadata;
@@ -27,6 +27,7 @@ import org.gradle.internal.xml.SimpleXmlWriter;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.URI;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -38,14 +39,19 @@ import static org.gradle.api.internal.artifacts.verification.serializer.Dependen
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.CONFIG;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.FILE;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.GROUP;
+import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.KEY_SERVER;
+import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.KEY_SERVERS;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.NAME;
+import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.PGP;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.REGEX;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.TRUST;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.TRUSTED_ARTIFACTS;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.ORIGIN;
+import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.URI;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.VALUE;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.VERIFICATION_METADATA;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.VERIFY_METADATA;
+import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.VERIFY_SIGNATURES;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.VERSION;
 
 public class DependencyVerificationsXmlWriter {
@@ -78,6 +84,13 @@ public class DependencyVerificationsXmlWriter {
         writer.startElement(VERIFY_METADATA);
         writer.write(String.valueOf(configuration.isVerifyMetadata()));
         writer.endElement();
+
+        writer.startElement(VERIFY_SIGNATURES);
+        writer.write(String.valueOf(configuration.isVerifySignatures()));
+        writer.endElement();
+
+        writeKeyServers(configuration);
+
         writer.startElement(TRUSTED_ARTIFACTS);
         for (DependencyVerificationConfiguration.TrustedArtifact trustedArtifact : configuration.getTrustedArtifacts()) {
             writer.startElement(TRUST);
@@ -92,6 +105,19 @@ public class DependencyVerificationsXmlWriter {
         }
         writer.endElement();
         writer.endElement();
+    }
+
+    private void writeKeyServers(DependencyVerificationConfiguration configuration) throws IOException {
+        List<URI> keyServers = configuration.getKeyServers();
+        if (!keyServers.isEmpty()) {
+            writer.startElement(KEY_SERVERS);
+            for (URI keyServer : keyServers) {
+                writer.startElement(KEY_SERVER);
+                writeAttribute(URI, keyServer.toASCIIString());
+                writer.endElement();
+            }
+            writer.endElement();
+        }
     }
 
     private SimpleMarkupWriter writeAttribute(String name, String value) throws IOException {
@@ -133,9 +159,18 @@ public class DependencyVerificationsXmlWriter {
         String artifact = verification.getArtifactName();
         writer.startElement(ARTIFACT);
         writeAttribute(NAME, artifact);
+        writeTrustedKeys(verification.getTrustedPgpKeys());
         writeChecksums(verification.getChecksums());
         writer.endElement();
 
+    }
+
+    private void writeTrustedKeys(Set<String> trustedPgpKeys) throws IOException {
+        for (String key : trustedPgpKeys) {
+            writer.startElement(PGP);
+            writeAttribute(VALUE, key);
+            writer.endElement();
+        }
     }
 
     private void writeChecksums(List<Checksum> checksums) throws IOException {
