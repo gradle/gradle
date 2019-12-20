@@ -475,7 +475,6 @@ class RuntimeShadedJarCreator {
                 try {
                     String relativePath = "src" + File.separator + sourcesDir.relativize(sourcePath);
                     writeEntry(outputStream, relativePath, Files.readAllBytes(sourcePath));
-                    outputStream.closeEntry();
                 } catch (IOException e) {
                     throw new UncheckedIOException(e);
                 }
