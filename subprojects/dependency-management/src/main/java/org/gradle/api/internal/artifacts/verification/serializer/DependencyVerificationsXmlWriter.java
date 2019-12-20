@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.verification.serializer;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.verification.model.IgnoredKey;
 import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerificationConfiguration;
 import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifier;
 import org.gradle.api.internal.artifacts.verification.model.ArtifactVerificationMetadata;
@@ -46,6 +47,7 @@ import static org.gradle.api.internal.artifacts.verification.serializer.Dependen
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.KEY_SERVERS;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.NAME;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.PGP;
+import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.REASON;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.REGEX;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.TRUST;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.TRUSTED_ARTIFACTS;
@@ -115,19 +117,20 @@ public class DependencyVerificationsXmlWriter {
     }
 
     private void writIgnoredKeys(DependencyVerificationConfiguration configuration) throws IOException {
-        Set<String> ignoredKeys = configuration.getIgnoredKeys();
+        Set<IgnoredKey> ignoredKeys = configuration.getIgnoredKeys();
         if (!ignoredKeys.isEmpty()) {
             writer.startElement(IGNORED_KEYS);
-            for (String ignoredKey : ignoredKeys) {
+            for (IgnoredKey ignoredKey : ignoredKeys) {
                 writeIgnoredKey(ignoredKey);
             }
             writer.endElement();
         }
     }
 
-    private void writeIgnoredKey(String ignoredKey) throws IOException {
+    private void writeIgnoredKey(IgnoredKey ignoredKey) throws IOException {
         writer.startElement(IGNORED_KEY);
-        writer.attribute(ID, ignoredKey);
+        writeAttribute(ID, ignoredKey.getKeyId());
+        writeNullableAttribute(REASON, ignoredKey.getReason());
         writer.endElement();
     }
 
@@ -224,9 +227,21 @@ public class DependencyVerificationsXmlWriter {
         writer.startElement(ARTIFACT);
         writeAttribute(NAME, artifact);
         writeTrustedKeys(verification.getTrustedPgpKeys());
+        writeIgnoredKeys(verification.getIgnoredPgpKeys());
         writeChecksums(verification.getChecksums());
         writer.endElement();
 
+    }
+
+    private void writeIgnoredKeys(Set<IgnoredKey> ignoredPgpKeys) throws IOException {
+        if (ignoredPgpKeys.isEmpty()) {
+            return;
+        }
+        writer.startElement(IGNORED_KEYS);
+        for (IgnoredKey ignoredPgpKey : ignoredPgpKeys) {
+            writeIgnoredKey(ignoredPgpKey);
+        }
+        writer.endElement();
     }
 
     private void writeTrustedKeys(Set<String> trustedPgpKeys) throws IOException {

@@ -526,7 +526,8 @@ This can indicate that a dependency has been compromised. Please verify carefull
 
         then:
         failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
-  - Artifact foo-1.0.jar (org:foo:1.0) checksum is missing from verification metadata."""
+  - On artifact foo-1.0.jar (org:foo:1.0): Artifact was signed with key '14f53f0824875d73' (Gradle Test (This is used for testing the gradle-signing-plugin) <test@gradle.org>) and passed verification but the key isn't in your trusted keys list.
+This can indicate that a dependency has been compromised. Please verify carefully the checksums."""
     }
 
     def "unsigned artifacts require checksum verification"() {
@@ -560,7 +561,7 @@ This can indicate that a dependency has been compromised. Please verify carefull
         createMetadataFile {
             keyServer(keyServerFixture.uri)
             verifySignatures()
-            addIgnoredKey(validPublicKeyHexString)
+            addGloballyIgnoredKey(validPublicKeyHexString)
         }
 
         given:
@@ -585,6 +586,43 @@ This can indicate that a dependency has been compromised. Please verify carefull
   - Artifact foo-1.0.pom (org:foo:1.0) checksum is missing from verification metadata."""
     }
 
+    def "can ignore a key for a specific artifact and fallback to checksum verification"() {
+        // we tamper the jar, so the verification of the jar would fail, but not the POM
+        keyServerFixture.withDefaultSigningKey()
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+            verifySignatures()
+            addIgnoredKeyByFileName("org:foo:1.0", "foo-1.0.jar", validPublicKeyHexString)
+        }
+
+        given:
+        javaLibrary()
+        def module = uncheckedModule("org", "foo", "1.0") {
+            withSignature {
+                signAsciiArmored(it)
+            }
+        }
+        module.artifactFile.bytes = [0, 1, 2]
+
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        fails ":compileJava"
+
+        then:
+        // jar file fails because it doesn't have any checksum declared, despite ignoring the key, which is what we want
+        // and pom file fails because we didn't trust the key
+        failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
+  - On artifact foo-1.0.pom (org:foo:1.0): Artifact was signed with key '14f53f0824875d73' (Gradle Test (This is used for testing the gradle-signing-plugin) <test@gradle.org>) and passed verification but the key isn't in your trusted keys list.
+  - Artifact foo-1.0.jar (org:foo:1.0) checksum is missing from verification metadata.
+This can indicate that a dependency has been compromised. Please verify carefully the checksums."""
+
+    }
+
     def "passes verification if an artifact is signed with multiple keys and one of them is ignored"() {
         def keyring = newKeyRing()
         keyServerFixture.registerPublicKey(keyring.publicKey)
@@ -593,7 +631,7 @@ This can indicate that a dependency has been compromised. Please verify carefull
             keyServer(keyServerFixture.uri)
             verifySignatures()
             // only the new keyring key is published and available
-            addIgnoredKey(validPublicKeyHexString)
+            addGloballyIgnoredKey(validPublicKeyHexString)
             addTrustedKey("org:foo:1.0", pkId)
             addTrustedKey("org:foo:1.0", pkId, "pom", "pom")
         }

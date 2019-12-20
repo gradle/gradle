@@ -26,6 +26,7 @@ import org.gradle.api.internal.artifacts.verification.model.ArtifactVerification
 import org.gradle.api.internal.artifacts.verification.model.Checksum;
 import org.gradle.api.internal.artifacts.verification.model.ChecksumKind;
 import org.gradle.api.internal.artifacts.verification.model.ComponentVerificationMetadata;
+import org.gradle.api.internal.artifacts.verification.model.IgnoredKey;
 import org.gradle.api.internal.artifacts.verification.signatures.SignatureVerificationService;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
@@ -41,6 +42,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 public class DependencyVerifier {
     private final Map<ComponentIdentifier, ComponentVerificationMetadata> verificationMetadata;
@@ -112,18 +114,23 @@ public class DependencyVerifier {
                 String verifiedArtifact = verification.getArtifactName();
                 if (verifiedArtifact.equals(foundArtifactFileName)) {
                     if (signature != null) {
-                        Optional<? extends SignatureVerificationFailure> verificationFailure = verifySignature(signatureVerificationService, file, signature, allTrustedKeys(foundArtifact, verification.getTrustedPgpKeys()));
-                        if (!onlyConsistsOfIgnoredKeys(verificationFailure)) {
-                            return verificationFailure;
+                        Optional<? extends SignatureVerificationFailure> verificationFailure = verifySignature(signatureVerificationService, file, signature, allTrustedKeys(foundArtifact, verification.getTrustedPgpKeys()), allIgnoredKeys(verification.getIgnoredPgpKeys()));
+                        if (onlyConsistsOfIgnoredKeys(verificationFailure)) {
+                            if (verification.getChecksums().isEmpty()) {
+                                return VerificationFailure.OPT_MISSING;
+                            } else {
+                                return verifyChecksums(checksumService, file, failure, verification);
+                            }
                         }
+                        return verificationFailure;
                     }
                     return verifyChecksums(checksumService, file, failure, verification);
                 }
             }
-        } else if (signature != null && !config.getTrustedKeys().isEmpty()) {
-            // it's possible that the artifact is not listed explicitly but global configuration
-            // has information about the trusted keys
-            Optional<? extends SignatureVerificationFailure> verificationFailure = verifySignature(signatureVerificationService, file, signature, allTrustedKeys(foundArtifact, Collections.emptySet()));
+        }
+        if (signature != null) {
+            // it's possible that the artifact is not listed explicitly but we can still verify signatures
+            Optional<? extends SignatureVerificationFailure> verificationFailure = verifySignature(signatureVerificationService, file, signature, allTrustedKeys(foundArtifact, Collections.emptySet()), allIgnoredKeys(Collections.emptySet()));
             if (!onlyConsistsOfIgnoredKeys(verificationFailure)) {
                 return verificationFailure;
             }
@@ -145,8 +152,27 @@ public class DependencyVerifier {
         }
     }
 
-    private Optional<? extends SignatureVerificationFailure> verifySignature(SignatureVerificationService signatureVerificationService, File file, File signature, Set<String> trustedKeys) {
-        return signatureVerificationService.verify(file, signature, trustedKeys, config.getIgnoredKeys());
+    private Set<String> allIgnoredKeys(Set<IgnoredKey> artifactSpecificKeys) {
+        if (config.getIgnoredKeys().isEmpty()) {
+            return artifactSpecificKeys.stream().map(IgnoredKey::getKeyId).collect(Collectors.toSet());
+        } else {
+            if (artifactSpecificKeys.isEmpty()) {
+                return config.getIgnoredKeys().stream().map(IgnoredKey::getKeyId).collect(Collectors.toSet());
+            }
+            Set<String> allKeys = Sets.newHashSet();
+            artifactSpecificKeys.stream()
+                .map(IgnoredKey::getKeyId)
+                .forEach(allKeys::add);
+            config.getIgnoredKeys()
+                .stream()
+                .map(IgnoredKey::getKeyId)
+                .forEach(allKeys::add);
+            return allKeys;
+        }
+    }
+
+    private Optional<? extends SignatureVerificationFailure> verifySignature(SignatureVerificationService signatureVerificationService, File file, File signature, Set<String> trustedKeys, Set<String> ignoredKeys) {
+        return signatureVerificationService.verify(file, signature, trustedKeys, ignoredKeys);
     }
 
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")

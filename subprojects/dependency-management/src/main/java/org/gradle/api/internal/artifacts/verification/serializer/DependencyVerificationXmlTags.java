@@ -31,6 +31,7 @@ abstract class DependencyVerificationXmlTags {
     static final String NAME = "name";
     static final String ORIGIN = "origin";
     static final String PGP = "pgp";
+    static final String REASON = "reason";
     static final String REGEX = "regex";
     static final String TRUST = "trust";
     static final String TRUSTED_ARTIFACTS = "trusted-artifacts";
