@@ -55,7 +55,7 @@ class InstantExecutionReport(
 
     fun add(problem: PropertyProblem) {
         problems.add(problem)
-        if (problems.size > maxProblems) {
+        if (problems.size >= maxProblems) {
             throw TooManyInstantExecutionProblemsException()
         }
     }

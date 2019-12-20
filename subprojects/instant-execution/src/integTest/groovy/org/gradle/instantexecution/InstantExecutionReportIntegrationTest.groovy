@@ -116,11 +116,11 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         numberOfProblemsIn(jsFile) == expectedNumberOfProblems
         def problemOrProblems = expectedNumberOfProblems == 1 ? "problem was" : "problems were"
         outputContains "$expectedNumberOfProblems instant execution $problemOrProblems found"
-        failureHasCause "Maximum number of instant execution problems has been exceeded"
+        failureHasCause "Maximum number of instant execution problems has been reached"
 
         where:
         maxProblems << [0, 1, 2]
-        expectedNumberOfProblems = maxProblems + 1
+        expectedNumberOfProblems = Math.max(1, maxProblems)
     }
 
     def "can request to fail on problems"() {
