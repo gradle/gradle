@@ -469,19 +469,21 @@ class RuntimeShadedJarCreator {
         return entry.split("\\n");
     }
 
-    private static void attachSources(ZipOutputStream outputStream, Path sourcesDir) {
-        try {
-            Files.walk(sourcesDir).filter(f -> !Files.isDirectory(f)).forEach(sourcePath -> {
+    private void attachSources(ZipOutputStream outputStream, Path sourcesDir) {
+        directoryFileTreeFactory.create(sourcesDir.toFile()).visit(new FileVisitor() {
+            @Override
+            public void visitDir(FileVisitDetails dirDetails) {
+            }
+
+            @Override
+            public void visitFile(FileVisitDetails fileDetails) {
                 try {
-                    String relativePath = "src" + File.separator + sourcesDir.relativize(sourcePath);
-                    writeEntry(outputStream, relativePath, Files.readAllBytes(sourcePath));
+                    writeEntry(outputStream, "src/" + fileDetails.getPath(), Files.readAllBytes(fileDetails.getFile().toPath()));
                 } catch (IOException e) {
                     throw new UncheckedIOException(e);
                 }
-            });
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+            }
+        });
     }
 
 }
