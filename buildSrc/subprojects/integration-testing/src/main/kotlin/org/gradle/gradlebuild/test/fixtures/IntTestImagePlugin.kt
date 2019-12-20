@@ -18,6 +18,7 @@ package org.gradle.gradlebuild.test.fixtures
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.attributes.Attribute
+import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.Usage
 import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.bundling.Zip
@@ -59,11 +60,8 @@ open class IntTestImagePlugin : Plugin<Project> {
         }
 
         val gradleRuntimeSource by configurations.creating {
-            attributes {
-                attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage.JAVA_RUNTIME))
-            }
             isVisible = false
-            isCanBeResolved = true
+            isCanBeResolved = false
             isCanBeConsumed = false
         }
         val coreGradleRuntimeExtensions by configurations.creating {

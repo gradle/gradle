@@ -335,12 +335,6 @@ configurations {
     }
 }
 
-configurations {
-    all {
-        attributes.attribute(Usage.USAGE_ATTRIBUTE, runtimeUsage)
-    }
-}
-
 extra["allTestRuntimeDependencies"] = testRuntime.allDependencies
 
 dependencies {
