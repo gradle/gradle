@@ -298,6 +298,56 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         outputFile.assertExists()
     }
 
+    @ToBeFixedForInstantExecution
+    def "detects non-incremental cleanup of incremental tasks"() {
+        buildFile << """
+            abstract class IncrementalTask extends DefaultTask {
+                @InputDirectory
+                @Incremental
+                abstract DirectoryProperty getSources()
+
+                @Input
+                abstract Property<String> getInput()
+                
+                @OutputDirectory
+                abstract DirectoryProperty getOutputDir()
+                
+                @TaskAction
+                void processChanges(InputChanges changes) {
+                    outputDir.file("output.txt").get().asFile.text = input.get()
+                }                
+            }
+
+            task incremental(type: IncrementalTask) {
+                sources = file("sources")
+                input = project.property("outputDir")
+                outputDir = file("build/\${input.get()}")
+            }
+        """
+
+        file("sources/input.txt").text = "input"
+
+        when:
+        withRetention().run ":incremental", "-PoutputDir=output1"
+        then:
+        executedAndNotSkipped(":incremental")
+
+        when:
+        file("build/output2/overlapping.txt").text = "overlapping"
+        waitForChangesToBePickedUp()
+        withRetention().run ":incremental", "-PoutputDir=output2"
+        then:
+        executedAndNotSkipped(":incremental")
+        file("build/output1").assertDoesNotExist()
+
+        when:
+        waitForChangesToBePickedUp()
+        withRetention().run ":incremental", "-PoutputDir=output1"
+        then:
+        executedAndNotSkipped(":incremental")
+        file("build/output1").assertExists()
+    }
+
     // This makes sure the next Gradle run starts with a clean BuildOutputCleanupRegistry
     private void invalidateBuildOutputCleanupState() {
         file(".gradle/buildOutputCleanup/cache.properties").text = """
