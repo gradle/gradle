@@ -15,7 +15,6 @@
  */
 
 import org.gradle.build.BuildReceipt
-import org.gradle.build.Install
 import org.gradle.gradlebuild.ProjectGroups.implementationPluginProjects
 import org.gradle.gradlebuild.ProjectGroups.javaProjects
 import org.gradle.gradlebuild.ProjectGroups.kotlinJsProjects
@@ -24,13 +23,15 @@ import org.gradle.gradlebuild.ProjectGroups.publicJavaProjects
 import org.gradle.gradlebuild.UpdateBranchStatus
 import org.gradle.gradlebuild.buildquality.incubation.IncubatingApiAggregateReportTask
 import org.gradle.gradlebuild.buildquality.incubation.IncubatingApiReportTask
+import org.gradle.plugins.install.Install
 
 plugins {
     `java-base`
     gradlebuild.`build-types`
     gradlebuild.`ci-reporting`
     gradlebuild.security
-    id("org.gradle.ci.tag-single-build") version("0.74")
+    gradlebuild.install
+    id("org.gradle.ci.tag-single-build") version ("0.74")
 }
 
 buildscript {
@@ -366,31 +367,27 @@ extra["allCoreRuntimeExtensions"] = coreRuntimeExtensions.allDependencies
 
 evaluationDependsOn(":distributions")
 
-val gradle_installPath: Any? = findProperty("gradle_installPath")
-
 tasks.register<Install>("install") {
-    description = "Installs the minimal distribution into directory $gradle_installPath"
+    description = "Installs the minimal distribution"
     group = "build"
     with(distributionImage("binDistImage"))
-    installDirPropertyName = ::gradle_installPath.name
 }
 
 tasks.register<Install>("installAll") {
-    description = "Installs the full distribution into directory $gradle_installPath"
+    description = "Installs the full distribution"
     group = "build"
     with(distributionImage("allDistImage"))
-    installDirPropertyName = ::gradle_installPath.name
 }
 
 tasks.register<UpdateBranchStatus>("updateBranchStatus")
 
 fun distributionImage(named: String) =
-        project(":distributions").property(named) as CopySpec
+    project(":distributions").property(named) as CopySpec
 
 val allIncubationReports = tasks.register<IncubatingApiAggregateReportTask>("allIncubationReports") {
     val allReports = collectAllIncubationReports()
     dependsOn(allReports)
-    reports = allReports.associateBy({ it.title.get()}) { it.textReportFile.asFile.get() }
+    reports = allReports.associateBy({ it.title.get() }) { it.textReportFile.asFile.get() }
 }
 tasks.register<Zip>("allIncubationReportsZip") {
     destinationDirectory.set(layout.buildDirectory.dir("reports/incubation"))
