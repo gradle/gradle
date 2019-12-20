@@ -94,9 +94,10 @@ public class DefaultCopySpec implements CopySpecInternal {
         this.patternSet = patternSet;
     }
 
-    public DefaultCopySpec(FileResolver resolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, FileCollection source, PatternSet patternSet, Collection<CopySpecInternal> children) {
+    public DefaultCopySpec(FileResolver resolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, @Nullable String destPath, FileCollection source, PatternSet patternSet, Collection<CopySpecInternal> children) {
         this(resolver, fileCollectionFactory, instantiator, patternSet);
         sourcePaths.add(source);
+        destDir = destPath;
         for (CopySpecInternal child : children) {
             addChildSpec(child);
         }
@@ -228,6 +229,10 @@ public class DefaultCopySpec implements CopySpecInternal {
         return sourcePaths;
     }
 
+    @Nullable
+    public String getDestPath() {
+        return destDir == null ? null : PATH_NOTATION_PARSER.parseNotation(destDir);
+    }
 
     @Override
     public CopySpec into(Object destDir) {
@@ -538,11 +543,11 @@ public class DefaultCopySpec implements CopySpecInternal {
                 parentPath = parentResolver.getDestPath();
             }
 
-            if (destDir == null) {
+            String path = DefaultCopySpec.this.getDestPath();
+            if (path == null) {
                 return parentPath;
             }
 
-            String path = PATH_NOTATION_PARSER.parseNotation(destDir);
             if (path.startsWith("/") || path.startsWith(File.separator)) {
                 return RelativePath.parse(false, path);
             }
