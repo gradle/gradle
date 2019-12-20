@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.verification.model.ChecksumKind;
+import org.gradle.api.internal.artifacts.verification.model.IgnoredKey;
 import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifier;
 import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifierBuilder;
 import org.gradle.internal.UncheckedException;
@@ -57,6 +58,7 @@ import static org.gradle.api.internal.artifacts.verification.serializer.Dependen
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.NAME;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.ORIGIN;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.PGP;
+import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.REASON;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.REGEX;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.TRUST;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.TRUSTED_ARTIFACTS;
@@ -181,12 +183,20 @@ public class DependencyVerificationsXmlReader {
                     }
                     break;
                 case IGNORED_KEYS:
-                    assertInConfiguration(IGNORED_KEYS);
-                    inIgnoredKeys = true;
+                    if (currentArtifact != null) {
+                        inIgnoredKeys = true;
+                    } else {
+                        assertInConfiguration(IGNORED_KEYS);
+                        inIgnoredKeys = true;
+                    }
                     break;
                 case IGNORED_KEY:
                     assertContext(inIgnoredKeys, IGNORED_KEY, IGNORED_KEYS);
-                    addIgnoredKey(attributes);
+                    if (currentArtifact != null) {
+                        addArtifactIgnoredKey(attributes);
+                    } else {
+                        addIgnoredKey(attributes);
+                    }
                     break;
                 default:
                     if (currentChecksum != null && ALSO_TRUST.equals(qName)) {
@@ -202,8 +212,16 @@ public class DependencyVerificationsXmlReader {
             }
         }
 
+        private void addArtifactIgnoredKey(Attributes attributes) {
+            builder.addIgnoredKey(currentArtifact, toIgnoredKey(attributes));
+        }
+
+        private IgnoredKey toIgnoredKey(Attributes attributes) {
+            return new IgnoredKey(getAttribute(attributes, ID), getNullableAttribute(attributes, REASON));
+        }
+
         private void addIgnoredKey(Attributes attributes) {
-            builder.addIgnoredKey(getAttribute(attributes, ID));
+            builder.addIgnoredKey(toIgnoredKey(attributes));
         }
 
         private void assertInTrustedArtifacts() {

@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.verification.verifier;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.verification.model.IgnoredKey;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 
 import javax.annotation.Nullable;
@@ -29,10 +30,10 @@ public class DependencyVerificationConfiguration {
     private final boolean verifySignatures;
     private final List<TrustedArtifact> trustedArtifacts;
     private final List<URI> keyServers;
-    private final Set<String> ignoredKeys;
+    private final Set<IgnoredKey> ignoredKeys;
     private final List<TrustedKey> trustedKeys;
 
-    public DependencyVerificationConfiguration(boolean verifyMetadata, boolean verifySignatures, List<TrustedArtifact> trustedArtifacts, List<URI> keyServers, Set<String> ignoredKeys, List<TrustedKey> trustedKeys) {
+    public DependencyVerificationConfiguration(boolean verifyMetadata, boolean verifySignatures, List<TrustedArtifact> trustedArtifacts, List<URI> keyServers, Set<IgnoredKey> ignoredKeys, List<TrustedKey> trustedKeys) {
         this.verifyMetadata = verifyMetadata;
         this.verifySignatures = verifySignatures;
         this.trustedArtifacts = ImmutableList.copyOf(trustedArtifacts);
@@ -57,7 +58,7 @@ public class DependencyVerificationConfiguration {
         return keyServers;
     }
 
-    public Set<String> getIgnoredKeys() {
+    public Set<IgnoredKey> getIgnoredKeys() {
         return ignoredKeys;
     }
 

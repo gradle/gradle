@@ -17,11 +17,13 @@
 package org.gradle.api.internal.artifacts.verification.serializer
 
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
-import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifierBuilder
 import org.gradle.api.internal.artifacts.verification.model.ChecksumKind
+import org.gradle.api.internal.artifacts.verification.model.IgnoredKey
+import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifierBuilder
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
+import org.gradle.internal.component.external.model.ModuleComponentFileArtifactIdentifier
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -109,10 +111,10 @@ class DependencyVerificationsXmlWriterTest extends Specification {
 """
     }
 
-    def "can declare ignores keys"() {
+    def "can declare ignored keys"() {
         when:
-        builder.addIgnoredKey("ABCDEF")
-        builder.addIgnoredKey("012345")
+        builder.addIgnoredKey(new IgnoredKey("ABCDEF", null))
+        builder.addIgnoredKey(new IgnoredKey("012345", "test"))
         serialize()
 
         then:
@@ -123,7 +125,7 @@ class DependencyVerificationsXmlWriterTest extends Specification {
       <verify-signatures>false</verify-signatures>
       <ignored-keys>
          <ignored-key id="ABCDEF"/>
-         <ignored-key id="012345"/>
+         <ignored-key id="012345" reason="test"/>
       </ignored-keys>
    </configuration>
    <components/>
@@ -153,6 +155,37 @@ class DependencyVerificationsXmlWriterTest extends Specification {
       </trusted-keys>
    </configuration>
    <components/>
+</verification-metadata>
+"""
+    }
+
+    def "can declare ignored keys for specific artifact"() {
+        when:
+        addIgnoredKeyForArtifact("org:foo:1.0", "foo-1.0.jar", "ABC")
+        addIgnoredKeyForArtifact("org:foo:1.0", "foo-1.0.pom", "123", "so wrong!")
+        serialize()
+
+        then:
+        contents == """<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata>
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+      <verify-signatures>false</verify-signatures>
+   </configuration>
+   <components>
+      <component group="org" name="foo" version="1.0">
+         <artifact name="foo-1.0.jar">
+            <ignored-keys>
+               <ignored-key id="ABC"/>
+            </ignored-keys>
+         </artifact>
+         <artifact name="foo-1.0.pom">
+            <ignored-keys>
+               <ignored-key id="123" reason="so wrong!"/>
+            </ignored-keys>
+         </artifact>
+      </component>
+   </components>
 </verification-metadata>
 """
     }
@@ -290,6 +323,20 @@ class DependencyVerificationsXmlWriterTest extends Specification {
    </components>
 </verification-metadata>
 """
+    }
+
+    void addIgnoredKeyForArtifact(String id, String fileName, String key, String reason = null) {
+        def (group, name, version) = id.split(":")
+        builder.addIgnoredKey(
+            new ModuleComponentFileArtifactIdentifier(
+                DefaultModuleComponentIdentifier.newId(
+                    DefaultModuleIdentifier.newId(group, name),
+                    version
+                ),
+                fileName
+            ),
+            new IgnoredKey(key, reason)
+        )
     }
 
     void declareChecksum(String id, String algorithm, String checksum, String origin = null) {
