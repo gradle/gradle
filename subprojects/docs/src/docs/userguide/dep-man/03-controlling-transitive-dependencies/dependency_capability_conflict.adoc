@@ -29,7 +29,7 @@ It is however interesting to use _rules_ to declare component capabilities in or
 
 A typical example is whenever a component is relocated at different coordinates in a new release.
 For example, the ASM library lived at `asm:asm` coordinates until version `3.3.1`, then changed to `org.ow2.asm:asm` since `4.0`.
-It is illegal to have both ASM <=3.3.1 and 4.0+ on the classpath, because they provide the same feature, it's just that the component has been relocated.
+It is illegal to have both ASM \<= 3.3.1 and 4.0+ on the classpath, because they provide the same feature, it's just that the component has been relocated.
 Because each component has an implicit capability corresponding to its GAV coordinates, we can "fix" this by having a rule that will declare that the `asm:asm` module provides the `org.ow2.asm:asm` capability:
 
 .Conflict resolution by capability
@@ -82,5 +82,18 @@ Note that this approach works also well if you have multiple _Slf4j bindings_ on
 bindings are basically different logger implementations and you need only one.
 However, the selected implementation may depend on the configuration being resolved.
 For example, for tests, `slf4j-simple` may be enough but for production, `slf4-over-log4j` may be better.
+
+[NOTE]
+====
+Resolution can only be made in favor of a module _found_ in the graph.
+
+The `select` method only accepts a module found in the _current_ candidates.
+If the module you want to select is not part of the conflict, you can abstain from performing a selection, effectively not resolving _this_ conflict.
+It might be that another conflict exists in the graph for the same capability and will have the module you want to select.
+
+If no resolution is given for all conflicts on a given capability, the build will fail given the module chosen for resolution was not part of the graph at all.
+
+In addition `select(null)` will result in an error and so should be avoided.
+====
 
 For more information, check out the link:{javadocPath}/org/gradle/api/artifacts/ResolutionStrategy.html#capabilitiesResolution[the capabilities resolution API].

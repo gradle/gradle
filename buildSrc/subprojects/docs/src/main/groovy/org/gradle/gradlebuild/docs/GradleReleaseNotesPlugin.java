@@ -81,8 +81,8 @@ public class GradleReleaseNotesPlugin implements Plugin<Project> {
             releaseNotes.getMarkdownFile().convention(extension.getSourceRoot().file("release/notes.md"));
             releaseNotes.getRenderedDocumentation().convention(releaseNotesPostProcess.flatMap(DecorateReleaseNotes::getDestinationFile));
             releaseNotes.getBaseCssFile().convention(extension.getSourceRoot().file("css/base.css"));
-            releaseNotes.getReleaseNotesCssFile().convention(extension.getSourceRoot().file("release/content/script.js"));
-            releaseNotes.getReleaseNotesJsFile().convention(extension.getSourceRoot().file("css/release-notes.css"));
+            releaseNotes.getReleaseNotesCssFile().convention(extension.getSourceRoot().file("css/release-notes.css"));
+            releaseNotes.getReleaseNotesJsFile().convention(extension.getSourceRoot().file("release/content/script.js"));
             releaseNotes.getJquery().from(jquery);
         });
     }

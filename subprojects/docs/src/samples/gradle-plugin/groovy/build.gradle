@@ -1,0 +1,47 @@
+// tag::plugin[]
+plugins {
+    // Apply the Java Gradle plugin development plugin to add support for developing Gradle plugins
+    id 'java-gradle-plugin'
+}
+
+repositories {
+    // Use jcenter for resolving dependencies.
+    // You can declare any Maven/Ivy/file repository here.
+    jcenter()
+}
+
+dependencies {
+    // Use JUnit test framework for unit tests
+    testImplementation 'junit:junit:4.12'
+}
+
+gradlePlugin {
+    // Define the plugin
+    plugins {
+        greeting {
+            id = 'org.gradle.sample.plugin.greeting'
+            implementationClass = 'org.gradle.sample.plugin.GradlePluginInJavaPlugin'
+        }
+    }
+}
+// end::plugin[]
+
+// Add a source set for the functional test suite
+sourceSets {
+    functionalTest {
+    }
+}
+
+gradlePlugin.testSourceSets(sourceSets.functionalTest)
+configurations.functionalTestImplementation.extendsFrom(configurations.testImplementation)
+
+// Add a task to run the functional tests
+task functionalTest(type: Test) {
+    testClassesDirs = sourceSets.functionalTest.output.classesDirs
+    classpath = sourceSets.functionalTest.runtimeClasspath
+}
+
+check {
+    // Run the functional tests as part of `check`
+    dependsOn(tasks.functionalTest)
+}
