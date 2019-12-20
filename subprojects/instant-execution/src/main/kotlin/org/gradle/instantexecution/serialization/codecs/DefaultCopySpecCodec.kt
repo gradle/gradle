@@ -38,15 +38,17 @@ class DefaultCopySpecCodec(
 ) : Codec<DefaultCopySpec> {
 
     override suspend fun WriteContext.encode(value: DefaultCopySpec) {
+        write(value.destPath)
         write(value.resolveSourceFiles())
         write(value.patterns)
         writeCollection(value.children)
     }
 
     override suspend fun ReadContext.decode(): DefaultCopySpec {
+        val destPath = read() as String?
         val sourceFiles = read() as FileCollection
         val patterns = read() as PatternSet
         val children = readList() as List<CopySpecInternal>
-        return DefaultCopySpec(fileResolver, fileCollectionFactory, instantiator, sourceFiles, patterns, children)
+        return DefaultCopySpec(fileResolver, fileCollectionFactory, instantiator, destPath, sourceFiles, patterns, children)
     }
 }
