@@ -189,6 +189,8 @@ class Codecs(
         bind(FileValueSnapshotCodec)
         bind(BooleanValueSnapshotCodec)
         bind(NullValueSnapshotCodec)
+
+        bind(NotImplementedCodec)
     }
 
     private
