@@ -53,10 +53,10 @@ fun Project.configurePublishingTasks() {
     }
     tasks.named("publishGradleDistributionPublicationToLocalRepository") {
         doFirst {
-            val repoBaseDir = rootProject.file("build/repo")
-            if (repoBaseDir.exists()) {
+            val moduleBaseDir = rootProject.file("build/repo/org/gradle/${base.archivesBaseName}")
+            if (moduleBaseDir.exists()) {
                 // Make sure artifacts do not pile up locally
-                repoBaseDir.deleteRecursively()
+                moduleBaseDir.deleteRecursively()
             }
         }
     }

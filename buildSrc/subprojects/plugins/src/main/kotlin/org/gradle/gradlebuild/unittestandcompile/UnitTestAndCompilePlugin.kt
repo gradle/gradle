@@ -322,7 +322,11 @@ open class UnitTestAndCompileExtension(val project: Project) {
                 "compileOnly"(platform(project(platformProject)))
                 "testImplementation"(platform(project(platformProject)))
             } else {
-                "implementation"(platform(project(platformProject)))
+                if (pluginManager.hasPlugin("maven-publish") && name != "toolingApi") {
+                    "testImplementation"(platform(project(platformProject)))
+                } else {
+                    "implementation"(platform(project(platformProject)))
+                }
                 pluginManager.withPlugin("java-test-fixtures") {
                     "testFixturesImplementation"(platform(project(platformProject)))
                 }
