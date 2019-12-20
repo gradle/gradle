@@ -104,7 +104,7 @@ configurations {
         canBeConsumed = false
         canBeResolved = true
         description = "Classpath to check binary compatibility against"
-        attributes.attribute(USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.JAVA_RUNTIME))
+        attributes.attribute(USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
     }
 }
 

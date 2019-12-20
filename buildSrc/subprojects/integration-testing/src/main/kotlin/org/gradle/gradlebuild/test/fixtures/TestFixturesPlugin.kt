@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.type.ArtifactTypeDefinition
 import org.gradle.api.attributes.Category
 import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.Usage
+import org.gradle.api.component.AdhocComponentWithVariants
 import org.gradle.kotlin.dsl.*
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.idea.model.IdeaModel
@@ -79,6 +80,7 @@ open class TestFixturesPlugin : Plugin<Project> {
         val testFixturesImplementation by configurations
         val testFixturesRuntimeOnly by configurations
         val testFixturesRuntimeElements by configurations
+        val testFixturesApiElements by configurations
 
         dependencies {
             testFixturesApi(project(":internalTesting"))
@@ -103,6 +105,15 @@ open class TestFixturesPlugin : Plugin<Project> {
                     return processResources.get().destinationDir
                 }
             })
+        }
+
+        // Do not publish test fixture, we use them only internal for now
+        val javaComponent = components["java"] as AdhocComponentWithVariants
+        javaComponent.withVariantsFromConfiguration(testFixturesRuntimeElements) {
+            skip()
+        }
+        javaComponent.withVariantsFromConfiguration(testFixturesApiElements) {
+            skip()
         }
 
         plugins.withType<IdeaPlugin> {

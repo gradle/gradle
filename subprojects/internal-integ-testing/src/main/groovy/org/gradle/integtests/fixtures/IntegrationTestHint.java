@@ -21,7 +21,7 @@ public class IntegrationTestHint extends RuntimeException {
     public IntegrationTestHint(Throwable cause) {
         super("****\n"
 +"This test is one of the integration tests that requires specific tasks to be ran first.\n"
-+"Please run: gradle binZip intTestImage publishLocalArchives\n"
++"Please run: gradle binZip intTestImage publishGradleDistributionPublicationToLocalRepository\n"
 +"If the problem persists after running tasks then it probably means it's a genuine test failure.\n"
 +"If the task list above is out-of-date please update it.\n"
 +"****\n", cause);

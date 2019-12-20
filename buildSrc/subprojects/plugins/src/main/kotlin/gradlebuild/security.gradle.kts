@@ -20,7 +20,7 @@ import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
 val lock = ReentrantLock()
-val allowedSchemes = setOf("https")
+val allowedSchemes = setOf("https", "file")
 val alreadyChecked = mutableSetOf<ArtifactRepository>()
 val insecureRepos = mutableSetOf<InsecureRepository>()
 val repoToSource = mutableMapOf<ArtifactRepository, String>()

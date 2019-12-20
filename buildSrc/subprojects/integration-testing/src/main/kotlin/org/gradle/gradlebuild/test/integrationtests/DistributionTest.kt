@@ -55,7 +55,7 @@ open class DistributionTest : Test() {
     init {
         dependsOn(Callable { if (binaryDistributions.distributionsRequired) ":distributions:buildDists" else null })
         dependsOn(Callable { if (binaryDistributions.binZipRequired) ":distributions:binZip" else null })
-        dependsOn(Callable { if (libsRepository.required) ":toolingApi:publishLocalArchives" else null })
+        dependsOn(Callable { if (libsRepository.required) ":toolingApi:publishGradleDistributionPublicationToLocalRepository" else null })
         jvmArgumentProviders.add(gradleInstallationForTest)
         jvmArgumentProviders.add(BinaryDistributionsEnvironmentProvider(binaryDistributions))
         jvmArgumentProviders.add(libsRepository)

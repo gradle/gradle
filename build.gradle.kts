@@ -152,7 +152,7 @@ buildTypes {
     create("promotionBuild") {
         tasks(
             "verifyIsProductionBuildEnvironment", "clean", "docs:check",
-            "buildDists", "distributions:integTest", "uploadArchives")
+            "buildDists", "distributions:integTest", "publish")
     }
 
     create("soakTest") {
@@ -220,9 +220,6 @@ subprojects {
 
     if (project in publicJavaProjects) {
         apply(plugin = "gradlebuild.public-java-projects")
-        if (project.name != "kotlinDslPlugins") {
-            apply(plugin = "gradlebuild.publish-public-libraries")
-        }
     }
 
     apply(from = "$rootDir/gradle/shared-with-buildSrc/code-quality-configuration.gradle.kts")
@@ -335,12 +332,6 @@ configurations {
         outgoing.artifact(receiptFile) {
             builtBy(createBuildReceipt)
         }
-    }
-}
-
-configurations {
-    all {
-        attributes.attribute(Usage.USAGE_ATTRIBUTE, runtimeUsage)
     }
 }
 
