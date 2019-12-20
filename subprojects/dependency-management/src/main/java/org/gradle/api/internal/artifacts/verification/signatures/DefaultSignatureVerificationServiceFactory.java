@@ -39,6 +39,7 @@ import org.gradle.util.BuildCommencedTimeProvider;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.net.URI;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -115,9 +116,12 @@ public class DefaultSignatureVerificationServiceFactory implements SignatureVeri
         public Optional<SignatureVerificationFailure> verify(File origin, File signature, Set<String> trustedKeys, Set<String> ignoredKeys) {
             PGPSignatureList pgpSignatures = SecuritySupport.readSignatures(signature);
             Map<String, SignatureVerificationFailure.SignatureError> errors = Maps.newHashMap();
+            boolean atLeastOnePassed = false;
+            boolean hasIgnored = false;
             for (PGPSignature pgpSignature : pgpSignatures) {
                 String key = SecuritySupport.toHexString(pgpSignature.getKeyID());
                 if (ignoredKeys.contains(key)) {
+                    hasIgnored = true;
                     errors.put(key, error(null, IGNORED_KEY));
                     continue;
                 }
@@ -129,7 +133,9 @@ public class DefaultSignatureVerificationServiceFactory implements SignatureVeri
                         if (!verified) {
                             errors.put(key, error(pgpPublicKey, FAILED));
                         }
-                        if (!trustedKeys.contains(key)) {
+                        if (trustedKeys.contains(key)) {
+                            atLeastOnePassed = true;
+                        } else {
                             errors.put(key, error(pgpPublicKey, PASSED_NOT_TRUSTED));
                         }
                     } catch (PGPException e) {
@@ -137,6 +143,16 @@ public class DefaultSignatureVerificationServiceFactory implements SignatureVeri
                     }
                 } else {
                     errors.put(key, error(null, KEY_NOT_FOUND));
+                }
+            }
+            if (atLeastOnePassed && hasIgnored) {
+                // At least one key passed verification so we can remove all ignored keys from errors.
+                Iterator<Map.Entry<String, SignatureVerificationFailure.SignatureError>> it = errors.entrySet().iterator();
+                while (it.hasNext()) {
+                    Map.Entry<String, SignatureVerificationFailure.SignatureError> entry = it.next();
+                    if (entry.getValue().isIgnoredKey()) {
+                        it.remove();
+                    }
                 }
             }
             if (errors.isEmpty()) {

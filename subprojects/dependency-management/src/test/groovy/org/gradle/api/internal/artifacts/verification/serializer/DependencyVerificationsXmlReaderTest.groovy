@@ -17,8 +17,9 @@
 package org.gradle.api.internal.artifacts.verification.serializer
 
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifier
 import org.gradle.api.internal.artifacts.verification.model.ChecksumKind
+import org.gradle.api.internal.artifacts.verification.model.IgnoredKey
+import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifier
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -167,13 +168,13 @@ class DependencyVerificationsXmlReaderTest extends Specification {
       <verify-metadata>true</verify-metadata>
       <ignored-keys>
          <ignored-key id="ABCDEF"/>
-         <ignored-key id="012345"/>
+         <ignored-key id="012345" reason="nope"/>
       </ignored-keys>
    </configuration>
 </verification-metadata>
 """
         then:
-        verifier.configuration.ignoredKeys == ["ABCDEF", "012345"] as Set
+        verifier.configuration.ignoredKeys == [key("ABCDEF"), key("012345", "nope")] as Set
     }
 
     def "can parse trusted keys"() {
@@ -318,6 +319,42 @@ class DependencyVerificationsXmlReaderTest extends Specification {
         fourth.artifactVerifications[1].artifactName == "foo-1.1.zip"
         fourth.artifactVerifications[1].checksums.find { it.kind == ChecksumKind.sha1 }.value == "5678"
 
+    }
+
+    def "can parse artifact specific ignored keys"() {
+        when:
+        parse """<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata>
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+      <verify-signatures>false</verify-signatures>
+   </configuration>
+   <components>
+      <component group="org" name="foo" version="1.0">
+         <artifact name="foo-1.0.jar">
+            <ignored-keys>
+               <ignored-key id="ABC"/>
+            </ignored-keys>
+         </artifact>
+         <artifact name="foo-1.0.pom">
+            <ignored-keys>
+               <ignored-key id="123"/>
+               <ignored-key id="456" reason="bad things happen"/>
+            </ignored-keys>
+         </artifact>
+      </component>
+   </components>
+</verification-metadata>"""
+
+        then:
+        def component = verifier.verificationMetadata[0]
+        def artifacts = component.artifactVerifications
+        artifacts[0].ignoredPgpKeys == [key('ABC')] as Set
+        artifacts[1].ignoredPgpKeys == [key('123'), key('456', 'bad things happen')] as Set
+    }
+
+    private static IgnoredKey key(String id, String reason = null) {
+        new IgnoredKey(id, reason)
     }
 
     void parse(String xml) {

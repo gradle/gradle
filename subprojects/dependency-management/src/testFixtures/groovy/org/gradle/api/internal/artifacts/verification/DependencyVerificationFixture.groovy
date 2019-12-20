@@ -22,6 +22,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.verification.model.ArtifactVerificationMetadata
 import org.gradle.api.internal.artifacts.verification.model.ChecksumKind
 import org.gradle.api.internal.artifacts.verification.model.ComponentVerificationMetadata
+import org.gradle.api.internal.artifacts.verification.model.IgnoredKey
 import org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationsXmlReader
 import org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationsXmlWriter
 import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifier
@@ -217,8 +218,8 @@ class DependencyVerificationFixture {
             builder.addTrustedArtifact(group, name, version, fileName, regex)
         }
 
-        void addIgnoredKey(String id) {
-            builder.addIgnoredKey(id)
+        void addGloballyIgnoredKey(String id, String reason = "for tests") {
+            builder.addIgnoredKey(new IgnoredKey(id, reason))
         }
 
         void addChecksum(String id, String algo, String checksum, String type="jar", String ext="jar", String origin = null) {
@@ -280,6 +281,23 @@ class DependencyVerificationFixture {
 
         void addGloballyTrustedKey(String keyId, String group = null, String name = null, String version = null, String fileName = null, boolean regex = false) {
             builder.addTrustedKey(keyId, group, name, version, fileName, regex)
+        }
+
+        void addIgnoredKeyByFileName(String id, String fileName, String key, String reason = "for tests") {
+            def parts = id.split(":")
+            def group = parts[0]
+            def name = parts[1]
+            def version = parts.size() == 3 ? parts[2] : "1.0"
+            builder.addIgnoredKey(
+                new ModuleComponentFileArtifactIdentifier(
+                    DefaultModuleComponentIdentifier.newId(
+                        DefaultModuleIdentifier.newId(group, name),
+                        version
+                    ),
+                    fileName
+                ),
+                new IgnoredKey(key, reason)
+            )
         }
 
         DependencyVerifier build() {

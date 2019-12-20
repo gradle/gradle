@@ -25,12 +25,14 @@ public class ImmutableArtifactVerificationMetadata implements ArtifactVerificati
     private final String artifactName;
     private final List<Checksum> checksums;
     private final Set<String> trustedPgpKeys;
+    private final Set<IgnoredKey> ignoredPgpKeys;
     private final int hashCode;
 
-    public ImmutableArtifactVerificationMetadata(String artifactName, List<Checksum> checksums, Set<String> trustedPgpKeys) {
+    public ImmutableArtifactVerificationMetadata(String artifactName, List<Checksum> checksums, Set<String> trustedPgpKeys, Set<IgnoredKey> ignoredPgpKeys) {
         this.artifactName = artifactName;
         this.checksums = ImmutableList.copyOf(checksums);
         this.trustedPgpKeys = ImmutableSet.copyOf(trustedPgpKeys);
+        this.ignoredPgpKeys = ImmutableSet.copyOf(ignoredPgpKeys);
         this.hashCode = computeHashCode();
     }
 
@@ -50,6 +52,11 @@ public class ImmutableArtifactVerificationMetadata implements ArtifactVerificati
     }
 
     @Override
+    public Set<IgnoredKey> getIgnoredPgpKeys() {
+        return ignoredPgpKeys;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -66,6 +73,9 @@ public class ImmutableArtifactVerificationMetadata implements ArtifactVerificati
         if (!checksums.equals(that.checksums)) {
             return false;
         }
+        if (!ignoredPgpKeys.equals(that.ignoredPgpKeys)) {
+            return false;
+        }
         return trustedPgpKeys.equals(that.trustedPgpKeys);
     }
 
@@ -78,6 +88,7 @@ public class ImmutableArtifactVerificationMetadata implements ArtifactVerificati
         int result = artifactName.hashCode();
         result = 31 * result + checksums.hashCode();
         result = 31 * result + trustedPgpKeys.hashCode();
+        result = 31 * result + ignoredPgpKeys.hashCode();
         return result;
     }
 }

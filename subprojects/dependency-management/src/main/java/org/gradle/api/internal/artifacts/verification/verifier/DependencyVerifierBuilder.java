@@ -28,6 +28,7 @@ import org.gradle.api.internal.artifacts.verification.model.ArtifactVerification
 import org.gradle.api.internal.artifacts.verification.model.Checksum;
 import org.gradle.api.internal.artifacts.verification.model.ChecksumKind;
 import org.gradle.api.internal.artifacts.verification.model.ComponentVerificationMetadata;
+import org.gradle.api.internal.artifacts.verification.model.IgnoredKey;
 import org.gradle.api.internal.artifacts.verification.model.ImmutableArtifactVerificationMetadata;
 import org.gradle.api.internal.artifacts.verification.model.ImmutableComponentVerificationMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
@@ -48,7 +49,7 @@ public class DependencyVerifierBuilder {
     private final List<DependencyVerificationConfiguration.TrustedArtifact> trustedArtifacts = Lists.newArrayList();
     private final List<DependencyVerificationConfiguration.TrustedKey> trustedKeys = Lists.newArrayList();
     private final List<URI> keyServers = Lists.newArrayList();
-    private final Set<String> ignoredKeys = Sets.newLinkedHashSet();
+    private final Set<IgnoredKey> ignoredKeys = Sets.newLinkedHashSet();
     private boolean isVerifyMetadata = true;
     private boolean isVerifySignatures = false;
 
@@ -62,6 +63,12 @@ public class DependencyVerifierBuilder {
         ModuleComponentIdentifier componentIdentifier = artifact.getComponentIdentifier();
         byComponent.computeIfAbsent(componentIdentifier, id -> new ComponentVerificationsBuilder(id))
             .addTrustedKey(artifact, key);
+    }
+
+    public void addIgnoredKey(ModuleComponentArtifactIdentifier artifact, IgnoredKey key) {
+        ModuleComponentIdentifier componentIdentifier = artifact.getComponentIdentifier();
+        byComponent.computeIfAbsent(componentIdentifier, id -> new ComponentVerificationsBuilder(id))
+            .addIgnoredKey(artifact, key);
     }
 
     public void setVerifyMetadata(boolean verifyMetadata) {
@@ -85,7 +92,7 @@ public class DependencyVerifierBuilder {
         trustedArtifacts.add(new DependencyVerificationConfiguration.TrustedArtifact(group, name, version, fileName, regex));
     }
 
-    public void addIgnoredKey(String keyId) {
+    public void addIgnoredKey(IgnoredKey keyId) {
         ignoredKeys.add(keyId);
     }
 
@@ -136,8 +143,18 @@ public class DependencyVerifierBuilder {
             byArtifact.computeIfAbsent(artifact.getFileName(), id -> new ArtifactVerificationBuilder()).addTrustedKey(key);
         }
 
+        void addIgnoredKey(ModuleComponentArtifactIdentifier artifact, IgnoredKey key) {
+            byArtifact.computeIfAbsent(artifact.getFileName(), id -> new ArtifactVerificationBuilder()).addIgnoredKey(key);
+        }
+
         private static ArtifactVerificationMetadata toArtifactVerification(Map.Entry<String, ArtifactVerificationBuilder> entry) {
-            return new ImmutableArtifactVerificationMetadata(entry.getKey(), entry.getValue().buildChecksums(), entry.getValue().buildPgpKeys());
+            String key = entry.getKey();
+            ArtifactVerificationBuilder value = entry.getValue();
+            return new ImmutableArtifactVerificationMetadata(
+                key,
+                value.buildChecksums(),
+                value.buildTrustedPgpKeys(),
+                value.buildIgnoredPgpKeys());
         }
 
         ComponentVerificationMetadata build() {
@@ -154,6 +171,7 @@ public class DependencyVerifierBuilder {
     private static class ArtifactVerificationBuilder {
         private final Map<ChecksumKind, ChecksumBuilder> builder = Maps.newEnumMap(ChecksumKind.class);
         private final Set<String> pgpKeys = Sets.newLinkedHashSet();
+        private final Set<IgnoredKey> ignoredPgpKeys = Sets.newLinkedHashSet();
 
         void addChecksum(ChecksumKind kind, String value, @Nullable String origin) {
             ChecksumBuilder builder = this.builder.computeIfAbsent(kind, ChecksumBuilder::new);
@@ -175,8 +193,16 @@ public class DependencyVerifierBuilder {
             pgpKeys.add(key);
         }
 
-        public Set<String> buildPgpKeys() {
+        public void addIgnoredKey(IgnoredKey key) {
+            ignoredPgpKeys.add(key);
+        }
+
+        public Set<String> buildTrustedPgpKeys() {
             return pgpKeys;
+        }
+
+        public Set<IgnoredKey> buildIgnoredPgpKeys() {
+            return ignoredPgpKeys;
         }
     }
 
