@@ -65,7 +65,7 @@ class DependencyClassPathNotationConverterTest extends Specification {
 
         gradleInstallation.installation >> new GradleInstallation(testDirectoryProvider.file("gradle-home"))
 
-        shadedJarFactory.get(RuntimeShadedJarType.API, _) >> shadedApiJar
+        shadedJarFactory.get(RuntimeShadedJarType.API, _, null) >> shadedApiJar
     }
 
     def "parses classpath literal"() {
