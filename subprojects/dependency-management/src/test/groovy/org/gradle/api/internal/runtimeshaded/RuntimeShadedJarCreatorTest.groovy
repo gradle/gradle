@@ -35,12 +35,11 @@ import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.tree.ClassNode
 import org.objectweb.asm.util.TraceClassVisitor
+import spock.lang.Issue
 import spock.lang.Specification
 
 import java.util.jar.JarEntry
 import java.util.jar.JarFile
-
-import spock.lang.Issue
 
 @UsesNativeServices
 @CleanupTestDirectory(fieldName = "tmpDir")
@@ -413,8 +412,8 @@ org.gradle.api.internal.tasks.CompileServices"""
         def inputFilesDir = tmpDir.createDir('inputFiles')
         writeClass(inputFilesDir, "org/gradle/MyClass")
         def sourcesDir = tmpDir.createDir('src')
-        sourcesDir.createFile("org/gradle/Test.java").writelns("package org.gradle;", "public class Test {}")
-        sourcesDir.createFile("foo/bar/fizz/Buzz.java").writelns("package foo.bar.fizz;", "public class Buzz {}")
+        sourcesDir.createFile("org/gradle/Test.java").write("package org.gradle;\npublic class Test {}", "UTF-8")
+        sourcesDir.createFile("foo/bar/fizz/Buzz.java").write("package foo.bar.fizz;\npublic class Buzz {}", "UTF-8")
 
         when:
         relocatedJarCreator.create(outputJar, [inputFilesDir], sourcesDir)
@@ -432,7 +431,7 @@ org.gradle.api.internal.tasks.CompileServices"""
                 "src/foo/bar/fizz/Buzz.java",
                 "src/org/gradle/Test.java"]
         }
-        outputJar.md5Hash == "a1c8a848699a0670beb98aabdce0df5c"
+        outputJar.md5Hash == "da052fa15940ebc4c515c4bd90ccc45d"
     }
 
     private void createJarFileWithClassFiles(TestFile jar, List<String> classNames) {
