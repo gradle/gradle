@@ -29,6 +29,10 @@ gradlePlugin {
             id = "gradlebuild.unittest-and-compile"
             implementationClass = "org.gradle.gradlebuild.unittestandcompile.UnitTestAndCompilePlugin"
         }
+        register("install") {
+            id = "gradlebuild.install"
+            implementationClass = "org.gradle.plugins.install.InstallPlugin"
+        }
     }
 }
 
