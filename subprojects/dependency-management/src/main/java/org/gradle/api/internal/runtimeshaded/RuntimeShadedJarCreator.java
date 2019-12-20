@@ -83,8 +83,6 @@ class RuntimeShadedJarCreator {
     private static final String SERVICES_DIR_PREFIX = "META-INF/services/";
     private static final String CLASS_DESC = "Ljava/lang/Class;";
 
-    private static final Comparator<FileVisitDetails> PATH_COMPARATOR = Comparator.comparing(FileTreeElement::getPath);
-
     private final ProgressLoggerFactory progressLoggerFactory;
     private final ImplementationDependencyRelocator remapper;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
@@ -180,33 +178,15 @@ class RuntimeShadedJarCreator {
     }
 
     private void processDirectory(final ZipOutputStream outputStream, File file, final byte[] buffer, final HashSet<String> seenPaths, final Map<String, List<String>> services) {
-        final List<FileVisitDetails> fileVisitDetails = new ArrayList<>();
-        directoryFileTreeFactory.create(file).visit(new FileVisitor() {
-            @Override
-            public void visitDir(FileVisitDetails dirDetails) {
-                fileVisitDetails.add(dirDetails);
-            }
-
-            @Override
-            public void visitFile(FileVisitDetails fileDetails) {
-                fileVisitDetails.add(fileDetails);
-            }
-        });
-
-        // We need to sort here since the file order obtained from the filesystem
-        // can change between machines and we always want to have the same shaded jars.
-        fileVisitDetails.sort(PATH_COMPARATOR);
+        FileCollectingFileVisitor visitor = new FileCollectingFileVisitor();
+        directoryFileTreeFactory.create(file).visit(visitor);
+        List<FileVisitDetails> fileVisitDetails = visitor.getVisitedFiles();
 
         for (FileVisitDetails details : fileVisitDetails) {
             try {
-                if (details.isDirectory()) {
-                    ZipEntry zipEntry = newZipEntryWithFixedTime(details.getPath() + "/");
-                    processEntry(outputStream, null, zipEntry, buffer, seenPaths, services);
-                } else {
-                    ZipEntry zipEntry = newZipEntryWithFixedTime(details.getPath());
-                    try (InputStream inputStream = details.open()) {
-                        processEntry(outputStream, inputStream, zipEntry, buffer, seenPaths, services);
-                    }
+                ZipEntry zipEntry = newZipEntryWithFixedTime(details.getPath());
+                try (InputStream inputStream = details.open()) {
+                    processEntry(outputStream, inputStream, zipEntry, buffer, seenPaths, services);
                 }
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
@@ -467,18 +447,9 @@ class RuntimeShadedJarCreator {
     }
 
     private void attachSources(ZipOutputStream outputStream, Path sourcesDir) {
-        List<FileVisitDetails> sourceFiles = new ArrayList<>();
-        directoryFileTreeFactory.create(sourcesDir.toFile()).visit(new FileVisitor() {
-            @Override
-            public void visitDir(FileVisitDetails dirDetails) {
-            }
-
-            @Override
-            public void visitFile(FileVisitDetails fileDetails) {
-                sourceFiles.add(fileDetails);
-            }
-        });
-        sourceFiles.sort(PATH_COMPARATOR);
+        FileCollectingFileVisitor visitor = new FileCollectingFileVisitor();
+        directoryFileTreeFactory.create(sourcesDir.toFile()).visit(visitor);
+        List<FileVisitDetails> sourceFiles = visitor.getVisitedFiles();
 
         for (FileVisitDetails fileDetails : sourceFiles) {
             try {
@@ -489,4 +460,24 @@ class RuntimeShadedJarCreator {
         }
     }
 
+    private static class FileCollectingFileVisitor implements FileVisitor {
+
+        private final List<FileVisitDetails> visitedFiles = new ArrayList<>();
+
+        @Override
+        public void visitDir(FileVisitDetails dirDetails) {
+        }
+
+        @Override
+        public void visitFile(FileVisitDetails fileDetails) {
+            visitedFiles.add(fileDetails);
+        }
+
+        List<FileVisitDetails> getVisitedFiles() {
+            // We need to sort here since the file order obtained from the filesystem
+            // can change between machines and we always want to have the same shaded jars.
+            visitedFiles.sort(Comparator.comparing(FileTreeElement::getPath));
+            return visitedFiles;
+        }
+    }
 }
