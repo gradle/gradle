@@ -265,6 +265,46 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         outputFile.assertDoesNotExist()
     }
 
+    @ToBeFixedForInstantExecution
+    def "detects when stale outputs are removed"() {
+        buildFile << """
+            apply plugin: 'base'
+            
+            task producer {
+                inputs.files("input.txt")
+                outputs.file("build/output.txt")
+                doLast {
+                    file("build/output.txt").text = file("input.txt").text
+                }
+            }            
+        """
+
+        file("input.txt").text = "input"
+        def outputFile = file("build/output.txt")
+
+        when:
+        withRetention().run ":producer"
+        then:
+        executedAndNotSkipped(":producer")
+        outputFile.assertExists()
+
+        when:
+        invalidateBuildOutputCleanupState()
+        waitForChangesToBePickedUp()
+        withRetention().run ":producer", "--info"
+        then:
+        output.contains("Deleting stale output file: ${outputFile.absolutePath}")
+        executedAndNotSkipped(":producer")
+        outputFile.assertExists()
+    }
+
+    // This makes sure the next Gradle run starts with a clean BuildOutputCleanupRegistry
+    private void invalidateBuildOutputCleanupState() {
+        file(".gradle/buildOutputCleanup/cache.properties").text = """
+            gradle.version=1.0
+        """
+    }
+
     private def withRetention() {
         executer.withArgument  "-D${VFS_RETENTION_ENABLED_PROPERTY}"
         this
