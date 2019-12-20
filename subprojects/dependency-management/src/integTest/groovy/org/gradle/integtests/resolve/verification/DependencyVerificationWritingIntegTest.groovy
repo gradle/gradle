@@ -910,7 +910,6 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
     }
 
 
-    @ToBeFixedForInstantExecution
     def "updating a file doesn't generate duplicates"() {
         given:
         javaLibrary()
