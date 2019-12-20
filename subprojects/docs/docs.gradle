@@ -19,15 +19,15 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
     id 'java-library'
-    id 'javascript-base'
     // TODO: Apply asciidoctor in documentation plugin instead.
     id 'org.asciidoctor.convert'
     id 'gradlebuild.documentation'
     id 'org.gradle.samples' version "0.15.28"
 }
 
-repositories {
-    javaScript.googleApis()
+repositories { handler ->
+    // TODO migrate this build script to Kotlin DSL to replace this is a simple googleApisJs()
+    Plugins_extensionsKt.googleApisJs(handler)
 }
 
 configurations {
@@ -193,7 +193,7 @@ samples {
                 from(templates.javaApplicationAsSubproject)
                 from(templates.javaJunit4TestForApplication)
                 from(templates.javaJunit4IntegrationTestForApplication)
-                
+
                 from(templates.javaListLibraryAsSubproject)
                 from(templates.javaJunit4TestForListLibrary)
                 from(templates.javaJunit4IntegrationTestForListLibrary)
