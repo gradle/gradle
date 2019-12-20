@@ -22,6 +22,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.archive.ZipCopyAction;
@@ -59,7 +60,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -82,6 +82,8 @@ class RuntimeShadedJarCreator {
     private static final int BUFFER_SIZE = 8192;
     private static final String SERVICES_DIR_PREFIX = "META-INF/services/";
     private static final String CLASS_DESC = "Ljava/lang/Class;";
+
+    private static final Comparator<FileVisitDetails> PATH_COMPARATOR = Comparator.comparing(FileTreeElement::getPath);
 
     private final ProgressLoggerFactory progressLoggerFactory;
     private final ImplementationDependencyRelocator remapper;
@@ -178,7 +180,7 @@ class RuntimeShadedJarCreator {
     }
 
     private void processDirectory(final ZipOutputStream outputStream, File file, final byte[] buffer, final HashSet<String> seenPaths, final Map<String, List<String>> services) {
-        final List<FileVisitDetails> fileVisitDetails = new ArrayList<FileVisitDetails>();
+        final List<FileVisitDetails> fileVisitDetails = new ArrayList<>();
         directoryFileTreeFactory.create(file).visit(new FileVisitor() {
             @Override
             public void visitDir(FileVisitDetails dirDetails) {
@@ -193,12 +195,7 @@ class RuntimeShadedJarCreator {
 
         // We need to sort here since the file order obtained from the filesystem
         // can change between machines and we always want to have the same shaded jars.
-        Collections.sort(fileVisitDetails, new Comparator<FileVisitDetails>() {
-            @Override
-            public int compare(FileVisitDetails o1, FileVisitDetails o2) {
-                return o1.getPath().compareTo(o2.getPath());
-            }
-        });
+        fileVisitDetails.sort(PATH_COMPARATOR);
 
         for (FileVisitDetails details : fileVisitDetails) {
             try {
@@ -470,6 +467,7 @@ class RuntimeShadedJarCreator {
     }
 
     private void attachSources(ZipOutputStream outputStream, Path sourcesDir) {
+        List<FileVisitDetails> sourceFiles = new ArrayList<>();
         directoryFileTreeFactory.create(sourcesDir.toFile()).visit(new FileVisitor() {
             @Override
             public void visitDir(FileVisitDetails dirDetails) {
@@ -477,13 +475,18 @@ class RuntimeShadedJarCreator {
 
             @Override
             public void visitFile(FileVisitDetails fileDetails) {
-                try {
-                    writeEntry(outputStream, "src/" + fileDetails.getPath(), Files.readAllBytes(fileDetails.getFile().toPath()));
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e);
-                }
+                sourceFiles.add(fileDetails);
             }
         });
+        sourceFiles.sort(PATH_COMPARATOR);
+
+        for (FileVisitDetails fileDetails : sourceFiles) {
+            try {
+                writeEntry(outputStream, "src/" + fileDetails.getPath(), Files.readAllBytes(fileDetails.getFile().toPath()));
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        }
     }
 
 }

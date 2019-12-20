@@ -429,10 +429,10 @@ org.gradle.api.internal.tasks.CompileServices"""
             assert entries*.name == [
                 'org/gradle/MyClass.class',
                 'META-INF/.gradle-runtime-shaded',
-                "src/org/gradle/Test.java",
-                "src/foo/bar/fizz/Buzz.java"]
+                "src/foo/bar/fizz/Buzz.java",
+                "src/org/gradle/Test.java"]
         }
-        outputJar.md5Hash == "ff35442b5a5ff5e7f44252e99b3cb84d"
+        outputJar.md5Hash == "a1c8a848699a0670beb98aabdce0df5c"
     }
 
     private void createJarFileWithClassFiles(TestFile jar, List<String> classNames) {
