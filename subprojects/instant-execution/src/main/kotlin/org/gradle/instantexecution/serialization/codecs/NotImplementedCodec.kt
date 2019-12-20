@@ -16,27 +16,23 @@
 
 package org.gradle.instantexecution.serialization.codecs
 
-import org.gradle.execution.plan.ActionNode
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
-import org.gradle.instantexecution.serialization.logUnsupported
+import org.gradle.instantexecution.serialization.logNotImplemented
 
 
 internal
-object ActionNodeCodec : Codec<ActionNode> {
+object NotImplementedCodec : Codec<Any> {
 
-    override suspend fun WriteContext.encode(value: ActionNode) {
-        when (val task = value.dependentTask) {
-            null -> logUnsupported(ActionNode::class)
-            else -> withTaskPropertyTrace(taskTypeOf(task), task) {
-                logUnsupported(ActionNode::class)
-            }
-        }
+    override suspend fun WriteContext.encode(value: Any) {
+        val javaClass = value.javaClass
+        writeClass(javaClass)
+        logNotImplemented(javaClass)
     }
 
-    override suspend fun ReadContext.decode(): ActionNode? {
-        logUnsupported(ActionNode::class)
+    override suspend fun ReadContext.decode(): Any? {
+        logNotImplemented(readClass())
         return null
     }
 }

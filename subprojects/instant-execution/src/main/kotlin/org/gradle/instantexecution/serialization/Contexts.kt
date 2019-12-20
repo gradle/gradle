@@ -289,7 +289,7 @@ abstract class AbstractIsolateContext<T>(codec: Codec<Any?>) : MutableIsolateCon
     private
     var currentCodec = codec
 
-    var trace: PropertyTrace = PropertyTrace.Unknown
+    var trace: PropertyTrace = PropertyTrace.Gradle
 
     protected
     abstract fun newIsolate(owner: IsolateOwner): T
