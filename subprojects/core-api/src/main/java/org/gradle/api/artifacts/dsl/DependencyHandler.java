@@ -445,7 +445,7 @@ public interface DependencyHandler extends ExtensionAware {
     void registerTransform(Action<? super VariantTransform> registrationAction);
 
     /**
-     * Registers an <a href="https://docs.gradle.org/current/userguide/dependency_management_attribute_based_matching.html#sec:abm_artifact_transforms">artifact transform</a>.
+     * Registers an <a href="https://docs.gradle.org/current/userguide/artifact_transforms.html">artifact transform</a>.
      *
      * <p>
      *     The registration action needs to specify the {@code from} and {@code to} attributes.
