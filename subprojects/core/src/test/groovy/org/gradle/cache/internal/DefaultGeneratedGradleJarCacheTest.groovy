@@ -77,31 +77,6 @@ class DefaultGeneratedGradleJarCacheTest extends Specification {
         identifier << ["api", "test-kit"]
     }
 
-    @Unroll
-    def "creates JAR file on demand with classifier '#classifier' for identifier '#identifier'"(String identifier, String classifier) {
-        def cacheDir = tmpDir.testDirectory
-        def jarFile = cacheDir.file("gradle-${identifier}-${gradleVersion}-${classifier}.jar")
-        def cacheBuilder = Mock(CacheBuilder)
-        def cache = Mock(PersistentCache)
-
-        when:
-        def provider = new DefaultGeneratedGradleJarCache(cacheRepository, gradleVersion)
-        def resolvedFile = provider.get(identifier, classifier) { it.createNewFile() }
-
-        then:
-        1 * cacheRepository.cache(CACHE_KEY) >> cacheBuilder
-        1 * cacheBuilder.withDisplayName(CACHE_DISPLAY_NAME) >> cacheBuilder
-        1 * cacheBuilder.withLockOptions(mode(FileLockManager.LockMode.None)) >> cacheBuilder
-        1 * cacheBuilder.open() >> { cache }
-        _ * cache.getBaseDir() >> cacheDir
-        1 * cache.useCache(_)
-        jarFile == resolvedFile
-
-        where:
-        identifier << ["api", "test-kit"]
-        classifier << ["source", "doc"]
-    }
-
     def "reuses existing JAR file if existent"() {
         def cacheDir = tmpDir.testDirectory
         def jarFile = cacheDir.file("gradle-api-${gradleVersion}.jar")

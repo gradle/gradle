@@ -28,7 +28,6 @@ import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.collections.BuildDependenciesOnlyFileCollectionResolveContext;
 import org.gradle.api.internal.file.collections.FileCollectionAdapter;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
-import org.gradle.api.internal.file.collections.ListBackedFileSet;
 import org.gradle.api.internal.file.collections.SingletonFileSet;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarType;
@@ -159,18 +158,13 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
     }
 
     private FileCollectionInternal relocatedDepsJar(Collection<File> classpath, String displayName, RuntimeShadedJarType runtimeShadedJarType) {
-        File gradleImplDepsJar = runtimeShadedJarFactory.get(runtimeShadedJarType, classpath);
-        return attachSourcesJar(gradleImplDepsJar, displayName, runtimeShadedJarType);
-    }
-
-    private FileCollectionInternal attachSourcesJar(File gradleImplDepsJar, String displayName, RuntimeShadedJarType runtimeShadedJarType) {
         GradleInstallation gradleInstallation = CurrentGradleInstallation.get();
-        if (gradleInstallation == null || !gradleInstallation.getSrcDir().exists()) {
-            return new FileCollectionAdapter(new SingletonFileSet(gradleImplDepsJar, displayName));
+        File sourcesDir = null;
+        if (gradleInstallation != null && gradleInstallation.getSrcDir().exists()) {
+            sourcesDir = gradleInstallation.getSrcDir();
         }
-
-        File sourcesJar = runtimeShadedJarFactory.buildSourcesJar(runtimeShadedJarType, gradleInstallation.getSrcDir());
-        return new FileCollectionAdapter(new ListBackedFileSet(gradleImplDepsJar, sourcesJar));
+        File gradleImplDepsJar = runtimeShadedJarFactory.get(runtimeShadedJarType, classpath, sourcesDir);
+        return new FileCollectionAdapter(new SingletonFileSet(gradleImplDepsJar, displayName));
     }
 
     abstract static class GeneratedFileCollection extends CompositeFileCollection {

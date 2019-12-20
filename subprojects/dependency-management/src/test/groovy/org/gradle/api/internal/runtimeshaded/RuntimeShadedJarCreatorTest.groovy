@@ -63,7 +63,7 @@ class RuntimeShadedJarCreatorTest extends Specification {
         writeClass(inputFilesDir, "org/gradle/MyClass")
 
         when:
-        relocatedJarCreator.create(outputJar, [inputFilesDir])
+        relocatedJarCreator.create(outputJar, [inputFilesDir], null)
 
         then:
         TestFile[] contents = tmpDir.testDirectory.listFiles().findAll { it.isFile() }
@@ -81,7 +81,7 @@ class RuntimeShadedJarCreatorTest extends Specification {
         createJarFileWithClassFiles(jarFile2, [className])
 
         when:
-        relocatedJarCreator.create(outputJar, [jarFile1, jarFile2])
+        relocatedJarCreator.create(outputJar, [jarFile1, jarFile2], null)
 
         then:
         TestFile[] contents = tmpDir.testDirectory.listFiles().findAll { it.isFile() }
@@ -119,7 +119,7 @@ org.gradle.api.internal.tasks.CompileServices
         writeClass(inputDirectory, "org/gradle/MyBClass")
 
         when:
-        relocatedJarCreator.create(outputJar, [jarFile1, jarFile2, jarFile3, jarFile4, jarFile5, jarFile6, inputDirectory])
+        relocatedJarCreator.create(outputJar, [jarFile1, jarFile2, jarFile3, jarFile4, jarFile5, jarFile6, inputDirectory], null)
 
         then:
 
@@ -157,7 +157,7 @@ org.gradle.api.internal.tasks.CompileServices
         writeClass(inputDirectory, "org/gradle/MyFirstClass")
 
         when:
-        relocatedJarCreator.create(outputJar, [jarFile1, jarFile2, inputDirectory])
+        relocatedJarCreator.create(outputJar, [jarFile1, jarFile2, inputDirectory], null)
 
         then:
 
@@ -194,7 +194,7 @@ org.gradle.api.internal.tasks.CompileServices
 # Too many comments""")
 
         when:
-        relocatedJarCreator.create(outputJar, [jarFile1, jarFile2, jarFile3])
+        relocatedJarCreator.create(outputJar, [jarFile1, jarFile2, jarFile3], null)
 
         then:
         TestFile[] contents = tmpDir.testDirectory.listFiles().findAll { it.isFile() }
@@ -238,7 +238,7 @@ org.gradle.api.internal.tasks.CompileServices"""
         createJarFileWithClassFiles(jarFile, classNames)
 
         when:
-        relocatedJarCreator.create(outputJar, [jarFile])
+        relocatedJarCreator.create(outputJar, [jarFile], null)
 
         then:
         TestFile[] contents = tmpDir.testDirectory.listFiles().findAll { it.isFile() }
@@ -329,7 +329,7 @@ org.gradle.api.internal.tasks.CompileServices"""
         createJarFileWithClassFiles(jarFile, ["org.slf4j.impl.StaticLoggerBinder"])
 
         when:
-        relocatedJarCreator.create(outputJar, [jarFile])
+        relocatedJarCreator.create(outputJar, [jarFile], null)
 
         then:
         handleAsJarFile(outputJar) {
@@ -350,7 +350,7 @@ org.gradle.api.internal.tasks.CompileServices"""
         createJarFileWithResources(jarFile, resources)
 
         when:
-        relocatedJarCreator.create(outputJar, [jarFile])
+        relocatedJarCreator.create(outputJar, [jarFile], null)
 
         then:
         TestFile[] contents = tmpDir.testDirectory.listFiles().findAll { it.isFile() }
@@ -390,7 +390,7 @@ org.gradle.api.internal.tasks.CompileServices"""
         createJarFileWithProviderConfigurationFile(jarFile, serviceType, multiLineProviders)
 
         when:
-        relocatedJarCreator.create(outputJar, [jarFile])
+        relocatedJarCreator.create(outputJar, [jarFile], null)
 
         then:
         TestFile[] contents = tmpDir.testDirectory.listFiles().findAll { it.isFile() }
@@ -406,6 +406,33 @@ org.gradle.api.internal.tasks.CompileServices"""
                 }
             })
         }
+    }
+
+    def "attaches sources when sources directory is provided"() {
+        given:
+        def inputFilesDir = tmpDir.createDir('inputFiles')
+        writeClass(inputFilesDir, "org/gradle/MyClass")
+        def sourcesDir = tmpDir.createDir('src')
+        sourcesDir.createFile("org/gradle/Test.java").writelns("package org.gradle;", "public class Test {}")
+        sourcesDir.createFile("foo/bar/fizz/Buzz.java").writelns("package foo.bar.fizz;", "public class Buzz {}")
+
+        when:
+        relocatedJarCreator.create(outputJar, [inputFilesDir], sourcesDir)
+
+        then:
+        TestFile[] contents = tmpDir.testDirectory.listFiles().findAll { it.isFile() }
+        contents.length == 1
+        contents[0] == outputJar
+
+        handleAsJarFile(outputJar) { JarFile file ->
+            List<JarEntry> entries = file.entries() as List
+            assert entries*.name == [
+                'org/gradle/MyClass.class',
+                'META-INF/.gradle-runtime-shaded',
+                "src/org/gradle/Test.java",
+                "src/foo/bar/fizz/Buzz.java"]
+        }
+        outputJar.md5Hash == "ff35442b5a5ff5e7f44252e99b3cb84d"
     }
 
     private void createJarFileWithClassFiles(TestFile jar, List<String> classNames) {

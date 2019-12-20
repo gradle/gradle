@@ -55,6 +55,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -91,26 +93,29 @@ class RuntimeShadedJarCreator {
         this.directoryFileTreeFactory = directoryFileTreeFactory;
     }
 
-    public void create(final File outputJar, final Iterable<? extends File> files) {
+    public void create(final File outputJar, final Iterable<? extends File> files, final File sourcesDir) {
         LOGGER.info("Generating " + outputJar.getAbsolutePath());
         ProgressLogger progressLogger = progressLoggerFactory.newOperation(RuntimeShadedJarCreator.class);
         progressLogger.setDescription("Generating " + outputJar.getName());
         progressLogger.started();
 
         try {
-            createFatJar(outputJar, files, progressLogger);
+            createFatJar(outputJar, files, progressLogger, sourcesDir);
         } finally {
             progressLogger.completed();
         }
     }
 
-    private void createFatJar(final File outputJar, final Iterable<? extends File> files, final ProgressLogger progressLogger) {
+    private void createFatJar(final File outputJar, final Iterable<? extends File> files, final ProgressLogger progressLogger, final File sourcesDir) {
         final File tmpFile = tempFileFor(outputJar);
 
         IoActions.withResource(openJarOutputStream(tmpFile), new ErroringAction<ZipOutputStream>() {
             @Override
             protected void doExecute(ZipOutputStream jarOutputStream) throws Exception {
-                processFiles(jarOutputStream, files, new byte[BUFFER_SIZE], new HashSet<String>(), new LinkedHashMap<String, List<String>>(), progressLogger);
+                processFiles(jarOutputStream, files, new byte[BUFFER_SIZE], new HashSet<>(), new LinkedHashMap<>(), progressLogger);
+                if (sourcesDir != null) {
+                    attachSources(jarOutputStream, sourcesDir.toPath());
+                }
                 jarOutputStream.finish();
             }
         });
@@ -118,7 +123,7 @@ class RuntimeShadedJarCreator {
         GFileUtils.moveFile(tmpFile, outputJar);
     }
 
-    private File tempFileFor(File outputJar) {
+    private static File tempFileFor(File outputJar) {
         try {
             final File tmpFile = File.createTempFile(outputJar.getName(), ".tmp");
             tmpFile.deleteOnExit();
@@ -128,7 +133,7 @@ class RuntimeShadedJarCreator {
         }
     }
 
-    private ZipOutputStream openJarOutputStream(File outputJar) {
+    private static ZipOutputStream openJarOutputStream(File outputJar) {
         try {
             ZipOutputStream outputStream = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(outputJar), BUFFER_SIZE));
             outputStream.setLevel(0);
@@ -161,14 +166,14 @@ class RuntimeShadedJarCreator {
         progressLogger.progress(progressFormatter.incrementAndGetProgress());
     }
 
-    private void writeServiceFiles(ZipOutputStream outputStream, Map<String, List<String>> services) throws IOException {
+    private static void writeServiceFiles(ZipOutputStream outputStream, Map<String, List<String>> services) throws IOException {
         for (Map.Entry<String, List<String>> service : services.entrySet()) {
             String allProviders = Joiner.on("\n").join(service.getValue());
             writeEntry(outputStream, SERVICES_DIR_PREFIX + service.getKey(), allProviders.getBytes(Charsets.UTF_8));
         }
     }
 
-    private void writeIdentifyingMarkerFile(ZipOutputStream outputStream) throws IOException {
+    private static void writeIdentifyingMarkerFile(ZipOutputStream outputStream) throws IOException {
         writeEntry(outputStream, GradleRuntimeShadedJarDetector.MARKER_FILENAME, new byte[0]);
     }
 
@@ -202,11 +207,8 @@ class RuntimeShadedJarCreator {
                     processEntry(outputStream, null, zipEntry, buffer, seenPaths, services);
                 } else {
                     ZipEntry zipEntry = newZipEntryWithFixedTime(details.getPath());
-                    InputStream inputStream = details.open();
-                    try {
+                    try (InputStream inputStream = details.open()) {
                         processEntry(outputStream, inputStream, zipEntry, buffer, seenPaths, services);
-                    } finally {
-                        inputStream.close();
                     }
                 }
             } catch (IOException e) {
@@ -284,13 +286,13 @@ class RuntimeShadedJarCreator {
     }
 
     private static String[] slashesToPeriods(String... slashClassNames) {
-        return asList(slashClassNames).stream().filter(clsName -> clsName != null)
+        return Arrays.stream(slashClassNames).filter(clsName -> clsName != null)
             .map(clsName -> clsName.replace('/', '.')).map(String::trim)
             .toArray(String[]::new);
     }
 
     private static String[] periodsToSlashes(String... periodClassNames) {
-        return asList(periodClassNames).stream().filter(clsName -> clsName != null)
+        return Arrays.stream(periodClassNames).filter(clsName -> clsName != null)
             .map(clsName -> clsName.replace('.', '/'))
             .toArray(String[]::new);
     }
@@ -466,4 +468,21 @@ class RuntimeShadedJarCreator {
     private static String[] separateLines(String entry) {
         return entry.split("\\n");
     }
+
+    private static void attachSources(ZipOutputStream outputStream, Path sourcesDir) {
+        try {
+            Files.walk(sourcesDir).filter(f -> !Files.isDirectory(f)).forEach(sourcePath -> {
+                try {
+                    String relativePath = "src" + File.separator + sourcesDir.relativize(sourcePath);
+                    writeEntry(outputStream, relativePath, Files.readAllBytes(sourcePath));
+                    outputStream.closeEntry();
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
+            });
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
 }

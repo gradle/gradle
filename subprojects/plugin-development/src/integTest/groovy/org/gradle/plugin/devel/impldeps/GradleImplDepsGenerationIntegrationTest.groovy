@@ -16,7 +16,12 @@
 
 package org.gradle.plugin.devel.impldeps
 
+import groovy.transform.stc.ClosureParams
+import groovy.transform.stc.SimpleType
 import org.gradle.test.fixtures.file.TestFile
+
+import java.util.jar.JarEntry
+import java.util.jar.JarFile
 
 class GradleImplDepsGenerationIntegrationTest extends BaseGradleImplDepsIntegrationTest {
 
@@ -72,7 +77,7 @@ class GradleImplDepsGenerationIntegrationTest extends BaseGradleImplDepsIntegrat
         succeeds 'resolveDependencyArtifacts'
     }
 
-    def "Gradle API sources jar is generated when -all distribution is used"() {
+    def "Gradle API sources are attached when -all distribution is used"() {
         given:
         requireOwnGradleUserHomeDir()
         TestFile sourcesDir = distribution.gradleHomeDir.createDir("src")
@@ -90,7 +95,12 @@ class GradleImplDepsGenerationIntegrationTest extends BaseGradleImplDepsIntegrat
             task resolveDependencyArtifacts {
                 doLast {
                     def resolvedArtifacts = configurations.deps.incoming.files.files
-                    assert resolvedArtifacts.find { (it.name =~ 'gradle-api-(.*)-sources\\\\.jar').matches() }
+                    assert resolvedArtifacts.size() == 8
+                    assert resolvedArtifacts.find { (it.name =~ 'gradle-api-(.*)\\\\.jar').matches() }
+                    assert resolvedArtifacts.find { (it.name =~ 'gradle-installation-beacon-(.*)\\\\.jar').matches() }
+                    assert resolvedArtifacts.find { (it.name =~ 'groovy-all-(.*)\\\\.jar').matches() }
+                    assert resolvedArtifacts.findAll { (it.name =~ 'kotlin-stdlib-(.*)\\\\.jar').matches() }.size() == 4
+                    assert resolvedArtifacts.find { (it.name =~ 'kotlin-reflect-(.*)\\\\.jar').matches() }
                 }
             }
         """
@@ -99,14 +109,20 @@ class GradleImplDepsGenerationIntegrationTest extends BaseGradleImplDepsIntegrat
         succeeds 'resolveDependencyArtifacts'
 
         then:
-        TestFile sourcesJar = file("user-home/caches/${distribution.version.version}/generated-gradle-jars/gradle-api-${distribution.version.version}-sources.jar")
-        sourcesJar.assertExists()
+        TestFile apiJar = file("user-home/caches/${distribution.version.version}/generated-gradle-jars/gradle-api-${distribution.version.version}.jar")
+        apiJar.assertExists()
 
-        TestFile sources = temporaryFolder.createDir("sources")
-        sourcesJar.unzipTo(sources)
-        sources.assertHasDescendants("org/gradle/Test.java")
+        handleAsJarFile(apiJar) { JarFile file ->
+            List<JarEntry> entries = file.entries() as List
+            def entryPaths = entries*.name
+            assert entryPaths.contains("src/org/gradle/Test.java")
+        }
 
         cleanup:
         sourcesDir.forceDeleteDir()
+    }
+
+    static void handleAsJarFile(File jar, @ClosureParams(value = SimpleType, options = ["java.util.jar.JarFile"]) Closure<?> c) {
+        new JarFile(jar).withCloseable(c)
     }
 }
