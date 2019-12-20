@@ -109,7 +109,7 @@ class GradleInstallationForTestEnvironmentProvider(project: Project) : CommandLi
     val daemonRegistry = project.objects.directoryProperty()
 
     @get:Nested
-    val gradleDistribution = GradleDistribution(project, gradleHomeDir)
+    val gradleDistribution = GradleDistribution(gradleHomeDir)
 
     override fun asArguments() =
         mapOf(
