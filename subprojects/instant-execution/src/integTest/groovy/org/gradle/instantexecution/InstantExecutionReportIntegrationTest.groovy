@@ -70,7 +70,7 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         def jsFile = reportDir.file("instant-execution-report-data.js")
         jsFile.isFile()
         outputContains """
-            3 instant execution problems found:
+            6 instant execution problems were found, 3 of which seem unique:
               - field 'gradle' from type 'SomeBean': cannot serialize object of type 'org.gradle.invocation.DefaultGradle', a subtype of 'org.gradle.api.invocation.Gradle', as these are not supported with instant execution.
               - field 'gradle' from type 'NestedBean': cannot serialize object of type 'org.gradle.invocation.DefaultGradle', a subtype of 'org.gradle.api.invocation.Gradle', as these are not supported with instant execution.
               - field 'project' from type 'NestedBean': cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with instant execution.
@@ -114,7 +114,8 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         def reportDir = stateDirForTasks("foo")
         def jsFile = reportDir.file("instant-execution-report-data.js")
         numberOfProblemsIn(jsFile) == expectedNumberOfProblems
-        outputContains "$expectedNumberOfProblems instant execution problems found:"
+        def problemOrProblems = expectedNumberOfProblems == 1 ? "problem was" : "problems were"
+        outputContains "$expectedNumberOfProblems instant execution $problemOrProblems found"
         failureHasCause "Maximum number of instant execution problems has been exceeded"
 
         where:
@@ -143,7 +144,7 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         def reportDir = stateDirForTasks("foo")
         def jsFile = reportDir.file("instant-execution-report-data.js")
         numberOfProblemsIn(jsFile) == 1
-        outputContains "1 instant execution problems found:"
+        outputContains "1 instant execution problem was found"
         failureDescriptionStartsWith "Problems found while caching instant execution state"
     }
 
