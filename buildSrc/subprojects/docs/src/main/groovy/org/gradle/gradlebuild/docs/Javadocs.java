@@ -35,11 +35,6 @@ public abstract class Javadocs {
      */
     public abstract Property<URI> getGroovyApi();
     /**
-     * Link to Maven API to use when generating Javadoc
-     */
-    public abstract Property<URI> getMavenApi();
-
-    /**
      * The CSS file to style Javadocs with
      */
     public abstract RegularFileProperty getJavadocCss();
