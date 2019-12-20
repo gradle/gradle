@@ -402,8 +402,8 @@ val allIncubationReports = tasks.register<IncubatingApiAggregateReportTask>("all
     reports = allReports.associateBy({ it.title.get()}) { it.textReportFile.asFile.get() }
 }
 tasks.register<Zip>("allIncubationReportsZip") {
-    destinationDir = file("$buildDir/reports/incubation")
-    baseName = "incubating-apis"
+    destinationDirectory.set(layout.buildDirectory.dir("reports/incubation"))
+    archiveBaseName.set("incubating-apis")
     from(allIncubationReports.get().htmlReportFile)
     from(collectAllIncubationReports().map { it.htmlReportFile })
 }
