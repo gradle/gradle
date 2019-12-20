@@ -28,6 +28,7 @@ import java.util.List;
  * Is used for generating a Maven POM file and customizing the generation.
  * To learn about the Maven POM see: <a href="http://maven.apache.org/pom.html">http://maven.apache.org/pom.html</a>
  */
+@Deprecated
 public interface MavenPom {
 
     String POM_FILE_ENCODING = "UTF-8";

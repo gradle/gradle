@@ -32,6 +32,7 @@ package org.gradle.api.artifacts.maven;
  * instead of repository, the snapshot repository is build.
  * @see MavenDeployer
  */
+@Deprecated
 public interface GroovyMavenDeployer extends MavenDeployer {
 
 }

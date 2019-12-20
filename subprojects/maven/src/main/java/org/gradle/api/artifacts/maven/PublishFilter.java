@@ -23,6 +23,7 @@ import java.io.File;
 /**
  * A filter for artifacts to be published.
  */
+@Deprecated
 public interface PublishFilter {
     PublishFilter ALWAYS_ACCEPT = new PublishFilter() {
         @Override
