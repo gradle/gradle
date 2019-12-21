@@ -17,13 +17,20 @@ package org.gradle.api.internal.artifacts.verification.verifier;
 
 import org.gradle.internal.logging.text.TreeFormatter;
 
-public interface VerificationFailure {
-    default boolean isFatal() {
-        return true;
-    }
+public class OnlyIgnoredKeys implements VerificationFailure {
+    public static final OnlyIgnoredKeys INSTANCE = new OnlyIgnoredKeys();
 
-    default void explainTo(TreeFormatter formatter) {
+    private OnlyIgnoredKeys() {
 
     }
 
+    @Override
+    public boolean isFatal() {
+        return false;
+    }
+
+    @Override
+    public void explainTo(TreeFormatter formatter) {
+        formatter.append("artifact was signed but all keys were ignored");
+    }
 }

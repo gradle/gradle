@@ -17,13 +17,14 @@ package org.gradle.api.internal.artifacts.verification.verifier;
 
 import org.gradle.internal.logging.text.TreeFormatter;
 
-public interface VerificationFailure {
-    default boolean isFatal() {
-        return true;
+public class MissingChecksums implements VerificationFailure {
+    public static final MissingChecksums INSTANCE = new MissingChecksums();
+
+    private MissingChecksums() {
     }
 
-    default void explainTo(TreeFormatter formatter) {
-
+    @Override
+    public void explainTo(TreeFormatter formatter) {
+        formatter.append("checksum is missing from verification metadata.");
     }
-
 }

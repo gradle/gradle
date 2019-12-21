@@ -85,7 +85,7 @@ class DependencyVerificationSignatureCheckIntegTest extends AbstractSignatureVer
         failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
   - On artifact foo-1.0.jar (org:foo:1.0): Artifact was signed with key '14f53f0824875d73' but it wasn't found in any key server so it couldn't be verified
   - On artifact foo-1.0.pom (org:foo:1.0): Artifact was signed with key '14f53f0824875d73' but it wasn't found in any key server so it couldn't be verified
-This can indicate that a dependency has been compromised. Please verify carefully the checksums."""
+This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
     }
 
     @ToBeFixedForInstantExecution
@@ -126,7 +126,7 @@ This can indicate that a dependency has been compromised. Please verify carefull
         failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
   - On artifact foo-1.0.jar (org:foo:1.0): Artifact was signed with key '14f53f0824875d73' but it wasn't found in any key server so it couldn't be verified
   - On artifact foo-1.0.pom (org:foo:1.0): Artifact was signed with key '14f53f0824875d73' but it wasn't found in any key server so it couldn't be verified
-This can indicate that a dependency has been compromised. Please verify carefully the checksums."""
+This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
 
         where:
         stopInBetween << [false, true]
@@ -175,7 +175,7 @@ This can indicate that a dependency has been compromised. Please verify carefull
         failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
   - On artifact foo-1.0-classy.jar (org:foo:1.0): Artifact was signed with key '$pkId' (test-user@gradle.com) and passed verification but the key isn't in your trusted keys list.
   - On artifact foo-1.0.pom (org:foo:1.0): Artifact was signed with key '$pkId' (test-user@gradle.com) and passed verification but the key isn't in your trusted keys list.
-This can indicate that a dependency has been compromised. Please verify carefully the checksums."""
+This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
 
         where:
         stopInBetween << [false, true]
@@ -214,7 +214,7 @@ This can indicate that a dependency has been compromised. Please verify carefull
         then:
         failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
   - On artifact foo-1.0.jar (org:foo:1.0): Artifact was signed with key '14f53f0824875d73' (Gradle Test (This is used for testing the gradle-signing-plugin) <test@gradle.org>) but signature didn't match
-This can indicate that a dependency has been compromised. Please verify carefully the checksums."""
+This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
     }
 
 
@@ -250,7 +250,7 @@ This can indicate that a dependency has been compromised. Please verify carefull
         failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
   - On artifact foo-1.0.jar (org:foo:1.0): Artifact was signed with key '$pkId' (test-user@gradle.com) and passed verification but the key isn't in your trusted keys list.
   - On artifact foo-1.0.pom (org:foo:1.0): Artifact was signed with key '$pkId' (test-user@gradle.com) and passed verification but the key isn't in your trusted keys list.
-This can indicate that a dependency has been compromised. Please verify carefully the checksums."""
+This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
     }
 
     def "can verify classified artifacts"() {
@@ -286,7 +286,7 @@ This can indicate that a dependency has been compromised. Please verify carefull
         failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
   - On artifact foo-1.0-classy.jar (org:foo:1.0): Artifact was signed with key '$pkId' (test-user@gradle.com) and passed verification but the key isn't in your trusted keys list.
   - On artifact foo-1.0.pom (org:foo:1.0): Artifact was signed with key '$pkId' (test-user@gradle.com) and passed verification but the key isn't in your trusted keys list.
-This can indicate that a dependency has been compromised. Please verify carefully the checksums."""
+This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
     }
 
     def "reasonable error message if key server fails to answer"() {
@@ -318,7 +318,7 @@ This can indicate that a dependency has been compromised. Please verify carefull
         failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
   - On artifact foo-1.0.jar (org:foo:1.0): Artifact was signed with key '14f53f0824875d73' but it wasn't found in any key server so it couldn't be verified
   - On artifact foo-1.0.pom (org:foo:1.0): Artifact was signed with key '14f53f0824875d73' but it wasn't found in any key server so it couldn't be verified
-This can indicate that a dependency has been compromised. Please verify carefully the checksums."""
+This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
     }
 
     def "can fetch key from different keyserver"() {
@@ -391,7 +391,7 @@ This can indicate that a dependency has been compromised. Please verify carefull
         failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
   - On artifact foo-1.0.jar (org:foo:1.0): Artifact was signed with key '$pkId' (test-user@gradle.com) and passed verification but the key isn't in your trusted keys list.
   - On artifact foo-1.0.pom (org:foo:1.0): Artifact was signed with key '$pkId' (test-user@gradle.com) and passed verification but the key isn't in your trusted keys list.
-This can indicate that a dependency has been compromised. Please verify carefully the checksums."""
+This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
     }
 
     @ToBeFixedForInstantExecution
@@ -423,7 +423,7 @@ This can indicate that a dependency has been compromised. Please verify carefull
         failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
   - On artifact foo-1.0.jar (org:foo:1.0): Artifact was signed with key '14f53f0824875d73' but it wasn't found in any key server so it couldn't be verified
   - On artifact foo-1.0.pom (org:foo:1.0): Artifact was signed with key '14f53f0824875d73' but it wasn't found in any key server so it couldn't be verified
-This can indicate that a dependency has been compromised. Please verify carefully the checksums."""
+This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
 
         when: "publish keys"
         keyServerFixture.withDefaultSigningKey()
@@ -433,7 +433,7 @@ This can indicate that a dependency has been compromised. Please verify carefull
         failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
   - On artifact foo-1.0.jar (org:foo:1.0): Artifact was signed with key '14f53f0824875d73' but it wasn't found in any key server so it couldn't be verified
   - On artifact foo-1.0.pom (org:foo:1.0): Artifact was signed with key '14f53f0824875d73' but it wasn't found in any key server so it couldn't be verified
-This can indicate that a dependency has been compromised. Please verify carefully the checksums."""
+This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
 
         when: "refreshes the keys"
         succeeds ":compileJava", "--refresh-keys"
@@ -527,7 +527,7 @@ This can indicate that a dependency has been compromised. Please verify carefull
         then:
         failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
   - On artifact foo-1.0.jar (org:foo:1.0): Artifact was signed with key '14f53f0824875d73' (Gradle Test (This is used for testing the gradle-signing-plugin) <test@gradle.org>) and passed verification but the key isn't in your trusted keys list.
-This can indicate that a dependency has been compromised. Please verify carefully the checksums."""
+This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
     }
 
     def "unsigned artifacts require checksum verification"() {
@@ -552,9 +552,13 @@ This can indicate that a dependency has been compromised. Please verify carefull
 
         then:
         failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
-  - On artifact foo-1.0.jar (org:foo:1.0): expected a 'sha256' checksum of 'nope' but was '20ae575ede776e5e06ee6b168652d11ee23069e92de110fdec13fbeaa5cf3bbc'
-  - On artifact foo-1.0.pom (org:foo:1.0): expected a 'sha256' checksum of 'nope' but was 'f331cce36f6ce9ea387a2c8719fabaf67dc5a5862227ebaa13368ff84eb69481'
-This can indicate that a dependency has been compromised. Please verify carefully the checksums."""
+  - On artifact foo-1.0.jar (org:foo:1.0): multiple problems reported:
+      - artifact wasn't signed
+      - expected a 'sha256' checksum of 'nope' but was '20ae575ede776e5e06ee6b168652d11ee23069e92de110fdec13fbeaa5cf3bbc'
+  - On artifact foo-1.0.pom (org:foo:1.0): multiple problems reported:
+      - artifact wasn't signed
+      - expected a 'sha256' checksum of 'nope' but was 'f331cce36f6ce9ea387a2c8719fabaf67dc5a5862227ebaa13368ff84eb69481'
+This can indicate that a dependency has been compromised. Please carefully verify the checksums."""
     }
 
     def "can ignore a key and fallback to checksum verification"() {
@@ -582,8 +586,8 @@ This can indicate that a dependency has been compromised. Please verify carefull
 
         then:
         failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
-  - Artifact foo-1.0.jar (org:foo:1.0) checksum is missing from verification metadata.
-  - Artifact foo-1.0.pom (org:foo:1.0) checksum is missing from verification metadata."""
+  - On artifact foo-1.0.jar (org:foo:1.0): checksum is missing from verification metadata.
+  - On artifact foo-1.0.pom (org:foo:1.0): checksum is missing from verification metadata."""
     }
 
     def "can ignore a key for a specific artifact and fallback to checksum verification"() {
@@ -618,8 +622,10 @@ This can indicate that a dependency has been compromised. Please verify carefull
         // and pom file fails because we didn't trust the key
         failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
   - On artifact foo-1.0.pom (org:foo:1.0): Artifact was signed with key '14f53f0824875d73' (Gradle Test (This is used for testing the gradle-signing-plugin) <test@gradle.org>) and passed verification but the key isn't in your trusted keys list.
-  - Artifact foo-1.0.jar (org:foo:1.0) checksum is missing from verification metadata.
-This can indicate that a dependency has been compromised. Please verify carefully the checksums."""
+  - On artifact foo-1.0.jar (org:foo:1.0): multiple problems reported:
+      - artifact was signed but all keys were ignored
+      - checksum is missing from verification metadata.
+This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
 
     }
 
@@ -692,7 +698,7 @@ This can indicate that a dependency has been compromised. Please verify carefull
   - On artifact foo-1.0.pom (org:foo:1.0): Multiple signature verification errors found:
       - Artifact was signed with key '14f53f0824875d73' but it wasn't found in any key server so it couldn't be verified
       - Artifact was signed with key '${pkId}' (test-user@gradle.com) and passed verification but the key isn't in your trusted keys list.
-This can indicate that a dependency has been compromised. Please verify carefully the checksums."""
+This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
     }
 
     def "can declare globally trusted keys"() {
@@ -767,7 +773,7 @@ This can indicate that a dependency has been compromised. Please verify carefull
             failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
   - On artifact foo-1.0.jar (org:foo:1.0): Artifact was signed with key '${pkId}' (test-user@gradle.com) and passed verification but the key isn't in your trusted keys list.
   - On artifact foo-1.0.pom (org:foo:1.0): Artifact was signed with key '${pkId}' (test-user@gradle.com) and passed verification but the key isn't in your trusted keys list.
-This can indicate that a dependency has been compromised. Please verify carefully the checksums."""
+This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
         }
 
         where:
