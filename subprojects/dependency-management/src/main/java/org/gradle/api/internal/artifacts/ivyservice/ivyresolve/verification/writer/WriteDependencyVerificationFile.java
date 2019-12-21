@@ -90,6 +90,7 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
     private final boolean isDryRun;
     private final boolean generatePgpInfo;
 
+    private boolean hasMissingSignatures = false;
     private boolean hasMissingKeys = false;
     private boolean hasFailedVerification = false;
 
@@ -194,6 +195,10 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
     private void printWarnings() {
         if (hasMissingKeys || hasFailedVerification) {
             StringBuilder sb = new StringBuilder("A verification file was generated but some problems were discovered:\n");
+            if (hasMissingSignatures) {
+                sb.append("   - some artifacts aren't signed or the signature couldn't be retrieved.");
+                sb.append("\n");
+            }
             if (hasMissingKeys) {
                 sb.append("   - some keys couldn't be downloaded. They were automatically added as ignored keys but you should review if this is acceptable. Look for entries with the following comment: ");
                 sb.append(KEY_NOT_DOWNLOADED);
@@ -230,6 +235,7 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
                             hasMissingKeys = true;
                             label += " because a key couldn't be downloaded";
                         } else {
+                            hasMissingSignatures = true;
                             label += " because artifact wasn't signed";
                         }
                     }

@@ -15,7 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification;
 
-import com.google.common.collect.Maps;
+import com.google.common.collect.LinkedHashMultimap;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Queues;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
@@ -28,7 +29,10 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRe
 import org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationsXmlReader;
 import org.gradle.api.internal.artifacts.verification.signatures.SignatureVerificationService;
 import org.gradle.api.internal.artifacts.verification.signatures.SignatureVerificationServiceFactory;
+import org.gradle.api.internal.artifacts.verification.verifier.DeletedArtifact;
 import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifier;
+import org.gradle.api.internal.artifacts.verification.verifier.MissingChecksums;
+import org.gradle.api.internal.artifacts.verification.verifier.SignatureVerificationFailure;
 import org.gradle.api.internal.artifacts.verification.verifier.VerificationFailure;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
@@ -47,6 +51,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.net.URI;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.Deque;
 import java.util.List;
@@ -56,12 +61,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class ChecksumAndSignatureVerificationOverride implements DependencyVerificationOverride, ArtifactVerificationOperation {
     private final static Logger LOGGER = Logging.getLogger(ChecksumAndSignatureVerificationOverride.class);
 
-    private static final Comparator<Map.Entry<ModuleComponentArtifactIdentifier, VerificationFailure>> DELETED_LAST = Comparator.comparing(e -> e.getValue() == VerificationFailure.DELETED ? 1 : 0);
-    private static final Comparator<Map.Entry<ModuleComponentArtifactIdentifier, VerificationFailure>> MISSING_LAST = Comparator.comparing(e -> e.getValue() == VerificationFailure.MISSING ? 1 : 0);
-    private static final Comparator<Map.Entry<ModuleComponentArtifactIdentifier, VerificationFailure>> BY_MODULE_ID = Comparator.comparing(e -> e.getKey().getDisplayName());
+    private static final Comparator<Map.Entry<ModuleComponentArtifactIdentifier, Collection<VerificationFailure>>> DELETED_LAST = Comparator.comparing(e -> e.getValue().stream().anyMatch(f -> f == DeletedArtifact.INSTANCE) ? 1 : 0);
+    private static final Comparator<Map.Entry<ModuleComponentArtifactIdentifier, Collection<VerificationFailure>>> MISSING_LAST = Comparator.comparing(e -> e.getValue().stream().anyMatch(f -> f == MissingChecksums.INSTANCE) ? 1 : 0);
+    private static final Comparator<Map.Entry<ModuleComponentArtifactIdentifier, Collection<VerificationFailure>>> BY_MODULE_ID = Comparator.comparing(e -> e.getKey().getDisplayName());
 
     private final DependencyVerifier verifier;
-    private final Map<ModuleComponentArtifactIdentifier, VerificationFailure> failures = Maps.newLinkedHashMapWithExpectedSize(2);
+    private final Multimap<ModuleComponentArtifactIdentifier, VerificationFailure> failures = LinkedHashMultimap.create();
     private final BuildOperationExecutor buildOperationExecutor;
     private final ChecksumService checksumService;
     private final SignatureVerificationService signatureVerificationService;
@@ -142,39 +147,70 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
                 formatter.startChildren();
                 AtomicBoolean maybeCompromised = new AtomicBoolean();
                 AtomicBoolean hasMissing = new AtomicBoolean();
+                AtomicBoolean failedSignatures = new AtomicBoolean();
+                AtomicBoolean hasFatalFailure = new AtomicBoolean();
                 // Sorting entries so that error messages are always displayed in a reproducible order
-                failures.entrySet()
+                failures.asMap()
+                    .entrySet()
                     .stream()
                     .sorted(DELETED_LAST.thenComparing(MISSING_LAST).thenComparing(BY_MODULE_ID))
                     .forEachOrdered(entry -> {
-                        VerificationFailure failure = entry.getValue();
-                        if (failure == VerificationFailure.DELETED) {
-                            formatter.node("Artifact " + entry.getKey() + " has been deleted from local cache so verification cannot be performed");
-                        } else if (failure == VerificationFailure.MISSING) {
-                            hasMissing.set(true);
-                            formatter.node("Artifact " + entry.getKey() + " checksum is missing from verification metadata.");
-                        } else {
-                            maybeCompromised.set(true);
-                            formatter.node("On artifact " + entry.getKey() + ": ");
-                            failure.explainTo(formatter);
+                        ModuleComponentArtifactIdentifier key = entry.getKey();
+                        Collection<VerificationFailure> failures = entry.getValue();
+                        if (failures.stream().anyMatch(VerificationFailure::isFatal)) {
+                            hasFatalFailure.set(true);
+                            formatter.node("On artifact " + key + ": ");
+                            if (failures.size() == 1) {
+                                explainSingleFailure(formatter, maybeCompromised, hasMissing, failedSignatures, failures.iterator().next());
+                            } else {
+                                explainMultiFailure(formatter, maybeCompromised, hasMissing, failedSignatures, failures);
+                            }
                         }
                     });
                 formatter.endChildren();
                 if (maybeCompromised.get()) {
-                    formatter.node("This can indicate that a dependency has been compromised. Please verify carefully the checksums.");
+                    formatter.node("This can indicate that a dependency has been compromised. Please carefully verify the ");
+                    if (failedSignatures.get()) {
+                        formatter.append("signatures and ");
+                    }
+                    formatter.append("checksums.");
                 } else if (hasMissing.get()) {
                     // the else is just to avoid telling people to use `--write-verification-metadata` if we suspect compromised dependencies
                     formatter.node("If the dependency is legit, update the gradle/dependency-verification.xml manually (safest) or run with the --write-verification-metadata flag (unsecure).");
                 }
-                String message = formatter.toString();
-                if (verificationMode == DependencyVerificationMode.LENIENT) {
-                    LOGGER.error(message);
-                    failures.clear();
-                } else {
-                    throw new InvalidUserDataException(message);
+                if (hasFatalFailure.get()) {
+                    String message = formatter.toString();
+                    if (verificationMode == DependencyVerificationMode.LENIENT) {
+                        LOGGER.error(message);
+                        failures.clear();
+                    } else {
+                        throw new InvalidUserDataException(message);
+                    }
                 }
             }
         }
+    }
+
+    private void explainMultiFailure(TreeFormatter formatter, AtomicBoolean maybeCompromised, AtomicBoolean hasMissing, AtomicBoolean failedSignatures, Collection<VerificationFailure> failures) {
+        formatter.append("multiple problems reported");
+        formatter.startChildren();
+        for (VerificationFailure failure : failures) {
+            formatter.node("");
+            explainSingleFailure(formatter, maybeCompromised, hasMissing, failedSignatures, failure);
+        }
+        formatter.endChildren();
+    }
+
+    private void explainSingleFailure(TreeFormatter formatter, AtomicBoolean maybeCompromised, AtomicBoolean hasMissing, AtomicBoolean failedSignatures, VerificationFailure failure) {
+        if (failure == MissingChecksums.INSTANCE) {
+            hasMissing.set(true);
+        } else {
+            if (failure instanceof SignatureVerificationFailure) {
+                failedSignatures.set(true);
+            }
+            maybeCompromised.set(true);
+        }
+        failure.explainTo(formatter);
     }
 
     @Override
