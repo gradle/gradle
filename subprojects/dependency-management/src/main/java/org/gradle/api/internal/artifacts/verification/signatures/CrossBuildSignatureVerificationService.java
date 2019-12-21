@@ -15,9 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.verification.signatures;
 
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import org.bouncycastle.openpgp.PGPPublicKey;
-import org.gradle.api.internal.artifacts.verification.verifier.SignatureVerificationFailure;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
@@ -34,15 +33,16 @@ import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.InterningStringSerializer;
-import org.gradle.internal.serialize.SetSerializer;
 import org.gradle.security.internal.PublicKeyService;
 
+import javax.annotation.Nullable;
 import java.io.File;
-import java.util.Map;
-import java.util.Optional;
+import java.util.List;
 import java.util.Set;
 
+import static java.util.stream.Collectors.toSet;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
+import static org.gradle.security.internal.SecuritySupport.toHexString;
 
 public class CrossBuildSignatureVerificationService implements SignatureVerificationService {
     private final SignatureVerificationService delegate;
@@ -57,7 +57,6 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
                                                   ProjectCacheDir projectCacheDir,
                                                   CacheRepository repository,
                                                   InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
-                                                  PublicKeyService keyService,
                                                   boolean refreshKeys) {
         this.delegate = delegate;
         this.fileHasher = fileHasher;
@@ -68,20 +67,16 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
             .withLockOptions(mode(FileLockManager.LockMode.None)) // Lock on demand
             .open();
         InterningStringSerializer stringSerializer = new InterningStringSerializer(new StringInterner());
-        SignatureVerificationFailureSerializer signatureVerificationFailureSerializer = new SignatureVerificationFailureSerializer(
-            stringSerializer,
-            keyService
-        );
         cache = store.createCache(
             PersistentIndexedCacheParameters.of(
                 "signature-verification",
                 new CacheKeySerializer(stringSerializer),
-                new CacheEntrySerializer(new SetSerializer<String>(stringSerializer), signatureVerificationFailureSerializer)
+                new CacheEntrySerializer(stringSerializer)
             ).withCacheDecorator(inMemoryCacheDecoratorFactory.decorator(500, true)));
     }
 
     @Override
-    public Optional<SignatureVerificationFailure> verify(File origin, File signature, Set<String> trustedKeys, Set<String> ignoredKeys) {
+    public void verify(File origin, File signature, Set<String> trustedKeys, Set<String> ignoredKeys, SignatureVerificationResultBuilder builder) {
         CacheKey cacheKey = new CacheKey(origin.getAbsolutePath(), signature.getAbsolutePath());
         HashCode originHash = fileHasher.hash(origin);
         HashCode signatureHash = fileHasher.hash(signature);
@@ -93,12 +88,18 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
             entry = performActualVerification(origin, signature, trustedKeys, ignoredKeys, originHash, signatureHash);
             cache.put(cacheKey, entry);
         }
-        return Optional.ofNullable(entry.verificationFailure);
+        entry.applyTo(builder);
+    }
+
+    @Override
+    public PublicKeyService getPublicKeyService() {
+        return delegate.getPublicKeyService();
     }
 
     private CacheEntry performActualVerification(File origin, File signature, Set<String> trustedKeys, Set<String> ignoredKeys, HashCode originHash, HashCode signatureHash) {
-        Optional<SignatureVerificationFailure> verificationFailure = delegate.verify(origin, signature, trustedKeys, ignoredKeys);
-        return new CacheEntry(originHash, signatureHash, trustedKeys, ignoredKeys, verificationFailure.orElse(null));
+        CacheEntryBuilder result = new CacheEntryBuilder(originHash, signatureHash);
+        delegate.verify(origin, signature, trustedKeys, ignoredKeys, result);
+        return result.build();
     }
 
     @Override
@@ -136,113 +137,213 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
         }
     }
 
+    private static class CacheEntryBuilder implements SignatureVerificationResultBuilder {
+        private final HashCode originHash;
+        private final HashCode signatureHash;
+
+        private List<String> missingKeys = null;
+        private List<PGPPublicKey> trustedKeys = null;
+        private List<PGPPublicKey> validKeys = null;
+        private List<PGPPublicKey> failedKeys = null;
+        private List<String> ignoredKeys = null;
+
+        private CacheEntryBuilder(HashCode originHash, HashCode signatureHash) {
+            this.originHash = originHash;
+            this.signatureHash = signatureHash;
+        }
+
+        @Override
+        public void missingKey(String keyId) {
+            if (missingKeys == null) {
+                missingKeys = Lists.newArrayList();
+            }
+            missingKeys.add(keyId);
+        }
+
+        @Override
+        public void verified(PGPPublicKey key, boolean trusted) {
+            if (trusted) {
+                if (trustedKeys == null) {
+                    trustedKeys = Lists.newArrayList();
+                }
+                trustedKeys.add(key);
+            } else {
+                if (validKeys == null) {
+                    validKeys = Lists.newArrayList();
+                }
+                validKeys.add(key);
+            }
+        }
+
+        @Override
+        public void failed(PGPPublicKey pgpPublicKey) {
+            if (failedKeys == null) {
+                failedKeys = Lists.newArrayList();
+            }
+            failedKeys.add(pgpPublicKey);
+        }
+
+        @Override
+        public void ignored(String keyId) {
+            if (ignoredKeys == null) {
+                ignoredKeys = Lists.newArrayList();
+            }
+            ignoredKeys.add(keyId);
+        }
+
+        CacheEntry build() {
+            return new CacheEntry(originHash, signatureHash, missingKeys, trustedKeys, validKeys, failedKeys, ignoredKeys);
+        }
+    }
+
     private static class CacheEntry {
         private final HashCode originHash;
         private final HashCode signatureHash;
-        private final Set<String> trustedKeys;
-        private final Set<String> ignoredKeys;
-        private final SignatureVerificationFailure verificationFailure;
+        private final List<String> missingKeys;
+        private final List<PGPPublicKey> trustedKeys;
+        private final List<PGPPublicKey> validKeys;
+        private final List<PGPPublicKey> failedKeys;
+        private final List<String> ignoredKeys;
 
-        private CacheEntry(HashCode originHash, HashCode signatureHash, Set<String> trustedKeys, Set<String> ignoredKeys, SignatureVerificationFailure verificationFailure) {
+        public CacheEntry(HashCode originHash, HashCode signatureHash, List<String> missingKeys, List<PGPPublicKey> trustedKeys, List<PGPPublicKey> validKeys, List<PGPPublicKey> failedKeys, List<String> ignoredKeys) {
             this.originHash = originHash;
             this.signatureHash = signatureHash;
+            this.missingKeys = missingKeys;
             this.trustedKeys = trustedKeys;
+            this.validKeys = validKeys;
+            this.failedKeys = failedKeys;
             this.ignoredKeys = ignoredKeys;
-            this.verificationFailure = verificationFailure;
         }
 
         private boolean matches(HashCode originHash, HashCode signatureHash, Set<String> trustedKeys, Set<String> ignoredKeys) {
             return this.originHash.equals(originHash)
                 && this.signatureHash.equals(signatureHash)
-                && this.trustedKeys.equals(trustedKeys)
-                && this.ignoredKeys.equals(ignoredKeys);
+                && sameKeys(this.trustedKeys, trustedKeys)
+                && sameStringKeys(this.ignoredKeys, ignoredKeys);
+        }
+
+        private static boolean sameKeys(@Nullable List<PGPPublicKey> keySet, Set<String> check) {
+            if (keySet == null) {
+                return check.isEmpty();
+            }
+            return keySet.stream()
+                .map(key -> toHexString(key.getKeyID()))
+                .collect(toSet())
+                .equals(check);
+        }
+
+        private static boolean sameStringKeys(@Nullable List<String> keySet, Set<String> check) {
+            if (keySet == null) {
+                return check.isEmpty();
+            }
+            return keySet.equals(check);
+        }
+
+        void applyTo(SignatureVerificationResultBuilder builder) {
+            if (missingKeys != null) {
+                for (String missingKey : missingKeys) {
+                    builder.missingKey(missingKey);
+                }
+            }
+            if (trustedKeys != null) {
+                for (PGPPublicKey trustedKey : trustedKeys) {
+                    builder.verified(trustedKey, true);
+                }
+            }
+            if (validKeys != null) {
+                for (PGPPublicKey validKey : validKeys) {
+                    builder.verified(validKey, false);
+                }
+            }
+            if (failedKeys != null) {
+                for (PGPPublicKey failedKey : failedKeys) {
+                    builder.failed(failedKey);
+                }
+            }
+            if (ignoredKeys != null) {
+                for (String ignoredKey : ignoredKeys) {
+                    builder.ignored(ignoredKey);
+                }
+            }
         }
     }
 
     private static class CacheEntrySerializer extends AbstractSerializer<CacheEntry> {
-        private final SetSerializer<String> stringSetSerializer;
-        private final SignatureVerificationFailureSerializer signatureVerificationFailureSerializer;
+        private final InterningStringSerializer stringSerializer;
+        private final PublicKeySerializer publicKeySerializer = new PublicKeySerializer();
 
-        private CacheEntrySerializer(SetSerializer<String> stringSetSerializer,
-                                     SignatureVerificationFailureSerializer signatureVerificationFailureSerializer) {
-            this.stringSetSerializer = stringSetSerializer;
-            this.signatureVerificationFailureSerializer = signatureVerificationFailureSerializer;
+        private CacheEntrySerializer(InterningStringSerializer stringSerializer) {
+            this.stringSerializer = stringSerializer;
         }
 
         @Override
         public CacheEntry read(Decoder decoder) throws Exception {
             HashCode originHash = HashCode.fromBytes(decoder.readBinary());
             HashCode signatureHash = HashCode.fromBytes(decoder.readBinary());
-            Set<String> trustedKeys = stringSetSerializer.read(decoder);
-            Set<String> ignoredKeys = stringSetSerializer.read(decoder);
-            SignatureVerificationFailure verificationFailure = signatureVerificationFailureSerializer.read(decoder);
-            return new CacheEntry(originHash, signatureHash, trustedKeys, ignoredKeys, verificationFailure);
+            List<String> missingKeys = readStringKeys(decoder);
+            List<PGPPublicKey> trustedKeys = readKeys(decoder);
+            List<PGPPublicKey> validKeys = readKeys(decoder);
+            List<PGPPublicKey> failedKeys = readKeys(decoder);
+            List<String> ignoredKeys = readStringKeys(decoder);
+            return new CacheEntry(originHash, signatureHash, missingKeys, trustedKeys, validKeys, failedKeys, ignoredKeys);
+        }
+
+        private List<String> readStringKeys(Decoder decoder) throws Exception {
+            int missingKeysLen = decoder.readSmallInt();
+            List<String> missingKeys = null;
+            if (missingKeysLen > 0) {
+                missingKeys = Lists.newArrayListWithCapacity(missingKeysLen);
+                for (int i = 0; i < missingKeysLen; i++) {
+                    missingKeys.add(stringSerializer.read(decoder));
+                }
+            }
+            return missingKeys;
+        }
+
+        private List<PGPPublicKey> readKeys(Decoder decoder) throws Exception {
+            int len = decoder.readSmallInt();
+            List<PGPPublicKey> keys = null;
+            if (len > 0) {
+                keys = Lists.newArrayListWithCapacity(len);
+                for (int i = 0; i < len; i++) {
+                    keys.add(publicKeySerializer.read(decoder));
+                }
+            }
+            return keys;
         }
 
         @Override
         public void write(Encoder encoder, CacheEntry value) throws Exception {
             encoder.writeBinary(value.originHash.toByteArray());
             encoder.writeBinary(value.signatureHash.toByteArray());
-            stringSetSerializer.write(encoder, value.trustedKeys);
-            stringSetSerializer.write(encoder, value.ignoredKeys);
-            signatureVerificationFailureSerializer.write(encoder, value.verificationFailure);
-        }
-    }
-
-    private static class SignatureVerificationFailureSerializer extends AbstractSerializer<SignatureVerificationFailure> {
-        private final InterningStringSerializer stringSerializer;
-        private final PublicKeyService publicKeyService;
-        private final PublicKeySerializer publicKeySerializer;
-
-        private SignatureVerificationFailureSerializer(InterningStringSerializer stringSerializer, PublicKeyService publicKeyService) {
-            this.stringSerializer = stringSerializer;
-            this.publicKeyService = publicKeyService;
-            this.publicKeySerializer = new PublicKeySerializer();
+            writeStringKeys(encoder, value.missingKeys);
+            writeKeys(encoder, value.trustedKeys);
+            writeKeys(encoder, value.validKeys);
+            writeKeys(encoder, value.failedKeys);
+            writeStringKeys(encoder, value.ignoredKeys);
         }
 
-        @Override
-        public SignatureVerificationFailure read(Decoder decoder) throws Exception {
-            if (!decoder.readBoolean()) {
-                return null;
-            }
-            int size = decoder.readSmallInt();
-            ImmutableMap.Builder<String, SignatureVerificationFailure.SignatureError> errors = ImmutableMap.builderWithExpectedSize(size);
-            for (int i = 0; i < size; i++) {
-                String key = stringSerializer.read(decoder);
-                SignatureVerificationFailure.FailureKind kind = SignatureVerificationFailure.FailureKind.values()[decoder.readSmallInt()];
-                PGPPublicKey publicKey = null;
-                if (decoder.readBoolean()) {
-                    publicKey = publicKeySerializer.read(decoder);
+        private void writeStringKeys(Encoder encoder, List<String> keys) throws Exception {
+            if (keys == null) {
+                encoder.writeSmallInt(0);
+            } else {
+                encoder.writeSmallInt(keys.size());
+                for (String key : keys) {
+                    stringSerializer.write(encoder, key);
                 }
-                errors.put(key, new SignatureVerificationFailure.SignatureError(
-                    publicKey, kind
-                ));
             }
-            return new SignatureVerificationFailure(errors.build(), publicKeyService);
         }
 
-        @Override
-        public void write(Encoder encoder, SignatureVerificationFailure value) throws Exception {
-            if (value == null) {
-                encoder.writeBoolean(false);
-                return;
-            }
-            encoder.writeBoolean(true);
-            Map<String, SignatureVerificationFailure.SignatureError> errors = value.getErrors();
-            encoder.writeSmallInt(errors.size());
-            for (Map.Entry<String, SignatureVerificationFailure.SignatureError> entry : errors.entrySet()) {
-                String key = entry.getKey();
-                SignatureVerificationFailure.SignatureError error = entry.getValue();
-                stringSerializer.write(encoder, key);
-                encoder.writeSmallInt(error.getKind().ordinal());
-                PGPPublicKey publicKey = error.getPublicKey();
-                if (publicKey == null) {
-                    encoder.writeBoolean(false);
-                } else {
-                    encoder.writeBoolean(true);
-                    publicKeySerializer.write(encoder, publicKey);
+        private void writeKeys(Encoder encoder, List<PGPPublicKey> keys) throws Exception {
+            if (keys == null) {
+                encoder.writeSmallInt(0);
+            } else {
+                encoder.writeSmallInt(keys.size());
+                for (PGPPublicKey key : keys) {
+                    publicKeySerializer.write(encoder, key);
                 }
             }
         }
     }
+
 }

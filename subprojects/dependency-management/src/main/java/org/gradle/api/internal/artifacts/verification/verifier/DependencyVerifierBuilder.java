@@ -87,6 +87,10 @@ public class DependencyVerifierBuilder {
         isVerifySignatures = verifySignatures;
     }
 
+    public List<URI> getKeyServers() {
+        return keyServers;
+    }
+
     public void addTrustedArtifact(@Nullable String group, @Nullable String name, @Nullable String version, @Nullable String fileName, boolean regex) {
         validateUserInput(group, name, version, fileName);
         trustedArtifacts.add(new DependencyVerificationConfiguration.TrustedArtifact(group, name, version, fileName, regex));

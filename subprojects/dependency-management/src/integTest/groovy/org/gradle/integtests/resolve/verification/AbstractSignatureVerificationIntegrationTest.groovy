@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.verification
 
 import org.gradle.integtests.fixtures.cache.CachingIntegrationFixture
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.security.fixtures.KeyServer
 import org.gradle.security.fixtures.SigningFixtures
 import org.gradle.security.fixtures.SimpleKeyRing
@@ -57,5 +58,9 @@ abstract class AbstractSignatureVerificationIntegrationTest extends AbstractDepe
 
     private SimpleKeyRing createKeyRing() {
         createSimpleKeyRing(temporaryFolder.createDir("keys-${UUID.randomUUID()}"))
+    }
+
+    protected GradleExecuter writeVerificationMetadata(String checksums = "sha256,pgp") {
+        executer.withArguments("--write-verification-metadata", checksums)
     }
 }

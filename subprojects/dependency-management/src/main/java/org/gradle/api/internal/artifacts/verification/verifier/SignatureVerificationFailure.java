@@ -55,20 +55,6 @@ public class SignatureVerificationFailure implements VerificationFailure {
         formatter.endChildren();
     }
 
-    public String getMessage() {
-        if (errors.size() == 1) {
-            Map.Entry<String, SignatureError> entry = errors.entrySet().iterator().next();
-            return toMessage(entry.getKey(), entry.getValue());
-        }
-        StringBuilder sb = new StringBuilder();
-        sb.append("Multiple signature verification errors found: ");
-        errors.entrySet()
-            .stream()
-            .sorted(Map.Entry.comparingByKey())
-            .forEachOrdered(entry -> appendError(entry.getKey(), entry.getValue(), sb));
-        return sb.toString();
-    }
-
     private String toMessage(String key, SignatureError value) {
         StringBuilder sb = new StringBuilder();
         appendError(key, value, sb);
@@ -90,6 +76,9 @@ public class SignatureVerificationFailure implements VerificationFailure {
                 appendKeyDetails(sb, publicKey);
                 sb.append("but signature didn't match");
                 break;
+            case MISSING_KEY:
+                sb.append("but it wasn't found in any key server so it couldn't be verified");
+                break;
         }
     }
 
@@ -97,7 +86,8 @@ public class SignatureVerificationFailure implements VerificationFailure {
         PASSED_NOT_TRUSTED,
         KEY_NOT_FOUND,
         FAILED,
-        IGNORED_KEY
+        IGNORED_KEY,
+        MISSING_KEY
     }
 
     private void appendKeyDetails(StringBuilder sb, PGPPublicKey key) {
@@ -131,17 +121,9 @@ public class SignatureVerificationFailure implements VerificationFailure {
             this.kind = kind;
         }
 
-        @Nullable
-        public PGPPublicKey getPublicKey() {
-            return publicKey;
-        }
-
         public FailureKind getKind() {
             return kind;
         }
 
-        public boolean isIgnoredKey() {
-            return kind == FailureKind.IGNORED_KEY;
-        }
     }
 }
