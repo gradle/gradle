@@ -318,7 +318,7 @@ public class StartParameterBuildOptions {
     }
 
     public static class DependencyVerificationWriteOption extends StringBuildOption<StartParameterInternal> {
-        public static final String SHORT_OPTION = "wv";
+        public static final String SHORT_OPTION = "M";
         public static final String LONG_OPTION = "write-verification-metadata";
 
         DependencyVerificationWriteOption() {
@@ -348,7 +348,7 @@ public class StartParameterBuildOptions {
 
         private static final String GRADLE_PROPERTY = "org.gradle.dependency.verification";
         private static final String LONG_OPTION = "dependency-verification";
-        private static final String SHORT_OPTION = "dv";
+        private static final String SHORT_OPTION = "F";
 
         public DependencyVerificationModeOption() {
             super(LONG_OPTION,
