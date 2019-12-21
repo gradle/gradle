@@ -18,7 +18,9 @@ package org.gradle.api.internal.artifacts.verification.verifier;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.bouncycastle.openpgp.PGPPublicKey;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.ArtifactVerificationOperation;
@@ -27,12 +29,15 @@ import org.gradle.api.internal.artifacts.verification.model.Checksum;
 import org.gradle.api.internal.artifacts.verification.model.ChecksumKind;
 import org.gradle.api.internal.artifacts.verification.model.ComponentVerificationMetadata;
 import org.gradle.api.internal.artifacts.verification.model.IgnoredKey;
+import org.gradle.api.internal.artifacts.verification.signatures.SignatureVerificationResultBuilder;
 import org.gradle.api.internal.artifacts.verification.signatures.SignatureVerificationService;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.security.internal.PublicKeyService;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
@@ -43,6 +48,8 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
+
+import static org.gradle.security.internal.SecuritySupport.toHexString;
 
 public class DependencyVerifier {
     private final Map<ComponentIdentifier, ComponentVerificationMetadata> verificationMetadata;
@@ -62,7 +69,13 @@ public class DependencyVerifier {
         .weakValues()
         .build();
 
-    public void verify(ChecksumService checksumService, SignatureVerificationService signatureVerificationService, ArtifactVerificationOperation.ArtifactKind kind, ModuleComponentArtifactIdentifier foundArtifact, File artifactFile, File signatureFile, Action<VerificationFailure> onFailure) {
+    public void verify(ChecksumService checksumService,
+                       SignatureVerificationService signatureVerificationService,
+                       ArtifactVerificationOperation.ArtifactKind kind,
+                       ModuleComponentArtifactIdentifier foundArtifact,
+                       File artifactFile,
+                       File signatureFile,
+                       Action<VerificationFailure> onFailure) {
         if (shouldSkipVerification(kind)) {
             return;
         }
@@ -106,6 +119,7 @@ public class DependencyVerifier {
 
     private Optional<? extends VerificationFailure> doVerifyArtifact(ModuleComponentArtifactIdentifier foundArtifact, ChecksumService checksumService, SignatureVerificationService signatureVerificationService, File file, File signature) {
         AtomicReference<VerificationFailure> failure = new AtomicReference<>();
+        PublicKeyService publicKeyService = signatureVerificationService.getPublicKeyService();
         ComponentVerificationMetadata componentVerification = verificationMetadata.get(foundArtifact.getComponentIdentifier());
         if (componentVerification != null) {
             String foundArtifactFileName = foundArtifact.getFileName();
@@ -114,15 +128,19 @@ public class DependencyVerifier {
                 String verifiedArtifact = verification.getArtifactName();
                 if (verifiedArtifact.equals(foundArtifactFileName)) {
                     if (signature != null) {
-                        Optional<? extends SignatureVerificationFailure> verificationFailure = verifySignature(signatureVerificationService, file, signature, allTrustedKeys(foundArtifact, verification.getTrustedPgpKeys()), allIgnoredKeys(verification.getIgnoredPgpKeys()));
-                        if (onlyConsistsOfIgnoredKeys(verificationFailure)) {
+                        DefaultSignatureVerificationResultBuilder result = new DefaultSignatureVerificationResultBuilder();
+                        verifySignature(signatureVerificationService, file, signature, allTrustedKeys(foundArtifact, verification.getTrustedPgpKeys()), allIgnoredKeys(verification.getIgnoredPgpKeys()), result);
+                        if (result.hasOnlyIgnoredKeys()) {
                             if (verification.getChecksums().isEmpty()) {
                                 return VerificationFailure.OPT_MISSING;
                             } else {
                                 return verifyChecksums(checksumService, file, failure, verification);
                             }
                         }
-                        return verificationFailure;
+                        if (result.hasError()) {
+                            return Optional.of(result.asError(publicKeyService));
+                        }
+                        return Optional.empty();
                     }
                     return verifyChecksums(checksumService, file, failure, verification);
                 }
@@ -130,9 +148,12 @@ public class DependencyVerifier {
         }
         if (signature != null) {
             // it's possible that the artifact is not listed explicitly but we can still verify signatures
-            Optional<? extends SignatureVerificationFailure> verificationFailure = verifySignature(signatureVerificationService, file, signature, allTrustedKeys(foundArtifact, Collections.emptySet()), allIgnoredKeys(Collections.emptySet()));
-            if (!onlyConsistsOfIgnoredKeys(verificationFailure)) {
-                return verificationFailure;
+            DefaultSignatureVerificationResultBuilder result = new DefaultSignatureVerificationResultBuilder();
+            verifySignature(signatureVerificationService, file, signature, allTrustedKeys(foundArtifact, Collections.emptySet()), allIgnoredKeys(Collections.emptySet()), result);
+            if (result.hasError()) {
+                return Optional.of(result.asError(publicKeyService));
+            } else if (!result.hasOnlyIgnoredKeys()) {
+                return Optional.empty();
             }
         }
 
@@ -171,15 +192,8 @@ public class DependencyVerifier {
         }
     }
 
-    private Optional<? extends SignatureVerificationFailure> verifySignature(SignatureVerificationService signatureVerificationService, File file, File signature, Set<String> trustedKeys, Set<String> ignoredKeys) {
-        return signatureVerificationService.verify(file, signature, trustedKeys, ignoredKeys);
-    }
-
-    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-    private static boolean onlyConsistsOfIgnoredKeys(Optional<? extends SignatureVerificationFailure> verificationFailure) {
-        return verificationFailure
-            .map(f -> f.getErrors().values().stream().allMatch(SignatureVerificationFailure.SignatureError::isIgnoredKey))
-            .orElse(false);
+    private void verifySignature(SignatureVerificationService signatureVerificationService, File file, File signature, Set<String> trustedKeys, Set<String> ignoredKeys, SignatureVerificationResultBuilder result) {
+        signatureVerificationService.verify(file, signature, trustedKeys, ignoredKeys, result);
     }
 
     private Optional<VerificationFailure> verifyChecksums(ChecksumService checksumService, File file, AtomicReference<VerificationFailure> failure, ArtifactVerificationMetadata verification) {
@@ -235,4 +249,91 @@ public class DependencyVerifier {
         return config;
     }
 
+    private static class DefaultSignatureVerificationResultBuilder implements SignatureVerificationResultBuilder {
+        private List<String> missingKeys = null;
+        private List<PGPPublicKey> trustedKeys = null;
+        private List<PGPPublicKey> validNotTrusted = null;
+        private List<PGPPublicKey> failedKeys = null;
+        private List<String> ignoredKeys = null;
+
+        @Override
+        public void missingKey(String keyId) {
+            if (missingKeys == null) {
+                missingKeys = Lists.newArrayList();
+            }
+            missingKeys.add(keyId);
+        }
+
+        @Override
+        public void verified(PGPPublicKey key, boolean trusted) {
+            if (trusted) {
+                if (trustedKeys == null) {
+                    trustedKeys = Lists.newArrayList();
+                }
+                trustedKeys.add(key);
+            } else {
+                if (validNotTrusted == null) {
+                    validNotTrusted = Lists.newArrayList();
+                }
+                validNotTrusted.add(key);
+            }
+        }
+
+        @Override
+        public void failed(PGPPublicKey pgpPublicKey) {
+            if (failedKeys == null) {
+                failedKeys = Lists.newArrayList();
+            }
+            failedKeys.add(pgpPublicKey);
+        }
+
+        @Override
+        public void ignored(String keyId) {
+            if (ignoredKeys == null) {
+                ignoredKeys = Lists.newArrayList();
+            }
+            ignoredKeys.add(keyId);
+        }
+
+        boolean hasOnlyIgnoredKeys() {
+            return ignoredKeys != null
+                && trustedKeys == null
+                && validNotTrusted == null
+                && missingKeys == null
+                && failedKeys == null;
+        }
+
+        public SignatureVerificationFailure asError(PublicKeyService publicKeyService) {
+            ImmutableMap.Builder<String, SignatureVerificationFailure.SignatureError> errors = ImmutableMap.builder();
+            if (missingKeys != null) {
+                for (String missingKey : missingKeys) {
+                    errors.put(missingKey, error(null, SignatureVerificationFailure.FailureKind.MISSING_KEY));
+                }
+            }
+            if (failedKeys != null) {
+                for (PGPPublicKey failedKey : failedKeys) {
+                    errors.put(toHexString(failedKey.getKeyID()), error(failedKey, SignatureVerificationFailure.FailureKind.FAILED));
+                }
+            }
+            if (validNotTrusted != null) {
+                for (PGPPublicKey trustedKey : validNotTrusted) {
+                    errors.put(toHexString(trustedKey.getKeyID()), error(trustedKey, SignatureVerificationFailure.FailureKind.PASSED_NOT_TRUSTED));
+                }
+            }
+            if (ignoredKeys != null) {
+                for (String ignoredKey : ignoredKeys) {
+                    errors.put(ignoredKey, error(null, SignatureVerificationFailure.FailureKind.IGNORED_KEY));
+                }
+            }
+            return new SignatureVerificationFailure(errors.build(), publicKeyService);
+        }
+
+        public boolean hasError() {
+            return failedKeys != null || validNotTrusted != null || missingKeys != null;
+        }
+    }
+
+    private static SignatureVerificationFailure.SignatureError error(@Nullable PGPPublicKey key, SignatureVerificationFailure.FailureKind kind) {
+        return new SignatureVerificationFailure.SignatureError(key, kind);
+    }
 }

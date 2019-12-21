@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Queues;
 import org.gradle.api.InvalidUserDataException;
@@ -48,7 +47,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Comparator;
 import java.util.Deque;
 import java.util.List;
@@ -61,13 +59,6 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
     private static final Comparator<Map.Entry<ModuleComponentArtifactIdentifier, VerificationFailure>> DELETED_LAST = Comparator.comparing(e -> e.getValue() == VerificationFailure.DELETED ? 1 : 0);
     private static final Comparator<Map.Entry<ModuleComponentArtifactIdentifier, VerificationFailure>> MISSING_LAST = Comparator.comparing(e -> e.getValue() == VerificationFailure.MISSING ? 1 : 0);
     private static final Comparator<Map.Entry<ModuleComponentArtifactIdentifier, VerificationFailure>> BY_MODULE_ID = Comparator.comparing(e -> e.getKey().getDisplayName());
-    private static final ImmutableList<URI> DEFAULT_KEYSERVERS = ImmutableList.of(
-        uri("https://pgp.key-server.io"),
-        uri("hkp://pool.sks-keyservers.net"),
-        uri("https://keys.fedoraproject.org"),
-        uri("https://keyserver.ubuntu.com"),
-        uri("hkp://keys.openpgp.org")
-    );
 
     private final DependencyVerifier verifier;
     private final Map<ModuleComponentArtifactIdentifier, VerificationFailure> failures = Maps.newLinkedHashMapWithExpectedSize(2);
@@ -92,15 +83,7 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
     }
 
     private List<URI> keyServers() {
-        return verifier.getConfiguration().getKeyServers().isEmpty() ? DEFAULT_KEYSERVERS : verifier.getConfiguration().getKeyServers();
-    }
-
-    private static URI uri(String uri) {
-        try {
-            return new URI(uri);
-        } catch (URISyntaxException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
+        return DefaultKeyServers.getOrDefaults(verifier.getConfiguration().getKeyServers());
     }
 
     @Override

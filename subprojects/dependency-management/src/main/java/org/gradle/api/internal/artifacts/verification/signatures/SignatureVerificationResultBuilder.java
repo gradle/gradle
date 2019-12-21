@@ -15,14 +15,11 @@
  */
 package org.gradle.api.internal.artifacts.verification.signatures;
 
-import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.security.internal.PublicKeyService;
+import org.bouncycastle.openpgp.PGPPublicKey;
 
-import java.io.File;
-import java.util.Set;
-
-public interface SignatureVerificationService extends Stoppable {
-    void verify(File origin, File signature, Set<String> trustedKeys, Set<String> ignoredKeys, SignatureVerificationResultBuilder result);
-
-    PublicKeyService getPublicKeyService();
+public interface SignatureVerificationResultBuilder {
+    void missingKey(String keyId);
+    void verified(PGPPublicKey key, boolean trusted);
+    void failed(PGPPublicKey pgpPublicKey);
+    void ignored(String keyId);
 }
