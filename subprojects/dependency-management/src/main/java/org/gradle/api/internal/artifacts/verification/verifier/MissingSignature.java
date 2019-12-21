@@ -17,13 +17,20 @@ package org.gradle.api.internal.artifacts.verification.verifier;
 
 import org.gradle.internal.logging.text.TreeFormatter;
 
-public interface VerificationFailure {
-    default boolean isFatal() {
-        return true;
-    }
+public class MissingSignature implements VerificationFailure {
+    public static final MissingSignature INSTANCE = new MissingSignature();
 
-    default void explainTo(TreeFormatter formatter) {
+    private MissingSignature() {
 
     }
 
+    @Override
+    public boolean isFatal() {
+        return false;
+    }
+
+    @Override
+    public void explainTo(TreeFormatter formatter) {
+        formatter.append("artifact wasn't signed");
+    }
 }

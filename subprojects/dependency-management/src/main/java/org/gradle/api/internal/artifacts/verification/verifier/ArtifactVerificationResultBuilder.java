@@ -15,15 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.verification.verifier;
 
-import org.gradle.internal.logging.text.TreeFormatter;
-
-public interface VerificationFailure {
-    default boolean isFatal() {
-        return true;
-    }
-
-    default void explainTo(TreeFormatter formatter) {
-
-    }
-
+public interface ArtifactVerificationResultBuilder {
+    void failWith(VerificationFailure failure);
 }

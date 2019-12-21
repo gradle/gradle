@@ -17,13 +17,15 @@ package org.gradle.api.internal.artifacts.verification.verifier;
 
 import org.gradle.internal.logging.text.TreeFormatter;
 
-public interface VerificationFailure {
-    default boolean isFatal() {
-        return true;
-    }
+public class DeletedArtifact implements VerificationFailure {
+    public static final DeletedArtifact INSTANCE = new DeletedArtifact();
 
-    default void explainTo(TreeFormatter formatter) {
+    private DeletedArtifact() {
 
     }
 
+    @Override
+    public void explainTo(TreeFormatter formatter) {
+        formatter.append("artifact file has been deleted from local cache so verification cannot be performed");
+    }
 }
