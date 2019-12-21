@@ -286,24 +286,28 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
         SignatureVerificationService signatureVerificationService = signatureVerificationServiceFactory.create(
             DefaultKeyServers.getOrDefaults(verificationsBuilder.getKeyServers())
         );
-        Set<String> collectedIgnoredKeys = generatePgpInfo ? Sets.newConcurrentHashSet() : null;
-        buildOperationExecutor.runAll(queue -> {
-            for (VerificationEntry entry : entriesToBeWritten) {
-                if (shouldSkipVerification(entry.getArtifactKind())) {
-                    continue;
+        try {
+            Set<String> collectedIgnoredKeys = generatePgpInfo ? Sets.newConcurrentHashSet() : null;
+            buildOperationExecutor.runAll(queue -> {
+                for (VerificationEntry entry : entriesToBeWritten) {
+                    if (shouldSkipVerification(entry.getArtifactKind())) {
+                        continue;
+                    }
+                    if (!entry.getFile().exists()) {
+                        LOGGER.warn("Cannot compute checksum for " + entry.getFile() + " because it doesn't exist. It may indicate a corrupt or tampered cache.");
+                    }
+                    if (entry instanceof ChecksumEntry) {
+                        queueChecksumVerification(queue, (ChecksumEntry) entry);
+                    } else {
+                        queueSignatureVerification(queue, signatureVerificationService, (PgpEntry) entry, collectedIgnoredKeys);
+                    }
                 }
-                if (!entry.getFile().exists()) {
-                    LOGGER.warn("Cannot compute checksum for " + entry.getFile() + " because it doesn't exist. It may indicate a corrupt or tampered cache.");
-                }
-                if (entry instanceof ChecksumEntry) {
-                    queueChecksumVerification(queue, (ChecksumEntry) entry);
-                } else {
-                    queueSignatureVerification(queue, signatureVerificationService, (PgpEntry) entry, collectedIgnoredKeys);
-                }
+            });
+            if (generatePgpInfo) {
+                postProcessPgpResults(collectedIgnoredKeys);
             }
-        });
-        if (generatePgpInfo) {
-            postProcessPgpResults(collectedIgnoredKeys);
+        } finally {
+            signatureVerificationService.stop();
         }
     }
 
