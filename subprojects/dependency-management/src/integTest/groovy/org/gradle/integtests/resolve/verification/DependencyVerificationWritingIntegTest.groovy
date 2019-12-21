@@ -49,7 +49,7 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         succeeds ':help'
 
         then:
-        outputContains "Invalid checksum type: 'unknown'. You must choose one or more in [md5, sha1, sha256, sha512]"
+        outputContains "Invalid checksum type: 'unknown'. You must choose one or more in [md5, sha1, sha256, sha512, pgp]"
 
         where:
         checksums << [
@@ -67,7 +67,7 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         succeeds ':help'
 
         then:
-        outputContains "You chose to generate ${message} checksums but they are all considered insecure. You should consider adding at least one of sha256 or sha512."
+        outputContains "You chose to generate ${message} checksums but they are all considered insecure. You should consider adding at least one of sha256 or sha512 or pgp."
 
         where:
         checksums   | message

@@ -22,7 +22,7 @@ import org.gradle.api.artifacts.verification.DependencyVerificationMode;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.ChecksumAndSignatureVerificationOverride;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.DependencyVerificationOverride;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.WriteDependencyVerificationFile;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.writer.WriteDependencyVerificationFile;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.ExternalResourceCachePolicy;
 import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost;
 import org.gradle.api.internal.artifacts.verification.signatures.SignatureVerificationServiceFactory;
@@ -82,7 +82,7 @@ public class StartParameterResolutionOverride {
         List<String> checksums = startParameter.getWriteDependencyVerifications();
         if (!checksums.isEmpty()) {
             SingleMessageLogger.incubatingFeatureUsed("Dependency verification");
-            return new WriteDependencyVerificationFile(currentDir, buildOperationExecutor, checksums, checksumService, startParameter.isDryRun());
+            return new WriteDependencyVerificationFile(currentDir, buildOperationExecutor, checksums, checksumService, signatureVerificationServiceFactory, startParameter.isDryRun());
         } else {
             File verificationsFile = DependencyVerificationOverride.dependencyVerificationsFile(currentDir);
             if (verificationsFile.exists()) {

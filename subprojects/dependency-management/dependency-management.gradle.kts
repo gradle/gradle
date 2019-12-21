@@ -113,6 +113,7 @@ dependencies {
     testFixturesImplementation(library("guava")) {
         because("Groovy compiler reflects on private field on TextUtil")
     }
+    testFixturesImplementation(library("bouncycastle_pgp"))
     crossVersionTestRuntimeOnly(project(":maven"))
 }
 

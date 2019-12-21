@@ -16,12 +16,10 @@
 package org.gradle.api.internal.artifacts.verification.signatures;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Maps;
 import org.bouncycastle.openpgp.PGPException;
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.bouncycastle.openpgp.PGPSignature;
 import org.bouncycastle.openpgp.PGPSignatureList;
-import org.gradle.api.internal.artifacts.verification.verifier.SignatureVerificationFailure;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
@@ -33,22 +31,15 @@ import org.gradle.internal.resource.connector.ResourceConnectorSpecification;
 import org.gradle.internal.resource.transfer.ExternalResourceConnector;
 import org.gradle.internal.resource.transport.http.HttpConnectorFactory;
 import org.gradle.security.internal.PublicKeyDownloadService;
+import org.gradle.security.internal.PublicKeyService;
 import org.gradle.security.internal.SecuritySupport;
 import org.gradle.util.BuildCommencedTimeProvider;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.net.URI;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-
-import static org.gradle.api.internal.artifacts.verification.verifier.SignatureVerificationFailure.FailureKind.FAILED;
-import static org.gradle.api.internal.artifacts.verification.verifier.SignatureVerificationFailure.FailureKind.IGNORED_KEY;
-import static org.gradle.api.internal.artifacts.verification.verifier.SignatureVerificationFailure.FailureKind.KEY_NOT_FOUND;
-import static org.gradle.api.internal.artifacts.verification.verifier.SignatureVerificationFailure.FailureKind.PASSED_NOT_TRUSTED;
 
 public class DefaultSignatureVerificationServiceFactory implements SignatureVerificationServiceFactory {
     private final HttpConnectorFactory httpConnectorFactory;
@@ -95,14 +86,8 @@ public class DefaultSignatureVerificationServiceFactory implements SignatureVeri
             projectCacheDir,
             cacheRepository,
             decoratorFactory,
-            keyService,
             refreshKeys
         );
-    }
-
-
-    private static SignatureVerificationFailure.SignatureError error(@Nullable PGPPublicKey key, SignatureVerificationFailure.FailureKind kind) {
-        return new SignatureVerificationFailure.SignatureError(key, kind);
     }
 
     private static class DefaultSignatureVerificationService implements SignatureVerificationService {
@@ -113,16 +98,12 @@ public class DefaultSignatureVerificationServiceFactory implements SignatureVeri
         }
 
         @Override
-        public Optional<SignatureVerificationFailure> verify(File origin, File signature, Set<String> trustedKeys, Set<String> ignoredKeys) {
+        public void verify(File origin, File signature, Set<String> trustedKeys, Set<String> ignoredKeys, SignatureVerificationResultBuilder result) {
             PGPSignatureList pgpSignatures = SecuritySupport.readSignatures(signature);
-            Map<String, SignatureVerificationFailure.SignatureError> errors = Maps.newHashMap();
-            boolean atLeastOnePassed = false;
-            boolean hasIgnored = false;
             for (PGPSignature pgpSignature : pgpSignatures) {
                 String key = SecuritySupport.toHexString(pgpSignature.getKeyID());
                 if (ignoredKeys.contains(key)) {
-                    hasIgnored = true;
-                    errors.put(key, error(null, IGNORED_KEY));
+                    result.ignored(key);
                     continue;
                 }
                 Optional<PGPPublicKey> publicKey = keyService.findPublicKey(pgpSignature.getKeyID());
@@ -131,34 +112,22 @@ public class DefaultSignatureVerificationServiceFactory implements SignatureVeri
                     try {
                         boolean verified = SecuritySupport.verify(origin, pgpSignature, pgpPublicKey);
                         if (!verified) {
-                            errors.put(key, error(pgpPublicKey, FAILED));
-                        }
-                        if (trustedKeys.contains(key)) {
-                            atLeastOnePassed = true;
+                            result.failed(pgpPublicKey);
                         } else {
-                            errors.put(key, error(pgpPublicKey, PASSED_NOT_TRUSTED));
+                            result.verified(pgpPublicKey, trustedKeys.contains(key));
                         }
                     } catch (PGPException e) {
                         throw UncheckedException.throwAsUncheckedException(e);
                     }
                 } else {
-                    errors.put(key, error(null, KEY_NOT_FOUND));
+                    result.missingKey(key);
                 }
             }
-            if (atLeastOnePassed && hasIgnored) {
-                // At least one key passed verification so we can remove all ignored keys from errors.
-                Iterator<Map.Entry<String, SignatureVerificationFailure.SignatureError>> it = errors.entrySet().iterator();
-                while (it.hasNext()) {
-                    Map.Entry<String, SignatureVerificationFailure.SignatureError> entry = it.next();
-                    if (entry.getValue().isIgnoredKey()) {
-                        it.remove();
-                    }
-                }
-            }
-            if (errors.isEmpty()) {
-                return Optional.empty();
-            }
-            return Optional.of(new SignatureVerificationFailure(errors, keyService));
+        }
+
+        @Override
+        public PublicKeyService getPublicKeyService() {
+            return keyService;
         }
 
         @Override
