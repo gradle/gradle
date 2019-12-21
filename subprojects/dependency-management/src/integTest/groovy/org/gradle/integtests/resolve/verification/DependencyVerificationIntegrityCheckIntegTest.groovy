@@ -145,7 +145,7 @@ This can indicate that a dependency has been compromised. Please verify carefull
 This can indicate that a dependency has been compromised. Please verify carefully the checksums.""")
 
         where:
-        param << [["-dv", "lenient"], ["--dependency-verification", "lenient"], ["-Dorg.gradle.dependency.verification=lenient"]]
+        param << [["-F", "lenient"], ["--dependency-verification", "lenient"], ["-Dorg.gradle.dependency.verification=lenient"]]
     }
 
     @Unroll
@@ -173,7 +173,7 @@ This can indicate that a dependency has been compromised. Please verify carefull
         !errorOutput.contains("""Dependency verification failed for configuration ':compileClasspath'""")
 
         where:
-        param << [["-dv", "off"], ["--dependency-verification", "off"], ["-Dorg.gradle.dependency.verification=off"], []]
+        param << [["-F", "off"], ["--dependency-verification", "off"], ["-Dorg.gradle.dependency.verification=off"], []]
     }
 
     @Unroll
@@ -202,7 +202,7 @@ This can indicate that a dependency has been compromised. Please verify carefull
 This can indicate that a dependency has been compromised. Please verify carefully the checksums.""")
 
         where:
-        param << [["-dv", "lenient"], ["--dependency-verification", "lenient"], ["-Dorg.gradle.dependency.verification=lenient"]]
+        param << [["-F", "lenient"], ["--dependency-verification", "lenient"], ["-Dorg.gradle.dependency.verification=lenient"]]
     }
 
     private TestFile disableVerificationViaProjectPropertiesFile() {
