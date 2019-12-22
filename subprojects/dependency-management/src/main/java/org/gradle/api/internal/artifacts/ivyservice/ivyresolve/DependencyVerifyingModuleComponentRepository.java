@@ -130,7 +130,7 @@ public class DependencyVerifyingModuleComponentRepository implements ModuleCompo
                                     if (artifactFile != null) {
                                         // it's possible that the file is null if it has been removed from the cache
                                         // for example
-                                        operation.onArtifact(ArtifactVerificationOperation.ArtifactKind.METADATA, artifact, artifactFile, () -> maybeFetchSignatureFile(moduleComponentIdentifier, result.getMetaData().getSources(), artifact));
+                                        operation.onArtifact(ArtifactVerificationOperation.ArtifactKind.METADATA, artifact, artifactFile, () -> maybeFetchSignatureFile(moduleComponentIdentifier, result.getMetaData().getSources(), artifact), getName());
                                     }
                                 }
                             }
@@ -182,7 +182,7 @@ public class DependencyVerifyingModuleComponentRepository implements ModuleCompo
                     ArtifactVerificationOperation.ArtifactKind artifactKind = determineArtifactKind(artifact);
                     if (!(result instanceof SignatureFileDefaultBuildableArtifactResolveResult)) {
                         // signature files are fetched using resolveArtifact, but are checked alongside the main artifact
-                        operation.onArtifact(artifactKind, mcai, result.getResult(), () -> maybeFetchSignatureFile(((ModuleComponentArtifactIdentifier) id).getComponentIdentifier(), moduleSources, mcai));
+                        operation.onArtifact(artifactKind, mcai, result.getResult(), () -> maybeFetchSignatureFile(((ModuleComponentArtifactIdentifier) id).getComponentIdentifier(), moduleSources, mcai), getName());
                     }
                 }
             }

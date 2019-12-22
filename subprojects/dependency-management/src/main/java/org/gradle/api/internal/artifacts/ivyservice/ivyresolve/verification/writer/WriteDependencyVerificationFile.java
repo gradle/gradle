@@ -360,7 +360,7 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
     }
 
     @Override
-    public void onArtifact(ArtifactKind kind, ModuleComponentArtifactIdentifier id, File mainFile, Factory<File> signatureFile) {
+    public void onArtifact(ArtifactKind kind, ModuleComponentArtifactIdentifier id, File mainFile, Factory<File> signatureFile, String repositoryName) {
         for (String checksum : checksums) {
             if (PGP.equals(checksum)) {
                 addPgp(id, kind, mainFile, signatureFile);
