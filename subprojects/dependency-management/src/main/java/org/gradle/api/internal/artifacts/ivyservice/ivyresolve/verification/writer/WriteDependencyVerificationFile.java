@@ -373,22 +373,22 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
     }
 
     private void queueSignatureVerification(BuildOperationQueue<RunnableBuildOperation> queue, SignatureVerificationService signatureVerificationService, PgpEntry entry, Set<String> ignoredKeys) {
-        File signature = entry.getSignatureFile().create();
-        if (signature != null) {
-            queue.add(new RunnableBuildOperation() {
-                @Override
-                public void run(BuildOperationContext context) {
+        queue.add(new RunnableBuildOperation() {
+            @Override
+            public void run(BuildOperationContext context) {
+                File signature = entry.getSignatureFile().create();
+                if (signature != null) {
                     SignatureVerificationResultBuilder builder = new WriterSignatureVerificationResult(ignoredKeys, entry);
                     signatureVerificationService.verify(entry.file, signature, Collections.emptySet(), Collections.emptySet(), builder);
                 }
+            }
 
-                @Override
-                public BuildOperationDescriptor.Builder description() {
-                    return BuildOperationDescriptor.displayName("Verifying dependency signature")
-                        .progressDisplayName("Verifying signature of " + entry.id);
-                }
-            });
-        }
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return BuildOperationDescriptor.displayName("Verifying dependency signature")
+                    .progressDisplayName("Verifying signature of " + entry.id);
+            }
+        });
     }
 
     private void queueChecksumVerification(BuildOperationQueue<RunnableBuildOperation> queue, ChecksumEntry entry) {
@@ -407,7 +407,7 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
     }
 
     @Override
-    public void onArtifact(ArtifactKind kind, ModuleComponentArtifactIdentifier id, File mainFile, Factory<File> signatureFile, String repositoryName) {
+    public void onArtifact(ArtifactKind kind, ModuleComponentArtifactIdentifier id, File mainFile, Factory<File> signatureFile, String repositoryName, String repositoryId) {
         for (String checksum : checksums) {
             if (PGP.equals(checksum)) {
                 addPgp(id, kind, mainFile, signatureFile);

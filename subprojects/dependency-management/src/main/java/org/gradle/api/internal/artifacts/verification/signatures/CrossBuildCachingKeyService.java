@@ -27,6 +27,7 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
+import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.cache.internal.filelock.LockOptionsBuilder;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -41,8 +42,11 @@ import org.gradle.util.BuildCommencedTimeProvider;
 
 import java.io.ByteArrayInputStream;
 import java.io.Closeable;
+import java.util.Iterator;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+
+import static org.gradle.security.internal.SecuritySupport.toHexString;
 
 public class CrossBuildCachingKeyService implements PublicKeyService, Closeable {
     private final static long MISSING_KEY_TIMEOUT = TimeUnit.MILLISECONDS.convert(24, TimeUnit.HOURS);
@@ -54,6 +58,7 @@ public class CrossBuildCachingKeyService implements PublicKeyService, Closeable 
     private final boolean refreshKeys;
     private final PersistentIndexedCache<Long, CacheEntry<PGPPublicKey>> publicKeys;
     private final PersistentIndexedCache<Long, CacheEntry<PGPPublicKeyRing>> publicKeyRings;
+    private final ProducerGuard<Long> guard = ProducerGuard.adaptive();
 
     public CrossBuildCachingKeyService(CacheRepository cacheRepository,
                                        InMemoryCacheDecoratorFactory decoratorFactory,
@@ -94,7 +99,7 @@ public class CrossBuildCachingKeyService implements PublicKeyService, Closeable 
         cache.close();
     }
 
-    private boolean hasExpired(CacheEntry<PGPPublicKey> key) {
+    private boolean hasExpired(CacheEntry<?> key) {
         if (key.value != null) {
             // if a key was found in the cache, it's permanent
             return false;
@@ -107,52 +112,55 @@ public class CrossBuildCachingKeyService implements PublicKeyService, Closeable 
     public Optional<PGPPublicKey> findPublicKey(long id) {
         CacheEntry<PGPPublicKey> cacheEntry = publicKeys.get(id);
         if (cacheEntry == null || hasExpired(cacheEntry)) {
-            return buildOperationExecutor.call(new CallableBuildOperation<Optional<PGPPublicKey>>() {
-                @Override
-                public BuildOperationDescriptor.Builder description() {
-                    return BuildOperationDescriptor.displayName("Fetching public key " + id);
-                }
-
-                @Override
-                public Optional<PGPPublicKey> call(BuildOperationContext context) {
-                    Optional<PGPPublicKey> result = delegate.findPublicKey(id);
-                    long currentTime = timeProvider.getCurrentTime();
-                    if (result.isPresent()) {
-                        publicKeys.put(id, new CacheEntry<>(currentTime, result.get()));
-                    } else {
-                        publicKeys.put(id, new CacheEntry<>(currentTime, null));
+            long currentTime = timeProvider.getCurrentTime();
+            Optional<PGPPublicKeyRing> keyRing = findKeyRing(id);
+            if (keyRing.isPresent()) {
+                Iterator<PGPPublicKey> it = keyRing.get().getPublicKeys();
+                while (it.hasNext()) {
+                    PGPPublicKey key = it.next();
+                    if (key.getKeyID() == id) {
+                        publicKeys.put(id, new CacheEntry<>(currentTime, key));
+                        return Optional.of(key);
                     }
-                    return result;
                 }
-            });
+            }
+            cacheEntry = new CacheEntry<>(currentTime, null);
+            publicKeys.put(id, cacheEntry);
         }
         return Optional.ofNullable(cacheEntry.value);
     }
 
     @Override
     public Optional<PGPPublicKeyRing> findKeyRing(long id) {
-        CacheEntry<PGPPublicKeyRing> cacheEntry = publicKeyRings.get(id);
-        if (cacheEntry == null) {
-            return buildOperationExecutor.call(new CallableBuildOperation<Optional<PGPPublicKeyRing>>() {
-                @Override
-                public BuildOperationDescriptor.Builder description() {
-                    return BuildOperationDescriptor.displayName("Fetching public key " + id);
-                }
-
-                @Override
-                public Optional<PGPPublicKeyRing> call(BuildOperationContext context) {
-                    Optional<PGPPublicKeyRing> result = delegate.findKeyRing(id);
-                    long currentTime = timeProvider.getCurrentTime();
-                    if (result.isPresent()) {
-                        publicKeyRings.put(id, new CacheEntry<>(currentTime, result.get()));
-                    } else {
-                        publicKeyRings.put(id, new CacheEntry<>(currentTime, null));
+        return guard.guardByKey(id, () -> {
+            CacheEntry<PGPPublicKeyRing> cacheEntry = publicKeyRings.get(id);
+            if (cacheEntry == null || hasExpired(cacheEntry)) {
+                return buildOperationExecutor.call(new CallableBuildOperation<Optional<PGPPublicKeyRing>>() {
+                    @Override
+                    public BuildOperationDescriptor.Builder description() {
+                        return BuildOperationDescriptor.displayName("Fetching public key")
+                            .progressDisplayName("Downloading public key " + toHexString(id));
                     }
-                    return result;
-                }
-            });
-        }
-        return Optional.ofNullable(cacheEntry.value);
+
+                    @Override
+                    public Optional<PGPPublicKeyRing> call(BuildOperationContext context) {
+                        Optional<PGPPublicKeyRing> result = delegate.findKeyRing(id);
+                        long currentTime = timeProvider.getCurrentTime();
+                        if (result.isPresent()) {
+                            PGPPublicKeyRing pgpPublicKeys = result.get();
+                            publicKeyRings.put(id, new CacheEntry<>(currentTime, pgpPublicKeys));
+                            for (PGPPublicKey pgpPublicKey : pgpPublicKeys) {
+                                publicKeys.put(pgpPublicKey.getKeyID(), new CacheEntry<>(currentTime, pgpPublicKey));
+                            }
+                        } else {
+                            publicKeyRings.put(id, new CacheEntry<>(currentTime, null));
+                        }
+                        return result;
+                    }
+                });
+            }
+            return Optional.ofNullable(cacheEntry.value);
+        });
     }
 
     private static class PublicKeyRingSerializer extends AbstractSerializer<CacheEntry<PGPPublicKeyRing>> {
