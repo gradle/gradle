@@ -101,6 +101,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     private List<String> lockedDependenciesToUpdate = emptyList();
     private DependencyVerificationMode verificationMode = DependencyVerificationMode.STRICT;
     private boolean isRefreshKeys;
+    private boolean isExportKeys;
 
     /**
      * {@inheritDoc}
@@ -257,6 +258,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
         p.lockedDependenciesToUpdate = new ArrayList<>(lockedDependenciesToUpdate);
         p.verificationMode = verificationMode;
         p.isRefreshKeys = isRefreshKeys;
+        p.isExportKeys = isExportKeys;
         return p;
     }
 
@@ -936,5 +938,37 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     @Incubating
     public boolean isRefreshKeys() {
         return isRefreshKeys;
+    }
+
+    /**
+     * If true, after writing the dependency verification file, a public keyring
+     * file will be generated with all keys seen during generation of the file.
+     *
+     * This file can then be used as a source for public keys instead of reaching
+     * out public key servers.
+     *
+     * @return true if keys should be exported
+     *
+     * @since 6.2
+     */
+    @Incubating
+    public boolean isExportKeys() {
+        return isExportKeys;
+    }
+
+    /**
+     * If true, after writing the dependency verification file, a public keyring
+     * file will be generated with all keys seen during generation of the file.
+     *
+     * This file can then be used as a source for public keys instead of reaching
+     * out public key servers.
+     *
+     * @param exportKeys set to true if keys should be exported
+     *
+     * @since 6.2
+     */
+    @Incubating
+    public void setExportKeys(boolean exportKeys) {
+        isExportKeys = exportKeys;
     }
 }

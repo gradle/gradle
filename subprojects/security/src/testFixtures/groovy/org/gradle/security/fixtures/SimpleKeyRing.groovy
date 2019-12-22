@@ -21,6 +21,8 @@ import groovy.transform.CompileStatic
 import org.bouncycastle.bcpg.ArmoredOutputStream
 import org.bouncycastle.openpgp.PGPPrivateKey
 import org.bouncycastle.openpgp.PGPPublicKey
+import org.bouncycastle.openpgp.PGPPublicKeyRing
+import org.bouncycastle.openpgp.PGPPublicKeyRingCollection
 import org.bouncycastle.openpgp.PGPSecretKey
 import org.bouncycastle.openpgp.PGPSignature
 import org.bouncycastle.openpgp.PGPSignatureGenerator
@@ -38,6 +40,14 @@ class SimpleKeyRing {
     final PGPSecretKey secretKey
     final PGPPublicKey publicKey
     final String password
+
+    void writePublicKeyRingTo(File file) {
+        file.withOutputStream { out ->
+            new PGPPublicKeyRingCollection(
+                [new PGPPublicKeyRing([publicKey])]
+            ).encode(out)
+        }
+    }
 
     File sign(File toSign) {
         def armored = new ArmoredSignatureType()

@@ -73,7 +73,12 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
     private final DependencyVerificationMode verificationMode;
     private final Deque<VerificationEvent> verificationEvents = Queues.newArrayDeque();
 
-    public ChecksumAndSignatureVerificationOverride(BuildOperationExecutor buildOperationExecutor, File verificationsFile, ChecksumService checksumService, SignatureVerificationServiceFactory signatureVerificationServiceFactory, DependencyVerificationMode verificationMode) {
+    public ChecksumAndSignatureVerificationOverride(BuildOperationExecutor buildOperationExecutor,
+                                                    File verificationsFile,
+                                                    File keyRingsFile,
+                                                    ChecksumService checksumService,
+                                                    SignatureVerificationServiceFactory signatureVerificationServiceFactory,
+                                                    DependencyVerificationMode verificationMode) {
         this.buildOperationExecutor = buildOperationExecutor;
         this.checksumService = checksumService;
         this.verificationMode = verificationMode;
@@ -84,7 +89,7 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
         } catch (FileNotFoundException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
-        this.signatureVerificationService = signatureVerificationServiceFactory.create(keyServers());
+        this.signatureVerificationService = signatureVerificationServiceFactory.create(keyRingsFile, keyServers());
     }
 
     private List<URI> keyServers() {

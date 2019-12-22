@@ -68,6 +68,7 @@ public class StartParameterBuildOptions {
         options.add(new DependencyVerificationModeOption());
         options.add(new DependencyLockingUpdateOption());
         options.add(new RefreshKeysOption());
+        options.add(new ExportKeysOption());
         StartParameterBuildOptions.options = Collections.unmodifiableList(options);
     }
 
@@ -390,6 +391,21 @@ public class StartParameterBuildOptions {
         @Override
         public void applyTo(StartParameterInternal settings, Origin origin) {
             settings.setRefreshKeys(true);
+        }
+    }
+
+    public static class ExportKeysOption extends EnabledOnlyBooleanBuildOption<StartParameterInternal> {
+
+        private static final String LONG_OPTION = "export-keys";
+
+        public ExportKeysOption() {
+            super(null,
+                CommandLineOptionConfiguration.create(LONG_OPTION, "Exports the public keys used for dependency verification.").incubating());
+        }
+
+        @Override
+        public void applyTo(StartParameterInternal settings, Origin origin) {
+            settings.setExportKeys(true);
         }
     }
 }

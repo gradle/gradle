@@ -122,6 +122,7 @@ public class BuildActionSerializer {
             stringListSerializer.write(encoder, startParameter.getWriteDependencyVerifications());
             encoder.writeString(startParameter.getDependencyVerificationMode().name());
             encoder.writeBoolean(startParameter.isRefreshKeys());
+            encoder.writeBoolean(startParameter.isExportKeys());
 
             // Deprecations (these should just be rendered on the client instead of being sent to the daemon to send them back again)
             stringSetSerializer.write(encoder, startParameter.getDeprecations());
@@ -198,6 +199,7 @@ public class BuildActionSerializer {
             }
             startParameter.setDependencyVerificationMode(DependencyVerificationMode.valueOf(decoder.readString()));
             startParameter.setRefreshKeys(decoder.readBoolean());
+            startParameter.setExportKeys(decoder.readBoolean());
 
             for (String warning : stringSetSerializer.read(decoder)) {
                 startParameter.addDeprecation(warning);
