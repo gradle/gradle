@@ -300,11 +300,11 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
         } else {
             PgpEntry pgp = (PgpEntry) entry;
             previousEntry.set(pgp);
+            Set<String> failedKeys = Sets.newTreeSet(pgp.getFailed());
+            for (String failedKey : failedKeys) {
+                verificationsBuilder.addIgnoredKey(pgp.id, new IgnoredKey(failedKey, PGP_VERIFICATION_FAILED));
+            }
             if (pgp.hasArtifactLevelKeys()) {
-                Set<String> failedKeys = Sets.newTreeSet(pgp.getFailed());
-                for (String failedKey : failedKeys) {
-                    verificationsBuilder.addIgnoredKey(pgp.id, new IgnoredKey(failedKey, PGP_VERIFICATION_FAILED));
-                }
                 for (String key : pgp.getArtifactLevelKeys()) {
                     if (!failedKeys.contains(key)) {
                         verificationsBuilder.addTrustedKey(pgp.id, key);
