@@ -44,6 +44,7 @@ import java.util.function.Supplier;
 public class DefaultBuildServicesRegistry implements BuildServiceRegistryInternal {
     private final NamedDomainObjectSet<BuildServiceRegistration<?, ?>> registrations;
     private final InstantiatorFactory instantiatorFactory;
+    private final ServiceRegistry services;
     private final ListenerManager listenerManager;
     private final IsolatableFactory isolatableFactory;
     private final SharedResourceLeaseRegistry leaseRegistry;
@@ -54,6 +55,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
     public DefaultBuildServicesRegistry(DomainObjectCollectionFactory factory, InstantiatorFactory instantiatorFactory, ServiceRegistry services, ListenerManager listenerManager, IsolatableFactory isolatableFactory, SharedResourceLeaseRegistry leaseRegistry) {
         this.registrations = Cast.uncheckedCast(factory.newNamedDomainObjectSet(BuildServiceRegistration.class));
         this.instantiatorFactory = instantiatorFactory;
+        this.services = services;
         this.listenerManager = listenerManager;
         this.isolatableFactory = isolatableFactory;
         this.leaseRegistry = leaseRegistry;
@@ -124,9 +126,9 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
     }
 
     private <T extends BuildService<P>, P extends BuildServiceParameters> BuildServiceProvider<T, P> doRegister(String name, Class<T> implementationType, Class<P> parameterType, P parameters, @Nullable Integer maxParallelUsages) {
-        BuildServiceProvider<T, P> provider = new BuildServiceProvider<>(name, implementationType, parameterType, parameters, instantiatorFactory.injectScheme(), isolatableFactory);
+        BuildServiceProvider<T, P> provider = new BuildServiceProvider<>(name, implementationType, parameters, isolationScheme, instantiatorFactory.injectScheme(), isolatableFactory, services);
 
-        DefaultServiceRegistration registration = specInstantiator.newInstance(DefaultServiceRegistration.class, name, parameters, provider);
+        DefaultServiceRegistration<T, P> registration = specInstantiator.newInstance(DefaultServiceRegistration.class, name, parameters, provider);
         registration.getMaxParallelUsages().set(maxParallelUsages);
         registrations.add(registration);
 
