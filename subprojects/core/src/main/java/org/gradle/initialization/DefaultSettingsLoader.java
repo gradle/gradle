@@ -23,6 +23,9 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
+import org.gradle.initialization.layout.BuildLayout;
+import org.gradle.initialization.layout.BuildLayoutConfiguration;
+import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.util.Path;
 
 /**
@@ -31,19 +34,19 @@ import org.gradle.util.Path;
  */
 public class DefaultSettingsLoader implements SettingsLoader {
     public static final String BUILD_SRC_PROJECT_PATH = ":" + SettingsInternal.BUILD_SRC;
-    private ISettingsFinder settingsFinder;
     private SettingsProcessor settingsProcessor;
+    private final BuildLayoutFactory buildLayoutFactory;
 
-    public DefaultSettingsLoader(ISettingsFinder settingsFinder, SettingsProcessor settingsProcessor) {
-        this.settingsFinder = settingsFinder;
+    public DefaultSettingsLoader(SettingsProcessor settingsProcessor, BuildLayoutFactory buildLayoutFactory) {
         this.settingsProcessor = settingsProcessor;
+        this.buildLayoutFactory = buildLayoutFactory;
     }
 
     @Override
     public SettingsInternal findAndLoadSettings(GradleInternal gradle) {
         StartParameter startParameter = gradle.getStartParameter();
-        SettingsInternal settings = findSettingsAndLoadIfAppropriate(gradle, startParameter, gradle.getClassLoaderScope());
-
+        SettingsLocation settingsLocation = buildLayoutFactory.getLayoutFor(new BuildLayoutConfiguration(startParameter));
+        SettingsInternal settings = findSettingsAndLoadIfAppropriate(gradle, startParameter, settingsLocation, gradle.getClassLoaderScope());
         ProjectSpec spec = ProjectSpecs.forStartParameter(startParameter, settings);
         if (useEmptySettings(spec, settings, startParameter)) {
             settings = createEmptySettings(gradle, startParameter, settings.getClassLoaderScope());
@@ -62,7 +65,6 @@ public class DefaultSettingsLoader implements SettingsLoader {
         if (spec.containsProject(loadedSettings.getProjectRegistry())) {
             return false;
         }
-
         // Use an empty settings for a target build file located in the same directory as the settings file.
         if (startParameter.getProjectDir() != null && loadedSettings.getSettingsDir().equals(startParameter.getProjectDir())) {
             return true;
@@ -74,7 +76,8 @@ public class DefaultSettingsLoader implements SettingsLoader {
     private SettingsInternal createEmptySettings(GradleInternal gradle, StartParameter startParameter, ClassLoaderScope classLoaderScope) {
         StartParameter noSearchParameter = startParameter.newInstance();
         ((StartParameterInternal) noSearchParameter).useEmptySettingsWithoutDeprecationWarning();
-        SettingsInternal settings = findSettingsAndLoadIfAppropriate(gradle, noSearchParameter, classLoaderScope);
+        BuildLayout layout = buildLayoutFactory.getLayoutFor(new BuildLayoutConfiguration(noSearchParameter));
+        SettingsInternal settings = findSettingsAndLoadIfAppropriate(gradle, noSearchParameter, layout, classLoaderScope);
 
         // Set explicit build file, if required
         if (noSearchParameter.getBuildFile() != null) {
@@ -96,9 +99,9 @@ public class DefaultSettingsLoader implements SettingsLoader {
     private SettingsInternal findSettingsAndLoadIfAppropriate(
         GradleInternal gradle,
         StartParameter startParameter,
+        SettingsLocation settingsLocation,
         ClassLoaderScope classLoaderScope
     ) {
-        SettingsLocation settingsLocation = findSettings(startParameter);
         SettingsInternal settings = settingsProcessor.process(gradle, settingsLocation, classLoaderScope, startParameter);
         validate(settings);
         return settings;
@@ -112,10 +115,6 @@ public class DefaultSettingsLoader implements SettingsLoader {
                 throw new GradleException("'" + SettingsInternal.BUILD_SRC + "' cannot be used as a project name as it is a reserved name" + suffix);
             }
         });
-    }
-
-    private SettingsLocation findSettings(StartParameter startParameter) {
-        return settingsFinder.find(startParameter);
     }
 }
 

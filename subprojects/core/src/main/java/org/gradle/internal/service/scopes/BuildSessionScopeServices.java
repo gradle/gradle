@@ -117,13 +117,16 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new BuildOperationCrossProjectConfigurator(buildOperationExecutor);
     }
 
+    BuildLayout createBuildLayout(BuildLayoutFactory buildLayoutFactory, StartParameter startParameter) {
+        return buildLayoutFactory.getLayoutFor(new BuildLayoutConfiguration(startParameter));
+    }
+
     ProjectCacheDir createCacheLayout(
-        BuildLayoutFactory buildLayoutFactory,
+        BuildLayout buildLayout,
         Deleter deleter,
         ProgressLoggerFactory progressLoggerFactory,
         StartParameter startParameter
     ) {
-        BuildLayout buildLayout = buildLayoutFactory.getLayoutFor(new BuildLayoutConfiguration(startParameter));
         File cacheDir = startParameter.getProjectCacheDir() != null ? startParameter.getProjectCacheDir() : new File(buildLayout.getRootDirectory(), ".gradle");
         return new ProjectCacheDir(cacheDir, progressLoggerFactory, deleter);
     }
