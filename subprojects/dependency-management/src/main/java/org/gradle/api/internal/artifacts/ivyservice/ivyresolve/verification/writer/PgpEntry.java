@@ -92,6 +92,10 @@ class PgpEntry extends VerificationEntry {
         keysDeclaredGlobally.add(keyId);
     }
 
+    public boolean doesNotDeclareKeyGlobally(String keyId) {
+        return !keysDeclaredGlobally.contains(keyId);
+    }
+
     public boolean hasArtifactLevelKeys() {
         return !trustedKeys.equals(keysDeclaredGlobally);
     }
