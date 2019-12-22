@@ -61,12 +61,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class ChecksumAndSignatureVerificationOverride implements DependencyVerificationOverride, ArtifactVerificationOperation {
     private final static Logger LOGGER = Logging.getLogger(ChecksumAndSignatureVerificationOverride.class);
 
-    private static final Comparator<Map.Entry<ModuleComponentArtifactIdentifier, Collection<VerificationFailure>>> DELETED_LAST = Comparator.comparing(e -> e.getValue().stream().anyMatch(f -> f == DeletedArtifact.INSTANCE) ? 1 : 0);
-    private static final Comparator<Map.Entry<ModuleComponentArtifactIdentifier, Collection<VerificationFailure>>> MISSING_LAST = Comparator.comparing(e -> e.getValue().stream().anyMatch(f -> f == MissingChecksums.INSTANCE) ? 1 : 0);
-    private static final Comparator<Map.Entry<ModuleComponentArtifactIdentifier, Collection<VerificationFailure>>> BY_MODULE_ID = Comparator.comparing(e -> e.getKey().getDisplayName());
+    private static final Comparator<Map.Entry<ModuleComponentArtifactIdentifier, Collection<FailureWrapper>>> DELETED_LAST = Comparator.comparing(e -> e.getValue().stream().anyMatch(f -> f.failure == DeletedArtifact.INSTANCE) ? 1 : 0);
+    private static final Comparator<Map.Entry<ModuleComponentArtifactIdentifier, Collection<FailureWrapper>>> MISSING_LAST = Comparator.comparing(e -> e.getValue().stream().anyMatch(f -> f.failure == MissingChecksums.INSTANCE) ? 1 : 0);
+    private static final Comparator<Map.Entry<ModuleComponentArtifactIdentifier, Collection<FailureWrapper>>> BY_MODULE_ID = Comparator.comparing(e -> e.getKey().getDisplayName());
 
     private final DependencyVerifier verifier;
-    private final Multimap<ModuleComponentArtifactIdentifier, VerificationFailure> failures = LinkedHashMultimap.create();
+    private final Multimap<ModuleComponentArtifactIdentifier, FailureWrapper> failures = LinkedHashMultimap.create();
     private final BuildOperationExecutor buildOperationExecutor;
     private final ChecksumService checksumService;
     private final SignatureVerificationService signatureVerificationService;
@@ -92,8 +92,8 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
     }
 
     @Override
-    public void onArtifact(ArtifactKind kind, ModuleComponentArtifactIdentifier artifact, File mainFile, Factory<File> signatureFile) {
-        VerificationEvent event = new VerificationEvent(kind, artifact, mainFile, signatureFile);
+    public void onArtifact(ArtifactKind kind, ModuleComponentArtifactIdentifier artifact, File mainFile, Factory<File> signatureFile, String repositoryName) {
+        VerificationEvent event = new VerificationEvent(kind, artifact, mainFile, signatureFile, repositoryName);
         synchronized (verificationEvents) {
             verificationEvents.add(event);
         }
@@ -115,7 +115,7 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
                         public void run(BuildOperationContext context) {
                             verifier.verify(checksumService, signatureVerificationService, ve.kind, ve.artifact, ve.mainFile, ve.signatureFile.create(), f -> {
                                 synchronized (failures) {
-                                    failures.put(ve.artifact, f);
+                                    failures.put(ve.artifact, new FailureWrapper(f, ve.repositoryName));
                                 }
                             });
                         }
@@ -156,12 +156,13 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
                     .sorted(DELETED_LAST.thenComparing(MISSING_LAST).thenComparing(BY_MODULE_ID))
                     .forEachOrdered(entry -> {
                         ModuleComponentArtifactIdentifier key = entry.getKey();
-                        Collection<VerificationFailure> failures = entry.getValue();
-                        if (failures.stream().anyMatch(VerificationFailure::isFatal)) {
+                        Collection<FailureWrapper> failures = entry.getValue();
+                        if (failures.stream().anyMatch(f -> f.failure.isFatal())) {
                             hasFatalFailure.set(true);
-                            formatter.node("On artifact " + key + ": ");
+                            formatter.node("On artifact " + key + " ");
                             if (failures.size() == 1) {
-                                explainSingleFailure(formatter, maybeCompromised, hasMissing, failedSignatures, failures.iterator().next());
+                                FailureWrapper firstFailure = failures.iterator().next();
+                                explainSingleFailure(formatter, maybeCompromised, hasMissing, failedSignatures, firstFailure);
                             } else {
                                 explainMultiFailure(formatter, maybeCompromised, hasMissing, failedSignatures, failures);
                             }
@@ -191,17 +192,18 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
         }
     }
 
-    private void explainMultiFailure(TreeFormatter formatter, AtomicBoolean maybeCompromised, AtomicBoolean hasMissing, AtomicBoolean failedSignatures, Collection<VerificationFailure> failures) {
+    private void explainMultiFailure(TreeFormatter formatter, AtomicBoolean maybeCompromised, AtomicBoolean hasMissing, AtomicBoolean failedSignatures, Collection<FailureWrapper> failures) {
         formatter.append("multiple problems reported");
         formatter.startChildren();
-        for (VerificationFailure failure : failures) {
+        for (FailureWrapper failure : failures) {
             formatter.node("");
             explainSingleFailure(formatter, maybeCompromised, hasMissing, failedSignatures, failure);
         }
         formatter.endChildren();
     }
 
-    private void explainSingleFailure(TreeFormatter formatter, AtomicBoolean maybeCompromised, AtomicBoolean hasMissing, AtomicBoolean failedSignatures, VerificationFailure failure) {
+    private void explainSingleFailure(TreeFormatter formatter, AtomicBoolean maybeCompromised, AtomicBoolean hasMissing, AtomicBoolean failedSignatures, FailureWrapper wrapper) {
+        VerificationFailure failure = wrapper.failure;
         if (failure == MissingChecksums.INSTANCE) {
             hasMissing.set(true);
         } else {
@@ -210,6 +212,7 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
             }
             maybeCompromised.set(true);
         }
+        formatter.append("in repository '" + wrapper.repositoryName + "': ");
         failure.explainTo(formatter);
     }
 
@@ -244,17 +247,29 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
         signatureVerificationService.stop();
     }
 
+    private static class FailureWrapper {
+        private final VerificationFailure failure;
+        private final String repositoryName;
+
+        private FailureWrapper(VerificationFailure failure, String repositoryName) {
+            this.failure = failure;
+            this.repositoryName = repositoryName;
+        }
+    }
+
     private static class VerificationEvent {
         private final ArtifactKind kind;
         private final ModuleComponentArtifactIdentifier artifact;
         private final File mainFile;
         private final Factory<File> signatureFile;
+        private final String repositoryName;
 
-        private VerificationEvent(ArtifactKind kind, ModuleComponentArtifactIdentifier artifact, File mainFile, Factory<File> signatureFile) {
+        private VerificationEvent(ArtifactKind kind, ModuleComponentArtifactIdentifier artifact, File mainFile, Factory<File> signatureFile, String repositoryName) {
             this.kind = kind;
             this.artifact = artifact;
             this.mainFile = mainFile;
             this.signatureFile = signatureFile;
+            this.repositoryName = repositoryName;
         }
     }
 }
