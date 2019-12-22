@@ -82,16 +82,17 @@ public class StartParameterResolutionOverride {
         List<String> checksums = startParameter.getWriteDependencyVerifications();
         if (!checksums.isEmpty()) {
             SingleMessageLogger.incubatingFeatureUsed("Dependency verification");
-            return new WriteDependencyVerificationFile(currentDir, buildOperationExecutor, checksums, checksumService, signatureVerificationServiceFactory, startParameter.isDryRun());
+            return new WriteDependencyVerificationFile(currentDir, buildOperationExecutor, checksums, checksumService, signatureVerificationServiceFactory, startParameter.isDryRun(), startParameter.isExportKeys());
         } else {
             File verificationsFile = DependencyVerificationOverride.dependencyVerificationsFile(currentDir);
+            File keyringsFile = DependencyVerificationOverride.keyringsFile(currentDir);
             if (verificationsFile.exists()) {
                 if (startParameter.getDependencyVerificationMode() == DependencyVerificationMode.OFF) {
                     return DependencyVerificationOverride.NO_VERIFICATION;
                 }
                 SingleMessageLogger.incubatingFeatureUsed("Dependency verification");
                 try {
-                    return new ChecksumAndSignatureVerificationOverride(buildOperationExecutor, verificationsFile, checksumService, signatureVerificationServiceFactory, startParameter.getDependencyVerificationMode());
+                    return new ChecksumAndSignatureVerificationOverride(buildOperationExecutor, verificationsFile, keyringsFile, checksumService, signatureVerificationServiceFactory, startParameter.getDependencyVerificationMode());
                 } catch (Exception e) {
                     return new FailureVerificationOverride(e, verificationsFile);
                 }

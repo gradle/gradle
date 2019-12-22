@@ -16,9 +16,13 @@
 
 package org.gradle.integtests.resolve.verification
 
+
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.security.fixtures.SigningFixtures
+import org.gradle.security.internal.SecuritySupport
 
 import static org.gradle.security.fixtures.SigningFixtures.signAsciiArmored
+import static org.gradle.security.internal.SecuritySupport.toHexString
 
 class DependencyVerificationSignatureWriteIntegTest extends AbstractSignatureVerificationIntegrationTest {
 
@@ -266,6 +270,58 @@ class DependencyVerificationSignatureWriteIntegTest extends AbstractSignatureVer
    </components>
 </verification-metadata>
 """
+    }
+
+    def "can export PGP keys"() {
+        def keyring = newKeyRing()
+        def pkId = toHexString(keyring.publicKey.keyID)
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+        }
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0") {
+            withSignature {
+                keyring.sign(it, [(SigningFixtures.validSecretKey): SigningFixtures.validPassword] )
+            }
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        serveValidKey()
+        keyServerFixture.registerPublicKey(keyring.publicKey)
+        writeVerificationMetadata()
+        succeeds ":help", "--export-keys"
+
+        then:
+        assertXmlContents """<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata>
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+      <verify-signatures>true</verify-signatures>
+      <key-servers>
+         <key-server uri="${keyServerFixture.uri}"/>
+      </key-servers>
+      <trusted-keys>
+         <trusted-key id="14f53f0824875d73" group="org" name="foo" version="1.0"/>
+         <trusted-key id="$pkId" group="org" name="foo" version="1.0"/>
+      </trusted-keys>
+   </configuration>
+   <components/>
+</verification-metadata>
+"""
+        and:
+        def exportedKeyRing = file("gradle/verification-keyring.gpg")
+        exportedKeyRing.exists()
+        def keyrings = SecuritySupport.loadKeyRingFile(exportedKeyRing)
+        keyrings.size() == 2
+        keyrings.find { it.publicKey.keyID == SigningFixtures.validPublicKey.keyID }
+        keyrings.find { it.publicKey.keyID == keyring.publicKey.keyID }
     }
 
 }

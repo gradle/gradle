@@ -28,10 +28,18 @@ public interface DependencyVerificationOverride {
             return original;
         }
     };
+    String VERIFICATION_METADATA_XML = "verification-metadata.xml";
+    String VERIFICATION_KEYRING_GPG = "verification-keyring.gpg";
+    String VERIFICATION_KEYRING_DRYRUN_GPG = "verification-keyring-dryrun.gpg";
 
     static File dependencyVerificationsFile(File buildDirectory) {
         File gradleDir = ensureGradleDirExists(buildDirectory);
-        return new File(gradleDir, "verification-metadata.xml");
+        return new File(gradleDir, VERIFICATION_METADATA_XML);
+    }
+
+    static File keyringsFile(File buildDirectory) {
+        File gradleDir = ensureGradleDirExists(buildDirectory);
+        return new File(gradleDir, VERIFICATION_KEYRING_GPG);
     }
 
     static File ensureGradleDirExists(File buildDirectory) {

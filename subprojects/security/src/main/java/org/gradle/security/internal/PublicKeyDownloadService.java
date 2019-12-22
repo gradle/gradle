@@ -141,4 +141,7 @@ public class PublicKeyDownloadService implements PublicKeyService {
         return new URI(scheme, null, baseUri.getHost(), port, "/pks/lookup", "op=get&options=mr&search=0x" + keyId, null);
     }
 
+    @Override
+    public void close() {
+    }
 }

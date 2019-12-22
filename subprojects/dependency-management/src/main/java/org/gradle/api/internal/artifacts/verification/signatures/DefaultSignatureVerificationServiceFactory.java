@@ -30,12 +30,16 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.resource.connector.ResourceConnectorSpecification;
 import org.gradle.internal.resource.transfer.ExternalResourceConnector;
 import org.gradle.internal.resource.transport.http.HttpConnectorFactory;
+import org.gradle.security.internal.KeyringFilePublicKeyService;
 import org.gradle.security.internal.PublicKeyDownloadService;
 import org.gradle.security.internal.PublicKeyService;
+import org.gradle.security.internal.PublicKeyServiceChain;
 import org.gradle.security.internal.SecuritySupport;
 import org.gradle.util.BuildCommencedTimeProvider;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.URI;
 import java.util.List;
 import java.util.Optional;
@@ -73,11 +77,15 @@ public class DefaultSignatureVerificationServiceFactory implements SignatureVeri
     }
 
     @Override
-    public SignatureVerificationService create(List<URI> keyServers) {
+    public SignatureVerificationService create(File keyringsFile, List<URI> keyServers) {
         ExternalResourceConnector connector = httpConnectorFactory.createResourceConnector(new ResourceConnectorSpecification() {
         });
         PublicKeyDownloadService keyDownloadService = new PublicKeyDownloadService(ImmutableList.copyOf(keyServers), connector);
-        CrossBuildCachingKeyService keyService = new CrossBuildCachingKeyService(cacheRepository, decoratorFactory, buildOperationExecutor, keyDownloadService, timeProvider, refreshKeys);
+        PublicKeyService keyService = new CrossBuildCachingKeyService(cacheRepository, decoratorFactory, buildOperationExecutor, keyDownloadService, timeProvider, refreshKeys);
+        if (keyringsFile.exists()) {
+            KeyringFilePublicKeyService keyringFilePublicKeyService = new KeyringFilePublicKeyService(keyringsFile);
+            keyService = PublicKeyServiceChain.of(keyringFilePublicKeyService, keyService);
+        }
         DefaultSignatureVerificationService delegate = new DefaultSignatureVerificationService(keyService);
         return new CrossBuildSignatureVerificationService(
             delegate,
@@ -91,9 +99,9 @@ public class DefaultSignatureVerificationServiceFactory implements SignatureVeri
     }
 
     private static class DefaultSignatureVerificationService implements SignatureVerificationService {
-        private final CrossBuildCachingKeyService keyService;
+        private final PublicKeyService keyService;
 
-        public DefaultSignatureVerificationService(CrossBuildCachingKeyService keyService) {
+        public DefaultSignatureVerificationService(PublicKeyService keyService) {
             this.keyService = keyService;
         }
 
@@ -132,7 +140,11 @@ public class DefaultSignatureVerificationServiceFactory implements SignatureVeri
 
         @Override
         public void stop() {
-            keyService.close();
+            try {
+                keyService.close();
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
         }
     }
 }

@@ -118,6 +118,42 @@ public class DependencyVerificationConfiguration {
             }
             return expr.matches(value);
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            TrustCoordinates that = (TrustCoordinates) o;
+
+            if (regex != that.regex) {
+                return false;
+            }
+            if (group != null ? !group.equals(that.group) : that.group != null) {
+                return false;
+            }
+            if (name != null ? !name.equals(that.name) : that.name != null) {
+                return false;
+            }
+            if (version != null ? !version.equals(that.version) : that.version != null) {
+                return false;
+            }
+            return fileName != null ? fileName.equals(that.fileName) : that.fileName == null;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = group != null ? group.hashCode() : 0;
+            result = 31 * result + (name != null ? name.hashCode() : 0);
+            result = 31 * result + (version != null ? version.hashCode() : 0);
+            result = 31 * result + (fileName != null ? fileName.hashCode() : 0);
+            result = 31 * result + (regex ? 1 : 0);
+            return result;
+        }
     }
 
     public static class TrustedArtifact extends TrustCoordinates {
@@ -136,6 +172,30 @@ public class DependencyVerificationConfiguration {
 
         public String getKeyId() {
             return keyId;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            if (!super.equals(o)) {
+                return false;
+            }
+
+            TrustedKey that = (TrustedKey) o;
+
+            return keyId.equals(that.keyId);
+        }
+
+        @Override
+        public int hashCode() {
+            int result = super.hashCode();
+            result = 31 * result + keyId.hashCode();
+            return result;
         }
     }
 }
