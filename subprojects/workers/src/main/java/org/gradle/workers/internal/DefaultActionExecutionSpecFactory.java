@@ -40,8 +40,8 @@ public class DefaultActionExecutionSpecFactory implements ActionExecutionSpecFac
     @Override
     public <T extends WorkParameters> TransportableActionExecutionSpec<T> newTransportableSpec(ActionExecutionSpec<T> spec) {
         if (spec instanceof IsolatedParametersActionExecutionSpec) {
-            IsolatedParametersActionExecutionSpec isolatedSpec = (IsolatedParametersActionExecutionSpec) spec;
-            return new TransportableActionExecutionSpec<T>(isolatedSpec.getDisplayName(), isolatedSpec.getImplementationClass().getName(), serialize(isolatedSpec.getIsolatedParams()), isolatedSpec.getClassLoaderStructure(), isolatedSpec.getBaseDir(), isolatedSpec.isInternalServicesRequired());
+            IsolatedParametersActionExecutionSpec<?> isolatedSpec = (IsolatedParametersActionExecutionSpec) spec;
+            return new TransportableActionExecutionSpec<>(isolatedSpec.getDisplayName(), isolatedSpec.getImplementationClass().getName(), serialize(isolatedSpec.getIsolatedParams()), isolatedSpec.getClassLoaderStructure(), isolatedSpec.getBaseDir(), isolatedSpec.isInternalServicesRequired());
         } else if (spec instanceof TransportableActionExecutionSpec) {
             return (TransportableActionExecutionSpec<T>) spec;
         } else {

@@ -72,7 +72,6 @@ public class JavaInstallationProbe {
         SysProp(String sysProp) {
             this.sysProp = sysProp;
         }
-
     }
 
     public static class ProbeResult {

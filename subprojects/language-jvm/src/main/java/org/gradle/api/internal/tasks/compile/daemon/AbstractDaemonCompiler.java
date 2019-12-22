@@ -112,13 +112,20 @@ public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements C
         abstract public CompileSpec getCompileSpec();
     }
 
-    public static abstract class CompilerWorkAction implements WorkAction<CompilerParameters>, ProvidesWorkResult {
+    public static class CompilerWorkAction implements WorkAction<CompilerParameters>, ProvidesWorkResult {
         private DefaultWorkResult workResult;
+        private final CompilerParameters parameters;
         private final Instantiator instantiator;
 
         @Inject
-        public CompilerWorkAction(Instantiator instantiator) {
+        public CompilerWorkAction(CompilerParameters parameters, Instantiator instantiator) {
+            this.parameters = parameters;
             this.instantiator = instantiator;
+        }
+
+        @Override
+        public CompilerParameters getParameters() {
+            return parameters;
         }
 
         @Override
