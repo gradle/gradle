@@ -19,6 +19,7 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openpgp.PGPException;
 import org.bouncycastle.openpgp.PGPObjectFactory;
 import org.bouncycastle.openpgp.PGPPublicKey;
+import org.bouncycastle.openpgp.PGPPublicKeyRing;
 import org.bouncycastle.openpgp.PGPSignature;
 import org.bouncycastle.openpgp.PGPSignatureList;
 import org.bouncycastle.openpgp.PGPUtil;
@@ -33,6 +34,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.Security;
+import java.util.ArrayList;
+import java.util.List;
 
 public class SecuritySupport {
     private static final int BUFFER = 4096;
@@ -86,5 +89,21 @@ public class SecuritySupport {
 
     public static String toHexString(long key) {
         return String.format("%16x", key).trim();
+    }
+
+    public static List<PGPPublicKeyRing> loadKeyRingFile(File keyringFile) throws IOException {
+        List<PGPPublicKeyRing> existingRings = new ArrayList<>();
+        // load existing keys from keyring before
+        try (InputStream ins = new BufferedInputStream(new FileInputStream(keyringFile))) {
+            PGPObjectFactory objectFactory = new PGPObjectFactory(
+                PGPUtil.getDecoderStream(ins), new BcKeyFingerprintCalculator());
+            Object o;
+            while ((o = objectFactory.nextObject()) != null) {
+                if (o instanceof PGPPublicKeyRing) {
+                    existingRings.add((PGPPublicKeyRing) o);
+                }
+            }
+        }
+        return existingRings;
     }
 }

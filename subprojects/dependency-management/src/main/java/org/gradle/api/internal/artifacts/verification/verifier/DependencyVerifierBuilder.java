@@ -47,7 +47,7 @@ public class DependencyVerifierBuilder {
         .thenComparing(ModuleComponentIdentifier::getVersion);
     private final Map<ModuleComponentIdentifier, ComponentVerificationsBuilder> byComponent = Maps.newHashMap();
     private final List<DependencyVerificationConfiguration.TrustedArtifact> trustedArtifacts = Lists.newArrayList();
-    private final List<DependencyVerificationConfiguration.TrustedKey> trustedKeys = Lists.newArrayList();
+    private final Set<DependencyVerificationConfiguration.TrustedKey> trustedKeys = Sets.newLinkedHashSet();
     private final List<URI> keyServers = Lists.newArrayList();
     private final Set<IgnoredKey> ignoredKeys = Sets.newLinkedHashSet();
     private boolean isVerifyMetadata = true;
@@ -120,7 +120,7 @@ public class DependencyVerifierBuilder {
             .forEachOrdered(entry -> {
                 builder.put(entry.getKey(), entry.getValue().build());
             });
-        return new DependencyVerifier(builder.build(), new DependencyVerificationConfiguration(isVerifyMetadata, isVerifySignatures, trustedArtifacts, ImmutableList.copyOf(keyServers), ImmutableSet.copyOf(ignoredKeys), trustedKeys));
+        return new DependencyVerifier(builder.build(), new DependencyVerificationConfiguration(isVerifyMetadata, isVerifySignatures, trustedArtifacts, ImmutableList.copyOf(keyServers), ImmutableSet.copyOf(ignoredKeys), ImmutableList.copyOf(trustedKeys)));
     }
 
     public List<DependencyVerificationConfiguration.TrustedArtifact> getTrustedArtifacts() {

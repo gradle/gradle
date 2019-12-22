@@ -779,4 +779,38 @@ This can indicate that a dependency has been compromised. Please carefully verif
         where:
         addLocalKey << [true, false]
     }
+
+    def "can read public keys from keyring"() {
+        // key will not be published on the server fixture but available locally
+        def keyring = newKeyRing()
+        def pkId = toHexString(keyring.publicKey.keyID)
+
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+            verifySignatures()
+            addTrustedKey("org:foo:1.0", pkId)
+            addTrustedKey("org:foo:1.0", pkId, "pom", "pom")
+        }
+        keyring.writePublicKeyRingTo(file("gradle/verification-keyring.gpg"))
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0") {
+            withSignature {
+                keyring.sign(it)
+            }
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        succeeds ":compileJava"
+
+        then:
+        outputContains("Dependency verification is an incubating feature.")
+
+    }
 }

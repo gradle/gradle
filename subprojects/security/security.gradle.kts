@@ -28,6 +28,7 @@ dependencies {
     implementation(project(":logging"))
     implementation(project(":processServices"))
     implementation(project(":resourcesHttp"))
+    implementation(library("guava"))
 
     api(library("bouncycastle_pgp"))
 
