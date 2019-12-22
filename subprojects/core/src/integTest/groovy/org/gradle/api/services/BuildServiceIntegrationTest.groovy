@@ -16,7 +16,7 @@
 
 package org.gradle.api.services
 
-
+import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
@@ -30,8 +30,11 @@ import org.gradle.integtests.fixtures.InstantExecutionRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.RequiredFeatures
 import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
+import org.gradle.process.ExecOperations
 import org.junit.runner.RunWith
 import spock.lang.Unroll
+
+import javax.inject.Inject
 
 @RunWith(InstantExecutionRunner)
 class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
@@ -530,6 +533,31 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
+    def "can inject Gradle provided service #serviceType into build servicee"() {
+        serviceWithInjectedService(serviceType)
+        buildFile << """
+            def provider = gradle.sharedServices.registerIfAbsent("counter", CountingService) {
+            }
+
+            task check {
+                doFirst {
+                    provider.get().increment()
+                }
+            }
+        """
+
+        expect:
+        run("check")
+        run("check")
+
+        where:
+        serviceType << [
+            ExecOperations,
+            FileSystemOperations,
+        ].collect { it.name }
+    }
+
+    @Unroll
     def "task cannot use build service for #annotationType property"() {
         serviceImplementation()
         buildFile << """
@@ -742,6 +770,31 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
                 synchronized int increment() {
                     value++
                     println("service: value is \${value}")
+                    return value
+                }
+            }
+        """
+    }
+
+    def serviceWithInjectedService(String serviceType) {
+        buildFile << """
+            import ${Inject.name}
+
+            abstract class CountingService implements BuildService<${BuildServiceParameters.name}.None> {
+                int value
+
+                CountingService() {
+                    value = 0
+                    println("service: created with value = \${value}")
+                }
+
+                @Inject
+                abstract ${serviceType} getInjectedService()
+
+                // Service must be thread-safe
+                synchronized int increment() {
+                    assert injectedService != null
+                    value++
                     return value
                 }
             }

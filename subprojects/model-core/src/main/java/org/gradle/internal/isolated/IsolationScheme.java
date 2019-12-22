@@ -17,11 +17,18 @@
 package org.gradle.internal.isolated;
 
 import com.google.common.reflect.TypeToken;
+import org.gradle.api.file.FileSystemOperations;
 import org.gradle.internal.Cast;
 import org.gradle.internal.logging.text.TreeFormatter;
+import org.gradle.internal.service.ServiceLookup;
+import org.gradle.internal.service.ServiceLookupException;
+import org.gradle.internal.service.UnknownServiceException;
+import org.gradle.process.ExecOperations;
 
 import javax.annotation.Nullable;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 
 public class IsolationScheme<IMPLEMENTATION, PARAMS> {
     private final Class<IMPLEMENTATION> interfaceType;
@@ -71,5 +78,66 @@ public class IsolationScheme<IMPLEMENTATION, PARAMS> {
             return null;
         }
         return parametersType;
+    }
+
+    /**
+     * Returns the services available for injection into the implementation instance.
+     */
+    public ServiceLookup servicesForImplementation(@Nullable PARAMS params, ServiceLookup allServices) {
+        return new ServicesForIsolatedObject(interfaceType, params, allServices);
+    }
+
+    private static class ServicesForIsolatedObject implements ServiceLookup {
+        private final Class<?> interfaceType;
+        private final ServiceLookup allServices;
+        private final Object params;
+
+        public ServicesForIsolatedObject(Class<?> interfaceType, @Nullable Object params, ServiceLookup allServices) {
+            this.interfaceType = interfaceType;
+            this.allServices = allServices;
+            this.params = params;
+        }
+
+        @Nullable
+        @Override
+        public Object find(Type serviceType) throws ServiceLookupException {
+            if (serviceType instanceof Class) {
+                Class<?> serviceClass = (Class) serviceType;
+                if (serviceClass.isAssignableFrom(ExecOperations.class)) {
+                    return allServices.find(ExecOperations.class);
+                }
+                if (serviceClass.isAssignableFrom(FileSystemOperations.class)) {
+                    return allServices.find(FileSystemOperations.class);
+                }
+                if (serviceClass.isInstance(params)) {
+                    return params;
+                }
+            }
+            return null;
+        }
+
+        @Override
+        public Object get(Type serviceType) throws UnknownServiceException, ServiceLookupException {
+            Object result = find(serviceType);
+            if (result == null) {
+                notFound(serviceType);
+            }
+            return result;
+        }
+
+        @Override
+        public Object get(Type serviceType, Class<? extends Annotation> annotatedWith) throws UnknownServiceException, ServiceLookupException {
+            return notFound(serviceType);
+        }
+
+        private Object notFound(Type serviceType) {
+            TreeFormatter formatter = new TreeFormatter();
+            formatter.node("Services of type ");
+            formatter.appendType(serviceType);
+            formatter.append(" are not available for injection into instances of type ");
+            formatter.appendType(interfaceType);
+            formatter.append(".");
+            throw new UnknownServiceException(serviceType, formatter.toString());
+        }
     }
 }

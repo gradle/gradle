@@ -34,9 +34,12 @@ import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.classpath.PluginModuleRegistry;
 import org.gradle.api.internal.component.ComponentTypeRegistry;
 import org.gradle.api.internal.component.DefaultComponentTypeRegistry;
+import org.gradle.api.internal.file.DefaultFileOperations;
+import org.gradle.api.internal.file.DefaultFileSystemOperations;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.initialization.DefaultScriptClassPathResolver;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
@@ -65,6 +68,7 @@ import org.gradle.api.internal.project.taskfactory.PropertyAssociationTaskFactor
 import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
 import org.gradle.api.internal.project.taskfactory.TaskFactory;
 import org.gradle.api.internal.resources.ApiTextResourceAdapter;
+import org.gradle.api.internal.resources.DefaultResourceHandler;
 import org.gradle.api.internal.tasks.TaskStatistics;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.internal.tasks.userinput.BuildScanUserInputHandler;
@@ -197,6 +201,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             @Override
             public void execute(ServiceRegistration registration) {
                 registration.add(DefaultExecOperations.class);
+                registration.add(DefaultFileOperations.class);
+                registration.add(DefaultFileSystemOperations.class);
                 for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {
                     pluginServiceRegistry.registerBuildServices(registration);
                 }
@@ -206,6 +212,15 @@ public class BuildScopeServices extends DefaultServiceRegistry {
 
     protected BuildLayout createBuildLayout(BuildLayoutFactory buildLayoutFactory, StartParameter startParameter) {
         return buildLayoutFactory.getLayoutFor(new BuildLayoutConfiguration(startParameter));
+    }
+
+    protected DefaultResourceHandler.Factory createResourceHandlerFactory(FileResolver fileResolver, FileSystem fileSystem, TemporaryFileProvider temporaryFileProvider, ApiTextResourceAdapter.Factory textResourceAdapterFactory) {
+        return DefaultResourceHandler.Factory.from(
+            fileResolver,
+            fileSystem,
+            temporaryFileProvider,
+            textResourceAdapterFactory
+        );
     }
 
     protected FileResolver createFileResolver(FileLookup fileLookup, BuildLayout buildLayout) {

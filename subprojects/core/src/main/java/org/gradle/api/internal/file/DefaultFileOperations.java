@@ -235,7 +235,6 @@ public class DefaultFileOperations implements FileOperations {
 
     public static DefaultFileOperations createSimple(FileResolver fileResolver, FileCollectionFactory fileTreeFactory, ServiceRegistry services) {
         Instantiator instantiator = services.get(Instantiator.class);
-        FileLookup fileLookup = services.get(FileLookup.class);
         FileSystem fileSystem = services.get(FileSystem.class);
         DirectoryFileTreeFactory directoryFileTreeFactory = services.get(DirectoryFileTreeFactory.class);
         StreamHasher streamHasher = services.get(StreamHasher.class);
