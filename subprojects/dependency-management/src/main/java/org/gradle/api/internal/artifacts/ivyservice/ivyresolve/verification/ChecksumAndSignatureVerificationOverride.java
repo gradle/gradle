@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Queues;
+import com.google.common.collect.Sets;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
@@ -56,6 +57,7 @@ import java.util.Comparator;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ChecksumAndSignatureVerificationOverride implements DependencyVerificationOverride, ArtifactVerificationOperation {
@@ -71,6 +73,7 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
     private final ChecksumService checksumService;
     private final SignatureVerificationService signatureVerificationService;
     private final DependencyVerificationMode verificationMode;
+    private final Set<VerificationQuery> verificationQueries = Sets.newConcurrentHashSet();
     private final Deque<VerificationEvent> verificationEvents = Queues.newArrayDeque();
 
     public ChecksumAndSignatureVerificationOverride(BuildOperationExecutor buildOperationExecutor,
@@ -97,10 +100,12 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
     }
 
     @Override
-    public void onArtifact(ArtifactKind kind, ModuleComponentArtifactIdentifier artifact, File mainFile, Factory<File> signatureFile, String repositoryName) {
-        VerificationEvent event = new VerificationEvent(kind, artifact, mainFile, signatureFile, repositoryName);
-        synchronized (verificationEvents) {
-            verificationEvents.add(event);
+    public void onArtifact(ArtifactKind kind, ModuleComponentArtifactIdentifier artifact, File mainFile, Factory<File> signatureFile, String repositoryName, String repositoryId) {
+        if (verificationQueries.add(new VerificationQuery(artifact, repositoryId))) {
+            VerificationEvent event = new VerificationEvent(kind, artifact, mainFile, signatureFile, repositoryName);
+            synchronized (verificationEvents) {
+                verificationEvents.add(event);
+            }
         }
     }
 
@@ -259,6 +264,44 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
         private FailureWrapper(VerificationFailure failure, String repositoryName) {
             this.failure = failure;
             this.repositoryName = repositoryName;
+        }
+    }
+
+    private static class VerificationQuery {
+        private final ModuleComponentArtifactIdentifier artifact;
+        private final String repositoryId;
+        private final int hashCode;
+
+        public VerificationQuery(ModuleComponentArtifactIdentifier artifact, String repositoryId) {
+            this.artifact = artifact;
+            this.repositoryId = repositoryId;
+            int hashCode = artifact.hashCode();
+            hashCode = 31 * hashCode + repositoryId.hashCode();
+            this.hashCode = hashCode;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            VerificationQuery that = (VerificationQuery) o;
+            if (hashCode != that.hashCode) {
+                return false;
+            }
+            if (!artifact.equals(that.artifact)) {
+                return false;
+            }
+            return repositoryId.equals(that.repositoryId);
+        }
+
+        @Override
+        public int hashCode() {
+            return hashCode;
         }
     }
 

@@ -217,6 +217,92 @@ This can indicate that a dependency has been compromised. Please carefully verif
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
     }
 
+    def "doesn't check the same artifact multiple times during a build"() {
+        createMetadataFile {
+            noMetadataVerification()
+            keyServer(keyServerFixture.uri)
+            verifySignatures()
+            addTrustedKey("org:foo:1.0", validPublicKeyHexString)
+            trust("org", "bar", "1.0")
+        }
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0") {
+            withSignature {
+                signAsciiArmored(it)
+                if (name.endsWith(".jar")) {
+                    // change contents of original file so that the signature doesn't match anymore
+                    bytes = [0, 1, 2, 3]
+                }
+            }
+        }
+        uncheckedModule("org", "bar", "1.0") {
+            dependsOn("org", "foo", "1.0")
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+                implementation "org:bar:1.0"
+            }
+        """
+
+        when:
+        serveValidKey()
+        fails ":compileJava"
+
+        then:
+        failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
+  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key '14f53f0824875d73' (Gradle Test (This is used for testing the gradle-signing-plugin) <test@gradle.org>) but signature didn't match
+This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
+    }
+
+    def "doesn't check the same parent POM file multiple times during a build"() {
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+            verifySignatures()
+            addTrustedKey("org:foo:1.0", validPublicKeyHexString)
+            addTrustedKey("org:foo:1.0", validPublicKeyHexString, "pom", "pom")
+            trust("org", "bar", "1.0")
+        }
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "parent", "1.0") {
+            withSignature {
+                signAsciiArmored(it)
+                if (name.endsWith(".pom")) {
+                    // change contents of original file so that the signature doesn't match anymore
+                    text = "${text}\n"
+                }
+            }
+        }
+        uncheckedModule("org", "foo", "1.0") {
+            parent("org", "parent", "1.0")
+            withSignature {
+                signAsciiArmored(it)
+            }
+        }
+        uncheckedModule("org", "bar", "1.0") {
+            parent("org", "parent", "1.0")
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+                implementation "org:bar:1.0"
+            }
+        """
+
+        when:
+        serveValidKey()
+        fails ":compileJava"
+
+        then:
+        failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
+  - On artifact parent-1.0.pom (org:parent:1.0) in repository 'maven': Artifact was signed with key '14f53f0824875d73' (Gradle Test (This is used for testing the gradle-signing-plugin) <test@gradle.org>) but signature didn't match
+This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
+    }
+
 
     def "fails verification is signature is not trusted"() {
         def keyring = newKeyRing()

@@ -69,9 +69,6 @@ public class SignatureVerificationFailure implements VerificationFailure {
                 appendKeyDetails(sb, publicKey);
                 sb.append("and passed verification but the key isn't in your trusted keys list.");
                 break;
-            case KEY_NOT_FOUND:
-                sb.append("but it wasn't found in any key server so it couldn't be verified");
-                break;
             case FAILED:
                 appendKeyDetails(sb, publicKey);
                 sb.append("but signature didn't match");
@@ -84,7 +81,6 @@ public class SignatureVerificationFailure implements VerificationFailure {
 
     public enum FailureKind {
         PASSED_NOT_TRUSTED,
-        KEY_NOT_FOUND,
         FAILED,
         IGNORED_KEY,
         MISSING_KEY
