@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.wri
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -25,10 +26,10 @@ import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifie
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -84,17 +85,8 @@ class PgpKeyGrouper {
                             if (groups.size() == 1) {
                                 groupByGroupOnly(e, groups);
                             } else {
-                                tryComputeCommonPrefixRegex(groups).ifPresent(groupRegex -> {
-                                    verificationsBuilder.addTrustedKey(
-                                        e.getKey(),
-                                        groupRegex,
-                                        null,
-                                        null,
-                                        null,
-                                        true
-                                    );
-                                    markKeyDeclaredGlobally(e);
-                                });
+                                groupUsingRegex(e, groups);
+                                processRemainingGroups(e, groups);
                             }
                         }
                     }
@@ -102,9 +94,56 @@ class PgpKeyGrouper {
             });
     }
 
+    private void processRemainingGroups(Map.Entry<String, Collection<PgpEntry>> e, List<String> groups) {
+        String keyId = e.getKey();
+        List<PgpEntry> remainingUntouched = e.getValue()
+            .stream()
+            .filter(p -> p.doesNotDeclareKeyGlobally(keyId))
+            .collect(Collectors.toList());
+        for (String group : groups) {
+            long count = remainingUntouched.stream().filter(p -> p.getGroup().equals(group)).count();
+            if (count>1) {
+                // a key is at least used in 2 artifacts
+                verificationsBuilder.addTrustedKey(
+                    keyId,
+                    group,
+                    null,
+                    null,
+                    null,
+                    false
+                );
+                remainingUntouched
+                    .stream()
+                    .filter(p -> p.getGroup().equals(group))
+                    .forEach(p -> p.keyDeclaredGlobally(keyId));
+            }
+        }
+    }
+
+    private void groupUsingRegex(Map.Entry<String, Collection<PgpEntry>> e, List<String> groups) {
+        String keyID = e.getKey();
+        List<List<String>> commonPrefixes = tryComputeCommonPrefixes(groups);
+        for (List<String> prefix : commonPrefixes) {
+            String groupRegex = "^" + GROUP_JOINER.join(prefix) + GROUP_SUFFIX;
+            verificationsBuilder.addTrustedKey(
+                e.getKey(),
+                groupRegex,
+                null,
+                null,
+                null,
+                true
+            );
+            for (PgpEntry pgpEntry : e.getValue()) {
+                if (pgpEntry.getGroup().matches(groupRegex)) {
+                    pgpEntry.keyDeclaredGlobally(keyID);
+                }
+            }
+        }
+    }
+
     // Tries to find the common super-group for a list of groups
     // For example given ["org.foo", "org.foo.bar", "org.foo.baz"] it will group using "org.foo.*"
-    static Optional<String> tryComputeCommonPrefixRegex(List<String> groups) {
+    static List<List<String>> tryComputeCommonPrefixes(List<String> groups) {
         List<List<String>> splitGroups = groups.stream()
             .map(group -> GROUP_SPLITTER.splitToList(group))
             .sorted(Comparator.comparing(List::size))
@@ -112,28 +151,41 @@ class PgpKeyGrouper {
         List<String> shortest = splitGroups.get(0);
         if (shortest.size() < 2) {
             // we need at least a prefix of 2 elements, like "com.mycompany", to perform grouping
-            return Optional.empty();
+            return Collections.emptyList();
         }
-        int prefixLen = 2;
-        List<String> prefix = shortest.subList(0, prefixLen);
-        List<String> commonPrefix = null;
-        while (samePrefix(prefixLen, prefix, splitGroups)) {
-            commonPrefix = prefix;
-            prefixLen++;
-            if (prefixLen <= shortest.size()) {
-                prefix = shortest.subList(0, prefixLen);
-            } else {
-                break;
+        List<List<String>> commonPrefixes = Lists.newArrayList();
+        List<List<String>> remainder = Lists.newArrayList(splitGroups);
+        List<List<String>> previous = null;
+        while (!remainder.isEmpty()) {
+            previous = Lists.newArrayList(remainder);
+            shortest = remainder.get(0);
+            int prefixLen = 2;
+            List<String> prefix = shortest.subList(0, prefixLen);
+            List<String> commonPrefix = null;
+            List<List<String>> candidatesWithSamePrefix = Lists.newArrayList(remainder);
+            while ((candidatesWithSamePrefix = samePrefix(prefixLen, prefix, candidatesWithSamePrefix)).size() > 1) {
+                remainder.removeAll(candidatesWithSamePrefix);
+                commonPrefix = prefix;
+                prefixLen++;
+                if (prefixLen <= shortest.size()) {
+                    prefix = shortest.subList(0, prefixLen);
+                } else {
+                    break;
+                }
+            }
+            if (commonPrefix != null) {
+                commonPrefixes.add(commonPrefix);
+            }
+            if (remainder.equals(previous)) {
+                // could do nothing with the first, let's go with the next one
+                remainder.remove(0);
             }
         }
-        if (commonPrefix != null) {
-            return Optional.of(GROUP_JOINER.join(commonPrefix) + GROUP_SUFFIX);
-        }
-        return Optional.empty();
+        return commonPrefixes;
     }
 
-    private static boolean samePrefix(int prefixLen, List<String> prefix, List<List<String>> candidates) {
-        return candidates.stream().allMatch(groups -> groups.subList(0, prefixLen).equals(prefix));
+    private static List<List<String>> samePrefix(int prefixLen, List<String> prefix, List<List<String>> candidates) {
+        return candidates.stream().filter(groups -> groups.subList(0, prefixLen).equals(prefix)).collect(Collectors.toList());
     }
 
     private void markKeyDeclaredGlobally(Map.Entry<String, Collection<PgpEntry>> e) {

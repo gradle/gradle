@@ -31,21 +31,37 @@ class PgpKeyGrouperTest extends Specification {
     private PgpKeyGrouper pgpKeyGrouper
 
     @Unroll
-    def "common prefix for groups #groups == #expectedPrefixRegex"() {
+    def "common prefix for groups #groups == #expected"() {
         expect:
-        PgpKeyGrouper.tryComputeCommonPrefixRegex(groups) == Optional.ofNullable(expectedPrefixRegex)
+        PgpKeyGrouper.tryComputeCommonPrefixes(groups) == expected
 
         where:
-        groups                         | expectedPrefixRegex
-        ["org", "com"]                 | null
-        ["org.foo", "com"]             | null
-        ["org.foo", "org.bar"]         | null // require at least 2 group items
-        ["org.foo.a", "org.foo"]       | "org[.]foo(\$|([.].*))"
-        ["org.foo.a", "org.foo.b"]     | "org[.]foo(\$|([.].*))"
-        ["org.foo.a.b", "org.foo.a.c"] | "org[.]foo[.]a(\$|([.].*))"
-        ["org.foo.a.b", "org.foo"]     | "org[.]foo(\$|([.].*))"
-        ["org.foo.a.b", "org.foo.c.d"] | "org[.]foo(\$|([.].*))"
-        ["org.foo.a.b", "org.bar.baz"] | null
+        groups                                                                            | expected
+        ["org", "com"]                                                                    | []
+        ["org.foo", "com"]                                                                | []
+        ["org.foo", "org.bar"]                                                            | [] // require at least 2 group items
+        ["org.foo.a", "org.foo"]                                                          | [["org", "foo"]]
+        ["org.foo.a", "org.foo.b"]                                                        | [["org", "foo"]]
+        ["org.foo.a.b", "org.foo.a.c"]                                                    | [["org", "foo", "a"]]
+        ["org.foo.a.b", "org.foo"]                                                        | [["org", "foo"]]
+        ["org.foo.a.b", "org.foo.c.d"]                                                    | [["org", "foo"]]
+        ["org.foo.a.b", "org.bar.baz"]                                                    | []
+        ["org.a.1", "org.a.2", "org.b.1", "org.b.2"]                                      | [["org", "a"], ["org", "b"]]
+        ["org.a.1", "org.a.2", "org.a.1.c", "org.b.1", "org.b.2"]                         | [["org", "a", "1"], ["org", "b"]]
+
+    }
+
+    def "more complex grouping"() {
+        expect:
+        PgpKeyGrouper.tryComputeCommonPrefixes([
+            "org.codehaus.groovy.modules",
+            "io.github.http-builder-ng",
+            "org.jetbrains.intellij.deps",
+            "org.jetbrains.kotlinx",
+            "info.picocli",
+            "com.github.javaparser",
+            "io.github.http-builder-ng.test"
+        ]) as Set == [["org", "jetbrains"], ["io","github", "http-builder-ng"]] as Set
     }
 
     def "groups entries which have the same module component id"() {
@@ -129,7 +145,7 @@ class PgpKeyGrouperTest extends Specification {
         then:
         def keys = verifier.configuration.trustedKeys
         keys*.keyId == ["key1"]
-        keys[0].group == 'org[.]group($|([.].*))'
+        keys[0].group == '^org[.]group($|([.].*))'
         keys[0].name == null
         keys[0].version == null
         keys[0].fileName == null
