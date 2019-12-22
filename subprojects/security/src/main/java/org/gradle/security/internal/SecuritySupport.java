@@ -88,7 +88,7 @@ public class SecuritySupport {
     }
 
     public static String toHexString(long key) {
-        return String.format("%16x", key).trim();
+        return String.format("%016x", key).trim();
     }
 
     public static List<PGPPublicKeyRing> loadKeyRingFile(File keyringFile) throws IOException {

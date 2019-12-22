@@ -26,7 +26,7 @@ import java.util.Optional;
 
 public class PublicKeyServiceChain implements PublicKeyService {
     private final static Logger LOGGER = Logging.getLogger(PublicKeyServiceChain.class);
-    
+
     private final List<PublicKeyService> services;
 
     public static PublicKeyService of(PublicKeyService... delegates) {

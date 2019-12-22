@@ -21,7 +21,7 @@ import org.gradle.internal.component.external.model.ModuleComponentArtifactIdent
 import java.io.File;
 
 public interface ArtifactVerificationOperation {
-    void onArtifact(ArtifactKind kind, ModuleComponentArtifactIdentifier artifact, File mainFile, Factory<File> signatureFile, String repositoryName);
+    void onArtifact(ArtifactKind kind, ModuleComponentArtifactIdentifier artifact, File mainFile, Factory<File> signatureFile, String repositoryName, String repositoryId);
 
     enum ArtifactKind {
         METADATA,
