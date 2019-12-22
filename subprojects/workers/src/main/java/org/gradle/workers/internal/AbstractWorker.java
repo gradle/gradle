@@ -33,11 +33,11 @@ public abstract class AbstractWorker implements BuildOperationAwareWorker {
     }
 
     @Override
-    public DefaultWorkResult execute(ActionExecutionSpec spec) {
+    public DefaultWorkResult execute(ActionExecutionSpec<?> spec) {
         return execute(spec, buildOperationExecutor.getCurrentOperation());
     }
 
-    DefaultWorkResult executeWrappedInBuildOperation(final ActionExecutionSpec spec, final BuildOperationRef parentBuildOperation, final Work work) {
+    DefaultWorkResult executeWrappedInBuildOperation(final ActionExecutionSpec<?> spec, final BuildOperationRef parentBuildOperation, final Work work) {
         return buildOperationExecutor.call(new CallableBuildOperation<DefaultWorkResult>() {
             @Override
             public DefaultWorkResult call(BuildOperationContext context) {
@@ -56,7 +56,7 @@ public abstract class AbstractWorker implements BuildOperationAwareWorker {
         });
     }
 
-    private static String getImplementationClassName(ActionExecutionSpec spec) {
+    private static String getImplementationClassName(ActionExecutionSpec<?> spec) {
         if (spec.getImplementationClass() == AdapterWorkAction.class) {
             AdapterWorkParameters parameters = (AdapterWorkParameters) spec.getParameters();
             return parameters.getImplementationClassName();
@@ -66,7 +66,7 @@ public abstract class AbstractWorker implements BuildOperationAwareWorker {
     }
 
     interface Work {
-        DefaultWorkResult execute(ActionExecutionSpec spec);
+        DefaultWorkResult execute(ActionExecutionSpec<?> spec);
     }
 
     static class Details implements ExecuteWorkItemBuildOperationType.Details {

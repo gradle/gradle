@@ -72,7 +72,7 @@ public class GroovyCompilerFactory implements CompilerFactory<GroovyJavaJointCom
         return new AnnotationProcessorDiscoveringCompiler<GroovyJavaJointCompileSpec>(new NormalizingGroovyCompiler(groovyCompiler), processorDetector);
     }
 
-    static class DaemonSideCompiler implements Compiler<GroovyJavaJointCompileSpec>, Serializable {
+    public static class DaemonSideCompiler implements Compiler<GroovyJavaJointCompileSpec>, Serializable {
         @Override
         public WorkResult execute(GroovyJavaJointCompileSpec spec) {
             DefaultExecActionFactory execHandleFactory = DefaultExecActionFactory.root();

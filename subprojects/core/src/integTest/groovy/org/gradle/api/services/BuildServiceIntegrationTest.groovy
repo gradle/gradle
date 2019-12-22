@@ -17,6 +17,8 @@
 package org.gradle.api.services
 
 import org.gradle.api.file.FileSystemOperations
+import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
@@ -554,6 +556,8 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
         serviceType << [
             ExecOperations,
             FileSystemOperations,
+            ObjectFactory,
+            ProviderFactory,
         ].collect { it.name }
     }
 
@@ -593,7 +597,15 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
         fails("broken")
 
         where:
-        annotationType << [Input, InputFile, InputDirectory, InputFiles, OutputDirectory, OutputDirectories, OutputFile, LocalState].collect { it.simpleName }
+        annotationType << [
+            Input,
+            InputFile,
+            InputDirectory,
+            InputFiles,
+            OutputDirectory,
+            OutputDirectories,
+            OutputFile,
+            LocalState].collect { it.simpleName }
     }
 
     def "service is stopped even if build fails"() {
