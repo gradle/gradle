@@ -17,7 +17,12 @@ package org.gradle.api.internal.artifacts.verification.verifier;
 
 import org.gradle.internal.logging.text.TreeFormatter;
 
+import java.io.File;
+
 public interface VerificationFailure {
+
+    File getFilePath();
+
     default boolean isFatal() {
         return true;
     }

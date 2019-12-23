@@ -17,10 +17,11 @@ package org.gradle.api.internal.artifacts.verification.verifier;
 
 import org.gradle.internal.logging.text.TreeFormatter;
 
-public class MissingChecksums implements VerificationFailure {
-    public static final MissingChecksums INSTANCE = new MissingChecksums();
+import java.io.File;
 
-    private MissingChecksums() {
+public class MissingChecksums extends AbstractVerificationFailure {
+    public MissingChecksums(File file) {
+        super(file);
     }
 
     @Override

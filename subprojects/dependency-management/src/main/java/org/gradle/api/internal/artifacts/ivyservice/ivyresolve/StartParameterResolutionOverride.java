@@ -92,7 +92,7 @@ public class StartParameterResolutionOverride {
                 }
                 SingleMessageLogger.incubatingFeatureUsed("Dependency verification");
                 try {
-                    return new ChecksumAndSignatureVerificationOverride(buildOperationExecutor, verificationsFile, keyringsFile, checksumService, signatureVerificationServiceFactory, startParameter.getDependencyVerificationMode());
+                    return new ChecksumAndSignatureVerificationOverride(buildOperationExecutor, startParameter.getGradleUserHomeDir(), verificationsFile, keyringsFile, checksumService, signatureVerificationServiceFactory, startParameter.getDependencyVerificationMode());
                 } catch (Exception e) {
                     return new FailureVerificationOverride(e, verificationsFile);
                 }

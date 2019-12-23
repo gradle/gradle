@@ -91,7 +91,7 @@ public class DependencyVerifier {
 
     private void performVerification(ModuleComponentArtifactIdentifier foundArtifact, ChecksumService checksumService, SignatureVerificationService signatureVerificationService, File file, File signature, ArtifactVerificationResultBuilder builder) {
         if (!file.exists()) {
-            builder.failWith(DeletedArtifact.INSTANCE);
+            builder.failWith(new DeletedArtifact(file));
             return;
         }
         doVerifyArtifact(foundArtifact, checksumService, signatureVerificationService, file, signature, builder);
@@ -107,15 +107,15 @@ public class DependencyVerifier {
                 String verifiedArtifact = verification.getArtifactName();
                 if (verifiedArtifact.equals(foundArtifactFileName)) {
                     if (signature == null && config.isVerifySignatures()) {
-                        builder.failWith(MissingSignature.INSTANCE);
+                        builder.failWith(new MissingSignature(file));
                     }
                     if (signature != null) {
-                        DefaultSignatureVerificationResultBuilder result = new DefaultSignatureVerificationResultBuilder();
+                        DefaultSignatureVerificationResultBuilder result = new DefaultSignatureVerificationResultBuilder(file, signature);
                         verifySignature(signatureVerificationService, file, signature, allTrustedKeys(foundArtifact, verification.getTrustedPgpKeys()), allIgnoredKeys(verification.getIgnoredPgpKeys()), result);
                         if (result.hasOnlyIgnoredKeys()) {
-                            builder.failWith(OnlyIgnoredKeys.INSTANCE);
+                            builder.failWith(new OnlyIgnoredKeys(file));
                             if (verification.getChecksums().isEmpty()) {
-                                builder.failWith(MissingChecksums.INSTANCE);
+                                builder.failWith(new MissingChecksums(file));
                                 return;
                             } else {
                                 verifyChecksums(checksumService, file, verification, builder);
@@ -135,7 +135,7 @@ public class DependencyVerifier {
         }
         if (signature != null) {
             // it's possible that the artifact is not listed explicitly but we can still verify signatures
-            DefaultSignatureVerificationResultBuilder result = new DefaultSignatureVerificationResultBuilder();
+            DefaultSignatureVerificationResultBuilder result = new DefaultSignatureVerificationResultBuilder(file, signature);
             verifySignature(signatureVerificationService, file, signature, allTrustedKeys(foundArtifact, Collections.emptySet()), allIgnoredKeys(Collections.emptySet()), result);
             if (result.hasError()) {
                 builder.failWith(result.asError(publicKeyService));
@@ -144,7 +144,7 @@ public class DependencyVerifier {
                 return;
             }
         }
-        builder.failWith(MissingChecksums.INSTANCE);
+        builder.failWith(new MissingChecksums(file));
     }
 
     private Set<String> allTrustedKeys(ModuleComponentArtifactIdentifier id, Set<String> artifactSpecificKeys) {
@@ -202,7 +202,7 @@ public class DependencyVerifier {
                 }
             }
         }
-        builder.failWith(new ChecksumVerificationFailure(algorithm, expected, actualChecksum));
+        builder.failWith(new ChecksumVerificationFailure(file, algorithm, expected, actualChecksum));
     }
 
     private static String checksumOf(ChecksumKind algorithm, File file, ChecksumService cache) {
@@ -233,11 +233,18 @@ public class DependencyVerifier {
     }
 
     private static class DefaultSignatureVerificationResultBuilder implements SignatureVerificationResultBuilder {
+        private final File file;
+        private final File signatureFile;
         private List<String> missingKeys = null;
         private List<PGPPublicKey> trustedKeys = null;
         private List<PGPPublicKey> validNotTrusted = null;
         private List<PGPPublicKey> failedKeys = null;
         private List<String> ignoredKeys = null;
+
+        private DefaultSignatureVerificationResultBuilder(File file, File signatureFile) {
+            this.file = file;
+            this.signatureFile = signatureFile;
+        }
 
         @Override
         public void missingKey(String keyId) {
@@ -308,7 +315,7 @@ public class DependencyVerifier {
                     errors.put(ignoredKey, error(null, SignatureVerificationFailure.FailureKind.IGNORED_KEY));
                 }
             }
-            return new SignatureVerificationFailure(errors.build(), publicKeyService);
+            return new SignatureVerificationFailure(file, signatureFile, errors.build(), publicKeyService);
         }
 
         public boolean hasError() {
