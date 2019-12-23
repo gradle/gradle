@@ -1,3 +1,1 @@
- - Dependency cache is relocatable
- - Configurable compilation order between Groovy, Java & Scala
- - New sample projects in Gradle's documentation
+ - Dependency checksum and signature verification
