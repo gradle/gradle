@@ -15,6 +15,7 @@
  */
 package org.gradle.plugins.ear;
 
+import com.google.common.collect.ImmutableList;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
@@ -32,6 +33,7 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.bundling.Jar;
+import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor;
 import org.gradle.plugins.ear.descriptor.EarModule;
 import org.gradle.plugins.ear.descriptor.internal.DefaultDeploymentDescriptor;
@@ -79,6 +81,7 @@ public class Ear extends Jar {
         // this allows us to generate the deployment descriptor after recording all modules it contains
         CopySpecInternal metaInf = (CopySpecInternal) getMainSpec().addChild().into("META-INF");
         CopySpecInternal descriptorChild = metaInf.addChild();
+        OutputChangeListener outputChangeListener = getServices().get(OutputChangeListener.class);
         descriptorChild.from((Callable<FileTreeAdapter>) () -> {
                 final DeploymentDescriptor descriptor = getDeploymentDescriptor();
 
@@ -94,6 +97,7 @@ public class Ear extends Jar {
                 GeneratedSingletonFileTree descriptorSource = new GeneratedSingletonFileTree(
                     getTemporaryDirFactory(),
                     descriptorFileName,
+                    absolutePath -> outputChangeListener.beforeOutputChange(ImmutableList.of(absolutePath)),
                     outputStream -> descriptor.writeTo(new OutputStreamWriter(outputStream))
                 );
 

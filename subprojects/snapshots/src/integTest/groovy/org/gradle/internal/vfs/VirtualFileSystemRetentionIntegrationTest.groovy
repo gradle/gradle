@@ -348,6 +348,31 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         file("build/output1").assertExists()
     }
 
+    @ToBeFixedForInstantExecution
+    def "detects changes to manifest"() {
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+            
+            jar {
+                manifest {
+                    attributes('Created-By': project.property("creator"))
+                }
+            }            
+        """
+
+        when:
+        withRetention().run "jar", "-Pcreator=first"
+        then:
+        executedAndNotSkipped(":jar")
+
+        when:
+        withRetention().run "jar", "-Pcreator=second"
+        then:
+        executedAndNotSkipped(":jar")
+    }
+
     // This makes sure the next Gradle run starts with a clean BuildOutputCleanupRegistry
     private void invalidateBuildOutputCleanupState() {
         file(".gradle/buildOutputCleanup/cache.properties").text = """

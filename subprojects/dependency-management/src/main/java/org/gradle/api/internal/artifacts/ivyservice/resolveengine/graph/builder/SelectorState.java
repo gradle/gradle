@@ -378,7 +378,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     }
 
     public boolean hasStrongOpinion() {
-        return forced || versionConstraint.isStrict();
+        return forced || (versionConstraint != null && versionConstraint.isStrict());
     }
 
     public void update(DependencyState dependencyState) {
