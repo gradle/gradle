@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import java.util.Properties
+import java.util.*
 
 plugins {
     `java`
@@ -74,11 +74,19 @@ allprojects {
         maven {
             name = "Gradle libs"
             url = uri("https://repo.gradle.org/gradle/libs")
+            mavenContent {
+                // This repository contains an older version which has been overwritten in Central
+                excludeModule("com.google.j2objc", "j2objc-annotations")
+            }
         }
         gradlePluginPortal()
         maven {
             name = "Gradle snapshot libs"
             url = uri("https://repo.gradle.org/gradle/libs-snapshots")
+            mavenContent {
+                // This repository contains an older version which has been overwritten in Central
+                excludeModule("com.google.j2objc", "j2objc-annotations")
+            }
         }
         maven {
             name = "kotlinx"
