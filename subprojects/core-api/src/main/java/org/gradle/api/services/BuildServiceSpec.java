@@ -40,7 +40,7 @@ public interface BuildServiceSpec<P extends BuildServiceParameters> {
 
     /**
      * Specifies the maximum number of tasks that can use this service in parallel. Setting this to 1 means that the service will be used by a single task at a time.
-     * When this property has no value defined, then any number of tasks may use this service iin parallel. This is the default.
+     * When this property has no value defined, then any number of tasks may use this service in parallel. This is the default.
      */
     Property<Integer> getMaxParallelUsages();
 }
