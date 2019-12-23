@@ -24,6 +24,7 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.cache.internal.GeneratedGradleJarCache;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.eclipse.model.internal.ClasspathFactory;
@@ -327,7 +328,8 @@ public class EclipseClasspath {
         IdeArtifactRegistry ideArtifactRegistry = projectInternal.getServices().get(IdeArtifactRegistry.class);
         ProjectStateRegistry projectRegistry = projectInternal.getServices().get(ProjectStateRegistry.class);
         DirectoryFileTreeFactory directoryFileTreeFactory = projectInternal.getServices().get(DirectoryFileTreeFactory.class);
-        SourcesJarFactory sourcesJarFactory = new DefaultSourcesJarFactory(new SourcesJarCreator(directoryFileTreeFactory));
+        GeneratedGradleJarCache generatedGradleJarCache = projectInternal.getServices().get(GeneratedGradleJarCache.class);
+        SourcesJarFactory sourcesJarFactory = new DefaultSourcesJarFactory(new SourcesJarCreator(directoryFileTreeFactory), generatedGradleJarCache);
         ClasspathFactory classpathFactory = new ClasspathFactory(this, ideArtifactRegistry, projectRegistry, sourcesJarFactory);
         return classpathFactory.createEntries();
     }

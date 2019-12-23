@@ -310,18 +310,35 @@ apply plugin: "eclipse"
 dependencies {
     implementation gradleApi()
 }
-
-task resolve {
-    doLast {
-        configurations.runtimeClasspath.each { println it }
-    }
-}
 """
         when:
         succeeds ideTask
 
         then:
         ideFileContainsGradleApiWithSources("gradle-api")
+    }
+
+    @ToBeFixedForInstantExecution
+    def "gradle-api sources jar for gradleTestKit() is resolved and attached"() {
+        given:
+        requireGradleDistribution()
+        TestFile sourcesDir = distribution.gradleHomeDir.createDir("src")
+        sourcesDir.createFile("org/gradle/Test.java").writelns("package org.gradle;", "public class Test {}")
+
+        buildScript """
+apply plugin: "java"
+apply plugin: "idea"
+apply plugin: "eclipse"
+
+dependencies {
+    implementation gradleTestKit()
+}
+"""
+        when:
+        succeeds ideTask
+
+        then:
+        ideFileContainsGradleApiWithSources("gradle-test-kit")
     }
 
     private useIvyRepo(def repo) {

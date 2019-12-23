@@ -38,6 +38,7 @@ dependencies {
     implementation(project(":scala"))
     implementation(project(":ear"))
     implementation(project(":toolingApi"))
+    implementation(project(":persistentCache"))
 
     implementation(library("groovy"))
     implementation(library("slf4j_api"))
@@ -64,6 +65,7 @@ dependencies {
     testRuntimeOnly(project(":runtimeApiInfo"))
 
     integTestImplementation(testLibrary("jetty"))
+    integTestRuntimeOnly(project(":testKit"))
 }
 
 gradlebuildJava {

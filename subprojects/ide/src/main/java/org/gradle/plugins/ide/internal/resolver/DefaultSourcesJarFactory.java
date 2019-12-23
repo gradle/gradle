@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.ide.internal.resolver;
 
+import org.gradle.cache.internal.GeneratedGradleJarCache;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleInstallation;
 
@@ -24,9 +25,11 @@ import java.io.File;
 public class DefaultSourcesJarFactory implements SourcesJarFactory {
 
     private final SourcesJarCreator sourcesJarCreator;
+    private final GeneratedGradleJarCache cache;
 
-    public DefaultSourcesJarFactory(SourcesJarCreator sourcesJarCreator) {
+    public DefaultSourcesJarFactory(SourcesJarCreator sourcesJarCreator, GeneratedGradleJarCache cache) {
         this.sourcesJarCreator = sourcesJarCreator;
+        this.cache = cache;
     }
 
     @Override
@@ -36,10 +39,6 @@ public class DefaultSourcesJarFactory implements SourcesJarFactory {
         if (gradleInstallation == null || !gradleInstallation.getSrcDir().exists()) {
             return null;
         }
-        File sourcesJar = new File(artifact.getParent(), artifact.getName().replace(".jar", "-sources.jar"));
-        if (!sourcesJar.exists()) {
-            sourcesJarCreator.create(sourcesJar, gradleInstallation.getSrcDir());
-        }
-        return sourcesJar;
+        return cache.get("sources", file -> sourcesJarCreator.create(file, gradleInstallation.getSrcDir()));
     }
 }
