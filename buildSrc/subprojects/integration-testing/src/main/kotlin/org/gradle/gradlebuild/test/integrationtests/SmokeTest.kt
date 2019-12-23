@@ -20,4 +20,4 @@ package org.gradle.gradlebuild.test.integrationtests
 /**
  * A test that verifies Gradle can be used with popular third party plugins.
  */
-open class SmokeTest : DistributionTest()
+abstract class SmokeTest : DistributionTest()

@@ -30,9 +30,18 @@ class CleanupPlugin : Plugin<Project> {
             version.set(GradleVersion.version(project.version.toString()))
             homeDir.set(layout.projectDirectory.dir("intTestHomeDir"))
         }
-        tasks.register("cleanUpDaemons", CleanUpDaemons::class)
+        val tracker = gradle.sharedServices.registerIfAbsent("daemonTracker", DaemonTracker::class.java) {
+            parameters.gradleHomeDir.fileValue(gradle.gradleHomeDir)
+            parameters.rootProjectDir.fileValue(rootProject.projectDir)
+        }
+        extensions.create("cleanup", CleanupExtension::class.java, tracker)
+        tasks.register("cleanUpDaemons", CleanUpDaemons::class) {
+            this.tracker.set(tracker)
+        }
 
-        val killExistingProcessesStartedByGradle = tasks.register("killExistingProcessesStartedByGradle", KillLeakingJavaProcesses::class)
+        val killExistingProcessesStartedByGradle = tasks.register("killExistingProcessesStartedByGradle", KillLeakingJavaProcesses::class) {
+            this.tracker.set(tracker)
+        }
 
         if (BuildEnvironment.isCiServer) {
             tasks {

@@ -17,60 +17,17 @@
 package org.gradle.gradlebuild.testing.integrationtests.cleanup
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
-import org.gradle.api.tasks.testing.TestDescriptor
-import org.gradle.api.tasks.testing.TestListener
-import org.gradle.api.tasks.testing.TestResult
-
-import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.ConcurrentHashMap.newKeySet
 
 
-open class CleanUpDaemons : DefaultTask() {
-
-    private
-    val suspiciousDaemons = ConcurrentHashMap<String, MutableSet<String>>()
-
-    private
-    val daemonPids = newKeySet<String>()
+abstract class CleanUpDaemons : DefaultTask() {
+    @get:Internal
+    abstract val tracker: Property<DaemonTracker>
 
     @TaskAction
-    fun cleanUpDaemons(): Unit = project.run {
-
-        val alreadyKilled = mutableSetOf<String>()
-        forEachJavaProcess {
-            suspiciousDaemons.forEach { (suite, pids) ->
-                if (pid in pids && pid !in alreadyKilled) {
-                    logger.warn("A process was created in $suite but wasn't shutdown properly. Killing PID $pid (Command line: $process)")
-                    pkill(pid)
-                }
-            }
-        }
+    fun cleanUpDaemons() {
+        tracker.get().cleanUpDaemons()
     }
-
-    fun newDaemonListener() =
-
-        object : TestListener {
-            override fun beforeTest(test: TestDescriptor) = Unit
-            override fun afterTest(test: TestDescriptor, result: TestResult) = Unit
-            override fun beforeSuite(suite: TestDescriptor) {
-                forEachJavaProcess {
-                    // processes that exist before the test suite execution should
-                    // not trigger a warning
-                    daemonPids += pid
-                }
-            }
-
-            override fun afterSuite(suite: TestDescriptor, result: TestResult) {
-                forEachJavaProcess {
-                    if (daemonPids.add(pid)) {
-                        suspiciousDaemons.getOrPut("$suite", ::newKeySet) += pid
-                    }
-                }
-            }
-        }
-
-    private
-    fun forEachJavaProcess(action: ProcessInfo.() -> Unit) =
-        project.forEachLeakingJavaProcess(action)
 }

@@ -20,4 +20,4 @@ package org.gradle.gradlebuild.test.integrationtests
 /**
  * A test aimed at verifying behavior under heavy load.
  */
-open class SoakTest : DistributionTest()
+abstract class SoakTest : DistributionTest()

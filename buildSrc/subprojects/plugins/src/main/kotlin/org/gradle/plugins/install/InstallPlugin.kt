@@ -49,7 +49,8 @@ class InstallPlugin : Plugin<Project> {
         }
     }
 
-    private fun validateInstallDir(task: Install, extension: InstallationExtension) {
+    private
+    fun validateInstallDir(task: Install, extension: InstallationExtension) {
         val installDir = extension.installDirectory.asFile.orNull
         if (installDir == null) {
             throw RuntimeException("You can't install without setting the $installPathProperty property.")

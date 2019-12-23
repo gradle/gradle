@@ -30,6 +30,7 @@ import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.options.Option
 import org.gradle.api.tasks.testing.Test
+import org.gradle.gradlebuild.testing.integrationtests.cleanup.DaemonTracker
 import org.gradle.process.CommandLineArgumentProvider
 import java.util.concurrent.Callable
 
@@ -37,7 +38,7 @@ import java.util.concurrent.Callable
 /**
  * Base class for all tests that check the end-to-end behavior of a Gradle distribution.
  */
-open class DistributionTest : Test() {
+abstract class DistributionTest : Test() {
 
     @Internal
     val binaryDistributions = BinaryDistributions(project.objects)
@@ -47,6 +48,9 @@ open class DistributionTest : Test() {
 
     @Internal
     val libsRepository = LibsRepositoryEnvironmentProvider(project.objects)
+
+    @get:Internal
+    abstract val tracker: Property<DaemonTracker>
 
     @get:Internal
     @get:Option(option = "rerun", description = "Always rerun the task")
@@ -62,6 +66,11 @@ open class DistributionTest : Test() {
         outputs.upToDateWhen {
             !rerun.get()
         }
+    }
+
+    override fun executeTests() {
+        addTestListener(tracker.get().newDaemonListener())
+        super.executeTests()
     }
 }
 
