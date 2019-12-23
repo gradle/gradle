@@ -148,6 +148,11 @@ public class WtpClasspathAttributeSupport {
             files.add(artifact.getFile());
         }
 
+        @Override
+        public void visitGradleApiDependency(ResolvedArtifactResult artifact, File sources, boolean testDependency) {
+            files.add(artifact.getFile());
+        }
+
         public Set<File> getFiles() {
             return files;
         }

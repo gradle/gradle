@@ -16,6 +16,7 @@
 package org.gradle.plugins.ide
 
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.*
 import org.junit.Rule
 
@@ -294,6 +295,34 @@ dependencies {
         ideFileContainsEntry("module-1.0.jar", "module-1.0-sources.jar", "module-1.0-javadoc.jar")
     }
 
+    def "sources jar for gradleApi() is resolved and attached"() {
+        given:
+        requireGradleDistribution()
+        TestFile sourcesDir = distribution.gradleHomeDir.createDir("src")
+        sourcesDir.createFile("org/gradle/Test.java").writelns("package org.gradle;", "public class Test {}")
+
+        buildScript """
+apply plugin: "java"
+apply plugin: "idea"
+apply plugin: "eclipse"
+
+dependencies {
+    implementation gradleApi()
+}
+
+task resolve {
+    doLast {
+        configurations.runtimeClasspath.each { println it }
+    }
+}
+"""
+        when:
+        succeeds ideTask
+
+        then:
+        ideFileContainsGradleApiWithSources("gradle-api")
+    }
+
     private useIvyRepo(def repo) {
         buildFile << """repositories { ivy { url "$repo.uri" } }"""
     }
@@ -357,6 +386,7 @@ task resolve {
         ideFileContainsEntry(jar, [sources], [javadoc])
     }
     abstract void ideFileContainsEntry(String jar, List<String> sources, List<String> javadoc)
+    abstract void ideFileContainsGradleApiWithSources(String apiJarPrefix)
     abstract void ideFileContainsNoSourcesAndJavadocEntry()
     abstract void expectBehaviorAfterBrokenMavenArtifact(HttpArtifact httpArtifact)
     abstract void expectBehaviorAfterBrokenIvyArtifact(HttpArtifact httpArtifact)

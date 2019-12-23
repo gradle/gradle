@@ -149,6 +149,11 @@ public class WtpComponentFactory {
         }
 
         @Override
+        public void visitGradleApiDependency(ResolvedArtifactResult artifact, File sources, boolean testDependency) {
+            visitFileDependency(artifact, testDependency);
+        }
+
+        @Override
         public void visitUnresolvedDependency(UnresolvedDependencyResult unresolvedDependency) {
             unresolvedIdeDependencyHandler.log(unresolvedDependency);
         }

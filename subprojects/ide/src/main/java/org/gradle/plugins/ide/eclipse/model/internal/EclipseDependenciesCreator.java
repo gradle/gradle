@@ -127,6 +127,11 @@ public class EclipseDependenciesCreator {
         }
 
         @Override
+        public void visitGradleApiDependency(ResolvedArtifactResult artifact, File sources, boolean testConfiguration) {
+            files.add(createLibraryEntry(artifact.getFile(), sources, null, classpath, null, pathToSourceSets, testConfiguration));
+        }
+
+        @Override
         public void visitUnresolvedDependency(UnresolvedDependencyResult unresolvedDependency) {
             File unresolvedFile = unresolvedIdeDependencyHandler.asFile(unresolvedDependency, project.getProjectDir());
             files.add(createLibraryEntry(unresolvedFile, null, null, classpath, null, pathToSourceSets, false));

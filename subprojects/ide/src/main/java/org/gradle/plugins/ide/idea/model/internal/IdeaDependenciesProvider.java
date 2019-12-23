@@ -200,6 +200,11 @@ public class IdeaDependenciesProvider {
             fileDependencies.add(new SingleEntryModuleLibrary(toPath(ideaModule, artifact.getFile()), scope));
         }
 
+        @Override
+        public void visitGradleApiDependency(ResolvedArtifactResult artifact, File sources, boolean testConfiguration) {
+            fileDependencies.add(new SingleEntryModuleLibrary(toPath(ideaModule, artifact.getFile()), null, toPath(ideaModule, sources), scope));
+        }
+
         /*
          * Remembers the unresolved dependency for later logging and also adds a fake
          * file dependency, with the file path pointing to the attempted component selector.
