@@ -15,11 +15,9 @@
  */
 package org.gradle.plugins.ide.eclipse
 
-
 import org.gradle.plugins.ide.AbstractSourcesAndJavadocJarsIntegrationTest
 import org.gradle.test.fixtures.server.http.HttpArtifact
 
-import java.nio.file.Paths
 import java.util.stream.Collectors
 
 class EclipseSourcesAndJavadocJarsIntegrationTest extends AbstractSourcesAndJavadocJarsIntegrationTest {
@@ -49,8 +47,8 @@ class EclipseSourcesAndJavadocJarsIntegrationTest extends AbstractSourcesAndJava
         def apiLib = apiLibs.get(0)
 
         assert apiLib.sourcePath != null
-        String sourcesFileName = Paths.get(apiLib.sourcePath).getFileName().toString()
-        assert sourcesFileName.startsWith(apiJarPrefix) && sourcesFileName.endsWith("-sources.jar")
+        def sourcesJarName =  apiLib.jarName.replaceFirst(".jar\$", "-sources.jar")
+        assert apiLib.sourcePath.endsWith("/${sourcesJarName}")
     }
 
     void ideFileContainsNoSourcesAndJavadocEntry() {

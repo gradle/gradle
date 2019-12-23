@@ -48,7 +48,7 @@ class SourcesJarCreator {
         File tmpFile = tempFileFor(outputJar);
 
         try (ZipOutputStream jarOutputStream = openJarOutputStream(tmpFile)) {
-            Files.walk(sourcesDir).forEach(path -> {
+            Files.walk(sourcesDir).filter(f -> !Files.isDirectory(f)).forEach(path -> {
                 try {
                     writeZipEntry(path, sourcesDir, jarOutputStream);
                 } catch (IOException e) {
@@ -62,11 +62,9 @@ class SourcesJarCreator {
     }
 
     private static void writeZipEntry(Path sourcePath, Path sourcesDir, ZipOutputStream outputStream) throws IOException {
-        if (!Files.isDirectory(sourcePath)) {
-            ZipEntry zipEntry = new ZipEntry(sourcesDir.relativize(sourcePath).toString());
-            outputStream.putNextEntry(zipEntry);
-            Files.copy(sourcePath, outputStream);
-        }
+        ZipEntry zipEntry = new ZipEntry(sourcesDir.relativize(sourcePath).toString());
+        outputStream.putNextEntry(zipEntry);
+        Files.copy(sourcePath, outputStream);
         outputStream.closeEntry();
     }
 

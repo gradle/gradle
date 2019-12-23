@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 package org.gradle.plugins.ide.idea
+
 import org.gradle.plugins.ide.AbstractSourcesAndJavadocJarsIntegrationTest
 import org.gradle.plugins.ide.fixtures.IdeaModuleFixture
 import org.gradle.test.fixtures.server.http.HttpArtifact
-
-import java.nio.file.Paths
 
 class IdeaSourcesAndJavadocJarsIntegrationTest extends AbstractSourcesAndJavadocJarsIntegrationTest {
     @Override
@@ -40,9 +39,8 @@ class IdeaSourcesAndJavadocJarsIntegrationTest extends AbstractSourcesAndJavadoc
         def libraryEntry = iml.dependencies.libraries.find { it.jarName.startsWith(apiJarPrefix) }
         assert libraryEntry != null : "gradle API jar not found"
 
-        assert libraryEntry.source.size() == 1 : "should contain single sources jar"
-        String sourcesFileName = Paths.get(libraryEntry.source.get(0)).getFileName().toString()
-        assert sourcesFileName.startsWith(apiJarPrefix) && sourcesFileName.endsWith("-sources.jar!")
+        def sourcesJarName =  libraryEntry.jarName.replaceFirst(".jar\$", "-sources.jar")
+        libraryEntry.assertHasSource([sourcesJarName])
     }
 
     void ideFileContainsNoSourcesAndJavadocEntry() {

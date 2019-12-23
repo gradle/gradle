@@ -25,6 +25,7 @@ import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 
+import java.nio.file.Path
 import java.util.jar.JarEntry
 import java.util.jar.JarFile
 
@@ -53,8 +54,10 @@ class SourcesJarCreatorTest extends Specification {
 
         handleAsJarFile(outputJar) { JarFile file ->
             List<JarEntry> entries = file.entries() as List
-            def entryPaths = entries*.name
-            assert entryPaths.containsAll("org/gradle/Test.java", "foo/bar/fizz/Buzz.java")
+            assert entries*.name == [
+                Path.of("org/gradle/Test.java").toString(),
+                Path.of("foo/bar/fizz/Buzz.java").toString()
+            ]
         }
     }
 
