@@ -21,6 +21,7 @@ import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.provider.Property
 import org.gradle.api.specs.Spec
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 import org.gradle.util.GradleVersion
 import java.io.File
@@ -28,8 +29,10 @@ import javax.inject.Inject
 
 
 abstract class CleanUpCaches : DefaultTask() {
+    @get:Internal
     abstract val version: Property<GradleVersion>
 
+    @get:Internal
     abstract val homeDir: DirectoryProperty
 
     @get:Inject

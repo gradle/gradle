@@ -33,7 +33,7 @@ import kotlin.concurrent.timerTask
  * been using the term 'integration test'.
  */
 @CacheableTask
-open class IntegrationTest : DistributionTest() {
+abstract class IntegrationTest : DistributionTest() {
 
     @InputDirectory
     @PathSensitive(PathSensitivity.RELATIVE)
