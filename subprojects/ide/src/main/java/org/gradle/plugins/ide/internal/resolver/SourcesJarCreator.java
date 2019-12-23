@@ -17,54 +17,76 @@
 package org.gradle.plugins.ide.internal.resolver;
 
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.file.FileVisitDetails;
+import org.gradle.api.file.FileVisitor;
+import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-class SourcesJarCreator {
+public class SourcesJarCreator {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SourcesJarCreator.class);
 
-    private SourcesJarCreator() {
+    private final DirectoryFileTreeFactory directoryFileTreeFactory;
+
+    public SourcesJarCreator(DirectoryFileTreeFactory directoryFileTreeFactory) {
+        this.directoryFileTreeFactory = directoryFileTreeFactory;
     }
 
-    public static void create(File outputJar, File sourcesDir) {
+    public void create(File outputJar, File sourcesDir) {
         LOGGER.info("Generating " + outputJar.getAbsolutePath());
 
         try {
-            createSourcesJar(outputJar, sourcesDir.toPath());
+            createSourcesJar(outputJar, sourcesDir);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
     }
 
-    private static void createSourcesJar(File outputJar, Path sourcesDir) throws IOException {
+    private void createSourcesJar(File outputJar, File sourcesDir) throws IOException {
         File tmpFile = tempFileFor(outputJar);
 
+        List<FileTreeElement> filesToZip = getFilesToZip(sourcesDir);
         try (ZipOutputStream jarOutputStream = openJarOutputStream(tmpFile)) {
-            Files.walk(sourcesDir).filter(f -> !Files.isDirectory(f)).sorted().forEach(path -> {
-                try {
-                    writeZipEntry(path, sourcesDir, jarOutputStream);
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e);
-                }
-            });
+            for (FileTreeElement file : filesToZip) {
+                writeZipEntry(file, jarOutputStream);
+            }
             jarOutputStream.finish();
         }
 
         Files.move(tmpFile.toPath(), outputJar.toPath());
     }
 
-    private static void writeZipEntry(Path sourcePath, Path sourcesDir, ZipOutputStream outputStream) throws IOException {
-        ZipEntry zipEntry = new ZipEntry(sourcesDir.relativize(sourcePath).toString());
+    private List<FileTreeElement> getFilesToZip(File root) {
+        List<FileTreeElement> filesToZip = new ArrayList<>();
+        directoryFileTreeFactory.create(root).visit(new FileVisitor() {
+            @Override
+            public void visitDir(FileVisitDetails dirDetails) {
+            }
+
+            @Override
+            public void visitFile(FileVisitDetails fileDetails) {
+                filesToZip.add(fileDetails);
+            }
+        });
+        filesToZip.sort(Comparator.comparing(FileTreeElement::getPath));
+        return filesToZip;
+    }
+
+    private static void writeZipEntry(FileTreeElement source, ZipOutputStream outputStream) throws IOException {
+        ZipEntry zipEntry = new ZipEntry(source.getPath());
         outputStream.putNextEntry(zipEntry);
-        Files.copy(sourcePath, outputStream);
+        source.copyTo(outputStream);
         outputStream.closeEntry();
     }
 

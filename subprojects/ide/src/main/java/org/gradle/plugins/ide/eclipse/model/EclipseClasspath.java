@@ -20,6 +20,7 @@ import com.google.common.base.Preconditions;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.tasks.SourceSet;
@@ -28,6 +29,9 @@ import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.eclipse.model.internal.ClasspathFactory;
 import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
+import org.gradle.plugins.ide.internal.resolver.DefaultSourcesJarFactory;
+import org.gradle.plugins.ide.internal.resolver.SourcesJarCreator;
+import org.gradle.plugins.ide.internal.resolver.SourcesJarFactory;
 import org.gradle.util.ConfigureUtil;
 
 import javax.inject.Inject;
@@ -322,7 +326,9 @@ public class EclipseClasspath {
         ProjectInternal projectInternal = (ProjectInternal) this.project;
         IdeArtifactRegistry ideArtifactRegistry = projectInternal.getServices().get(IdeArtifactRegistry.class);
         ProjectStateRegistry projectRegistry = projectInternal.getServices().get(ProjectStateRegistry.class);
-        ClasspathFactory classpathFactory = new ClasspathFactory(this, ideArtifactRegistry, projectRegistry);
+        DirectoryFileTreeFactory directoryFileTreeFactory = projectInternal.getServices().get(DirectoryFileTreeFactory.class);
+        SourcesJarFactory sourcesJarFactory = new DefaultSourcesJarFactory(new SourcesJarCreator(directoryFileTreeFactory));
+        ClasspathFactory classpathFactory = new ClasspathFactory(this, ideArtifactRegistry, projectRegistry, sourcesJarFactory);
         return classpathFactory.createEntries();
     }
 

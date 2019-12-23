@@ -18,6 +18,7 @@ package org.gradle.plugins.ide.internal.resolver
 
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
+import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -25,7 +26,6 @@ import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 
-import java.nio.file.Paths
 import java.util.jar.JarEntry
 import java.util.jar.JarFile
 
@@ -37,15 +37,16 @@ class SourcesJarCreatorTest extends Specification {
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     TestFile outputJar = tmpDir.testDirectory.file('gradle-api-sources.jar')
+    SourcesJarCreator sourcesJarCreator = new SourcesJarCreator(new DefaultDirectoryFileTreeFactory())
 
     def "creates JAR file from given directory"() {
         given:
         def sourcesDir = tmpDir.createDir('src')
-        sourcesDir.createFile("org/gradle/Test.java").writelns("package org.gradle;", "public class Test {}")
-        sourcesDir.createFile("foo/bar/fizz/Buzz.java").writelns("package foo.bar.fizz;", "public class Buzz {}")
+        sourcesDir.createFile("org/gradle/Test.java").write("package org.gradle;\npublic class Test {}")
+        sourcesDir.createFile("foo/bar/fizz/Buzz.java").write("package foo.bar.fizz;\npublic class Buzz {}")
 
         when:
-        SourcesJarCreator.create(outputJar, sourcesDir)
+        sourcesJarCreator.create(outputJar, sourcesDir)
 
         then:
         TestFile[] contents = tmpDir.testDirectory.listFiles().findAll { it.isFile() }
@@ -55,8 +56,8 @@ class SourcesJarCreatorTest extends Specification {
         handleAsJarFile(outputJar) { JarFile file ->
             List<JarEntry> entries = file.entries() as List
             assert entries*.name == [
-                Paths.get("foo/bar/fizz/Buzz.java").toString(),
-                Paths.get("org/gradle/Test.java").toString()
+                "foo/bar/fizz/Buzz.java",
+                "org/gradle/Test.java"
             ]
         }
     }

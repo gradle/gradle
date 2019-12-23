@@ -39,6 +39,7 @@ import org.gradle.plugins.ide.idea.model.SingleEntryModuleLibrary;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 import org.gradle.plugins.ide.internal.resolver.IdeDependencySet;
 import org.gradle.plugins.ide.internal.resolver.IdeDependencyVisitor;
+import org.gradle.plugins.ide.internal.resolver.SourcesJarFactory;
 import org.gradle.plugins.ide.internal.resolver.UnresolvedIdeDependencyHandler;
 
 import javax.annotation.Nullable;
@@ -56,11 +57,13 @@ public class IdeaDependenciesProvider {
     private final ModuleDependencyBuilder moduleDependencyBuilder;
     private final IdeaDependenciesOptimizer optimizer;
     private final ProjectComponentIdentifier currentProjectId;
+    private final SourcesJarFactory sourcesJarFactory;
 
-    public IdeaDependenciesProvider(Project project, IdeArtifactRegistry artifactRegistry, ProjectStateRegistry projectRegistry) {
+    public IdeaDependenciesProvider(Project project, IdeArtifactRegistry artifactRegistry, ProjectStateRegistry projectRegistry, SourcesJarFactory sourcesJarFactory) {
         moduleDependencyBuilder = new ModuleDependencyBuilder(artifactRegistry);
         currentProjectId = projectRegistry.stateFor(project).getComponentIdentifier();
         optimizer = new IdeaDependenciesOptimizer();
+        this.sourcesJarFactory = sourcesJarFactory;
     }
 
     public Set<Dependency> provide(final IdeaModule ideaModule) {
@@ -110,7 +113,7 @@ public class IdeaDependenciesProvider {
             @Nullable
             @Override
             public IdeaDependenciesVisitor create() {
-                new IdeDependencySet(handler, plusConfigurations, minusConfigurations).visit(visitor);
+                new IdeDependencySet(handler, plusConfigurations, minusConfigurations, sourcesJarFactory).visit(visitor);
                 return visitor;
             }
         });

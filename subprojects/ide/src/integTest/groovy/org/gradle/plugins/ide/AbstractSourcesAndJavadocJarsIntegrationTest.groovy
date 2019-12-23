@@ -295,6 +295,7 @@ dependencies {
         ideFileContainsEntry("module-1.0.jar", "module-1.0-sources.jar", "module-1.0-javadoc.jar")
     }
 
+    @ToBeFixedForInstantExecution
     def "sources jar for gradleApi() is resolved and attached"() {
         given:
         requireGradleDistribution()

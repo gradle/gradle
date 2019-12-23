@@ -41,13 +41,10 @@ import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 import org.gradle.api.component.Artifact;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
-import org.gradle.internal.installation.CurrentGradleInstallation;
-import org.gradle.internal.installation.GradleInstallation;
 import org.gradle.jvm.JvmLibrary;
 import org.gradle.language.base.artifact.SourcesArtifact;
 import org.gradle.language.java.artifact.JavadocArtifact;
 
-import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -62,11 +59,13 @@ public class IdeDependencySet {
     private final DependencyHandler dependencyHandler;
     private final Collection<Configuration> plusConfigurations;
     private final Collection<Configuration> minusConfigurations;
+    private final SourcesJarFactory sourcesJarFactory;
 
-    public IdeDependencySet(DependencyHandler dependencyHandler, Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {
+    public IdeDependencySet(DependencyHandler dependencyHandler, Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations, SourcesJarFactory sourcesJarFactory) {
         this.dependencyHandler = dependencyHandler;
         this.plusConfigurations = plusConfigurations;
         this.minusConfigurations = minusConfigurations;
+        this.sourcesJarFactory = sourcesJarFactory;
     }
 
     public void visit(IdeDependencyVisitor visitor) {
@@ -220,7 +219,7 @@ public class IdeDependencySet {
                     javaDoc = javaDoc != null ? javaDoc : Collections.<ResolvedArtifactResult>emptySet();
                     visitor.visitModuleDependency(artifact, sources, javaDoc, isTestConfiguration(configurations.get(artifactIdentifier)));
                 } else if (isGradleApiDependency(artifact)) {
-                    visitor.visitGradleApiDependency(artifact, resolveGradleApiSources(artifact.getFile()), isTestConfiguration(configurations.get(artifactIdentifier)));
+                    visitor.visitGradleApiDependency(artifact, sourcesJarFactory.resolveGradleApiSources(artifact.getFile()), isTestConfiguration(configurations.get(artifactIdentifier)));
                 } else {
                     visitor.visitFileDependency(artifact, isTestConfiguration(configurations.get(artifactIdentifier)));
                 }
@@ -229,19 +228,6 @@ public class IdeDependencySet {
 
         private boolean isGradleApiDependency(ResolvedArtifactResult artifact) {
             return artifact.getFile().getName().startsWith("gradle-api");
-        }
-
-        private File resolveGradleApiSources(File artifact) {
-            GradleInstallation gradleInstallation = CurrentGradleInstallation.get();
-            // TODO: if source dir does not exist, we might want to download a distribution and repackage sources
-            if (gradleInstallation == null || !gradleInstallation.getSrcDir().exists()) {
-                return null;
-            }
-            File sourcesJar = new File(artifact.getParent(), artifact.getName().replace(".jar", "-sources.jar"));
-            if (!sourcesJar.exists()) {
-                SourcesJarCreator.create(sourcesJar, gradleInstallation.getSrcDir());
-            }
-            return sourcesJar;
         }
 
         private boolean isTestConfiguration(Set<Configuration> configurations) {

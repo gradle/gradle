@@ -25,11 +25,15 @@ import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.language.scala.ScalaPlatform;
 import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
+import org.gradle.plugins.ide.internal.resolver.DefaultSourcesJarFactory;
+import org.gradle.plugins.ide.internal.resolver.SourcesJarCreator;
+import org.gradle.plugins.ide.internal.resolver.SourcesJarFactory;
 
 import java.io.File;
 import java.util.Collection;
@@ -566,7 +570,9 @@ public class IdeaModule {
         ProjectInternal projectInternal = (ProjectInternal) project;
         IdeArtifactRegistry ideArtifactRegistry = projectInternal.getServices().get(IdeArtifactRegistry.class);
         ProjectStateRegistry projectRegistry = projectInternal.getServices().get(ProjectStateRegistry.class);
-        IdeaDependenciesProvider ideaDependenciesProvider = new IdeaDependenciesProvider(projectInternal, ideArtifactRegistry, projectRegistry);
+        DirectoryFileTreeFactory directoryFileTreeFactory = projectInternal.getServices().get(DirectoryFileTreeFactory.class);
+        SourcesJarFactory sourcesJarFactory = new DefaultSourcesJarFactory(new SourcesJarCreator(directoryFileTreeFactory));
+        IdeaDependenciesProvider ideaDependenciesProvider = new IdeaDependenciesProvider(projectInternal, ideArtifactRegistry, projectRegistry, sourcesJarFactory);
         return ideaDependenciesProvider.provide(this);
     }
 
