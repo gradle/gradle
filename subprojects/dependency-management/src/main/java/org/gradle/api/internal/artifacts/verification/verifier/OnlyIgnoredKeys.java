@@ -17,11 +17,11 @@ package org.gradle.api.internal.artifacts.verification.verifier;
 
 import org.gradle.internal.logging.text.TreeFormatter;
 
-public class OnlyIgnoredKeys implements VerificationFailure {
-    public static final OnlyIgnoredKeys INSTANCE = new OnlyIgnoredKeys();
+import java.io.File;
 
-    private OnlyIgnoredKeys() {
-
+public class OnlyIgnoredKeys extends AbstractVerificationFailure {
+    public OnlyIgnoredKeys(File file) {
+        super(file);
     }
 
     @Override

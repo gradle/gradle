@@ -17,10 +17,11 @@ package org.gradle.api.internal.artifacts.verification.verifier;
 
 import org.gradle.internal.logging.text.TreeFormatter;
 
-public class DeletedArtifact implements VerificationFailure {
-    public static final DeletedArtifact INSTANCE = new DeletedArtifact();
+import java.io.File;
 
-    private DeletedArtifact() {
+public class DeletedArtifact extends AbstractVerificationFailure {
+    public DeletedArtifact(File file) {
+        super(file);
 
     }
 

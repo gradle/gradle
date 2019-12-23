@@ -110,6 +110,7 @@ class DependencyVerificationIntegrityCheckIntegTest extends AbstractDependencyVe
         failure.assertHasCause("""Dependency verification failed for configuration ':compileClasspath':
   - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': expected a '$kind' checksum of 'invalid' but was '$value'
   - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': checksum is missing from verification metadata.
+
 This can indicate that a dependency has been compromised. Please carefully verify the checksums.""")
 
         where:
@@ -142,6 +143,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
         errorOutput.contains("""Dependency verification failed for configuration ':compileClasspath':
   - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': expected a 'sha1' checksum of 'invalid' but was '16e066e005a935ac60f06216115436ab97c5da02'
   - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': checksum is missing from verification metadata.
+
 This can indicate that a dependency has been compromised. Please carefully verify the checksums.""")
 
         where:
@@ -199,6 +201,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
         errorOutput.contains("""Dependency verification failed for configuration ':compileClasspath':
   - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': expected a 'sha1' checksum of 'invalid' but was '16e066e005a935ac60f06216115436ab97c5da02'
   - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': checksum is missing from verification metadata.
+
 This can indicate that a dependency has been compromised. Please carefully verify the checksums.""")
 
         where:
@@ -244,6 +247,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
   - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': expected a 'sha1' checksum of 'invalid' but was '6db079f8f24050d849647e029da573999776b635'
   - On artifact bar-1.0.pom (org:bar:1.0) in repository 'maven': checksum is missing from verification metadata.
   - On artifact baz-1.0.pom (org:baz:1.0) in repository 'maven': checksum is missing from verification metadata.
+
 This can indicate that a dependency has been compromised. Please carefully verify the checksums.""")
     }
 
@@ -279,6 +283,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
         failure.assertHasCause("""Dependency verification failed for configuration ':compileClasspath':
   - On artifact bar-1.0.jar (org:bar:1.0) in repository 'ivy': expected a 'sha1' checksum of 'also invalid' but was '42077067b52edb41c658839ab62a616740417814'
   - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': expected a 'sha1' checksum of 'invalid' but was '16e066e005a935ac60f06216115436ab97c5da02'
+
 This can indicate that a dependency has been compromised. Please carefully verify the checksums.""")
     }
 
@@ -353,6 +358,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
         if (failsFooSources) {
             return """Dependency verification failed for org:foo:1.0:
   - On artifact foo-1.0-sources.jar (org:foo:1.0) in repository 'maven': checksum is missing from verification metadata.
+
 If the dependency is legit, update the gradle/dependency-verification.xml manually (safest) or run with the --write-verification-metadata flag (unsecure)."""
         }
 
@@ -366,7 +372,8 @@ If the dependency is legit, update the gradle/dependency-verification.xml manual
             message += """  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': expected a 'sha1' checksum of 'invalid' but was '16e066e005a935ac60f06216115436ab97c5da02'
 """
         }
-        message += "This can indicate that a dependency has been compromised. Please carefully verify the checksums."
+        message += """
+This can indicate that a dependency has been compromised. Please carefully verify the checksums."""
         message
     }
 
@@ -478,6 +485,7 @@ If the dependency is legit, update the gradle/dependency-verification.xml manual
         failure.assertHasCause("""Dependency verification failed for configuration ':compileClasspath':
   - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': checksum is missing from verification metadata.
   - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': checksum is missing from verification metadata.
+
 If the dependency is legit, update the gradle/dependency-verification.xml manually (safest) or run with the --write-verification-metadata flag (unsecure).""")
     }
 
@@ -622,6 +630,7 @@ If the dependency is legit, update the gradle/dependency-verification.xml manual
         then:
         failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
   - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': expected a 'sha1' checksum of '16e066e005a935ac60f06216115436ab97c5da02' but was '93d6c93d9a76d27ec3462e7b57de5df1eb45bc7b'
+
 This can indicate that a dependency has been compromised. Please carefully verify the checksums."""
     }
 
@@ -675,6 +684,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
         then:
         failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
   - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': expected a 'sha1' checksum of '85a7b8a2eb6bb1c4cdbbfe5e6c8dc3757de22c02' but was '93d6c93d9a76d27ec3462e7b57de5df1eb45bc7b'
+
 This can indicate that a dependency has been compromised. Please carefully verify the checksums."""
 
         where:
