@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
+import java.util.function.Consumer;
 
 /**
  * A {@link SingletonFileTree} which is composed using a mapping from relative path to file source.
@@ -42,16 +43,18 @@ public class GeneratedSingletonFileTree extends AbstractSingletonFileTree implem
     private final FileSystem fileSystem = FileSystems.getDefault();
 
     private final String fileName;
+    private final Consumer<String> beforeFileChange;
     private final Action<OutputStream> contentWriter;
 
-    public GeneratedSingletonFileTree(Factory<File> tmpDirSource, String fileName, Action<OutputStream> contentWriter) {
-        this(tmpDirSource, fileName, new PatternSet(), contentWriter);
+    public GeneratedSingletonFileTree(Factory<File> tmpDirSource, String fileName, Consumer<String> beforeFileChange, Action<OutputStream> contentWriter) {
+        this(tmpDirSource, fileName, new PatternSet(), beforeFileChange, contentWriter);
     }
 
-    public GeneratedSingletonFileTree(Factory<File> tmpDirSource, String fileName, PatternSet patternSet, Action<OutputStream> contentWriter) {
+    public GeneratedSingletonFileTree(Factory<File> tmpDirSource, String fileName, PatternSet patternSet, Consumer<String> beforeFileChange, Action<OutputStream> contentWriter) {
         super(patternSet);
         this.tmpDirSource = tmpDirSource;
         this.fileName = fileName;
+        this.beforeFileChange = beforeFileChange;
         this.contentWriter = contentWriter;
     }
 
@@ -84,7 +87,7 @@ public class GeneratedSingletonFileTree extends AbstractSingletonFileTree implem
 
     @Override
     public MinimalFileTree filter(PatternFilterable patterns) {
-        return new GeneratedSingletonFileTree(tmpDirSource, fileName, filterPatternSet(patterns), contentWriter);
+        return new GeneratedSingletonFileTree(tmpDirSource, fileName, filterPatternSet(patterns), beforeFileChange, contentWriter);
     }
 
     private class FileVisitDetailsImpl extends AbstractFileTreeElement implements FileVisitDetails {
@@ -132,6 +135,7 @@ public class GeneratedSingletonFileTree extends AbstractSingletonFileTree implem
             byte[] generatedContent = generateContent();
             if (!hasContent(generatedContent, file)) {
                 try {
+                    beforeFileChange.accept(file.getAbsolutePath());
                     Files.write(generatedContent, file);
                 } catch (IOException e) {
                     throw new org.gradle.api.UncheckedIOException(e);
