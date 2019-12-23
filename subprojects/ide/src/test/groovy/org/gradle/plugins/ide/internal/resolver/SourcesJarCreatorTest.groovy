@@ -55,8 +55,8 @@ class SourcesJarCreatorTest extends Specification {
         handleAsJarFile(outputJar) { JarFile file ->
             List<JarEntry> entries = file.entries() as List
             assert entries*.name == [
-                Paths.get("org/gradle/Test.java").toString(),
-                Paths.get("foo/bar/fizz/Buzz.java").toString()
+                Paths.get("foo/bar/fizz/Buzz.java").toString(),
+                Paths.get("org/gradle/Test.java").toString()
             ]
         }
     }
