@@ -27,6 +27,8 @@ import org.bouncycastle.openpgp.operator.PGPContentVerifierBuilderProvider;
 import org.bouncycastle.openpgp.operator.bc.BcKeyFingerprintCalculator;
 import org.bouncycastle.openpgp.operator.bc.BcPGPContentVerifierBuilderProvider;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -38,6 +40,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SecuritySupport {
+    private static final Logger LOGGER = Logging.getLogger(SecuritySupport.class);
+
     private static final int BUFFER = 4096;
 
     static {
@@ -98,10 +102,14 @@ public class SecuritySupport {
             PGPObjectFactory objectFactory = new PGPObjectFactory(
                 PGPUtil.getDecoderStream(ins), new BcKeyFingerprintCalculator());
             Object o;
-            while ((o = objectFactory.nextObject()) != null) {
-                if (o instanceof PGPPublicKeyRing) {
-                    existingRings.add((PGPPublicKeyRing) o);
+            try {
+                while ((o = objectFactory.nextObject()) != null) {
+                    if (o instanceof PGPPublicKeyRing) {
+                        existingRings.add((PGPPublicKeyRing) o);
+                    }
                 }
+            } catch (IOException e) {
+                LOGGER.warn("Error while reading the keyring file. {} keys read: {}", existingRings.size(), e.getMessage());
             }
         }
         return existingRings;
