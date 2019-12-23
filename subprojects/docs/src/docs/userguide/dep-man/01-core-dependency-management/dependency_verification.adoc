@@ -108,7 +108,7 @@ In particular, you will notice that the CLI above uses the `help` task.
 If you don't specify any task, Gradle will automatically run the default task and generate a configuration file at the end of the build too.
 
 The difference is that Gradle _may_ discover more dependencies and artifacts depending on the tasks you execute.
-As a matter of fact, Gradle cannot discover automatically _detached configurations_, which are basically dependency graphs resolved as an internal implementation detail of the execution of a task: they are not, in particular, declared as an input of the task because they effectively depend on the configuration of the task at execution time.
+As a matter of fact, Gradle cannot automatically discover _detached configurations_, which are basically dependency graphs resolved as an internal implementation detail of the execution of a task: they are not, in particular, declared as an input of the task because they effectively depend on the configuration of the task at execution time.
 
 A good way to start is just to use the simplest task, `help`, which will discover as much as possible, and if subsequent builds fail with a verification error, you can re-execute generation with the appropriate tasks to "discover" more dependencies.
 ====
@@ -541,7 +541,7 @@ If you have signature verification enabled, Gradle will perform verification of 
 
 ----
 > Dependency verification failed for configuration ':compileClasspath':
-    - On artifact javaparser-core-3.6.11.jar (com.github.javaparser:javaparser-core:3.6.11) in repository 'MavenRepo': Artifact was signed with key '379ce192d401ab61' (Bintray (by JFrog) <bintray@bintray.com>) and passed verification but the key isn't in your trusted keys list.
+    - On artifact javaparser-core-3.6.11.jar (com.github.javaparser:javaparser-core:3.6.11) in repository 'MavenRepo': Artifact was signed with key '379ce192d401ab61' (Bintray (by JFrog) <****>) and passed verification but the key isn't in your trusted keys list.
 ----
 
 In this case it means you need to check yourself if the key that was used for verification (and therefore the signature) can be trusted, in which case refer to <<#sec:understanding-signature-verification,this section of the documentation>> to figure out how to declare trusted keys.
@@ -554,7 +554,7 @@ If such a thing happens, Gradle will fail with:
 
 ----
 > Dependency verification failed for configuration ':compileClasspath':
-    - On artifact javaparser-core-3.6.11.jar (com.github.javaparser:javaparser-core:3.6.11) in repository 'MavenRepo': Artifact was signed with key '379ce192d401ab61' (Bintray (by JFrog) <bintray@bintray.com>) but signature didn't match
+    - On artifact javaparser-core-3.6.11.jar (com.github.javaparser:javaparser-core:3.6.11) in repository 'MavenRepo': Artifact was signed with key '379ce192d401ab61' (Bintray (by JFrog) <****>) but signature didn't match
 ----
 
 There are several options:
@@ -565,7 +565,7 @@ There are several options:
 The right approach here is to go to the official site of the dependency and see if they publish signatures for their artifacts.
 If they do, verify that the signature that Gradle downloaded matches the one published.
 
-If you have checked that the dependency is _not_ compromised and that it's "only" the signature which is wrong, you should declare an _artifact level key exclusion_:
+If you have <<#sec:manual-checking-dependency,checked that the dependency is _not_ compromised>> and that it's "only" the signature which is wrong, you should declare an _artifact level key exclusion_:
 
 [source,xml]
 ----
@@ -594,6 +594,103 @@ However, if you only do so, Gradle will still fail because all keys for this art
           </artifact>
        </component>
    </components>
+----
+
+[[sec:manual-checking-dependency]]
+==== Manual verification of a dependency
+
+You will likely face a dependency verification failure (either checksum verification or signature verification) and will need to figure out if the dependency has been compromised or not.
+
+In this section we give _an example_ how you can manually check if a dependency was compromised.
+
+For this we will take this example failure:
+
+----
+> Dependency verification failed for configuration ':compileClasspath':
+- On artifact j2objc-annotations-1.1.jar (com.google.j2objc:j2objc-annotations:1.1) in repository 'MyCompany Mirror': Artifact was signed with key '29579f18fa8fd93b' but signature didn't match
+----
+
+This error message gives us the GAV coordinates of the problematic dependency, as well as an indication of where the dependency was fetched from.
+Here, the dependency comes from `MyCompany Mirror`, which is a repository declared in our build.
+
+The first thing to do is therefore to download the artifact and its signature manually from the mirror:
+
+----
+$ curl https://my-company-mirror.com/repo/com/google/j2objc/j2objc-annotations/1.1/j2objc-annotations-1.1.jar --output j2objc-annotations-1.1.jar
+$ curl https://my-company-mirror.com/repo/com/google/j2objc/j2objc-annotations/1.1/j2objc-annotations-1.1.jar.asc --output j2objc-annotations-1.1.jar.asc
+----
+
+Then we can use the key information provided in the error message to import the key locally:
+
+----
+$ gpg --recv-keys 29579f18fa8fd93b
+----
+
+And perform verification:
+
+----
+$ gpg --verify j2objc-annotations-1.1.jar.asc
+gpg: assuming signed data in 'j2objc-annotations-1.1.jar'
+gpg: Signature made Thu 19 Jan 2017 12:06:51 AM CET
+gpg:                using RSA key 29579F18FA8FD93B
+gpg: BAD signature from "Tom Ball <****>" [unknown]
+----
+
+What this tells us is that the problem is _not_ on the local machine: the repository _already contains a bad signature_.
+
+The next step is to do the same by downloading what is actually on Maven Central:
+
+----
+$ curl https://my-company-mirror.com/repo/com/google/j2objc/j2objc-annotations/1.1/j2objc-annotations-1.1.jar  --output central-j2objc-annotations-1.1.jar
+$ curl https://my-company-mirror.com/repo/com/google/j2objc/j2objc-annotations/1/1/j2objc-annotations-1.1.jar.asc  --output central-j2objc-annotations-1.1.jar.asc
+----
+
+And we can now check the signature again:
+
+----
+$ gpg --verify central-j2objc-annotations-1.1.jar.asc
+
+gpg: assuming signed data in 'central-j2objc-annotations-1.1.jar'
+gpg: Signature made Thu 19 Jan 2017 12:06:51 AM CET
+gpg:                using RSA key 29579F18FA8FD93B
+gpg: Good signature from "Tom Ball <****>" [unknown]
+gpg: WARNING: This key is not certified with a trusted signature!
+gpg:          There is no indication that the signature belongs to the owner.
+Primary key fingerprint: B801 E2F8 EF03 5068 EC11  39CC 2957 9F18 FA8F D93B
+----
+
+This indicates that the dependency is _valid_ on Maven Central.
+At this stage, we already know that the problem lives in the mirror, it _may_ have been compromised, but we need to verify.
+
+A good idea is to compare the 2 artifacts, which you can do with a tool like https://try.diffoscope.org/[diffoscope].
+
+We then figure out that the intent wasn't malicious but that somehow a build has been overwritten with a newer version (the version in Central is newer than the one in our repository).
+
+In this case, you can decide to:
+
+- ignore the signature for this artifact and trust the different possible checksums (both for the old artifact and the new version)
+- or cleanup your mirror so that it contains the same version as in Maven Central
+
+It's worth noting that if you choose to delete the version from your repository, you will _also_ need to remove it from the local Gradle cache.
+
+This is facilitated by the fact the error message tells you were the file is located:
+
+----
+> Dependency verification failed for configuration ':compileClasspath':
+    - On artifact j2objc-annotations-1.1.jar (com.google.j2objc:j2objc-annotations:1.1) in repository 'MyCompany Mirror': Artifact was signed with key '29579f18fa8fd93b' but signature didn't match
+
+  This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums.
+
+  For your information here are the path to the files which failed verification:
+    - GRADLE_USER_HOME/caches/modules-2/files-2.1/com.google.j2objc/j2objc-annotations/1.1/976d8d30bebc251db406f2bdb3eb01962b5685b3/j2objc-annotations-1.1.jar (signature: GRADLE_USER_HOME/caches/modules-2/files-2.1/com.google.j2objc/j2objc-annotations/1.1/82e922e14f57d522de465fd144ec26eb7da44501/j2objc-annotations-1.1.jar.asc)
+
+  GRADLE_USERHOME = /home/jiraya/.gradle
+----
+
+You can safely delete the artifact file as Gradle would automatically re-download it:
+
+----
+rm -rf ~/.gradle/caches/modules-2/files-2.1/com.google.j2objc/j2objc-annotations/1.1
 ----
 
 [[sec:disabling-verification]]
