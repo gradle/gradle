@@ -64,6 +64,7 @@ import static org.gradle.api.internal.artifacts.verification.serializer.Dependen
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.TRUSTED_ARTIFACTS;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.TRUSTED_KEY;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.TRUSTED_KEYS;
+import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.TRUSTING;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.URI;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.VALUE;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.VERIFICATION_METADATA;
@@ -116,6 +117,8 @@ public class DependencyVerificationsXmlReader {
         private boolean inKeyServers;
         private boolean inIgnoredKeys;
         private boolean inTrustedKeys;
+        private boolean inTrustedKey;
+        private String currentTrustedKey;
         private ModuleComponentIdentifier currentComponent;
         private ModuleComponentArtifactIdentifier currentArtifact;
         private ChecksumKind currentChecksum;
@@ -160,6 +163,7 @@ public class DependencyVerificationsXmlReader {
                 case TRUSTED_KEY:
                     assertContext(inTrustedKeys, TRUSTED_KEY, TRUSTED_KEYS);
                     addTrustedKey(attributes);
+                    inTrustedKey = true;
                     break;
                 case TRUSTED_KEYS:
                     assertInConfiguration(TRUSTED_KEYS);
@@ -168,6 +172,10 @@ public class DependencyVerificationsXmlReader {
                 case TRUST:
                     assertInTrustedArtifacts();
                     addTrustedArtifact(attributes);
+                    break;
+                case TRUSTING:
+                    assertContext(inTrustedKey, TRUSTING, TRUSTED_KEY);
+                    maybeAddTrustedKey(attributes);
                     break;
                 case KEY_SERVERS:
                     assertInConfiguration(KEY_SERVERS);
@@ -244,19 +252,30 @@ public class DependencyVerificationsXmlReader {
         }
 
         private void addTrustedKey(Attributes attributes) {
+            currentTrustedKey = getAttribute(attributes, ID);
+            maybeAddTrustedKey(attributes);
+        }
+
+        private void maybeAddTrustedKey(Attributes attributes) {
             boolean regex = false;
             String regexAttr = getNullableAttribute(attributes, REGEX);
             if (regexAttr != null) {
                 regex = Boolean.parseBoolean(regexAttr);
             }
-            builder.addTrustedKey(
-                getAttribute(attributes, ID),
-                getNullableAttribute(attributes, GROUP),
-                getNullableAttribute(attributes, NAME),
-                getNullableAttribute(attributes, VERSION),
-                getNullableAttribute(attributes, FILE),
-                regex
-            );
+            String group = getNullableAttribute(attributes, GROUP);
+            String name = getNullableAttribute(attributes, NAME);
+            String version = getNullableAttribute(attributes, VERSION);
+            String file = getNullableAttribute(attributes, FILE);
+            if (group != null || name!=null || version != null || file != null) {
+                builder.addTrustedKey(
+                    currentTrustedKey,
+                    group,
+                    name,
+                    version,
+                    file,
+                    regex
+                );
+            }
         }
 
         @Override
@@ -324,6 +343,10 @@ public class DependencyVerificationsXmlReader {
                     break;
                 case TRUSTED_KEYS:
                     inTrustedKeys = false;
+                    break;
+                case TRUSTED_KEY:
+                    inTrustedKey = false;
+                    currentTrustedKey = null;
                     break;
                 case KEY_SERVERS:
                     inKeyServers = false;

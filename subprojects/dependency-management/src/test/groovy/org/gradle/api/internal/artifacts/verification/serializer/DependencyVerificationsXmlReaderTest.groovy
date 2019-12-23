@@ -185,10 +185,13 @@ class DependencyVerificationsXmlReaderTest extends Specification {
       <verify-metadata>true</verify-metadata>
       <verify-signatures>false</verify-signatures>
       <trusted-keys>
-         <trusted-key id="ABCDEF" group="g1"/>
          <trusted-key id="012345" group="g2" name="m1" file="file.jar" regex="true"/>
+         <trusted-key id="456DEF">
+            <trusting name="m3" version="1.4" file="file.zip"/>
+            <trusting name="m4" file="other-file.zip" regex="true"/>
+         </trusted-key>
          <trusted-key id="ABC123" group="g3" name="m2" version="1.0" regex="true"/>
-         <trusted-key id="456DEF" name="m3" version="1.4" file="file.zip"/>
+         <trusted-key id="ABCDEF" group="g1"/>
       </trusted-keys>
    </configuration>
    <components/>
@@ -197,35 +200,42 @@ class DependencyVerificationsXmlReaderTest extends Specification {
 
         then:
         def trustedKeys = verifier.configuration.trustedKeys
-        trustedKeys.size() == 4
+        trustedKeys.size() == 5
 
-        trustedKeys[0].keyId == "ABCDEF"
-        trustedKeys[0].group == "g1"
-        trustedKeys[0].name == null
+        trustedKeys[0].keyId == "012345"
+        trustedKeys[0].group == "g2"
+        trustedKeys[0].name == "m1"
         trustedKeys[0].version == null
-        trustedKeys[0].fileName == null
-        trustedKeys[0].regex == false
+        trustedKeys[0].fileName == "file.jar"
+        trustedKeys[0].regex == true
 
-        trustedKeys[1].keyId == "012345"
-        trustedKeys[1].group == "g2"
-        trustedKeys[1].name == "m1"
-        trustedKeys[1].version == null
-        trustedKeys[1].fileName == "file.jar"
-        trustedKeys[1].regex == true
+        trustedKeys[1].keyId == "456DEF"
+        trustedKeys[1].group == null
+        trustedKeys[1].name == "m3"
+        trustedKeys[1].version == "1.4"
+        trustedKeys[1].fileName == "file.zip"
+        trustedKeys[1].regex == false
 
-        trustedKeys[2].keyId == "ABC123"
-        trustedKeys[2].group == "g3"
-        trustedKeys[2].name == "m2"
-        trustedKeys[2].version == "1.0"
-        trustedKeys[2].fileName == null
+        trustedKeys[2].keyId == "456DEF"
+        trustedKeys[2].group == null
+        trustedKeys[2].name == "m4"
+        trustedKeys[2].version == null
+        trustedKeys[2].fileName == "other-file.zip"
         trustedKeys[2].regex == true
 
-        trustedKeys[3].keyId == "456DEF"
-        trustedKeys[3].group == null
-        trustedKeys[3].name == "m3"
-        trustedKeys[3].version == "1.4"
-        trustedKeys[3].fileName == "file.zip"
-        trustedKeys[3].regex == false
+        trustedKeys[3].keyId == "ABC123"
+        trustedKeys[3].group == "g3"
+        trustedKeys[3].name == "m2"
+        trustedKeys[3].version == "1.0"
+        trustedKeys[3].fileName == null
+        trustedKeys[3].regex == true
+
+        trustedKeys[4].keyId == "ABCDEF"
+        trustedKeys[4].group == "g1"
+        trustedKeys[4].name == null
+        trustedKeys[4].version == null
+        trustedKeys[4].fileName == null
+        trustedKeys[4].regex == false
 
 
     }

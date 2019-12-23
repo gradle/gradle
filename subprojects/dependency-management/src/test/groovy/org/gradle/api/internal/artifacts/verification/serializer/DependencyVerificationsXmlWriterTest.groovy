@@ -139,6 +139,7 @@ class DependencyVerificationsXmlWriterTest extends Specification {
         builder.addTrustedKey("012345", "g2", "m1", null, "file.jar", true)
         builder.addTrustedKey("ABC123", "g3", "m2", "1.0", null, true)
         builder.addTrustedKey("456DEF", null, "m3", "1.4", "file.zip", false)
+        builder.addTrustedKey("456DEF", null, "m4", null, "other-file.zip", true)
         serialize()
 
         then:
@@ -148,10 +149,13 @@ class DependencyVerificationsXmlWriterTest extends Specification {
       <verify-metadata>true</verify-metadata>
       <verify-signatures>false</verify-signatures>
       <trusted-keys>
-         <trusted-key id="ABCDEF" group="g1"/>
          <trusted-key id="012345" group="g2" name="m1" file="file.jar" regex="true"/>
+         <trusted-key id="456DEF">
+            <trusting name="m3" version="1.4" file="file.zip"/>
+            <trusting name="m4" file="other-file.zip" regex="true"/>
+         </trusted-key>
          <trusted-key id="ABC123" group="g3" name="m2" version="1.0" regex="true"/>
-         <trusted-key id="456DEF" name="m3" version="1.4" file="file.zip"/>
+         <trusted-key id="ABCDEF" group="g1"/>
       </trusted-keys>
    </configuration>
    <components/>
