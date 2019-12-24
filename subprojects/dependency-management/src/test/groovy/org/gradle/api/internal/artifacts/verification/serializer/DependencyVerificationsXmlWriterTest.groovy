@@ -29,6 +29,7 @@ import spock.lang.Unroll
 
 class DependencyVerificationsXmlWriterTest extends Specification {
     private final DependencyVerifierBuilder builder = new DependencyVerifierBuilder()
+    private String rawContents
     private String contents
 
     @Unroll
@@ -48,12 +49,19 @@ class DependencyVerificationsXmlWriterTest extends Specification {
    <components/>
 </verification-metadata>
 """
+        and:
+        hasNamespaceDeclaration()
+
         where:
         verifyMetadata | verifySignatures
         false          | false
         false          | true
         true           | false
         true           | true
+    }
+
+    private boolean hasNamespaceDeclaration() {
+        rawContents.contains('<verification-metadata xmlns="https://schema.gradle.org/verification" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:schemaLocation="https://schema.gradle.org/verification https://schema.gradle.org/verification/verification-1.0.xsd"')
     }
 
     def "can declare key servers"() {
@@ -369,6 +377,7 @@ class DependencyVerificationsXmlWriterTest extends Specification {
     private void serialize() {
         def out = new ByteArrayOutputStream()
         DependencyVerificationsXmlWriter.serialize(builder.build(), out)
-        contents = TextUtil.normaliseLineSeparators(out.toString("utf-8"))
+        rawContents = TextUtil.normaliseLineSeparators(out.toString("utf-8"))
+        contents = rawContents.replaceAll("<verification-metadata .+>", "<verification-metadata>")
     }
 }

@@ -84,6 +84,9 @@ public class DependencyVerificationsXmlWriter {
 
     private void write(DependencyVerifier verifier) throws IOException {
         writer.startElement(VERIFICATION_METADATA);
+        writeAttribute("xmlns", "https://schema.gradle.org/verification");
+        writeAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
+        writeAttribute("xmlns:schemaLocation", "https://schema.gradle.org/verification https://schema.gradle.org/verification/verification-1.0.xsd");
         writeConfiguration(verifier.getConfiguration());
         writeVerifications(verifier.getVerificationMetadata());
         writer.endElement();
