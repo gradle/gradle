@@ -16,8 +16,15 @@
 
 package org.gradle.api.tasks
 
+import org.gradle.api.file.FileSystemOperations
+import org.gradle.api.file.ProjectLayout
+import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.ProviderFactory
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.execution.WorkExecutor
+import org.gradle.process.ExecOperations
 import org.gradle.util.Requires
+import spock.lang.Unroll
 
 import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 
@@ -241,5 +248,45 @@ class TaskServiceInjectionIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         outputContains("got it 15")
+    }
+
+    @Unroll
+    def "service of type #serviceType is available for injection into task"() {
+        given:
+        buildFile << """
+            import javax.inject.Inject
+
+            class CustomTask extends DefaultTask {
+                private final ${serviceType} service
+
+                @Inject
+                CustomTask(${serviceType} service) {
+                    this.service = service
+                }
+
+                @TaskAction
+                void printIt() {
+                    println(service != null ? "got it" : "NOT IT")
+                }
+            }
+
+            task myTask(type: CustomTask)
+        """
+
+        when:
+        run 'myTask'
+
+        then:
+        outputContains("got it")
+
+        where:
+        serviceType << [
+            ObjectFactory,
+            ProjectLayout,
+            ProviderFactory,
+            WorkExecutor,
+            FileSystemOperations,
+            ExecOperations,
+        ].collect { it.name }
     }
 }

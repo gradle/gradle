@@ -16,7 +16,13 @@
 
 package org.gradle.api
 
+import org.gradle.api.file.FileSystemOperations
+import org.gradle.api.file.ProjectLayout
+import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.ProviderFactory
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.execution.WorkExecutor
+import org.gradle.process.ExecOperations
 import spock.lang.Unroll
 
 import javax.inject.Inject
@@ -34,10 +40,10 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
                     this.b = b
                 }
             }
-            
+
             extensions.create("one", Thing, "a")
             extensions.create("two", Thing, "a", "b")
-            
+
             assert one.a == "a"
             assert one.b == "a"
 
@@ -55,7 +61,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
                 Thing(String a, String b) {
                 }
             }
-            
+
             extensions.create("thing", Thing, "a")
         """
 
@@ -70,7 +76,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
             class Things {
                 class Thing { }
             }
-            
+
             extensions.create("thing", Things.Thing, "a")
         """
 
@@ -86,7 +92,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
                 Thing(String a, String b) {
                 }
             }
-            
+
             extensions.create("thing", Thing, "a", 12)
         """
 
@@ -104,7 +110,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
                 Thing(String a, boolean b) {
                 }
             }
-            
+
             extensions.create("thing", Thing, "a", 12)
         """
 
@@ -122,7 +128,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
                 Thing(String a, String b, ProjectLayout p) {
                 }
             }
-            
+
             extensions.create("thing", Thing, "a", "b")
         """
 
@@ -138,7 +144,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
                 Thing(String a, String b) {
                 }
             }
-            
+
             extensions.create("thing", Thing, "a", "b", "c")
         """
 
@@ -155,7 +161,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
                 ${type} getValue()
                 void setValue(${type} value)
             }
-            
+
             extensions.create("thing", Thing)
             assert thing.value == ${defaultValue}
             thing {
@@ -182,7 +188,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
             interface Thing {
                 ConfigurableFileCollection getValue()
             }
-            
+
             extensions.create("thing", Thing)
             assert thing.value.toString() == "file collection"
             assert thing.value.files.empty
@@ -199,7 +205,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
             interface Thing {
                 ConfigurableFileTree getValue()
             }
-            
+
             extensions.create("thing", Thing)
             assert thing.value.toString() == "directory 'null'"
             thing.value.from("dir")
@@ -217,7 +223,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
             interface Thing {
                 Property<String> getValue()
             }
-            
+
             extensions.create("thing", Thing)
             assert thing.value.getOrNull() == null
             assert thing.value.toString() == "extension 'thing' property 'value'"
@@ -236,7 +242,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
             interface Thing {
                 RegularFileProperty getValue()
             }
-            
+
             extensions.create("thing", Thing)
             assert thing.value.toString() == "extension 'thing' property 'value'"
             assert thing.value.getOrNull() == null
@@ -255,7 +261,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
             interface Thing {
                 DirectoryProperty getValue()
             }
-            
+
             extensions.create("thing", Thing)
             assert thing.value.toString() == "extension 'thing' property 'value'"
             assert thing.value.getOrNull() == null
@@ -274,7 +280,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
             interface Thing {
                 ListProperty<String> getValue()
             }
-            
+
             extensions.create("thing", Thing)
             assert thing.value.toString() == "extension 'thing' property 'value'"
             assert thing.value.getOrNull() == []
@@ -293,7 +299,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
             interface Thing {
                 SetProperty<String> getValue()
             }
-            
+
             extensions.create("thing", Thing)
             assert thing.value.toString() == "extension 'thing' property 'value'"
             assert thing.value.getOrNull() == [] as Set
@@ -312,7 +318,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
             interface Thing {
                 MapProperty<String, String> getValue()
             }
-            
+
             extensions.create("thing", Thing)
             assert thing.value.toString() == "extension 'thing' property 'value'"
             assert thing.value.getOrNull() == [:]
@@ -338,7 +344,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
             interface Thing {
                 NamedDomainObjectContainer<Bean> getValue()
             }
-            
+
             extensions.create("thing", Thing)
             assert thing.value.toString() == "Bean container"
             assert thing.value.empty
@@ -364,7 +370,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
             interface Thing {
                 DomainObjectSet<Bean> getValue()
             }
-            
+
             extensions.create("thing", Thing)
             assert thing.value.toString() == "[]"
             assert thing.value.empty
@@ -383,7 +389,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
                 abstract String getValue()
                 abstract void setValue(String value)
             }
-            
+
             extensions.create("thing", Thing)
             assert thing.value == null
             thing {
@@ -406,7 +412,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
                     assert objects != null
                 }
             }
-            
+
             extensions.create("thing", Thing, "a", 12)
         """
 
@@ -425,7 +431,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
                 @Inject
                 ObjectFactory getObjects() { }
             }
-            
+
             extensions.create("thing", Thing, "a")
             assert thing.objects != null
         """
@@ -445,7 +451,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
                 @Inject
                 abstract ObjectFactory getObjects()
             }
-            
+
             extensions.create("thing", Thing, "a")
             assert thing.objects != null
         """
@@ -466,7 +472,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
                 @Inject
                 ObjectFactory getObjects() { }
             }
-            
+
             extensions.create("thing", Thing, "a")
             assert thing.objects != null
         """
@@ -492,6 +498,89 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
         succeeds()
     }
 
+    @Unroll
+    def "service of type #serviceType is available for injection into project extension"() {
+        buildFile << """
+            class Thing {
+                ${serviceType} service
+
+                Thing(${serviceType} service) {
+                    this.service = service
+                }
+            }
+
+            extensions.create("thing", Thing)
+            assert thing.service != null
+        """
+
+        expect:
+        succeeds()
+
+        where:
+        serviceType << [
+            ObjectFactory,
+            ProjectLayout,
+            ProviderFactory,
+            WorkExecutor,
+            FileSystemOperations,
+            ExecOperations,
+        ].collect { it.name }
+    }
+
+    @Unroll
+    def "service of type #serviceType is available for injection into settings extension"() {
+        settingsFile << """
+            class Thing {
+                ${serviceType} service
+
+                Thing(${serviceType} service) {
+                    this.service = service
+                }
+            }
+
+            extensions.create("thing", Thing)
+            assert thing.service != null
+        """
+
+        expect:
+        succeeds()
+
+        where:
+        serviceType << [
+            ObjectFactory,
+            ProviderFactory,
+            FileSystemOperations,
+            ExecOperations,
+        ].collect { it.name }
+    }
+
+    @Unroll
+    def "service of type #serviceType is available for injection into gradle object extension"() {
+        settingsFile << """
+            class Thing {
+                ${serviceType} service
+
+                Thing(${serviceType} service) {
+                    this.service = service
+                }
+            }
+
+            gradle.extensions.create("thing", Thing)
+            assert gradle.thing.service != null
+        """
+
+        expect:
+        succeeds()
+
+        where:
+        serviceType << [
+            ObjectFactory,
+            ProviderFactory,
+            FileSystemOperations,
+            ExecOperations,
+        ].collect { it.name }
+    }
+
     def "fails when construction parameters provided for interface"() {
         buildFile << """
             interface Thing {
@@ -512,10 +601,10 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
             class DisplayName {
                 String toString() { return "<display name>" }
             }
-            
+
             def noDisplayName = extensions.create("no-name", NoDisplayName)
             def displayName = extensions.create("name", DisplayName)
-            
+
             println("no display name = \${noDisplayName}")
             println("display name = \${displayName}")
         """
@@ -529,9 +618,9 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
     def "generates a display name for extension interface"() {
         buildFile << """
             interface NoDisplayName { }
-            
+
             def noDisplayName = extensions.create("no-name", NoDisplayName)
-            
+
             println("display name = \${noDisplayName}")
         """
 
