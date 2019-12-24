@@ -88,11 +88,15 @@ class DependencyVerificationFixture {
 
     void assertXmlContents(String expected) {
         def actualContents = TextUtil.normaliseLineSeparators(verificationFile.text)
+        // remove namespace declaration for readability of tests
+        actualContents = actualContents.replaceAll("<verification-metadata .+>", "<verification-metadata>")
         assert actualContents == expected
     }
 
     void assertDryRunXmlContents(String expected) {
         def actualContents = TextUtil.normaliseLineSeparators(dryRunVerificationFile.text)
+        // remove namespace declaration for readability of tests
+        actualContents = actualContents.replaceAll("<verification-metadata .+>", "<verification-metadata>")
         assert actualContents == expected
     }
 
