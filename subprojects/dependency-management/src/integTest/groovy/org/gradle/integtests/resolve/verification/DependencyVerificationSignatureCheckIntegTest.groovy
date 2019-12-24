@@ -57,6 +57,39 @@ class DependencyVerificationSignatureCheckIntegTest extends AbstractSignatureVer
         outputContains("Dependency verification is an incubating feature.")
     }
 
+    def "if signature is verified and checksum is declared in configuration, verify checksum"() {
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+            verifySignatures()
+            addTrustedKey("org:foo:1.0", validPublicKeyHexString)
+            addTrustedKey("org:foo:1.0", validPublicKeyHexString, "pom", "pom")
+            addChecksum("org:foo:1.0", "sha256", "invalid")
+        }
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0") {
+            withSignature {
+                signAsciiArmored(it)
+            }
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        serveValidKey()
+        fails ":compileJava"
+
+        then:
+        failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
+  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': expected a 'sha256' checksum of 'invalid' but was '20ae575ede776e5e06ee6b168652d11ee23069e92de110fdec13fbeaa5cf3bbc'
+
+This can indicate that a dependency has been compromised. Please carefully verify the checksums."""
+    }
+
     def "fails verification is key is missing"() {
         createMetadataFile {
             keyServer(keyServerFixture.uri)
