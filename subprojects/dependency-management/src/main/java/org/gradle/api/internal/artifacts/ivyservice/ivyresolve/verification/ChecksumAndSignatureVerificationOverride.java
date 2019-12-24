@@ -320,9 +320,14 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
         public VerificationQuery(ModuleComponentArtifactIdentifier artifact, String repositoryId) {
             this.artifact = artifact;
             this.repositoryId = repositoryId;
-            int hashCode = artifact.hashCode();
+            this.hashCode = precomputeHashCode(artifact, repositoryId);
+        }
+
+        private int precomputeHashCode(ModuleComponentArtifactIdentifier artifact, String repositoryId) {
+            int hashCode = artifact.getComponentIdentifier().hashCode();
+            hashCode = 31 * hashCode + artifact.getFileName().hashCode();
             hashCode = 31 * hashCode + repositoryId.hashCode();
-            this.hashCode = hashCode;
+            return hashCode;
         }
 
         @Override
@@ -338,7 +343,10 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
             if (hashCode != that.hashCode) {
                 return false;
             }
-            if (!artifact.equals(that.artifact)) {
+            if (!artifact.getComponentIdentifier().equals(that.artifact.getComponentIdentifier())) {
+                return false;
+            }
+            if (!artifact.getFileName().equals(that.artifact.getFileName())) {
                 return false;
             }
             return repositoryId.equals(that.repositoryId);
