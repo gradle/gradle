@@ -23,6 +23,7 @@ import org.bouncycastle.openpgp.PGPPublicKeyRing;
 import org.bouncycastle.openpgp.PGPSignature;
 import org.bouncycastle.openpgp.PGPSignatureList;
 import org.bouncycastle.openpgp.PGPUtil;
+import org.bouncycastle.openpgp.jcajce.JcaPGPObjectFactory;
 import org.bouncycastle.openpgp.operator.PGPContentVerifierBuilderProvider;
 import org.bouncycastle.openpgp.operator.bc.BcKeyFingerprintCalculator;
 import org.bouncycastle.openpgp.operator.bc.BcPGPContentVerifierBuilderProvider;
@@ -99,16 +100,15 @@ public class SecuritySupport {
         List<PGPPublicKeyRing> existingRings = new ArrayList<>();
         // load existing keys from keyring before
         try (InputStream ins = new BufferedInputStream(new FileInputStream(keyringFile))) {
-            PGPObjectFactory objectFactory = new PGPObjectFactory(
-                PGPUtil.getDecoderStream(ins), new BcKeyFingerprintCalculator());
-            Object o;
+            PGPObjectFactory objectFactory = new JcaPGPObjectFactory(
+                PGPUtil.getDecoderStream(ins));
             try {
-                while ((o = objectFactory.nextObject()) != null) {
+                for (Object o : objectFactory) {
                     if (o instanceof PGPPublicKeyRing) {
                         existingRings.add((PGPPublicKeyRing) o);
                     }
                 }
-            } catch (IOException e) {
+            } catch (Exception e) {
                 LOGGER.warn("Error while reading the keyring file. {} keys read: {}", existingRings.size(), e.getMessage());
             }
         }

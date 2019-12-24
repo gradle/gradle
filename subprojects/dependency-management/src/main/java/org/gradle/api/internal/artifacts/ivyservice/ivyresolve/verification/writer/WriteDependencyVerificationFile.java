@@ -19,10 +19,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
-import org.bouncycastle.openpgp.PGPException;
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.bouncycastle.openpgp.PGPPublicKeyRing;
-import org.bouncycastle.openpgp.PGPPublicKeyRingCollection;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
@@ -71,6 +69,7 @@ import java.io.OutputStream;
 import java.math.BigInteger;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
@@ -220,11 +219,7 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
             .flatMap(md -> md.getArtifactVerifications().stream())
             .flatMap(avm -> Stream.concat(avm.getTrustedPgpKeys().stream(), avm.getIgnoredPgpKeys().stream().map(IgnoredKey::getKeyId)))
             .forEach(keysToExport::add);
-        try {
-            exportKeyRingCollection(signatureVerificationService.getPublicKeyService(), keyringExportFile, keysToExport);
-        } catch (PGPException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
+        exportKeyRingCollection(signatureVerificationService.getPublicKeyService(), keyringExportFile, keysToExport);
     }
 
     private void maybeReadExistingFile() {
@@ -467,23 +462,30 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
         cnf.getIncoming().artifactView(MODULE_COMPONENT_FILES).getFiles().getFiles();
     }
 
-    private void exportKeyRingCollection(PublicKeyService publicKeyService, File keyringFile, Set<String> publicKeys) throws IOException, PGPException {
+    private void exportKeyRingCollection(PublicKeyService publicKeyService, File keyringFile, Set<String> publicKeys) throws IOException {
         List<PGPPublicKeyRing> existingRings = loadExistingKeyRing(keyringFile);
         List<PGPPublicKeyRing> keysSeenInVerifier = publicKeys.stream()
             .map(keyId -> new BigInteger(keyId, 16).longValue())
             .map(publicKeyService::findKeyRing)
             .map(maybe -> maybe.orElse(null))
-            .filter(e -> e != null && existingRings.stream().noneMatch(ring -> keyIds(ring).equals(keyIds(e))))
+            .filter(Objects::nonNull)
+            .filter(WriteDependencyVerificationFile::hasAtLeastOnePublicKey)
+            .filter(e -> existingRings.stream().noneMatch(ring -> keyIds(ring).equals(keyIds(e))))
             .collect(Collectors.toList());
         ImmutableList<PGPPublicKeyRing> allKeyRings = ImmutableList.<PGPPublicKeyRing>builder()
             .addAll(existingRings)
             .addAll(keysSeenInVerifier)
             .build();
-        PGPPublicKeyRingCollection keyrings = new PGPPublicKeyRingCollection(allKeyRings);
         try (OutputStream out = new FileOutputStream(keyringFile)) {
-            keyrings.encode(out);
+            for (PGPPublicKeyRing keyRing : allKeyRings) {
+                keyRing.encode(out, true);
+            }
         }
         LOGGER.lifecycle("Exported {} keys to {}", allKeyRings.size(), keyringFile);
+    }
+
+    private static boolean hasAtLeastOnePublicKey(PGPPublicKeyRing ring) {
+        return ring.getPublicKeys().hasNext();
     }
 
     private List<PGPPublicKeyRing> loadExistingKeyRing(File keyringFile) throws IOException {
