@@ -201,7 +201,7 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
                 }
                 if (!affectedFiles.isEmpty()) {
                     formatter.blankLine();
-                    formatter.node("For your information here are the path to the files which failed verification:");
+                    formatter.node("For your information here are the files which failed verification:");
                     formatter.startChildren();
                     for (String affectedFile : affectedFiles) {
                         formatter.node(affectedFile);
