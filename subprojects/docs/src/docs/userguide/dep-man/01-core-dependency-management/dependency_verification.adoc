@@ -482,7 +482,15 @@ Or, alternatively, you can _ask Gradle to export all keys it used for verificati
 ./gradlew --write-verification-metadata pgp,sha256 --export-keys
 ----
 
+[NOTE]
+====
 It's a good idea to commit this file to VCS (as long as you trust your VCS).
+If you use git, make sure to make it treat this file as binary, by adding this to your `.gitattributes` file:
+
+----
+*.gpg           binary
+----
+====
 
 [[sec:bootstrapping-signature-verification]]
 === Bootstrapping and signature verification
