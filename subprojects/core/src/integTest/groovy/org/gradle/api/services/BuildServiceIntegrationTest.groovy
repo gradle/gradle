@@ -561,6 +561,30 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
         ].collect { it.name }
     }
 
+    def "injected FileSystemOperations resolves paths relative to build root directory"() {
+        serviceCopiesFiles()
+        buildFile << """
+            def provider = gradle.sharedServices.registerIfAbsent("copier", CopyingService) {
+            }
+
+            task copy {
+                doFirst {
+                    provider.get().copy("a", "b")
+                }
+            }
+        """
+
+        file("a").createFile()
+        def dest = file("b/a")
+        assert !dest.file
+
+        when:
+        run("copy")
+
+        then:
+        dest.file
+    }
+
     @Unroll
     def "task cannot use build service for #annotationType property"() {
         serviceImplementation()
@@ -808,6 +832,24 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
                     assert injectedService != null
                     value++
                     return value
+                }
+            }
+        """
+    }
+
+    def serviceCopiesFiles() {
+        buildFile << """
+            import ${Inject.name}
+
+            abstract class CopyingService implements BuildService<${BuildServiceParameters.name}.None> {
+                @Inject
+                abstract FileSystemOperations getFiles()
+
+                void copy(String source, String dest) {
+                    files.copy {
+                        it.from(source)
+                        it.into(dest)
+                    }
                 }
             }
         """

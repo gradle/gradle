@@ -16,9 +16,16 @@
 
 package org.gradle.api
 
+import org.gradle.api.file.FileSystemOperations
+import org.gradle.api.file.ProjectLayout
 import org.gradle.api.internal.GeneratedSubclass
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.ExtensionAware
+import org.gradle.api.provider.ProviderFactory
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.execution.WorkExecutor
+import org.gradle.process.ExecOperations
+import spock.lang.Unroll
 
 import javax.inject.Inject
 
@@ -39,7 +46,7 @@ class PluginServiceInjectionIntegrationTest extends AbstractIntegrationSpec {
                 CustomPlugin(WorkerExecutor executor) {
                     this.executor = executor
                 }
-                
+
                 void apply(Project p) {
                     println(executor != null ? "got it" : "NOT IT")
 
@@ -47,7 +54,7 @@ class PluginServiceInjectionIntegrationTest extends AbstractIntegrationSpec {
                     assert getClass() == CustomPlugin
                 }
             }
-            
+
             apply plugin: CustomPlugin
         """
 
@@ -61,11 +68,11 @@ class PluginServiceInjectionIntegrationTest extends AbstractIntegrationSpec {
             class CustomPlugin implements Plugin<Project> {
                 CustomPlugin(WorkerExecutor executor) {
                 }
-                
+
                 void apply(Project p) {
                 }
             }
-            
+
             apply plugin: CustomPlugin
         """
 
@@ -79,16 +86,16 @@ class PluginServiceInjectionIntegrationTest extends AbstractIntegrationSpec {
     def "fails when plugin constructor requests unknown service"() {
         buildFile << """
             interface Unknown { }
-            
+
             class CustomPlugin implements Plugin<Project> {
                 @Inject
                 CustomPlugin(Unknown x) {
                 }
-                
+
                 void apply(Project p) {
                 }
             }
-            
+
             apply plugin: CustomPlugin
         """
 
@@ -104,17 +111,17 @@ class PluginServiceInjectionIntegrationTest extends AbstractIntegrationSpec {
             class CustomPlugin implements Plugin<Project> {
                 @Inject
                 WorkerExecutor getExecutor() { }
-                
+
                 void apply(Project p) {
                     println(executor != null ? "got it" : "NOT IT")
 
                     // is generated but not extensible
                     assert getClass() != CustomPlugin
-                    assert (this instanceof ${GeneratedSubclass.name}) 
-                    assert !(this instanceof ${ExtensionAware.name}) 
+                    assert (this instanceof ${GeneratedSubclass.name})
+                    assert !(this instanceof ${ExtensionAware.name})
                 }
             }
-            
+
             apply plugin: CustomPlugin
         """
 
@@ -128,22 +135,124 @@ class PluginServiceInjectionIntegrationTest extends AbstractIntegrationSpec {
             abstract class CustomPlugin implements Plugin<Project> {
                 @Inject
                 abstract WorkerExecutor getExecutor()
-                
+
                 void apply(Project p) {
                     println(executor != null ? "got it" : "NOT IT")
 
                     // is generated but not extensible
                     assert getClass() != CustomPlugin
-                    assert (this instanceof ${GeneratedSubclass.name}) 
-                    assert !(this instanceof ${ExtensionAware.name}) 
+                    assert (this instanceof ${GeneratedSubclass.name})
+                    assert !(this instanceof ${ExtensionAware.name})
                 }
             }
-            
+
             apply plugin: CustomPlugin
         """
 
         expect:
         succeeds()
         outputContains("got it")
+    }
+
+    @Unroll
+    def "service of type #serviceType is available for injection into project plugin"() {
+        buildFile << """
+            class CustomPlugin implements Plugin<Project> {
+                private final ${serviceType} service
+
+                @Inject
+                CustomPlugin(${serviceType} service) {
+                    this.service = service
+                }
+
+                void apply(Project p) {
+                    println(service != null ? "got it" : "NOT IT")
+                }
+            }
+
+            apply plugin: CustomPlugin
+        """
+
+        expect:
+        succeeds()
+        outputContains("got it")
+
+        where:
+        serviceType << [
+            ObjectFactory,
+            ProjectLayout,
+            ProviderFactory,
+            WorkExecutor,
+            FileSystemOperations,
+            ExecOperations,
+        ].collect { it.name }
+    }
+
+    @Unroll
+    def "service of type #serviceType is available for injection into settings plugin"() {
+        settingsFile << """
+            import ${Inject.name}
+
+            class CustomPlugin implements Plugin<Settings> {
+                private final ${serviceType} service
+
+                @Inject
+                CustomPlugin(${serviceType} service) {
+                    this.service = service
+                }
+
+                void apply(Settings s) {
+                    println(service != null ? "got it" : "NOT IT")
+                }
+            }
+
+            apply plugin: CustomPlugin
+        """
+
+        expect:
+        succeeds()
+        outputContains("got it")
+
+        where:
+        serviceType << [
+            ObjectFactory,
+            ProviderFactory,
+            FileSystemOperations,
+            ExecOperations,
+        ].collect { it.name }
+    }
+
+    @Unroll
+    def "service of type #serviceType is available for injection into gradle object plugin"() {
+        settingsFile << """
+            import ${Inject.name}
+
+            class CustomPlugin implements Plugin<Gradle> {
+                private final ${serviceType} service
+
+                @Inject
+                CustomPlugin(${serviceType} service) {
+                    this.service = service
+                }
+
+                void apply(Gradle s) {
+                    println(service != null ? "got it" : "NOT IT")
+                }
+            }
+
+            gradle.apply plugin: CustomPlugin
+        """
+
+        expect:
+        succeeds()
+        outputContains("got it")
+
+        where:
+        serviceType << [
+            ObjectFactory,
+            ProviderFactory,
+            FileSystemOperations,
+            ExecOperations,
+        ].collect { it.name }
     }
 }
