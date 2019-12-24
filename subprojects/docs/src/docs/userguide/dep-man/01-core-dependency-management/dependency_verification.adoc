@@ -285,6 +285,14 @@ However:
 
 As a consequence, signature verification will often be used alongside checksum verification.
 
+[NOTE]
+.About expired keys
+====
+It's very common to find artifacts which are signed with an expired key.
+This is not a problem for _verification_: key expiry is mostly used to avoid signing with a stolen key.
+If an artifact was signed before expiry, it's still valid.
+====
+
 === Enabling signature verification
 
 Because verifying signatures is more expensive (both I/O and CPU wise) and harder to check manually, it's not enabled by default.
