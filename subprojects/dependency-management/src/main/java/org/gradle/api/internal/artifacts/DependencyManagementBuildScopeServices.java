@@ -21,6 +21,7 @@ import com.google.common.collect.Sets;
 import org.gradle.StartParameter;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.ClassPathRegistry;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.component.DefaultComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
@@ -348,8 +349,9 @@ class DependencyManagementBuildScopeServices {
     DependencyVerificationOverride createDependencyVerificationOverride(StartParameterResolutionOverride startParameterResolutionOverride,
                                                                         BuildOperationExecutor buildOperationExecutor,
                                                                         ChecksumService checksumService,
-                                                                        SignatureVerificationServiceFactory signatureVerificationServiceFactory) {
-        return startParameterResolutionOverride.dependencyVerificationOverride(buildOperationExecutor, checksumService, signatureVerificationServiceFactory);
+                                                                        SignatureVerificationServiceFactory signatureVerificationServiceFactory,
+                                                                        DocumentationRegistry documentationRegistry) {
+        return startParameterResolutionOverride.dependencyVerificationOverride(buildOperationExecutor, checksumService, signatureVerificationServiceFactory, documentationRegistry);
     }
 
     ResolveIvyFactory createResolveIvyFactory(StartParameterResolutionOverride startParameterResolutionOverride, ModuleRepositoryCacheProvider moduleRepositoryCacheProvider,
