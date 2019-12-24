@@ -126,7 +126,6 @@ public class DependencyVerifier {
                             builder.failWith(result.asError(publicKeyService));
                             return;
                         }
-                        return;
                     }
                     verifyChecksums(checksumService, file, verification, builder);
                     return;
