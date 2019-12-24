@@ -20,6 +20,7 @@ import org.gradle.api.Project
 import org.gradle.api.Script
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.file.FileSystemOperations
+import org.gradle.api.file.ProjectLayout
 import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformActionScheme
@@ -139,6 +140,8 @@ class Codecs(
 
         bind(ownerService<ProviderFactory>())
         bind(ownerService<ObjectFactory>())
+        bind(ownerService<WorkerExecutor>())
+        bind(ownerService<ProjectLayout>())
         bind(ownerService<PatternSpecFactory>())
         bind(ownerService<FileResolver>())
         bind(ownerService<Instantiator>())
@@ -151,7 +154,6 @@ class Codecs(
         bind(ownerService<ExecActionFactory>())
         bind(ownerService<BuildOperationListenerManager>())
         bind(ownerService<BuildRequestMetaData>())
-        bind(ownerService<WorkerExecutor>())
         bind(ownerService<ListenerManager>())
 
         bind(ProxyCodec)

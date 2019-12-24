@@ -48,6 +48,7 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.DefaultTypeValidationContext;
 import org.gradle.internal.reflect.PropertyMetadata;
 import org.gradle.internal.reflect.TypeValidationContext;
+import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.model.internal.type.ModelType;
 
@@ -63,6 +64,7 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
     private final TransformerInvocationFactory transformerInvocationFactory;
     private final ValueSnapshotter valueSnapshotter;
     private final PropertyWalker parametersPropertyWalker;
+    private final ServiceLookup internalServices;
     private final TypeMetadataStore actionMetadataStore;
     private final FileCollectionFactory fileCollectionFactory;
     private final FileLookup fileLookup;
@@ -84,7 +86,8 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
         DomainObjectContext owner,
         ProjectStateRegistry projectRegistry,
         ArtifactTransformParameterScheme parameterScheme,
-        ArtifactTransformActionScheme actionScheme
+        ArtifactTransformActionScheme actionScheme,
+        ServiceLookup internalServices
     ) {
         this.buildOperationExecutor = buildOperationExecutor;
         this.isolatableFactory = isolatableFactory;
@@ -100,10 +103,11 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
         this.actionMetadataStore = actionScheme.getInspectionScheme().getMetadataStore();
         this.legacyActionInstantiationScheme = actionScheme.getLegacyInstantiationScheme();
         this.parametersPropertyWalker = parameterScheme.getInspectionScheme().getPropertyWalker();
+        this.internalServices = internalServices;
     }
 
     @Override
-    public ArtifactTransformRegistration create(ImmutableAttributes from, ImmutableAttributes to, Class<? extends TransformAction> implementation, @Nullable TransformParameters parameterObject) {
+    public ArtifactTransformRegistration create(ImmutableAttributes from, ImmutableAttributes to, Class<? extends TransformAction<?>> implementation, @Nullable TransformParameters parameterObject) {
         TypeMetadata actionMetadata = actionMetadataStore.getTypeMetadata(implementation);
         boolean cacheable = implementation.isAnnotationPresent(CacheableTransform.class);
         DefaultTypeValidationContext validationContext = DefaultTypeValidationContext.withoutRootType(cacheable);
@@ -155,7 +159,8 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
             fileCollectionFactory,
             fileLookup,
             parametersPropertyWalker,
-            actionInstantiationScheme);
+            actionInstantiationScheme,
+            internalServices);
 
         return new DefaultArtifactTransformRegistration(from, to, new TransformationStep(transformer, transformerInvocationFactory, owner, projectRegistry, fileCollectionFingerprinterRegistry));
     }

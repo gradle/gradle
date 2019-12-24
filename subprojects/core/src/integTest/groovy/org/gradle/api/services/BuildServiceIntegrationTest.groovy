@@ -17,6 +17,7 @@
 package org.gradle.api.services
 
 import org.gradle.api.file.FileSystemOperations
+import org.gradle.api.file.ProjectLayout
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.Input
@@ -32,6 +33,7 @@ import org.gradle.integtests.fixtures.InstantExecutionRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.RequiredFeatures
 import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.process.ExecOperations
 import org.junit.runner.RunWith
 import spock.lang.Unroll
@@ -535,7 +537,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    def "can inject Gradle provided service #serviceType into build servicee"() {
+    def "can inject Gradle provided service #serviceType into build service"() {
         serviceWithInjectedService(serviceType)
         buildFile << """
             def provider = gradle.sharedServices.registerIfAbsent("counter", CountingService) {
@@ -559,6 +561,34 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
             ObjectFactory,
             ProviderFactory,
         ].collect { it.name }
+    }
+
+    @Unroll
+    def "cannot inject Gradle provided service #serviceType into build service"() {
+        serviceWithInjectedService(serviceType.name)
+        buildFile << """
+            def provider = gradle.sharedServices.registerIfAbsent("counter", CountingService) {
+            }
+
+            task check {
+                doFirst {
+                    provider.get().increment()
+                }
+            }
+        """
+
+        when:
+        fails("check")
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':check'.")
+        failure.assertHasCause("Services of type ${serviceType.simpleName} are not available for injection into instances of type BuildService.")
+
+        where:
+        serviceType << [
+            ProjectLayout, // not isolated
+            Instantiator, // internal
+        ]
     }
 
     def "injected FileSystemOperations resolves paths relative to build root directory"() {

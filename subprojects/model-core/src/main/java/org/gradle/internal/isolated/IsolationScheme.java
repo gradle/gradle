@@ -96,18 +96,20 @@ public class IsolationScheme<IMPLEMENTATION, PARAMS> {
      * Returns the services available for injection into the implementation instance.
      */
     public ServiceLookup servicesForImplementation(@Nullable PARAMS params, ServiceLookup allServices, Collection<? extends Class<?>> additionalWhiteListedServices, Spec<Class<?>> whiteListPolicy) {
-        return new ServicesForIsolatedObject(interfaceType, params, allServices, additionalWhiteListedServices, whiteListPolicy);
+        return new ServicesForIsolatedObject(interfaceType, noParamsType, params, allServices, additionalWhiteListedServices, whiteListPolicy);
     }
 
     private static class ServicesForIsolatedObject implements ServiceLookup {
         private final Class<?> interfaceType;
+        private final Class<?> noParamsType;
         private final Collection<? extends Class<?>> additionalWhiteListedServices;
         private final ServiceLookup allServices;
         private final Object params;
         private final Spec<Class<?>> whiteListPolicy;
 
-        public ServicesForIsolatedObject(Class<?> interfaceType, @Nullable Object params, ServiceLookup allServices, Collection<? extends Class<?>> additionalWhiteListedServices, Spec<Class<?>> whiteListPolicy) {
+        public ServicesForIsolatedObject(Class<?> interfaceType, Class<?> noParamsType, @Nullable Object params, ServiceLookup allServices, Collection<? extends Class<?>> additionalWhiteListedServices, Spec<Class<?>> whiteListPolicy) {
             this.interfaceType = interfaceType;
+            this.noParamsType = noParamsType;
             this.additionalWhiteListedServices = additionalWhiteListedServices;
             this.allServices = allServices;
             this.params = params;
@@ -121,6 +123,9 @@ public class IsolationScheme<IMPLEMENTATION, PARAMS> {
                 Class<?> serviceClass = Cast.uncheckedNonnullCast(serviceType);
                 if (serviceClass.isInstance(params)) {
                     return params;
+                }
+                if (serviceClass.isAssignableFrom(noParamsType)) {
+                    throw new ServiceLookupException(String.format("Cannot query the parameters of an instance of %s that takes no parameters.", interfaceType.getSimpleName()));
                 }
                 if (serviceClass.isAssignableFrom(ExecOperations.class)) {
                     return allServices.find(ExecOperations.class);
