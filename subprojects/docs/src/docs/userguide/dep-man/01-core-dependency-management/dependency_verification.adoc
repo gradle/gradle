@@ -839,7 +839,7 @@ To trust all artifacts in `com.mycompany` and all subgroups, you can use:
 
 It's quite common to have _different checksums for the same artifact_ in the wild.
 How is that possible?
-Despite progress, it's often the case that developers publish for example to Maven Central and JCenter separately, using different builds.
+Despite progress, it's often the case that developers publish, for example, to Maven Central and JCenter separately, using different builds.
 In general, this is not a problem but sometimes it means that the metadata files would be different (different timestamps, additional whitespaces, ...).
 Add to this that your build may use several repositories or repository mirrors and it makes it quite likely that a single build can "see" different metadata files for the same component!
 In general, it's not malicious (but you **must** verify that the artifact is actually correct), so Gradle lets you declare the additional artifact checksums.
@@ -877,8 +877,7 @@ To avoid this, you can configure Gradle to trust automatically all javadocs/sour
 [[sec:verification-metadata-hygiene]]
 === Cleaning up the verification file
 
-The dependency verification metadata file can grow up easily.
-Gradle will not automatically remove _unused_ entries from this file.
+If you do nothing, the dependency verification metadata will grow over time as you add new dependencies or change versions: Gradle will not automatically remove _unused_ entries from this file.
 The reason is that there's no way for Gradle to know upfront if a dependency will effectively be used during the build or not.
 
 As a consequence, adding dependencies or changing dependency version can easily lead to more entries in the file, while leaving unnecessary entries out there.
