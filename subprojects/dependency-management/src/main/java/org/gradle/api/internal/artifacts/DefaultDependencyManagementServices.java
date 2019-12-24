@@ -402,7 +402,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             ArtifactTransformActionScheme actionScheme,
             FileCollectionFingerprinterRegistry fileCollectionFingerprinterRegistry,
             FileCollectionFactory fileCollectionFactory,
-            FileLookup fileLookup
+            FileLookup fileLookup,
+            ServiceRegistry internalServices
         ) {
             return new DefaultTransformationRegistrationFactory(
                 buildOperationExecutor,
@@ -416,7 +417,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 domainObjectContext,
                 projectStateRegistry,
                 parameterScheme,
-                actionScheme
+                actionScheme,
+                internalServices
             );
         }
 
