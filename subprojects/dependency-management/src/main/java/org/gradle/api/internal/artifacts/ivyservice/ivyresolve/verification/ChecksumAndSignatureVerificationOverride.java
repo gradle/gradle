@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.artifacts.verification.DependencyVerificationMode;
 import org.gradle.api.component.Artifact;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DependencyVerifyingModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
 import org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationsXmlReader;
@@ -75,6 +76,7 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
     private final ChecksumService checksumService;
     private final SignatureVerificationService signatureVerificationService;
     private final DependencyVerificationMode verificationMode;
+    private final DocumentationRegistry documentationRegistry;
     private final Set<VerificationQuery> verificationQueries = Sets.newConcurrentHashSet();
     private final Deque<VerificationEvent> verificationEvents = Queues.newArrayDeque();
 
@@ -84,11 +86,13 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
                                                     File keyRingsFile,
                                                     ChecksumService checksumService,
                                                     SignatureVerificationServiceFactory signatureVerificationServiceFactory,
-                                                    DependencyVerificationMode verificationMode) {
+                                                    DependencyVerificationMode verificationMode,
+                                                    DocumentationRegistry documentationRegistry) {
         this.buildOperationExecutor = buildOperationExecutor;
         this.gradleUserHome = gradleUserHome.toPath();
         this.checksumService = checksumService;
         this.verificationMode = verificationMode;
+        this.documentationRegistry = documentationRegistry;
         try {
             this.verifier = DependencyVerificationsXmlReader.readFromXml(
                 new FileInputStream(verificationsFile)
@@ -197,7 +201,7 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
                     formatter.append("checksums.");
                 } else if (hasMissing.get()) {
                     // the else is just to avoid telling people to use `--write-verification-metadata` if we suspect compromised dependencies
-                    formatter.node("If the dependency is legit, update the gradle/dependency-verification.xml manually (safest) or run with the --write-verification-metadata flag (unsecure).");
+                    formatter.node("If the dependency is legit, follow the instructions at " + documentationRegistry.getDocumentationFor("dependency_verification", "sec:troubleshooting-verification"));
                 }
                 if (!affectedFiles.isEmpty()) {
                     formatter.blankLine();
