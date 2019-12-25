@@ -349,6 +349,9 @@
       </component>
       <component group="com.google.j2objc" name="j2objc-annotations" version="1.1">
          <artifact name="j2objc-annotations-1.1.jar">
+            <ignored-keys>
+               <ignored-key id="29579f18fa8fd93b" reason="Artifact has been overwritten on Maven Central"/>
+            </ignored-keys>
             <pgp value="29579f18fa8fd93b"/>
             <sha256 value="40ceb7157feb263949e0f503fe5f71689333a621021aa20ce0d0acee3badaa0f" origin="Verified by Cedric Champeau">
                <also-trust value="2994a7eb78f2710bd3d3bfb639b2c94e219cedac0d4d084d516e78c16dddecf6"/>
