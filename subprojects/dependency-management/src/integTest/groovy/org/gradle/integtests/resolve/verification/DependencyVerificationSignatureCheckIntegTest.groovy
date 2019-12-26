@@ -573,6 +573,81 @@ This can indicate that a dependency has been compromised. Please carefully verif
         noExceptionThrown()
     }
 
+
+    @ToBeFixedForInstantExecution
+    def "cache takes ignored keys into consideration"() {
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+            verifySignatures()
+        }
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0") {
+            withSignature {
+                signAsciiArmored(it)
+            }
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        fails ":compileJava"
+
+        then:
+        failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
+  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key '14f53f0824875d73' but it wasn't found in any key server so it couldn't be verified
+  - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': Artifact was signed with key '14f53f0824875d73' but it wasn't found in any key server so it couldn't be verified
+
+This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
+
+        when: "ignore key"
+        replaceMetadataFile {
+            keyServer(keyServerFixture.uri)
+            verifySignatures()
+            addGloballyIgnoredKey("14f53f0824875d73")
+        }
+        fails ":compileJava"
+
+        then:
+        failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
+  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': checksum is missing from verification metadata.
+  - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': checksum is missing from verification metadata."""
+
+        when: "doesn't ignore key anymore"
+        replaceMetadataFile {
+            keyServer(keyServerFixture.uri)
+            verifySignatures()
+        }
+        fails ":compileJava"
+
+        then:
+        failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
+  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key '14f53f0824875d73' but it wasn't found in any key server so it couldn't be verified
+  - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': Artifact was signed with key '14f53f0824875d73' but it wasn't found in any key server so it couldn't be verified
+"""
+
+        when: "ignore key only for artifact"
+        replaceMetadataFile {
+            keyServer(keyServerFixture.uri)
+            verifySignatures()
+            addIgnoredKeyByFileName("org:foo:1.0", "foo-1.0.jar", "14f53f0824875d73")
+        }
+        fails ":compileJava"
+
+        then:
+        failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
+  - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': Artifact was signed with key '14f53f0824875d73' but it wasn't found in any key server so it couldn't be verified
+  - On artifact foo-1.0.jar (org:foo:1.0) multiple problems reported:
+      - in repository 'maven': artifact was signed but all keys were ignored
+      - in repository 'maven': checksum is missing from verification metadata."""
+
+    }
+
+
     // This test exercises the fact that the signature cache is aware
     // of changes of the artifact
     @ToBeFixedForInstantExecution
