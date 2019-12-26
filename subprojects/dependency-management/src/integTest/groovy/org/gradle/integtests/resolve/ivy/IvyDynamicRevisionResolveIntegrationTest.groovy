@@ -635,18 +635,9 @@ dependencies {
 
         when:
         repositoryInteractions {
-            'org.test:projectA' {
-                expectVersionListing()
-            }
             'org.test:projectA:1.1' {
                 expectGetMetadata()
                 expectGetArtifact()
-            }
-            if (GradleMetadataResolveRunner.isGradleMetadataPublished()) {
-                // todo: is single version in range something we want to allow in Gradle metadata?
-                'org.test:projectB' {
-                    expectVersionListing()
-                }
             }
             'org.test:projectB:2.0' {
                 expectGetMetadata()
