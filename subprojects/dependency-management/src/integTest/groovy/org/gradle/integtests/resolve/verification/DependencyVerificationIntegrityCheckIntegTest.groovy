@@ -903,6 +903,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
   - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': checksum is missing from verification metadata.""")
     }
 
+    @ToBeFixedForInstantExecution
     def "can disable verification of a detached configuration"() {
         createMetadataFile {
             addChecksum("org:foo:1.0", 'sha1', "invalid")
