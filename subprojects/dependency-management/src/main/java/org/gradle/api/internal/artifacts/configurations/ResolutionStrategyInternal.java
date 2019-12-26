@@ -96,4 +96,6 @@ public interface ResolutionStrategyInternal extends ResolutionStrategy {
     boolean isFailingOnDynamicVersions();
 
     boolean isFailingOnChangingVersions();
+
+    boolean isDependencyVerificationEnabled();
 }
