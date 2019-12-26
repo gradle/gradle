@@ -1241,5 +1241,40 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
 """
     }
 
+    def "doesn't write verification metadata for skipped configurations"() {
+        javaLibrary()
+        uncheckedModule("org", "foo")
+        uncheckedModule("org", "bar")
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+                runtimeOnly "org:bar:1.0"
+            }
+        """
+
+        when:
+        writeVerificationMetadata()
+        run ":help"
+
+        then:
+        hasModules(["org:foo", "org:bar"])
+
+        when:
+        deleteMetadataFile()
+        buildFile << """
+            configurations.all {
+               resolutionStrategy.disableDependencyVerification()
+               if (name == 'compileClasspath') {
+                  resolutionStrategy.enableDependencyVerification()
+               }
+            }
+        """
+        writeVerificationMetadata()
+        run ":help"
+
+        then:
+        outputContains "Dependency verification has been disabled for configuration runtimeClasspath"
+        hasModules(["org:foo"])
+    }
 
 }

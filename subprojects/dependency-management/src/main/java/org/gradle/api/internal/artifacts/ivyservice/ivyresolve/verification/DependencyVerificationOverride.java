@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification;
 
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
+import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
 import org.gradle.api.invocation.Gradle;
 
@@ -24,7 +25,7 @@ import java.io.File;
 public interface DependencyVerificationOverride {
     DependencyVerificationOverride NO_VERIFICATION = new DependencyVerificationOverride() {
         @Override
-        public ModuleComponentRepository overrideDependencyVerification(ModuleComponentRepository original) {
+        public ModuleComponentRepository overrideDependencyVerification(ModuleComponentRepository original, String resolveContextName, ResolutionStrategyInternal resolutionStrategy) {
             return original;
         }
     };
@@ -50,7 +51,7 @@ public interface DependencyVerificationOverride {
         return gradleDir;
     }
 
-    ModuleComponentRepository overrideDependencyVerification(ModuleComponentRepository original);
+    ModuleComponentRepository overrideDependencyVerification(ModuleComponentRepository original, String resolveContextName, ResolutionStrategyInternal resolutionStrategy);
 
     default void buildFinished(Gradle gradle) {
 
