@@ -1241,6 +1241,7 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
 """
     }
 
+    @ToBeFixedForInstantExecution
     def "doesn't write verification metadata for skipped configurations"() {
         javaLibrary()
         uncheckedModule("org", "foo")
