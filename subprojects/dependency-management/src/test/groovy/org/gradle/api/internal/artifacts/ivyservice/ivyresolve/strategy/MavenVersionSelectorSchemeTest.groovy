@@ -35,7 +35,7 @@ class MavenVersionSelectorSchemeTest extends Specification {
         "[2,3["              | "[2,3)"
         "]2,3["              | "(2,3)"
         "1.0"                | "1.0"
-        "[1.0]"              | "[1.0]"
+        "[1.0]"              | "1.0"
         "+"                  | "+"
         "latest.integration" | "LATEST"
         "latest.release"     | "RELEASE"

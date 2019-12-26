@@ -69,7 +69,7 @@ uploadArchives {
                 "group:projectB:LATEST",
                 "group:projectC:1.+",
                 "group:projectD:[1.0,2.0)",
-                "group:projectE:[1.0]"
+                "group:projectE:1.0"
         )
     }
 
