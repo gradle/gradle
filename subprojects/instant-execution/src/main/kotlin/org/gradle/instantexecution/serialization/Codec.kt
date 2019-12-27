@@ -305,6 +305,7 @@ interface ReadIsolate : Isolate {
 
 
 interface MutableIsolateContext {
+    fun push(codec: Codec<Any?>)
     fun push(owner: IsolateOwner, codec: Codec<Any?>)
     fun pop()
 }
@@ -325,6 +326,17 @@ inline fun <T : ReadContext, R> T.withImmediateMode(block: T.() -> R): R {
 internal
 inline fun <T : MutableIsolateContext, R> T.withIsolate(owner: IsolateOwner, codec: Codec<Any?>, block: T.() -> R): R {
     push(owner, codec)
+    try {
+        return block()
+    } finally {
+        pop()
+    }
+}
+
+
+internal
+inline fun <T : MutableIsolateContext, R> T.withCodec(codec: Codec<Any?>, block: T.() -> R): R {
+    push(codec)
     try {
         return block()
     } finally {

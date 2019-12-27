@@ -103,11 +103,11 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
         setupBuildWithSimpleColorTransform()
         buildFile << """
             repositories {
-                maven { 
-                    url = uri('${mavenRepo.uri}') 
+                maven {
+                    url = uri('${mavenRepo.uri}')
                     metadataSources { gradleMetadata() }
                 }
-            } 
+            }
             dependencies {
                 implementation "group:thing1:1.2"
                 implementation "group:thing2:1.2"
@@ -181,5 +181,35 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
         result.assertTaskOrder(":b:producer", ":resolve")
         assertTransformed("a.jar", "a.jar.red", "b.jar", "b.jar.red")
         outputContains("result = [a.jar.red.green, b.jar.red.green")
+    }
+
+    def "task input files can include the output of artifact transform of project dependencies which takes the output of another transform as input parameter"() {
+        settingsFile << """
+            include 'a', 'b'
+        """
+        setupBuildWithColorTransformWithAnotherTransformOutputAsInput()
+        buildFile << """
+            dependencies {
+                implementation project(':a')
+                implementation project(':b')
+                transform project(':a')
+            }
+        """
+
+        expect:
+        instantRun(":resolve")
+        output.count("processing") == 3
+        outputContains("processing a.jar to make red")
+        outputContains("processing a.jar using [a.jar.red]")
+        outputContains("processing b.jar using [a.jar.red]")
+        outputContains("result = [a.jar.green, b.jar.green]")
+
+        instantRun(":resolve")
+        result.assertTaskOrder(":a:producer", ":resolve")
+        result.assertTaskOrder(":b:producer", ":resolve")
+        outputContains("processing a.jar to make red")
+        outputContains("processing a.jar using [a.jar.red]")
+        outputContains("processing b.jar using [a.jar.red]")
+        outputContains("result = [a.jar.green, b.jar.green]")
     }
 }

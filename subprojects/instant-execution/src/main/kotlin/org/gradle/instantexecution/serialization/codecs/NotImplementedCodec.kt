@@ -16,6 +16,7 @@
 
 package org.gradle.instantexecution.serialization.codecs
 
+import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
@@ -26,7 +27,7 @@ internal
 object NotImplementedCodec : Codec<Any> {
 
     override suspend fun WriteContext.encode(value: Any) {
-        val javaClass = value.javaClass
+        val javaClass = GeneratedSubclasses.unpack(value.javaClass)
         writeClass(javaClass)
         logNotImplemented(javaClass)
     }

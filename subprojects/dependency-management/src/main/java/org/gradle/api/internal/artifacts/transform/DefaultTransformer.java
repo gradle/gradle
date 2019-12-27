@@ -333,6 +333,11 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
         return instanceFactory.newInstance(services);
     }
 
+    @Nullable
+    public TransformParameters getParameterObject() {
+        return parameterObject;
+    }
+
     public IsolatedParameters getIsolatedParameters() {
         if (isolatedParameters == null) {
             throw new IllegalStateException("The parameters of " + getDisplayName() + "need to be isolated first!");
