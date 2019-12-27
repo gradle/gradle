@@ -622,6 +622,7 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         ivyRepoFile("ivy-${version}.xml.asc").assertDoesNotExist()
     }
 
+    @ToBeFixedForInstantExecution
     @Issue("https://github.com/gradle/gradle/issues/5136")
     def "doesn't publish stale signatures"() {
         buildFile << """
