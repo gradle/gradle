@@ -5,6 +5,7 @@ include::declaring_dependencies.adoc[leveloffset=+1]
 include::library_vs_application.adoc[leveloffset=+1]
 include::viewing_debugging_dependencies.adoc[leveloffset=+1]
 include::dependency_resolution.adoc[leveloffset=+1]
+include::dependency_verification.adoc[leveloffset=+1]
 
 = Declaring Versions
 include::single_versions.adoc[leveloffset=+1]

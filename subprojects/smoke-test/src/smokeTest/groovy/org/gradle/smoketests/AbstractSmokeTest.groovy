@@ -68,7 +68,7 @@ abstract class AbstractSmokeTest extends Specification {
         static spotbugs = "3.0.0"
 
         // https://plugins.gradle.org/plugin/com.bmuschko.docker-java-application
-        static docker = "6.0.0"
+        static docker = "6.1.1"
 
         // https://plugins.gradle.org/plugin/com.bmuschko.tomcat
         static tomcat = "2.5"
@@ -115,6 +115,9 @@ abstract class AbstractSmokeTest extends Specification {
         // https://plugins.gradle.org/plugin/org.gradle.test-retry
         static testRetryPlugin = "1.0.0"
 
+        // https://plugins.gradle.org/plugin/com.jfrog.artifactory
+        static artifactoryPlugin = "4.12.0"
+        static artifactoryRepoOSSVersion = "6.16.0"
     }
 
     static class Versions implements Iterable<String> {

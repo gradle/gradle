@@ -36,18 +36,18 @@ public class BuildServiceProvider<T extends BuildService<P>, P extends BuildServ
     private final IsolationScheme<BuildService, BuildServiceParameters> isolationScheme;
     private final InstantiationScheme instantiationScheme;
     private final IsolatableFactory isolatableFactory;
-    private final ServiceRegistry services;
+    private final ServiceRegistry internalServices;
     private final P parameters;
     private Try<T> instance;
 
-    public BuildServiceProvider(String name, Class<T> implementationType, @Nullable P parameters, IsolationScheme<BuildService, BuildServiceParameters> isolationScheme, InstantiationScheme instantiationScheme, IsolatableFactory isolatableFactory, ServiceRegistry services) {
+    public BuildServiceProvider(String name, Class<T> implementationType, @Nullable P parameters, IsolationScheme<BuildService, BuildServiceParameters> isolationScheme, InstantiationScheme instantiationScheme, IsolatableFactory isolatableFactory, ServiceRegistry internalServices) {
         this.name = name;
         this.implementationType = implementationType;
         this.parameters = parameters;
         this.isolationScheme = isolationScheme;
         this.instantiationScheme = instantiationScheme;
         this.isolatableFactory = isolatableFactory;
-        this.services = services;
+        this.internalServices = internalServices;
     }
 
     public String getName() {
@@ -99,7 +99,7 @@ public class BuildServiceProvider<T extends BuildService<P>, P extends BuildServ
                 // TODO - should hold the project lock to do the isolation. Should work the same way as artifact transforms (a work node does the isolation, etc)
                 P isolatedParameters = isolatableFactory.isolate(parameters).isolate();
                 // TODO - reuse this in other places
-                ServiceLookup instantiationServices = isolationScheme.servicesForImplementation(isolatedParameters, services);
+                ServiceLookup instantiationServices = isolationScheme.servicesForImplementation(isolatedParameters, internalServices);
                 try {
                     instance = Try.successful(instantiationScheme.withServices(instantiationServices).instantiator().newInstance(implementationType));
                 } catch (Exception e) {

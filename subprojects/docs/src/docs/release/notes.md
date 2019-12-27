@@ -32,6 +32,17 @@ For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility 
 
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. --> 
 
+<a name="dependency-verification"></a>
+## Dependency verification
+
+Gradle 6.2 ships with [dependency verification](userguide/dependency_verification.html).
+Dependency verification is a major step towards a safer ecosystem by making it possible to verify both the checksums and the signatures of dependencies and plugins used during a build.
+
+Please refer to the [userguide](userguide/dependency_verification.html) to figure out how to enable dependency verification.
+
+We would like to give special thanks to [Vladimir Sitnikov](https://github.com/vlsi) for his feedback and inspiration.
+A lot of the work on this feature is, in particular, available to previous versions of Gradle via his [Checksum Dependency Plugin](https://github.com/vlsi/vlsi-release-plugins/tree/master/plugins/checksum-dependency-plugin).
+
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.

@@ -18,13 +18,16 @@ package org.gradle.api.internal.artifacts.verification.verifier;
 import org.gradle.api.internal.artifacts.verification.model.ChecksumKind;
 import org.gradle.internal.logging.text.TreeFormatter;
 
-public class ChecksumVerificationFailure implements VerificationFailure {
+import java.io.File;
+
+public class ChecksumVerificationFailure extends AbstractVerificationFailure {
 
     private final ChecksumKind kind;
     private final String expected;
     private final String actual;
 
-    ChecksumVerificationFailure(ChecksumKind kind, String expected, String actual) {
+    ChecksumVerificationFailure(File file, ChecksumKind kind, String expected, String actual) {
+        super(file);
         this.kind = kind;
         this.expected = expected;
         this.actual = actual;

@@ -73,6 +73,10 @@ public class TreeFormatter implements DiagnosticsVisitor {
         return this;
     }
 
+    public void blankLine() {
+        node("");
+    }
+
     /**
      * Starts a new node with the given type name.
      */

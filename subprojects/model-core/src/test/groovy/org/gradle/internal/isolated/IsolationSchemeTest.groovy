@@ -17,8 +17,11 @@
 package org.gradle.internal.isolated
 
 import org.gradle.api.file.FileSystemOperations
+import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.ProviderFactory
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceLookup
+import org.gradle.internal.service.ServiceLookupException
 import org.gradle.internal.service.UnknownServiceException
 import org.gradle.process.ExecOperations
 import spock.lang.Specification
@@ -75,7 +78,7 @@ class IsolationSchemeTest extends Specification {
         result2.is(service)
 
         where:
-        serviceType << [ExecOperations, FileSystemOperations]
+        serviceType << [ExecOperations, FileSystemOperations, ObjectFactory, ProviderFactory]
     }
 
     def "does not expose white-listed service when it is not available in backing registry"() {
@@ -141,23 +144,24 @@ class IsolationSchemeTest extends Specification {
         result2.is(params)
     }
 
-    def "does not expose parameters when parameters are null"() {
+    def "cannot query parameters when parameters are null"() {
         def allServices = Mock(ServiceLookup)
 
         def injectedServices = scheme.servicesForImplementation(null, allServices)
 
         when:
-        def result = injectedServices.find(SomeParams)
+        injectedServices.find(SomeParams)
 
         then:
-        result == null
+        def e = thrown(ServiceLookupException)
+        e.message == "Cannot query the parameters of an instance of SomeAction that takes no parameters."
 
         when:
         injectedServices.get(SomeParams)
 
         then:
-        def e = thrown(UnknownServiceException)
-        e.message == "Services of type SomeParams are not available for injection into instances of type SomeAction."
+        def e2 = thrown(ServiceLookupException)
+        e2.message == "Cannot query the parameters of an instance of SomeAction that takes no parameters."
     }
 }
 

@@ -177,9 +177,9 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
             parameterAction.execute(parameters);
         }
 
-        ActionExecutionSpec spec;
         String description = getWorkerDisplayName(workActionClass, parameters);
         WorkerRequirement workerRequirement = getWorkerRequirement(workActionClass, workerSpec, parameters);
+        ActionExecutionSpec<?> spec;
         try {
             // Isolate parameters in this thread prior to starting work in a separate thread
             spec = actionExecutionSpecFactory.newIsolatedSpec(description, workActionClass, parameters, workerRequirement, false);
@@ -190,7 +190,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         return submitWork(spec, workerSpec.getIsolationMode(), workerRequirement);
     }
 
-    private AsyncWorkCompletion submitWork(final ActionExecutionSpec spec, final IsolationMode isolationMode, WorkerRequirement workerRequirement) {
+    private AsyncWorkCompletion submitWork(ActionExecutionSpec<?> spec, final IsolationMode isolationMode, WorkerRequirement workerRequirement) {
         final WorkerLease currentWorkerWorkerLease = getCurrentWorkerLease();
         final BuildOperationRef currentBuildOperation = buildOperationExecutor.getCurrentOperation();
         WorkerFactory workerFactory = getWorkerFactory(isolationMode);

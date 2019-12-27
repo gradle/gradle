@@ -16,12 +16,12 @@
 package org.gradle.api.internal.artifacts.verification.serializer;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.verification.model.IgnoredKey;
-import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerificationConfiguration;
-import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifier;
 import org.gradle.api.internal.artifacts.verification.model.ArtifactVerificationMetadata;
 import org.gradle.api.internal.artifacts.verification.model.Checksum;
 import org.gradle.api.internal.artifacts.verification.model.ComponentVerificationMetadata;
+import org.gradle.api.internal.artifacts.verification.model.IgnoredKey;
+import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerificationConfiguration;
+import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifier;
 import org.gradle.internal.xml.SimpleMarkupWriter;
 import org.gradle.internal.xml.SimpleXmlWriter;
 
@@ -31,13 +31,17 @@ import java.io.OutputStream;
 import java.net.URI;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.ALSO_TRUST;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.ARTIFACT;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.COMPONENT;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.COMPONENTS;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.CONFIG;
+import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.TRUSTING;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.FILE;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.GROUP;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.ID;
@@ -46,12 +50,12 @@ import static org.gradle.api.internal.artifacts.verification.serializer.Dependen
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.KEY_SERVER;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.KEY_SERVERS;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.NAME;
+import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.ORIGIN;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.PGP;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.REASON;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.REGEX;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.TRUST;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.TRUSTED_ARTIFACTS;
-import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.ORIGIN;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.TRUSTED_KEY;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.TRUSTED_KEYS;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.URI;
@@ -80,6 +84,9 @@ public class DependencyVerificationsXmlWriter {
 
     private void write(DependencyVerifier verifier) throws IOException {
         writer.startElement(VERIFICATION_METADATA);
+        writeAttribute("xmlns", "https://schema.gradle.org/verification");
+        writeAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
+        writeAttribute("xmlns:schemaLocation", "https://schema.gradle.org/verification https://schema.gradle.org/verification/verification-1.0.xsd");
         writeConfiguration(verifier.getConfiguration());
         writeVerifications(verifier.getVerificationMetadata());
         writer.endElement();
@@ -103,8 +110,28 @@ public class DependencyVerificationsXmlWriter {
             return;
         }
         writer.startElement(TRUSTED_KEYS);
-        for (DependencyVerificationConfiguration.TrustedKey key : keys) {
-            writeTrustedKey(key);
+        Map<String, List<DependencyVerificationConfiguration.TrustedKey>> groupedByKeyId = keys
+            .stream()
+            .collect(Collectors.groupingBy(DependencyVerificationConfiguration.TrustedKey::getKeyId, TreeMap::new, Collectors.toList()));
+        for (Map.Entry<String, List<DependencyVerificationConfiguration.TrustedKey>> e : groupedByKeyId.entrySet()) {
+            String key = e.getKey();
+            List<DependencyVerificationConfiguration.TrustedKey> trustedKeys = e.getValue();
+            if (trustedKeys.size() == 1) {
+                writeTrustedKey(trustedKeys.get(0));
+            } else {
+                writeGroupedTrustedKey(key, trustedKeys);
+            }
+        }
+        writer.endElement();
+    }
+
+    private void writeGroupedTrustedKey(String keyId, List<DependencyVerificationConfiguration.TrustedKey> trustedKeys) throws IOException {
+        writer.startElement(TRUSTED_KEY);
+        writeAttribute(ID, keyId);
+        for (DependencyVerificationConfiguration.TrustedKey trustedKey : trustedKeys) {
+            writer.startElement(TRUSTING);
+            writeTrustCoordinates(trustedKey);
+            writer.endElement();
         }
         writer.endElement();
     }

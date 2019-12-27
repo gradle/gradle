@@ -15,23 +15,17 @@
  */
 package org.gradle.api.internal.artifacts.verification.verifier;
 
-import org.gradle.internal.logging.text.TreeFormatter;
-
 import java.io.File;
 
-public class MissingSignature extends AbstractVerificationFailure {
+public abstract class AbstractVerificationFailure implements VerificationFailure {
+    private final File affectedFile;
 
-    public MissingSignature(File file) {
-        super(file);
+    protected AbstractVerificationFailure(File affectedFile) {
+        this.affectedFile = affectedFile;
     }
 
     @Override
-    public boolean isFatal() {
-        return false;
-    }
-
-    @Override
-    public void explainTo(TreeFormatter formatter) {
-        formatter.append("artifact wasn't signed");
+    public File getFilePath() {
+        return affectedFile;
     }
 }

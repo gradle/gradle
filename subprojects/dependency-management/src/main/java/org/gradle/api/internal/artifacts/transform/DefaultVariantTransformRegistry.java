@@ -110,7 +110,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         }
     }
 
-    private <T extends TransformParameters> void register(RecordingRegistration registration, Class<? extends TransformAction> actionType, @Nullable T parameterObject) {
+    private <T extends TransformParameters> void register(RecordingRegistration registration, Class<? extends TransformAction<?>> actionType, @Nullable T parameterObject) {
         validateActionType(actionType);
         try {
             validateAttributes(registration);

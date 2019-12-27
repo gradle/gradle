@@ -19,6 +19,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.verification.DependencyVerificationMode;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.ChecksumAndSignatureVerificationOverride;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.DependencyVerificationOverride;
@@ -77,7 +78,10 @@ public class StartParameterResolutionOverride {
         return original;
     }
 
-    public DependencyVerificationOverride dependencyVerificationOverride(BuildOperationExecutor buildOperationExecutor, ChecksumService checksumService, SignatureVerificationServiceFactory signatureVerificationServiceFactory) {
+    public DependencyVerificationOverride dependencyVerificationOverride(BuildOperationExecutor buildOperationExecutor,
+                                                                         ChecksumService checksumService,
+                                                                         SignatureVerificationServiceFactory signatureVerificationServiceFactory,
+                                                                         DocumentationRegistry documentationRegistry) {
         File currentDir = startParameter.getCurrentDir();
         List<String> checksums = startParameter.getWriteDependencyVerifications();
         if (!checksums.isEmpty()) {
@@ -92,7 +96,7 @@ public class StartParameterResolutionOverride {
                 }
                 SingleMessageLogger.incubatingFeatureUsed("Dependency verification");
                 try {
-                    return new ChecksumAndSignatureVerificationOverride(buildOperationExecutor, verificationsFile, keyringsFile, checksumService, signatureVerificationServiceFactory, startParameter.getDependencyVerificationMode());
+                    return new ChecksumAndSignatureVerificationOverride(buildOperationExecutor, startParameter.getGradleUserHomeDir(), verificationsFile, keyringsFile, checksumService, signatureVerificationServiceFactory, startParameter.getDependencyVerificationMode(), documentationRegistry);
                 } catch (Exception e) {
                     return new FailureVerificationOverride(e, verificationsFile);
                 }

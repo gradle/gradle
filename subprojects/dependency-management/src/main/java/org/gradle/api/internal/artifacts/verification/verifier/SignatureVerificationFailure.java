@@ -22,17 +22,25 @@ import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.security.internal.PublicKeyService;
 
 import javax.annotation.Nullable;
+import java.io.File;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-public class SignatureVerificationFailure implements VerificationFailure {
+public class SignatureVerificationFailure extends AbstractVerificationFailure {
     private final Map<String, SignatureError> errors;
     private final PublicKeyService keyService;
+    private final File signatureFile;
 
-    public SignatureVerificationFailure(Map<String, SignatureError> errors, PublicKeyService keyService) {
+    public SignatureVerificationFailure(File affectedFile, File signatureFile, Map<String, SignatureError> errors, PublicKeyService keyService) {
+        super(affectedFile);
         this.errors = errors;
         this.keyService = keyService;
+        this.signatureFile = signatureFile;
+    }
+
+    public File getSignatureFile() {
+        return signatureFile;
     }
 
     public Map<String, SignatureError> getErrors() {

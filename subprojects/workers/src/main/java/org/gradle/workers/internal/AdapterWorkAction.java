@@ -30,13 +30,20 @@ import static org.gradle.internal.classloader.ClassLoaderUtils.classFromContextL
  * parameter api.  It allows us to maintain backwards compatibility at the api layer, but use
  * only typed parameters under the covers.  This can be removed once the old api is retired.
  */
-public abstract class AdapterWorkAction implements WorkAction<AdapterWorkParameters>, ProvidesWorkResult {
+public class AdapterWorkAction implements WorkAction<AdapterWorkParameters>, ProvidesWorkResult {
+    private final AdapterWorkParameters parameters;
     private final Instantiator instantiator;
     private DefaultWorkResult workResult;
 
     @Inject
-    public AdapterWorkAction(Instantiator instantiator) {
+    public AdapterWorkAction(AdapterWorkParameters parameters, Instantiator instantiator) {
+        this.parameters = parameters;
         this.instantiator = instantiator;
+    }
+
+    @Override
+    public AdapterWorkParameters getParameters() {
+        return parameters;
     }
 
     @Override
@@ -52,7 +59,7 @@ public abstract class AdapterWorkAction implements WorkAction<AdapterWorkParamet
         } else if (action instanceof Callable) {
             Object result;
             try {
-                result = ((Callable) action).call();
+                result = ((Callable<?>) action).call();
                 if (result instanceof DefaultWorkResult) {
                     workResult = (DefaultWorkResult) result;
                 } else if (result instanceof WorkResult) {

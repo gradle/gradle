@@ -38,6 +38,7 @@ import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.isolation.TestIsolatableFactory
 import org.gradle.internal.operations.TestBuildOperationExecutor
+import org.gradle.internal.service.ServiceLookup
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.snapshot.ValueSnapshotter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -87,7 +88,8 @@ class DefaultVariantTransformRegistryTest extends Specification {
             ),
             inspectionScheme,
             instantiatorFactory.injectScheme()
-        )
+        ),
+        Stub(ServiceLookup)
     )
     def registry = new DefaultVariantTransformRegistry(instantiatorFactory, attributesFactory, Stub(ServiceRegistry), registryFactory, instantiatorFactory.injectScheme())
 

@@ -29,6 +29,7 @@ import spock.lang.Unroll
 
 class DependencyVerificationsXmlWriterTest extends Specification {
     private final DependencyVerifierBuilder builder = new DependencyVerifierBuilder()
+    private String rawContents
     private String contents
 
     @Unroll
@@ -48,12 +49,19 @@ class DependencyVerificationsXmlWriterTest extends Specification {
    <components/>
 </verification-metadata>
 """
+        and:
+        hasNamespaceDeclaration()
+
         where:
         verifyMetadata | verifySignatures
         false          | false
         false          | true
         true           | false
         true           | true
+    }
+
+    private boolean hasNamespaceDeclaration() {
+        rawContents.contains('<verification-metadata xmlns="https://schema.gradle.org/verification" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:schemaLocation="https://schema.gradle.org/verification https://schema.gradle.org/verification/verification-1.0.xsd"')
     }
 
     def "can declare key servers"() {
@@ -139,6 +147,7 @@ class DependencyVerificationsXmlWriterTest extends Specification {
         builder.addTrustedKey("012345", "g2", "m1", null, "file.jar", true)
         builder.addTrustedKey("ABC123", "g3", "m2", "1.0", null, true)
         builder.addTrustedKey("456DEF", null, "m3", "1.4", "file.zip", false)
+        builder.addTrustedKey("456DEF", null, "m4", null, "other-file.zip", true)
         serialize()
 
         then:
@@ -148,10 +157,13 @@ class DependencyVerificationsXmlWriterTest extends Specification {
       <verify-metadata>true</verify-metadata>
       <verify-signatures>false</verify-signatures>
       <trusted-keys>
-         <trusted-key id="ABCDEF" group="g1"/>
          <trusted-key id="012345" group="g2" name="m1" file="file.jar" regex="true"/>
+         <trusted-key id="456DEF">
+            <trusting name="m3" version="1.4" file="file.zip"/>
+            <trusting name="m4" file="other-file.zip" regex="true"/>
+         </trusted-key>
          <trusted-key id="ABC123" group="g3" name="m2" version="1.0" regex="true"/>
-         <trusted-key id="456DEF" name="m3" version="1.4" file="file.zip"/>
+         <trusted-key id="ABCDEF" group="g1"/>
       </trusted-keys>
    </configuration>
    <components/>
@@ -365,6 +377,7 @@ class DependencyVerificationsXmlWriterTest extends Specification {
     private void serialize() {
         def out = new ByteArrayOutputStream()
         DependencyVerificationsXmlWriter.serialize(builder.build(), out)
-        contents = TextUtil.normaliseLineSeparators(out.toString("utf-8"))
+        rawContents = TextUtil.normaliseLineSeparators(out.toString("utf-8"))
+        contents = rawContents.replaceAll("<verification-metadata .+>", "<verification-metadata>")
     }
 }

@@ -19,5 +19,5 @@ package org.gradle.workers.internal;
 import org.gradle.internal.operations.BuildOperationRef;
 
 public interface BuildOperationAwareWorker extends Worker {
-    DefaultWorkResult execute(ActionExecutionSpec spec, final BuildOperationRef parentBuildOperation);
+    DefaultWorkResult execute(ActionExecutionSpec<?> spec, final BuildOperationRef parentBuildOperation);
 }
