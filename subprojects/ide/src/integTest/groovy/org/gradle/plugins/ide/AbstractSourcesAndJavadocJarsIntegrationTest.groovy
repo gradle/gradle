@@ -296,7 +296,7 @@ dependencies {
     }
 
     @ToBeFixedForInstantExecution
-    def "sources jar for gradleApi() is resolved and attached"() {
+    def "sources for gradleApi() are resolved and attached when -all distribution is used"() {
         given:
         requireGradleDistribution()
         TestFile sourcesDir = distribution.gradleHomeDir.createDir("src")
@@ -319,7 +319,7 @@ dependencies {
     }
 
     @ToBeFixedForInstantExecution
-    def "gradle-api sources jar for gradleTestKit() is resolved and attached"() {
+    def "sources for gradleTestKit() are resolved and attached when -all distribution is used"() {
         given:
         requireGradleDistribution()
         TestFile sourcesDir = distribution.gradleHomeDir.createDir("src")
