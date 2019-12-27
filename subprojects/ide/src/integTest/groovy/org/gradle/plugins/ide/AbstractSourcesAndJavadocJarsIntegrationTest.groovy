@@ -315,7 +315,7 @@ dependencies {
         succeeds ideTask
 
         then:
-        ideFileContainsGradleApiWithSources("gradle-api")
+        ideFileContainsGradleApiWithSources("gradle-api", sourcesDir.getPath())
     }
 
     @ToBeFixedForInstantExecution
@@ -338,7 +338,8 @@ dependencies {
         succeeds ideTask
 
         then:
-        ideFileContainsGradleApiWithSources("gradle-test-kit")
+        ideFileContainsGradleApiWithSources("gradle-test-kit", sourcesDir.getPath())
+        ideFileContainsGradleApiWithSources("gradle-api", sourcesDir.getPath())
     }
 
     private useIvyRepo(def repo) {
@@ -404,7 +405,7 @@ task resolve {
         ideFileContainsEntry(jar, [sources], [javadoc])
     }
     abstract void ideFileContainsEntry(String jar, List<String> sources, List<String> javadoc)
-    abstract void ideFileContainsGradleApiWithSources(String apiJarPrefix)
+    abstract void ideFileContainsGradleApiWithSources(String apiJarPrefix, String sourcesPath)
     abstract void ideFileContainsNoSourcesAndJavadocEntry()
     abstract void expectBehaviorAfterBrokenMavenArtifact(HttpArtifact httpArtifact)
     abstract void expectBehaviorAfterBrokenIvyArtifact(HttpArtifact httpArtifact)

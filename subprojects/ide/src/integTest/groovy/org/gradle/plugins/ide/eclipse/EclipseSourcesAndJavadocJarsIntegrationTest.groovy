@@ -37,7 +37,7 @@ class EclipseSourcesAndJavadocJarsIntegrationTest extends AbstractSourcesAndJava
     }
 
     @Override
-    void ideFileContainsGradleApiWithSources(String apiJarPrefix) {
+    void ideFileContainsGradleApiWithSources(String apiJarPrefix, String sourcesPath) {
         def classpath = EclipseClasspathFixture.create(testDirectory, executer.gradleUserHomeDir)
         def libs = classpath.libs
         def apiLibs = libs.stream().filter { l ->
@@ -46,8 +46,7 @@ class EclipseSourcesAndJavadocJarsIntegrationTest extends AbstractSourcesAndJava
         assert apiLibs.size() == 1
         def apiLib = apiLibs.get(0)
         assert apiLib.sourcePath != null
-        String sourceJarName = apiLib.sourcePath.split('/').last()
-        assert sourceJarName == "src"
+        assert apiLib.sourcePath == sourcesPath
     }
 
     void ideFileContainsNoSourcesAndJavadocEntry() {

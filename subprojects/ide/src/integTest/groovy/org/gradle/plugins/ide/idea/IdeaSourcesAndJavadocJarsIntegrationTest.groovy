@@ -34,13 +34,12 @@ class IdeaSourcesAndJavadocJarsIntegrationTest extends AbstractSourcesAndJavadoc
     }
 
     @Override
-    void ideFileContainsGradleApiWithSources(String apiJarPrefix) {
+    void ideFileContainsGradleApiWithSources(String apiJarPrefix, String sourcesPath) {
         IdeaModuleFixture iml =  parseIml("root.iml")
         def libraryEntry = iml.dependencies.libraries.find { it.jarName.startsWith(apiJarPrefix) }
         assert libraryEntry != null : "gradle API jar not found"
         assert libraryEntry.source.size() == 1
-        String sourcesDirName = libraryEntry.source.get(0).split('/').last()
-        assert sourcesDirName == "src"
+        assert libraryEntry.source.get(0) == "file://" + sourcesPath
     }
 
     void ideFileContainsNoSourcesAndJavadocEntry() {
