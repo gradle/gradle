@@ -88,4 +88,9 @@ public class SingleOutputTaskIvyArtifact extends AbstractIvyArtifact {
             context.add(generator.get());
         }
     }
+
+    @Override
+    public boolean shouldBePublished() {
+        return isEnabled();
+    }
 }

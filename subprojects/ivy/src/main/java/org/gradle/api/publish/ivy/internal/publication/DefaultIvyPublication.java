@@ -52,9 +52,11 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.publish.VersionMappingStrategy;
 import org.gradle.api.publish.internal.CompositePublicationArtifactSet;
 import org.gradle.api.publish.internal.DefaultPublicationArtifactSet;
+import org.gradle.api.publish.internal.PublicationArtifactInternal;
 import org.gradle.api.publish.internal.PublicationArtifactSet;
 import org.gradle.api.publish.internal.validation.PublicationWarningsCollector;
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
+import org.gradle.api.publish.ivy.InvalidIvyPublicationException;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyConfiguration;
 import org.gradle.api.publish.ivy.IvyConfigurationContainer;
@@ -73,7 +75,6 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
-import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.util.GUtil;
@@ -95,11 +96,20 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     private static final String API_ELEMENTS_VARIANT = "apiElements";
     private static final String RUNTIME_VARIANT = "runtime";
     private static final String RUNTIME_ELEMENTS_VARIANT = "runtimeElements";
+    private static final Spec<IvyArtifact> PUBLISHED_ARTIFACTS = artifact -> {
+        if (artifact instanceof PublicationArtifactInternal) {
+            if (!((PublicationArtifactInternal) artifact).shouldBePublished()) {
+                return false;
+            }
+        }
+        return artifact.getFile().exists();
+    };
 
     @VisibleForTesting
     public static final String UNSUPPORTED_FEATURE = " contains dependencies that cannot be represented in a published ivy descriptor.";
     @VisibleForTesting
     public static final String PUBLICATION_WARNING_FOOTER = "These issues indicate information that is lost in the published 'ivy.xml' metadata file, which may be an issue if the published library is consumed by an old Gradle version or Apache Ivy.\nThe 'module' metadata file, which is used by Gradle 6+ is not affected.";
+
 
     private final String name;
     private final IvyModuleDescriptorSpecInternal descriptor;
@@ -488,7 +498,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     }
 
     @Override
-    public IvyArtifact addDerivedArtifact(IvyArtifact originalArtifact, Factory<File> fileProvider) {
+    public IvyArtifact addDerivedArtifact(IvyArtifact originalArtifact, DerivedArtifact fileProvider) {
         IvyArtifact artifact = new DerivedIvyArtifact(originalArtifact, fileProvider);
         derivedArtifacts.add(artifact);
         return artifact;
@@ -513,15 +523,20 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     @Override
     public IvyNormalizedPublication asNormalisedPublication() {
         populateFromComponent();
-        DomainObjectSet<IvyArtifact> existingDerivedArtifacts = derivedArtifacts.matching(new Spec<IvyArtifact>() {
-            @Override
-            public boolean isSatisfiedBy(IvyArtifact artifact) {
-                return artifact.getFile().exists();
+        DomainObjectSet<IvyArtifact> mainArtifacts = this.mainArtifacts.matching(artifact -> {
+            // Validation is done this way for backwards compatibility
+            File artifactFile = artifact.getFile();
+            if (artifactFile == null || !artifactFile.exists()) {
+                throw new InvalidIvyPublicationException(name, String.format("artifact file does not exist: '%s'", artifactFile));
             }
+            return true;
         });
-        Set<IvyArtifact> artifactsToBePublished = CompositeDomainObjectSet.create(IvyArtifact.class, mainArtifacts, metadataArtifacts, existingDerivedArtifacts).matching(new Spec<IvyArtifact>() {
+        Set<IvyArtifact> artifactsToBePublished = CompositeDomainObjectSet.create(IvyArtifact.class, mainArtifacts, metadataArtifacts, derivedArtifacts).matching(new Spec<IvyArtifact>() {
             @Override
             public boolean isSatisfiedBy(IvyArtifact element) {
+                if (!PUBLISHED_ARTIFACTS.isSatisfiedBy(element)) {
+                    return false;
+                }
                 if (gradleModuleDescriptorArtifact == element) {
                     // We temporarily want to allow skipping the publication of Gradle module metadata
                     return gradleModuleDescriptorArtifact.isEnabled();
@@ -529,7 +544,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
                 return true;
             }
         });
-        return new IvyNormalizedPublication(name, getIdentity(), getIvyDescriptorFile(), artifactsToBePublished);
+        return new IvyNormalizedPublication(name, this.mainArtifacts, getIdentity(), getIvyDescriptorFile(), artifactsToBePublished);
     }
 
     @Override

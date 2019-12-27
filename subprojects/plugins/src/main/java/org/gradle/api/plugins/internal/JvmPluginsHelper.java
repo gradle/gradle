@@ -278,5 +278,10 @@ public class JvmPluginsHelper {
         public Date getDate() {
             return null;
         }
+
+        @Override
+        public boolean shouldBePublished() {
+            return false;
+        }
     }
 }
