@@ -62,6 +62,11 @@ public class TransformationStep implements Transformation, TaskDependencyContain
         this.owningProject = owner.getProject();
         this.owner = owner.getModel();
         this.isolateAction = transformer.isIsolated() ? null : new WorkNodeAction() {
+            @Override
+            public String toString() {
+                return "isolate parameters of transform " + transformer.getDisplayName();
+            }
+
             @Nullable
             @Override
             public Project getProject() {

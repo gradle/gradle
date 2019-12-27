@@ -128,7 +128,7 @@ class JarProducer extends DefaultTask {
      * and another transform that converts 'red' to 'green'.
      * By default the 'blue' variant will contain a single file, and the transform will produce a single 'green' file from this.
      */
-    void setupBuildWithChainedSimpleColorTransform() {
+    void setupBuildWithChainedColorTransform() {
         setupBuildWithColorAttributes()
         buildFile << """
             allprojects {
@@ -235,6 +235,30 @@ class JarProducer extends DefaultTask {
                 void transform(TransformOutputs outputs) {
                     def input = inputArtifact.get().asFile
                     println "processing \${input.name}"
+                    def output = outputs.file(input.name + ".green")
+                    output.text = input.text + ".green"
+                }
+            }
+        """
+    }
+
+    /**
+     * Each project produces a 'blue' variant, and has a `resolve` task that resolves the 'green' variant and a transform that converts 'blue' to 'green'.
+     * By default the 'blue' variant will contain a single file, and the transform will produce a single 'green' file from this.
+     */
+    void setupBuildWithColorTransformThatTakesUpstreamArtifacts() {
+        setupBuildWithColorTransformAction()
+        buildFile << """
+            abstract class MakeGreen implements TransformAction<TransformParameters.None> {
+                @InputArtifactDependencies
+                abstract FileCollection getInputArtifactDependencies()
+
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
+                    println "processing \${input.name} using \${inputArtifactDependencies.files*.name}"
                     def output = outputs.file(input.name + ".green")
                     output.text = input.text + ".green"
                 }
