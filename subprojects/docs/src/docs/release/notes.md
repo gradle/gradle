@@ -38,6 +38,30 @@ details of 2
 ## n
 -->
 
+<a name="lazy-dependencies"><a>
+## Lazy Dependencies
+
+Gradle 6.2 now supports accepting an instance of the [`org.gradle.api.provider.Provider`](https://docs.gradle.org/current/javadoc/org/gradle/api/provider/Provider.html)
+type in the [`DependencyHandler`](https://docs.gradle.org/current/javadoc/org/gradle/api/artifacts/dsl/DependencyHandler.html) block.
+
+For example:
+```kotlin
+dependencies {
+    implementation(playDep.ws()) // Becomes: 'com.typesafe.play:play-ws_2.11:2.4.2
+}
+// This is declared later, so we need to support providers
+play {
+    platform {
+        playVersion.set("2.4.2")
+        scalaVersion.set("2.11.6")
+    }
+}
+```
+
+In this above example, the method `playDep.json()` returns the type `Provider<ExternalModuleDependency>`.
+This new capability will be useful to plugin authors that wish to create plugins that supply different versions of dependencies
+based upon how the plugin extension is configured.
+
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
