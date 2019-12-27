@@ -222,10 +222,10 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
         buildFile << """
             dependencies {
                 implementation project(':a')
-                implementation project(':b')
             }
-            project(':b') {
+            project(':a') {
                 dependencies {
+                    implementation project(':b')
                     implementation project(':c')
                 }
             }
@@ -234,19 +234,18 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
         expect:
         instantRun(":resolve")
         output.count("processing") == 3
-        outputContains("processing a.jar using []")
         outputContains("processing c.jar using []")
-        outputContains("processing b.jar using [c.jar]")
+        outputContains("processing b.jar using []")
+        outputContains("processing a.jar using [b.jar, c.jar]")
         outputContains("result = [a.jar.green, b.jar.green, c.jar.green]")
 
         instantRun(":resolve")
         result.assertTaskOrder(":a:producer", ":resolve")
         result.assertTaskOrder(":b:producer", ":resolve")
         output.count("processing") == 3
-        outputContains("processing a.jar using []")
         outputContains("processing c.jar using []")
-        // TODO - should persist the dependencies too
         outputContains("processing b.jar using []")
+        outputContains("processing a.jar using [b.jar, c.jar]")
         outputContains("result = [a.jar.green, b.jar.green, c.jar.green]")
     }
 }

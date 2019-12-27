@@ -119,10 +119,7 @@ class Codecs(
         bind(ListenerBroadcastCodec(listenerManager))
         bind(LoggerCodec)
 
-        bind(FileTreeCodec(directoryFileTreeFactory))
-        bind(ConfigurableFileCollectionCodec(fileCollectionFactory))
-        bind(FileCollectionCodec(fileCollectionFactory))
-        bind(PatternSetCodec)
+        fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory)
 
         bind(ClosureCodec)
         bind(GroovyMetaClassCodec)
@@ -171,6 +168,7 @@ class Codecs(
         baseTypes()
 
         providerTypes(filePropertyFactory, buildServiceRegistry, valueSourceProviderFactory)
+        fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory)
 
         bind(TaskNodeCodec(projectStateRegistry, userTypesCodec, taskNodeFactory))
         bind(InitialTransformationNodeCodec(buildOperationExecutor, transformListener))
@@ -180,7 +178,6 @@ class Codecs(
         bind(TransformationStepCodec(projectStateRegistry, fingerprinterRegistry, projectFinder))
         bind(DefaultTransformerCodec(userTypesCodec, buildOperationExecutor, classLoaderHierarchyHasher, isolatableFactory, valueSnapshotter, fileCollectionFactory, fileLookup, parameterScheme, actionScheme))
         bind(LegacyTransformerCodec(actionScheme))
-        bind(ExecutionGraphDependenciesResolverCodec)
 
         bind(IsolatedManagedValueCodec(managedFactoryRegistry))
         bind(IsolatedImmutableManagedValueCodec(managedFactoryRegistry))
@@ -210,6 +207,14 @@ class Codecs(
         bind(BuildServiceProviderCodec(buildServiceRegistry))
         bind(ValueSourceProviderCodec(valueSourceProviderFactory))
         bind(ProviderCodec)
+    }
+
+    private
+    fun BindingsBuilder.fileCollectionTypes(directoryFileTreeFactory: DirectoryFileTreeFactory, fileCollectionFactory: FileCollectionFactory) {
+        bind(FileTreeCodec(directoryFileTreeFactory))
+        bind(ConfigurableFileCollectionCodec(fileCollectionFactory))
+        bind(FileCollectionCodec(fileCollectionFactory))
+        bind(PatternSetCodec)
     }
 
     private
