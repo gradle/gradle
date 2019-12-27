@@ -39,7 +39,7 @@ class IdeaSourcesAndJavadocJarsIntegrationTest extends AbstractSourcesAndJavadoc
         def libraryEntry = iml.dependencies.libraries.find { it.jarName.startsWith(apiJarPrefix) }
         assert libraryEntry != null : "gradle API jar not found"
         assert libraryEntry.source.size() == 1
-        assert libraryEntry.source.get(0) == "file://" + sourcesPath
+        assert libraryEntry.source.get(0) == "file://" + sourcesPath.replace('\\', '/')
     }
 
     void ideFileContainsNoSourcesAndJavadocEntry() {

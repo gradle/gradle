@@ -46,7 +46,7 @@ class EclipseSourcesAndJavadocJarsIntegrationTest extends AbstractSourcesAndJava
         assert apiLibs.size() == 1
         def apiLib = apiLibs.get(0)
         assert apiLib.sourcePath != null
-        assert apiLib.sourcePath == sourcesPath
+        assert apiLib.sourcePath == sourcesPath.replace('\\', '/')
     }
 
     void ideFileContainsNoSourcesAndJavadocEntry() {
