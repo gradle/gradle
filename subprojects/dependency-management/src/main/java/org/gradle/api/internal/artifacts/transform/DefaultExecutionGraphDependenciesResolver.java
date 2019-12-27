@@ -41,7 +41,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class DefaultExecutionGraphDependenciesResolver implements ExecutionGraphDependenciesResolver {
-    private static final ArtifactTransformDependencies MISSING_DEPENDENCIES = new ArtifactTransformDependencies() {
+    public static final ArtifactTransformDependencies MISSING_DEPENDENCIES = new ArtifactTransformDependencies() {
         @Override
         public FileCollection getFiles() {
             throw new IllegalStateException("Transform does not use artifact dependencies.");
