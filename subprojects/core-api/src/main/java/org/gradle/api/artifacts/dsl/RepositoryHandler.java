@@ -327,10 +327,12 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
     IvyArtifactRepository ivy(Action<? super IvyArtifactRepository> action);
 
     /**
-     * Defines the an exclusive content repository: whatever is declared in this
-     * repository cannot be found in any other repository.
+     * Declares exclusive content repositories. Exclusive content repositories are
+     * repositories for which you can declare an inclusive content filter. Artifacts
+     * matching the filter will then only be searched in the repositories which
+     * exclusively match it.
      *
-     * @param action the configuration of the repository
+     * @param action the configuration of the repositories
      *
      * @since 6.2
      */
