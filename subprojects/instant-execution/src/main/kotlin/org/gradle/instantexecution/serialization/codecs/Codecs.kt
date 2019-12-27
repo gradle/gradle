@@ -90,7 +90,6 @@ class Codecs(
     classLoaderHierarchyHasher: ClassLoaderHierarchyHasher,
     isolatableFactory: IsolatableFactory,
     valueSnapshotter: ValueSnapshotter,
-    fileCollectionFingerprinterRegistry: FileCollectionFingerprinterRegistry,
     buildServiceRegistry: BuildServiceRegistryInternal,
     managedFactoryRegistry: ManagedFactoryRegistry,
     parameterScheme: ArtifactTransformParameterScheme,
@@ -178,7 +177,7 @@ class Codecs(
         bind(ChainedTransformationNodeCodec(buildOperationExecutor, transformListener))
         bind(ResolvableArtifactCodec)
         bind(TransformationStepCodec(projectStateRegistry, fingerprinterRegistry, projectFinder))
-        bind(DefaultTransformerCodec(buildOperationExecutor, classLoaderHierarchyHasher, isolatableFactory, valueSnapshotter, fileCollectionFactory, fileLookup, fileCollectionFingerprinterRegistry, parameterScheme, actionScheme))
+        bind(DefaultTransformerCodec(userTypesCodec, buildOperationExecutor, classLoaderHierarchyHasher, isolatableFactory, valueSnapshotter, fileCollectionFactory, fileLookup, parameterScheme, actionScheme))
         bind(LegacyTransformerCodec(actionScheme))
         bind(ExecutionGraphDependenciesResolverCodec)
 

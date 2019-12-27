@@ -305,7 +305,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         ].collect { it.name }
     }
 
-    @ToBeFixedForInstantExecution
     def "transform parameters are validated for input output annotations"() {
         settingsFile << """
             include 'a', 'b'
@@ -436,7 +435,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         failure.assertHasCause("Cannot query the parameters of an instance of TransformAction that takes no parameters.")
     }
 
-    @ToBeFixedForInstantExecution
     def "transform parameters type cannot use caching annotations"() {
         settingsFile << """
             include 'a', 'b', 'c'
@@ -479,7 +477,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
     def "transform parameters type cannot use annotation @#annotation.simpleName"() {
         settingsFile << """
             include 'a', 'b'

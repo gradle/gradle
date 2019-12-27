@@ -26,6 +26,7 @@ import java.util.zip.ZipEntry
 
 trait ArtifactTransformTestFixture extends TasksWithInputsAndOutputs {
     abstract TestFile getBuildFile()
+
     abstract ExecutionResult getResult()
 
     /**
@@ -116,12 +117,11 @@ class JarProducer extends DefaultTask {
     }
 
     /**
-     * Asserts that exactly the given files where transformed by the 'simple' tranforms below/
+     * Asserts that exactly the given files where transformed by the 'simple' transforms below
      */
     void assertTransformed(String... fileNames) {
         assert result.output.findAll("processing (.+)").sort() == fileNames.collect { "processing $it" }.sort()
     }
-
 
     /**
      * Each project produces a 'blue' variant, and has a `resolve` task that resolves the 'green' variant and a transform that converts 'blue' to 'red'
@@ -160,6 +160,62 @@ class JarProducer extends DefaultTask {
                     println "processing \${input.name}"
                     def output = outputs.file(input.name + "." + parameters.targetColor.get())
                     output.text = input.text + "-" + parameters.targetColor.get()
+                }
+            }
+        """
+    }
+
+    /**
+     * Each project produces a 'blue' variant, and has a `resolve` task that resolves the 'green' variant and a transform that converts 'blue' to 'green'
+     * and that takes the 'red' variant as an input parameter.
+     * By default the 'blue' variant will contain a single file, and the transform will produce a single 'green' file from this.
+     */
+    void setupBuildWithColorTransformWithAnotherTransformOutputAsInput() {
+        setupBuildWithColorAttributes()
+        buildFile << """
+            allprojects {
+                configurations {
+                   transform
+                }
+                dependencies {
+                    registerTransform(MakeGreen) {
+                        from.attribute(color, 'blue')
+                        to.attribute(color, 'green')
+                        parameters.inputFiles.from(configurations.transform.incoming.artifactView { attributes.attribute(color, 'red') }.files)
+                    }
+                    registerTransform(MakeRed) {
+                        from.attribute(color, 'blue')
+                        to.attribute(color, 'red')
+                    }
+                }
+            }
+
+            interface GreenParams extends TransformParameters {
+                @InputFiles
+                ConfigurableFileCollection getInputFiles()
+            }
+
+            abstract class MakeGreen implements TransformAction<GreenParams> {
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
+                    println "processing \${input.name} using \${parameters.inputFiles.files*.name}"
+                    def output = outputs.file(input.name + ".green")
+                    output.text = input.text + "-green"
+                }
+            }
+
+            abstract class MakeRed implements TransformAction<TransformParameters.None> {
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
+                    println "processing \${input.name} to make red"
+                    def output = outputs.file(input.name + ".red")
+                    output.text = input.text + "-red"
                 }
             }
         """

@@ -383,7 +383,6 @@ class UserTypesCodecTest {
         classLoaderHierarchyHasher = mock(),
         isolatableFactory = mock(),
         valueSnapshotter = mock(),
-        fileCollectionFingerprinterRegistry = mock(),
         buildServiceRegistry = mock(),
         managedFactoryRegistry = mock(),
         parameterScheme = mock(),
