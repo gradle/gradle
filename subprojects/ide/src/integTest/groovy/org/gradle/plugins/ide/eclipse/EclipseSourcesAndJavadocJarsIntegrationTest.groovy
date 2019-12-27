@@ -47,7 +47,7 @@ class EclipseSourcesAndJavadocJarsIntegrationTest extends AbstractSourcesAndJava
         def apiLib = apiLibs.get(0)
         assert apiLib.sourcePath != null
         String sourceJarName = apiLib.sourcePath.split('/').last()
-        assert sourceJarName.startsWith("gradle-sources-") && sourceJarName.endsWith(".jar")
+        assert sourceJarName == "src"
     }
 
     void ideFileContainsNoSourcesAndJavadocEntry() {

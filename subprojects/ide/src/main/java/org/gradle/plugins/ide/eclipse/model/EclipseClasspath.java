@@ -20,19 +20,15 @@ import com.google.common.base.Preconditions;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.tasks.SourceSet;
-import org.gradle.cache.internal.GeneratedGradleJarCache;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.eclipse.model.internal.ClasspathFactory;
 import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
-import org.gradle.plugins.ide.internal.resolver.DefaultSourcesJarFactory;
-import org.gradle.plugins.ide.internal.resolver.SourcesJarCreator;
-import org.gradle.plugins.ide.internal.resolver.SourcesJarFactory;
+import org.gradle.plugins.ide.internal.resolver.DefaultGradleApiSourcesResolver;
 import org.gradle.util.ConfigureUtil;
 
 import javax.inject.Inject;
@@ -327,10 +323,7 @@ public class EclipseClasspath {
         ProjectInternal projectInternal = (ProjectInternal) this.project;
         IdeArtifactRegistry ideArtifactRegistry = projectInternal.getServices().get(IdeArtifactRegistry.class);
         ProjectStateRegistry projectRegistry = projectInternal.getServices().get(ProjectStateRegistry.class);
-        DirectoryFileTreeFactory directoryFileTreeFactory = projectInternal.getServices().get(DirectoryFileTreeFactory.class);
-        GeneratedGradleJarCache generatedGradleJarCache = projectInternal.getServices().get(GeneratedGradleJarCache.class);
-        SourcesJarFactory sourcesJarFactory = new DefaultSourcesJarFactory(new SourcesJarCreator(directoryFileTreeFactory), generatedGradleJarCache);
-        ClasspathFactory classpathFactory = new ClasspathFactory(this, ideArtifactRegistry, projectRegistry, sourcesJarFactory);
+        ClasspathFactory classpathFactory = new ClasspathFactory(this, ideArtifactRegistry, projectRegistry, new DefaultGradleApiSourcesResolver());
         return classpathFactory.createEntries();
     }
 

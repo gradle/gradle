@@ -59,13 +59,13 @@ public class IdeDependencySet {
     private final DependencyHandler dependencyHandler;
     private final Collection<Configuration> plusConfigurations;
     private final Collection<Configuration> minusConfigurations;
-    private final SourcesJarFactory sourcesJarFactory;
+    private final GradleApiSourcesResolver gradleApiSourcesResolver;
 
-    public IdeDependencySet(DependencyHandler dependencyHandler, Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations, SourcesJarFactory sourcesJarFactory) {
+    public IdeDependencySet(DependencyHandler dependencyHandler, Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations, GradleApiSourcesResolver gradleApiSourcesResolver) {
         this.dependencyHandler = dependencyHandler;
         this.plusConfigurations = plusConfigurations;
         this.minusConfigurations = minusConfigurations;
-        this.sourcesJarFactory = sourcesJarFactory;
+        this.gradleApiSourcesResolver = gradleApiSourcesResolver;
     }
 
     public void visit(IdeDependencyVisitor visitor) {
@@ -219,7 +219,7 @@ public class IdeDependencySet {
                     javaDoc = javaDoc != null ? javaDoc : Collections.<ResolvedArtifactResult>emptySet();
                     visitor.visitModuleDependency(artifact, sources, javaDoc, isTestConfiguration(configurations.get(artifactIdentifier)));
                 } else if (isGradleApiDependency(artifact)) {
-                    visitor.visitGradleApiDependency(artifact, sourcesJarFactory.resolveGradleApiSources(artifact.getFile()), isTestConfiguration(configurations.get(artifactIdentifier)));
+                    visitor.visitGradleApiDependency(artifact, gradleApiSourcesResolver.resolveGradleApiSources(artifact.getFile()), isTestConfiguration(configurations.get(artifactIdentifier)));
                 } else {
                     visitor.visitFileDependency(artifact, isTestConfiguration(configurations.get(artifactIdentifier)));
                 }

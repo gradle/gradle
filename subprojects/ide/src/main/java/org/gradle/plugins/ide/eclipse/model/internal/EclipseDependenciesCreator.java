@@ -42,7 +42,7 @@ import org.gradle.plugins.ide.eclipse.model.Variable;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 import org.gradle.plugins.ide.internal.resolver.IdeDependencySet;
 import org.gradle.plugins.ide.internal.resolver.IdeDependencyVisitor;
-import org.gradle.plugins.ide.internal.resolver.SourcesJarFactory;
+import org.gradle.plugins.ide.internal.resolver.GradleApiSourcesResolver;
 import org.gradle.plugins.ide.internal.resolver.UnresolvedIdeDependencyHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,18 +57,18 @@ public class EclipseDependenciesCreator {
     private final EclipseClasspath classpath;
     private final ProjectDependencyBuilder projectDependencyBuilder;
     private final ProjectComponentIdentifier currentProjectId;
-    private final SourcesJarFactory sourcesJarFactory;
+    private final GradleApiSourcesResolver gradleApiSourcesResolver;
 
-    public EclipseDependenciesCreator(EclipseClasspath classpath, IdeArtifactRegistry ideArtifactRegistry, ProjectStateRegistry projectRegistry, SourcesJarFactory sourcesJarFactory) {
+    public EclipseDependenciesCreator(EclipseClasspath classpath, IdeArtifactRegistry ideArtifactRegistry, ProjectStateRegistry projectRegistry, GradleApiSourcesResolver gradleApiSourcesResolver) {
         this.classpath = classpath;
         this.projectDependencyBuilder = new ProjectDependencyBuilder(ideArtifactRegistry);
         this.currentProjectId = projectRegistry.stateFor(classpath.getProject()).getComponentIdentifier();
-        this.sourcesJarFactory = sourcesJarFactory;
+        this.gradleApiSourcesResolver = gradleApiSourcesResolver;
     }
 
     public List<AbstractClasspathEntry> createDependencyEntries() {
         EclipseDependenciesVisitor visitor = new EclipseDependenciesVisitor(classpath.getProject());
-        new IdeDependencySet(classpath.getProject().getDependencies(), classpath.getPlusConfigurations(), classpath.getMinusConfigurations(), sourcesJarFactory).visit(visitor);
+        new IdeDependencySet(classpath.getProject().getDependencies(), classpath.getPlusConfigurations(), classpath.getMinusConfigurations(), gradleApiSourcesResolver).visit(visitor);
         return visitor.getDependencies();
     }
 
