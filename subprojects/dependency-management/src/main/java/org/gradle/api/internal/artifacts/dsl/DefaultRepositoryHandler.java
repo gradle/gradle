@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.dsl;
 
+import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
@@ -37,7 +38,11 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ConfigureUtil;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.gradle.util.CollectionUtils.flattenCollections;
 
@@ -200,7 +205,7 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
 
     public static class ExclusiveContentRepositorySpec implements ExclusiveContentRepository {
         private final RepositoryHandler repositories;
-        private Factory<? extends ArtifactRepository> repository;
+        private final List<Factory<? extends ArtifactRepository>> forRepositories = Lists.newArrayListWithExpectedSize(2);
         private Action<? super InclusiveRepositoryContentDescriptor> filter;
 
         public ExclusiveContentRepositorySpec(RepositoryHandler repositories) {
@@ -209,10 +214,13 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
 
         @Override
         public ExclusiveContentRepository forRepository(Factory<? extends ArtifactRepository> repositoryProducer) {
-            if (this.repository != null) {
-                throw new InvalidUserCodeException("Cannot call forRepository multiple times");
-            }
-            this.repository = repositoryProducer;
+            forRepositories.add(repositoryProducer);
+            return this;
+        }
+
+        @Override
+        public ExclusiveContentRepository forRepositories(ArtifactRepository... repositories) {
+            Stream.of(repositories).forEach(r -> forRepositories.add(() -> r));
             return this;
         }
 
@@ -224,16 +232,16 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
 
         void apply(Action<? super ExclusiveContentRepository> action) {
             action.execute(this);
-            if (repository == null) {
+            if (forRepositories.isEmpty()) {
                 throw new InvalidUserCodeException("You must declare the repository using forRepository { ... }");
             }
             if (filter == null) {
                 throw new InvalidUserCodeException("You must specify the filter for the repository using filter { ... }");
             }
-            ArtifactRepository target = repository.create();
+            Set<? extends ArtifactRepository> targetRepositories = forRepositories.stream().map(Factory::create).collect(Collectors.toSet());
             Action<? super RepositoryContentDescriptor> forExclusivity = transformForExclusivity(filter);
-            repositories.all(repo -> {
-                if (repo == target) {
+            this.repositories.all(repo -> {
+                if (targetRepositories.contains(repo)) {
                     repo.content(filter);
                 } else {
                     repo.content(forExclusivity);

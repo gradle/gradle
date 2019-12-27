@@ -20,8 +20,8 @@ import org.gradle.api.Incubating;
 import org.gradle.internal.Factory;
 
 /**
- * Describes a repository which contents is exclusive with the other
- * repositories defined with the same {@link org.gradle.api.artifacts.dsl.RepositoryHandler}.
+ * Describes one or more repositories which together constitute the only possible
+ * source for an artifact, independently of the others.
  *
  * This means that if a repository declares an include, other repositories will
  * automatically exclude it.
@@ -36,6 +36,13 @@ public interface ExclusiveContentRepository {
      * @return this repository descriptor
      */
     ExclusiveContentRepository forRepository(Factory<? extends ArtifactRepository> repository);
+
+    /**
+     * Declares the repository
+     * @param repositories the repositories for which we declare exclusive content
+     * @return this repository descriptor
+     */
+    ExclusiveContentRepository forRepositories(ArtifactRepository... repositories);
 
     /**
      * Defines the content filter for this repository

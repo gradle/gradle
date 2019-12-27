@@ -18,6 +18,10 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
+import org.gradle.test.fixtures.HttpRepository
+import org.gradle.test.fixtures.maven.MavenFileRepository
+import org.gradle.test.fixtures.server.http.MavenHttpRepository
+import org.gradle.test.fixtures.server.http.RepositoryHttpServer
 import spock.lang.Unroll
 
 class ExclusiveRepositoryContentFilteringIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -141,4 +145,104 @@ class ExclusiveRepositoryContentFilteringIntegrationTest extends AbstractHttpDep
         ]
     }
 
+    @Unroll
+    def "can declare a group of repositories to search for artifacts exclusively using #notation"() {
+        def foo = ivyHttpRepo.module('org', 'foo', '1.0').publish()
+        def bar = mavenHttpRepo.module('other', 'bar', '2.0').publish()
+        def otherMavenFileRepo = new MavenFileRepository(file("maven-repo2"))
+        def otherServer = new RepositoryHttpServer(temporaryFolder)
+        def otherMavenRepo = new MavenHttpRepository(otherServer, "/mavenrepo2", HttpRepository.MetadataType.DEFAULT, otherMavenFileRepo)
+        otherServer.start()
+        def missingFoo = otherMavenRepo.module('org', 'foo', '1.0')
+
+        given:
+        buildFile << """
+            repositories {
+                maven { url "${mavenHttpRepo.uri}" }
+                exclusiveContent {
+                   forRepository {
+                      maven { url "${otherMavenRepo.uri}" }
+                   }
+                   forRepository {
+                      ivy { url "${ivyHttpRepo.uri}" }
+                   }
+                   filter {
+                      $notation
+                   }
+                }
+            }
+            dependencies {
+                conf "org:foo:1.0"
+                conf "other:bar:2.0"
+            }
+        """
+
+        when:
+        missingFoo.pom.expectGetMissing()
+        foo.ivy.expectGet()
+        foo.artifact.expectGet()
+        bar.pom.expectGet()
+        bar.artifact.expectGet()
+
+        run 'checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(':', ':test:') {
+                module('org:foo:1.0')
+                module('other:bar:2.0')
+            }
+        }
+
+        cleanup:
+        otherServer.stop()
+
+        where:
+        notation << [
+            "includeGroup 'org'",
+            "includeGroupByRegex 'org.*'",
+            "includeModule('org', 'foo')",
+            "includeModuleByRegex('or[g]', 'f[o]+')",
+            "includeVersion('org', 'foo', '1.0')",
+            "includeVersionByRegex('or[g]', 'f[o]+', '1[.].+')",
+        ]
+    }
+
+    def "can reuse an existing repo"() {
+        def foo = ivyHttpRepo.module('org', 'foo', '1.0').publish()
+        def bar = mavenHttpRepo.module('other', 'bar', '2.0').publish()
+        given:
+        buildFile << """
+            repositories {
+                maven { url "${mavenHttpRepo.uri}" }
+                def repo = ivy { url "${ivyHttpRepo.uri}" }
+                exclusiveContent {
+                   forRepositories(repo)
+                   filter {
+                      includeGroup("org")
+                   }
+                }
+            }
+            dependencies {
+                conf "org:foo:1.0"
+                conf "other:bar:2.0"
+            }
+        """
+
+        when:
+        foo.ivy.expectGet()
+        foo.artifact.expectGet()
+        bar.pom.expectGet()
+        bar.artifact.expectGet()
+
+        run 'checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(':', ':test:') {
+                module('org:foo:1.0')
+                module('other:bar:2.0')
+            }
+        }
+    }
 }
