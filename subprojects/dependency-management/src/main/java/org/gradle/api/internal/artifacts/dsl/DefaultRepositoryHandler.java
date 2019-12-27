@@ -17,15 +17,22 @@ package org.gradle.api.internal.artifacts.dsl;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
+import org.gradle.api.artifacts.repositories.ExclusiveContentRepository;
 import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
+import org.gradle.api.artifacts.repositories.InclusiveRepositoryContentDescriptor;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
-import org.gradle.api.internal.ConfigureByMapAction;
+import org.gradle.api.artifacts.repositories.RepositoryContentDescriptor;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
+import org.gradle.api.internal.ConfigureByMapAction;
 import org.gradle.api.internal.artifacts.BaseRepositoryFactory;
 import org.gradle.api.internal.artifacts.DefaultArtifactRepositoryContainer;
+import org.gradle.internal.Actions;
+import org.gradle.internal.Cast;
+import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ConfigureUtil;
 
@@ -46,10 +53,12 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
     private static final String IVY_REPO_DEFAULT_NAME = "ivy";
 
     private final BaseRepositoryFactory repositoryFactory;
+    private final Instantiator instantiator;
 
     public DefaultRepositoryHandler(BaseRepositoryFactory repositoryFactory, Instantiator instantiator, CollectionCallbackActionDecorator decorator) {
         super(instantiator, decorator);
         this.repositoryFactory = repositoryFactory;
+        this.instantiator = instantiator;
     }
 
     @Override
@@ -75,7 +84,7 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
     public ArtifactRepository gradlePluginPortal() {
         return addRepository(repositoryFactory.createGradlePluginPortal(), GRADLE_PLUGIN_PORTAL_REPO_NAME);
     }
-    
+
     @Override
     public ArtifactRepository gradlePluginPortal(Action<? super ArtifactRepository> action) {
         return addRepository(repositoryFactory.createGradlePluginPortal(), GRADLE_PLUGIN_PORTAL_REPO_NAME, action);
@@ -146,4 +155,91 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
     public IvyArtifactRepository ivy(Closure closure) {
         return ivy(ConfigureUtil.configureUsing(closure));
     }
+
+    @Override
+    public void exclusiveContent(Action<? super ExclusiveContentRepository> action) {
+        ExclusiveContentRepositorySpec spec = Cast.uncheckedCast(instantiator.newInstance(ExclusiveContentRepositorySpec.class, this));
+        spec.apply(action);
+    }
+
+    private static Action<? super RepositoryContentDescriptor> transformForExclusivity(Action<? super InclusiveRepositoryContentDescriptor> config) {
+        return desc -> {
+            config.execute(new InclusiveRepositoryContentDescriptor() {
+                @Override
+                public void includeGroup(String group) {
+                    desc.excludeGroup(group);
+                }
+
+                @Override
+                public void includeGroupByRegex(String groupRegex) {
+                    desc.excludeGroupByRegex(groupRegex);
+                }
+
+                @Override
+                public void includeModule(String group, String moduleName) {
+                    desc.excludeModule(group, moduleName);
+                }
+
+                @Override
+                public void includeModuleByRegex(String groupRegex, String moduleNameRegex) {
+                    desc.excludeModuleByRegex(groupRegex, moduleNameRegex);
+                }
+
+                @Override
+                public void includeVersion(String group, String moduleName, String version) {
+                    desc.excludeVersion(group, moduleName, version);
+                }
+
+                @Override
+                public void includeVersionByRegex(String groupRegex, String moduleNameRegex, String versionRegex) {
+                    desc.excludeVersionByRegex(groupRegex, moduleNameRegex, versionRegex);
+                }
+            });
+        };
+    }
+
+    public static class ExclusiveContentRepositorySpec implements ExclusiveContentRepository {
+        private final RepositoryHandler repositories;
+        private Factory<? extends ArtifactRepository> repository;
+        private Action<? super InclusiveRepositoryContentDescriptor> filter;
+
+        public ExclusiveContentRepositorySpec(RepositoryHandler repositories) {
+            this.repositories = repositories;
+        }
+
+        @Override
+        public ExclusiveContentRepository forRepository(Factory<? extends ArtifactRepository> repositoryProducer) {
+            if (this.repository != null) {
+                throw new InvalidUserCodeException("Cannot call forRepository multiple times");
+            }
+            this.repository = repositoryProducer;
+            return this;
+        }
+
+        @Override
+        public ExclusiveContentRepository filter(Action<? super InclusiveRepositoryContentDescriptor> config) {
+            filter = filter == null ? config : Actions.composite(filter, config);
+            return this;
+        }
+
+        void apply(Action<? super ExclusiveContentRepository> action) {
+            action.execute(this);
+            if (repository == null) {
+                throw new InvalidUserCodeException("You must declare the repository using forRepository { ... }");
+            }
+            if (filter == null) {
+                throw new InvalidUserCodeException("You must specify the filter for the repository using filter { ... }");
+            }
+            ArtifactRepository target = repository.create();
+            Action<? super RepositoryContentDescriptor> forExclusivity = transformForExclusivity(filter);
+            repositories.all(repo -> {
+                if (repo == target) {
+                    repo.content(filter);
+                } else {
+                    repo.content(forExclusivity);
+                }
+            });
+        }
+    }
+
 }

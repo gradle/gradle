@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.dsl
 import org.gradle.api.Action
 import org.gradle.api.artifacts.ArtifactRepositoryContainer
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
+import org.gradle.api.artifacts.repositories.RepositoryContentDescriptor
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.artifacts.BaseRepositoryFactory
 import org.gradle.api.internal.artifacts.DefaultArtifactRepositoryContainerTest
@@ -35,8 +36,8 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
     }
 
     ArtifactRepositoryContainer createRepositoryHandler(
-            BaseRepositoryFactory repositoryFactory = repositoryFactory,
-            Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
+        BaseRepositoryFactory repositoryFactory = repositoryFactory,
+        Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
     ) {
         new DefaultRepositoryHandler(repositoryFactory, instantiator, CollectionCallbackActionDecorator.NOOP)
     }
@@ -159,6 +160,281 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
         handler.maven(action).is repository
     }
 
+    def "can include group exclusively"() {
+        given:
+        def repo1 = Mock(TestMavenArtifactRepository) { getName() >> "Maven repo 1" }
+        def repo2 = Mock(TestMavenArtifactRepository) { getName() >> "Maven repo 2" }
+        def repo3 = Mock(TestMavenArtifactRepository) { getName() >> "Maven repo 3" }
+        def repo1Content = Mock(RepositoryContentDescriptor)
+        def repo2Content = Mock(RepositoryContentDescriptor)
+        def repo3Content = Mock(RepositoryContentDescriptor)
+
+        when:
+        handler.maven {}
+        handler.maven {}
+        handler.maven {}
+        handler.exclusiveContent {
+            it.forRepository { repo1 }
+            it.filter {
+                it.includeGroup("foo")
+            }
+        }
+
+        then:
+        3 * repositoryFactory.createMavenRepository() >>> [repo1, repo2, repo3]
+        _ * repo1.getName() >> "Maven repo 1"
+        _ * repo2.getName() >> "Maven repo 2"
+        _ * repo3.getName() >> "Maven repo 3"
+        _ * repo1.setName(_)
+        _ * repo2.setName(_)
+        _ * repo3.setName(_)
+        1 * repo1.onAddToContainer(_)
+        1 * repo2.onAddToContainer(_)
+        1 * repo3.onAddToContainer(_)
+        1 * repo1.content(_) >> { args ->
+            args[0].execute(repo1Content)
+        }
+        1 * repo1Content.includeGroup("foo")
+        1 * repo2.content(_) >> { args ->
+            args[0].execute(repo2Content)
+        }
+        1 * repo2Content.excludeGroup("foo")
+        1 * repo3.content(_) >> { args ->
+            args[0].execute(repo3Content)
+        }
+        1 * repo3Content.excludeGroup("foo")
+        0 * _
+    }
+
+    def "can include group by regex exclusively"() {
+        given:
+        def repo1 = Mock(TestMavenArtifactRepository) { getName() >> "Maven repo 1" }
+        def repo2 = Mock(TestMavenArtifactRepository) { getName() >> "Maven repo 2" }
+        def repo3 = Mock(TestMavenArtifactRepository) { getName() >> "Maven repo 3" }
+        def repo1Content = Mock(RepositoryContentDescriptor)
+        def repo2Content = Mock(RepositoryContentDescriptor)
+        def repo3Content = Mock(RepositoryContentDescriptor)
+
+        when:
+        handler.maven {}
+        handler.maven {}
+        handler.maven {}
+        handler.exclusiveContent {
+            it.forRepository { repo1 }
+            it.filter {
+                it.includeGroupByRegex("foo")
+            }
+        }
+
+        then:
+        3 * repositoryFactory.createMavenRepository() >>> [repo1, repo2, repo3]
+        _ * repo1.getName() >> "Maven repo 1"
+        _ * repo2.getName() >> "Maven repo 2"
+        _ * repo3.getName() >> "Maven repo 3"
+        _ * repo1.setName(_)
+        _ * repo2.setName(_)
+        _ * repo3.setName(_)
+        1 * repo1.onAddToContainer(_)
+        1 * repo2.onAddToContainer(_)
+        1 * repo3.onAddToContainer(_)
+        1 * repo1.content(_) >> { args ->
+            args[0].execute(repo1Content)
+        }
+        1 * repo1Content.includeGroupByRegex("foo")
+        1 * repo2.content(_) >> { args ->
+            args[0].execute(repo2Content)
+        }
+        1 * repo2Content.excludeGroupByRegex("foo")
+        1 * repo3.content(_) >> { args ->
+            args[0].execute(repo3Content)
+        }
+        1 * repo3Content.excludeGroupByRegex("foo")
+        0 * _
+    }
+
+    def "can include module exclusively"() {
+        given:
+        def repo1 = Mock(TestMavenArtifactRepository) { getName() >> "Maven repo 1" }
+        def repo2 = Mock(TestMavenArtifactRepository) { getName() >> "Maven repo 2" }
+        def repo3 = Mock(TestMavenArtifactRepository) { getName() >> "Maven repo 3" }
+        def repo1Content = Mock(RepositoryContentDescriptor)
+        def repo2Content = Mock(RepositoryContentDescriptor)
+        def repo3Content = Mock(RepositoryContentDescriptor)
+
+        when:
+        handler.maven {}
+        handler.maven {}
+        handler.maven {}
+        handler.exclusiveContent {
+            it.forRepository { repo2 }
+            it.filter {
+                it.includeModule("com.mycompany", "core")
+            }
+        }
+
+        then:
+        3 * repositoryFactory.createMavenRepository() >>> [repo1, repo2, repo3]
+        _ * repo1.getName() >> "Maven repo 1"
+        _ * repo2.getName() >> "Maven repo 2"
+        _ * repo3.getName() >> "Maven repo 3"
+        _ * repo1.setName(_)
+        _ * repo2.setName(_)
+        _ * repo3.setName(_)
+        1 * repo1.onAddToContainer(_)
+        1 * repo2.onAddToContainer(_)
+        1 * repo3.onAddToContainer(_)
+        1 * repo2.content(_) >> { args ->
+            args[0].execute(repo2Content)
+        }
+        1 * repo2Content.includeModule("com.mycompany", "core")
+        1 * repo1.content(_) >> { args ->
+            args[0].execute(repo1Content)
+        }
+        1 * repo1Content.excludeModule("com.mycompany", "core")
+        1 * repo3.content(_) >> { args ->
+            args[0].execute(repo3Content)
+        }
+        1 * repo3Content.excludeModule("com.mycompany","core")
+        0 * _
+    }
+
+    def "can include module by regex exclusively"() {
+        given:
+        def repo1 = Mock(TestMavenArtifactRepository) { getName() >> "Maven repo 1" }
+        def repo2 = Mock(TestMavenArtifactRepository) { getName() >> "Maven repo 2" }
+        def repo3 = Mock(TestMavenArtifactRepository) { getName() >> "Maven repo 3" }
+        def repo1Content = Mock(RepositoryContentDescriptor)
+        def repo2Content = Mock(RepositoryContentDescriptor)
+        def repo3Content = Mock(RepositoryContentDescriptor)
+
+        when:
+        handler.maven {}
+        handler.maven {}
+        handler.maven {}
+        handler.exclusiveContent {
+            it.forRepository { repo2 }
+            it.filter {
+                it.includeModuleByRegex("com.mycompany", "core")
+            }
+        }
+
+        then:
+        3 * repositoryFactory.createMavenRepository() >>> [repo1, repo2, repo3]
+        _ * repo1.getName() >> "Maven repo 1"
+        _ * repo2.getName() >> "Maven repo 2"
+        _ * repo3.getName() >> "Maven repo 3"
+        _ * repo1.setName(_)
+        _ * repo2.setName(_)
+        _ * repo3.setName(_)
+        1 * repo1.onAddToContainer(_)
+        1 * repo2.onAddToContainer(_)
+        1 * repo3.onAddToContainer(_)
+        1 * repo2.content(_) >> { args ->
+            args[0].execute(repo2Content)
+        }
+        1 * repo2Content.includeModuleByRegex("com.mycompany", "core")
+        1 * repo1.content(_) >> { args ->
+            args[0].execute(repo1Content)
+        }
+        1 * repo1Content.excludeModuleByRegex("com.mycompany", "core")
+        1 * repo3.content(_) >> { args ->
+            args[0].execute(repo3Content)
+        }
+        1 * repo3Content.excludeModuleByRegex("com.mycompany","core")
+        0 * _
+    }
+
+    def "can include module version exclusively"() {
+        given:
+        def repo1 = Mock(TestMavenArtifactRepository) { getName() >> "Maven repo 1" }
+        def repo2 = Mock(TestMavenArtifactRepository) { getName() >> "Maven repo 2" }
+        def repo3 = Mock(TestMavenArtifactRepository) { getName() >> "Maven repo 3" }
+        def repo1Content = Mock(RepositoryContentDescriptor)
+        def repo2Content = Mock(RepositoryContentDescriptor)
+        def repo3Content = Mock(RepositoryContentDescriptor)
+
+        when:
+        handler.maven {}
+        handler.maven {}
+        handler.maven {}
+        handler.exclusiveContent {
+            it.forRepository { repo2 }
+            it.filter {
+                it.includeVersion("com.mycompany", "core", "1.0")
+            }
+        }
+
+        then:
+        3 * repositoryFactory.createMavenRepository() >>> [repo1, repo2, repo3]
+        _ * repo1.getName() >> "Maven repo 1"
+        _ * repo2.getName() >> "Maven repo 2"
+        _ * repo3.getName() >> "Maven repo 3"
+        _ * repo1.setName(_)
+        _ * repo2.setName(_)
+        _ * repo3.setName(_)
+        1 * repo1.onAddToContainer(_)
+        1 * repo2.onAddToContainer(_)
+        1 * repo3.onAddToContainer(_)
+        1 * repo2.content(_) >> { args ->
+            args[0].execute(repo2Content)
+        }
+        1 * repo2Content.includeVersion("com.mycompany", "core", "1.0")
+        1 * repo1.content(_) >> { args ->
+            args[0].execute(repo1Content)
+        }
+        1 * repo1Content.excludeVersion("com.mycompany", "core", "1.0")
+        1 * repo3.content(_) >> { args ->
+            args[0].execute(repo3Content)
+        }
+        1 * repo3Content.excludeVersion("com.mycompany","core", "1.0")
+        0 * _
+    }
+
+    def "can include module version by regex exclusively"() {
+        given:
+        def repo1 = Mock(TestMavenArtifactRepository) { getName() >> "Maven repo 1" }
+        def repo2 = Mock(TestMavenArtifactRepository) { getName() >> "Maven repo 2" }
+        def repo3 = Mock(TestMavenArtifactRepository) { getName() >> "Maven repo 3" }
+        def repo1Content = Mock(RepositoryContentDescriptor)
+        def repo2Content = Mock(RepositoryContentDescriptor)
+        def repo3Content = Mock(RepositoryContentDescriptor)
+
+        when:
+        handler.maven {}
+        handler.maven {}
+        handler.maven {}
+        handler.exclusiveContent {
+            it.forRepository { repo2 }
+            it.filter {
+                it.includeVersionByRegex("com.mycompany", "core", "1.0")
+            }
+        }
+
+        then:
+        3 * repositoryFactory.createMavenRepository() >>> [repo1, repo2, repo3]
+        _ * repo1.getName() >> "Maven repo 1"
+        _ * repo2.getName() >> "Maven repo 2"
+        _ * repo3.getName() >> "Maven repo 3"
+        _ * repo1.setName(_)
+        _ * repo2.setName(_)
+        _ * repo3.setName(_)
+        1 * repo1.onAddToContainer(_)
+        1 * repo2.onAddToContainer(_)
+        1 * repo3.onAddToContainer(_)
+        1 * repo2.content(_) >> { args ->
+            args[0].execute(repo2Content)
+        }
+        1 * repo2Content.includeVersionByRegex("com.mycompany", "core", "1.0")
+        1 * repo1.content(_) >> { args ->
+            args[0].execute(repo1Content)
+        }
+        1 * repo1Content.excludeVersionByRegex("com.mycompany", "core", "1.0")
+        1 * repo3.content(_) >> { args ->
+            args[0].execute(repo3Content)
+        }
+        1 * repo3Content.excludeVersionByRegex("com.mycompany","core", "1.0")
+        0 * _
+    }
 }
 
 

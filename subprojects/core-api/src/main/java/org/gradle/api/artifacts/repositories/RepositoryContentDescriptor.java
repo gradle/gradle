@@ -27,13 +27,14 @@ import org.gradle.api.attributes.Attribute;
  *
  * @since 5.1
  */
-public interface RepositoryContentDescriptor {
+public interface RepositoryContentDescriptor extends InclusiveRepositoryContentDescriptor {
 
     /**
      * Declares that an entire group should be searched for in this repository.
      *
      * @param group the group name
      */
+    @Override
     void includeGroup(String group);
 
     /**
@@ -41,6 +42,7 @@ public interface RepositoryContentDescriptor {
      *
      * @param groupRegex a regular expression of the group name
      */
+    @Override
     void includeGroupByRegex(String groupRegex);
 
     /**
@@ -49,6 +51,7 @@ public interface RepositoryContentDescriptor {
      * @param group the group name
      * @param moduleName the module name
      */
+    @Override
     void includeModule(String group, String moduleName);
 
     /**
@@ -57,6 +60,7 @@ public interface RepositoryContentDescriptor {
      * @param groupRegex the group name regular expression
      * @param moduleNameRegex the module name regular expression
      */
+    @Override
     void includeModuleByRegex(String groupRegex, String moduleNameRegex);
 
     /**
@@ -66,6 +70,7 @@ public interface RepositoryContentDescriptor {
      * @param moduleName the module name
      * @param version the module version
      */
+    @Override
     void includeVersion(String group, String moduleName, String version);
 
     /**
@@ -75,6 +80,7 @@ public interface RepositoryContentDescriptor {
      * @param moduleNameRegex the module name regular expression
      * @param versionRegex the module version regular expression
      */
+    @Override
     void includeVersionByRegex(String groupRegex, String moduleNameRegex, String versionRegex);
 
     /**

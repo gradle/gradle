@@ -17,8 +17,10 @@ package org.gradle.api.artifacts.dsl;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.ArtifactRepositoryContainer;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
+import org.gradle.api.artifacts.repositories.ExclusiveContentRepository;
 import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
@@ -87,10 +89,10 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * @since 4.4
      */
     ArtifactRepository gradlePluginPortal();
-    
+
     /**
      * Adds a repository which looks in Gradle Central Plugin Repository for dependencies.
-     * 
+     *
      * @param action a configuration action
      * @return the added resolver
      * @since 5.4
@@ -324,4 +326,14 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      */
     IvyArtifactRepository ivy(Action<? super IvyArtifactRepository> action);
 
+    /**
+     * Defines the an exclusive content repository: whatever is declared in this
+     * repository cannot be found in any other repository.
+     *
+     * @param action the configuration of the repository
+     *
+     * @since 6.2
+     */
+    @Incubating
+    void exclusiveContent(Action<? super ExclusiveContentRepository> action);
 }
