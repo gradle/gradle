@@ -17,8 +17,9 @@
 package org.gradle.api.internal.artifacts.verification.serializer
 
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.internal.artifacts.verification.DependencyVerifier
 import org.gradle.api.internal.artifacts.verification.model.ChecksumKind
+import org.gradle.api.internal.artifacts.verification.model.IgnoredKey
+import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifier
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -32,6 +33,18 @@ class DependencyVerificationsXmlReaderTest extends Specification {
         then:
         InvalidUserDataException e = thrown()
         e.message == "Unable to read dependency verification metadata"
+    }
+
+    def "can parse file with namespace declaration"() {
+        when:
+        parse """<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata xmlns="https://schema.gradle.org/verification"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:schemaLocation="https://schema.gradle.org/verification https://schema.gradle.org/verification/verification-1.0.xsd">
+</verification-metadata>
+"""
+        then:
+        noExceptionThrown()
     }
 
     def "reasonable error message when XML doesn't have the expected structure"() {
@@ -48,22 +61,48 @@ class DependencyVerificationsXmlReaderTest extends Specification {
     }
 
     @Unroll
-    def "parses configuration"() {
+    def "parses configuration (metadata=#verifyMetadata, signatures=#verifySignatures)"() {
         when:
         parse """<?xml version="1.0" encoding="UTF-8"?>
 <verification-metadata>
    <configuration>
       <verify-metadata>$verifyMetadata</verify-metadata>
+      <verify-signatures>$verifySignatures</verify-signatures>
    </configuration>
 </verification-metadata>
 """
         then:
         verifier.configuration.verifyMetadata == verifyMetadata
+        verifier.configuration.verifySignatures == verifySignatures
+        verifier.configuration.keyServers == []
 
         where:
-        verifyMetadata << [true, false]
+        verifyMetadata | verifySignatures
+        false          | false
+        false          | true
+        true           | false
+        true           | true
+
     }
 
+    def "parses key servers"() {
+        when:
+        parse """<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata>
+   <configuration>
+      <key-servers>
+         <key-server uri="https://pgp.key-server.io"/>
+         <key-server uri="hkp://keys.openpgp.org"/>
+      </key-servers>
+   </configuration>
+</verification-metadata>
+"""
+        then:
+        verifier.configuration.keyServers == [
+            new URI("https://pgp.key-server.io"),
+            new URI("hkp://keys.openpgp.org")
+        ]
+    }
     def "parses trusted artifacts"() {
         when:
         parse """<?xml version="1.0" encoding="UTF-8"?>
@@ -133,6 +172,86 @@ class DependencyVerificationsXmlReaderTest extends Specification {
         ex.cause.message == "A trusted artifact must have at least one of group, name, version or file name not null"
     }
 
+    def "can parse ignored keys"() {
+        when:
+        parse """<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata>
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+      <ignored-keys>
+         <ignored-key id="ABCDEF"/>
+         <ignored-key id="012345" reason="nope"/>
+      </ignored-keys>
+   </configuration>
+</verification-metadata>
+"""
+        then:
+        verifier.configuration.ignoredKeys == [key("ABCDEF"), key("012345", "nope")] as Set
+    }
+
+    def "can parse trusted keys"() {
+        when:
+        parse """<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata>
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+      <verify-signatures>false</verify-signatures>
+      <trusted-keys>
+         <trusted-key id="012345" group="g2" name="m1" file="file.jar" regex="true"/>
+         <trusted-key id="456DEF">
+            <trusting name="m3" version="1.4" file="file.zip"/>
+            <trusting name="m4" file="other-file.zip" regex="true"/>
+         </trusted-key>
+         <trusted-key id="ABC123" group="g3" name="m2" version="1.0" regex="true"/>
+         <trusted-key id="ABCDEF" group="g1"/>
+      </trusted-keys>
+   </configuration>
+   <components/>
+</verification-metadata>
+"""
+
+        then:
+        def trustedKeys = verifier.configuration.trustedKeys
+        trustedKeys.size() == 5
+
+        trustedKeys[0].keyId == "012345"
+        trustedKeys[0].group == "g2"
+        trustedKeys[0].name == "m1"
+        trustedKeys[0].version == null
+        trustedKeys[0].fileName == "file.jar"
+        trustedKeys[0].regex == true
+
+        trustedKeys[1].keyId == "456DEF"
+        trustedKeys[1].group == null
+        trustedKeys[1].name == "m3"
+        trustedKeys[1].version == "1.4"
+        trustedKeys[1].fileName == "file.zip"
+        trustedKeys[1].regex == false
+
+        trustedKeys[2].keyId == "456DEF"
+        trustedKeys[2].group == null
+        trustedKeys[2].name == "m4"
+        trustedKeys[2].version == null
+        trustedKeys[2].fileName == "other-file.zip"
+        trustedKeys[2].regex == true
+
+        trustedKeys[3].keyId == "ABC123"
+        trustedKeys[3].group == "g3"
+        trustedKeys[3].name == "m2"
+        trustedKeys[3].version == "1.0"
+        trustedKeys[3].fileName == null
+        trustedKeys[3].regex == true
+
+        trustedKeys[4].keyId == "ABCDEF"
+        trustedKeys[4].group == "g1"
+        trustedKeys[4].name == null
+        trustedKeys[4].version == null
+        trustedKeys[4].fileName == null
+        trustedKeys[4].regex == false
+
+
+    }
+
     def "can parse dependency verification metadata"() {
         when:
         parse """<?xml version="1.0" encoding="UTF-8"?>
@@ -175,50 +294,89 @@ class DependencyVerificationsXmlReaderTest extends Specification {
 """
         then:
         verifier.verificationMetadata.size() == 4
+
         def first = verifier.verificationMetadata[0]
         first.componentId.group == "org"
-        first.componentId.module == "foo"
-        first.componentId.version == "1.0"
-        first.artifactVerifications.size() == 1
-        first.artifactVerifications[0].checksums.find { it.kind == ChecksumKind.sha1 }.value == "abc"
-        first.artifactVerifications[0].checksums.find { it.kind == ChecksumKind.sha256 }.value == "bcd"
+        first.componentId.module == "bar"
+        first.componentId.version == "1.2"
+        first.artifactVerifications.size() == 2
+        first.artifactVerifications[0].artifactName == "bar-1.2-classy.jar"
+        first.artifactVerifications[0].checksums.find { it.kind == ChecksumKind.sha512 }.value == "5678abcd"
+        first.artifactVerifications[1].artifactName == "bar-1.2.jar"
+        first.artifactVerifications[1].checksums.find { it.kind == ChecksumKind.sha1 }.value == "9876"
+        first.artifactVerifications[1].checksums.find { it.kind == ChecksumKind.sha512 }.value == "123def"
 
         def second = verifier.verificationMetadata[1]
         second.componentId.group == "org"
-        second.componentId.module == "foo"
-        second.componentId.version == "1.1"
-        second.artifactVerifications.size() == 2
-        second.artifactVerifications[0].artifactName == "foo-1.1.jar"
-        second.artifactVerifications[0].checksums.find { it.kind == ChecksumKind.md5 }.value == "1234"
-        second.artifactVerifications[1].artifactName == "foo-1.1.zip"
-        second.artifactVerifications[1].checksums.find { it.kind == ChecksumKind.sha1 }.value == "5678"
+        second.componentId.module == "baz"
+        second.componentId.version == "1.4"
+        second.artifactVerifications.size() == 1
+        second.artifactVerifications[0].artifactName == "baz-1.4.jar"
 
-        def third = verifier.verificationMetadata[2]
-        third.componentId.group == "org"
-        third.componentId.module == "bar"
-        third.componentId.version == "1.2"
-        third.artifactVerifications.size() == 2
-        third.artifactVerifications[0].artifactName == "bar-1.2.jar"
-        third.artifactVerifications[0].checksums.find { it.kind == ChecksumKind.sha1 }.value == "9876"
-        third.artifactVerifications[0].checksums.find { it.kind == ChecksumKind.sha512 }.value == "123def"
-        third.artifactVerifications[1].artifactName == "bar-1.2-classy.jar"
-        third.artifactVerifications[1].checksums.find { it.kind == ChecksumKind.sha512 }.value == "5678abcd"
-
-        def fourth = verifier.verificationMetadata[3]
-        fourth.componentId.group == "org"
-        fourth.componentId.module == "baz"
-        fourth.componentId.version == "1.4"
-        fourth.artifactVerifications.size() == 1
-        fourth.artifactVerifications[0].artifactName == "baz-1.4.jar"
-        def firstChecksum = fourth.artifactVerifications[0].checksums.find { it.kind == ChecksumKind.sha1 }
+        def firstChecksum = second.artifactVerifications[0].checksums.find { it.kind == ChecksumKind.sha1 }
         firstChecksum.value == "9876"
         firstChecksum.alternatives == null
         firstChecksum.origin == "Generated by Gradle"
 
-        def secondChecksum = fourth.artifactVerifications[0].checksums.find { it.kind == ChecksumKind.md5 }
+        def secondChecksum = second.artifactVerifications[0].checksums.find { it.kind == ChecksumKind.md5 }
         secondChecksum.value == "123def"
         secondChecksum.alternatives == ["ok", "computer"] as Set
         secondChecksum.origin == null
+
+        def third = verifier.verificationMetadata[2]
+        third.componentId.group == "org"
+        third.componentId.module == "foo"
+        third.componentId.version == "1.0"
+        third.artifactVerifications.size() == 1
+        third.artifactVerifications[0].checksums.find { it.kind == ChecksumKind.sha1 }.value == "abc"
+        third.artifactVerifications[0].checksums.find { it.kind == ChecksumKind.sha256 }.value == "bcd"
+
+        def fourth = verifier.verificationMetadata[3]
+        fourth.componentId.group == "org"
+        fourth.componentId.module == "foo"
+        fourth.componentId.version == "1.1"
+        fourth.artifactVerifications.size() == 2
+        fourth.artifactVerifications[0].artifactName == "foo-1.1.jar"
+        fourth.artifactVerifications[0].checksums.find { it.kind == ChecksumKind.md5 }.value == "1234"
+        fourth.artifactVerifications[1].artifactName == "foo-1.1.zip"
+        fourth.artifactVerifications[1].checksums.find { it.kind == ChecksumKind.sha1 }.value == "5678"
+
+    }
+
+    def "can parse artifact specific ignored keys"() {
+        when:
+        parse """<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata>
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+      <verify-signatures>false</verify-signatures>
+   </configuration>
+   <components>
+      <component group="org" name="foo" version="1.0">
+         <artifact name="foo-1.0.jar">
+            <ignored-keys>
+               <ignored-key id="ABC"/>
+            </ignored-keys>
+         </artifact>
+         <artifact name="foo-1.0.pom">
+            <ignored-keys>
+               <ignored-key id="123"/>
+               <ignored-key id="456" reason="bad things happen"/>
+            </ignored-keys>
+         </artifact>
+      </component>
+   </components>
+</verification-metadata>"""
+
+        then:
+        def component = verifier.verificationMetadata[0]
+        def artifacts = component.artifactVerifications
+        artifacts[0].ignoredPgpKeys == [key('ABC')] as Set
+        artifacts[1].ignoredPgpKeys == [key('123'), key('456', 'bad things happen')] as Set
+    }
+
+    private static IgnoredKey key(String id, String reason = null) {
+        new IgnoredKey(id, reason)
     }
 
     void parse(String xml) {

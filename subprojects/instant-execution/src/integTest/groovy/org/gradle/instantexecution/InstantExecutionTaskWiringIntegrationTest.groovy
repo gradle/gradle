@@ -16,7 +16,12 @@
 
 package org.gradle.instantexecution
 
+import org.gradle.api.internal.tasks.NodeExecutionContext
+import org.gradle.api.internal.tasks.TaskDependencyContainer
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext
+import org.gradle.api.internal.tasks.WorkNodeAction
 import org.gradle.api.tasks.TasksWithInputsAndOutputs
+import org.gradle.execution.plan.ActionNode
 
 class InstantExecutionTaskWiringIntegrationTest extends AbstractInstantExecutionIntegrationTest implements TasksWithInputsAndOutputs {
     def "task input property can consume the mapped output of another task"() {
@@ -173,5 +178,45 @@ class InstantExecutionTaskWiringIntegrationTest extends AbstractInstantExecution
         then:
         instantExecution.assertStateLoaded()
         result.assertTasksSkipped(":producer", ":transformer")
+    }
+
+    // Test can be removed once https://github.com/gradle/instant-execution/issues/162 is fixed
+    def "ActionNode serialization failure is traced to Gradle runtime"() {
+        given: "a task with a WorkNodeAction dependency"
+        buildFile << """
+            task run {
+                dependsOn(
+                    // Add a $WorkNodeAction to the task dependencies
+                    // to induce an $ActionNode
+                    { ${TaskDependencyResolveContext.name} resolveContext ->
+                        resolveContext.add(
+                            new ${WorkNodeAction.name}() {
+                                Project getProject() { null }
+                                void run(${NodeExecutionContext.name} executionContext) {}
+                            }
+                        )
+                    } as ${TaskDependencyContainer.name}
+                )
+            }
+        """
+        def instantExecution = newInstantExecutionFixture()
+
+        when:
+        instantRun("run")
+        instantExecution.assertStateStored()
+
+        then:
+        outputContains(
+            "- Gradle runtime: objects of type 'org.gradle.execution.plan.ActionNode' are not yet supported with instant execution."
+        )
+
+        when:
+        instantFails("run")
+        instantExecution.assertStateLoaded()
+
+        then:
+        outputContains(
+            "instant-execution > objects of type 'org.gradle.execution.plan.ActionNode' are not yet supported with instant execution."
+        )
     }
 }

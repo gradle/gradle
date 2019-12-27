@@ -17,27 +17,17 @@
 package org.gradle.gradlebuild.testing.integrationtests.cleanup
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 
 
-open class KillLeakingJavaProcesses : DefaultTask() {
+abstract class KillLeakingJavaProcesses : DefaultTask() {
+    @get:Internal
+    abstract val tracker: Property<DaemonTracker>
 
     @TaskAction
-    fun killLeakingJavaProcesses() = project.run {
-
-        var didKill = false
-
-        // KTS: Need to explicitly type the argument as `Action<ProcessInfo>` due to
-        // https://github.com/gradle/kotlin-dsl/issues/522
-        forEachLeakingJavaProcess {
-            logger.warn("A process wasn't shutdown properly in a previous Gradle run. Killing process with PID $pid (Command line: $process)")
-            pkill(pid)
-            didKill = true
-        }
-
-        if (didKill) {
-            // it might take a moment until file handles are released
-            Thread.sleep(5000)
-        }
+    fun killLeakingJavaProcesses() {
+        tracker.get().killProcessesFromPreviousRun()
     }
 }

@@ -20,7 +20,14 @@ import accessors.base
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.attributes.Attribute
+import org.gradle.api.attributes.Bundling
+import org.gradle.api.attributes.Category
+import org.gradle.api.attributes.DocsType
+import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.Usage
+import org.gradle.api.attributes.java.TargetJvmVersion
+import org.gradle.api.component.AdhocComponentWithVariants
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.TaskProvider
@@ -54,7 +61,7 @@ const val manifestsType = "manifests"
 /**
  * Creates a shaded jar of the publication of the current project.
  *
- * The shaded jar is added as an artifact to the {@code publishRuntime} configuration.
+ * The shaded jar is added as an artifact to the {@code shadedRuntime} configuration/variant.
  */
 open class ShadedJarPlugin : Plugin<Project> {
 
@@ -66,10 +73,8 @@ open class ShadedJarPlugin : Plugin<Project> {
         val shadedJarTask = addShadedJarTask(shadedJarExtension)
 
         addInstallShadedJarTask(shadedJarTask)
-
-        plugins.withId("gradlebuild.publish-public-libraries") {
-            addShadedJarArtifact(shadedJarTask)
-        }
+        addShadedJarVariant(shadedJarTask)
+        configureShadedSourcesJarVariant()
     }
 
     private
@@ -123,6 +128,7 @@ open class ShadedJarPlugin : Plugin<Project> {
 
         return configurations.create(configurationName) {
             attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
+            attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.EXTERNAL))
             isCanBeResolved = true
             isCanBeConsumed = false
         }
@@ -165,13 +171,63 @@ open class ShadedJarPlugin : Plugin<Project> {
     }
 
     private
-    fun Project.addShadedJarArtifact(shadedJarTask: TaskProvider<ShadedJar>) {
-        artifacts.add("publishRuntime", mapOf(
+    fun Project.addShadedJarVariant(shadedJarTask: TaskProvider<ShadedJar>) {
+        val shadedJarArtifact = mapOf(
             "file" to shadedJarTask.get().jarFile.get().asFile,
             "name" to base.archivesBaseName,
             "type" to "jar",
             "builtBy" to shadedJarTask
-        ))
+        )
+
+        val implementation by configurations
+        val shadedImplementation by configurations.creating {
+            isCanBeResolved = false
+            isCanBeConsumed = false
+        }
+        implementation.extendsFrom(shadedImplementation)
+
+        val shadedRuntimeElements by configurations.creating {
+            isCanBeResolved = false
+            isCanBeConsumed = true
+            attributes {
+                attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
+                attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
+                attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.JAR))
+                attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.SHADOWED))
+                attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 8)
+            }
+            extendsFrom(shadedImplementation)
+            outgoing.artifact(shadedJarArtifact)
+        }
+
+        // publish only the shaded variant
+        val javaComponent = components["java"] as AdhocComponentWithVariants
+        javaComponent.addVariantsFromConfiguration(shadedRuntimeElements) { }
+        javaComponent.withVariantsFromConfiguration(configurations["runtimeElements"]) {
+            skip()
+        }
+        javaComponent.withVariantsFromConfiguration(configurations["apiElements"]) {
+            skip()
+        }
+    }
+
+    private
+    fun Project.configureShadedSourcesJarVariant() {
+        val implementation by configurations
+        val sourcesPath by configurations.creating {
+            isCanBeResolved = true
+            isCanBeConsumed = false
+            extendsFrom(implementation)
+            attributes {
+                attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
+                attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.DOCUMENTATION))
+                attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType.SOURCES))
+                attribute(Attribute.of("org.gradle.docselements", String::class.java), "sources")
+            }
+        }
+        tasks.named<Jar>("sourcesJar") {
+            from(sourcesPath.incoming.artifactView { lenient(true) }.files)
+        }
     }
 
     private

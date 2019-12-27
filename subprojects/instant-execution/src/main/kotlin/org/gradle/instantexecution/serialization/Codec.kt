@@ -192,7 +192,7 @@ sealed class PropertyTrace {
     fun StringBuilder.appendStringOf(trace: PropertyTrace) {
         when (trace) {
             is Gradle -> {
-                append("Gradle state")
+                append("Gradle runtime")
             }
             is Property -> {
                 append(trace.kind)

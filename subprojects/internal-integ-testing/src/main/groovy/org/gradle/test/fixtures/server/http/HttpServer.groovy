@@ -166,7 +166,7 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
         allow(path, false, ['GET'], notFound())
     }
 
-    private Action fileHandler(String path, File srcFile) {
+    protected SendFileAction fileHandler(String path, File srcFile) {
         return new SendFileAction(path, srcFile, false)
     }
 
@@ -307,6 +307,7 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
     private Action blocking() {
         new ActionSupport("throw socket timeout exception") {
             CountDownLatch latch = new CountDownLatch(1)
+
             void handle(HttpServletRequest request, HttpServletResponse response) {
                 try {
                     latch.await(60, TimeUnit.SECONDS)
@@ -389,21 +390,21 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
     /**
      * Expects one GET request for the given URL, responding with a redirect.
      */
-    void expectGetRedirected(String path, String location, PasswordCredentials passwordCredentials=null) {
+    void expectGetRedirected(String path, String location, PasswordCredentials passwordCredentials = null) {
         expectRedirected('GET', path, location, passwordCredentials)
     }
 
     /**
      * Expects one HEAD request for the given URL, responding with a redirect.
      */
-    void expectHeadRedirected(String path, String location, PasswordCredentials passwordCredentials=null) {
+    void expectHeadRedirected(String path, String location, PasswordCredentials passwordCredentials = null) {
         expectRedirected('HEAD', path, location, passwordCredentials)
     }
 
     /**
      * Expects one PUT request for the given URL, responding with a redirect.
      */
-    void expectPutRedirected(String path, String location, PasswordCredentials passwordCredentials=null) {
+    void expectPutRedirected(String path, String location, PasswordCredentials passwordCredentials = null) {
         expectRedirected('PUT', path, location, passwordCredentials)
     }
 
@@ -591,7 +592,7 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
         }
     }
 
-    private Action withQueryString(String query, Action action) {
+    private static Action withQueryString(String query, Action action) {
         return new Action() {
             @Override
             HttpResourceInteraction getInteraction() {
@@ -605,6 +606,25 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
             void handle(HttpServletRequest request, HttpServletResponse response) {
                 assert request.queryString == query
                 action.handle(request, response)
+            }
+        }
+    }
+
+    private static Action withLenientQueryString(String query, Action action) {
+        return new Action() {
+            @Override
+            HttpResourceInteraction getInteraction() {
+                return action.interaction
+            }
+
+            String getDisplayName() {
+                return action.displayName
+            }
+
+            void handle(HttpServletRequest request, HttpServletResponse response) {
+                if (request.queryString.startsWith(query)) {
+                    action.handle(request, response)
+                }
             }
         }
     }
@@ -657,7 +677,7 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
         }
     }
 
-    private void allow(String path, boolean matchPrefix, Collection<String> methods, Action action) {
+    protected void allow(String path, boolean matchPrefix, Collection<String> methods, Action action) {
         add(path, matchPrefix, methods, new AbstractHandler() {
             void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
                 action.handle(request, response)
@@ -722,7 +742,7 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
         void handle(HttpServletRequest request, HttpServletResponse response)
     }
 
-    static abstract class ActionSupport implements Action {
+    protected static abstract class ActionSupport implements Action {
         final String displayName
         final HttpResourceInteraction interaction = new DefaultResourceInteraction()
 

@@ -18,6 +18,7 @@ package org.gradle.internal.execution.steps;
 
 import org.gradle.internal.execution.BeforeExecutionContext;
 import org.gradle.internal.execution.InputChangesContext;
+import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
@@ -35,13 +36,16 @@ import java.util.Set;
 public class CleanupOutputsStep<C extends InputChangesContext, R extends Result> implements Step<C, R> {
 
     private final Deleter deleter;
+    private final OutputChangeListener outputChangeListener;
     private final Step<? super C, ? extends R> delegate;
 
     public CleanupOutputsStep(
         Deleter deleter,
+        OutputChangeListener outputChangeListener,
         Step<? super C, ? extends R> delegate
     ) {
         this.deleter = deleter;
+        this.outputChangeListener = outputChangeListener;
         this.delegate = delegate;
     }
 
@@ -88,6 +92,8 @@ public class CleanupOutputsStep<C extends InputChangesContext, R extends Result>
             );
             for (FileCollectionFingerprint fileCollectionFingerprint : previousOutputs.getOutputFileProperties().values()) {
                 try {
+                    // Previous outputs can be in a different place than the current outputs
+                    outputChangeListener.beforeOutputChange(fileCollectionFingerprint.getRootHashes().keySet());
                     cleaner.cleanupOutputs(fileCollectionFingerprint);
                 } catch (IOException e) {
                     throw new UncheckedIOException("Failed to clean up output files for " + work.getDisplayName(), e);

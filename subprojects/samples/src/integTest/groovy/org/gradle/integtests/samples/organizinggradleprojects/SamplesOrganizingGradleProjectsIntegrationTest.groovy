@@ -17,7 +17,6 @@
 package org.gradle.integtests.samples.organizinggradleprojects
 
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.archive.ZipTestFixture
@@ -30,7 +29,6 @@ class SamplesOrganizingGradleProjectsIntegrationTest extends AbstractSampleInteg
     Sample sample = new Sample(testDirectoryProvider)
 
     @UsesSample("userguide/organizingGradleProjects/customGradleDistribution")
-    @ToBeFixedForInstantExecution
     def "can build custom gradle distribution"() {
         executer.inDirectory(sample.dir)
 

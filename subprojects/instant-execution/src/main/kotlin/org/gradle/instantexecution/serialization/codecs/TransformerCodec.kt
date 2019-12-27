@@ -36,6 +36,7 @@ import org.gradle.internal.hash.HashCode
 import org.gradle.internal.isolation.Isolatable
 import org.gradle.internal.isolation.IsolatableFactory
 import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.snapshot.ValueSnapshotter
 import org.gradle.internal.snapshot.impl.IsolatedArray
 
@@ -82,7 +83,8 @@ class DefaultTransformerCodec(
             fileCollectionFactory,
             fileLookup,
             parameterScheme.inspectionScheme.propertyWalker,
-            actionScheme.instantiationScheme
+            actionScheme.instantiationScheme,
+            isolate.owner.service(ServiceRegistry::class.java)
         )
     }
 }

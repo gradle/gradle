@@ -27,6 +27,7 @@ dependencies {
     implementation(project(":fileCollections"))
     implementation(project(":dependencyManagement"))
     implementation(project(":persistentCache"))
+    implementation(project(":kotlinDsl"))
     // TODO - move the isolatable serializer to model-core to live with the isolatable infrastructure
     implementation(project(":workers"))
     // TODO - it might be good to allow projects to contribute state to save and restore, rather than have this project know about everything
@@ -46,6 +47,7 @@ dependencies {
     testRuntimeOnly(project(":runtimeApiInfo"))
     testRuntimeOnly(kotlin("reflect"))
 
+    integTestImplementation(project(":jvmServices"))
     integTestImplementation(project(":toolingApi"))
 
     integTestImplementation(library("guava"))

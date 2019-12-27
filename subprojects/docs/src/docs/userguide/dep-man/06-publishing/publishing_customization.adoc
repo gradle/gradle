@@ -41,7 +41,7 @@ In the <<sec:adding-variants-to-existing-components, previous example>>, we have
 But Gradle also allows you to build a custom component (not a Java Library, not a Java Platform, not something supported natively by Gradle).
 
 To create a custom component, you first need to create an empty _adhoc_ component.
-At the moment, this is only possible via a plugin because you need to get a handle on the link:{javadocPath}org/gradle/api/component/SoftwareComponentFactory.html[SoftwareComponentFactory] :
+At the moment, this is only possible via a plugin because you need to get a handle on the link:{javadocPath}/org/gradle/api/component/SoftwareComponentFactory.html[SoftwareComponentFactory] :
 
 .Injecting the software component factory
 ====
@@ -49,7 +49,7 @@ include::sample[dir="snippets/userguide/dependencyManagement/modelingFeatures/cr
 include::sample[dir="snippets/userguide/dependencyManagement/modelingFeatures/crossProjectPublications/advanced-published/kotlin/buildSrc/src/main/kotlin/com/acme",files="InstrumentedJarsPlugin.kt[tags=inject_software_component_factory]"]
 ====
 
-Declaring _what_ a custom component publishes is still done via the link:{javadocPath}org/gradle/api/component/AdhocComponentWithVariants.html[AdhocComponentWithVariants] API.
+Declaring _what_ a custom component publishes is still done via the link:{javadocPath}/org/gradle/api/component/AdhocComponentWithVariants.html[AdhocComponentWithVariants] API.
 For a custom component, the first step is to create custom outgoing variants, following the instructions in <<cross_project_publications.adoc#sec:variant-aware-sharing, this chapter>>.
 At this stage, what you should have is variants which can be used in cross-project dependencies, but that we are now going to publish to external repositories.
 
@@ -63,16 +63,16 @@ First we use the factory to create a new adhoc component.
 Then we add a variant through the `addVariantsFromConfiguration` method, which is described in more detail in the <<sec:adding-variants-to-existing-components,previous section>>.
 
 In simple cases, there's a one-to-one mapping between a `Configuration` and a variant, in which case you can publish all variants issued from a single `Configuration` because they are effectively the same thing.
-However, there are cases where a `Configuration` is associated with additional link:{javadocPath}org/gradle/api/artifacts/ConfigurationPublications.html[configuration publications] that we also call _secondary variants_.
+However, there are cases where a `Configuration` is associated with additional link:{javadocPath}/org/gradle/api/artifacts/ConfigurationPublications.html[configuration publications] that we also call _secondary variants_.
 Such configurations make sense in the <<cross_project_publications.adoc#,cross-project publications>> use case, but not when publishing externally.
 This is for example the case when between projects you share a _directory of files_, but there's no way you can publish a _directory_ directly on a Maven repository (only packaged things like jars or zips).
-Look at the link:{javadocPath}org/gradle/api/component/ConfigurationVariantDetails.html[ConfigurationVariantDetails] class for details about how to skip publication of a particular variant.
+Look at the link:{javadocPath}/org/gradle/api/component/ConfigurationVariantDetails.html[ConfigurationVariantDetails] class for details about how to skip publication of a particular variant.
 If `addVariantsFromConfiguration` has already been called for a configuration, further modification of the resulting variants can be performed using `withVariantsFromConfiguration`.
 
 When publishing an adhoc component like this:
 
 - Gradle Module Metadata will _exactly_ represent the published variants. In particular, all outgoing variants will inherit dependencies, artifacts and attributes of the published configuration.
-- Maven and Ivy metadata files will be generated, but you need to declare how the dependencies are mapped to Maven scopes via the link:{javadocPath}org/gradle/api/component/ConfigurationVariantDetails.html[ConfigurationVariantDetails] class.
+- Maven and Ivy metadata files will be generated, but you need to declare how the dependencies are mapped to Maven scopes via the link:{javadocPath}/org/gradle/api/component/ConfigurationVariantDetails.html[ConfigurationVariantDetails] class.
 
 In practice, it means that components created this way can be consumed by Gradle the same way as if they were "local components".
 

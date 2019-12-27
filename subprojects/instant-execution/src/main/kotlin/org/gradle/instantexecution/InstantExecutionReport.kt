@@ -55,7 +55,7 @@ class InstantExecutionReport(
 
     fun add(problem: PropertyProblem) {
         problems.add(problem)
-        if (problems.size > maxProblems) {
+        if (problems.size >= maxProblems) {
             throw TooManyInstantExecutionProblemsException()
         }
     }
@@ -139,7 +139,11 @@ class InstantExecutionReport(
             propertyDescriptionFor(it) to it.message
         }
         return StringBuilder().apply {
-            appendln("${uniquePropertyProblems.size} instant execution problems found:")
+            val totalProblemCount = problems.size
+            val problemOrProblems = if (totalProblemCount == 1) "problem was" else "problems were"
+            val uniqueProblemCount = uniquePropertyProblems.size
+            val seemsOrSeem = if (uniqueProblemCount == 1) "seems" else "seem"
+            appendln("$totalProblemCount instant execution $problemOrProblems found, $uniqueProblemCount of which $seemsOrSeem unique:")
             uniquePropertyProblems.keys.forEach { (property, message) ->
                 append("  - ")
                 append(property)

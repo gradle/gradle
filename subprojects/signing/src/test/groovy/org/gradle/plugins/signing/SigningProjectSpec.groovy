@@ -17,6 +17,8 @@ package org.gradle.plugins.signing
 
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
+import java.nio.file.Files
+
 abstract class SigningProjectSpec extends AbstractProjectBuilderSpec {
 
     static final DEFAULT_KEY_SET = "gradle"
@@ -83,12 +85,11 @@ abstract class SigningProjectSpec extends AbstractProjectBuilderSpec {
     def getResourceFile(path) {
         def copiedFile = temporaryFolder.file(path)
         if (!copiedFile.exists()) {
-
-            def url = getClass().classLoader.getResource(path)
-            def file = new File(url.toURI())
-            if (file.exists()) {
-                copiedFile.copyFrom(file)
-            }
+            copiedFile.parentFile.mkdirs()
+            Files.copy(
+                getClass().classLoader.getResourceAsStream(path),
+                copiedFile.toPath()
+            )
         }
 
         copiedFile

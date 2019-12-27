@@ -16,20 +16,32 @@
 package org.gradle.api.internal.artifacts.verification.serializer;
 
 abstract class DependencyVerificationXmlTags {
-    static final String VERIFICATION_METADATA = "verification-metadata";
-    static final String COMPONENTS = "components";
-    static final String COMPONENT = "component";
-    static final String GROUP = "group";
-    static final String NAME = "name";
-    static final String VERSION = "version";
-    static final String ARTIFACT = "artifact";
-    static final String VALUE = "value";
-    static final String ORIGIN = "origin";
     static final String ALSO_TRUST = "also-trust";
+    static final String ARTIFACT = "artifact";
+    static final String COMPONENT = "component";
+    static final String COMPONENTS = "components";
     static final String CONFIG = "configuration";
-    static final String VERIFY_METADATA = "verify-metadata";
-    static final String TRUSTED_ARTIFACTS = "trusted-artifacts";
-    static final String TRUST = "trust";
     static final String FILE = "file";
+    static final String GROUP = "group";
+    static final String ID = "id";
+    static final String IGNORED_KEY = "ignored-key";
+    static final String IGNORED_KEYS = "ignored-keys";
+    static final String KEY_SERVER = "key-server";
+    static final String KEY_SERVERS = "key-servers";
+    static final String NAME = "name";
+    static final String ORIGIN = "origin";
+    static final String PGP = "pgp";
+    static final String REASON = "reason";
     static final String REGEX = "regex";
+    static final String TRUST = "trust";
+    static final String TRUSTED_ARTIFACTS = "trusted-artifacts";
+    static final String TRUSTED_KEY = "trusted-key";
+    static final String TRUSTED_KEYS = "trusted-keys";
+    static final String TRUSTING = "trusting";
+    static final String URI = "uri";
+    static final String VALUE = "value";
+    static final String VERIFICATION_METADATA = "verification-metadata";
+    static final String VERIFY_METADATA = "verify-metadata";
+    static final String VERIFY_SIGNATURES = "verify-signatures";
+    static final String VERSION = "version";
 }

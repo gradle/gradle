@@ -84,7 +84,7 @@ class TaskNodeCodec(
 
     private
     suspend fun WriteContext.writeTask(task: TaskInternal) {
-        val taskType = GeneratedSubclasses.unpack(task.javaClass)
+        val taskType = GeneratedSubclasses.unpackType(task)
         writeClass(taskType)
         writeString(task.project.path)
         writeString(task.name)

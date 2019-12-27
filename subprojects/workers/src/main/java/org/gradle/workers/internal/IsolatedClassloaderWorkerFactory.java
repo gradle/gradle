@@ -32,26 +32,25 @@ public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
     private final ActionExecutionSpecFactory actionExecutionSpecFactory;
     private final InstantiatorFactory instantiatorFactory;
 
-    public IsolatedClassloaderWorkerFactory(BuildOperationExecutor buildOperationExecutor, ServiceRegistry internalServices, ClassLoaderRegistry classLoaderRegistry) {
+    public IsolatedClassloaderWorkerFactory(BuildOperationExecutor buildOperationExecutor, ServiceRegistry internalServices, ClassLoaderRegistry classLoaderRegistry, LegacyTypesSupport legacyTypesSupport, ActionExecutionSpecFactory actionExecutionSpecFactory, InstantiatorFactory instantiatorFactory) {
         this.buildOperationExecutor = buildOperationExecutor;
         this.internalServices = internalServices;
         this.classLoaderRegistry = classLoaderRegistry;
-        this.legacyTypesSupport = internalServices.get(LegacyTypesSupport.class);
-        this.actionExecutionSpecFactory = internalServices.get(ActionExecutionSpecFactory.class);
-        this.instantiatorFactory = internalServices.get(InstantiatorFactory.class);
+        this.legacyTypesSupport = legacyTypesSupport;
+        this.actionExecutionSpecFactory = actionExecutionSpecFactory;
+        this.instantiatorFactory = instantiatorFactory;
     }
 
     @Override
     public BuildOperationAwareWorker getWorker(WorkerRequirement workerRequirement) {
         return new AbstractWorker(buildOperationExecutor) {
             @Override
-            public DefaultWorkResult execute(ActionExecutionSpec spec, BuildOperationRef parentBuildOperation) {
+            public DefaultWorkResult execute(ActionExecutionSpec<?> spec, BuildOperationRef parentBuildOperation) {
                 return executeWrappedInBuildOperation(spec, parentBuildOperation, workSpec -> {
-                    ServiceRegistry workServices = new WorkerPublicServicesBuilder(internalServices).withInternalServicesVisible(workSpec.isInternalServicesRequired()).build();
                     ClassLoader workerInfrastructureClassloader = classLoaderRegistry.getPluginsClassLoader();
-                    ClassLoaderStructure classLoaderStructure = ((IsolatedClassLoaderWorkerRequirement)workerRequirement).getClassLoaderStructure();
+                    ClassLoaderStructure classLoaderStructure = ((IsolatedClassLoaderWorkerRequirement) workerRequirement).getClassLoaderStructure();
                     ClassLoader workerClassLoader = IsolatedClassloaderWorker.createIsolatedWorkerClassloader(classLoaderStructure, workerInfrastructureClassloader, legacyTypesSupport);
-                    Worker worker = new IsolatedClassloaderWorker(workerClassLoader, workServices, actionExecutionSpecFactory, instantiatorFactory);
+                    Worker worker = new IsolatedClassloaderWorker(workerClassLoader, internalServices, actionExecutionSpecFactory, instantiatorFactory);
                     return worker.execute(workSpec);
                 });
             }

@@ -3,15 +3,15 @@
   <webhooks enabled="true">
     <webhook url="http://dev6.gradle.org:3003" enabled="true" format="tailoredjson">
       <states>
-        <state type="buildStarted" enabled="false" />
-        <state type="buildInterrupted" enabled="false" />
-        <state type="beforeBuildFinish" enabled="false" />
-        <state type="buildFailed" enabled="true" />
-        <state type="buildFixed" enabled="false" />
-        <state type="buildSuccessful" enabled="true" />
         <state type="buildBroken" enabled="false" />
+        <state type="buildFixed" enabled="false" />
+        <state type="buildFailed" enabled="true" />
         <state type="buildFinished" enabled="true" />
+        <state type="buildSuccessful" enabled="true" />
+        <state type="beforeBuildFinish" enabled="false" />
+        <state type="buildInterrupted" enabled="false" />
         <state type="responsibilityChanged" enabled="false" />
+        <state type="buildStarted" enabled="false" />
       </states>
       <build-types enabled-for-all="false" enabled-for-subprojects="false">
         <build-type id="bt7851" />

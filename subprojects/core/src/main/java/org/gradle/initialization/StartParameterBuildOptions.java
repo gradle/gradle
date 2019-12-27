@@ -67,6 +67,8 @@ public class StartParameterBuildOptions {
         options.add(new DependencyVerificationWriteOption());
         options.add(new DependencyVerificationModeOption());
         options.add(new DependencyLockingUpdateOption());
+        options.add(new RefreshKeysOption());
+        options.add(new ExportKeysOption());
         StartParameterBuildOptions.options = Collections.unmodifiableList(options);
     }
 
@@ -317,7 +319,7 @@ public class StartParameterBuildOptions {
     }
 
     public static class DependencyVerificationWriteOption extends StringBuildOption<StartParameterInternal> {
-        public static final String SHORT_OPTION = "wv";
+        public static final String SHORT_OPTION = "M";
         public static final String LONG_OPTION = "write-verification-metadata";
 
         DependencyVerificationWriteOption() {
@@ -347,7 +349,7 @@ public class StartParameterBuildOptions {
 
         private static final String GRADLE_PROPERTY = "org.gradle.dependency.verification";
         private static final String LONG_OPTION = "dependency-verification";
-        private static final String SHORT_OPTION = "dv";
+        private static final String SHORT_OPTION = "F";
 
         public DependencyVerificationModeOption() {
             super(LONG_OPTION,
@@ -374,6 +376,36 @@ public class StartParameterBuildOptions {
         @Override
         public void applyTo(List<String> modulesToUpdate, StartParameterInternal settings, Origin origin) {
             settings.setLockedDependenciesToUpdate(modulesToUpdate);
+        }
+    }
+
+    public static class RefreshKeysOption extends EnabledOnlyBooleanBuildOption<StartParameterInternal> {
+
+        private static final String LONG_OPTION = "refresh-keys";
+
+        public RefreshKeysOption() {
+            super(null,
+                CommandLineOptionConfiguration.create(LONG_OPTION, "Refresh the public keys used for dependency verification.").incubating());
+        }
+
+        @Override
+        public void applyTo(StartParameterInternal settings, Origin origin) {
+            settings.setRefreshKeys(true);
+        }
+    }
+
+    public static class ExportKeysOption extends EnabledOnlyBooleanBuildOption<StartParameterInternal> {
+
+        private static final String LONG_OPTION = "export-keys";
+
+        public ExportKeysOption() {
+            super(null,
+                CommandLineOptionConfiguration.create(LONG_OPTION, "Exports the public keys used for dependency verification.").incubating());
+        }
+
+        @Override
+        public void applyTo(StartParameterInternal settings, Origin origin) {
+            settings.setExportKeys(true);
         }
     }
 }

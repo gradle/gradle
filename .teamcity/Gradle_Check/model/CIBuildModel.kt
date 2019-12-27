@@ -193,6 +193,7 @@ data class CIBuildModel(
         GradleSubproject("resourcesS3"),
         GradleSubproject("resourcesSftp"),
         GradleSubproject("scala"),
+        GradleSubproject("security", functionalTests = false),
         GradleSubproject("signing"),
         GradleSubproject("snapshots"),
         GradleSubproject("samples", unitTests = false, functionalTests = true),

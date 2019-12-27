@@ -45,7 +45,7 @@ import java.nio.charset.Charset
  */
 @CacheableTask
 @CompileStatic
-class PerformanceTest extends DistributionTest {
+abstract class PerformanceTest extends DistributionTest {
     public static final String TC_URL = "https://builds.gradle.org/viewLog.html?buildId="
     public static final Set<String> NON_CACHEABLE_VERSIONS = Sets.newHashSet("last", "nightly", "flakiness-detection-commit");
     // Baselines configured by command line `--baselines`

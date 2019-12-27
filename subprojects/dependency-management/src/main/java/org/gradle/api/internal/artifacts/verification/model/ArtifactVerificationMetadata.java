@@ -16,9 +16,14 @@
 package org.gradle.api.internal.artifacts.verification.model;
 
 import java.util.List;
+import java.util.Set;
 
 public interface ArtifactVerificationMetadata {
     String getArtifactName();
 
     List<Checksum> getChecksums();
+
+    Set<String> getTrustedPgpKeys();
+
+    Set<IgnoredKey> getIgnoredPgpKeys();
 }

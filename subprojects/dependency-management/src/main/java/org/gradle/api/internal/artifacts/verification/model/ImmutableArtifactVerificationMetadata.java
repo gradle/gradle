@@ -15,15 +15,25 @@
  */
 package org.gradle.api.internal.artifacts.verification.model;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+
 import java.util.List;
+import java.util.Set;
 
 public class ImmutableArtifactVerificationMetadata implements ArtifactVerificationMetadata {
     private final String artifactName;
     private final List<Checksum> checksums;
+    private final Set<String> trustedPgpKeys;
+    private final Set<IgnoredKey> ignoredPgpKeys;
+    private final int hashCode;
 
-    public ImmutableArtifactVerificationMetadata(String artifactName, List<Checksum> checksums) {
+    public ImmutableArtifactVerificationMetadata(String artifactName, List<Checksum> checksums, Set<String> trustedPgpKeys, Set<IgnoredKey> ignoredPgpKeys) {
         this.artifactName = artifactName;
-        this.checksums = checksums;
+        this.checksums = ImmutableList.copyOf(checksums);
+        this.trustedPgpKeys = ImmutableSet.copyOf(trustedPgpKeys);
+        this.ignoredPgpKeys = ImmutableSet.copyOf(ignoredPgpKeys);
+        this.hashCode = computeHashCode();
     }
 
     @Override
@@ -34,6 +44,16 @@ public class ImmutableArtifactVerificationMetadata implements ArtifactVerificati
     @Override
     public List<Checksum> getChecksums() {
         return checksums;
+    }
+
+    @Override
+    public Set<String> getTrustedPgpKeys() {
+        return trustedPgpKeys;
+    }
+
+    @Override
+    public Set<IgnoredKey> getIgnoredPgpKeys() {
+        return ignoredPgpKeys;
     }
 
     @Override
@@ -50,13 +70,25 @@ public class ImmutableArtifactVerificationMetadata implements ArtifactVerificati
         if (!artifactName.equals(that.artifactName)) {
             return false;
         }
-        return checksums.equals(that.checksums);
+        if (!checksums.equals(that.checksums)) {
+            return false;
+        }
+        if (!ignoredPgpKeys.equals(that.ignoredPgpKeys)) {
+            return false;
+        }
+        return trustedPgpKeys.equals(that.trustedPgpKeys);
     }
 
     @Override
     public int hashCode() {
+        return hashCode;
+    }
+
+    private int computeHashCode() {
         int result = artifactName.hashCode();
         result = 31 * result + checksums.hashCode();
+        result = 31 * result + trustedPgpKeys.hashCode();
+        result = 31 * result + ignoredPgpKeys.hashCode();
         return result;
     }
 }

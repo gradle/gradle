@@ -16,37 +16,50 @@
 
 package org.gradle.workers.internal;
 
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.Cast;
 import org.gradle.internal.instantiation.InstantiatorFactory;
+import org.gradle.internal.isolated.IsolationScheme;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.workers.WorkAction;
+import org.gradle.workers.WorkParameters;
+
+import java.util.Collection;
 
 public class DefaultWorkerServer implements WorkerProtocol {
-    private final ServiceRegistry workServices;
+    private final ServiceRegistry internalServices;
     private final InstantiatorFactory instantiatorFactory;
+    private final IsolationScheme<WorkAction, WorkParameters> isolationScheme;
+    private final Collection<? extends Class<?>> additionalWhitelistedServices;
 
-    public DefaultWorkerServer(ServiceRegistry workServices, InstantiatorFactory instantiatorFactory) {
-        this.workServices = workServices;
+    public DefaultWorkerServer(ServiceRegistry internalServices, InstantiatorFactory instantiatorFactory, IsolationScheme<WorkAction, WorkParameters> isolationScheme, Collection<? extends Class<?>> additionalWhitelistedServices) {
+        this.internalServices = internalServices;
         this.instantiatorFactory = instantiatorFactory;
+        this.isolationScheme = isolationScheme;
+        this.additionalWhitelistedServices = additionalWhitelistedServices;
     }
 
     @Override
-    public DefaultWorkResult execute(ActionExecutionSpec spec) {
+    public DefaultWorkResult execute(ActionExecutionSpec<?> spec) {
         try {
-            Class<? extends WorkAction> implementationClass = Cast.uncheckedCast(spec.getImplementationClass());
-            DefaultServiceRegistry serviceRegistry = new DefaultServiceRegistry(workServices);
-            Instantiator instantiator = instantiatorFactory.inject(serviceRegistry);
-            if (spec.getParameters() != null) {
-                serviceRegistry.add(spec.getParameters().getClass(), Cast.uncheckedCast(spec.getParameters()));
+            Class<? extends WorkAction<?>> implementationClass = Cast.uncheckedCast(spec.getImplementationClass());
+            // Exceptions to services available for injection
+            Spec<Class<?>> whiteListPolicy;
+            if (spec.isInternalServicesRequired()) {
+                whiteListPolicy = element -> true;
+            } else {
+                whiteListPolicy = element -> false;
             }
-
-            // TODO This is only necessary for AdapterWorkAction so that legacy work runnables can inject a WorkerExecutor.
-            // This can be removed once the legacy api is retired.
-            serviceRegistry.add(Instantiator.class, instantiator);
-
-            WorkAction execution = instantiator.newInstance(implementationClass);
+            ServiceLookup instantiationServices = isolationScheme.servicesForImplementation(spec.getParameters(), internalServices, additionalWhitelistedServices, whiteListPolicy);
+            Instantiator instantiator = instantiatorFactory.inject(instantiationServices);
+            WorkAction<?> execution;
+            if (ProvidesWorkResult.class.isAssignableFrom(implementationClass)) {
+                execution = instantiator.newInstance(implementationClass, spec.getParameters(), instantiator);
+            } else {
+                execution = instantiator.newInstance(implementationClass);
+            }
             execution.execute();
             if (execution instanceof ProvidesWorkResult) {
                 return ((ProvidesWorkResult) execution).getWorkResult();

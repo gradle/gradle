@@ -15,6 +15,7 @@
  */
 
 import org.gradle.api.Project
+import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.gradlebuild.java.BuildJvms
 import org.gradle.gradlebuild.unittestandcompile.UnitTestAndCompileExtension
 import org.gradle.kotlin.dsl.*
@@ -33,3 +34,18 @@ val Project.buildJvms
 
 val Project.gradlebuildJava
     get() = extensions.getByName<UnitTestAndCompileExtension>("gradlebuildJava")
+
+
+fun RepositoryHandler.googleApisJs() {
+    ivy {
+        name = "googleApisJs"
+        setUrl("https://ajax.googleapis.com/ajax/libs")
+        patternLayout {
+            artifact("[organization]/[revision]/[module].[ext]")
+            ivy("[organization]/[revision]/[module].xml")
+        }
+        metadataSources {
+            artifact()
+        }
+    }
+}

@@ -30,6 +30,7 @@ import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.options.Option
 import org.gradle.api.tasks.testing.Test
+import org.gradle.gradlebuild.testing.integrationtests.cleanup.DaemonTracker
 import org.gradle.process.CommandLineArgumentProvider
 import java.util.concurrent.Callable
 
@@ -37,7 +38,7 @@ import java.util.concurrent.Callable
 /**
  * Base class for all tests that check the end-to-end behavior of a Gradle distribution.
  */
-open class DistributionTest : Test() {
+abstract class DistributionTest : Test() {
 
     @Internal
     val binaryDistributions = BinaryDistributions(project.objects)
@@ -49,19 +50,27 @@ open class DistributionTest : Test() {
     val libsRepository = LibsRepositoryEnvironmentProvider(project.objects)
 
     @get:Internal
+    abstract val tracker: Property<DaemonTracker>
+
+    @get:Internal
     @get:Option(option = "rerun", description = "Always rerun the task")
     val rerun: Property<Boolean> = project.objects.property(Boolean::class.javaObjectType).convention(false)
 
     init {
         dependsOn(Callable { if (binaryDistributions.distributionsRequired) ":distributions:buildDists" else null })
         dependsOn(Callable { if (binaryDistributions.binZipRequired) ":distributions:binZip" else null })
-        dependsOn(Callable { if (libsRepository.required) ":toolingApi:publishLocalArchives" else null })
+        dependsOn(Callable { if (libsRepository.required) ":toolingApi:publishGradleDistributionPublicationToLocalRepository" else null })
         jvmArgumentProviders.add(gradleInstallationForTest)
         jvmArgumentProviders.add(BinaryDistributionsEnvironmentProvider(binaryDistributions))
         jvmArgumentProviders.add(libsRepository)
         outputs.upToDateWhen {
             !rerun.get()
         }
+    }
+
+    override fun executeTests() {
+        addTestListener(tracker.get().newDaemonListener())
+        super.executeTests()
     }
 }
 
@@ -109,7 +118,7 @@ class GradleInstallationForTestEnvironmentProvider(project: Project) : CommandLi
     val daemonRegistry = project.objects.directoryProperty()
 
     @get:Nested
-    val gradleDistribution = GradleDistribution(project, gradleHomeDir)
+    val gradleDistribution = GradleDistribution(gradleHomeDir)
 
     override fun asArguments() =
         mapOf(

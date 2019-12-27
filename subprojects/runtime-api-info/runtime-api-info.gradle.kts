@@ -23,14 +23,14 @@ configurations {
         isVisible = false
         isCanBeResolved = true
         isCanBeConsumed = false
-        attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, Usage.JAVA_RUNTIME))
+        attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
         attributes.attribute(Attribute.of("org.gradle.api", String::class.java), "runtime")
     }
     create("testKitPackages") {
         isVisible = false
         isCanBeResolved = true
         isCanBeConsumed = false
-        attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, Usage.JAVA_RUNTIME))
+        attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
     }
 }
 

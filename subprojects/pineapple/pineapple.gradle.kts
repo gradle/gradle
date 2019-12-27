@@ -17,13 +17,14 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
     `java-library`
-     gradlebuild.classycle
+    gradlebuild.`publish-public-libraries`
+    gradlebuild.classycle
 }
 
 description = "Common shared internal classes without external dependencies"
 
 dependencies {
-    implementation(library("jsr305"))
+    implementation(library("jsr305")) { version { require(libraryVersion("jsr305")) } }
 }
 
 gradlebuildJava {

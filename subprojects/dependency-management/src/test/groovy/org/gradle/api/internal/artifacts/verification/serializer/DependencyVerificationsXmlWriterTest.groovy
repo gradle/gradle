@@ -17,22 +17,26 @@
 package org.gradle.api.internal.artifacts.verification.serializer
 
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
-import org.gradle.api.internal.artifacts.verification.DependencyVerifierBuilder
 import org.gradle.api.internal.artifacts.verification.model.ChecksumKind
+import org.gradle.api.internal.artifacts.verification.model.IgnoredKey
+import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifierBuilder
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
+import org.gradle.internal.component.external.model.ModuleComponentFileArtifactIdentifier
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class DependencyVerificationsXmlWriterTest extends Specification {
     private final DependencyVerifierBuilder builder = new DependencyVerifierBuilder()
+    private String rawContents
     private String contents
 
     @Unroll
     def "can write an empty file"() {
         when:
         builder.verifyMetadata = verifyMetadata
+        builder.verifySignatures = verifySignatures
         serialize()
 
         then:
@@ -40,14 +44,48 @@ class DependencyVerificationsXmlWriterTest extends Specification {
 <verification-metadata>
    <configuration>
       <verify-metadata>$verifyMetadata</verify-metadata>
-      <trusted-artifacts/>
+      <verify-signatures>$verifySignatures</verify-signatures>
    </configuration>
    <components/>
 </verification-metadata>
 """
+        and:
+        hasNamespaceDeclaration()
+
         where:
-        verifyMetadata << [true, false]
+        verifyMetadata | verifySignatures
+        false          | false
+        false          | true
+        true           | false
+        true           | true
     }
+
+    private boolean hasNamespaceDeclaration() {
+        rawContents.contains('<verification-metadata xmlns="https://schema.gradle.org/verification" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:schemaLocation="https://schema.gradle.org/verification https://schema.gradle.org/verification/verification-1.0.xsd"')
+    }
+
+    def "can declare key servers"() {
+        when:
+        builder.addKeyServer(new URI("https://pgp.key-server.io"))
+        builder.addKeyServer(new URI("hkp://keys.openpgp.org"))
+        serialize()
+
+        then:
+        contents == """<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata>
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+      <verify-signatures>false</verify-signatures>
+      <key-servers>
+         <key-server uri="https://pgp.key-server.io"/>
+         <key-server uri="hkp://keys.openpgp.org"/>
+      </key-servers>
+   </configuration>
+   <components/>
+</verification-metadata>
+"""
+    }
+
 
     def "can declare trusted artifacts"() {
         when:
@@ -66,6 +104,7 @@ class DependencyVerificationsXmlWriterTest extends Specification {
 <verification-metadata>
    <configuration>
       <verify-metadata>true</verify-metadata>
+      <verify-signatures>false</verify-signatures>
       <trusted-artifacts>
          <trust group="group"/>
          <trust group="group" name="module"/>
@@ -80,13 +119,90 @@ class DependencyVerificationsXmlWriterTest extends Specification {
 """
     }
 
-    // In context of future dependency verification file update, we try
-    // to preserve the order of insertion when building the file.
-    // There's the exception of checksums themselves, which are ordered
-    // based on the ChecksumKind enum.
-    // This documents the current behavior, not necessarily what should
-    // be done eventually.
-    def "order of declaration is preserved (except for checksums)"() {
+    def "can declare ignored keys"() {
+        when:
+        builder.addIgnoredKey(new IgnoredKey("ABCDEF", null))
+        builder.addIgnoredKey(new IgnoredKey("012345", "test"))
+        serialize()
+
+        then:
+        contents == """<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata>
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+      <verify-signatures>false</verify-signatures>
+      <ignored-keys>
+         <ignored-key id="ABCDEF"/>
+         <ignored-key id="012345" reason="test"/>
+      </ignored-keys>
+   </configuration>
+   <components/>
+</verification-metadata>
+"""
+    }
+
+    def "can declare trusted keys"() {
+        when:
+        builder.addTrustedKey("ABCDEF", "g1", null, null, null, false)
+        builder.addTrustedKey("012345", "g2", "m1", null, "file.jar", true)
+        builder.addTrustedKey("ABC123", "g3", "m2", "1.0", null, true)
+        builder.addTrustedKey("456DEF", null, "m3", "1.4", "file.zip", false)
+        builder.addTrustedKey("456DEF", null, "m4", null, "other-file.zip", true)
+        serialize()
+
+        then:
+        contents == """<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata>
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+      <verify-signatures>false</verify-signatures>
+      <trusted-keys>
+         <trusted-key id="012345" group="g2" name="m1" file="file.jar" regex="true"/>
+         <trusted-key id="456DEF">
+            <trusting name="m3" version="1.4" file="file.zip"/>
+            <trusting name="m4" file="other-file.zip" regex="true"/>
+         </trusted-key>
+         <trusted-key id="ABC123" group="g3" name="m2" version="1.0" regex="true"/>
+         <trusted-key id="ABCDEF" group="g1"/>
+      </trusted-keys>
+   </configuration>
+   <components/>
+</verification-metadata>
+"""
+    }
+
+    def "can declare ignored keys for specific artifact"() {
+        when:
+        addIgnoredKeyForArtifact("org:foo:1.0", "foo-1.0.jar", "ABC")
+        addIgnoredKeyForArtifact("org:foo:1.0", "foo-1.0.pom", "123", "so wrong!")
+        serialize()
+
+        then:
+        contents == """<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata>
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+      <verify-signatures>false</verify-signatures>
+   </configuration>
+   <components>
+      <component group="org" name="foo" version="1.0">
+         <artifact name="foo-1.0.jar">
+            <ignored-keys>
+               <ignored-key id="ABC"/>
+            </ignored-keys>
+         </artifact>
+         <artifact name="foo-1.0.pom">
+            <ignored-keys>
+               <ignored-key id="123" reason="so wrong!"/>
+            </ignored-keys>
+         </artifact>
+      </component>
+   </components>
+</verification-metadata>
+"""
+    }
+
+    def "entries are sorted"() {
         given:
         declareChecksum("org:foo:1.0", "sha1", "abc")
         declareChecksum("org:foo:1.0", "sha256", "bcd")
@@ -102,9 +218,15 @@ class DependencyVerificationsXmlWriterTest extends Specification {
 <verification-metadata>
    <configuration>
       <verify-metadata>true</verify-metadata>
-      <trusted-artifacts/>
+      <verify-signatures>false</verify-signatures>
    </configuration>
    <components>
+      <component group="org" name="bar" version="1.2">
+         <artifact name="bar-1.2.jar">
+            <sha1 value="9876"/>
+            <sha512 value="123def"/>
+         </artifact>
+      </component>
       <component group="org" name="foo" version="1.0">
          <artifact name="foo-1.0.jar">
             <sha1 value="abc"/>
@@ -114,12 +236,6 @@ class DependencyVerificationsXmlWriterTest extends Specification {
       <component group="org" name="foo" version="1.1">
          <artifact name="foo-1.1.jar">
             <md5 value="1234"/>
-         </artifact>
-      </component>
-      <component group="org" name="bar" version="1.2">
-         <artifact name="bar-1.2.jar">
-            <sha1 value="9876"/>
-            <sha512 value="123def"/>
          </artifact>
       </component>
    </components>
@@ -141,18 +257,18 @@ class DependencyVerificationsXmlWriterTest extends Specification {
 <verification-metadata>
    <configuration>
       <verify-metadata>true</verify-metadata>
-      <trusted-artifacts/>
+      <verify-signatures>false</verify-signatures>
    </configuration>
    <components>
       <component group="org" name="foo" version="1.0">
+         <artifact name="foo-1.0-classy.jar">
+            <sha1 value="123"/>
+         </artifact>
          <artifact name="foo-1.0.jar">
             <sha1 value="abc"/>
          </artifact>
          <artifact name="foo-1.0.zip">
             <sha256 value="def"/>
-         </artifact>
-         <artifact name="foo-1.0-classy.jar">
-            <sha1 value="123"/>
          </artifact>
       </component>
    </components>
@@ -173,17 +289,17 @@ class DependencyVerificationsXmlWriterTest extends Specification {
 <verification-metadata>
    <configuration>
       <verify-metadata>true</verify-metadata>
-      <trusted-artifacts/>
+      <verify-signatures>false</verify-signatures>
    </configuration>
    <components>
-      <component group="org" name="foo" version="1.0">
-         <artifact name="foo-1.0.jar">
-            <sha1 value="abc" origin="from test"/>
-         </artifact>
-      </component>
       <component group="org" name="bar" version="1.0">
          <artifact name="bar-1.0.jar">
             <md5 value="abc" origin="other"/>
+            <sha1 value="abc" origin="from test"/>
+         </artifact>
+      </component>
+      <component group="org" name="foo" version="1.0">
+         <artifact name="foo-1.0.jar">
             <sha1 value="abc" origin="from test"/>
          </artifact>
       </component>
@@ -205,7 +321,7 @@ class DependencyVerificationsXmlWriterTest extends Specification {
 <verification-metadata>
    <configuration>
       <verify-metadata>true</verify-metadata>
-      <trusted-artifacts/>
+      <verify-signatures>false</verify-signatures>
    </configuration>
    <components>
       <component group="org" name="foo" version="1.0">
@@ -219,6 +335,20 @@ class DependencyVerificationsXmlWriterTest extends Specification {
    </components>
 </verification-metadata>
 """
+    }
+
+    void addIgnoredKeyForArtifact(String id, String fileName, String key, String reason = null) {
+        def (group, name, version) = id.split(":")
+        builder.addIgnoredKey(
+            new ModuleComponentFileArtifactIdentifier(
+                DefaultModuleComponentIdentifier.newId(
+                    DefaultModuleIdentifier.newId(group, name),
+                    version
+                ),
+                fileName
+            ),
+            new IgnoredKey(key, reason)
+        )
     }
 
     void declareChecksum(String id, String algorithm, String checksum, String origin = null) {
@@ -247,6 +377,7 @@ class DependencyVerificationsXmlWriterTest extends Specification {
     private void serialize() {
         def out = new ByteArrayOutputStream()
         DependencyVerificationsXmlWriter.serialize(builder.build(), out)
-        contents = TextUtil.normaliseLineSeparators(out.toString("utf-8"))
+        rawContents = TextUtil.normaliseLineSeparators(out.toString("utf-8"))
+        contents = rawContents.replaceAll("<verification-metadata .+>", "<verification-metadata>")
     }
 }

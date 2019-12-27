@@ -59,11 +59,8 @@ open class IntTestImagePlugin : Plugin<Project> {
         }
 
         val gradleRuntimeSource by configurations.creating {
-            attributes {
-                attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage.JAVA_RUNTIME))
-            }
             isVisible = false
-            isCanBeResolved = true
+            isCanBeResolved = false
             isCanBeConsumed = false
         }
         val coreGradleRuntimeExtensions by configurations.creating {
