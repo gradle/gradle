@@ -7,6 +7,14 @@
             "changes": [
                 "org.gradle.plugins.signing.signatory.internal.ConfigurableSignatoryProvider"
             ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.repositories.RepositoryContentDescriptor",
+            "member": "Class org.gradle.api.artifacts.repositories.RepositoryContentDescriptor",
+            "acceptation": "A new super interface has been introduced but old methods preserved on this one",
+            "changes": [
+                "org.gradle.api.artifacts.repositories.InclusiveRepositoryContentDescriptor"
+            ]
         }
     ]
 }
