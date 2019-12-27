@@ -67,4 +67,9 @@ public class SingleOutputTaskMavenArtifact extends AbstractMavenArtifact {
             context.add(generator.get());
         }
     }
+
+    @Override
+    public boolean shouldBePublished() {
+        return isEnabled();
+    }
 }
