@@ -227,7 +227,8 @@ public class IdeDependencySet {
         }
 
         private boolean isGradleApiDependency(ResolvedArtifactResult artifact) {
-            return artifact.getFile().getName().startsWith("gradle-api") || artifact.getFile().getName().startsWith("gradle-test-kit");
+            String artifactFileName = artifact.getFile().getName();
+            return artifactFileName.startsWith("gradle-api") || artifactFileName.startsWith("gradle-test-kit");
         }
 
         private boolean isTestConfiguration(Set<Configuration> configurations) {
