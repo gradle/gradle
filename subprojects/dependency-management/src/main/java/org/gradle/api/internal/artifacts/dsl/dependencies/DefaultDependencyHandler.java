@@ -40,6 +40,8 @@ import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
+import org.gradle.api.provider.HasConfigurableValue;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.component.external.model.ProjectTestFixtures;
 import org.gradle.internal.Factory;
 import org.gradle.internal.component.external.model.ImmutableCapability;
@@ -127,10 +129,24 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
             configuration.extendsFrom(other);
             return null;
         }
+        if (dependencyNotation instanceof Provider<?>) {
+            Provider<?> lazy = (Provider<?>) dependencyNotation;
 
-        Dependency dependency = create(dependencyNotation, configureClosure);
-        configuration.getDependencies().add(dependency);
-        return dependency;
+            Provider<Dependency> lazyDependency = lazy.map(lazyNotation -> {
+                if (lazy instanceof HasConfigurableValue) {
+                    HasConfigurableValue configurableLazy = (HasConfigurableValue) lazy;
+                    configurableLazy.disallowChanges();
+                }
+                return create(lazyNotation, configureClosure);
+            });
+            configuration.getDependencies().addLater(lazyDependency);
+            // Return null here because we don't want to prematurely realize the dependency
+            return null;
+        } else {
+            Dependency dependency = create(dependencyNotation, configureClosure);
+            configuration.getDependencies().add(dependency);
+            return dependency;
+        }
     }
 
     @Override
