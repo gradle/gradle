@@ -125,7 +125,7 @@ class Codecs(
         bind(GroovyMetaClassCodec)
 
         // Dependency management types
-        bind(ArtifactCollectionCodec)
+        bind(ArtifactCollectionCodec(fileCollectionFactory))
         bind(AttributeContainerCodec(attributesFactory))
         bind(TransformationNodeReferenceCodec)
 
