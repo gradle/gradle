@@ -24,11 +24,15 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
         requireOwnGradleUserHomeDir()
     }
 
-    def "task can have a field with type ArtifactCollection"() {
+    def "task input artifact collection can include project dependencies, external dependencies and prebuilt file dependencies"() {
         taskTypeWithOutputFileProperty()
+        taskTypeLogsArtifactCollectionDetails()
+
         mavenRepo.module("group", "lib1", "6500").publish()
+
         settingsFile << """
             include 'a', 'b'"""
+
         buildFile << """
             subprojects {
                 configurations { create("default") }
@@ -47,22 +51,18 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
                 implementation project(':a')
                 implementation project(':b')
                 implementation "group:lib1:6500"
+                implementation files('a.thing')
             }
-            task resolve {
-                def collection = configurations.implementation.incoming.artifacts
-                inputs.files(collection.artifactFiles)
-                doLast {
-                    println("files = \${collection.artifactFiles.files.name}")
-                    println("artifacts = \${collection.artifacts.id.displayName}")
-                }
+            task resolve(type: ShowArtifactCollection) {
+                collection = configurations.implementation.incoming.artifacts
             }
         """
 
         expect:
         instantRun(":resolve")
         instantRun(":resolve")
-        outputContains("files = [a.out, b.out, lib1-6500.jar]")
-        outputContains("artifacts = [a.out (project :a), b.out (project :b), lib1-6500.jar (group:lib1:6500)]")
+        outputContains("files = [a.thing, a.out, b.out, lib1-6500.jar]")
+        outputContains("artifacts = [a.thing, a.out (project :a), b.out (project :b), lib1-6500.jar (group:lib1:6500)]")
     }
 
     def "task input file collection can include the output of artifact transform of project dependencies"() {
@@ -94,6 +94,39 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
         result.assertTaskOrder(":b:producer", ":resolve")
         assertTransformed("a.jar", "b.jar")
         outputContains("result = [root.green, a.jar.green, b.jar.green]")
+    }
+
+    def "task input artifact collection can include the output of artifact transform of project dependencies"() {
+        settingsFile << """
+            include 'a', 'b'
+        """
+        setupBuildWithSimpleColorTransform()
+        buildFile << """
+            dependencies.artifactTypes {
+                green {
+                    attributes.attribute(color, 'green')
+                }
+            }
+            dependencies {
+                implementation project(':a')
+                implementation files('root.green')
+                implementation project(':b')
+            }
+        """
+        file('root.green') << 'root'
+
+        expect:
+        instantRun(":resolveArtifacts")
+        assertTransformed("a.jar", "b.jar")
+        outputContains("files = [root.green, a.jar.green, b.jar.green]")
+        outputContains("artifacts = [root.green, a.jar.green (project :a), b.jar.green (project :b)]")
+
+        instantRun(":resolveArtifacts")
+        assertTransformed("a.jar", "b.jar")
+        outputContains("files = [root.green, a.jar.green, b.jar.green]")
+        // TODO - this is incorrect
+        outputContains("artifacts = [root.green]")
+//        outputContains("artifacts = [root.green, a.jar.green (project :a), b.jar.green (project :b)]")
     }
 
     def "task input file collection can include the output of artifact transform of external dependencies"() {

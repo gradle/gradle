@@ -83,6 +83,11 @@ allprojects {
             println "result = \${view.files.name}"
         }
     }
+    task resolveArtifacts(type: ShowArtifactCollection) {
+        collection = configurations.implementation.incoming.artifactView {
+            attributes.attribute(color, 'green')
+        }.artifacts
+    }
 }
 
 import ${JarOutputStream.name}
@@ -114,6 +119,7 @@ class JarProducer extends DefaultTask {
 """
         taskTypeWithOutputFileProperty()
         taskTypeWithOutputDirectoryProperty()
+        taskTypeLogsArtifactCollectionDetails()
     }
 
     /**
@@ -235,6 +241,7 @@ class JarProducer extends DefaultTask {
                 void transform(TransformOutputs outputs) {
                     def input = inputArtifact.get().asFile
                     println "processing \${input.name}"
+                    assert input.file
                     def output = outputs.file(input.name + ".green")
                     output.text = input.text + ".green"
                 }
@@ -312,6 +319,26 @@ allprojects { p ->
     }
 }
 """
+    }
+
+    def taskTypeLogsArtifactCollectionDetails() {
+        buildFile << """
+            class ShowArtifactCollection extends DefaultTask {
+                @Internal
+                ArtifactCollection collection
+
+                @InputFiles
+                FileCollection getFiles() {
+                    return collection?.artifactFiles
+                }
+
+                @TaskAction
+                def log() {
+                    println("files = \${collection.artifactFiles.files.name}")
+                    println("artifacts = \${collection.artifacts.id.displayName}")
+                }
+            }
+        """
     }
 
     static class Builder {
