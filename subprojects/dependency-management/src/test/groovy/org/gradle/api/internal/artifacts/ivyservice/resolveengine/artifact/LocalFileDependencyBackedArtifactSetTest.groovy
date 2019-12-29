@@ -144,11 +144,11 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
         then:
         1 * visitor.visitArtifact(_, attrs1, { it.file == f1 }) >> { DisplayName displayName, AttributeContainer attrs, ResolvableArtifact artifact ->
             assert displayName.displayName == 'local file'
-            assert artifact.id == new ComponentFileArtifactIdentifier(id, f1.name)
+            assert artifact.id == new ComponentFileArtifactIdentifier(id, f1)
         }
         1 * visitor.visitArtifact(_, attrs2, { it.file == f2 }) >> { DisplayName displayName, AttributeContainer attrs, ResolvableArtifact artifact ->
             assert displayName.displayName == 'local file'
-            assert artifact.id == new ComponentFileArtifactIdentifier(id, f2.name)
+            assert artifact.id == new ComponentFileArtifactIdentifier(id, f2)
         }
         2 * visitor.endVisitCollection(FileCollectionInternal.OTHER) // each file is treated as a separate collection, could potentially be treated as a single collection
         0 * _
@@ -159,11 +159,11 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
         then:
         1 * visitor.visitArtifact(_, attrs1, { it.file == f1 }) >> { DisplayName displayName, AttributeContainer attrs, ResolvableArtifact artifact ->
             assert displayName.displayName == 'local file'
-            assert artifact.id == new ComponentFileArtifactIdentifier(id, f1.name)
+            assert artifact.id == new ComponentFileArtifactIdentifier(id, f1)
         }
         1 * visitor.visitArtifact(_, attrs2, { it.file == f2 }) >> { DisplayName displayName, AttributeContainer attrs, ResolvableArtifact artifact ->
             assert displayName.displayName == 'local file'
-            assert artifact.id == new ComponentFileArtifactIdentifier(id, f2.name)
+            assert artifact.id == new ComponentFileArtifactIdentifier(id, f2)
         }
         2 * visitor.endVisitCollection(FileCollectionInternal.OTHER)
         0 * _

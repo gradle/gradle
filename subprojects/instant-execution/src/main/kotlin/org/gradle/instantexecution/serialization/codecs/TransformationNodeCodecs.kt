@@ -105,7 +105,8 @@ class InitialTransformationNodeCodec(
 internal
 class ChainedTransformationNodeCodec(
     private val buildOperationExecutor: BuildOperationExecutor,
-    private val transformListener: ArtifactTransformListener
+    private val transformListener: ArtifactTransformListener,
+    private val transformationNodeRegistry: TransformationNodeRegistry
 ) : AbstractTransformationNodeCodec<TransformationNode.ChainedTransformationNode>() {
 
     override suspend fun WriteContext.doEncode(value: TransformationNode.ChainedTransformationNode) {
@@ -118,7 +119,8 @@ class ChainedTransformationNodeCodec(
         val transformationStep = read() as TransformationStep
         val resolver = readDependenciesResolver()
         val previousStep = read() as TransformationNode
-        return TransformationNode.chained(transformationStep, previousStep, resolver, buildOperationExecutor, transformListener)
+        // TODO - should use the registry to create these nodes
+        return TransformationNode.chained(transformationStep, previousStep, resolver, buildOperationExecutor, transformListener, transformationNodeRegistry)
     }
 }
 

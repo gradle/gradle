@@ -53,14 +53,14 @@ class TransformingAsyncArtifactListenerTest extends Specification {
         1 * operationQueue.add(_ as BuildOperation)
     }
 
-    def "runs cheap artifact transformations immediately when not scheduled"() {
+    def "re-uses cached artifact transformations result when not scheduled"() {
         when:
         listener.artifactAvailable(artifact)
 
         then:
         1 * transformationNodeRegistry.getIfExecuted(artifactId, transformation) >> Optional.empty()
         1 * transformation.createInvocation({ it.files == [this.artifactFile] }, _ as ExecutionGraphDependenciesResolver, _) >> invocation
-        1 * invocation.getCachedResult() >> Optional.of(Try.successful(TransformationSubject.initial(file)))
+        1 * invocation.getCachedResult() >> Optional.of(Try.successful(TransformationSubject.initial(Stub(ResolvableArtifact))))
     }
 
     def "re-uses scheduled artifact transformation result"() {
@@ -69,7 +69,7 @@ class TransformingAsyncArtifactListenerTest extends Specification {
 
         then:
         1 * transformationNodeRegistry.getIfExecuted(artifactId, transformation) >> Optional.of(node)
-        1 * node.getTransformedSubject() >> Try.successful(TransformationSubject.initial(artifact.id, artifact.file).createSubjectFromResult(ImmutableList.of()))
+        1 * node.getTransformedSubject() >> Try.successful(TransformationSubject.initial(Stub(ResolvableArtifact)).createSubjectFromResult(ImmutableList.of()))
         0 * transformation.createInvocation(_, _ as ExecutionGraphDependenciesResolver, _)
     }
 }
