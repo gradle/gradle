@@ -126,6 +126,7 @@ class Codecs(
 
         // Dependency management types
         bind(ArtifactCollectionCodec(fileCollectionFactory))
+        bind(ImmutableAttributeCodec(attributesFactory))
         bind(AttributeContainerCodec(attributesFactory))
         bind(TransformationNodeReferenceCodec)
 
