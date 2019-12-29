@@ -26,6 +26,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.artifacts.result.DefaultResolvedArtifactResult
 import org.gradle.api.internal.artifacts.transform.ConsumerProvidedVariantFiles
 import org.gradle.api.internal.artifacts.transform.TransformationNode
+import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileCollectionStructureVisitor
@@ -53,7 +54,7 @@ class ArtifactCollectionCodec(private val fileCollectionFactory: FileCollectionF
         val files = fileCollectionFactory.resolving(elements.map {
             when (it) {
                 is ResolvedArtifactResult -> it.file
-                is TransformationNode -> Callable { it.transformedSubject.get().files }
+                is ConsumerProvidedVariantSpec -> Callable { it.node.transformedSubject.get().files }
                 else -> throw IllegalArgumentException("Unexpected element $it in artifact collection")
             }
         })
@@ -61,6 +62,10 @@ class ArtifactCollectionCodec(private val fileCollectionFactory: FileCollectionF
         return FixedArtifactCollection(files, elements, failures)
     }
 }
+
+
+internal
+class ConsumerProvidedVariantSpec(val node: TransformationNode, val variantDisplayName: DisplayName, val variantAttributes: ImmutableAttributes)
 
 
 internal
@@ -90,7 +95,9 @@ class CollectingArtifactVisitor : ArtifactVisitor {
 
     override fun endVisitCollection(source: FileCollectionInternal.Source) {
         if (source is ConsumerProvidedVariantFiles && source.scheduledNodes.isNotEmpty()) {
-            elements.addAll(source.scheduledNodes)
+            for (node in source.scheduledNodes) {
+                elements.add(ConsumerProvidedVariantSpec(node, source.targetVariantName, source.targetVariantAttributes))
+            }
         }
     }
 }
@@ -115,7 +122,11 @@ class FixedArtifactCollection(
         for (element in elements) {
             when (element) {
                 is ResolvedArtifactResult -> result.add(element)
-                is TransformationNode -> {
+                is ConsumerProvidedVariantSpec -> {
+                    for (output in element.node.transformedSubject.get().files) {
+                        val resolvedArtifact: ResolvableArtifact = element.node.inputArtifact.transformedTo(output)
+                        result.add(DefaultResolvedArtifactResult(resolvedArtifact.id, element.variantDisplayName, element.variantAttributes, Artifact::class.java, output))
+                    }
                     // Ignore
                 }
                 else -> throw IllegalArgumentException("Unexpected element $element in artifact collection")

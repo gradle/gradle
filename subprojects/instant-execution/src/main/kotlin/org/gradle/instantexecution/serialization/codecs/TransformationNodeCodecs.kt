@@ -87,7 +87,7 @@ class InitialTransformationNodeCodec(
     override suspend fun WriteContext.doEncode(value: TransformationNode.InitialTransformationNode) {
         write(value.transformationStep)
         writeDependenciesResolver(value)
-        write(value.artifact)
+        write(value.inputArtifact)
     }
 
     override suspend fun ReadContext.doDecode(): TransformationNode.InitialTransformationNode {

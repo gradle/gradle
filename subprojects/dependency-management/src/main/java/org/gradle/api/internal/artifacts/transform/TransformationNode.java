@@ -66,6 +66,8 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
         this.transformListener = transformListener;
     }
 
+    public abstract ResolvableArtifact getInputArtifact();
+
     @Nullable
     @Override
     public Project getOwningProject() {
@@ -111,7 +113,6 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
     public Set<Node> getFinalizers() {
         return Collections.emptySet();
     }
-
 
     @Override
     public void prepareForExecution() {
@@ -168,7 +169,8 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
             this.artifact = artifact;
         }
 
-        public ResolvableArtifact getArtifact() {
+        @Override
+        public ResolvableArtifact getInputArtifact() {
             return artifact;
         }
 
@@ -211,6 +213,11 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
         public ChainedTransformationNode(TransformationStep transformationStep, TransformationNode previousTransformationNode, ExecutionGraphDependenciesResolver dependenciesResolver, BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener) {
             super(transformationStep, dependenciesResolver, buildOperationExecutor, transformListener);
             this.previousTransformationNode = previousTransformationNode;
+        }
+
+        @Override
+        public ResolvableArtifact getInputArtifact() {
+            return previousTransformationNode.getInputArtifact();
         }
 
         public TransformationNode getPreviousTransformationNode() {

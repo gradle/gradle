@@ -124,9 +124,7 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
         instantRun(":resolveArtifacts")
         assertTransformed("a.jar", "b.jar")
         outputContains("files = [root.green, a.jar.green, b.jar.green]")
-        // TODO - this is incorrect
-        outputContains("artifacts = [root.green]")
-//        outputContains("artifacts = [root.green, a.jar.green (project :a), b.jar.green (project :b)]")
+        outputContains("artifacts = [root.green, a.jar.green (project :a), b.jar.green (project :b)]")
     }
 
     def "task input file collection can include the output of artifact transform of external dependencies"() {
