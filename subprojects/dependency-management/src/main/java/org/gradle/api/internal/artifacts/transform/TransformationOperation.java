@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.internal.Try;
 import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -23,31 +24,34 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
 import javax.annotation.Nullable;
+import java.util.Map;
 
-class TransformationOperation implements TransformationResult, RunnableBuildOperation {
+class TransformationOperation implements RunnableBuildOperation {
     private final CacheableInvocation<TransformationSubject> invocation;
+    private final ComponentArtifactIdentifier artifactIdentifier;
+    private final Map<ComponentArtifactIdentifier, TransformationResult> results;
     private final String displayName;
-    private Try<TransformationSubject> transformedSubject;
+    @Nullable
+    private final String progressDisplayName;
 
-    TransformationOperation(CacheableInvocation<TransformationSubject> invocation, String displayName) {
+    TransformationOperation(CacheableInvocation<TransformationSubject> invocation, String displayName, @Nullable String progressDisplayName, ComponentArtifactIdentifier artifactIdentifier, Map<ComponentArtifactIdentifier, TransformationResult> results) {
         this.displayName = displayName;
         this.invocation = invocation;
+        this.progressDisplayName = progressDisplayName;
+        this.artifactIdentifier = artifactIdentifier;
+        this.results = results;
     }
 
     @Override
     public void run(@Nullable BuildOperationContext context) {
-        transformedSubject = invocation.invoke();
+        Try<TransformationSubject> transformedSubject = invocation.invoke();
+        results.put(artifactIdentifier, new PrecomputedTransformationResult(transformedSubject));
     }
 
     @Override
     public BuildOperationDescriptor.Builder description() {
         return BuildOperationDescriptor.displayName(displayName)
-            .progressDisplayName(displayName)
+            .progressDisplayName(progressDisplayName)
             .operationType(BuildOperationCategory.UNCATEGORIZED);
-    }
-
-    @Override
-    public Try<TransformationSubject> getTransformedSubject() {
-        return transformedSubject;
     }
 }

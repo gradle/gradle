@@ -26,6 +26,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformActionScheme
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformListener
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformParameterScheme
+import org.gradle.api.internal.artifacts.transform.TransformationNodeRegistry
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileLookup
@@ -96,6 +97,7 @@ class Codecs(
     actionScheme: ArtifactTransformActionScheme,
     attributesFactory: ImmutableAttributesFactory,
     transformListener: ArtifactTransformListener,
+    transformationNodeRegistry: TransformationNodeRegistry,
     valueSourceProviderFactory: ValueSourceProviderFactory
 ) {
 
@@ -172,7 +174,7 @@ class Codecs(
         fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory)
 
         bind(TaskNodeCodec(projectStateRegistry, userTypesCodec, taskNodeFactory))
-        bind(InitialTransformationNodeCodec(buildOperationExecutor, transformListener))
+        bind(InitialTransformationNodeCodec(buildOperationExecutor, transformListener, transformationNodeRegistry))
         bind(ChainedTransformationNodeCodec(buildOperationExecutor, transformListener))
         bind(ActionNodeCodec)
         bind(ResolvableArtifactCodec)
