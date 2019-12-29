@@ -175,7 +175,7 @@ class Codecs(
 
         bind(TaskNodeCodec(projectStateRegistry, userTypesCodec, taskNodeFactory))
         bind(InitialTransformationNodeCodec(buildOperationExecutor, transformListener, transformationNodeRegistry))
-        bind(ChainedTransformationNodeCodec(buildOperationExecutor, transformListener))
+        bind(ChainedTransformationNodeCodec(buildOperationExecutor, transformListener, transformationNodeRegistry))
         bind(ActionNodeCodec)
         bind(ResolvableArtifactCodec)
         bind(TransformationStepCodec(projectStateRegistry, fingerprinterRegistry, projectFinder))

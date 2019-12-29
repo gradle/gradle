@@ -123,9 +123,8 @@ class FixedArtifactCollection(
             when (element) {
                 is ResolvedArtifactResult -> result.add(element)
                 is ConsumerProvidedVariantSpec -> {
-                    for (output in element.node.transformedSubject.get().files) {
-                        val resolvedArtifact: ResolvableArtifact = element.node.inputArtifact.transformedTo(output)
-                        result.add(DefaultResolvedArtifactResult(resolvedArtifact.id, element.variantDisplayName, element.variantAttributes, Artifact::class.java, output))
+                    for (artifact in element.node.transformedSubject.get().artifacts) {
+                        result.add(DefaultResolvedArtifactResult(artifact.id, element.variantDisplayName, element.variantAttributes, Artifact::class.java, artifact.file))
                     }
                     // Ignore
                 }

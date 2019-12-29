@@ -138,7 +138,7 @@ public class DefaultResolvedArtifact implements ResolvedArtifact, ResolvableArti
     @Override
     public ResolvableArtifact transformedTo(File file) {
         IvyArtifactName artifactName = DefaultIvyArtifactName.forFile(file, getClassifier());
-        ComponentArtifactIdentifier newId = new ComponentFileArtifactIdentifier(artifactId.getComponentIdentifier(), artifactName);
+        ComponentArtifactIdentifier newId = new ComponentFileArtifactIdentifier(artifactId.getComponentIdentifier(), artifactName, file);
         return new PreResolvedResolvableArtifact(owner, artifactName, newId, file, buildDependencies);
     }
 

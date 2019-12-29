@@ -23,6 +23,7 @@ import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.internal.artifacts.ArtifactTransformRegistration
 import org.gradle.api.internal.artifacts.VariantTransformRegistry
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
 import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.internal.Try
@@ -410,8 +411,10 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         0 * matcher._
     }
 
-    private static TransformationSubject initialSubject(String path) {
-        TransformationSubject.initial(new File(path))
+    private TransformationSubject initialSubject(String path) {
+        def artifact = Stub(ResolvableArtifact)
+        _ * artifact.file >> new File(path)
+        TransformationSubject.initial(artifact)
     }
 
     private AttributeContainerInternal attributes() {

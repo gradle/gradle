@@ -67,7 +67,7 @@ class TransformationNodeSpec extends Specification {
         def initialNode = TransformationNode.initial(Stub(TransformationStep), artifact, graphDependenciesResolver, buildOperationExecutor, transformListener, transformationNodeRegistry)
 
         given:
-        def node = TransformationNode.chained(transformationStep, initialNode, graphDependenciesResolver, buildOperationExecutor, transformListener)
+        def node = TransformationNode.chained(transformationStep, initialNode, graphDependenciesResolver, buildOperationExecutor, transformListener, transformationNodeRegistry)
 
         when:
         node.resolveDependencies(dependencyResolver, hardSuccessor)

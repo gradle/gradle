@@ -29,7 +29,6 @@ import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
 import javax.annotation.Nullable;
-import java.io.File;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
@@ -70,9 +69,9 @@ class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArti
         if (node.isPresent()) {
             artifactResults.put(artifactId, new PrecomputedTransformationResult(node.get().getTransformedSubject()));
         } else {
-            File file;
+            // Ensure file is available
             try {
-                file = artifact.getFile();
+                artifact.getFile();
             } catch (ResolveException e) {
                 artifactResults.put(artifactId, new PrecomputedTransformationResult(Try.failure(e)));
                 return;
@@ -81,8 +80,17 @@ class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArti
                     new PrecomputedTransformationResult(Try.failure(new DefaultLenientConfiguration.ArtifactResolveException("artifacts", transformation.getDisplayName(), "artifact transform", Collections.singleton(e)))));
                 return;
             }
-            TransformationSubject initialSubject = TransformationSubject.initial(artifactId, file);
-            createTransformationResult(artifact, initialSubject);
+            TransformationSubject subject = TransformationSubject.initial(artifact);
+            CacheableInvocation<TransformationSubject> invocation = transformation.createInvocation(subject, dependenciesResolver, nodeExecutionContext);
+            Optional<Try<TransformationSubject>> cachedResult = invocation.getCachedResult();
+            if (cachedResult.isPresent()) {
+                artifactResults.put(artifact.getId(), new PrecomputedTransformationResult(cachedResult.get()));
+            } else {
+                String displayName = "Transform " + subject.getDisplayName() + " with " + transformation.getDisplayName();
+                String progressDisplayName = isEntryPoint ? "Transforming " + subject.getDisplayName() + " with " + transformation.getDisplayName() : null;
+                TransformationOperation operation = new TransformationOperation(invocation, displayName, progressDisplayName, artifact.getId(), artifactResults);
+                actions.add(operation);
+            }
         }
     }
 
@@ -98,16 +106,4 @@ class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArti
         return true;
     }
 
-    private void createTransformationResult(ResolvableArtifact artifact, TransformationSubject subject) {
-        CacheableInvocation<TransformationSubject> invocation = transformation.createInvocation(subject, dependenciesResolver, nodeExecutionContext);
-        Optional<Try<TransformationSubject>> cachedResult = invocation.getCachedResult();
-        if (cachedResult.isPresent()) {
-            artifactResults.put(artifact.getId(), new PrecomputedTransformationResult(cachedResult.get()));
-        } else {
-            String displayName = "Transform " + subject.getDisplayName() + " with " + transformation.getDisplayName();
-            String progressDisplayName = isEntryPoint ? "Transforming " + subject.getDisplayName() + " with " + transformation.getDisplayName() : null;
-            TransformationOperation operation = new TransformationOperation(invocation, displayName, progressDisplayName, artifact.getId(), artifactResults);
-            actions.add(operation);
-        }
-    }
 }

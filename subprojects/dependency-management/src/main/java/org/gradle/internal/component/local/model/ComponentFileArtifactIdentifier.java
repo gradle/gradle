@@ -16,63 +16,35 @@
 
 package org.gradle.internal.component.local.model;
 
-import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.model.IvyArtifactName;
 
-public class ComponentFileArtifactIdentifier implements ComponentArtifactIdentifier, DisplayName {
-    private final ComponentIdentifier componentId;
-    private final Object fileName;
+import java.io.File;
 
-    public ComponentFileArtifactIdentifier(ComponentIdentifier componentId, String fileName) {
-        this.componentId = componentId;
-        this.fileName = fileName;
+public class ComponentFileArtifactIdentifier extends AbstractComponentArtifactIdentifier {
+    private final File file;
+
+    public ComponentFileArtifactIdentifier(ComponentIdentifier componentId, File file) {
+        super(componentId, file.getName());
+        this.file = file;
     }
 
-    public ComponentFileArtifactIdentifier(ComponentIdentifier componentIdentifier, IvyArtifactName artifactName) {
-        this.componentId = componentIdentifier;
-        this.fileName = artifactName;
-    }
-
-    @Override
-    public ComponentIdentifier getComponentIdentifier() {
-        return componentId;
-    }
-
-    public String getFileName() {
-        return fileName.toString();
-    }
-
-    @Override
-    public String getDisplayName() {
-        return fileName + " (" + componentId + ")";
-    }
-
-    @Override
-    public String getCapitalizedDisplayName() {
-        return getDisplayName();
-    }
-
-    @Override
-    public String toString() {
-        return getDisplayName();
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this) {
-            return true;
-        }
-        if (obj == null || obj.getClass() != getClass()) {
-            return false;
-        }
-        ComponentFileArtifactIdentifier other = (ComponentFileArtifactIdentifier) obj;
-        return componentId.equals(other.componentId) && fileName.equals(other.fileName);
+    public ComponentFileArtifactIdentifier(ComponentIdentifier componentIdentifier, IvyArtifactName artifactName, File file) {
+        super(componentIdentifier, artifactName);
+        this.file = file;
     }
 
     @Override
     public int hashCode() {
-        return componentId.hashCode() ^ fileName.hashCode();
+        return super.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!super.equals(obj)) {
+            return false;
+        }
+        ComponentFileArtifactIdentifier other = (ComponentFileArtifactIdentifier) obj;
+        return file.equals(other.file);
     }
 }

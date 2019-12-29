@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
@@ -35,6 +36,7 @@ import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 import javax.annotation.Nullable;
+import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -51,8 +53,8 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
     protected final ArtifactTransformListener transformListener;
     protected Try<TransformationSubject> transformedSubject;
 
-    public static ChainedTransformationNode chained(TransformationStep current, TransformationNode previous, ExecutionGraphDependenciesResolver executionGraphDependenciesResolver, BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener) {
-        return new ChainedTransformationNode(current, previous, executionGraphDependenciesResolver, buildOperationExecutor, transformListener);
+    public static ChainedTransformationNode chained(TransformationStep current, TransformationNode previous, ExecutionGraphDependenciesResolver executionGraphDependenciesResolver, BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener, TransformationNodeRegistry transformationNodeRegistry) {
+        return new ChainedTransformationNode(current, previous, executionGraphDependenciesResolver, buildOperationExecutor, transformListener, transformationNodeRegistry);
     }
 
     public static InitialTransformationNode initial(TransformationStep initial, ResolvableArtifact artifact, ExecutionGraphDependenciesResolver executionGraphDependenciesResolver, BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener, TransformationNodeRegistry transformationNodeRegistry) {
@@ -65,8 +67,6 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
         this.buildOperationExecutor = buildOperationExecutor;
         this.transformListener = transformListener;
     }
-
-    public abstract ResolvableArtifact getInputArtifact();
 
     @Nullable
     @Override
@@ -171,7 +171,6 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
             this.transformationNodeRegistry = transformationNodeRegistry;
         }
 
-        @Override
         public ResolvableArtifact getInputArtifact() {
             return artifact;
         }
@@ -205,15 +204,12 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
 
     public static class ChainedTransformationNode extends TransformationNode {
         private final TransformationNode previousTransformationNode;
+        private final TransformationNodeRegistry transformationNodeRegistry;
 
-        public ChainedTransformationNode(TransformationStep transformationStep, TransformationNode previousTransformationNode, ExecutionGraphDependenciesResolver dependenciesResolver, BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener) {
+        public ChainedTransformationNode(TransformationStep transformationStep, TransformationNode previousTransformationNode, ExecutionGraphDependenciesResolver dependenciesResolver, BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener, TransformationNodeRegistry transformationNodeRegistry) {
             super(transformationStep, dependenciesResolver, buildOperationExecutor, transformListener);
             this.previousTransformationNode = previousTransformationNode;
-        }
-
-        @Override
-        public ResolvableArtifact getInputArtifact() {
-            return previousTransformationNode.getInputArtifact();
+            this.transformationNodeRegistry = transformationNodeRegistry;
         }
 
         public TransformationNode getPreviousTransformationNode() {
@@ -225,8 +221,26 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
             this.transformedSubject = buildOperationExecutor.call(new ArtifactTransformationStepBuildOperation() {
                 @Override
                 protected Try<TransformationSubject> transform() {
-                    return previousTransformationNode.getTransformedSubject().flatMap(transformedSubject ->
-                        transformationStep.createInvocation(transformedSubject, dependenciesResolver, context).invoke());
+                    return previousTransformationNode.getTransformedSubject().flatMap(inputSubject -> {
+                        Map<ComponentArtifactIdentifier, TransformationResult> artifactResults = Maps.newConcurrentMap();
+                        buildOperationExecutor.runAll(queue -> {
+                            TransformingAsyncArtifactListener visitor = new TransformingAsyncArtifactListener(transformationStep, queue, artifactResults, getDependenciesResolver(), transformationNodeRegistry, context, false);
+                            for (ResolvableArtifact artifact : inputSubject.getArtifacts()) {
+                                visitor.artifactAvailable(artifact);
+                            }
+                        });
+                        ImmutableList.Builder<File> builder = ImmutableList.builderWithExpectedSize(artifactResults.size());
+                        for (ResolvableArtifact artifact : inputSubject.getArtifacts()) {
+                            TransformationResult result = artifactResults.get(artifact.getId());
+                            Try<TransformationSubject> transformedSubject = result.getTransformedSubject();
+                            if (!transformedSubject.isSuccessful()) {
+                                // TODO - should collect all of the failures
+                                return transformedSubject;
+                            }
+                            builder.addAll(transformedSubject.get().getFiles());
+                        }
+                        return Try.successful(inputSubject.createSubjectFromResult(builder.build()));
+                    });
                 }
 
                 @Override

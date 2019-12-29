@@ -48,19 +48,19 @@ class DefaultModuleComponentArtifactIdentifierTest extends Specification {
 
         expect:
         def noClassifier = new DefaultModuleComponentArtifactIdentifier(componentId, "name", "type", "ext")
-        def noClassifierFileName = new ComponentFileArtifactIdentifier(componentId, "name-version.ext")
+        def noClassifierFileName = new ComponentFileArtifactIdentifier(componentId, new File("1/2/3/name-version.ext"))
         noClassifier.displayName == noClassifierFileName.displayName
 
         def withClassifier = new DefaultModuleComponentArtifactIdentifier(componentId, "name", "type", "ext", 'classifier')
-        def withClassifierFileName = new ComponentFileArtifactIdentifier(componentId, "name-version-classifier.ext")
+        def withClassifierFileName = new ComponentFileArtifactIdentifier(componentId, new File("1/2/3/name-version-classifier.ext"))
         withClassifier.displayName == withClassifierFileName.displayName
 
         def noExtension = new DefaultModuleComponentArtifactIdentifier(componentId, "name", "type", null, 'classifier')
-        def noExtensionFileName = new ComponentFileArtifactIdentifier(componentId, "name-version-classifier")
+        def noExtensionFileName = new ComponentFileArtifactIdentifier(componentId, new File("1/2/3/name-version-classifier"))
         noExtension.displayName == noExtensionFileName.displayName
 
         def nameOnly = new DefaultModuleComponentArtifactIdentifier(componentId, "name", "type", null, null)
-        def nameOnlyFileName = new ComponentFileArtifactIdentifier(componentId, "name-version")
+        def nameOnlyFileName = new ComponentFileArtifactIdentifier(componentId, new File("1/2/3/name-version"))
         nameOnly.displayName == nameOnlyFileName.displayName
     }
 

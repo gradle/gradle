@@ -25,7 +25,6 @@ import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.internal.DisplayName;
 
-import java.io.File;
 import java.util.Map;
 
 class TransformingArtifactVisitor implements ArtifactVisitor {
@@ -44,9 +43,8 @@ class TransformingArtifactVisitor implements ArtifactVisitor {
         TransformationResult result = artifactResults.get(artifact.getId());
         result.getTransformedSubject().ifSuccessfulOrElse(
             transformedSubject -> {
-                for (File output : transformedSubject.getFiles()) {
-                    ResolvableArtifact resolvedArtifact = artifact.transformedTo(output);
-                    visitor.visitArtifact(variantName, target, resolvedArtifact);
+                for (ResolvableArtifact transformedArtifact : transformedSubject.getArtifacts()) {
+                    visitor.visitArtifact(variantName, target, transformedArtifact);
                 }
                 visitor.endVisitCollection(FileCollectionInternal.OTHER);
             },

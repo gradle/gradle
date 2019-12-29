@@ -53,6 +53,6 @@ object ResolvableArtifactCodec : Codec<ResolvableArtifact> {
         val file = File(readString())
         val artifactName = DefaultIvyArtifactName(readString(), readString(), readNullableString(), readNullableString())
         val componentId = componentIdSerializer.read(this)
-        return PreResolvedResolvableArtifact(null, artifactName, ComponentFileArtifactIdentifier(componentId, file.name), file, TaskDependencyContainer.EMPTY)
+        return PreResolvedResolvableArtifact(null, artifactName, ComponentFileArtifactIdentifier(componentId, file), file, TaskDependencyContainer.EMPTY)
     }
 }
