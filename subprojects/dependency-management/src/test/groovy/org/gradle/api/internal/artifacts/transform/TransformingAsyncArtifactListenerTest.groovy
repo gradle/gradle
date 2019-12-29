@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList
 import com.google.common.collect.Maps
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
+import org.gradle.api.internal.tasks.NodeExecutionContext
 import org.gradle.internal.Try
 import org.gradle.internal.operations.BuildOperation
 import org.gradle.internal.operations.BuildOperationQueue
@@ -30,7 +31,8 @@ class TransformingAsyncArtifactListenerTest extends Specification {
     CacheableInvocation<TransformationSubject> invocation = Mock(CacheableInvocation)
     def operationQueue = Mock(BuildOperationQueue)
     def transformationNodeRegistry = Mock(TransformationNodeRegistry)
-    def listener  = new TransformingAsyncArtifactListener(transformation, operationQueue, Maps.newHashMap(), Mock(ExecutionGraphDependenciesResolver), transformationNodeRegistry)
+    def nodeExecutionContext = Mock(NodeExecutionContext)
+    def listener  = new TransformingAsyncArtifactListener(transformation, operationQueue, Maps.newHashMap(), Mock(ExecutionGraphDependenciesResolver), transformationNodeRegistry, nodeExecutionContext, true)
     def file = new File("foo")
     def artifactFile = new File("foo-artifact")
     def artifactId = Stub(ComponentArtifactIdentifier)

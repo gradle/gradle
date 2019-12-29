@@ -24,6 +24,7 @@ import org.gradle.api.internal.artifacts.transform.DefaultArtifactTransformDepen
 import org.gradle.api.internal.artifacts.transform.DefaultExecutionGraphDependenciesResolver
 import org.gradle.api.internal.artifacts.transform.ExecutionGraphDependenciesResolver
 import org.gradle.api.internal.artifacts.transform.TransformationNode
+import org.gradle.api.internal.artifacts.transform.TransformationNodeRegistry
 import org.gradle.api.internal.artifacts.transform.TransformationStep
 import org.gradle.api.internal.artifacts.transform.Transformer
 import org.gradle.api.internal.tasks.TaskDependencyContainer
@@ -81,7 +82,8 @@ abstract class AbstractTransformationNodeCodec<T : TransformationNode> : Codec<T
 internal
 class InitialTransformationNodeCodec(
     private val buildOperationExecutor: BuildOperationExecutor,
-    private val transformListener: ArtifactTransformListener
+    private val transformListener: ArtifactTransformListener,
+    private val transformationNodeRegistry: TransformationNodeRegistry
 ) : AbstractTransformationNodeCodec<TransformationNode.InitialTransformationNode>() {
 
     override suspend fun WriteContext.doEncode(value: TransformationNode.InitialTransformationNode) {
@@ -94,7 +96,8 @@ class InitialTransformationNodeCodec(
         val transformationStep = read() as TransformationStep
         val resolver = readDependenciesResolver()
         val artifact = read() as ResolvableArtifact
-        return TransformationNode.initial(transformationStep, artifact, resolver, buildOperationExecutor, transformListener)
+        // TODO - should use the registry to create these nodes
+        return TransformationNode.initial(transformationStep, artifact, resolver, buildOperationExecutor, transformListener, transformationNodeRegistry)
     }
 }
 

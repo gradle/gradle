@@ -84,7 +84,7 @@ public class ConsumerProvidedResolvedVariant implements ResolvedArtifactSet, Con
             return visitor -> visitor.endVisitCollection(ConsumerProvidedResolvedVariant.this);
         }
         Map<ComponentArtifactIdentifier, TransformationResult> artifactResults = Maps.newConcurrentMap();
-        Completion result = delegate.startVisit(actions, new TransformingAsyncArtifactListener(transformation, actions, artifactResults, getDependenciesResolver(), transformationNodeRegistry));
+        Completion result = delegate.startVisit(actions, new TransformingAsyncArtifactListener(transformation, actions, artifactResults, getDependenciesResolver(), transformationNodeRegistry, null, true));
         return new TransformCompletion(result, attributes, artifactResults);
     }
 
