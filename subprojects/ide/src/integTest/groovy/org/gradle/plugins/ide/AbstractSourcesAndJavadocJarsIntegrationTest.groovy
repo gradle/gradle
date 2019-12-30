@@ -303,14 +303,14 @@ dependencies {
         sourcesDir.createFile("org/gradle/Test.java").writelns("package org.gradle;", "public class Test {}")
 
         buildScript """
-apply plugin: "java"
-apply plugin: "idea"
-apply plugin: "eclipse"
+            apply plugin: "java"
+            apply plugin: "idea"
+            apply plugin: "eclipse"
 
-dependencies {
-    implementation gradleApi()
-}
-"""
+            dependencies {
+                implementation gradleApi()
+            }
+            """
         when:
         succeeds ideTask
 
@@ -326,14 +326,14 @@ dependencies {
         sourcesDir.createFile("org/gradle/Test.java").writelns("package org.gradle;", "public class Test {}")
 
         buildScript """
-apply plugin: "java"
-apply plugin: "idea"
-apply plugin: "eclipse"
+            apply plugin: "java"
+            apply plugin: "idea"
+            apply plugin: "eclipse"
 
-dependencies {
-    implementation gradleTestKit()
-}
-"""
+            dependencies {
+                implementation gradleTestKit()
+            }
+            """
         when:
         succeeds ideTask
 
