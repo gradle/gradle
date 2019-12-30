@@ -42,6 +42,7 @@ import org.gradle.plugins.ide.eclipse.model.Variable;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 import org.gradle.plugins.ide.internal.resolver.IdeDependencySet;
 import org.gradle.plugins.ide.internal.resolver.IdeDependencyVisitor;
+import org.gradle.plugins.ide.internal.resolver.GradleApiSourcesResolver;
 import org.gradle.plugins.ide.internal.resolver.UnresolvedIdeDependencyHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,16 +57,18 @@ public class EclipseDependenciesCreator {
     private final EclipseClasspath classpath;
     private final ProjectDependencyBuilder projectDependencyBuilder;
     private final ProjectComponentIdentifier currentProjectId;
+    private final GradleApiSourcesResolver gradleApiSourcesResolver;
 
-    public EclipseDependenciesCreator(EclipseClasspath classpath, IdeArtifactRegistry ideArtifactRegistry, ProjectStateRegistry projectRegistry) {
+    public EclipseDependenciesCreator(EclipseClasspath classpath, IdeArtifactRegistry ideArtifactRegistry, ProjectStateRegistry projectRegistry, GradleApiSourcesResolver gradleApiSourcesResolver) {
         this.classpath = classpath;
         this.projectDependencyBuilder = new ProjectDependencyBuilder(ideArtifactRegistry);
-        currentProjectId = projectRegistry.stateFor(classpath.getProject()).getComponentIdentifier();
+        this.currentProjectId = projectRegistry.stateFor(classpath.getProject()).getComponentIdentifier();
+        this.gradleApiSourcesResolver = gradleApiSourcesResolver;
     }
 
     public List<AbstractClasspathEntry> createDependencyEntries() {
         EclipseDependenciesVisitor visitor = new EclipseDependenciesVisitor(classpath.getProject());
-        new IdeDependencySet(classpath.getProject().getDependencies(), classpath.getPlusConfigurations(), classpath.getMinusConfigurations()).visit(visitor);
+        new IdeDependencySet(classpath.getProject().getDependencies(), classpath.getPlusConfigurations(), classpath.getMinusConfigurations(), gradleApiSourcesResolver).visit(visitor);
         return visitor.getDependencies();
     }
 
@@ -124,6 +127,11 @@ public class EclipseDependenciesCreator {
         @Override
         public void visitFileDependency(ResolvedArtifactResult artifact, boolean testDependency) {
             files.add(createLibraryEntry(artifact.getFile(), null, null, classpath, null, pathToSourceSets, testDependency));
+        }
+
+        @Override
+        public void visitGradleApiDependency(ResolvedArtifactResult artifact, File sources, boolean testConfiguration) {
+            files.add(createLibraryEntry(artifact.getFile(), sources, null, classpath, null, pathToSourceSets, testConfiguration));
         }
 
         @Override

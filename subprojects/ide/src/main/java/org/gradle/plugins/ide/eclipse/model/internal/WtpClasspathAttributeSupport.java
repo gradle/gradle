@@ -61,7 +61,7 @@ public class WtpClasspathAttributeSupport {
 
     private static Set<File> collectFilesFromConfigs(EclipseClasspath classpath, Set<Configuration> configs, Set<Configuration> minusConfigs) {
         WtpClasspathAttributeDependencyVisitor visitor = new WtpClasspathAttributeDependencyVisitor(classpath);
-        new IdeDependencySet(classpath.getProject().getDependencies(), configs, minusConfigs).visit(visitor);
+        new IdeDependencySet(classpath.getProject().getDependencies(), configs, minusConfigs, artifact -> null).visit(visitor);
         return visitor.getFiles();
     }
 
@@ -145,6 +145,11 @@ public class WtpClasspathAttributeSupport {
 
         @Override
         public void visitFileDependency(ResolvedArtifactResult artifact, boolean testDependency) {
+            files.add(artifact.getFile());
+        }
+
+        @Override
+        public void visitGradleApiDependency(ResolvedArtifactResult artifact, File sources, boolean testDependency) {
             files.add(artifact.getFile());
         }
 

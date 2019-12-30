@@ -47,6 +47,10 @@ public class GradleInstallation {
         return libDirs;
     }
 
+    public File getSrcDir() {
+        return dir.toPath().resolve("src").toFile();
+    }
+
     private static List<File> findLibDirs(File dir) {
         List<File> libDirAndSubdirs = new ArrayList<File>();
         collectWithSubdirectories(new File(dir, "lib"), libDirAndSubdirs);
