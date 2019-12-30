@@ -31,6 +31,7 @@ import org.gradle.api.internal.artifacts.verification.signatures.SignatureVerifi
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.security.internal.Fingerprint;
 import org.gradle.security.internal.PublicKeyService;
 
 import javax.annotation.Nullable;
@@ -41,8 +42,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static org.gradle.security.internal.SecuritySupport.toHexString;
 
 public class DependencyVerifier {
     private final Map<ComponentIdentifier, ComponentVerificationMetadata> verificationMetadata;
@@ -301,12 +300,12 @@ public class DependencyVerifier {
             }
             if (failedKeys != null) {
                 for (PGPPublicKey failedKey : failedKeys) {
-                    errors.put(toHexString(failedKey.getKeyID()), error(failedKey, SignatureVerificationFailure.FailureKind.FAILED));
+                    errors.put(Fingerprint.of(failedKey).toString(), error(failedKey, SignatureVerificationFailure.FailureKind.FAILED));
                 }
             }
             if (validNotTrusted != null) {
                 for (PGPPublicKey trustedKey : validNotTrusted) {
-                    errors.put(toHexString(trustedKey.getKeyID()), error(trustedKey, SignatureVerificationFailure.FailureKind.PASSED_NOT_TRUSTED));
+                    errors.put(Fingerprint.of(trustedKey).toString(), error(trustedKey, SignatureVerificationFailure.FailureKind.PASSED_NOT_TRUSTED));
                 }
             }
             if (ignoredKeys != null) {
