@@ -22,7 +22,6 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 
 import java.util.List;
-import java.util.Optional;
 
 public class PublicKeyServiceChain implements PublicKeyService {
     private final static Logger LOGGER = Logging.getLogger(PublicKeyServiceChain.class);
@@ -38,25 +37,25 @@ public class PublicKeyServiceChain implements PublicKeyService {
     }
 
     @Override
-    public Optional<PGPPublicKey> findPublicKey(long id) {
+    public void findByLongId(long keyId, PublicKeyResultBuilder builder) {
+        FirstMatchBuilder fmb = new FirstMatchBuilder(builder);
         for (PublicKeyService service : services) {
-            Optional<PGPPublicKey> publicKey = service.findPublicKey(id);
-            if (publicKey.isPresent()) {
-                return publicKey;
+            service.findByLongId(keyId, fmb);
+            if (fmb.hasResult) {
+                return;
             }
         }
-        return Optional.empty();
     }
 
     @Override
-    public Optional<PGPPublicKeyRing> findKeyRing(long id) {
+    public void findByFingerprint(byte[] fingerprint, PublicKeyResultBuilder builder) {
+        FirstMatchBuilder fmb = new FirstMatchBuilder(builder);
         for (PublicKeyService service : services) {
-            Optional<PGPPublicKeyRing> publicKeyRing = service.findKeyRing(id);
-            if (publicKeyRing.isPresent()) {
-                return publicKeyRing;
+            service.findByFingerprint(fingerprint, fmb);
+            if (fmb.hasResult) {
+                return;
             }
         }
-        return Optional.empty();
     }
 
     @Override
@@ -67,6 +66,27 @@ public class PublicKeyServiceChain implements PublicKeyService {
             } catch (Exception e) {
                 LOGGER.warn("Cannot close service", e);
             }
+        }
+    }
+
+    private static class FirstMatchBuilder implements PublicKeyResultBuilder {
+        private final PublicKeyResultBuilder delegate;
+        public boolean hasResult;
+
+        private FirstMatchBuilder(PublicKeyResultBuilder delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public void keyRing(PGPPublicKeyRing keyring) {
+            delegate.keyRing(keyring);
+            hasResult = true;
+        }
+
+        @Override
+        public void publicKey(PGPPublicKey publicKey) {
+            delegate.publicKey(publicKey);
+            hasResult = true;
         }
     }
 }

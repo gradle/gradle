@@ -15,9 +15,10 @@
  */
 package org.gradle.security.internal;
 
-import java.io.Closeable;
+import org.bouncycastle.openpgp.PGPPublicKey;
+import org.bouncycastle.openpgp.PGPPublicKeyRing;
 
-public interface PublicKeyService extends Closeable {
-    void findByLongId(long keyId, PublicKeyResultBuilder builder);
-    void findByFingerprint(byte[] fingerprint, PublicKeyResultBuilder builder);
+public interface PublicKeyResultBuilder {
+    void keyRing(PGPPublicKeyRing keyring);
+    void publicKey(PGPPublicKey publicKey);
 }

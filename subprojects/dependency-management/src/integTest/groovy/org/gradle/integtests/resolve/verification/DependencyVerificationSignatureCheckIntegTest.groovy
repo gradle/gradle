@@ -20,11 +20,13 @@ import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.security.fixtures.KeyServer
 import org.gradle.security.fixtures.SigningFixtures
+import org.gradle.security.internal.Fingerprint
 import spock.lang.Unroll
 
+import static org.gradle.security.fixtures.SigningFixtures.getValidPublicKeyLongIdHexString
 import static org.gradle.security.fixtures.SigningFixtures.signAsciiArmored
 import static org.gradle.security.fixtures.SigningFixtures.validPublicKeyHexString
-import static org.gradle.security.internal.SecuritySupport.toHexString
+import static org.gradle.security.internal.SecuritySupport.toLongIdHexString
 
 class DependencyVerificationSignatureCheckIntegTest extends AbstractSignatureVerificationIntegrationTest {
 
@@ -34,6 +36,35 @@ class DependencyVerificationSignatureCheckIntegTest extends AbstractSignatureVer
             verifySignatures()
             addTrustedKey("org:foo:1.0", validPublicKeyHexString)
             addTrustedKey("org:foo:1.0", validPublicKeyHexString, "pom", "pom")
+        }
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0") {
+            withSignature {
+                signAsciiArmored(it)
+            }
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        serveValidKey()
+        succeeds ":compileJava"
+
+        then:
+        outputContains("Dependency verification is an incubating feature.")
+    }
+
+    def "doesn't need checksums if signature is verified and trust using long id"() {
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+            verifySignatures()
+            addTrustedKey("org:foo:1.0", validPublicKeyLongIdHexString)
+            addTrustedKey("org:foo:1.0", validPublicKeyLongIdHexString, "pom", "pom")
         }
 
         given:
@@ -172,7 +203,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
     def "can verify classified artifacts downloaded in previous builds (stop in between = #stopInBetween)"() {
         def keyring = newKeyRing()
         keyServerFixture.registerPublicKey(keyring.publicKey)
-        def pkId = toHexString(keyring.publicKey.keyID)
+        def pkId = Fingerprint.of(keyring.publicKey)
 
         given:
         javaLibrary()
@@ -249,7 +280,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
 
         then:
         failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
-  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key '14f53f0824875d73' (Gradle Test (This is used for testing the gradle-signing-plugin) <test@gradle.org>) but signature didn't match
+  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key 'd7bf96a169f77b28c934ab1614f53f0824875d73' (Gradle Test (This is used for testing the gradle-signing-plugin) <test@gradle.org>) but signature didn't match
 
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
     }
@@ -290,7 +321,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
 
         then:
         failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
-  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key '14f53f0824875d73' (Gradle Test (This is used for testing the gradle-signing-plugin) <test@gradle.org>) but signature didn't match
+  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key 'd7bf96a169f77b28c934ab1614f53f0824875d73' (Gradle Test (This is used for testing the gradle-signing-plugin) <test@gradle.org>) but signature didn't match
 
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
     }
@@ -337,7 +368,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
 
         then:
         failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
-  - On artifact parent-1.0.pom (org:parent:1.0) in repository 'maven': Artifact was signed with key '14f53f0824875d73' (Gradle Test (This is used for testing the gradle-signing-plugin) <test@gradle.org>) but signature didn't match
+  - On artifact parent-1.0.pom (org:parent:1.0) in repository 'maven': Artifact was signed with key 'd7bf96a169f77b28c934ab1614f53f0824875d73' (Gradle Test (This is used for testing the gradle-signing-plugin) <test@gradle.org>) but signature didn't match
 
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
     }
@@ -346,7 +377,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
     def "fails verification is signature is not trusted"() {
         def keyring = newKeyRing()
         keyServerFixture.registerPublicKey(keyring.publicKey)
-        def pkId = toHexString(keyring.publicKey.keyID)
+        def pkId = Fingerprint.of(keyring.publicKey)
 
         createMetadataFile {
             keyServer(keyServerFixture.uri)
@@ -379,16 +410,17 @@ This can indicate that a dependency has been compromised. Please carefully verif
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
     }
 
-    def "can verify classified artifacts"() {
+    @Unroll
+    def "can verify classified artifacts trusting key #trustedKey"() {
         def keyring = newKeyRing()
         keyServerFixture.registerPublicKey(keyring.publicKey)
-        def pkId = toHexString(keyring.publicKey.keyID)
+        def pkId = Fingerprint.of(keyring.publicKey)
 
         createMetadataFile {
             keyServer(keyServerFixture.uri)
             verifySignatures()
-            addTrustedKeyByFileName("org:foo:1.0", "foo-1.0-classy.jar", validPublicKeyHexString)
-            addTrustedKey("org:foo:1.0", validPublicKeyHexString, "pom", "pom")
+            addTrustedKeyByFileName("org:foo:1.0", "foo-1.0-classy.jar", trustedKey)
+            addTrustedKey("org:foo:1.0", trustedKey, "pom", "pom")
         }
 
         given:
@@ -414,6 +446,12 @@ This can indicate that a dependency has been compromised. Please carefully verif
   - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': Artifact was signed with key '$pkId' (test-user@gradle.com) and passed verification but the key isn't in your trusted keys list.
 
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
+
+        where:
+        trustedKey << [
+            validPublicKeyHexString,
+            validPublicKeyLongIdHexString
+        ]
     }
 
     def "reasonable error message if key server fails to answer"() {
@@ -453,7 +491,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
         def keyring = newKeyRing()
         def secondServer = new KeyServer(temporaryFolder.createDir("keyserver-${UUID.randomUUID()}"))
         secondServer.registerPublicKey(keyring.publicKey)
-        def pkId = toHexString(keyring.publicKey.keyID)
+        def pkId = toLongIdHexString(keyring.publicKey.keyID)
         secondServer.start()
         createMetadataFile {
             keyServer(keyServerFixture.uri)
@@ -490,7 +528,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
         def keyring = newKeyRing()
         keyServerFixture.withDefaultSigningKey()
         keyServerFixture.registerPublicKey(keyring.publicKey)
-        def pkId = toHexString(keyring.publicKey.keyID)
+        def pkId = Fingerprint.of(keyring.publicKey)
 
         createMetadataFile {
             keyServer(keyServerFixture.uri)
@@ -690,7 +728,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
 
         then:
         failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
-  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key '14f53f0824875d73' (Gradle Test (This is used for testing the gradle-signing-plugin) <test@gradle.org>) but signature didn't match"""
+  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key 'd7bf96a169f77b28c934ab1614f53f0824875d73' (Gradle Test (This is used for testing the gradle-signing-plugin) <test@gradle.org>) but signature didn't match"""
     }
 
     @ToBeFixedForInstantExecution
@@ -732,7 +770,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
 
         then:
         failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
-  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key '14f53f0824875d73' (Gradle Test (This is used for testing the gradle-signing-plugin) <test@gradle.org>) and passed verification but the key isn't in your trusted keys list.
+  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key 'd7bf96a169f77b28c934ab1614f53f0824875d73' (Gradle Test (This is used for testing the gradle-signing-plugin) <test@gradle.org>) and passed verification but the key isn't in your trusted keys list.
 
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
     }
@@ -773,7 +811,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
         createMetadataFile {
             keyServer(keyServerFixture.uri)
             verifySignatures()
-            addGloballyIgnoredKey(validPublicKeyHexString)
+            addGloballyIgnoredKey(getValidPublicKeyLongIdHexString())
         }
 
         given:
@@ -790,6 +828,36 @@ This can indicate that a dependency has been compromised. Please carefully verif
         """
 
         when:
+        fails ":compileJava"
+
+        then:
+        failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
+  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': checksum is missing from verification metadata.
+  - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': checksum is missing from verification metadata."""
+    }
+
+    def "can ignore a key using full fingerprint and fallback to checksum verification"() {
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+            verifySignatures()
+            addGloballyIgnoredKey(SigningFixtures.validPublicKeyHexString)
+        }
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0") {
+            withSignature {
+                signAsciiArmored(it)
+            }
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        serveValidKey()
         fails ":compileJava"
 
         then:
@@ -829,7 +897,47 @@ This can indicate that a dependency has been compromised. Please carefully verif
         // jar file fails because it doesn't have any checksum declared, despite ignoring the key, which is what we want
         // and pom file fails because we didn't trust the key
         failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
-  - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': Artifact was signed with key '14f53f0824875d73' (Gradle Test (This is used for testing the gradle-signing-plugin) <test@gradle.org>) and passed verification but the key isn't in your trusted keys list.
+  - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': Artifact was signed with key 'd7bf96a169f77b28c934ab1614f53f0824875d73' (Gradle Test (This is used for testing the gradle-signing-plugin) <test@gradle.org>) and passed verification but the key isn't in your trusted keys list.
+  - On artifact foo-1.0.jar (org:foo:1.0) multiple problems reported:
+      - in repository 'maven': artifact was signed but all keys were ignored
+      - in repository 'maven': checksum is missing from verification metadata.
+
+This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
+
+    }
+
+    def "can ignore a key by long id for a specific artifact and fallback to checksum verification"() {
+        // we tamper the jar, so the verification of the jar would fail, but not the POM
+        keyServerFixture.withDefaultSigningKey()
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+            verifySignatures()
+            addIgnoredKeyByFileName("org:foo:1.0", "foo-1.0.jar", validPublicKeyLongIdHexString)
+        }
+
+        given:
+        javaLibrary()
+        def module = uncheckedModule("org", "foo", "1.0") {
+            withSignature {
+                signAsciiArmored(it)
+            }
+        }
+        module.artifactFile.bytes = [0, 1, 2]
+
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        fails ":compileJava"
+
+        then:
+        // jar file fails because it doesn't have any checksum declared, despite ignoring the key, which is what we want
+        // and pom file fails because we didn't trust the key
+        failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
+  - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': Artifact was signed with key 'd7bf96a169f77b28c934ab1614f53f0824875d73' (Gradle Test (This is used for testing the gradle-signing-plugin) <test@gradle.org>) and passed verification but the key isn't in your trusted keys list.
   - On artifact foo-1.0.jar (org:foo:1.0) multiple problems reported:
       - in repository 'maven': artifact was signed but all keys were ignored
       - in repository 'maven': checksum is missing from verification metadata.
@@ -841,12 +949,12 @@ This can indicate that a dependency has been compromised. Please carefully verif
     def "passes verification if an artifact is signed with multiple keys and one of them is ignored"() {
         def keyring = newKeyRing()
         keyServerFixture.registerPublicKey(keyring.publicKey)
-        def pkId = toHexString(keyring.publicKey.keyID)
+        def pkId = toLongIdHexString(keyring.publicKey.keyID)
         createMetadataFile {
             keyServer(keyServerFixture.uri)
             verifySignatures()
             // only the new keyring key is published and available
-            addGloballyIgnoredKey(validPublicKeyHexString)
+            addGloballyIgnoredKey(validPublicKeyLongIdHexString)
             addTrustedKey("org:foo:1.0", pkId)
             addTrustedKey("org:foo:1.0", pkId, "pom", "pom")
         }
@@ -874,7 +982,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
     def "can collect multiple errors for single dependency"() {
         def keyring = newKeyRing()
         keyServerFixture.registerPublicKey(keyring.publicKey)
-        def pkId = toHexString(keyring.publicKey.keyID)
+        def pkId = Fingerprint.of(keyring.publicKey)
 
         createMetadataFile {
             keyServer(keyServerFixture.uri)
@@ -943,15 +1051,15 @@ This can indicate that a dependency has been compromised. Please carefully verif
     def "can mix globally trusted keys and artifact specific keys (trust artifact key = #addLocalKey)"() {
         def keyring = newKeyRing()
         keyServerFixture.registerPublicKey(keyring.publicKey)
-        def pkId = toHexString(keyring.publicKey.keyID)
+        def pkId = Fingerprint.of(keyring.publicKey)
 
         createMetadataFile {
             keyServer(keyServerFixture.uri)
             verifySignatures()
             addGloballyTrustedKey(validPublicKeyHexString, "o.*", "foo", null, null, true)
             if (addLocalKey) {
-                addTrustedKey("org:foo:1.0", pkId)
-                addTrustedKey("org:foo:1.0", pkId, "pom", "pom")
+                addTrustedKey("org:foo:1.0", pkId.toString())
+                addTrustedKey("org:foo:1.0", pkId.toString(), "pom", "pom")
             }
         }
 
@@ -994,7 +1102,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
     def "can read public keys from keyring"() {
         // key will not be published on the server fixture but available locally
         def keyring = newKeyRing()
-        def pkId = toHexString(keyring.publicKey.keyID)
+        def pkId = toLongIdHexString(keyring.publicKey.keyID)
 
         createMetadataFile {
             keyServer(keyServerFixture.uri)

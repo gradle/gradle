@@ -19,12 +19,12 @@ import com.google.common.collect.Sets;
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.bouncycastle.openpgp.PGPPublicKeyRing;
 import org.gradle.internal.logging.text.TreeFormatter;
+import org.gradle.security.internal.PublicKeyResultBuilder;
 import org.gradle.security.internal.PublicKeyService;
 
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 
 public class SignatureVerificationFailure extends AbstractVerificationFailure {
@@ -95,21 +95,28 @@ public class SignatureVerificationFailure extends AbstractVerificationFailure {
     }
 
     private void appendKeyDetails(StringBuilder sb, PGPPublicKey key) {
-        Optional<PGPPublicKeyRing> allKeys = keyService.findKeyRing(key.getKeyID());
-        Set<String> userIds = Sets.newTreeSet();
-        collectUserIds(userIds, key);
-        allKeys.ifPresent(keyring ->{
-            keyring.getPublicKeys().forEachRemaining(userkey -> {
-                collectUserIds(userIds, userkey);
-            });
+        keyService.findByFingerprint(key.getFingerprint(), new PublicKeyResultBuilder() {
+            @Override
+            public void keyRing(PGPPublicKeyRing keyring) {
+                Set<String> userIds = Sets.newTreeSet();
+                collectUserIds(userIds, key);
+                keyring.getPublicKeys().forEachRemaining(userkey -> {
+                    collectUserIds(userIds, userkey);
+                });
+                if (!userIds.isEmpty()) {
+                    sb.append("(");
+                }
+                sb.append(String.join(", ", userIds));
+                if (!userIds.isEmpty()) {
+                    sb.append(") ");
+                }
+            }
+
+            @Override
+            public void publicKey(PGPPublicKey publicKey) {
+
+            }
         });
-        if (!userIds.isEmpty()) {
-            sb.append("(");
-        }
-        sb.append(String.join(", ", userIds));
-        if (!userIds.isEmpty()) {
-            sb.append(") ");
-        }
     }
 
     private void collectUserIds(Set<String> userIds, PGPPublicKey userkey) {
