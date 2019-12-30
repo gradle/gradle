@@ -19,8 +19,6 @@ import org.apache.commons.io.FilenameUtils
 import org.gradle.plugins.ide.AbstractSourcesAndJavadocJarsIntegrationTest
 import org.gradle.test.fixtures.server.http.HttpArtifact
 
-import java.util.stream.Collectors
-
 class EclipseSourcesAndJavadocJarsIntegrationTest extends AbstractSourcesAndJavadocJarsIntegrationTest {
     @Override
     String getIdeTask() {
@@ -41,9 +39,9 @@ class EclipseSourcesAndJavadocJarsIntegrationTest extends AbstractSourcesAndJava
     void ideFileContainsGradleApiWithSources(String apiJarPrefix, String sourcesPath) {
         def classpath = EclipseClasspathFixture.create(testDirectory, executer.gradleUserHomeDir)
         def libs = classpath.libs
-        def apiLibs = libs.stream().filter { l ->
+        def apiLibs = libs.findAll { l ->
             l.jarName.startsWith(apiJarPrefix)
-        }.collect(Collectors.toList())
+        }
         assert apiLibs.size() == 1 : "gradle API jar not found"
         def apiLib = apiLibs.get(0)
         assert apiLib.sourcePath != null
