@@ -16,6 +16,7 @@
 
 import org.gradle.testing.performance.generator.tasks.*
 
+
 // === Gradle Build ===
 tasks.register("gradleBuildCurrent", RemoteProject) {
     remoteUri = rootDir.absolutePath
@@ -26,7 +27,7 @@ tasks.register("gradleBuildBaseline", RemoteProject) {
     remoteUri = rootDir.absolutePath
     // Remember to update accordingly when rebasing/squashing
     // Do not use the "Rebase and merge" nor "Squash and merge" Github buttons when merging a PR that change the baseline
-    ref = '592befd52079b1866d4e3c9103f364f75663e1e7'
+    ref = 'bc8ca568299c9b28b8a574502ecfb9de1fbc3eed'
 }
 
 // === Java ===

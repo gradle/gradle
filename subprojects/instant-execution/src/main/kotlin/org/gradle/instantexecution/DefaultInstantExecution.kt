@@ -16,6 +16,7 @@
 
 package org.gradle.instantexecution
 
+import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.internal.provider.sources.SystemPropertyValueSource
@@ -147,8 +148,10 @@ class DefaultInstantExecution internal constructor(
 
                 instantExecutionStateFile.createParentDirectories()
 
-                withWriteContextFor(instantExecutionStateFile, report) {
-                    encodeScheduledWork()
+                host.getService(ProjectStateRegistry::class.java).withLenientState {
+                    withWriteContextFor(instantExecutionStateFile, report) {
+                        encodeScheduledWork()
+                    }
                 }
                 withWriteContextFor(instantExecutionFingerprintFile, report) {
                     encodeFingerprint()
@@ -393,7 +396,6 @@ class DefaultInstantExecution internal constructor(
             classLoaderHierarchyHasher = service(),
             isolatableFactory = service(),
             valueSnapshotter = service(),
-            fileCollectionFingerprinterRegistry = service(),
             buildServiceRegistry = service(),
             managedFactoryRegistry = service(),
             parameterScheme = service(),

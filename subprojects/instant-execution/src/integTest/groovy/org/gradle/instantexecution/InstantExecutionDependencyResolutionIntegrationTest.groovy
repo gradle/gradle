@@ -65,7 +65,7 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
         outputContains("artifacts = [a.out (project :a), b.out (project :b), lib1-6500.jar (group:lib1:6500)]")
     }
 
-    def "task input files can include the output of artifact transform of project dependencies"() {
+    def "task input file collection can include the output of artifact transform of project dependencies"() {
         settingsFile << """
             include 'a', 'b'
         """
@@ -96,18 +96,18 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
         outputContains("result = [root.green, a.jar.green, b.jar.green]")
     }
 
-    def "task input files can include the output of artifact transform of external dependencies"() {
+    def "task input file collection can include the output of artifact transform of external dependencies"() {
         withColorVariants(mavenRepo.module("group", "thing1", "1.2")).publish()
         withColorVariants(mavenRepo.module("group", "thing2", "1.2")).publish()
 
         setupBuildWithSimpleColorTransform()
         buildFile << """
             repositories {
-                maven { 
-                    url = uri('${mavenRepo.uri}') 
+                maven {
+                    url = uri('${mavenRepo.uri}')
                     metadataSources { gradleMetadata() }
                 }
-            } 
+            }
             dependencies {
                 implementation "group:thing1:1.2"
                 implementation "group:thing2:1.2"
@@ -124,7 +124,7 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
         outputContains("result = [thing1-1.2.jar.green, thing2-1.2.jar.green]")
     }
 
-    def "task input files can include the output of artifact transforms of prebuilt file dependencies"() {
+    def "task input file collection can include the output of artifact transforms of prebuilt file dependencies"() {
         settingsFile << """
             include 'a'
         """
@@ -159,11 +159,11 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
         outputContains("result = [root.blue.green, a.jar.green, a.blue.green]")
     }
 
-    def "task input files can include the output of chained artifact transform of project dependencies"() {
+    def "task input file collection can include the output of chained artifact transform of project dependencies"() {
         settingsFile << """
             include 'a', 'b'
         """
-        setupBuildWithChainedSimpleColorTransform()
+        setupBuildWithChainedColorTransform()
         buildFile << """
             dependencies {
                 implementation project(':a')
@@ -181,5 +181,71 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
         result.assertTaskOrder(":b:producer", ":resolve")
         assertTransformed("a.jar", "a.jar.red", "b.jar", "b.jar.red")
         outputContains("result = [a.jar.red.green, b.jar.red.green")
+    }
+
+    def "task input file collection can include the output of artifact transform of project dependencies which takes the output of another transform as input parameter"() {
+        settingsFile << """
+            include 'a', 'b'
+        """
+        setupBuildWithColorTransformWithAnotherTransformOutputAsInput()
+        buildFile << """
+            dependencies {
+                implementation project(':a')
+                implementation project(':b')
+                transform project(':a')
+            }
+        """
+
+        expect:
+        instantRun(":resolve")
+        output.count("processing") == 3
+        outputContains("processing a.jar to make red")
+        outputContains("processing a.jar using [a.jar.red]")
+        outputContains("processing b.jar using [a.jar.red]")
+        outputContains("result = [a.jar.green, b.jar.green]")
+
+        instantRun(":resolve")
+        result.assertTaskOrder(":a:producer", ":resolve")
+        result.assertTaskOrder(":b:producer", ":resolve")
+        output.count("processing") == 3
+        outputContains("processing a.jar to make red")
+        outputContains("processing a.jar using [a.jar.red]")
+        outputContains("processing b.jar using [a.jar.red]")
+        outputContains("result = [a.jar.green, b.jar.green]")
+    }
+
+    def "task input file collection can include output of artifact transform of project dependencies which takes upstream artifacts"() {
+        settingsFile << """
+            include 'a', 'b', 'c'
+        """
+        setupBuildWithColorTransformThatTakesUpstreamArtifacts()
+        buildFile << """
+            dependencies {
+                implementation project(':a')
+            }
+            project(':a') {
+                dependencies {
+                    implementation project(':b')
+                    implementation project(':c')
+                }
+            }
+        """
+
+        expect:
+        instantRun(":resolve")
+        output.count("processing") == 3
+        outputContains("processing c.jar using []")
+        outputContains("processing b.jar using []")
+        outputContains("processing a.jar using [b.jar, c.jar]")
+        outputContains("result = [a.jar.green, b.jar.green, c.jar.green]")
+
+        instantRun(":resolve")
+        result.assertTaskOrder(":a:producer", ":resolve")
+        result.assertTaskOrder(":b:producer", ":resolve")
+        output.count("processing") == 3
+        outputContains("processing c.jar using []")
+        outputContains("processing b.jar using []")
+        outputContains("processing a.jar using [b.jar, c.jar]")
+        outputContains("result = [a.jar.green, b.jar.green, c.jar.green]")
     }
 }

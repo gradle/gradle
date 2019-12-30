@@ -713,18 +713,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public ExtraExecutionGraphDependenciesResolverFactory getDependenciesResolver() {
-        return new DefaultExtraExecutionGraphDependenciesResolverFactory(() -> getResultsForBuildDependencies(), () -> getResultsForArtifacts(), new WorkNodeAction() {
-            @Nullable
-            @Override
-            public Project getProject() {
-                return owner.getProject();
-            }
-
-            @Override
-            public void run(NodeExecutionContext context) {
-                resolveExclusively(GRAPH_RESOLVED);
-            }
-        }, fileCollectionFactory);
+        return new DefaultExtraExecutionGraphDependenciesResolverFactory(() -> getResultsForBuildDependencies(), () -> getResultsForArtifacts(), new ResolveGraphAction(this), fileCollectionFactory);
     }
 
     private ResolverResults getResultsForBuildDependencies() {
@@ -1377,7 +1366,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public DeprecatableConfiguration deprecateForResolution(String... alternativesForResolving) {
-        this.resolutionAlternatives =ImmutableList.copyOf(alternativesForResolving);
+        this.resolutionAlternatives = ImmutableList.copyOf(alternativesForResolving);
         return this;
     }
 
@@ -1790,4 +1779,27 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
+    public static class ResolveGraphAction implements WorkNodeAction {
+        private final DefaultConfiguration configuration;
+
+        public ResolveGraphAction(DefaultConfiguration configuration) {
+            this.configuration = configuration;
+        }
+
+        @Override
+        public String toString() {
+            return "resolve graph for " + configuration;
+        }
+
+        @Nullable
+        @Override
+        public Project getProject() {
+            return configuration.owner.getProject();
+        }
+
+        @Override
+        public void run(NodeExecutionContext context) {
+            configuration.resolveExclusively(GRAPH_RESOLVED);
+        }
+    }
 }
