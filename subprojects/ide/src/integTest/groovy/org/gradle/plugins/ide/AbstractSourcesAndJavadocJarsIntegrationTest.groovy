@@ -316,6 +316,31 @@ dependencies {
 
         then:
         ideFileContainsGradleApiWithSources("gradle-api", sourcesDir.getPath())
+
+        cleanup:
+        sourcesDir.forceDeleteDir()
+    }
+
+    @ToBeFixedForInstantExecution
+    def "sources for gradleApi() are downloaded and attached when not present"() {
+        given:
+        requireGradleDistribution()
+        TestFile sourcesDir = new TestFile(distribution.gradleHomeDir, "src")
+
+        buildScript """
+            apply plugin: "java"
+            apply plugin: "idea"
+            apply plugin: "eclipse"
+
+            dependencies {
+                implementation gradleApi()
+            }
+            """
+        when:
+        succeeds ideTask
+
+        then:
+        ideFileContainsGradleApiWithSources("gradle-api", sourcesDir.getPath())
     }
 
     @ToBeFixedForInstantExecution
@@ -340,6 +365,9 @@ dependencies {
         then:
         ideFileContainsGradleApiWithSources("gradle-test-kit", sourcesDir.getPath())
         ideFileContainsGradleApiWithSources("gradle-api", sourcesDir.getPath())
+
+        cleanup:
+        sourcesDir.forceDeleteDir()
     }
 
     private useIvyRepo(def repo) {
