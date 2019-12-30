@@ -26,7 +26,6 @@ public class DefaultGradleApiSourcesResolver implements GradleApiSourcesResolver
     @Override
     public File resolveGradleApiSources(File artifact) {
         GradleInstallation gradleInstallation = CurrentGradleInstallation.get();
-        // TODO: if source dir does not exist, we might want to download a distribution and repackage sources
         if (gradleInstallation == null || !gradleInstallation.getSrcDir().exists()) {
             return null;
         }
