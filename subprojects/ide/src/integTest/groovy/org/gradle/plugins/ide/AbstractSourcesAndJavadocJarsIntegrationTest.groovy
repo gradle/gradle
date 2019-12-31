@@ -366,6 +366,10 @@ dependencies {
 
         then:
         TestFile sourcesDir = new TestFile(distribution.gradleHomeDir, "src")
+        sourcesDir.assertContainsDescendants(
+            "submodule1/org/gradle/Test.java",
+            "submodule2/org/gradle/Test2.java"
+        )
         ideFileContainsGradleApiWithSources("gradle-api", sourcesDir)
 
         cleanup:
@@ -463,9 +467,14 @@ task resolve {
     void ideFileContainsEntry(String jar, String sources, String javadoc) {
         ideFileContainsEntry(jar, [sources], [javadoc])
     }
+
     abstract void ideFileContainsEntry(String jar, List<String> sources, List<String> javadoc)
+
     abstract void ideFileContainsGradleApiWithSources(String apiJarPrefix, TestFile sourcesDir)
+
     abstract void ideFileContainsNoSourcesAndJavadocEntry()
+
     abstract void expectBehaviorAfterBrokenMavenArtifact(HttpArtifact httpArtifact)
+
     abstract void expectBehaviorAfterBrokenIvyArtifact(HttpArtifact httpArtifact)
 }
