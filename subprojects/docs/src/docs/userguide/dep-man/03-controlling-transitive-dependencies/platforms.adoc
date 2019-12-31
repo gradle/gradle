@@ -1,7 +1,7 @@
-[[sec:using-platform-to-control-transitive-deps]]
+[[sec:sharing-dep-versions-between-projects]]
 = Sharing dependency versions between projects
 
-[[sub:sharing-dep-versions-between-projects]]
+[[sub:using-platform-to-control-transitive-deps]]
 == Using a platform to control transitive versions
 
 A <<dependency_management_terminology.adoc#sub::terminology_platform,platform>> is a special software component which can be used to control transitive dependency versions.
