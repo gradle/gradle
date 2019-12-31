@@ -16,32 +16,24 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
-import org.gradle.internal.Try;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
 import javax.annotation.Nullable;
-import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 
 class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArtifactListener {
     private final Map<ComponentArtifactIdentifier, TransformationResult> artifactResults;
-    private final ExecutionGraphDependenciesResolver dependenciesResolver;
     private final TransformationNodeRegistry transformationNodeRegistry;
-    @Nullable
-    private final NodeExecutionContext nodeExecutionContext;
-    private final boolean isEntryPoint;
-    private final BuildOperationQueue<RunnableBuildOperation> actions;
     private final Transformation transformation;
+    private final TransformQueue queue;
 
     TransformingAsyncArtifactListener(
         Transformation transformation,
@@ -49,17 +41,13 @@ class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArti
         Map<ComponentArtifactIdentifier, TransformationResult> artifactResults,
         ExecutionGraphDependenciesResolver dependenciesResolver,
         TransformationNodeRegistry transformationNodeRegistry,
-        @Nullable
-            NodeExecutionContext nodeExecutionContext,
+        @Nullable NodeExecutionContext nodeExecutionContext,
         boolean isEntryPoint
     ) {
+        this.queue = new TransformQueue(transformation, actions, artifactResults, dependenciesResolver, nodeExecutionContext, isEntryPoint);
         this.artifactResults = artifactResults;
-        this.actions = actions;
         this.transformation = transformation;
-        this.dependenciesResolver = dependenciesResolver;
         this.transformationNodeRegistry = transformationNodeRegistry;
-        this.nodeExecutionContext = nodeExecutionContext;
-        this.isEntryPoint = isEntryPoint;
     }
 
     @Override
@@ -69,28 +57,7 @@ class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArti
         if (node.isPresent()) {
             artifactResults.put(artifactId, new PrecomputedTransformationResult(node.get().getTransformedSubject()));
         } else {
-            // Ensure file is available
-            try {
-                artifact.getFile();
-            } catch (ResolveException e) {
-                artifactResults.put(artifactId, new PrecomputedTransformationResult(Try.failure(e)));
-                return;
-            } catch (RuntimeException e) {
-                artifactResults.put(artifactId,
-                    new PrecomputedTransformationResult(Try.failure(new DefaultLenientConfiguration.ArtifactResolveException("artifacts", transformation.getDisplayName(), "artifact transform", Collections.singleton(e)))));
-                return;
-            }
-            TransformationSubject subject = TransformationSubject.initial(artifact);
-            CacheableInvocation<TransformationSubject> invocation = transformation.createInvocation(subject, dependenciesResolver, nodeExecutionContext);
-            Optional<Try<TransformationSubject>> cachedResult = invocation.getCachedResult();
-            if (cachedResult.isPresent()) {
-                artifactResults.put(artifact.getId(), new PrecomputedTransformationResult(cachedResult.get()));
-            } else {
-                String displayName = "Transform " + subject.getDisplayName() + " with " + transformation.getDisplayName();
-                String progressDisplayName = isEntryPoint ? "Transforming " + subject.getDisplayName() + " with " + transformation.getDisplayName() : null;
-                TransformationOperation operation = new TransformationOperation(invocation, displayName, progressDisplayName, artifact.getId(), artifactResults);
-                actions.add(operation);
-            }
+            queue.artifactAvailable(artifact);
         }
     }
 
@@ -105,5 +72,4 @@ class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArti
         // Always need the files, as we need to run the transform in order to calculate the output artifacts.
         return true;
     }
-
 }

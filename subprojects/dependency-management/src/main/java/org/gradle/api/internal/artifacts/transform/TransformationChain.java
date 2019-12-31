@@ -18,6 +18,8 @@ package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
+import org.gradle.internal.operations.BuildOperationQueue;
+import org.gradle.internal.operations.RunnableBuildOperation;
 
 /**
  * A series of {@link TransformationStep}s.
@@ -57,9 +59,9 @@ public class TransformationChain implements Transformation {
     }
 
     @Override
-    public CacheableInvocation<TransformationSubject> createInvocation(TransformationSubject subjectToTransform, ExecutionGraphDependenciesResolver dependenciesResolver, NodeExecutionContext context) {
-        CacheableInvocation<TransformationSubject> invocation = first.createInvocation(subjectToTransform, dependenciesResolver, context);
-        return invocation.flatMap(intermediate -> second.createInvocation(intermediate, dependenciesResolver, context));
+    public CacheableInvocation<TransformationSubject> createInvocation(TransformationSubject subjectToTransform, ExecutionGraphDependenciesResolver dependenciesResolver, NodeExecutionContext context, BuildOperationQueue<RunnableBuildOperation> workQueue) {
+        CacheableInvocation<TransformationSubject> invocation = first.createInvocation(subjectToTransform, dependenciesResolver, context, workQueue);
+        return invocation.flatMap(intermediate -> second.createInvocation(intermediate, dependenciesResolver, context, workQueue));
     }
 
     @Override

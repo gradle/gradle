@@ -67,10 +67,10 @@ public class DefaultTransformationNodeRegistry implements TransformationNodeRegi
         TransformationNode transformationNode = transformations.get(key);
         if (transformationNode == null) {
             if (transformationChain.size() == 1) {
-                transformationNode = TransformationNode.initial(transformationChain.get(0).get(), artifact, dependenciesResolver, buildOperationExecutor, transformListener, this);
+                transformationNode = TransformationNode.initial(transformationChain.get(0).get(), artifact, dependenciesResolver, buildOperationExecutor, transformListener);
             } else {
                 TransformationNode previous = getOrCreateInternal(artifact, transformationChain.subList(0, transformationChain.size() - 1), dependenciesResolver);
-                transformationNode = TransformationNode.chained(transformationChain.get(transformationChain.size() - 1).get(), previous, dependenciesResolver, buildOperationExecutor, transformListener, this);
+                transformationNode = TransformationNode.chained(transformationChain.get(transformationChain.size() - 1).get(), previous, dependenciesResolver, buildOperationExecutor, transformListener);
             }
             transformations.put(key, transformationNode);
         }
