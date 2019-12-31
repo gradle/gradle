@@ -53,12 +53,12 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
     protected final ArtifactTransformListener transformListener;
     protected Try<TransformationSubject> transformedSubject;
 
-    public static ChainedTransformationNode chained(TransformationStep current, TransformationNode previous, ExecutionGraphDependenciesResolver executionGraphDependenciesResolver, BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener, TransformationNodeRegistry transformationNodeRegistry) {
-        return new ChainedTransformationNode(current, previous, executionGraphDependenciesResolver, buildOperationExecutor, transformListener, transformationNodeRegistry);
+    public static ChainedTransformationNode chained(TransformationStep current, TransformationNode previous, ExecutionGraphDependenciesResolver executionGraphDependenciesResolver, BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener) {
+        return new ChainedTransformationNode(current, previous, executionGraphDependenciesResolver, buildOperationExecutor, transformListener);
     }
 
-    public static InitialTransformationNode initial(TransformationStep initial, ResolvableArtifact artifact, ExecutionGraphDependenciesResolver executionGraphDependenciesResolver, BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener, TransformationNodeRegistry transformationNodeRegistry) {
-        return new InitialTransformationNode(initial, artifact, executionGraphDependenciesResolver, buildOperationExecutor, transformListener, transformationNodeRegistry);
+    public static InitialTransformationNode initial(TransformationStep initial, ResolvableArtifact artifact, ExecutionGraphDependenciesResolver executionGraphDependenciesResolver, BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener) {
+        return new InitialTransformationNode(initial, artifact, executionGraphDependenciesResolver, buildOperationExecutor, transformListener);
     }
 
     protected TransformationNode(TransformationStep transformationStep, ExecutionGraphDependenciesResolver dependenciesResolver, BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener) {
@@ -163,12 +163,10 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
 
     public static class InitialTransformationNode extends TransformationNode {
         private final ResolvableArtifact artifact;
-        private final TransformationNodeRegistry transformationNodeRegistry;
 
-        public InitialTransformationNode(TransformationStep transformationStep, ResolvableArtifact artifact, ExecutionGraphDependenciesResolver dependenciesResolver, BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener, TransformationNodeRegistry transformationNodeRegistry) {
+        public InitialTransformationNode(TransformationStep transformationStep, ResolvableArtifact artifact, ExecutionGraphDependenciesResolver dependenciesResolver, BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener) {
             super(transformationStep, dependenciesResolver, buildOperationExecutor, transformListener);
             this.artifact = artifact;
-            this.transformationNodeRegistry = transformationNodeRegistry;
         }
 
         public ResolvableArtifact getInputArtifact() {
@@ -181,9 +179,9 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
                 @Override
                 protected Try<TransformationSubject> transform() {
                     Map<ComponentArtifactIdentifier, TransformationResult> artifactResults = Maps.newConcurrentMap();
-                    buildOperationExecutor.runAll(queue -> {
-                        TransformingAsyncArtifactListener visitor = new TransformingAsyncArtifactListener(transformationStep, queue, artifactResults, getDependenciesResolver(), transformationNodeRegistry, context, false);
-                        visitor.artifactAvailable(artifact);
+                    buildOperationExecutor.runAll(workQueue -> {
+                        TransformQueue transformQueue = new TransformQueue(transformationStep, workQueue, artifactResults, getDependenciesResolver(), context, false);
+                        transformQueue.artifactAvailable(artifact);
                     });
                     return artifactResults.get(artifact.getId()).getTransformedSubject();
                 }
@@ -204,12 +202,10 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
 
     public static class ChainedTransformationNode extends TransformationNode {
         private final TransformationNode previousTransformationNode;
-        private final TransformationNodeRegistry transformationNodeRegistry;
 
-        public ChainedTransformationNode(TransformationStep transformationStep, TransformationNode previousTransformationNode, ExecutionGraphDependenciesResolver dependenciesResolver, BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener, TransformationNodeRegistry transformationNodeRegistry) {
+        public ChainedTransformationNode(TransformationStep transformationStep, TransformationNode previousTransformationNode, ExecutionGraphDependenciesResolver dependenciesResolver, BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener) {
             super(transformationStep, dependenciesResolver, buildOperationExecutor, transformListener);
             this.previousTransformationNode = previousTransformationNode;
-            this.transformationNodeRegistry = transformationNodeRegistry;
         }
 
         public TransformationNode getPreviousTransformationNode() {
@@ -223,10 +219,10 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
                 protected Try<TransformationSubject> transform() {
                     return previousTransformationNode.getTransformedSubject().flatMap(inputSubject -> {
                         Map<ComponentArtifactIdentifier, TransformationResult> artifactResults = Maps.newConcurrentMap();
-                        buildOperationExecutor.runAll(queue -> {
-                            TransformingAsyncArtifactListener visitor = new TransformingAsyncArtifactListener(transformationStep, queue, artifactResults, getDependenciesResolver(), transformationNodeRegistry, context, false);
+                        buildOperationExecutor.runAll(workQueue -> {
+                            TransformQueue transformQueue = new TransformQueue(transformationStep, workQueue, artifactResults, getDependenciesResolver(), context, false);
                             for (ResolvableArtifact artifact : inputSubject.getArtifacts()) {
-                                visitor.artifactAvailable(artifact);
+                                transformQueue.artifactAvailable(artifact);
                             }
                         });
                         ImmutableList.Builder<File> builder = ImmutableList.builderWithExpectedSize(artifactResults.size());

@@ -20,7 +20,10 @@ import com.google.common.base.Equivalence;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.internal.DomainObjectContext;
+import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
@@ -31,11 +34,14 @@ import org.gradle.api.internal.tasks.WorkNodeAction;
 import org.gradle.internal.Try;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.model.ModelContainer;
+import org.gradle.internal.operations.BuildOperationQueue;
+import org.gradle.internal.operations.RunnableBuildOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.Collections;
 
 /**
  * A single transformation step.
@@ -101,44 +107,40 @@ public class TransformationStep implements Transformation, TaskDependencyContain
     }
 
     @Override
-    public CacheableInvocation<TransformationSubject> createInvocation(TransformationSubject subjectToTransform, ExecutionGraphDependenciesResolver dependenciesResolver, @Nullable NodeExecutionContext context) {
-        if (LOGGER.isInfoEnabled()) {
-            LOGGER.info("Transforming {} with {}", subjectToTransform.getDisplayName(), transformer.getDisplayName());
-        }
-
-        FileCollectionFingerprinterRegistry fingerprinterRegistry = context != null ? context.getService(FileCollectionFingerprinterRegistry.class) : globalFingerprinterRegistry;
-        isolateTransformerParameters(fingerprinterRegistry);
-
-        Try<ArtifactTransformDependencies> resolvedDependencies = dependenciesResolver.forTransformer(transformer);
-        return resolvedDependencies
-            .map(dependencies -> {
-                ImmutableList<File> inputArtifacts = subjectToTransform.getFiles();
-                if (inputArtifacts.isEmpty()) {
-                    return CacheableInvocation.cached(Try.successful(subjectToTransform.createSubjectFromResult(ImmutableList.of())));
-                } else if (inputArtifacts.size() > 1) {
-                    return CacheableInvocation.nonCached(() ->
-                        doTransform(subjectToTransform, fingerprinterRegistry, dependencies, inputArtifacts)
-                    );
-                } else {
-                    File inputArtifact = inputArtifacts.iterator().next();
-                    return transformerInvocationFactory.createInvocation(transformer, inputArtifact, dependencies, subjectToTransform, fingerprinterRegistry)
-                        .map(subjectToTransform::createSubjectFromResult);
-                }
-            })
-            .getOrMapFailure(failure -> CacheableInvocation.cached(Try.failure(failure)));
-    }
-
-    private Try<TransformationSubject> doTransform(TransformationSubject subjectToTransform, FileCollectionFingerprinterRegistry fingerprinterRegistry, ArtifactTransformDependencies dependencies, ImmutableList<File> inputArtifacts) {
-        ImmutableList.Builder<File> builder = ImmutableList.builder();
-        for (File inputArtifact : inputArtifacts) {
-            Try<ImmutableList<File>> result = transformerInvocationFactory.createInvocation(transformer, inputArtifact, dependencies, subjectToTransform, fingerprinterRegistry).invoke();
-
-            if (result.getFailure().isPresent()) {
-                return Try.failure(result.getFailure().get());
+    public CacheableInvocation<TransformationSubject> createInvocation(TransformationSubject subjectToTransform, ExecutionGraphDependenciesResolver dependenciesResolver, @Nullable NodeExecutionContext context, BuildOperationQueue<RunnableBuildOperation> workQueue) {
+        return CacheableInvocation.nonCached(() -> {
+            if (LOGGER.isInfoEnabled()) {
+                LOGGER.info("Transforming {} with {}", subjectToTransform.getDisplayName(), transformer.getDisplayName());
             }
-            builder.addAll(result.get());
-        }
-        return Try.successful(subjectToTransform.createSubjectFromResult(builder.build()));
+
+            FileCollectionFingerprinterRegistry fingerprinterRegistry = context != null ? context.getService(FileCollectionFingerprinterRegistry.class) : globalFingerprinterRegistry;
+            isolateTransformerParameters(fingerprinterRegistry);
+            Try<ArtifactTransformDependencies> resolvedDependencies = dependenciesResolver.forTransformer(transformer);
+            if (!resolvedDependencies.isSuccessful()) {
+                return Try.failure(resolvedDependencies.getFailure().get());
+            }
+
+            ImmutableList.Builder<File> builder = ImmutableList.builderWithExpectedSize(subjectToTransform.getArtifacts().size());
+            for (ResolvableArtifact artifact : subjectToTransform.getArtifacts()) {
+                File inputArtifact;
+                try {
+                    inputArtifact = artifact.getFile();
+                } catch (ResolveException e) {
+                    // TODO - collect all the failures
+                    return Try.failure(e);
+                } catch (RuntimeException e) {
+                    return Try.failure(new DefaultLenientConfiguration.ArtifactResolveException("artifacts", artifact.getId().getDisplayName(), "artifact transform", Collections.singleton(e)));
+                }
+
+                Try<ImmutableList<File>> transformOutputs = transformerInvocationFactory.createInvocation(transformer, inputArtifact, resolvedDependencies.get(), subjectToTransform, fingerprinterRegistry).invoke();
+                if (!transformOutputs.isSuccessful()) {
+                    // TODO - collect all the failures
+                    return Try.failure(transformOutputs.getFailure().get());
+                }
+                builder.addAll(transformOutputs.get());
+            }
+            return Try.successful(subjectToTransform.createSubjectFromResult(builder.build()));
+        });
     }
 
     private void isolateTransformerParameters(FileCollectionFingerprinterRegistry fingerprinterRegistry) {
