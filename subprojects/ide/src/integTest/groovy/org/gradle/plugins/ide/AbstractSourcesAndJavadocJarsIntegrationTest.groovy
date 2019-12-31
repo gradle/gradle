@@ -345,8 +345,7 @@ dependencies {
                 }
             }
         }
-        zippedSources.createFile()
-        String distributionPath = "/distributions-snapshots/gradle-6.2-20191226230043+0000-src.zip"
+        String distributionPath = "/distributions-snapshots/gradle-${distribution.version.version}-src.zip"
         server.expectHead(distributionPath, zippedSources)
         server.expectGet(distributionPath, zippedSources)
 

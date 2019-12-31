@@ -76,9 +76,6 @@ public class DefaultGradleApiSourcesResolver implements GradleApiSourcesResolver
             a.setUrl(gradleRepoUrl() + repoName);
             a.metadataSources(IvyArtifactRepository.MetadataSources::artifact);
             a.patternLayout(layout -> {
-                /*if (isSnapshot(gradleVersion())) {
-                    layout.ivy("/dummy"); // avoids a lookup that interferes with version listing
-                }*/
                 layout.artifact("[module]-[revision](-[classifier])(.[ext])");
             });
         });
@@ -112,14 +109,6 @@ public class DefaultGradleApiSourcesResolver implements GradleApiSourcesResolver
         return project.getConfigurations().detachedConfiguration(dependency);
     }
 
-    private String repositoryNameFor(String gradleVersion) {
-        return isSnapshot(gradleVersion) ? "distributions-snapshots" : "distributions";
-    }
-
-    private boolean isSnapshot(String gradleVersion) {
-        return gradleVersion.contains("+");
-    }
-
     private String gradleVersion() {
         return project.getGradle().getGradleVersion();
     }
@@ -128,11 +117,17 @@ public class DefaultGradleApiSourcesResolver implements GradleApiSourcesResolver
         Map<String, String> sourceDependency = new HashMap<>();
         sourceDependency.put("group", "gradle");
         sourceDependency.put("name", "gradle");
-        //dependencyVersion(gradleVersion));
-        sourceDependency.put("version", "6.2-20191226230043+0000");
+        sourceDependency.put("version", gradleVersion());
         sourceDependency.put("classifier", "src");
         sourceDependency.put("ext", "zip");
         return project.getDependencies().create(sourceDependency);
     }
 
+    private static String repositoryNameFor(String gradleVersion) {
+        return isSnapshot(gradleVersion) ? "distributions-snapshots" : "distributions";
+    }
+
+    private static boolean isSnapshot(String gradleVersion) {
+        return gradleVersion.contains("+");
+    }
 }
