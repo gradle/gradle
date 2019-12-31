@@ -20,7 +20,10 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.attributes.Attribute;
+import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleInstallation;
 import org.gradle.util.GFileUtils;
@@ -30,6 +33,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class DefaultGradleApiSourcesResolver implements GradleApiSourcesResolver {
+
+    private static final Logger LOGGER = Logging.getLogger(DefaultGradleApiSourcesResolver.class);
 
     private static final String GRADLE_REPO_URL = "https://services.gradle.org/";
     private static final String GRADLE_REPO_URL_PROPERTY = "gradleSourcesRepoUrl";
@@ -53,8 +58,13 @@ public class DefaultGradleApiSourcesResolver implements GradleApiSourcesResolver
         }
         File srcDir = gradleInstallation.getSrcDir();
         if (!srcDir.exists()) {
-            File sources = downloadSources();
-            GFileUtils.moveExistingDirectory(sources, srcDir);
+            try {
+                File sources = downloadSources();
+                GFileUtils.moveExistingDirectory(sources, srcDir);
+            } catch (DefaultLenientConfiguration.ArtifactResolveException e) {
+                LOGGER.warn("Could not fetch Gradle sources distribution: " + e.getCause().getMessage());
+                return null;
+            }
         }
         return srcDir;
     }

@@ -303,7 +303,7 @@ dependencies {
     @ToBeFixedForInstantExecution
     def "sources for gradleApi() are resolved and attached when -all distribution is used"() {
         given:
-        requireGradleDistribution()
+        requireIsolatedGradleDistribution()
         TestFile sourcesDir = givenGradleSourcesExistInDistribution()
 
         buildScript """
@@ -320,16 +320,14 @@ dependencies {
         succeeds ideTask
 
         then:
+        assertContainsGradleSources(sourcesDir)
         ideFileContainsGradleApiWithSources("gradle-api", sourcesDir)
-
-        cleanup:
-        sourcesDir.forceDeleteDir()
     }
 
     @ToBeFixedForInstantExecution
     def "sources for gradleTestKit() are resolved and attached when -all distribution is used"() {
         given:
-        requireGradleDistribution()
+        requireIsolatedGradleDistribution()
         TestFile sourcesDir = givenGradleSourcesExistInDistribution()
 
         buildScript """
@@ -346,17 +344,15 @@ dependencies {
         succeeds ideTask
 
         then:
+        assertContainsGradleSources(sourcesDir)
         ideFileContainsGradleApiWithSources("gradle-test-kit", sourcesDir)
         ideFileContainsGradleApiWithSources("gradle-api", sourcesDir)
-
-        cleanup:
-        sourcesDir.forceDeleteDir()
     }
 
     @ToBeFixedForInstantExecution
     def "sources for gradleApi() are downloaded and attached when not present"() {
         given:
-        requireGradleDistribution()
+        requireIsolatedGradleDistribution()
         givenSourceDistributionExistsOnRemoteServer()
 
         buildScript """
@@ -377,15 +373,12 @@ dependencies {
         TestFile sourcesDir = new TestFile(distribution.gradleHomeDir, "src")
         assertContainsGradleSources(sourcesDir)
         ideFileContainsGradleApiWithSources("gradle-api", sourcesDir)
-
-        cleanup:
-        sourcesDir.forceDeleteDir()
     }
 
     @ToBeFixedForInstantExecution
     def "sources for gradleTestKit() are downloaded and attached when not present"() {
         given:
-        requireGradleDistribution()
+        requireIsolatedGradleDistribution()
         givenSourceDistributionExistsOnRemoteServer()
 
         buildScript """
@@ -407,14 +400,38 @@ dependencies {
         assertContainsGradleSources(sourcesDir)
         ideFileContainsGradleApiWithSources("gradle-test-kit", sourcesDir)
         ideFileContainsGradleApiWithSources("gradle-api", sourcesDir)
+    }
 
-        cleanup:
-        sourcesDir.forceDeleteDir()
+    @ToBeFixedForInstantExecution
+    def "skips gradleApi() sources when not present and not available on remote server"() {
+        given:
+        requireGradleDistribution()
+        TestFile sourcesDir = new TestFile(distribution.gradleHomeDir, "src")
+        sourcesDir.assertDoesNotExist()
+        server.expectHeadMissing("/distributions-snapshots/gradle-${distribution.version.version}-src.zip")
+
+        buildScript """
+            apply plugin: "java"
+            apply plugin: "idea"
+            apply plugin: "eclipse"
+
+            dependencies {
+                implementation gradleApi()
+            }
+            """
+
+        when:
+        args("-PgradleSourcesRepoUrl=$server.uri/")
+        succeeds ideTask
+
+        then:
+        sourcesDir.assertDoesNotExist()
+        ideFileContainsGradleApi("gradle-api")
     }
 
     private TestFile givenGradleSourcesExistInDistribution() {
         TestFile sourcesDir = distribution.gradleHomeDir.createDir("src")
-        sourcesDir.createFile("submodule/org/gradle/Test.java")
+        sourcesDir.createFile("submodule1/org/gradle/Test.java")
         sourcesDir.createFile("submodule2/org/gradle/Test2.java")
         return sourcesDir
     }
@@ -433,8 +450,8 @@ dependencies {
             }
         }
         String distributionPath = "/distributions-snapshots/gradle-${distribution.version.version}-src.zip"
-        server.expectHead(distributionPath, zippedSources)
-        server.expectGet(distributionPath, zippedSources)
+        server.allowGetOrHead(distributionPath, zippedSources)
+        server.allowGetMissing("${distributionPath}.sha1")
     }
 
     private static void assertContainsGradleSources(TestFile sourcesDir) {
@@ -507,6 +524,8 @@ task resolve {
     }
 
     abstract void ideFileContainsEntry(String jar, List<String> sources, List<String> javadoc)
+
+    abstract void ideFileContainsGradleApi(String apiJarPrefix)
 
     abstract void ideFileContainsGradleApiWithSources(String apiJarPrefix, TestFile sourcesDir)
 

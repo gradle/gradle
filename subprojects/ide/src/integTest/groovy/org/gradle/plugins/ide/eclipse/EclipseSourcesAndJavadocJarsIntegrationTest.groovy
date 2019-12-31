@@ -37,16 +37,26 @@ class EclipseSourcesAndJavadocJarsIntegrationTest extends AbstractSourcesAndJava
     }
 
     @Override
+    void ideFileContainsGradleApi(String apiJarPrefix) {
+        def apiLib = findApiLibrary(apiJarPrefix)
+        assert apiLib.sourcePath == null
+    }
+
+    @Override
     void ideFileContainsGradleApiWithSources(String apiJarPrefix, TestFile sourcesDir) {
+        def apiLib = findApiLibrary(apiJarPrefix)
+        assert apiLib.sourcePath != null
+        assert apiLib.sourcePath == FilenameUtils.separatorsToUnix(sourcesDir.getPath())
+    }
+
+    EclipseClasspathFixture.EclipseLibrary findApiLibrary(String apiJarPrefix) {
         def classpath = EclipseClasspathFixture.create(testDirectory, executer.gradleUserHomeDir)
         def libs = classpath.libs
         def apiLibs = libs.findAll { l ->
             l.jarName.startsWith(apiJarPrefix)
         }
         assert apiLibs.size() == 1 : "gradle API jar not found"
-        def apiLib = apiLibs.get(0)
-        assert apiLib.sourcePath != null
-        assert apiLib.sourcePath == FilenameUtils.separatorsToUnix(sourcesDir.getPath())
+        return apiLibs.get(0)
     }
 
     void ideFileContainsNoSourcesAndJavadocEntry() {
