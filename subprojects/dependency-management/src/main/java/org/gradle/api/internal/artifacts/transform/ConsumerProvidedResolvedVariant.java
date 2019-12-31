@@ -27,6 +27,7 @@ import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.Try;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
@@ -83,8 +84,8 @@ public class ConsumerProvidedResolvedVariant implements ResolvedArtifactSet, Con
         if (visitType == FileCollectionStructureVisitor.VisitType.NoContents) {
             return visitor -> visitor.endVisitCollection(ConsumerProvidedResolvedVariant.this);
         }
-        Map<ComponentArtifactIdentifier, TransformationResult> artifactResults = Maps.newConcurrentMap();
-        Completion result = delegate.startVisit(actions, new TransformingAsyncArtifactListener(transformation, actions, artifactResults, getDependenciesResolver(), transformationNodeRegistry, null, true));
+        Map<ComponentArtifactIdentifier, Try<TransformationSubject>> artifactResults = Maps.newConcurrentMap();
+        Completion result = delegate.startVisit(actions, new TransformingAsyncArtifactListener(transformation, actions, artifactResults, getDependenciesResolver(), transformationNodeRegistry));
         return new TransformCompletion(result, attributes, artifactResults);
     }
 

@@ -29,7 +29,6 @@ class TransformationNodeSpec extends Specification {
     def artifact = Mock(ResolvableArtifact)
     def dependencyResolver = Mock(TaskDependencyResolver)
     def transformerDependencies = Mock(TaskDependencyContainer)
-    def transformationNodeRegistry = Mock(TransformationNodeRegistry)
     def hardSuccessor = Mock(Action)
     def transformationStep = Mock(TransformationStep)
     def graphDependenciesResolver = Mock(ExecutionGraphDependenciesResolver)
@@ -43,7 +42,7 @@ class TransformationNodeSpec extends Specification {
         def isolationNode = node()
 
         given:
-        def node = TransformationNode.initial(transformationStep, artifact, graphDependenciesResolver, buildOperationExecutor, transformListener, transformationNodeRegistry)
+        def node = TransformationNode.initial(transformationStep, artifact, graphDependenciesResolver, buildOperationExecutor, transformListener)
 
         when:
         node.resolveDependencies(dependencyResolver, hardSuccessor)
@@ -64,10 +63,10 @@ class TransformationNodeSpec extends Specification {
         def container = Stub(TaskDependencyContainer)
         def additionalNode = node()
         def isolationNode = node()
-        def initialNode = TransformationNode.initial(Stub(TransformationStep), artifact, graphDependenciesResolver, buildOperationExecutor, transformListener, transformationNodeRegistry)
+        def initialNode = TransformationNode.initial(Stub(TransformationStep), artifact, graphDependenciesResolver, buildOperationExecutor, transformListener)
 
         given:
-        def node = TransformationNode.chained(transformationStep, initialNode, graphDependenciesResolver, buildOperationExecutor, transformListener, transformationNodeRegistry)
+        def node = TransformationNode.chained(transformationStep, initialNode, graphDependenciesResolver, buildOperationExecutor, transformListener)
 
         when:
         node.resolveDependencies(dependencyResolver, hardSuccessor)

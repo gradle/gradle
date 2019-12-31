@@ -21,32 +21,31 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
-import org.gradle.api.internal.tasks.NodeExecutionContext;
+import org.gradle.internal.Try;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
-import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.Optional;
 
 class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArtifactListener {
-    private final Map<ComponentArtifactIdentifier, TransformationResult> artifactResults;
+    private final BuildOperationQueue<RunnableBuildOperation> workQueue;
+    private final Map<ComponentArtifactIdentifier, Try<TransformationSubject>> artifactResults;
+    private final ExecutionGraphDependenciesResolver dependenciesResolver;
     private final TransformationNodeRegistry transformationNodeRegistry;
     private final Transformation transformation;
-    private final TransformQueue queue;
 
     TransformingAsyncArtifactListener(
         Transformation transformation,
-        BuildOperationQueue<RunnableBuildOperation> actions,
-        Map<ComponentArtifactIdentifier, TransformationResult> artifactResults,
+        BuildOperationQueue<RunnableBuildOperation> workQueue,
+        Map<ComponentArtifactIdentifier, Try<TransformationSubject>> artifactResults,
         ExecutionGraphDependenciesResolver dependenciesResolver,
-        TransformationNodeRegistry transformationNodeRegistry,
-        @Nullable NodeExecutionContext nodeExecutionContext,
-        boolean isEntryPoint
+        TransformationNodeRegistry transformationNodeRegistry
     ) {
-        this.queue = new TransformQueue(transformation, actions, artifactResults, dependenciesResolver, nodeExecutionContext, isEntryPoint);
+        this.workQueue = workQueue;
         this.artifactResults = artifactResults;
         this.transformation = transformation;
+        this.dependenciesResolver = dependenciesResolver;
         this.transformationNodeRegistry = transformationNodeRegistry;
     }
 
@@ -55,9 +54,9 @@ class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArti
         ComponentArtifactIdentifier artifactId = artifact.getId();
         Optional<TransformationNode> node = transformationNodeRegistry.getIfExecuted(artifactId, transformation);
         if (node.isPresent()) {
-            artifactResults.put(artifactId, new PrecomputedTransformationResult(node.get().getTransformedSubject()));
+            artifactResults.put(artifactId, node.get().getTransformedSubject());
         } else {
-            queue.artifactAvailable(artifact);
+            transformation.startTransformation(TransformationSubject.initial(artifact), dependenciesResolver, null, true, workQueue, (source, result) -> artifactResults.put(artifactId, result));
         }
     }
 

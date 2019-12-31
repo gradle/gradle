@@ -59,9 +59,16 @@ public class TransformationChain implements Transformation {
     }
 
     @Override
-    public CacheableInvocation<TransformationSubject> createInvocation(TransformationSubject subjectToTransform, ExecutionGraphDependenciesResolver dependenciesResolver, NodeExecutionContext context, BuildOperationQueue<RunnableBuildOperation> workQueue) {
-        CacheableInvocation<TransformationSubject> invocation = first.createInvocation(subjectToTransform, dependenciesResolver, context, workQueue);
-        return invocation.flatMap(intermediate -> second.createInvocation(intermediate, dependenciesResolver, context, workQueue));
+    public void startTransformation(TransformationSubject subjectToTransform, ExecutionGraphDependenciesResolver dependenciesResolver, NodeExecutionContext context, boolean isTopLevel, BuildOperationQueue<RunnableBuildOperation> workQueue, ResultReceiver resultReceiver) {
+        first.startTransformation(subjectToTransform, dependenciesResolver, context, isTopLevel, workQueue, (firstSource, intermediateResult) -> {
+            if (intermediateResult.isSuccessful()) {
+                second.startTransformation(intermediateResult.get(), dependenciesResolver, context, isTopLevel, workQueue, (source, result) -> {
+                    resultReceiver.completed(subjectToTransform, result);
+                });
+            } else {
+                resultReceiver.completed(subjectToTransform, intermediateResult);
+            }
+        });
     }
 
     @Override

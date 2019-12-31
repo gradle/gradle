@@ -16,7 +16,8 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
+import com.google.common.collect.ImmutableList;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.internal.Try;
 import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -24,28 +25,28 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
 import javax.annotation.Nullable;
-import java.util.Map;
+import java.io.File;
 
 class TransformationOperation implements RunnableBuildOperation {
-    private final CacheableInvocation<TransformationSubject> invocation;
-    private final ComponentArtifactIdentifier artifactIdentifier;
-    private final Map<ComponentArtifactIdentifier, TransformationResult> results;
+    private final CacheableInvocation<ImmutableList<File>> invocation;
     private final String displayName;
     @Nullable
     private final String progressDisplayName;
+    private final ResolvableArtifact artifact;
+    private final TransformationOperation.ResultReceiver resultReceiver;
 
-    TransformationOperation(CacheableInvocation<TransformationSubject> invocation, String displayName, @Nullable String progressDisplayName, ComponentArtifactIdentifier artifactIdentifier, Map<ComponentArtifactIdentifier, TransformationResult> results) {
+    TransformationOperation(CacheableInvocation<ImmutableList<File>> invocation, String displayName, @Nullable String progressDisplayName, ResolvableArtifact artifact, ResultReceiver resultReceiver) {
         this.displayName = displayName;
         this.invocation = invocation;
         this.progressDisplayName = progressDisplayName;
-        this.artifactIdentifier = artifactIdentifier;
-        this.results = results;
+        this.artifact = artifact;
+        this.resultReceiver = resultReceiver;
     }
 
     @Override
     public void run(@Nullable BuildOperationContext context) {
-        Try<TransformationSubject> transformedSubject = invocation.invoke();
-        results.put(artifactIdentifier, new PrecomputedTransformationResult(transformedSubject));
+        Try<ImmutableList<File>> transformedSubject = invocation.invoke();
+        resultReceiver.completed(artifact, transformedSubject);
     }
 
     @Override
@@ -53,5 +54,9 @@ class TransformationOperation implements RunnableBuildOperation {
         return BuildOperationDescriptor.displayName(displayName)
             .progressDisplayName(progressDisplayName)
             .operationType(BuildOperationCategory.UNCATEGORIZED);
+    }
+
+    interface ResultReceiver {
+        void completed(ResolvableArtifact source, Try<ImmutableList<File>> result);
     }
 }

@@ -16,11 +16,9 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.execution.plan.Node;
@@ -36,7 +34,6 @@ import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 import javax.annotation.Nullable;
-import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -178,12 +175,12 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
             this.transformedSubject = buildOperationExecutor.call(new ArtifactTransformationStepBuildOperation() {
                 @Override
                 protected Try<TransformationSubject> transform() {
-                    Map<ComponentArtifactIdentifier, TransformationResult> artifactResults = Maps.newConcurrentMap();
+                    TransformationSubject subject = TransformationSubject.initial(artifact);
+                    Map<TransformationSubject, Try<TransformationSubject>> results = Maps.newConcurrentMap();
                     buildOperationExecutor.runAll(workQueue -> {
-                        TransformQueue transformQueue = new TransformQueue(transformationStep, workQueue, artifactResults, getDependenciesResolver(), context, false);
-                        transformQueue.artifactAvailable(artifact);
+                        transformationStep.startTransformation(subject, getDependenciesResolver(), context, false, workQueue, results::put);
                     });
-                    return artifactResults.get(artifact.getId()).getTransformedSubject();
+                    return results.get(subject);
                 }
 
                 @Override
@@ -218,24 +215,11 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
                 @Override
                 protected Try<TransformationSubject> transform() {
                     return previousTransformationNode.getTransformedSubject().flatMap(inputSubject -> {
-                        Map<ComponentArtifactIdentifier, TransformationResult> artifactResults = Maps.newConcurrentMap();
+                        Map<TransformationSubject, Try<TransformationSubject>> results = Maps.newConcurrentMap();
                         buildOperationExecutor.runAll(workQueue -> {
-                            TransformQueue transformQueue = new TransformQueue(transformationStep, workQueue, artifactResults, getDependenciesResolver(), context, false);
-                            for (ResolvableArtifact artifact : inputSubject.getArtifacts()) {
-                                transformQueue.artifactAvailable(artifact);
-                            }
+                            transformationStep.startTransformation(inputSubject, getDependenciesResolver(), context, false, workQueue, results::put);
                         });
-                        ImmutableList.Builder<File> builder = ImmutableList.builderWithExpectedSize(artifactResults.size());
-                        for (ResolvableArtifact artifact : inputSubject.getArtifacts()) {
-                            TransformationResult result = artifactResults.get(artifact.getId());
-                            Try<TransformationSubject> transformedSubject = result.getTransformedSubject();
-                            if (!transformedSubject.isSuccessful()) {
-                                // TODO - should collect all of the failures
-                                return transformedSubject;
-                            }
-                            builder.addAll(transformedSubject.get().getFiles());
-                        }
-                        return Try.successful(inputSubject.createSubjectFromResult(builder.build()));
+                        return results.get(inputSubject);
                     });
                 }
 

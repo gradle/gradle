@@ -20,15 +20,16 @@ import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.internal.Try;
 
 import java.util.Map;
 
 public class TransformCompletion implements ResolvedArtifactSet.Completion {
     private final AttributeContainerInternal attributes;
     private final ResolvedArtifactSet.Completion delegate;
-    private final Map<ComponentArtifactIdentifier, TransformationResult> artifactResults;
+    private final Map<ComponentArtifactIdentifier, Try<TransformationSubject>> artifactResults;
 
-    public TransformCompletion(ResolvedArtifactSet.Completion delegate, AttributeContainerInternal attributes, Map<ComponentArtifactIdentifier, TransformationResult> artifactResults) {
+    public TransformCompletion(ResolvedArtifactSet.Completion delegate, AttributeContainerInternal attributes, Map<ComponentArtifactIdentifier, Try<TransformationSubject>> artifactResults) {
         this.delegate = delegate;
         this.attributes = attributes;
         this.artifactResults = artifactResults;
