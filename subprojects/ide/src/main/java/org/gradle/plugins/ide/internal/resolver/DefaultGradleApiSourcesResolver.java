@@ -31,6 +31,9 @@ import java.util.Map;
 
 public class DefaultGradleApiSourcesResolver implements GradleApiSourcesResolver {
 
+    private static final String GRADLE_REPO_URL = "https://services.gradle.org/";
+    private static final String GRADLE_REPO_URL_PROPERTY = "gradleSourcesRepoUrl";
+
     private final ProjectInternal project;
 
     private final Attribute<String> artifactType = Attribute.of("artifactType", String.class);
@@ -48,17 +51,29 @@ public class DefaultGradleApiSourcesResolver implements GradleApiSourcesResolver
         if (gradleInstallation == null) {
             return null;
         }
-        if (!gradleInstallation.getSrcDir().exists()) {
-            downloadSources(gradleInstallation.getSrcDir());
+        File srcDir = gradleInstallation.getSrcDir();
+        if (!srcDir.exists()) {
+            File sources = downloadSources();
+            GFileUtils.moveExistingDirectory(sources, srcDir);
         }
-        return gradleInstallation.getSrcDir();
+        return srcDir;
     }
 
-    private void downloadSources(File srcDir) {
-        IvyArtifactRepository repository = project.getRepositories().ivy(a -> {
+    private File downloadSources() {
+        IvyArtifactRepository repository = addGradleSourcesRepository();
+        try {
+            registerTransforms();
+            return transientConfigurationForSourcesDownload();
+        } finally {
+            project.getRepositories().remove(repository);
+        }
+    }
+
+    private IvyArtifactRepository addGradleSourcesRepository() {
+        return project.getRepositories().ivy(a -> {
             String repoName = repositoryNameFor(gradleVersion());
             a.setName("Gradle " + repoName);
-            a.setUrl("https://services.gradle.org/" + repoName);
+            a.setUrl(gradleRepoUrl() + repoName);
             a.metadataSources(IvyArtifactRepository.MetadataSources::artifact);
             a.patternLayout(layout -> {
                 /*if (isSnapshot(gradleVersion())) {
@@ -67,13 +82,13 @@ public class DefaultGradleApiSourcesResolver implements GradleApiSourcesResolver
                 layout.artifact("[module]-[revision](-[classifier])(.[ext])");
             });
         });
-        registerTransforms();
-        try {
-            File sources = transientConfigurationForSourcesDownload();
-            GFileUtils.moveExistingDirectory(sources, srcDir);
-        } finally {
-            project.getRepositories().remove(repository);
+    }
+
+    private Object gradleRepoUrl() {
+        if (project.hasProperty(GRADLE_REPO_URL_PROPERTY)) {
+            return project.findProperty(GRADLE_REPO_URL_PROPERTY);
         }
+        return GRADLE_REPO_URL;
     }
 
     private void registerTransforms() {

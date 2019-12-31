@@ -17,11 +17,16 @@ package org.gradle.plugins.ide
 
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.server.http.*
+import org.gradle.test.fixtures.server.http.HttpArtifact
+import org.gradle.test.fixtures.server.http.HttpServer
+import org.gradle.test.fixtures.server.http.IvyHttpModule
+import org.gradle.test.fixtures.server.http.IvyHttpRepository
+import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.junit.Rule
 
 abstract class AbstractSourcesAndJavadocJarsIntegrationTest extends AbstractIdeIntegrationSpec {
-    @Rule HttpServer server
+    @Rule
+    HttpServer server
 
     def setup() {
         server.start()
@@ -312,6 +317,7 @@ dependencies {
                 implementation gradleApi()
             }
             """
+
         when:
         succeeds ideTask
 
@@ -326,7 +332,23 @@ dependencies {
     def "sources for gradleApi() are downloaded and attached when not present"() {
         given:
         requireGradleDistribution()
-        TestFile sourcesDir = new TestFile(distribution.gradleHomeDir, "src")
+
+        TestFile zippedSources = createZip("gradle-src.zip") {
+            root {
+                subprojects {
+                    submodule1 {
+                        file("/src/main/java/org/gradle/Test.java")
+                    }
+                    submodule2 {
+                        file("/src/main/java/org/gradle/Test2.java")
+                    }
+                }
+            }
+        }
+        zippedSources.createFile()
+        String distributionPath = "/distributions-snapshots/gradle-6.2-20191226230043+0000-src.zip"
+        server.expectHead(distributionPath, zippedSources)
+        server.expectGet(distributionPath, zippedSources)
 
         buildScript """
             apply plugin: "java"
@@ -337,10 +359,13 @@ dependencies {
                 implementation gradleApi()
             }
             """
+
         when:
+        args("-PgradleSourcesRepoUrl=$server.uri/")
         succeeds ideTask
 
         then:
+        TestFile sourcesDir = new TestFile(distribution.gradleHomeDir, "src")
         ideFileContainsGradleApiWithSources("gradle-api", sourcesDir)
 
         cleanup:
@@ -364,6 +389,7 @@ dependencies {
                 implementation gradleTestKit()
             }
             """
+
         when:
         succeeds ideTask
 
