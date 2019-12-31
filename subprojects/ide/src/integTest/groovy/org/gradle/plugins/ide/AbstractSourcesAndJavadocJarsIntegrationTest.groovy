@@ -304,9 +304,7 @@ dependencies {
     def "sources for gradleApi() are resolved and attached when -all distribution is used"() {
         given:
         requireGradleDistribution()
-        TestFile sourcesDir = distribution.gradleHomeDir.createDir("src")
-        sourcesDir.createFile("submodule1/org/gradle/Test.java").writelns("package org.gradle;", "public class Test {}")
-        sourcesDir.createFile("submodule2/org/gradle/Test2.java").writelns("package org.gradle;", "public class Test2 {}")
+        TestFile sourcesDir = givenGradleSourcesExistInDistribution()
 
         buildScript """
             apply plugin: "java"
@@ -332,9 +330,7 @@ dependencies {
     def "sources for gradleTestKit() are resolved and attached when -all distribution is used"() {
         given:
         requireGradleDistribution()
-        TestFile sourcesDir = distribution.gradleHomeDir.createDir("src")
-        sourcesDir.createFile("submodule/org/gradle/Test.java").writelns("package org.gradle;", "public class Test {}")
-        sourcesDir.createFile("submodule2/org/gradle/Test2.java").writelns("package org.gradle;", "public class Test2 {}")
+        TestFile sourcesDir = givenGradleSourcesExistInDistribution()
 
         buildScript """
             apply plugin: "java"
@@ -379,10 +375,7 @@ dependencies {
 
         then:
         TestFile sourcesDir = new TestFile(distribution.gradleHomeDir, "src")
-        sourcesDir.assertContainsDescendants(
-            "submodule1/org/gradle/Test.java",
-            "submodule2/org/gradle/Test2.java"
-        )
+        assertContainsGradleSources(sourcesDir)
         ideFileContainsGradleApiWithSources("gradle-api", sourcesDir)
 
         cleanup:
@@ -411,15 +404,19 @@ dependencies {
 
         then:
         TestFile sourcesDir = new TestFile(distribution.gradleHomeDir, "src")
-        sourcesDir.assertContainsDescendants(
-            "submodule1/org/gradle/Test.java",
-            "submodule2/org/gradle/Test2.java"
-        )
+        assertContainsGradleSources(sourcesDir)
         ideFileContainsGradleApiWithSources("gradle-test-kit", sourcesDir)
         ideFileContainsGradleApiWithSources("gradle-api", sourcesDir)
 
         cleanup:
         sourcesDir.forceDeleteDir()
+    }
+
+    private TestFile givenGradleSourcesExistInDistribution() {
+        TestFile sourcesDir = distribution.gradleHomeDir.createDir("src")
+        sourcesDir.createFile("submodule/org/gradle/Test.java")
+        sourcesDir.createFile("submodule2/org/gradle/Test2.java")
+        return sourcesDir
     }
 
     private void givenSourceDistributionExistsOnRemoteServer() {
@@ -438,6 +435,13 @@ dependencies {
         String distributionPath = "/distributions-snapshots/gradle-${distribution.version.version}-src.zip"
         server.expectHead(distributionPath, zippedSources)
         server.expectGet(distributionPath, zippedSources)
+    }
+
+    private static void assertContainsGradleSources(TestFile sourcesDir) {
+        sourcesDir.assertContainsDescendants(
+            "submodule1/org/gradle/Test.java",
+            "submodule2/org/gradle/Test2.java"
+        )
     }
 
     private useIvyRepo(def repo) {
