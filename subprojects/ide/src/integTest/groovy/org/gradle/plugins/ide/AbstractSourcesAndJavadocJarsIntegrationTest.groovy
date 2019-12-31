@@ -329,53 +329,6 @@ dependencies {
     }
 
     @ToBeFixedForInstantExecution
-    def "sources for gradleApi() are downloaded and attached when not present"() {
-        given:
-        requireGradleDistribution()
-
-        TestFile zippedSources = createZip("gradle-src.zip") {
-            root {
-                subprojects {
-                    submodule1 {
-                        file("/src/main/java/org/gradle/Test.java")
-                    }
-                    submodule2 {
-                        file("/src/main/java/org/gradle/Test2.java")
-                    }
-                }
-            }
-        }
-        String distributionPath = "/distributions-snapshots/gradle-${distribution.version.version}-src.zip"
-        server.expectHead(distributionPath, zippedSources)
-        server.expectGet(distributionPath, zippedSources)
-
-        buildScript """
-            apply plugin: "java"
-            apply plugin: "idea"
-            apply plugin: "eclipse"
-
-            dependencies {
-                implementation gradleApi()
-            }
-            """
-
-        when:
-        args("-PgradleSourcesRepoUrl=$server.uri/")
-        succeeds ideTask
-
-        then:
-        TestFile sourcesDir = new TestFile(distribution.gradleHomeDir, "src")
-        sourcesDir.assertContainsDescendants(
-            "submodule1/org/gradle/Test.java",
-            "submodule2/org/gradle/Test2.java"
-        )
-        ideFileContainsGradleApiWithSources("gradle-api", sourcesDir)
-
-        cleanup:
-        sourcesDir.forceDeleteDir()
-    }
-
-    @ToBeFixedForInstantExecution
     def "sources for gradleTestKit() are resolved and attached when -all distribution is used"() {
         given:
         requireGradleDistribution()
@@ -404,6 +357,89 @@ dependencies {
         sourcesDir.forceDeleteDir()
     }
 
+    @ToBeFixedForInstantExecution
+    def "sources for gradleApi() are downloaded and attached when not present"() {
+        given:
+        requireGradleDistribution()
+        givenSourceDistributionExistsOnRemoteServer()
+
+        buildScript """
+            apply plugin: "java"
+            apply plugin: "idea"
+            apply plugin: "eclipse"
+
+            dependencies {
+                implementation gradleApi()
+            }
+            """
+
+        when:
+        args("-PgradleSourcesRepoUrl=$server.uri/")
+        succeeds ideTask
+
+        then:
+        TestFile sourcesDir = new TestFile(distribution.gradleHomeDir, "src")
+        sourcesDir.assertContainsDescendants(
+            "submodule1/org/gradle/Test.java",
+            "submodule2/org/gradle/Test2.java"
+        )
+        ideFileContainsGradleApiWithSources("gradle-api", sourcesDir)
+
+        cleanup:
+        sourcesDir.forceDeleteDir()
+    }
+
+    @ToBeFixedForInstantExecution
+    def "sources for gradleTestKit() are downloaded and attached when not present"() {
+        given:
+        requireGradleDistribution()
+        givenSourceDistributionExistsOnRemoteServer()
+
+        buildScript """
+            apply plugin: "java"
+            apply plugin: "idea"
+            apply plugin: "eclipse"
+
+            dependencies {
+                implementation gradleTestKit()
+            }
+            """
+
+        when:
+        args("-PgradleSourcesRepoUrl=$server.uri/")
+        succeeds ideTask
+
+        then:
+        TestFile sourcesDir = new TestFile(distribution.gradleHomeDir, "src")
+        sourcesDir.assertContainsDescendants(
+            "submodule1/org/gradle/Test.java",
+            "submodule2/org/gradle/Test2.java"
+        )
+        ideFileContainsGradleApiWithSources("gradle-test-kit", sourcesDir)
+        ideFileContainsGradleApiWithSources("gradle-api", sourcesDir)
+
+        cleanup:
+        sourcesDir.forceDeleteDir()
+    }
+
+    private void givenSourceDistributionExistsOnRemoteServer() {
+        TestFile zippedSources = createZip("gradle-src.zip") {
+            root {
+                subprojects {
+                    submodule1 {
+                        file("/src/main/java/org/gradle/Test.java")
+                    }
+                    submodule2 {
+                        file("/src/main/java/org/gradle/Test2.java")
+                    }
+                }
+            }
+        }
+        String distributionPath = "/distributions-snapshots/gradle-${distribution.version.version}-src.zip"
+        server.expectHead(distributionPath, zippedSources)
+        server.expectGet(distributionPath, zippedSources)
+    }
+
     private useIvyRepo(def repo) {
         buildFile << """repositories { ivy { url "$repo.uri" } }"""
     }
@@ -411,7 +447,6 @@ dependencies {
     private useMavenRepo(def repo) {
         buildFile << """repositories { maven { url "$repo.uri" } }"""
     }
-
 
     private static void addCompleteConfigurations(IvyHttpModule module) {
         module.configuration("default")
