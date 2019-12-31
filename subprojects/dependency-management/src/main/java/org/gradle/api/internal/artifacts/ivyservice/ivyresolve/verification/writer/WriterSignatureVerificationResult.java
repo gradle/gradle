@@ -17,10 +17,9 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.wri
 
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.gradle.api.internal.artifacts.verification.signatures.SignatureVerificationResultBuilder;
+import org.gradle.security.internal.Fingerprint;
 
 import java.util.Set;
-
-import static org.gradle.security.internal.SecuritySupport.toHexString;
 
 class WriterSignatureVerificationResult implements SignatureVerificationResultBuilder {
     private final Set<String> ignoredKeys;
@@ -39,13 +38,13 @@ class WriterSignatureVerificationResult implements SignatureVerificationResultBu
 
     @Override
     public void verified(PGPPublicKey key, boolean trusted) {
-        String keyId = toHexString(key.getKeyID());
+        String keyId = Fingerprint.of(key).toString();
         entry.addVerifiedKey(keyId);
     }
 
     @Override
     public void failed(PGPPublicKey key) {
-        String keyId = toHexString(key.getKeyID());
+        String keyId = Fingerprint.of(key).toString();
         entry.fail(keyId);
     }
 

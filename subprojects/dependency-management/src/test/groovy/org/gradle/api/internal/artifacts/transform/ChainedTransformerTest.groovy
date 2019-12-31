@@ -18,19 +18,32 @@ package org.gradle.api.internal.artifacts.transform
 
 import com.google.common.collect.ImmutableList
 import org.gradle.api.Action
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
 import org.gradle.api.internal.tasks.NodeExecutionContext
 import org.gradle.internal.Try
+import org.gradle.internal.operations.BuildOperationQueue
+import org.gradle.internal.operations.RunnableBuildOperation
 import spock.lang.Specification
 
 class ChainedTransformerTest extends Specification {
-    private TransformationSubject initialSubject = TransformationSubject.initial(new File("foo"))
 
     def "applies second transform on the result of the first"() {
         given:
+        def initialSubject = subject()
         def chain = new TransformationChain(new TestTransformation("first"), new TestTransformation("second"))
+        def receiver = Mock(Transformation.ResultReceiver)
 
-        expect:
-        chain.createInvocation(initialSubject, Mock(ExecutionGraphDependenciesResolver), null).invoke().get().files == [new File("foo/first/second")]
+        when:
+        chain.startTransformation(initialSubject, Mock(ExecutionGraphDependenciesResolver), null, true, Stub(BuildOperationQueue), receiver)
+
+        then:
+        1 * receiver.completed(initialSubject, { it.get().files == [new File("foo/first/second")] })
+    }
+
+    private TransformationSubject subject() {
+        def artifact = Stub(ResolvableArtifact)
+        _ * artifact.file >> new File("foo")
+        TransformationSubject.initial(artifact)
     }
 
     class TestTransformation implements Transformation {
@@ -42,8 +55,8 @@ class ChainedTransformerTest extends Specification {
         }
 
         @Override
-        CacheableInvocation<TransformationSubject> createInvocation(TransformationSubject subjectToTransform, ExecutionGraphDependenciesResolver dependenciesResolver, NodeExecutionContext context) {
-            return CacheableInvocation.cached(Try.successful(
+        void startTransformation(TransformationSubject subjectToTransform, ExecutionGraphDependenciesResolver dependenciesResolver, NodeExecutionContext context, boolean isTopLevel, BuildOperationQueue<RunnableBuildOperation> workQueue, ResultReceiver resultReceiver) {
+            resultReceiver.completed(subjectToTransform, Try.successful(
                 subjectToTransform.createSubjectFromResult(ImmutableList.of(new File(subjectToTransform.files.first(), name)))
             ))
         }

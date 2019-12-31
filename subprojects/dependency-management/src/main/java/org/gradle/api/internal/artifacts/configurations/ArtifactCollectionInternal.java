@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.transform;
+package org.gradle.api.internal.artifacts.configurations;
 
-import org.gradle.internal.Try;
+import org.gradle.api.artifacts.ArtifactCollection;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 
-public interface TransformationResult {
-    Try<TransformationSubject> getTransformedSubject();
+public interface ArtifactCollectionInternal extends ArtifactCollection {
+    void visitArtifacts(ArtifactVisitor visitor);
 }

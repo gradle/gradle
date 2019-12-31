@@ -18,10 +18,11 @@ package org.gradle.security.fixtures
 
 import org.bouncycastle.bcpg.ArmoredOutputStream
 import org.bouncycastle.openpgp.PGPPublicKey
+import org.gradle.security.internal.Fingerprint
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.HttpServer
 
-import static org.gradle.security.internal.SecuritySupport.toHexString
+import static org.gradle.security.internal.SecuritySupport.toLongIdHexString
 
 class KeyServer extends HttpServer {
 
@@ -46,15 +47,17 @@ class KeyServer extends HttpServer {
     }
 
     void registerPublicKey(PGPPublicKey key) {
-        String keyId = toHexString(key.keyID)
-        def keyFile = baseDirectory.createFile("${keyId}.asc")
+        String longKeyId = toLongIdHexString(key.keyID)
+        String fingerprint = Fingerprint.of(key).toString()
+        def keyFile = baseDirectory.createFile("${longKeyId}.asc")
         keyFile.deleteOnExit()
         keyFile.newOutputStream().withCloseable { out ->
             new ArmoredOutputStream(out).withCloseable {
                 key.encode(it)
             }
         }
-        registerKey(keyId, keyFile)
+        registerKey(longKeyId, keyFile)
+        registerKey(fingerprint, keyFile)
     }
 
     private void registerKey(String keyId, File keyFile) {
@@ -66,6 +69,7 @@ class KeyServer extends HttpServer {
         File publicKeyFile = new File(dir, "public-key.asc")
         publicKeyFile.deleteOnExit()
         SigningFixtures.writeValidPublicKeyTo(publicKeyFile)
+        registerKey(SigningFixtures.validPublicKeyLongIdHexString, publicKeyFile)
         registerKey(SigningFixtures.validPublicKeyHexString, publicKeyFile)
     }
 

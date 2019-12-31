@@ -22,6 +22,7 @@ import org.bouncycastle.openpgp.PGPUtil;
 import org.bouncycastle.openpgp.operator.bc.BcKeyFingerprintCalculator;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.io.ExponentialBackoff;
 import org.gradle.internal.resource.transfer.ExternalResourceAccessor;
 import org.gradle.internal.resource.transfer.ExternalResourceReadResponse;
@@ -32,13 +33,14 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
-import static org.gradle.security.internal.SecuritySupport.toHexString;
+import static org.gradle.security.internal.SecuritySupport.toLongIdHexString;
 
 public class PublicKeyDownloadService implements PublicKeyService {
     private final static Logger LOGGER = Logging.getLogger(PublicKeyDownloadService.class);
@@ -52,52 +54,50 @@ public class PublicKeyDownloadService implements PublicKeyService {
     }
 
     @Override
-    public Optional<PGPPublicKey> findPublicKey(long id) {
-        Optional<PGPPublicKeyRing> keyRing = findKeyRing(id);
-        if (keyRing.isPresent()) {
-            return findMatchingKey(id, keyRing.get());
-        }
-        return Optional.empty();
+    public void findByLongId(long keyId, PublicKeyResultBuilder builder) {
+        List<URI> servers = new ArrayList<>(keyServers);
+        Collections.shuffle(servers);
+        tryDownloadKeyFromServer(toLongIdHexString(keyId), servers, builder, keyring -> findMatchingKey(keyId, keyring, builder));
     }
 
     @Override
-    public Optional<PGPPublicKeyRing> findKeyRing(long id) {
+    public void findByFingerprint(byte[] fingerprint, PublicKeyResultBuilder builder) {
         List<URI> servers = new ArrayList<>(keyServers);
         Collections.shuffle(servers);
-        return tryDownloadKeyFromServer(id, servers);
+        tryDownloadKeyFromServer(Fingerprint.wrap(fingerprint).toString(), servers, builder, keyring -> findMatchingKey(fingerprint, keyring, builder));
     }
 
     @SuppressWarnings("OptionalAssignedToNull")
-    private Optional<PGPPublicKeyRing> tryDownloadKeyFromServer(long id, List<URI> baseUris) {
+    private void tryDownloadKeyFromServer(String fingerprint, List<URI> baseUris, PublicKeyResultBuilder builder, Consumer<? super PGPPublicKeyRing> onKeyring) {
         Deque<URI> serversLeft = new ArrayDeque<>(baseUris);
         try {
             ExponentialBackoff<ExponentialBackoff.Signal> backoff = ExponentialBackoff.of(5, TimeUnit.SECONDS, 50, TimeUnit.MILLISECONDS);
-            Optional<PGPPublicKeyRing> key = backoff.retryUntil(() -> {
+            backoff.retryUntil(() -> {
                 URI baseUri = serversLeft.poll();
                 if (baseUri == null) {
                     // no more servers left despite retries
-                    return Optional.empty();
+                    return false;
                 }
                 try {
-                    URI query = toQuery(baseUri, id);
+                    URI query = toQuery(baseUri, fingerprint);
                     ExternalResourceReadResponse response = client.openResource(query, false);
                     if (response != null) {
-                        return Optional.of(findKeyRing(response));
+                        extractKeyRing(response, builder, onKeyring);
+                        return true;
                     } else {
-                        logKeyDownloadAttempt(id, baseUri);
+                        logKeyDownloadAttempt(fingerprint, baseUri);
                         // null means the resource is missing from this repo
                     }
                 } catch (Exception e) {
-                    logKeyDownloadAttempt(id, baseUri);
+                    logKeyDownloadAttempt(fingerprint, baseUri);
                     // add for retry
                     serversLeft.add(baseUri);
                 }
                 // retry
                 return null;
             });
-            return key == null ? Optional.empty() : key;
         } catch (InterruptedException | IOException e) {
-            return Optional.empty();
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -105,38 +105,52 @@ public class PublicKeyDownloadService implements PublicKeyService {
      * A response was sent from the server. This is a keyring, we need to find
      * within the keyring the matching key.
      */
-    private Optional<PGPPublicKey> findMatchingKey(long id, PGPPublicKeyRing keyRing) {
+    private void findMatchingKey(long id, PGPPublicKeyRing keyRing, PublicKeyResultBuilder builder) {
         for (PGPPublicKey publicKey : keyRing) {
             if (publicKey.getKeyID() == id) {
-                return Optional.of(publicKey);
+                builder.publicKey(publicKey);
+                return;
             }
         }
-        return Optional.empty();
     }
 
-    private PGPPublicKeyRing findKeyRing(ExternalResourceReadResponse response) throws IOException {
+    /**
+     * A response was sent from the server. This is a keyring, we need to find
+     * within the keyring the matching key.
+     */
+    private void findMatchingKey(byte[] fingerprint, PGPPublicKeyRing keyRing, PublicKeyResultBuilder builder) {
+        for (PGPPublicKey publicKey : keyRing) {
+            if (Arrays.equals(publicKey.getFingerprint(), fingerprint)) {
+                builder.publicKey(publicKey);
+                return;
+            }
+        }
+    }
+
+    private void extractKeyRing(ExternalResourceReadResponse response, PublicKeyResultBuilder builder, Consumer<? super PGPPublicKeyRing> onKeyring) throws IOException {
 
         try (InputStream stream = response.openStream();
              InputStream decoderStream = PGPUtil.getDecoderStream(stream)) {
             PGPObjectFactory objectFactory = new PGPObjectFactory(
                 decoderStream, new BcKeyFingerprintCalculator());
-            return (PGPPublicKeyRing) objectFactory.nextObject();
+            PGPPublicKeyRing keyring = (PGPPublicKeyRing) objectFactory.nextObject();
+            onKeyring.accept(keyring);
+            builder.keyRing(keyring);
         }
     }
 
-    private static void logKeyDownloadAttempt(long id, URI baseUri) {
-        LOGGER.debug("Cannot download public key " + toHexString(id) + " from " + baseUri.getHost());
+    private static void logKeyDownloadAttempt(String fingerprint, URI baseUri) {
+        LOGGER.debug("Cannot download public key " + fingerprint + " from " + baseUri.getHost());
     }
 
-    private URI toQuery(URI baseUri, long key) throws URISyntaxException {
+    private URI toQuery(URI baseUri, String fingerprint) throws URISyntaxException {
         String scheme = baseUri.getScheme();
         int port = baseUri.getPort();
         if ("hkp".equals(scheme)) {
             scheme = "http";
             port = 11371;
         }
-        String keyId = toHexString(key);
-        return new URI(scheme, null, baseUri.getHost(), port, "/pks/lookup", "op=get&options=mr&search=0x" + keyId, null);
+        return new URI(scheme, null, baseUri.getHost(), port, "/pks/lookup", "op=get&options=mr&search=0x" + fingerprint, null);
     }
 
     @Override

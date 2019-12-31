@@ -17,8 +17,8 @@
 package org.gradle.integtests.resolve.api
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.junit.runner.RunWith
 
 @RunWith(FluidDependenciesResolveRunner)
@@ -52,12 +52,12 @@ class ArtifactCollectionIntegrationTest extends AbstractHttpDependencyResolution
             class TaskWithArtifactCollectionInput extends DefaultTask {
                 @Internal
                 ArtifactCollection artifacts
-                
+
                 @InputFiles
                 FileCollection getArtifactFiles() {
                     return artifacts.getArtifactFiles()
                 }
-                
+
                 @OutputFile File outputFile
             }
 """
@@ -73,9 +73,9 @@ class ArtifactCollectionIntegrationTest extends AbstractHttpDependencyResolution
                 doLast {
                     def artifactFiles = artifacts.artifactFiles
                     def artifactResults = artifacts.artifacts
-                    
+
                     assert artifactResults.size() == 3
-                    
+
                     // Check external artifact
                     def idx = artifacts.findIndexOf { it.file.name == 'external-lib-1.0.jar' }
 
@@ -87,7 +87,7 @@ class ArtifactCollectionIntegrationTest extends AbstractHttpDependencyResolution
                     assert result.id.componentIdentifier.module == 'external-lib'
                     assert result.id.componentIdentifier.version == '1.0'
                     assert result.id.fileName == 'external-lib-1.0.jar'
-                    
+
                     // Check project artifact
                     idx = artifacts.findIndexOf { it.file.name == 'project-lib.jar' }
 
@@ -96,13 +96,13 @@ class ArtifactCollectionIntegrationTest extends AbstractHttpDependencyResolution
 
                     assert result.id.componentIdentifier instanceof ProjectComponentIdentifier
                     assert result.id.componentIdentifier.projectPath == ':project-lib'
-                    
+
                     // Check file artifact
                     idx = artifacts.findIndexOf { it.file.name == 'file-lib.jar' }
-                    
+
                     result = artifactResults[idx]
                     assert result.file == artifactFiles[idx]
-                    
+
                     assert result.id instanceof org.gradle.internal.component.local.model.OpaqueComponentArtifactIdentifier
                     assert result.id.componentIdentifier == result.id
                     assert result.id.displayName == 'file-lib.jar'
@@ -125,7 +125,7 @@ class ArtifactCollectionIntegrationTest extends AbstractHttpDependencyResolution
                 doLast {
                     assert artifacts.artifacts.size() == 3
                 }
-                
+
             }
 """
 
@@ -144,7 +144,7 @@ class ArtifactCollectionIntegrationTest extends AbstractHttpDependencyResolution
                 doLast {
                     assert artifacts.artifacts.size() == 3
                 }
-                
+
             }
 """
         def sourceFile = file("project-lib/src/main/java/Main.java")
@@ -177,14 +177,13 @@ class Main {
         executedAndNotSkipped ":project-lib:jar", ":verify"
     }
 
-    @ToBeFixedForInstantExecution
     def "failure to resolve artifact collection"() {
         given:
         buildFile << """
             dependencies {
                 compile 'org:does-not-exist:1.0'
             }
-            
+
             task verify(type: TaskWithArtifactCollectionInput) {
                 artifacts = configurations.compile.incoming.artifacts
                 outputFile = file('out')

@@ -24,16 +24,16 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.Try;
 
-import java.io.File;
 import java.util.Map;
 
 class TransformingArtifactVisitor implements ArtifactVisitor {
     private final ArtifactVisitor visitor;
     private final AttributeContainerInternal target;
-    private final Map<ComponentArtifactIdentifier, TransformationResult> artifactResults;
+    private final Map<ComponentArtifactIdentifier, Try<TransformationSubject>> artifactResults;
 
-    TransformingArtifactVisitor(ArtifactVisitor visitor, AttributeContainerInternal target, Map<ComponentArtifactIdentifier, TransformationResult> artifactResults) {
+    TransformingArtifactVisitor(ArtifactVisitor visitor, AttributeContainerInternal target, Map<ComponentArtifactIdentifier, Try<TransformationSubject>> artifactResults) {
         this.visitor = visitor;
         this.target = target;
         this.artifactResults = artifactResults;
@@ -41,12 +41,11 @@ class TransformingArtifactVisitor implements ArtifactVisitor {
 
     @Override
     public void visitArtifact(DisplayName variantName, AttributeContainer variantAttributes, ResolvableArtifact artifact) {
-        TransformationResult result = artifactResults.get(artifact.getId());
-        result.getTransformedSubject().ifSuccessfulOrElse(
+        Try<TransformationSubject> result = artifactResults.get(artifact.getId());
+        result.ifSuccessfulOrElse(
             transformedSubject -> {
-                for (File output : transformedSubject.getFiles()) {
-                    ResolvableArtifact resolvedArtifact = artifact.transformedTo(output);
-                    visitor.visitArtifact(variantName, target, resolvedArtifact);
+                for (ResolvableArtifact transformedArtifact : transformedSubject.getArtifacts()) {
+                    visitor.visitArtifact(variantName, target, transformedArtifact);
                 }
                 visitor.endVisitCollection(FileCollectionInternal.OTHER);
             },

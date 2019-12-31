@@ -19,6 +19,9 @@ package org.gradle.api.internal.artifacts.transform;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
+import org.gradle.internal.Try;
+import org.gradle.internal.operations.BuildOperationQueue;
+import org.gradle.internal.operations.RunnableBuildOperation;
 
 /**
  * The internal API equivalent of {@link org.gradle.api.artifacts.transform.TransformAction}, which is also aware of our cache infrastructure.
@@ -32,12 +35,9 @@ public interface Transformation extends Describable {
     int stepsCount();
 
     /**
-     * Creates an invocation for invoking the transformation.
-     *
-     * Creating the invocation is not for free, since the workspace identity needs to be determined.
-     * This requires snapshotting the input artifact and its dependencies.
+     * Starts transforming the given subject, using the given work queue to run asynchronous work. The result is passed to the given handler on completion.
      */
-    CacheableInvocation<TransformationSubject> createInvocation(TransformationSubject subjectToTransform, ExecutionGraphDependenciesResolver dependenciesResolver, NodeExecutionContext context);
+    void startTransformation(TransformationSubject subjectToTransform, ExecutionGraphDependenciesResolver dependenciesResolver, NodeExecutionContext context, boolean isTopLevel, BuildOperationQueue<RunnableBuildOperation> workQueue, ResultReceiver resultReceiver);
 
     /**
      * Whether the transformation requires dependencies of the transformed artifact to be injected.
@@ -48,4 +48,8 @@ public interface Transformation extends Describable {
      * Extract the transformation steps from this transformation.
      */
     void visitTransformationSteps(Action<? super TransformationStep> action);
+
+    interface ResultReceiver {
+        void completed(TransformationSubject source, Try<TransformationSubject> result);
+    }
 }

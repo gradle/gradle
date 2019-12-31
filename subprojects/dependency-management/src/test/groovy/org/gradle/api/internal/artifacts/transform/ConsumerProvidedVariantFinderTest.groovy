@@ -23,10 +23,12 @@ import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.internal.artifacts.ArtifactTransformRegistration
 import org.gradle.api.internal.artifacts.VariantTransformRegistry
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
 import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.internal.Try
 import org.gradle.internal.component.model.AttributeMatcher
+import org.gradle.internal.operations.BuildOperationQueue
 import org.gradle.util.AttributeTestUtil
 import spock.lang.Issue
 import spock.lang.Specification
@@ -39,6 +41,8 @@ class ConsumerProvidedVariantFinderTest extends Specification {
     def schema = Mock(AttributesSchemaInternal)
     def immutableAttributesFactory = AttributeTestUtil.attributesFactory()
     def transformRegistrations = Mock(VariantTransformRegistry)
+    def resultReceiver = Mock(Transformation.ResultReceiver)
+    def workQueue = Mock(BuildOperationQueue)
     def matchingCache = new ConsumerProvidedVariantFinder(transformRegistrations, schema, immutableAttributesFactory)
 
     def a1 = Attribute.of("a1", String)
@@ -161,8 +165,8 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         def requested = attributes().attribute(a1, "requested")
         def source = attributes().attribute(a1, "source")
         def reg1 = registration(c1, c3, { throw new AssertionFailedError() })
-        def reg2 = registration(c1, c2, { File f -> [new File(f.name + ".2a"), new File(f.name + ".2b")]})
-        def reg3 = registration(c4, c5, { File f -> [new File(f.name + ".5")]})
+        def reg2 = registration(c1, c2, { File f -> [new File(f.name + ".2a"), new File(f.name + ".2b")] })
+        def reg3 = registration(c4, c5, { File f -> [new File(f.name + ".5")] })
 
         given:
         transformRegistrations.transforms >> [reg1, reg2, reg3]
@@ -189,10 +193,10 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         0 * matcher._
 
         when:
-        def result = transformer.transformation.createInvocation(initialSubject("in.txt"), Mock(ExecutionGraphDependenciesResolver), null).invoke().get()
+        transformer.transformation.startTransformation(initialSubject("in.txt"), Mock(ExecutionGraphDependenciesResolver), null, true, workQueue, resultReceiver)
 
         then:
-        result.files == [new File("in.txt.2a.5"), new File("in.txt.2b.5")]
+        1 * resultReceiver.completed(_, { it.get().files == [new File("in.txt.2a.5"), new File("in.txt.2b.5")] })
         0 * _
     }
 
@@ -201,9 +205,9 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         def c5 = attributes().attribute(a1, "5")
         def requested = attributes().attribute(a1, "requested")
         def source = attributes().attribute(a1, "source")
-        def reg1 = registration(c1, c3, { })
-        def reg2 = registration(c1, c2, { })
-        def reg3 = registration(c4, c5, { })
+        def reg1 = registration(c1, c3, {})
+        def reg2 = registration(c1, c2, {})
+        def reg3 = registration(c4, c5, {})
 
         def concat = immutableAttributesFactory.concat(source.asImmutable(), c5.asImmutable())
 
@@ -272,10 +276,10 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         0 * matcher._
 
         when:
-        def files = result.matches.first().transformation.createInvocation(initialSubject("a"), Mock(ExecutionGraphDependenciesResolver), null).invoke().get().files
+        result.matches.first().transformation.startTransformation(initialSubject("a"), Mock(ExecutionGraphDependenciesResolver), null, true, workQueue, resultReceiver)
 
         then:
-        files == [new File("d"), new File("e")]
+        1 * resultReceiver.completed(_, { it.get().files == [new File("d"), new File("e")] })
         transform1.transform(new File("a")) >> [new File("b"), new File("c")]
         transform2.transform(new File("b")) >> [new File("d")]
         transform2.transform(new File("c")) >> [new File("e")]
@@ -325,8 +329,8 @@ class ConsumerProvidedVariantFinderTest extends Specification {
     }
 
     def "returns empty list when no transforms are available to produce requested variant"() {
-        def reg1 = registration(c1, c3, { })
-        def reg2 = registration(c1, c2, { })
+        def reg1 = registration(c1, c3, {})
+        def reg2 = registration(c1, c2, {})
         def requested = attributes().attribute(a1, "requested")
         def source = attributes().attribute(a1, "source")
 
@@ -410,8 +414,10 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         0 * matcher._
     }
 
-    private static TransformationSubject initialSubject(String path) {
-        TransformationSubject.initial(new File(path))
+    private TransformationSubject initialSubject(String path) {
+        def artifact = Stub(ResolvableArtifact)
+        _ * artifact.file >> new File(path)
+        TransformationSubject.initial(artifact)
     }
 
     private AttributeContainerInternal attributes() {
@@ -423,8 +429,8 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         reg.from >> from
         reg.to >> to
         reg.transformationStep >> Stub(TransformationStep) {
-            _ * createInvocation(_ as TransformationSubject, _ as ExecutionGraphDependenciesResolver, null) >> { TransformationSubject subject, ExecutionGraphDependenciesResolver dependenciesResolver, services ->
-                return CacheableInvocation.cached(Try.successful(subject.createSubjectFromResult(ImmutableList.copyOf(subject.files.collectMany { transformer.transform(it) }))))
+            _ * startTransformation(_ as TransformationSubject, _ as ExecutionGraphDependenciesResolver, null, _, _, _) >> { TransformationSubject subject, ExecutionGraphDependenciesResolver dependenciesResolver, services, topLevel, queue, Transformation.ResultReceiver receiver ->
+                receiver.completed(subject, Try.successful(subject.createSubjectFromResult(ImmutableList.copyOf(subject.files.collectMany { transformer.transform(it) }))))
             }
         }
         reg

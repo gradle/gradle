@@ -15,8 +15,11 @@
  */
 package org.gradle.security.internal;
 
+import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.bouncycastle.openpgp.PGPPublicKeyRing;
 import org.gradle.api.logging.Logger;
@@ -25,33 +28,34 @@ import org.gradle.api.logging.Logging;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 public class KeyringFilePublicKeyService implements PublicKeyService {
     private final static Logger LOGGER = Logging.getLogger(KeyringFilePublicKeyService.class);
 
-    private final Map<Long, PGPPublicKeyRing> keyToKeyring;
-    private final Map<Long, PGPPublicKey> keyToPublicKey;
+    private final Map<Fingerprint, PGPPublicKeyRing> keyToKeyring;
+    private final Multimap<Long, PGPPublicKeyRing> longIdToPublicKeys;
 
     public KeyringFilePublicKeyService(File keyRingFile) {
         try {
             List<PGPPublicKeyRing> keyrings = SecuritySupport.loadKeyRingFile(keyRingFile);
-            Map<Long, PGPPublicKeyRing> keyToKeyringBuilder = Maps.newHashMap();
-            Map<Long, PGPPublicKey> keyToPublicKeyBuilder = Maps.newHashMap();
+            Map<Fingerprint, PGPPublicKeyRing> keyToKeyringBuilder = Maps.newHashMap();
+            ImmutableMultimap.Builder<Long, PGPPublicKeyRing> longIdLongPGPPublicKeyBuilder = ImmutableListMultimap.builder();
+
             for (PGPPublicKeyRing keyring : keyrings) {
                 Iterator<PGPPublicKey> it = keyring.getPublicKeys();
                 while (it.hasNext()) {
                     PGPPublicKey key = it.next();
-                    long keyID = key.getKeyID();
-                    keyToKeyringBuilder.put(keyID, keyring);
-                    keyToPublicKeyBuilder.put(keyID, key);
+                    Fingerprint fingerprint = Fingerprint.of(key);
+                    keyToKeyringBuilder.put(fingerprint, keyring);
+                    longIdLongPGPPublicKeyBuilder.put(key.getKeyID(), keyring);
                 }
             }
             keyToKeyring = ImmutableMap.copyOf(keyToKeyringBuilder);
-            keyToPublicKey = ImmutableMap.copyOf(keyToPublicKeyBuilder);
+            longIdToPublicKeys = longIdLongPGPPublicKeyBuilder.build();
             LOGGER.info("Loaded {} keys from {}", keyToKeyring.size(), keyRingFile);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
@@ -59,17 +63,37 @@ public class KeyringFilePublicKeyService implements PublicKeyService {
     }
 
     @Override
-    public Optional<PGPPublicKey> findPublicKey(long id) {
-        return Optional.ofNullable(keyToPublicKey.get(id));
-    }
-
-    @Override
-    public Optional<PGPPublicKeyRing> findKeyRing(long id) {
-        return Optional.ofNullable(keyToKeyring.get(id));
-    }
-
-    @Override
     public void close() {
 
+    }
+
+    @Override
+    public void findByLongId(long keyId, PublicKeyResultBuilder builder) {
+        for (PGPPublicKeyRing keyring : longIdToPublicKeys.get(keyId)) {
+            builder.keyRing(keyring);
+            Iterator<PGPPublicKey> pkIt = keyring.getPublicKeys();
+            while (pkIt.hasNext()) {
+                PGPPublicKey key = pkIt.next();
+                if (key.getKeyID() == keyId) {
+                    builder.publicKey(key);
+                }
+            }
+        }
+    }
+
+    @Override
+    public void findByFingerprint(byte[] bytes, PublicKeyResultBuilder builder) {
+        Fingerprint fingerprint = Fingerprint.wrap(bytes);
+        PGPPublicKeyRing keyring = keyToKeyring.get(fingerprint);
+        if (keyring != null) {
+            builder.keyRing(keyring);
+            Iterator<PGPPublicKey> pkIt = keyring.getPublicKeys();
+            while (pkIt.hasNext()) {
+                PGPPublicKey key = pkIt.next();
+                if (Arrays.equals(key.getFingerprint(), bytes)) {
+                    builder.publicKey(key);
+                }
+            }
+        }
     }
 }

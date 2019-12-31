@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import com.google.common.collect.ImmutableList;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.internal.Try;
 import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -23,31 +25,38 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
 import javax.annotation.Nullable;
+import java.io.File;
 
-class TransformationOperation implements TransformationResult, RunnableBuildOperation {
-    private final CacheableInvocation<TransformationSubject> invocation;
+class TransformationOperation implements RunnableBuildOperation {
+    private final CacheableInvocation<ImmutableList<File>> invocation;
     private final String displayName;
-    private Try<TransformationSubject> transformedSubject;
+    @Nullable
+    private final String progressDisplayName;
+    private final ResolvableArtifact artifact;
+    private final TransformationOperation.ResultReceiver resultReceiver;
 
-    TransformationOperation(CacheableInvocation<TransformationSubject> invocation, String displayName) {
+    TransformationOperation(CacheableInvocation<ImmutableList<File>> invocation, String displayName, @Nullable String progressDisplayName, ResolvableArtifact artifact, ResultReceiver resultReceiver) {
         this.displayName = displayName;
         this.invocation = invocation;
+        this.progressDisplayName = progressDisplayName;
+        this.artifact = artifact;
+        this.resultReceiver = resultReceiver;
     }
 
     @Override
     public void run(@Nullable BuildOperationContext context) {
-        transformedSubject = invocation.invoke();
+        Try<ImmutableList<File>> transformedSubject = invocation.invoke();
+        resultReceiver.completed(artifact, transformedSubject);
     }
 
     @Override
     public BuildOperationDescriptor.Builder description() {
         return BuildOperationDescriptor.displayName(displayName)
-            .progressDisplayName(displayName)
+            .progressDisplayName(progressDisplayName)
             .operationType(BuildOperationCategory.UNCATEGORIZED);
     }
 
-    @Override
-    public Try<TransformationSubject> getTransformedSubject() {
-        return transformedSubject;
+    interface ResultReceiver {
+        void completed(ResolvableArtifact source, Try<ImmutableList<File>> result);
     }
 }

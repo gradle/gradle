@@ -66,8 +66,12 @@ class SigningFixtures {
         Holder.VALID_KEYRING.password
     }
 
+    static String getValidPublicKeyLongIdHexString() {
+        SecuritySupport.toLongIdHexString(Holder.VALID_KEYRING.publicKey.keyID)
+    }
+
     static String getValidPublicKeyHexString() {
-        SecuritySupport.toHexString(Holder.VALID_KEYRING.publicKey.keyID)
+        SecuritySupport.toHexString(Holder.VALID_KEYRING.publicKey.fingerprint)
     }
 
     static File signAsciiArmored(File toSign) {

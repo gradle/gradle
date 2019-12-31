@@ -131,7 +131,6 @@ class DefaultArtifactTransformsTest extends Specification {
         def set = resolvedVariantSet()
         def variants = [variant1, variant2] as Set
         def transformation = Mock(Transformation)
-        CacheableInvocation<TransformationSubject> invocation1 = Mock(CacheableInvocation)
         def listener = Mock(ResolvedArtifactSet.AsyncArtifactListener)
         def visitor = Mock(ArtifactVisitor)
         def targetAttributes = typeAttributes("classes")
@@ -172,13 +171,13 @@ class DefaultArtifactTransformsTest extends Specification {
         _ * transformation.requiresDependencies() >> false
         _ * transformationNodeRegistry.getIfExecuted(_, _) >> Optional.empty()
 
-        1 * transformation.createInvocation({ it.files == [sourceArtifactFile]}, _ as ExecutionGraphDependenciesResolver, _) >> invocation1
-        1 * invocation1.getCachedResult() >> Optional.empty()
-        1 * invocation1.invoke() >> Try.successful(TransformationSubject.initial(sourceArtifactId, sourceArtifactFile).createSubjectFromResult(ImmutableList.of(outFile1, outFile2))) >> invocation1
+        1 * transformation.startTransformation({ it.files == [sourceArtifactFile] }, _ as ExecutionGraphDependenciesResolver, _, _, _, _) >> { TransformationSubject subject, dependenciesResolver, context, topLevel, workQueue, Transformation.ResultReceiver resultReceiver ->
+            resultReceiver.completed(subject, Try.successful(TransformationSubject.initial(sourceArtifact).createSubjectFromResult(ImmutableList.of(outFile1, outFile2))))
+        }
 
-        1 * listener.prepareForVisit({it instanceof ConsumerProvidedVariantFiles}) >> FileCollectionStructureVisitor.VisitType.Visit
-        1 * visitor.visitArtifact(variant1DisplayName, targetAttributes, {it.file == outFile1})
-        1 * visitor.visitArtifact(variant1DisplayName, targetAttributes, {it.file == outFile2})
+        1 * listener.prepareForVisit({ it instanceof ConsumerProvidedVariantFiles }) >> FileCollectionStructureVisitor.VisitType.Visit
+        1 * visitor.visitArtifact(variant1DisplayName, targetAttributes, { it.file == outFile1 })
+        1 * visitor.visitArtifact(variant1DisplayName, targetAttributes, { it.file == outFile2 })
         1 * visitor.endVisitCollection(FileCollectionInternal.OTHER)
         0 * visitor._
         0 * transformation._
@@ -203,7 +202,7 @@ class DefaultArtifactTransformsTest extends Specification {
         attributeMatcher.matches(_, _) >> []
 
         matchingCache.collectConsumerVariants(_, _) >> { AttributeContainerInternal from, AttributeContainerInternal to ->
-                match(to, Stub(Transformation), 1)
+            match(to, Stub(Transformation), 1)
         }
 
         def selector = transforms.variantSelector(typeAttributes("dll"), true, dependenciesResolver)

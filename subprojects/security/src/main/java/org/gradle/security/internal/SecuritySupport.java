@@ -92,8 +92,12 @@ public class SecuritySupport {
         }
     }
 
-    public static String toHexString(long key) {
+    public static String toLongIdHexString(long key) {
         return String.format("%016x", key).trim();
+    }
+
+    public static String toHexString(byte[] fingerprint) {
+        return Fingerprint.wrap(fingerprint).toString();
     }
 
     public static List<PGPPublicKeyRing> loadKeyRingFile(File keyringFile) throws IOException {

@@ -13,20 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.security.internal;
 
-package org.gradle.api.internal.artifacts.transform;
+import org.bouncycastle.openpgp.PGPPublicKey;
+import org.bouncycastle.openpgp.PGPPublicKeyRing;
 
-import org.gradle.internal.Try;
-
-public class PrecomputedTransformationResult implements TransformationResult {
-    private final Try<TransformationSubject> transformedSubject;
-
-    public PrecomputedTransformationResult(Try<TransformationSubject> transformedSubject) {
-        this.transformedSubject = transformedSubject;
-    }
-
-    @Override
-    public Try<TransformationSubject> getTransformedSubject() {
-        return transformedSubject;
-    }
+public interface PublicKeyResultBuilder {
+    void keyRing(PGPPublicKeyRing keyring);
+    void publicKey(PGPPublicKey publicKey);
 }
