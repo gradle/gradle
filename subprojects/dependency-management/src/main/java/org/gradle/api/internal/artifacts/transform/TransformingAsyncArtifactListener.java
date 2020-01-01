@@ -21,29 +21,29 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
-import org.gradle.internal.Try;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
+import java.io.File;
 import java.util.Map;
 import java.util.Optional;
 
 class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArtifactListener {
-    private final BuildOperationQueue<RunnableBuildOperation> workQueue;
-    private final Map<ComponentArtifactIdentifier, Try<TransformationSubject>> artifactResults;
+    private final Map<ComponentArtifactIdentifier, TransformationResult> artifactResults;
     private final ExecutionGraphDependenciesResolver dependenciesResolver;
     private final TransformationNodeRegistry transformationNodeRegistry;
+    private final BuildOperationQueue<RunnableBuildOperation> actions;
     private final Transformation transformation;
 
     TransformingAsyncArtifactListener(
         Transformation transformation,
-        BuildOperationQueue<RunnableBuildOperation> workQueue,
-        Map<ComponentArtifactIdentifier, Try<TransformationSubject>> artifactResults,
+        BuildOperationQueue<RunnableBuildOperation> actions,
+        Map<ComponentArtifactIdentifier, TransformationResult> artifactResults,
         ExecutionGraphDependenciesResolver dependenciesResolver,
         TransformationNodeRegistry transformationNodeRegistry
     ) {
-        this.workQueue = workQueue;
         this.artifactResults = artifactResults;
+        this.actions = actions;
         this.transformation = transformation;
         this.dependenciesResolver = dependenciesResolver;
         this.transformationNodeRegistry = transformationNodeRegistry;
@@ -54,9 +54,12 @@ class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArti
         ComponentArtifactIdentifier artifactId = artifact.getId();
         Optional<TransformationNode> node = transformationNodeRegistry.getIfExecuted(artifactId, transformation);
         if (node.isPresent()) {
-            artifactResults.put(artifactId, node.get().getTransformedSubject());
+            artifactResults.put(artifactId, new PrecomputedTransformationResult(node.get().getTransformedSubject()));
         } else {
-            transformation.startTransformation(TransformationSubject.initial(artifact), dependenciesResolver, null, true, workQueue, (source, result) -> artifactResults.put(artifactId, result));
+            File file = artifact.getFile();
+            TransformationSubject initialSubject = TransformationSubject.initial(artifactId, file);
+            TransformationResult result = createTransformationResult(initialSubject);
+            artifactResults.put(artifactId, result);
         }
     }
 
@@ -70,5 +73,16 @@ class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArti
     public boolean requireArtifactFiles() {
         // Always need the files, as we need to run the transform in order to calculate the output artifacts.
         return true;
+    }
+
+    private TransformationResult createTransformationResult(TransformationSubject initialSubject) {
+        CacheableInvocation<TransformationSubject> invocation = transformation.createInvocation(initialSubject, dependenciesResolver, null);
+        return invocation.getCachedResult()
+            .<TransformationResult>map(PrecomputedTransformationResult::new)
+            .orElseGet(() -> {
+                TransformationOperation operation = new TransformationOperation(invocation, "Transform " + initialSubject.getDisplayName() + " with " + transformation.getDisplayName());
+                actions.add(operation);
+                return operation;
+            });
     }
 }

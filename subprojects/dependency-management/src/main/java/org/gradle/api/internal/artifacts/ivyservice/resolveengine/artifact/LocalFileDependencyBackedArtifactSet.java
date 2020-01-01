@@ -93,7 +93,7 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
                     continue;
                 }
             } else {
-                artifactIdentifier = new ComponentFileArtifactIdentifier(componentIdentifier, file);
+                artifactIdentifier = new ComponentFileArtifactIdentifier(componentIdentifier, file.getName());
             }
 
             AttributeContainerInternal variantAttributes = artifactTypeRegistry.mapAttributesFor(file);

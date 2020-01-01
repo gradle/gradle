@@ -16,7 +16,6 @@
 
 package org.gradle.internal.component.local.model
 
-import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.util.Matchers
 import spock.lang.Specification
 
@@ -25,26 +24,21 @@ class ComponentFileArtifactIdentifierTest extends Specification {
         def componentId = new OpaqueComponentIdentifier("comp")
 
         expect:
-        new ComponentFileArtifactIdentifier(componentId, new File("a/b/c/thing")).toString() == "thing (comp)"
-        new ComponentFileArtifactIdentifier(componentId, new DefaultIvyArtifactName("thing", "", ""), new File("a/b/c/thing")).toString() == "thing (comp)"
+        new ComponentFileArtifactIdentifier(componentId, "thing").toString() == "thing (comp)"
     }
 
-    def "identifiers are equal when backing files are equal"() {
+    def "identifiers are equal when display names are equal"() {
         def componentId = new OpaqueComponentIdentifier("comp")
         def otherId = new OpaqueComponentIdentifier("comp 2")
 
-        def id = new ComponentFileArtifactIdentifier(componentId, new File("one"))
-        def sameId = new ComponentFileArtifactIdentifier(componentId, new File("one"))
-        def sameFileDifferentDisplayName = new ComponentFileArtifactIdentifier(componentId, new DefaultIvyArtifactName("one", "", "", "classifier"), new File("one"))
-        def differentComponent = new ComponentFileArtifactIdentifier(otherId, new File("one"))
-        def differentFile = new ComponentFileArtifactIdentifier(componentId, new File("two"))
-        def differentFileSameDisplayName = new ComponentFileArtifactIdentifier(componentId, new DefaultIvyArtifactName("one", "", ""), new File("two"))
+        def id = new ComponentFileArtifactIdentifier(componentId, "one")
+        def sameId = new ComponentFileArtifactIdentifier(componentId, "one")
+        def differentComponent = new ComponentFileArtifactIdentifier(otherId, "one")
+        def differentName = new ComponentFileArtifactIdentifier(componentId, "two")
 
         expect:
         Matchers.strictlyEquals(id, sameId)
         id != differentComponent
-        id != differentFile
-        id != differentFileSameDisplayName
-        id != sameFileDifferentDisplayName
+        id != differentName
     }
 }

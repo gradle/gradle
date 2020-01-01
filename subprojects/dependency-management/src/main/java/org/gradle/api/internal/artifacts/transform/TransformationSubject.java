@@ -18,9 +18,9 @@ package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Describable;
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 
 import java.io.File;
 import java.util.Optional;
@@ -30,19 +30,18 @@ import java.util.Optional;
  */
 public abstract class TransformationSubject implements Describable {
 
-    public static TransformationSubject initial(ResolvableArtifact artifact) {
-        return new InitialArtifactTransformationSubject(artifact);
+    public static TransformationSubject initial(File file) {
+        return new InitialFileTransformationSubject(file);
+    }
+
+    public static TransformationSubject initial(ComponentArtifactIdentifier artifactId, File file) {
+        return new InitialArtifactTransformationSubject(artifactId, file);
     }
 
     /**
      * The files which should be transformed.
      */
     public abstract ImmutableList<File> getFiles();
-
-    /**
-     * The artifacts which make up this subject.
-     */
-    public abstract ImmutableList<ResolvableArtifact> getArtifacts();
 
     /**
      * Component producing this subject.
@@ -54,73 +53,84 @@ public abstract class TransformationSubject implements Describable {
     /**
      * Creates a subsequent subject by having transformed this subject.
      */
-    public abstract TransformationSubject createSubjectFromResult(ImmutableList<File> result);
-
-    @Override
-    public String toString() {
-        return getDisplayName();
+    public TransformationSubject createSubjectFromResult(ImmutableList<File> result) {
+        return new SubsequentTransformationSubject(this, result);
     }
 
-    private static class InitialArtifactTransformationSubject extends TransformationSubject {
-        private final ResolvableArtifact artifact;
+    private static abstract class AbstractInitialTransformationSubject extends TransformationSubject {
+        private final File file;
 
-        public InitialArtifactTransformationSubject(ResolvableArtifact artifact) {
-            this.artifact = artifact;
-        }
-
-        @Override
-        public String getDisplayName() {
-            return "artifact " + artifact.getId().getDisplayName();
+        public AbstractInitialTransformationSubject(File file) {
+            this.file = file;
         }
 
         @Override
         public ImmutableList<File> getFiles() {
-            return ImmutableList.of(artifact.getFile());
+            return ImmutableList.of(file);
+        }
+
+        public File getFile() {
+            return file;
         }
 
         @Override
-        public ImmutableList<ResolvableArtifact> getArtifacts() {
-            return ImmutableList.of(artifact);
+        public String toString() {
+            return getDisplayName();
+        }
+    }
+
+    private static class InitialFileTransformationSubject extends AbstractInitialTransformationSubject {
+
+        public InitialFileTransformationSubject(File file) {
+            super(file);
+        }
+
+        @Override
+        public String getDisplayName() {
+            return "file " + getFile();
         }
 
         @Override
         public Optional<ProjectComponentIdentifier> getProducer() {
-            ComponentIdentifier componentIdentifier = artifact.getId().getComponentIdentifier();
+            return Optional.empty();
+        }
+    }
+
+    private static class InitialArtifactTransformationSubject extends AbstractInitialTransformationSubject {
+        private final ComponentArtifactIdentifier artifactId;
+
+        public InitialArtifactTransformationSubject(ComponentArtifactIdentifier artifactId, File file) {
+            super(file);
+            this.artifactId = artifactId;
+        }
+
+        @Override
+        public String getDisplayName() {
+            return "artifact " + artifactId.getDisplayName();
+        }
+
+        @Override
+        public Optional<ProjectComponentIdentifier> getProducer() {
+            ComponentIdentifier componentIdentifier = artifactId.getComponentIdentifier();
             if (componentIdentifier instanceof ProjectComponentIdentifier) {
                 return Optional.of((ProjectComponentIdentifier) componentIdentifier);
             }
             return Optional.empty();
         }
-
-        @Override
-        public TransformationSubject createSubjectFromResult(ImmutableList<File> result) {
-            return new SubsequentTransformationSubject(this, artifact, result);
-        }
     }
 
     private static class SubsequentTransformationSubject extends TransformationSubject {
         private final TransformationSubject previous;
-        private final ResolvableArtifact inputArtifact;
         private final ImmutableList<File> files;
 
-        public SubsequentTransformationSubject(TransformationSubject previous, ResolvableArtifact inputArtifact, ImmutableList<File> files) {
+        public SubsequentTransformationSubject(TransformationSubject previous, ImmutableList<File> files) {
             this.previous = previous;
-            this.inputArtifact = inputArtifact;
             this.files = files;
         }
 
         @Override
         public ImmutableList<File> getFiles() {
             return files;
-        }
-
-        @Override
-        public ImmutableList<ResolvableArtifact> getArtifacts() {
-            ImmutableList.Builder<ResolvableArtifact> builder = ImmutableList.builderWithExpectedSize(files.size());
-            for (File output : files) {
-                builder.add(inputArtifact.transformedTo(output));
-            }
-            return builder.build();
         }
 
         @Override
@@ -134,8 +144,8 @@ public abstract class TransformationSubject implements Describable {
         }
 
         @Override
-        public TransformationSubject createSubjectFromResult(ImmutableList<File> result) {
-            return new SubsequentTransformationSubject(this, inputArtifact, result);
+        public String toString() {
+            return getDisplayName();
         }
     }
 }

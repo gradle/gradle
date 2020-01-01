@@ -23,7 +23,6 @@ import org.gradle.api.file.FileSystemLocation
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.project.ProjectInternal
@@ -221,7 +220,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         }
 
         when:
-        invoke(transformer, inputArtifact, dependencies, immutableDependency(inputArtifact), fingerprinterRegistry)
+        invoke(transformer, inputArtifact, dependencies, TransformationSubject.initial(inputArtifact), fingerprinterRegistry)
 
         then:
         transformerInvocations == 1
@@ -229,7 +228,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         1 * artifactTransformListener.afterTransformerInvocation(_, _)
 
         when:
-        invoke(transformer, inputArtifact, dependencies, immutableDependency(inputArtifact), fingerprinterRegistry)
+        invoke(transformer, inputArtifact, dependencies, TransformationSubject.initial(inputArtifact), fingerprinterRegistry)
         then:
         transformerInvocations == 1
         1 * artifactTransformListener.beforeTransformerInvocation(_, _)
@@ -253,7 +252,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         }
 
         when:
-        def result = invoke(transformer, inputArtifact, dependencies, immutableDependency(inputArtifact), fingerprinterRegistry)
+        def result = invoke(transformer, inputArtifact, dependencies, TransformationSubject.initial(inputArtifact), fingerprinterRegistry)
 
         then:
         transformerInvocations == 1
@@ -263,7 +262,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         wrappedFailure.cause == failure
 
         when:
-        invoke(transformer, inputArtifact, dependencies, immutableDependency(inputArtifact), fingerprinterRegistry)
+        invoke(transformer, inputArtifact, dependencies, TransformationSubject.initial(inputArtifact), fingerprinterRegistry)
         then:
         transformerInvocations == 2
         1 * artifactTransformListener.beforeTransformerInvocation(_, _)
@@ -284,7 +283,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         }
 
         when:
-        invoke(transformer, inputArtifact, dependencies, immutableDependency(inputArtifact), fingerprinterRegistry)
+        invoke(transformer, inputArtifact, dependencies, TransformationSubject.initial(inputArtifact), fingerprinterRegistry)
         then:
         transformerInvocations == 1
         outputFile?.isFile()
@@ -293,7 +292,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         outputFile.text = "changed"
         virtualFileSystem.invalidateAll()
 
-        invoke(transformer, inputArtifact, dependencies, immutableDependency(inputArtifact), fingerprinterRegistry)
+        invoke(transformer, inputArtifact, dependencies, TransformationSubject.initial(inputArtifact), fingerprinterRegistry)
         then:
         transformerInvocations == 2
     }
@@ -413,7 +412,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         MUTABLE, IMMUTABLE
     }
 
-    private dependency(TransformationType type, File file) {
+    private static dependency(TransformationType type, File file) {
         return type == TransformationType.MUTABLE ? mutableDependency(file) : immutableDependency(file)
     }
 
@@ -421,24 +420,20 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         return type == TransformationType.MUTABLE ? mutableTransformsStoreDirectory : immutableTransformsStoreDirectory
     }
 
-    private TransformationSubject immutableDependency(File file) {
-        def artifact = Stub(ResolvableArtifact)
-        _ * artifact.file >> file
-        return TransformationSubject.initial(artifact)
+    private static TransformationSubject immutableDependency(File file) {
+        return TransformationSubject.initial(file)
     }
 
-    private TransformationSubject mutableDependency(File file) {
+    private static TransformationSubject mutableDependency(File file) {
         def artifactIdentifier = new ComponentFileArtifactIdentifier(
             new DefaultProjectComponentIdentifier(
                 DefaultBuildIdentifier.ROOT,
                 Path.path(":child"),
                 Path.path(":child"),
                 "child"
-            ), file)
-        def artifact = Stub(ResolvableArtifact)
-        _ * artifact.file >> file
-        _ * artifact.id >> artifactIdentifier
-        return TransformationSubject.initial(artifact)
+            ), file.getName())
+        return TransformationSubject.initial(artifactIdentifier,
+            file)
     }
 
     private Try<ImmutableList<File>> invoke(
