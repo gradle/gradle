@@ -152,6 +152,7 @@ class Codecs(
         bind(ownerService<BuildOperationListenerManager>())
         bind(ownerService<BuildRequestMetaData>())
         bind(ownerService<ListenerManager>())
+        bind(ServicesCodec())
 
         bind(ProxyCodec)
 
