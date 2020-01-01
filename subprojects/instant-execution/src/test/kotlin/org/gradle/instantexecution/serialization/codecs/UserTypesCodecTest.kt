@@ -389,7 +389,6 @@ class UserTypesCodecTest {
         actionScheme = mock(),
         attributesFactory = mock(),
         transformListener = mock(),
-        transformationNodeRegistry = mock(),
         valueSourceProviderFactory = mock()
     )
 
