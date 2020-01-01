@@ -28,6 +28,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.internal.service.scopes.BuildTree;
 import org.gradle.jvm.toolchain.JavaDevelopmentKit;
 import org.gradle.jvm.toolchain.JavaInstallation;
 import org.gradle.jvm.toolchain.JavaInstallationRegistry;
@@ -36,6 +37,7 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Optional;
 
+@BuildTree
 public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry {
     private final JavaInstallationProbe installationProbe;
     private final ProviderFactory providerFactory;
