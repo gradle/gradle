@@ -83,10 +83,10 @@ The dependency verification file can be generated with the following CLI instruc
 
 
 ----
-gradle --write-verification-file sha256 help
+gradle --write-verification-metadata sha256 help
 ----
 
-The `write-verification-file` flag requires the list of <<#sec:checksum-verification,checksums>> that you want to generate or `pgp` for <<#sec:signature-verification,signatures>>.
+The `write-verification-metadata` flag requires the list of <<#sec:checksum-verification,checksums>> that you want to generate or `pgp` for <<#sec:signature-verification,signatures>>.
 
 Executing this command line will cause Gradle to:
 
@@ -133,7 +133,7 @@ For this purpose, you can just add `--dry-run`:
 
 
 ----
-gradle --write-verification-file sha256 help --dry-run
+gradle --write-verification-metadata sha256 help --dry-run
 ----
 
 Then instead of generating the `verification-metadata.xml` file, a _new file_ will be generated, called `verification-metadata.dryrun.xml`.
@@ -157,7 +157,7 @@ If you understand the risks of doing so, set the `<verify-metadata>` flag to `fa
 <?xml version="1.0" encoding="UTF-8"?>
 <verification-metadata>
    <configuration>
-      <verify-metadata>true</verify-metadata>
+      <verify-metadata>false</verify-metadata>
       <verify-signatures>false</verify-signatures>
     </configuration>
     <!-- the rest of this file doesn't need to declare anything about metadata files -->
