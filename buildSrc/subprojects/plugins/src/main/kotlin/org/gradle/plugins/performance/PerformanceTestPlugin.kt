@@ -131,11 +131,6 @@ class PerformanceTestPlugin : Plugin<Project> {
                 extendsFrom(testRuntimeOnly)
             }
 
-            val performanceTestRuntimeClasspath by getting
-            "partialDistribution" {
-                extendsFrom(performanceTestRuntimeClasspath)
-            }
-
             create("junit")
         }
 

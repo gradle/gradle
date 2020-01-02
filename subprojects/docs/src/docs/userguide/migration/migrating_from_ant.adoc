@@ -20,7 +20,7 @@ Integration tests under gradle/subprojects/integ-test/src/integTest/groovy/org/g
 
 To run:
 
-   ./gradlew :integTest:intTestImage :integTest:integTest --tests "*SamplesAntImportIntegrationTest"
+   ./gradlew :integTest:integTest --tests "*SamplesAntImportIntegrationTest"
 ////
 
 https://ant.apache.org/[Apache Ant] is a build tool with a long history in the Java world that is still widely used, albeit by a decreasing number of teams. While flexible, it lacks conventions and many of the powerful features that Gradle can provide. Migrating to Gradle is worthwhile so that your builds can become slimmer, simpler and faster, while still retaining the flexibility you enjoy with Ant. You'll also benefit from robust support for multi-project builds and easy-to-use, flexible dependency management.

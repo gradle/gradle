@@ -37,10 +37,6 @@ dependencies {
     performanceTestRuntimeOnly allTestRuntimeDependencies
 }
 
-configurations.partialDistribution {
-    exclude(group: "org.gradle.profiler", module: "gradle-profiler")
-}
-
 gradlebuildJava {
     moduleType = ModuleType.INTERNAL
 }

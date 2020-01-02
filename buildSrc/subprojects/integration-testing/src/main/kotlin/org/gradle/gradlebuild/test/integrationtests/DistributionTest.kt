@@ -57,6 +57,7 @@ abstract class DistributionTest : Test() {
     val rerun: Property<Boolean> = project.objects.property(Boolean::class.javaObjectType).convention(false)
 
     init {
+        dependsOn(Callable { ":distributions:intTestImage" })
         dependsOn(Callable { if (binaryDistributions.distributionsRequired) ":distributions:buildDists" else null })
         dependsOn(Callable { if (binaryDistributions.binZipRequired) ":distributions:binZip" else null })
         dependsOn(Callable { if (libsRepository.required) ":toolingApi:publishGradleDistributionPublicationToLocalRepository" else null })

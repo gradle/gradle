@@ -18,6 +18,10 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * limitations under the License.
  */
 
+plugins {
+    id 'gradlebuild.int-test-image'
+}
+
 // This is a groovy project because we have int tests.
 // Remove any pre-configured archives
 configurations.all {

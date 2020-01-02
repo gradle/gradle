@@ -70,11 +70,10 @@ class DistributionTestingPlugin : Plugin<Project> {
         }
 
         gradleInstallationForTest.apply {
-            val intTestImage: Sync by project.tasks
             gradleUserHomeDir.set(projectDirectory.dir("intTestHomeDir"))
             gradleGeneratedApiJarCacheDir.set(defaultGradleGeneratedApiJarCacheDirProvider())
             daemonRegistry.set(layout.buildDirectory.dir("daemon"))
-            gradleHomeDir.set(dirWorkaround { intTestImage.destinationDir })
+            gradleHomeDir.set(dirWorkaround { (project.tasks.getByPath(":distributions:intTestImage") as Sync).destinationDir })
             gradleSnippetsDir.set(layout.projectDirectory.dir("subprojects/docs/src/snippets"))
             toolingApiShadedJarDir.set(dirWorkaround {
                 // TODO Refactor to not reach into tasks of another project

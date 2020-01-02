@@ -21,22 +21,11 @@ import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.Usage
 import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.bundling.Zip
-import org.gradle.gradlebuild.test.integrationtests.DistributionTest
 import org.gradle.kotlin.dsl.*
 import useAllDistribution
 import java.util.concurrent.Callable
 
 
-/**
- * Test Fixtures Plugin.
- *
- * Configures the Project as a test fixtures producer if `src/testFixtures` is a directory:
- * - adds a new `testFixtures` source set which should contain utilities/fixtures to assist in unit testing
- *   classes from the main source set,
- * - the test fixtures are automatically made available to the test classpath.
- *
- * Configures the Project as a test fixtures consumer according to the `testFixtures` extension configuration.
- */
 @Suppress("unused")
 open class IntTestImagePlugin : Plugin<Project> {
 
@@ -46,31 +35,9 @@ open class IntTestImagePlugin : Plugin<Project> {
             into(file("$buildDir/integ test"))
         }
 
-        tasks.withType<DistributionTest>().configureEach {
-            dependsOn(intTestImage)
-        }
-
-        val partialDistribution by configurations.creating {
-            attributes {
-                attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage.JAVA_RUNTIME))
-            }
-            isCanBeResolved = true
-            isCanBeConsumed = false
-        }
-
         val gradleRuntimeSource by configurations.creating {
             isVisible = false
             isCanBeResolved = false
-            isCanBeConsumed = false
-        }
-        val coreGradleRuntimeExtensions by configurations.creating {
-            extendsFrom(gradleRuntimeSource)
-            attributes {
-                attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage.JAVA_RUNTIME))
-                attribute(Attribute.of("org.gradle.api", String::class.java), "core-ext")
-            }
-            isVisible = false
-            isCanBeResolved = true
             isCanBeConsumed = false
         }
         val coreGradleRuntime by configurations.creating {
@@ -138,26 +105,16 @@ open class IntTestImagePlugin : Plugin<Project> {
             }
         } else {
             afterEvaluate {
-                if (!project.configurations["default"].allArtifacts.isEmpty()) {
-                    dependencies {
-                        partialDistribution(this@afterEvaluate)
-                    }
-                }
-
                 intTestImage.configure {
                     into("bin") {
                         from(gradleScripts)
                         fileMode = Integer.parseInt("0755", 8)
                     }
 
-                    val runtimeClasspathConfigurations = (coreGradleRuntimeExtensions + partialDistribution)
-
-                    val libsThisProjectDoesNotUse = (coreGradleRuntime + builtInGradlePlugins) - runtimeClasspathConfigurations
-
                     into("lib") {
-                        from(coreGradleRuntime - libsThisProjectDoesNotUse)
+                        from(coreGradleRuntime)
                         into("plugins") {
-                            from(builtInGradlePlugins - coreGradleRuntime - libsThisProjectDoesNotUse)
+                            from(builtInGradlePlugins - coreGradleRuntime)
                         }
                     }
 

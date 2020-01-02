@@ -94,7 +94,7 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
     }
 
     private void checkDistributionExists() {
-        String hintForMissingDistribution = String.format("This integration test can not run embedded and the Gradle distribution is missing: run 'gradle %s:intTestImage'.", IntegrationTestBuildContext.INSTANCE.getCurrentSubprojectName());
+        String hintForMissingDistribution = "This integration test can not run embedded and the Gradle distribution is missing: run 'gradle intTestImage'.";
         new TestFile(getExecHandle().getCommand()).getParentFile().assertIsDir(hintForMissingDistribution);
     }
 
