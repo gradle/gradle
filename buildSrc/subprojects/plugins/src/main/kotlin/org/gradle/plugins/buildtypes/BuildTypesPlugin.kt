@@ -3,9 +3,10 @@ package org.gradle.plugins.buildtypes
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.Task
+import org.gradle.api.tasks.TaskProvider
 
 import org.gradle.kotlin.dsl.*
-
 
 class BuildTypesPlugin : Plugin<Project> {
 
@@ -23,14 +24,16 @@ class BuildTypesPlugin : Plugin<Project> {
 
     private
     fun Project.register(buildType: BuildType) {
-        tasks.register(buildType.name) {
+        val buildTypeTask = tasks.register(buildType.name) {
 
             group = "Build Type"
 
             description = "The $name build type (can only be abbreviated to '${buildType.abbreviation}')"
 
             doFirst {
-                throw GradleException("'$name' is a build type and must be invoked directly, and its name can only be abbreviated to '${buildType.abbreviation}'.")
+                if(!gradle.startParameter.taskNames.any { it.equals(buildType.name) || it.equals(buildType.abbreviation)}) {
+                    throw GradleException("'$name' is a build type and must be invoked directly, and its name can only be abbreviated to '${buildType.abbreviation}'.")
+                }
             }
         }
 
@@ -49,11 +52,8 @@ class BuildTypesPlugin : Plugin<Project> {
             afterEvaluate {
                 usedTaskNames.forEach { (index, usedName) ->
                     invokedTaskNames.removeAt(index)
-
                     val subproject = usedName.substringBeforeLast(":", "")
-                    insertBuildTypeTasksInto(invokedTaskNames, index, buildType, subproject)
-
-                    gradle.startParameter.setTaskNames(invokedTaskNames)
+                    insertBuildTypeTasksInto(invokedTaskNames, buildTypeTask, index, buildType, subproject)
                 }
             }
         }
@@ -83,6 +83,7 @@ class BuildTypesPlugin : Plugin<Project> {
 internal
 fun Project.insertBuildTypeTasksInto(
     taskList: MutableList<String>,
+    buildTypeTask: TaskProvider<Task>,
     index: Int,
     buildType: BuildType,
     subproject: String
@@ -94,16 +95,43 @@ fun Project.insertBuildTypeTasksInto(
     fun forEachBuildTypeTask(act: (String) -> Unit) =
         buildType.tasks.reversed().forEach(act)
 
+    fun ensureBuildTypeTaskOrdering(matchingTasks: List<Task>) = {
+        matchingTasks.forEach { t ->
+            taskList.forEach {
+                t.shouldRunAfter(it)
+            }
+        }
+    }
+
     when {
         subproject.isEmpty() ->
-            forEachBuildTypeTask(::insert)
+            forEachBuildTypeTask {
+                val matchingTasks = ArrayList<Task>()
+                getAllprojects().forEach { p ->
+                    val findByName = p.getTasks().findByName(it)
+                    if (findByName != null) {
+                        buildTypeTask.configure {
+                            dependsOn(findByName)
+                        }
+                        matchingTasks.add(findByName)
+                    }
+                }
+                ensureBuildTypeTaskOrdering(matchingTasks)
+                matchingTasks.map{t -> t.path}.forEach(::insert)
+            }
 
         findProject(subproject) != null ->
             forEachBuildTypeTask {
                 val taskPath = "$subproject:$it"
                 when {
                     tasks.findByPath(taskPath) == null -> println("Skipping task '$taskPath' requested by build type ${buildType.name}, as it does not exist.")
-                    else -> insert(taskPath)
+                    else -> {
+                        buildTypeTask.configure {
+                            dependsOn(taskPath)
+                        }
+                        ensureBuildTypeTaskOrdering(listOf(tasks.getByPath(taskPath)))
+                        insert(taskPath)
+                    }
                 }
             }
         else -> {
