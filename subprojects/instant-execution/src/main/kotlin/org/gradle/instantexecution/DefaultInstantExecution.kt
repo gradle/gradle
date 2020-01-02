@@ -402,7 +402,6 @@ class DefaultInstantExecution internal constructor(
             actionScheme = service(),
             attributesFactory = service(),
             transformListener = service(),
-            transformationNodeRegistry = service(),
             valueSourceProviderFactory = service()
         )
     }

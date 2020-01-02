@@ -34,8 +34,10 @@ val mirrorUrls: Map<String, String> =
         name to url
     } ?: emptyMap()
 
+fun isEc2Agent() = java.net.InetAddress.getLocalHost().getHostName().startsWith("ip-")
+
 fun withMirrors(handler: RepositoryHandler) {
-    if ("CI" !in System.getenv()) {
+    if ("CI" !in System.getenv() || isEc2Agent()) {
         return
     }
     handler.all {
