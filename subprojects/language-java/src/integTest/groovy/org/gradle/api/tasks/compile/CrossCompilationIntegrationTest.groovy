@@ -46,7 +46,7 @@ class CrossCompilationIntegrationTest extends AbstractIntegrationSpec {
                 sourceCompatibility = JavaVersion.${version.name()}
             }
 
-            def javaInstallation = project.javaInstalls.installationForDirectory(file("${jvm.javaHome.toURI()}"))
+            def javaInstallation = project.javaInstalls.installationForDirectory(project.layout.projectDirectory.dir("${jvm.javaHome.toURI()}"))
 
             tasks.named("compileJava") {
                 options.fork = true

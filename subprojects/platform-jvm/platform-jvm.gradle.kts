@@ -27,6 +27,7 @@ dependencies {
     implementation(library("asm"))
 
     testImplementation(project(":native"))
+    testImplementation(project(":snapshots"))
     testImplementation(library("ant"))
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":diagnostics")))

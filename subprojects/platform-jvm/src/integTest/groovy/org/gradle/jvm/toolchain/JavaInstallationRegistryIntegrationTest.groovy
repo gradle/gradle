@@ -29,7 +29,7 @@ import spock.lang.Unroll
 
 import javax.inject.Inject
 
-class JavaInstallationFactoryIntegrationTest extends AbstractIntegrationSpec {
+class JavaInstallationRegistryIntegrationTest extends AbstractIntegrationSpec {
     def "plugin can query information about the current JVM"() {
         taskTypeShowsJavaInstallationDetails()
         pluginShowsCurrentJvm()
@@ -77,7 +77,7 @@ class JavaInstallationFactoryIntegrationTest extends AbstractIntegrationSpec {
         taskTypeShowsJavaInstallationDetails()
         buildFile << """
             task show(type: ShowTask) {
-                installation = services.get(JavaInstallationRegistry).installationForDirectory(project.file("${jvm.javaHome.toURI()}"))
+                installation = services.get(JavaInstallationRegistry).installationForDirectory(project.layout.projectDirectory.dir("${jvm.javaHome.toURI()}"))
             }
         """
 
@@ -101,7 +101,7 @@ class JavaInstallationFactoryIntegrationTest extends AbstractIntegrationSpec {
         taskTypeShowsJavaInstallationDetails()
         buildFile << """
             task show(type: ShowTask) {
-                installation = services.get(JavaInstallationRegistry).installationForDirectory(project.file("${jvm.javaHome.toURI()}"))
+                installation = services.get(JavaInstallationRegistry).installationForDirectory(project.layout.projectDirectory.dir("${jvm.javaHome.toURI()}"))
             }
         """
 
@@ -128,7 +128,7 @@ class JavaInstallationFactoryIntegrationTest extends AbstractIntegrationSpec {
         taskTypeShowsJavaInstallationDetails()
         buildFile << """
             task show(type: ShowTask) {
-                installation = services.get(JavaInstallationRegistry).installationForDirectory(project.file("${jre.homeDir.toURI()}"))
+                installation = services.get(JavaInstallationRegistry).installationForDirectory(project.layout.projectDirectory.dir("${jre.homeDir.toURI()}"))
             }
         """
 
@@ -152,7 +152,7 @@ class JavaInstallationFactoryIntegrationTest extends AbstractIntegrationSpec {
         taskTypeShowsJavaInstallationDetails()
         buildFile << """
             task show(type: ShowTask) {
-                installation = services.get(JavaInstallationRegistry).installationForDirectory(project.file("${jre.homeDir.toURI()}"))
+                installation = services.get(JavaInstallationRegistry).installationForDirectory(project.layout.projectDirectory.dir("${jre.homeDir.toURI()}"))
             }
         """
 
@@ -177,7 +177,7 @@ class JavaInstallationFactoryIntegrationTest extends AbstractIntegrationSpec {
         taskTypeShowsJavaInstallationDetails()
         buildFile << """
             task show(type: ShowTask) {
-                installation = services.get(JavaInstallationRegistry).installationForDirectory(project.file("install"))
+                installation = services.get(JavaInstallationRegistry).installationForDirectory(project.layout.projectDirectory.dir("install"))
             }
         """
 
@@ -206,7 +206,7 @@ class JavaInstallationFactoryIntegrationTest extends AbstractIntegrationSpec {
         taskTypeShowsJavaInstallationDetails()
         buildFile << """
             task show(type: ShowTask) {
-                installation = services.get(JavaInstallationRegistry).installationForDirectory(project.file("install"))
+                installation = services.get(JavaInstallationRegistry).installationForDirectory(project.layout.projectDirectory.dir("install"))
             }
         """
 
