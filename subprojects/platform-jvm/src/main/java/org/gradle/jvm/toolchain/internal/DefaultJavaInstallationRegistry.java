@@ -36,6 +36,7 @@ import org.gradle.jvm.toolchain.JavaInstallationRegistry;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Optional;
+import java.util.concurrent.Callable;
 
 @BuildTree
 public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry {
@@ -57,16 +58,29 @@ public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry
     }
 
     @Override
-    public Provider<JavaInstallation> installationForDirectory(File javaHomeDir) {
+    public Provider<JavaInstallation> installationForDirectory(Directory javaHomeDir) {
         // TODO - should be a value source and so a build input if queried during configuration time
         // TODO - provider should advertise the type of value it produces
-        return providerFactory.provider(() -> {
-            try {
-                return new DefaultJavaInstallation(installationProbe.checkJdk(javaHomeDir), fileCollectionFactory, fileFactory);
-            } catch (Exception e) {
-                throw new JavaInstallationDiscoveryException(String.format("Could not determine the details of Java installation in directory %s.", javaHomeDir), e);
+        return providerFactory.provider(new Callable<JavaInstallation>() {
+            DefaultJavaInstallation value;
+
+            @Override
+            public JavaInstallation call() {
+                if (value == null) {
+                    try {
+                        value = new DefaultJavaInstallation(installationProbe.checkJdk(javaHomeDir.getAsFile()), fileCollectionFactory, fileFactory);
+                    } catch (Exception e) {
+                        throw new JavaInstallationDiscoveryException(String.format("Could not determine the details of Java installation in directory %s.", javaHomeDir), e);
+                    }
+                }
+                return value;
             }
         });
+    }
+
+    @Override
+    public Provider<JavaInstallation> installationForDirectory(Provider<Directory> installationDirectory) {
+        return installationDirectory.flatMap(this::installationForDirectory);
     }
 
     @Contextual
