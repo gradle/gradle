@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
+import org.gradle.api.internal.artifacts.transform.UnzipTransform;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -95,7 +96,7 @@ public class DefaultGradleApiSourcesResolver implements GradleApiSourcesResolver
     }
 
     private void registerTransforms() {
-        project.getDependencies().registerTransform(UnzipDistribution.class, a -> {
+        project.getDependencies().registerTransform(UnzipTransform.class, a -> {
             a.getFrom().attribute(artifactType, zipType);
             a.getTo().attribute(artifactType, unzippedDistributionType);
         });
