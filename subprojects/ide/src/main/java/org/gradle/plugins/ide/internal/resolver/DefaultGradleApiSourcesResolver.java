@@ -85,9 +85,7 @@ public class DefaultGradleApiSourcesResolver implements GradleApiSourcesResolver
             a.setName("Gradle " + repoName);
             a.setUrl(gradleRepoUrl() + repoName);
             a.metadataSources(IvyArtifactRepository.MetadataSources::artifact);
-            a.patternLayout(layout -> {
-                layout.artifact("[module]-[revision](-[classifier])(.[ext])");
-            });
+            a.patternLayout(layout -> layout.artifact("[module]-[revision](-[classifier])(.[ext])"));
         });
     }
 

@@ -350,7 +350,7 @@ dependencies {
     }
 
     @ToBeFixedForInstantExecution
-    def "sources for gradleApi() are downloaded and attached when not present"() {
+    def "snapshot sources for gradleApi() are downloaded and attached when not present"() {
         given:
         requireIsolatedGradleDistribution()
         givenSourceDistributionExistsOnRemoteServer()
@@ -376,10 +376,12 @@ dependencies {
     }
 
     @ToBeFixedForInstantExecution
-    def "sources for gradleTestKit() are downloaded and attached when not present"() {
+    def "released version sources for gradleApi() are downloaded and attached when not present"() {
         given:
         requireIsolatedGradleDistribution()
-        givenSourceDistributionExistsOnRemoteServer()
+        def gradleVersion = "42.0"
+        executer.withEnvironmentVars('GRADLE_VERSION_OVERRIDE': gradleVersion)
+        givenSourceDistributionExistsOnRemoteServer('distributions', gradleVersion)
 
         buildScript """
             apply plugin: "java"
@@ -387,7 +389,7 @@ dependencies {
             apply plugin: "eclipse"
 
             dependencies {
-                implementation gradleTestKit()
+                implementation gradleApi()
             }
             """
 
@@ -398,7 +400,6 @@ dependencies {
         then:
         TestFile sourcesDir = gradleDistributionSrcDir()
         assertContainsGradleSources(sourcesDir)
-        ideFileContainsGradleApiWithSources("gradle-test-kit", sourcesDir)
         ideFileContainsGradleApiWithSources("gradle-api", sourcesDir)
     }
 
@@ -435,7 +436,7 @@ dependencies {
         requireGradleDistribution()
         assertSourcesDirectoryDoesNotExistInDistribution()
 
-        givenSourceDistributionExistsOnRemoteServer(createZip("gradle-src.zip") {
+        givenSourceDistributionExistsOnRemoteServer("distributions-snapshots", distribution.version.version, createZip("gradle-src.zip") {
             root {
                 foo {
                     file("/src/main/java/org/gradle/Test.java")
@@ -470,7 +471,7 @@ dependencies {
         return sourcesDir
     }
 
-    private void givenSourceDistributionExistsOnRemoteServer(TestFile zippedSources = createZip("gradle-src.zip") {
+    private void givenSourceDistributionExistsOnRemoteServer(String repository = "distributions-snapshots", String version = distribution.version.version, TestFile zippedSources = createZip("gradle-src.zip") {
         root {
             subprojects {
                 submodule1 {
@@ -482,7 +483,7 @@ dependencies {
             }
         }
     }) {
-        String distributionPath = "/distributions-snapshots/gradle-${distribution.version.version}-src.zip"
+        String distributionPath = "/$repository/gradle-${version}-src.zip"
         server.allowGetOrHead(distributionPath, zippedSources)
         server.allowGetMissing("${distributionPath}.sha1")
     }
