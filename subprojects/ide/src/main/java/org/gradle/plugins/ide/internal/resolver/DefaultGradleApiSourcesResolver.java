@@ -37,7 +37,7 @@ public class DefaultGradleApiSourcesResolver implements GradleApiSourcesResolver
     private static final Logger LOGGER = Logging.getLogger(DefaultGradleApiSourcesResolver.class);
 
     private static final String GRADLE_REPO_URL = "https://services.gradle.org/";
-    private static final String GRADLE_REPO_URL_PROPERTY = "gradleSourcesRepoUrl";
+    private static final String GRADLE_REPO_URL_OVERRIDE_VAR = "GRADLE_REPO_OVERRIDE";
 
     private final ProjectInternal project;
 
@@ -89,11 +89,9 @@ public class DefaultGradleApiSourcesResolver implements GradleApiSourcesResolver
         });
     }
 
-    private Object gradleRepoUrl() {
-        if (project.hasProperty(GRADLE_REPO_URL_PROPERTY)) {
-            return project.findProperty(GRADLE_REPO_URL_PROPERTY);
-        }
-        return GRADLE_REPO_URL;
+    private String gradleRepoUrl() {
+        String repoOverride = System.getenv(GRADLE_REPO_URL_OVERRIDE_VAR);
+        return repoOverride != null ? repoOverride : GRADLE_REPO_URL;
     }
 
     private void registerTransforms() {

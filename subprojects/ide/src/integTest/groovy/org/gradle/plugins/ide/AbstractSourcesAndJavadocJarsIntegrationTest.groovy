@@ -354,6 +354,7 @@ dependencies {
         given:
         requireIsolatedGradleDistribution()
         givenSourceDistributionExistsOnRemoteServer()
+        executer.withEnvironmentVars('GRADLE_REPO_OVERRIDE': "$server.uri/")
 
         buildScript """
             apply plugin: "java"
@@ -366,7 +367,6 @@ dependencies {
             """
 
         when:
-        args("-PgradleSourcesRepoUrl=$server.uri/")
         succeeds ideTask
 
         then:
@@ -380,7 +380,7 @@ dependencies {
         given:
         requireIsolatedGradleDistribution()
         def gradleVersion = "42.0"
-        executer.withEnvironmentVars('GRADLE_VERSION_OVERRIDE': gradleVersion)
+        executer.withEnvironmentVars('GRADLE_VERSION_OVERRIDE': gradleVersion, 'GRADLE_REPO_OVERRIDE': "$server.uri/")
         givenSourceDistributionExistsOnRemoteServer('distributions', gradleVersion)
 
         buildScript """
@@ -394,7 +394,6 @@ dependencies {
             """
 
         when:
-        args("-PgradleSourcesRepoUrl=$server.uri/")
         succeeds ideTask
 
         then:
@@ -409,6 +408,7 @@ dependencies {
         requireGradleDistribution()
 
         assertSourcesDirectoryDoesNotExistInDistribution()
+        executer.withEnvironmentVars('GRADLE_REPO_OVERRIDE': "$server.uri/")
         server.expectHeadMissing("/distributions-snapshots/gradle-${distribution.version.version}-src.zip")
 
         buildScript """
@@ -422,7 +422,6 @@ dependencies {
             """
 
         when:
-        args("-PgradleSourcesRepoUrl=$server.uri/")
         succeeds ideTask
 
         then:
@@ -435,6 +434,7 @@ dependencies {
         given:
         requireGradleDistribution()
         assertSourcesDirectoryDoesNotExistInDistribution()
+        executer.withEnvironmentVars('GRADLE_REPO_OVERRIDE': "$server.uri/")
 
         givenSourceDistributionExistsOnRemoteServer("distributions-snapshots", distribution.version.version, createZip("gradle-src.zip") {
             root {
@@ -456,7 +456,6 @@ dependencies {
             """
 
         when:
-        args("-PgradleSourcesRepoUrl=$server.uri/")
         succeeds ideTask
 
         then:
