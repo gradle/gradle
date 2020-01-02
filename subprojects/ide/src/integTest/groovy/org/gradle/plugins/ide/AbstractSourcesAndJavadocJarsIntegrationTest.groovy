@@ -370,7 +370,7 @@ dependencies {
         succeeds ideTask
 
         then:
-        TestFile sourcesDir = new TestFile(distribution.gradleHomeDir, "src")
+        TestFile sourcesDir = gradleDistributionSrcDir()
         assertContainsGradleSources(sourcesDir)
         ideFileContainsGradleApiWithSources("gradle-api", sourcesDir)
     }
@@ -396,7 +396,7 @@ dependencies {
         succeeds ideTask
 
         then:
-        TestFile sourcesDir = new TestFile(distribution.gradleHomeDir, "src")
+        TestFile sourcesDir = gradleDistributionSrcDir()
         assertContainsGradleSources(sourcesDir)
         ideFileContainsGradleApiWithSources("gradle-test-kit", sourcesDir)
         ideFileContainsGradleApiWithSources("gradle-api", sourcesDir)
@@ -406,8 +406,8 @@ dependencies {
     def "skips gradleApi() sources when not present and not available on remote server"() {
         given:
         requireGradleDistribution()
-        TestFile sourcesDir = new TestFile(distribution.gradleHomeDir, "src")
-        sourcesDir.assertDoesNotExist()
+
+        assertSourcesDirectoryDoesNotExistInDistribution()
         server.expectHeadMissing("/distributions-snapshots/gradle-${distribution.version.version}-src.zip")
 
         buildScript """
@@ -425,33 +425,74 @@ dependencies {
         succeeds ideTask
 
         then:
-        sourcesDir.assertDoesNotExist()
+        assertSourcesDirectoryDoesNotExistInDistribution()
+        ideFileContainsGradleApi("gradle-api")
+    }
+
+    @ToBeFixedForInstantExecution
+    def "skips gradleApi() sources when not present and remote distribution has unexpected directory structure"() {
+        given:
+        requireGradleDistribution()
+        assertSourcesDirectoryDoesNotExistInDistribution()
+
+        givenSourceDistributionExistsOnRemoteServer(createZip("gradle-src.zip") {
+            root {
+                foo {
+                    file("/src/main/java/org/gradle/Test.java")
+                    file("/src/main/java/org/gradle/Test2.java")
+                }
+            }
+        })
+
+        buildScript """
+            apply plugin: "java"
+            apply plugin: "idea"
+            apply plugin: "eclipse"
+
+            dependencies {
+                implementation gradleApi()
+            }
+            """
+
+        when:
+        args("-PgradleSourcesRepoUrl=$server.uri/")
+        succeeds ideTask
+
+        then:
+        assertSourcesDirectoryDoesNotExistInDistribution()
         ideFileContainsGradleApi("gradle-api")
     }
 
     private TestFile givenGradleSourcesExistInDistribution() {
-        TestFile sourcesDir = distribution.gradleHomeDir.createDir("src")
+        TestFile sourcesDir = gradleDistributionSrcDir()
         sourcesDir.createFile("submodule1/org/gradle/Test.java")
         sourcesDir.createFile("submodule2/org/gradle/Test2.java")
         return sourcesDir
     }
 
-    private void givenSourceDistributionExistsOnRemoteServer() {
-        TestFile zippedSources = createZip("gradle-src.zip") {
-            root {
-                subprojects {
-                    submodule1 {
-                        file("/src/main/java/org/gradle/Test.java")
-                    }
-                    submodule2 {
-                        file("/src/main/java/org/gradle/Test2.java")
-                    }
+    private void givenSourceDistributionExistsOnRemoteServer(TestFile zippedSources = createZip("gradle-src.zip") {
+        root {
+            subprojects {
+                submodule1 {
+                    file("/src/main/java/org/gradle/Test.java")
+                }
+                submodule2 {
+                    file("/src/main/java/org/gradle/Test2.java")
                 }
             }
         }
+    }) {
         String distributionPath = "/distributions-snapshots/gradle-${distribution.version.version}-src.zip"
         server.allowGetOrHead(distributionPath, zippedSources)
         server.allowGetMissing("${distributionPath}.sha1")
+    }
+
+    void assertSourcesDirectoryDoesNotExistInDistribution() {
+        gradleDistributionSrcDir().assertDoesNotExist()
+    }
+
+    private TestFile gradleDistributionSrcDir() {
+        return new TestFile(distribution.gradleHomeDir, "src")
     }
 
     private static void assertContainsGradleSources(TestFile sourcesDir) {

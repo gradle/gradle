@@ -46,7 +46,6 @@ public abstract class FindGradleSources implements TransformAction<TransformPara
             return;
         }
 
-
         File srcDir = outputs.dir("gradle-src");
 
         File subprojects = new File(unzippedDistroDir, "subprojects");
@@ -60,7 +59,6 @@ public abstract class FindGradleSources implements TransformAction<TransformPara
             }
         });
     }
-
 
     private File unzippedDistroDir() {
         File[] unzippedDirs = getInputArtifact().get().getAsFile().listFiles();
