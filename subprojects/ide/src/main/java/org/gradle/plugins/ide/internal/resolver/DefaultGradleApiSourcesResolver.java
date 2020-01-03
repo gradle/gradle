@@ -16,13 +16,13 @@
 
 package org.gradle.plugins.ide.internal.resolver;
 
+import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
 import org.gradle.api.internal.artifacts.transform.UnzipTransform;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.installation.CurrentGradleInstallation;
@@ -40,14 +40,14 @@ public class DefaultGradleApiSourcesResolver implements GradleApiSourcesResolver
     private static final String GRADLE_REPO_URL = "https://services.gradle.org/";
     private static final String GRADLE_REPO_URL_OVERRIDE_VAR = "GRADLE_REPO_OVERRIDE";
 
-    private final ProjectInternal project;
+    private final Project project;
 
     private final Attribute<String> artifactType = Attribute.of("artifactType", String.class);
     private final String zipType = "zip";
     private final String unzippedDistributionType = "unzipped-distribution";
     private final String sourceDirectory = "src-directory";
 
-    public DefaultGradleApiSourcesResolver(ProjectInternal project) {
+    public DefaultGradleApiSourcesResolver(Project project) {
         this.project = project;
     }
 
