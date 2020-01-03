@@ -462,7 +462,7 @@ dependencies {
     }
 
     @ToBeFixedForInstantExecution
-    def "does not download gradleApi() sources when offline"() {
+    def "does not download gradleApi() sources when sources download is disabled"() {
         given:
         requireGradleDistribution()
         executer.withEnvironmentVars('GRADLE_REPO_OVERRIDE': "$server.uri/")
@@ -480,6 +480,30 @@ dependencies {
             eclipse.classpath.downloadSources = false
             """
         when:
+        succeeds ideTask
+
+        then:
+        assertSourcesDirectoryDoesNotExistInDistribution()
+        ideFileContainsGradleApi("gradle-api")
+    }
+
+    @ToBeFixedForInstantExecution
+    def "does not download gradleApi() sources when offline"() {
+        given:
+        requireGradleDistribution()
+        executer.withEnvironmentVars('GRADLE_REPO_OVERRIDE': "$server.uri/")
+
+        buildScript """
+            apply plugin: "java"
+            apply plugin: "idea"
+            apply plugin: "eclipse"
+
+            dependencies {
+                implementation gradleApi()
+            }
+            """
+        when:
+        args("--offline")
         succeeds ideTask
 
         then:
