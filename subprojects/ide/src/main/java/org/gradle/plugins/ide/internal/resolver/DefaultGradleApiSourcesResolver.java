@@ -28,6 +28,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleInstallation;
 import org.gradle.util.GFileUtils;
+import org.gradle.util.GradleVersion;
 
 import java.io.File;
 import java.util.HashMap;
@@ -119,25 +120,22 @@ public class DefaultGradleApiSourcesResolver implements GradleApiSourcesResolver
         return project.getConfigurations().detachedConfiguration(dependency);
     }
 
-    private String gradleVersion() {
-        return project.getGradle().getGradleVersion();
+    private GradleVersion gradleVersion() {
+        return GradleVersion.version(project.getGradle().getGradleVersion());
     }
 
     private Dependency gradleSourceDependency() {
         Map<String, String> sourceDependency = new HashMap<>();
         sourceDependency.put("group", "gradle");
         sourceDependency.put("name", "gradle");
-        sourceDependency.put("version", gradleVersion());
+        sourceDependency.put("version", gradleVersion().getVersion());
         sourceDependency.put("classifier", "src");
         sourceDependency.put("ext", "zip");
         return project.getDependencies().create(sourceDependency);
     }
 
-    private static String repositoryNameFor(String gradleVersion) {
-        return isSnapshot(gradleVersion) ? "distributions-snapshots" : "distributions";
+    private static String repositoryNameFor(GradleVersion gradleVersion) {
+        return gradleVersion.isSnapshot() ? "distributions-snapshots" : "distributions";
     }
 
-    private static boolean isSnapshot(String gradleVersion) {
-        return gradleVersion.contains("+");
-    }
 }
