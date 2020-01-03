@@ -396,6 +396,7 @@ dependencies {
         ideFileContainsEntry("groovy-all-${groovyAllVersion}.jar", ["groovy-all-${groovyAllVersion}-sources.jar"], [])
     }
 
+    @ToBeFixedForInstantExecution
     def "does not download localGroovy() sources when offline"() {
         given:
         executer.withEnvironmentVars('GRADLE_LIBS_REPO_OVERRIDE': "$server.uri/")
