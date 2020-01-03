@@ -32,7 +32,8 @@ import java.util.Collections;
 
 public class DefaultGradleApiSourcesResolver implements GradleApiSourcesResolver {
 
-    private static final String GRADLE_LIBS_REPO_URL = "https://repo.gradle.org/gradle/list/";
+    private static final String GRADLE_LIBS_REPO_URL = "https://repo.gradle.org/gradle/list/libs-releases";
+    private static final String GRADLE_LIBS_REPO_OVERRIDE_VAR = "GRADLE_LIBS_REPO_OVERRIDE";
 
     private final ProjectInternal project;
 
@@ -79,9 +80,13 @@ public class DefaultGradleApiSourcesResolver implements GradleApiSourcesResolver
 
     private MavenArtifactRepository addGradleLibsRepository() {
         return project.getRepositories().maven(a -> {
-            String repoName = "libs-releases";
-            a.setName("Gradle " + repoName);
-            a.setUrl(GRADLE_LIBS_REPO_URL + repoName);
+            a.setName("Gradle Libs");
+            a.setUrl(gradleLibsRepoUrl());
         });
+    }
+
+    private static String gradleLibsRepoUrl() {
+        String repoOverride = System.getenv(GRADLE_LIBS_REPO_OVERRIDE_VAR);
+        return repoOverride != null ? repoOverride : GRADLE_LIBS_REPO_URL;
     }
 }

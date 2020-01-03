@@ -27,6 +27,8 @@ import org.junit.Rule
 abstract class AbstractSourcesAndJavadocJarsIntegrationTest extends AbstractIdeIntegrationSpec {
     @Rule HttpServer server
 
+    String groovyAllVersion = "1.3-2.5.8"
+
     def setup() {
         server.start()
         executer.requireOwnGradleUserHomeDir()
@@ -351,7 +353,8 @@ dependencies {
     @ToBeFixedForInstantExecution
     def "sources for localGroovy() are downloaded and attached"() {
         given:
-        executer.withEnvironmentVars('GRADLE_REPO_OVERRIDE': "$server.uri/")
+        def repo = givenGroovyAllExistsInGradleRepo()
+        executer.withEnvironmentVars('GRADLE_LIBS_REPO_OVERRIDE': "$repo.uri/")
 
         buildScript """
             apply plugin: "java"
@@ -367,13 +370,14 @@ dependencies {
         succeeds ideTask
 
         then:
-        ideFileContainsEntry("groovy-all-1.3-2.5.8.jar", ["groovy-all-1.3-2.5.8-sources.jar"], [])
+        ideFileContainsEntry("groovy-all-${groovyAllVersion}.jar", ["groovy-all-${groovyAllVersion}-sources.jar"], [])
     }
 
     @ToBeFixedForInstantExecution
     def "sources for localGroovy() are downloaded and attached when using gradleApi()"() {
         given:
-        executer.withEnvironmentVars('GRADLE_REPO_OVERRIDE': "$server.uri/")
+        def repo = givenGroovyAllExistsInGradleRepo()
+        executer.withEnvironmentVars('GRADLE_LIBS_REPO_OVERRIDE': "$repo.uri/")
 
         buildScript """
             apply plugin: "java"
@@ -389,12 +393,12 @@ dependencies {
         succeeds ideTask
 
         then:
-        ideFileContainsEntry("groovy-all-1.3-2.5.8.jar", ["groovy-all-1.3-2.5.8-sources.jar"], [])
+        ideFileContainsEntry("groovy-all-${groovyAllVersion}.jar", ["groovy-all-${groovyAllVersion}-sources.jar"], [])
     }
 
     def "does not download localGroovy() sources when offline"() {
         given:
-        executer.withEnvironmentVars('GRADLE_REPO_OVERRIDE': "$server.uri/")
+        executer.withEnvironmentVars('GRADLE_LIBS_REPO_OVERRIDE': "$server.uri/")
 
         buildScript """
             apply plugin: "java"
@@ -414,6 +418,15 @@ dependencies {
 
         then:
         ideFileContainsNoSourcesAndJavadocEntry()
+    }
+
+    def givenGroovyAllExistsInGradleRepo() {
+        def repo = mavenHttpRepo
+        def module = repo.module("org.gradle.groovy", "groovy-all", groovyAllVersion)
+        module.artifact(classifier: "sources")
+        module.publish()
+        module.allowAll()
+        return repo
     }
 
     private useIvyRepo(def repo) {
