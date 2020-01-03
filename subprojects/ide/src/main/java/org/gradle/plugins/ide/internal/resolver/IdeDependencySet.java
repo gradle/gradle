@@ -45,6 +45,7 @@ import org.gradle.jvm.JvmLibrary;
 import org.gradle.language.base.artifact.SourcesArtifact;
 import org.gradle.language.java.artifact.JavadocArtifact;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -224,7 +225,8 @@ public class IdeDependencySet {
                 } else if (isGradleApiDependency(artifact)) {
                     visitor.visitGradleApiDependency(artifact, gradleApiSourcesResolver.resolveGradleApiSources(artifact.getFile()), isTestConfiguration(configurations.get(artifactIdentifier)));
                 } else if (isLocalGroovyDependency(artifact)) {
-                    visitor.visitGradleApiDependency(artifact, gradleApiSourcesResolver.resolveLocalGroovySources(artifact.getFile().getName()), isTestConfiguration(configurations.get(artifactIdentifier)));
+                    File localGroovySources = shouldDownloadSources(visitor) ? gradleApiSourcesResolver.resolveLocalGroovySources(artifact.getFile().getName()) : null;
+                    visitor.visitGradleApiDependency(artifact, localGroovySources, isTestConfiguration(configurations.get(artifactIdentifier)));
                 } else {
                     visitor.visitFileDependency(artifact, isTestConfiguration(configurations.get(artifactIdentifier)));
                 }
@@ -241,6 +243,10 @@ public class IdeDependencySet {
         private boolean isGradleApiDependency(ResolvedArtifactResult artifact) {
             String artifactFileName = artifact.getFile().getName();
             return artifactFileName.startsWith("gradle-api") || artifactFileName.startsWith("gradle-test-kit");
+        }
+
+        private boolean shouldDownloadSources(IdeDependencyVisitor visitor) {
+            return !visitor.isOffline() && visitor.downloadSources();
         }
 
         private boolean isTestConfiguration(Set<Configuration> configurations) {

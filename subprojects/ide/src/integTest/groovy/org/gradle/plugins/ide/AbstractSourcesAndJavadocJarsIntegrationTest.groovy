@@ -392,6 +392,30 @@ dependencies {
         ideFileContainsEntry("groovy-all-1.3-2.5.8.jar", ["groovy-all-1.3-2.5.8-sources.jar"], [])
     }
 
+    def "does not download localGroovy() sources when offline"() {
+        given:
+        executer.withEnvironmentVars('GRADLE_REPO_OVERRIDE': "$server.uri/")
+
+        buildScript """
+            apply plugin: "java"
+            apply plugin: "idea"
+            apply plugin: "eclipse"
+
+            dependencies {
+                implementation localGroovy()
+            }
+
+            idea.module.downloadSources = false
+            eclipse.classpath.downloadSources = false
+            """
+
+        when:
+        succeeds ideTask
+
+        then:
+        ideFileContainsNoSourcesAndJavadocEntry()
+    }
+
     private useIvyRepo(def repo) {
         buildFile << """repositories { ivy { url "$repo.uri" } }"""
     }
