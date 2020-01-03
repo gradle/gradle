@@ -304,7 +304,7 @@ dependencies {
     def "sources for gradleApi() are resolved and attached when -all distribution is used"() {
         given:
         requireIsolatedGradleDistribution()
-        TestFile sourcesDir = givenGradleSourcesExistInDistribution()
+        givenGradleSourcesExistInDistribution()
 
         buildScript """
             apply plugin: "java"
@@ -320,15 +320,14 @@ dependencies {
         succeeds ideTask
 
         then:
-        assertContainsGradleSources(sourcesDir)
-        ideFileContainsGradleApiWithSources("gradle-api", sourcesDir)
+        ideFileContainsGradleApiWithSources("gradle-api")
     }
 
     @ToBeFixedForInstantExecution
     def "sources for gradleTestKit() are resolved and attached when -all distribution is used"() {
         given:
         requireIsolatedGradleDistribution()
-        TestFile sourcesDir = givenGradleSourcesExistInDistribution()
+        givenGradleSourcesExistInDistribution()
 
         buildScript """
             apply plugin: "java"
@@ -344,15 +343,14 @@ dependencies {
         succeeds ideTask
 
         then:
-        assertContainsGradleSources(sourcesDir)
-        ideFileContainsGradleApiWithSources("gradle-test-kit", sourcesDir)
-        ideFileContainsGradleApiWithSources("gradle-api", sourcesDir)
+        ideFileContainsGradleApiWithSources("gradle-test-kit")
+        ideFileContainsGradleApiWithSources("gradle-api")
     }
 
     @ToBeFixedForInstantExecution
     def "snapshot sources for gradleApi() are downloaded and attached when not present"() {
         given:
-        requireIsolatedGradleDistribution()
+        requireGradleDistribution()
         givenSourceDistributionExistsOnRemoteServer()
         executer.withEnvironmentVars('GRADLE_REPO_OVERRIDE': "$server.uri/")
 
@@ -370,15 +368,13 @@ dependencies {
         succeeds ideTask
 
         then:
-        TestFile sourcesDir = gradleDistributionSrcDir()
-        assertContainsGradleSources(sourcesDir)
-        ideFileContainsGradleApiWithSources("gradle-api", sourcesDir)
+        ideFileContainsGradleApiWithSources("gradle-api")
     }
 
     @ToBeFixedForInstantExecution
     def "released version sources for gradleApi() are downloaded and attached when not present"() {
         given:
-        requireIsolatedGradleDistribution()
+        requireGradleDistribution()
         def gradleVersion = "42.0"
         executer.withEnvironmentVars('GRADLE_VERSION_OVERRIDE': gradleVersion, 'GRADLE_REPO_OVERRIDE': "$server.uri/")
         givenSourceDistributionExistsOnRemoteServer('distributions', gradleVersion)
@@ -397,9 +393,7 @@ dependencies {
         succeeds ideTask
 
         then:
-        TestFile sourcesDir = gradleDistributionSrcDir()
-        assertContainsGradleSources(sourcesDir)
-        ideFileContainsGradleApiWithSources("gradle-api", sourcesDir)
+        ideFileContainsGradleApiWithSources("gradle-api")
     }
 
     @ToBeFixedForInstantExecution
@@ -511,11 +505,10 @@ dependencies {
         ideFileContainsGradleApi("gradle-api")
     }
 
-    private TestFile givenGradleSourcesExistInDistribution() {
+    private void givenGradleSourcesExistInDistribution() {
         TestFile sourcesDir = gradleDistributionSrcDir()
         sourcesDir.createFile("submodule1/org/gradle/Test.java")
         sourcesDir.createFile("submodule2/org/gradle/Test2.java")
-        return sourcesDir
     }
 
     private void givenSourceDistributionExistsOnRemoteServer(String repository = "distributions-snapshots", String version = distribution.version.version, TestFile zippedSources = gradleSourcesZip()) {
@@ -547,7 +540,7 @@ dependencies {
         }
     }
 
-    private static void assertContainsGradleSources(TestFile sourcesDir) {
+    static void assertContainsGradleSources(TestFile sourcesDir) {
         sourcesDir.assertContainsDescendants(
             "submodule1/org/gradle/Test.java",
             "submodule2/org/gradle/Test2.java"
@@ -620,7 +613,7 @@ task resolve {
 
     abstract void ideFileContainsGradleApi(String apiJarPrefix)
 
-    abstract void ideFileContainsGradleApiWithSources(String apiJarPrefix, TestFile sourcesDir)
+    abstract void ideFileContainsGradleApiWithSources(String apiJarPrefix)
 
     abstract void ideFileContainsNoSourcesAndJavadocEntry()
 

@@ -27,7 +27,6 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleInstallation;
-import org.gradle.util.GFileUtils;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;
@@ -59,19 +58,18 @@ public class DefaultGradleApiSourcesResolver implements GradleApiSourcesResolver
             return null;
         }
         File srcDir = gradleInstallation.getSrcDir();
-        if (!srcDir.exists()) {
-            if (!download) {
-                return null;
-            }
-            try {
-                File sources = downloadSources();
-                GFileUtils.moveExistingDirectory(sources, srcDir);
-            } catch (DefaultLenientConfiguration.ArtifactResolveException e) {
-                LOGGER.warn("Could not fetch Gradle sources distribution: " + e.getCause().getMessage());
-                return null;
-            }
+        if (srcDir.exists()) {
+            return srcDir;
         }
-        return srcDir;
+        if (!download) {
+            return null;
+        }
+        try {
+            return downloadSources();
+        } catch (DefaultLenientConfiguration.ArtifactResolveException e) {
+            LOGGER.warn("Could not fetch Gradle sources distribution: " + e.getCause().getMessage());
+            return null;
+        }
     }
 
     private File downloadSources() {

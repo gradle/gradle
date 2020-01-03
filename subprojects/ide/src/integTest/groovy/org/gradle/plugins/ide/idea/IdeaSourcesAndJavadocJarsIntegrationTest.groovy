@@ -15,7 +15,7 @@
  */
 package org.gradle.plugins.ide.idea
 
-import org.apache.commons.io.FilenameUtils
+
 import org.gradle.plugins.ide.AbstractSourcesAndJavadocJarsIntegrationTest
 import org.gradle.plugins.ide.fixtures.IdeaModuleFixture
 import org.gradle.test.fixtures.file.TestFile
@@ -42,17 +42,13 @@ class IdeaSourcesAndJavadocJarsIntegrationTest extends AbstractSourcesAndJavadoc
     }
 
     @Override
-    void ideFileContainsGradleApiWithSources(String apiJarPrefix, TestFile sourcesDir) {
+    void ideFileContainsGradleApiWithSources(String apiJarPrefix) {
         def libraryEntry = findApiLibrary(apiJarPrefix)
-        File[] submodules = sourcesDir.listFiles()
+        assert !libraryEntry.source.isEmpty()
+        TestFile sourcesRoot = file(libraryEntry.source.get(0).replace('file://$MODULE_DIR$/', '')).parentFile
+        assertContainsGradleSources(sourcesRoot)
+        File[] submodules = sourcesRoot.listFiles()
         assert libraryEntry.source.size() == submodules.length
-        List<String> submodulePaths = new ArrayList<>()
-        for (File submodule : submodules) {
-            String submodulePath = submodule.getPath()
-            submodulePath = submodulePath.substring(submodulePath.lastIndexOf("gradle-home"))
-            submodulePaths.add('file://$MODULE_DIR$/' + FilenameUtils.separatorsToUnix(submodulePath))
-        }
-        assert libraryEntry.source.containsAll(submodulePaths)
     }
 
     IdeaModuleFixture.ImlModuleLibrary findApiLibrary(String apiJarPrefix) {
