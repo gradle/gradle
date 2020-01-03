@@ -30,7 +30,7 @@ class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
     private final project = TestUtil.createRootProject(temporaryFolder.testDirectory)
     private final childProject = TestUtil.createChildProject(project, "child", new File("."))
     private final artifactRegistry = Stub(IdeArtifactRegistry)
-    private final dependenciesProvider = new IdeaDependenciesProvider(project, artifactRegistry, project.services.get(ProjectStateRegistry), new NullGradleApiSourcesResolver())
+    private final dependenciesProvider = new IdeaDependenciesProvider(project, artifactRegistry, project.services.get(ProjectStateRegistry), NullGradleApiSourcesResolver.INSTANCE)
 
     def setup() {
         _ * artifactRegistry.getIdeProject(_, _) >> { Class c, def m ->
