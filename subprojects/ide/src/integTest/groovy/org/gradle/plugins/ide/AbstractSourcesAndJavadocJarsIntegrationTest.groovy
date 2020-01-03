@@ -17,7 +17,11 @@ package org.gradle.plugins.ide
 
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.server.http.*
+import org.gradle.test.fixtures.server.http.HttpArtifact
+import org.gradle.test.fixtures.server.http.HttpServer
+import org.gradle.test.fixtures.server.http.IvyHttpModule
+import org.gradle.test.fixtures.server.http.IvyHttpRepository
+import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.junit.Rule
 
 abstract class AbstractSourcesAndJavadocJarsIntegrationTest extends AbstractIdeIntegrationSpec {
@@ -311,6 +315,7 @@ dependencies {
                 implementation gradleApi()
             }
             """
+
         when:
         succeeds ideTask
 
@@ -334,12 +339,57 @@ dependencies {
                 implementation gradleTestKit()
             }
             """
+
         when:
         succeeds ideTask
 
         then:
         ideFileContainsGradleApiWithSources("gradle-test-kit", sourcesDir.getPath())
         ideFileContainsGradleApiWithSources("gradle-api", sourcesDir.getPath())
+    }
+
+    @ToBeFixedForInstantExecution
+    def "sources for localGroovy() are downloaded and attached"() {
+        given:
+        executer.withEnvironmentVars('GRADLE_REPO_OVERRIDE': "$server.uri/")
+
+        buildScript """
+            apply plugin: "java"
+            apply plugin: "idea"
+            apply plugin: "eclipse"
+
+            dependencies {
+                implementation localGroovy()
+            }
+            """
+
+        when:
+        succeeds ideTask
+
+        then:
+        ideFileContainsEntry("groovy-all-1.3-2.5.8.jar", ["groovy-all-1.3-2.5.8-sources.jar"], [])
+    }
+
+    @ToBeFixedForInstantExecution
+    def "sources for localGroovy() are downloaded and attached when using gradleApi()"() {
+        given:
+        executer.withEnvironmentVars('GRADLE_REPO_OVERRIDE': "$server.uri/")
+
+        buildScript """
+            apply plugin: "java"
+            apply plugin: "idea"
+            apply plugin: "eclipse"
+
+            dependencies {
+                implementation gradleApi()
+            }
+            """
+
+        when:
+        succeeds ideTask
+
+        then:
+        ideFileContainsEntry("groovy-all-1.3-2.5.8.jar", ["groovy-all-1.3-2.5.8-sources.jar"], [])
     }
 
     private useIvyRepo(def repo) {
@@ -349,7 +399,6 @@ dependencies {
     private useMavenRepo(def repo) {
         buildFile << """repositories { maven { url "$repo.uri" } }"""
     }
-
 
     private static void addCompleteConfigurations(IvyHttpModule module) {
         module.configuration("default")

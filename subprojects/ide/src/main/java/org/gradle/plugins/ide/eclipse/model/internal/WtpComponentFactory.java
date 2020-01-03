@@ -34,6 +34,7 @@ import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 import org.gradle.plugins.ide.internal.resolver.IdeDependencySet;
 import org.gradle.plugins.ide.internal.resolver.IdeDependencyVisitor;
 import org.gradle.plugins.ide.internal.resolver.UnresolvedIdeDependencyHandler;
+import org.gradle.plugins.ide.internal.resolver.NullGradleApiSourcesResolver;
 
 import java.io.File;
 import java.util.Collections;
@@ -86,7 +87,7 @@ public class WtpComponentFactory {
 
     private List<WbDependentModule> getEntriesFromConfigurations(Project project, Set<Configuration> plusConfigurations, Set<Configuration> minusConfigurations, EclipseWtpComponent wtp, String deployPath) {
         WtpDependenciesVisitor visitor = new WtpDependenciesVisitor(project, wtp, deployPath);
-        new IdeDependencySet(project.getDependencies(), plusConfigurations, minusConfigurations, artifact -> null).visit(visitor);
+        new IdeDependencySet(project.getDependencies(), plusConfigurations, minusConfigurations, new NullGradleApiSourcesResolver()).visit(visitor);
         return visitor.getEntries();
     }
 
