@@ -6,8 +6,6 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.tasks.TaskProvider
 
-import org.gradle.kotlin.dsl.*
-
 class BuildTypesPlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
@@ -108,12 +106,12 @@ fun Project.insertBuildTypeTasksInto(
             forEachBuildTypeTask {
                 val matchingTasks = ArrayList<Task>()
                 getAllprojects().forEach { p ->
-                    val findByName = p.getTasks().findByName(it)
-                    if (findByName != null) {
+                    val matchingTask = p.getTasks().findByName(it)
+                    if (matchingTask != null) {
                         buildTypeTask.configure {
-                            dependsOn(findByName)
+                            dependsOn(matchingTask)
                         }
-                        matchingTasks.add(findByName)
+                        matchingTasks.add(matchingTask)
                     }
                 }
                 ensureBuildTypeTaskOrdering(matchingTasks)
