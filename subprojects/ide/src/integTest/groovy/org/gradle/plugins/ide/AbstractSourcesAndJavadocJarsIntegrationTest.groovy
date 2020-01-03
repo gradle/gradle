@@ -518,18 +518,7 @@ dependencies {
         return sourcesDir
     }
 
-    private void givenSourceDistributionExistsOnRemoteServer(String repository = "distributions-snapshots", String version = distribution.version.version, TestFile zippedSources = createZip("gradle-src.zip") {
-        root {
-            subprojects {
-                submodule1 {
-                    file("/src/main/java/org/gradle/Test.java")
-                }
-                submodule2 {
-                    file("/src/main/java/org/gradle/Test2.java")
-                }
-            }
-        }
-    }) {
+    private void givenSourceDistributionExistsOnRemoteServer(String repository = "distributions-snapshots", String version = distribution.version.version, TestFile zippedSources = gradleSourcesZip()) {
         String distributionPath = "/$repository/gradle-${version}-src.zip"
         server.allowGetOrHead(distributionPath, zippedSources)
         server.allowGetMissing("${distributionPath}.sha1")
@@ -541,6 +530,21 @@ dependencies {
 
     private TestFile gradleDistributionSrcDir() {
         return new TestFile(distribution.gradleHomeDir, "src")
+    }
+
+    private TestFile gradleSourcesZip() {
+        return createZip("gradle-src.zip") {
+            root {
+                subprojects {
+                    submodule1 {
+                        file("/src/main/java/org/gradle/Test.java")
+                    }
+                    submodule2 {
+                        file("/src/main/java/org/gradle/Test2.java")
+                    }
+                }
+            }
+        }
     }
 
     private static void assertContainsGradleSources(TestFile sourcesDir) {
