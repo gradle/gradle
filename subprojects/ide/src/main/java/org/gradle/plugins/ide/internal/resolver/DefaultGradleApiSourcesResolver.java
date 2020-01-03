@@ -52,13 +52,16 @@ public class DefaultGradleApiSourcesResolver implements GradleApiSourcesResolver
     }
 
     @Override
-    public File resolveGradleApiSources(File artifact) {
+    public File resolveGradleApiSources(boolean download) {
         GradleInstallation gradleInstallation = CurrentGradleInstallation.get();
         if (gradleInstallation == null) {
             return null;
         }
         File srcDir = gradleInstallation.getSrcDir();
         if (!srcDir.exists()) {
+            if (!download) {
+                return null;
+            }
             try {
                 File sources = downloadSources();
                 GFileUtils.moveExistingDirectory(sources, srcDir);

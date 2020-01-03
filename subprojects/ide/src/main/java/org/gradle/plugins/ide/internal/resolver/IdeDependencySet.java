@@ -219,7 +219,7 @@ public class IdeDependencySet {
                     javaDoc = javaDoc != null ? javaDoc : Collections.<ResolvedArtifactResult>emptySet();
                     visitor.visitModuleDependency(artifact, sources, javaDoc, isTestConfiguration(configurations.get(artifactIdentifier)));
                 } else if (isGradleApiDependency(artifact)) {
-                    visitor.visitGradleApiDependency(artifact, gradleApiSourcesResolver.resolveGradleApiSources(artifact.getFile()), isTestConfiguration(configurations.get(artifactIdentifier)));
+                    visitor.visitGradleApiDependency(artifact, gradleApiSourcesResolver.resolveGradleApiSources(shouldDownloadSources(visitor)), isTestConfiguration(configurations.get(artifactIdentifier)));
                 } else {
                     visitor.visitFileDependency(artifact, isTestConfiguration(configurations.get(artifactIdentifier)));
                 }
@@ -229,6 +229,10 @@ public class IdeDependencySet {
         private boolean isGradleApiDependency(ResolvedArtifactResult artifact) {
             String artifactFileName = artifact.getFile().getName();
             return artifactFileName.startsWith("gradle-api") || artifactFileName.startsWith("gradle-test-kit");
+        }
+
+        private boolean shouldDownloadSources(IdeDependencyVisitor visitor) {
+            return !visitor.isOffline() && visitor.downloadSources();
         }
 
         private boolean isTestConfiguration(Set<Configuration> configurations) {

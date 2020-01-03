@@ -407,7 +407,6 @@ dependencies {
         given:
         requireGradleDistribution()
 
-        assertSourcesDirectoryDoesNotExistInDistribution()
         executer.withEnvironmentVars('GRADLE_REPO_OVERRIDE': "$server.uri/")
         server.expectHeadMissing("/distributions-snapshots/gradle-${distribution.version.version}-src.zip")
 
@@ -433,7 +432,6 @@ dependencies {
     def "skips gradleApi() sources when not present and remote distribution has unexpected directory structure"() {
         given:
         requireGradleDistribution()
-        assertSourcesDirectoryDoesNotExistInDistribution()
         executer.withEnvironmentVars('GRADLE_REPO_OVERRIDE': "$server.uri/")
 
         givenSourceDistributionExistsOnRemoteServer("distributions-snapshots", distribution.version.version, createZip("gradle-src.zip") {
@@ -455,6 +453,32 @@ dependencies {
             }
             """
 
+        when:
+        succeeds ideTask
+
+        then:
+        assertSourcesDirectoryDoesNotExistInDistribution()
+        ideFileContainsGradleApi("gradle-api")
+    }
+
+    @ToBeFixedForInstantExecution
+    def "does not download gradleApi() sources when offline"() {
+        given:
+        requireGradleDistribution()
+        executer.withEnvironmentVars('GRADLE_REPO_OVERRIDE': "$server.uri/")
+
+        buildScript """
+            apply plugin: "java"
+            apply plugin: "idea"
+            apply plugin: "eclipse"
+
+            dependencies {
+                implementation gradleApi()
+            }
+
+            idea.module.downloadSources = false
+            eclipse.classpath.downloadSources = false
+            """
         when:
         succeeds ideTask
 
