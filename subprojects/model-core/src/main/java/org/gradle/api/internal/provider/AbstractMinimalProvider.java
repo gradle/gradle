@@ -29,7 +29,7 @@ import org.gradle.util.GUtil;
 import javax.annotation.Nullable;
 
 /**
- * A partial {@link Provider} implementation.
+ * A partial {@link Provider} implementation. Subclasses need to implement {@link ProviderInternal#getType()} and {@link Provider#getOrNull()}.
  */
 public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>, ScalarSupplier<T>, Managed {
     @Override
@@ -44,21 +44,28 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
 
     @Override
     public boolean isPresent() {
-        return getOrNull() != null;
+        return !calculateValue().isMissing();
     }
 
     @Override
-    public T get(DisplayName owner) throws IllegalStateException {
-        return get();
+    public T get() {
+        Value<? extends T> value = calculateValue();
+        if (value.isMissing()) {
+            throw new MissingValueException(Providers.NULL_VALUE);
+        }
+        return value.get();
+    }
+
+    // This is here as a migration step. It would be better for each subclass to provide an implementation of this method and implement
+    // getOrNull() based on the result, rather than implementing this method based on getOrNull()
+    @Override
+    public Value<? extends T> calculateValue() {
+        return Value.ofNullable(getOrNull());
     }
 
     @Override
     public T getOrElse(T defaultValue) {
-        T value = getOrNull();
-        if (value == null) {
-            return defaultValue;
-        }
-        return value;
+        return calculateValue().orElse(defaultValue);
     }
 
     @Override
@@ -229,7 +236,7 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
         }
     }
 
-    private static class OrElseProvider<T> extends AbstractReadOnlyProvider<T> {
+    private static class OrElseProvider<T> extends AbstractMinimalProvider<T> {
         private final ProviderInternal<T> left;
         private final ProviderInternal<? extends T> right;
 

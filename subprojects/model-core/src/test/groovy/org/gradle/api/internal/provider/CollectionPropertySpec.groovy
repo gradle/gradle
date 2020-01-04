@@ -404,8 +404,8 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
         property.get()
 
         then:
-        def e = thrown(IllegalStateException)
-        e.message == "No value has been specified for this property."
+        def e = thrown(MissingValueException)
+        e.message == "Cannot query the value of ${displayName} because it has no value available."
     }
 
     def "property has no value when set to provider with no value and other values appended"() {

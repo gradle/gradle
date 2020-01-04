@@ -19,7 +19,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.provider.AbstractReadOnlyProvider;
+import org.gradle.api.internal.provider.AbstractMinimalProvider;
 import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Classpath;
@@ -146,7 +146,7 @@ public abstract class AbstractCompile extends SourceTask {
     /**
      * Convention to fall back to the 'destinationDir' output for backwards compatibility with plugins that extend AbstractCompile and override the deprecated methods.
      */
-    private class BackwardCompatibilityOutputDirectoryConvention extends AbstractReadOnlyProvider<Directory> {
+    private class BackwardCompatibilityOutputDirectoryConvention extends AbstractMinimalProvider<Directory> {
         private boolean recursiveCall;
 
         @Override

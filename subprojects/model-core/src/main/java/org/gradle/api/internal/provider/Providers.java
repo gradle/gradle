@@ -26,7 +26,7 @@ import javax.annotation.Nullable;
 
 public class Providers {
     public static final String NULL_TRANSFORMER_RESULT = "Transformer for this provider returned a null value.";
-    public static final String NULL_VALUE = "No value has been specified for this provider.";
+    public static final String NULL_VALUE = "Cannot query the value of this provider because it has no value available.";
 
     private static final NoValueProvider NULL_PROVIDER = new NoValueProvider();
 
@@ -38,7 +38,7 @@ public class Providers {
     }
 
     public static <T> ScalarSupplier<T> fixedValue(T value) {
-        return new FixedValueProvider<T>(value);
+        return new FixedValueProvider<>(value);
     }
 
     public static <T> ScalarSupplier<T> fixedValue(DisplayName owner, T value, Class<T> targetType, ValueSanitizer<T> sanitizer) {
@@ -46,7 +46,7 @@ public class Providers {
         if (!targetType.isInstance(value)) {
             throw new IllegalArgumentException(String.format("Cannot set the value of %s of type %s using an instance of type %s.", owner.getDisplayName(), targetType.getName(), value.getClass().getName()));
         }
-        return new FixedValueProvider<T>(value);
+        return new FixedValueProvider<>(value);
     }
 
     public static <T> ScalarSupplier<T> nullableValue(@Nullable T value) {
@@ -62,7 +62,7 @@ public class Providers {
     }
 
     public static <T> ProviderInternal<T> of(T value) {
-        return new FixedValueProvider<T>(value);
+        return new FixedValueProvider<>(value);
     }
 
     public static <T> ProviderInternal<T> internal(final Provider<T> value) {
@@ -77,8 +77,8 @@ public class Providers {
         }
     }
 
-    public static IllegalStateException nullValue(Describable owner) {
-        return new IllegalStateException(String.format("No value has been specified for %s.", owner.getDisplayName()));
+    public static MissingValueException nullValue(Describable owner) {
+        return new MissingValueException(String.format("Cannot query the value of %s because it has no value available.", owner.getDisplayName()));
     }
 
     public static class FixedValueProvider<T> extends AbstractProviderWithValue<T> implements ScalarSupplier<T> {
@@ -100,7 +100,17 @@ public class Providers {
         }
 
         @Override
-        public T get(DisplayName owner) throws IllegalStateException {
+        public Value<? extends T> calculateValue() {
+            return new Success<>(value);
+        }
+
+        @Override
+        public T getOrNull() {
+            return value;
+        }
+
+        @Override
+        public T getOrElse(T defaultValue) {
             return value;
         }
 
@@ -116,7 +126,7 @@ public class Providers {
 
         @Override
         public <S> ProviderInternal<S> map(final Transformer<? extends S, ? super T> transformer) {
-            return new MappedFixedValueProvider<S, T>(transformer, this);
+            return new MappedFixedValueProvider<>(transformer, this);
         }
 
         @Override
@@ -173,13 +183,13 @@ public class Providers {
 
         @Override
         public <U> ProviderInternal<U> map(Transformer<? extends U, ? super S> transformer) {
-            return new MappedFixedValueProvider<U, S>(transformer, this);
+            return new MappedFixedValueProvider<>(transformer, this);
         }
 
         @Override
         public String toString() {
             if (value == null) {
-                return String.format("transform(not calculated)");
+                return "transform(not calculated)";
             }
             return String.format("transform(%s, %s)", getType(), value);
         }
@@ -188,12 +198,12 @@ public class Providers {
     private static class NoValueProvider extends AbstractMinimalProvider<Object> implements ScalarSupplier<Object> {
         @Override
         public Object get() {
-            throw new IllegalStateException(NULL_VALUE);
+            throw new MissingValueException(NULL_VALUE);
         }
 
         @Override
-        public Object get(DisplayName owner) throws IllegalStateException {
-            throw nullValue(owner);
+        public Value<?> calculateValue() {
+            return new Missing<>();
         }
 
         @Override

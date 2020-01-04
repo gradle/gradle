@@ -19,7 +19,7 @@ import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.PublishArtifactSet;
-import org.gradle.api.internal.provider.AbstractReadOnlyProvider;
+import org.gradle.api.internal.provider.AbstractMinimalProvider;
 import org.gradle.api.internal.provider.ChangingValue;
 import org.gradle.api.internal.provider.ChangingValueHandler;
 import org.gradle.api.internal.provider.CollectionProviderInternal;
@@ -46,7 +46,7 @@ public class DefaultArtifactPublicationSet {
         defaultArtifactProvider.addArtifact(artifact);
     }
 
-    private static class DefaultArtifactProvider extends AbstractReadOnlyProvider<Set<PublishArtifact>> implements CollectionProviderInternal<PublishArtifact, Set<PublishArtifact>>, ChangingValue<Set<PublishArtifact>> {
+    private static class DefaultArtifactProvider extends AbstractMinimalProvider<Set<PublishArtifact>> implements CollectionProviderInternal<PublishArtifact, Set<PublishArtifact>>, ChangingValue<Set<PublishArtifact>> {
         private Set<PublishArtifact> defaultArtifacts;
         private Set<PublishArtifact> artifacts;
         private PublishArtifact currentDefault;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +16,15 @@
 
 package org.gradle.api.internal.provider;
 
-import static org.gradle.api.internal.provider.Providers.NULL_VALUE;
+import org.gradle.internal.exceptions.Contextual;
 
-/**
- * A basic {@link org.gradle.api.provider.Provider} implementation. Subclasses need to provide a {@link #getOrNull()} implementation.
- */
-public abstract class AbstractReadOnlyProvider<T> extends AbstractMinimalProvider<T> {
-    @Override
-    public T get() {
-        T evaluatedValue = getOrNull();
-        if (evaluatedValue == null) {
-            throw new IllegalStateException(NULL_VALUE);
-        }
-        return evaluatedValue;
+@Contextual
+public class MissingValueException extends IllegalStateException {
+    public MissingValueException(String message) {
+        super(message);
+    }
+
+    public MissingValueException(String message, Throwable cause) {
+        super(message, cause);
     }
 }

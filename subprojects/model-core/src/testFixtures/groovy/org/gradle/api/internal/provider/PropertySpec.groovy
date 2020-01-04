@@ -68,16 +68,16 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         property.get()
 
         then:
-        def t = thrown(IllegalStateException)
-        t.message == "No value has been specified for ${displayName}."
+        def t = thrown(MissingValueException)
+        t.message == "Cannot query the value of ${displayName} because it has no value available."
 
         when:
         property.attachDisplayName(Describables.of("<display-name>"))
         property.get()
 
         then:
-        def t2 = thrown(IllegalStateException)
-        t2.message == "No value has been specified for <display-name>."
+        def t2 = thrown(MissingValueException)
+        t2.message == "Cannot query the value of <display-name> because it has no value available."
 
         when:
         property.set(someValue())
@@ -427,8 +427,8 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         provider.get()
 
         then:
-        def e = thrown(IllegalStateException)
-        e.message == "No value has been specified for ${displayName}."
+        def e = thrown(MissingValueException)
+        e.message == "Cannot query the value of ${displayName} because it has no value available."
     }
 
     def "can finalize value when no value defined"() {
@@ -1700,7 +1700,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
     }
 
     ProviderInternal<T> broken() {
-        return new AbstractReadOnlyProvider<T>() {
+        return new AbstractMinimalProvider<T>() {
             @Override
             Class<T> getType() {
                 return PropertySpec.this.type()
@@ -1728,7 +1728,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         return new TestProvider<T>(type(), [], producer)
     }
 
-    class TestProvider<T> extends AbstractReadOnlyProvider<T> {
+    class TestProvider<T> extends AbstractMinimalProvider<T> {
         final Class<T> type
         final Iterator<T> values
         final Object producer

@@ -137,7 +137,7 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         }
     }
 
-    public class ValueSourceProvider<T, P extends ValueSourceParameters> extends AbstractReadOnlyProvider<T> {
+    public class ValueSourceProvider<T, P extends ValueSourceParameters> extends AbstractMinimalProvider<T> {
 
         private final Class<? extends ValueSource<T, P>> valueSourceType;
         private final Class<P> parametersType;

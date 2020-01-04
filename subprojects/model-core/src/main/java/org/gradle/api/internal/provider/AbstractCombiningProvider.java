@@ -20,7 +20,7 @@ import org.gradle.api.provider.Provider;
 
 import javax.annotation.Nullable;
 
-public abstract class AbstractCombiningProvider<OUT, BASE, IN> extends AbstractReadOnlyProvider<OUT> {
+public abstract class AbstractCombiningProvider<OUT, BASE, IN> extends AbstractMinimalProvider<OUT> {
     private final Class<OUT> type;
     private final Provider<? extends BASE> base;
     private final Provider<? extends IN> provider;

@@ -334,7 +334,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
         }
     }
 
-    private class KeySetProvider extends AbstractReadOnlyProvider<Set<K>> {
+    private class KeySetProvider extends AbstractMinimalProvider<Set<K>> {
 
         @Nullable
         @Override
