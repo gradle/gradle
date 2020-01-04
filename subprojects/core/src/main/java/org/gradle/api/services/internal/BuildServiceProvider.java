@@ -16,7 +16,7 @@
 
 package org.gradle.api.services.internal;
 
-import org.gradle.api.internal.provider.AbstractReadOnlyProvider;
+import org.gradle.api.internal.provider.AbstractMinimalProvider;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
 import org.gradle.internal.Try;
@@ -30,7 +30,7 @@ import org.gradle.internal.state.Managed;
 import javax.annotation.Nullable;
 
 // TODO - complain when used at configuration time, except when opted in to this
-public class BuildServiceProvider<T extends BuildService<P>, P extends BuildServiceParameters> extends AbstractReadOnlyProvider<T> implements Managed {
+public class BuildServiceProvider<T extends BuildService<P>, P extends BuildServiceParameters> extends AbstractMinimalProvider<T> implements Managed {
     private final String name;
     private final Class<T> implementationType;
     private final IsolationScheme<BuildService, BuildServiceParameters> isolationScheme;

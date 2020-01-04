@@ -110,10 +110,10 @@ class AbstractProviderTest extends ProviderSpec<String> {
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == 'No value has been specified for this provider.'
+        e.message == 'Cannot query the value of this provider because it has no value available.'
     }
 
-    static class TestProvider extends AbstractReadOnlyProvider {
+    static class TestProvider extends AbstractMinimalProvider {
         String value
 
         void value(String s) {

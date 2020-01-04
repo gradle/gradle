@@ -18,6 +18,8 @@ package org.gradle.api.internal.provider;
 
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.DisplayName;
+import org.gradle.internal.logging.text.TreeFormatter;
 
 import javax.annotation.Nullable;
 
@@ -25,7 +27,7 @@ public class DefaultProperty<T> extends AbstractProperty<T> implements Property<
     private final Class<T> type;
     private final ValueSanitizer<T> sanitizer;
     private ScalarSupplier<? extends T> convention = Providers.noValue();
-    private ScalarSupplier<? extends T> value;
+    private ScalarSupplier<? extends T> valueSupplier;
 
     public DefaultProperty(Class<T> type) {
         applyDefaultValue();
@@ -35,7 +37,7 @@ public class DefaultProperty<T> extends AbstractProperty<T> implements Property<
 
     @Override
     protected ValueSupplier getSupplier() {
-        return value;
+        return valueSupplier;
     }
 
     @Override
@@ -71,13 +73,13 @@ public class DefaultProperty<T> extends AbstractProperty<T> implements Property<
     public void set(T value) {
         if (value == null) {
             if (beforeReset()) {
-                this.value = convention;
+                this.valueSupplier = convention;
             }
             return;
         }
 
         if (beforeMutate()) {
-            this.value = Providers.fixedValue(getValidationDisplayName(), value, type, sanitizer);
+            this.valueSupplier = Providers.fixedValue(getValidationDisplayName(), value, type, sanitizer);
         }
     }
 
@@ -94,7 +96,7 @@ public class DefaultProperty<T> extends AbstractProperty<T> implements Property<
     }
 
     public ProviderInternal<? extends T> getProvider() {
-        return value.asProvider();
+        return valueSupplier.asProvider();
     }
 
     public DefaultProperty<T> provider(Provider<? extends T> provider) {
@@ -111,7 +113,7 @@ public class DefaultProperty<T> extends AbstractProperty<T> implements Property<
             throw new IllegalArgumentException("Cannot set the value of a property using a null provider.");
         }
         ProviderInternal<? extends T> p = Providers.internal(provider);
-        this.value = p.asSupplier(getValidationDisplayName(), type, sanitizer);
+        this.valueSupplier = p.asSupplier(getValidationDisplayName(), type, sanitizer);
     }
 
     @Override
@@ -134,53 +136,69 @@ public class DefaultProperty<T> extends AbstractProperty<T> implements Property<
 
     private void applyConvention(ScalarSupplier<? extends T> conventionSupplier) {
         if (shouldApplyConvention()) {
-            this.value = conventionSupplier;
+            this.valueSupplier = conventionSupplier;
         }
         this.convention = conventionSupplier;
     }
 
     @Override
     protected void applyDefaultValue() {
-        value = Providers.noValue();
+        valueSupplier = Providers.noValue();
     }
 
     @Override
     protected void makeFinal() {
-        value = value.withFinalValue();
+        valueSupplier = valueSupplier.withFinalValue();
         convention = Providers.noValue();
     }
 
     @Override
     public T get() {
         beforeRead();
-        return value.get(getDisplayName());
+        Value<? extends T> value = valueSupplier.calculateValue();
+        if (value.isMissing()) {
+            TreeFormatter formatter = new TreeFormatter();
+            formatter.node("Cannot query the value of ").append(getDisplayName().getDisplayName()).append(" because it has no value available.");
+            if (!value.getPathToOrigin().isEmpty()) {
+                formatter.node("The value of this property is derived from");
+                formatter.startChildren();
+                for (DisplayName displayName : value.getPathToOrigin()) {
+                    formatter.node(displayName.getDisplayName());
+                }
+                formatter.endChildren();
+            }
+            throw new MissingValueException(formatter.toString());
+        }
+        return value.get();
+    }
+
+    @Override
+    public Value<? extends T> calculateValue() {
+        beforeRead();
+        return valueSupplier.calculateValue().pushWhenMissing(getDisplayName());
     }
 
     @Override
     public T getOrNull() {
         beforeRead();
-        return value.getOrNull();
+        return valueSupplier.calculateValue().orNull();
     }
 
     @Override
     public T getOrElse(T defaultValue) {
         beforeRead();
-        T t = value.getOrNull();
-        if (t == null) {
-            return defaultValue;
-        }
-        return t;
+        return valueSupplier.calculateValue().orElse(defaultValue);
     }
 
     @Override
     public boolean isPresent() {
         beforeRead();
-        return value.isPresent();
+        return valueSupplier.isPresent();
     }
 
     @Override
     protected String describeContents() {
         // NOTE: Do not realize the value of the Provider in toString().  The debugger will try to call this method and make debugging really frustrating.
-        return String.format("property(%s, %s)", type, value);
+        return String.format("property(%s, %s)", type, valueSupplier);
     }
 }

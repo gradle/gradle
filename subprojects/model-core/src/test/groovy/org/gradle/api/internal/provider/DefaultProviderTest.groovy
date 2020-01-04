@@ -64,7 +64,7 @@ class DefaultProviderTest extends ProviderSpec<String> {
 
         then:
         def t = thrown(IllegalStateException)
-        t.message == "No value has been specified for this provider."
+        t.message == "Cannot query the value of this provider because it has no value available."
 
         when:
         provider = createProvider(null)
@@ -72,7 +72,7 @@ class DefaultProviderTest extends ProviderSpec<String> {
 
         then:
         t = thrown(IllegalStateException)
-        t.message == "No value has been specified for this provider."
+        t.message == "Cannot query the value of this provider because it has no value available."
 
         when:
         provider = createProvider(true)

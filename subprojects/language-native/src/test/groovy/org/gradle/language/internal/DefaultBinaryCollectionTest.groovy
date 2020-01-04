@@ -307,7 +307,7 @@ class DefaultBinaryCollectionTest extends Specification {
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == 'No value has been specified for this provider.'
+        e.message == 'Cannot query the value of this provider because it has no value available.'
     }
 
     def "querying the result of get by name fails when no element present"() {
@@ -320,7 +320,7 @@ class DefaultBinaryCollectionTest extends Specification {
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == 'No value has been specified for this provider.'
+        e.message == 'Cannot query the value of this provider because it has no value available.'
     }
 
     def "querying the result of get by name fails when multiple elements present"() {
@@ -601,7 +601,7 @@ class DefaultBinaryCollectionTest extends Specification {
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == 'No value has been specified for this provider.'
+        e.message == 'Cannot query the value of this provider because it has no value available.'
     }
 
     def "querying the result of get by spec fails when no matching element present"() {
@@ -619,7 +619,7 @@ class DefaultBinaryCollectionTest extends Specification {
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == 'No value has been specified for this provider.'
+        e.message == 'Cannot query the value of this provider because it has no value available.'
     }
 
     def "querying the result of get by spec fails when multiple matching elements present"() {

@@ -21,7 +21,7 @@ import org.gradle.internal.UncheckedException;
 import javax.annotation.Nullable;
 import java.util.concurrent.Callable;
 
-public class DefaultProvider<T> extends AbstractReadOnlyProvider<T> {
+public class DefaultProvider<T> extends AbstractMinimalProvider<T> {
     private final Callable<? extends T> value;
 
     public DefaultProvider(Callable<? extends T> value) {

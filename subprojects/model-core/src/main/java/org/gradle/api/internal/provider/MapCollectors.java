@@ -183,7 +183,7 @@ public class MapCollectors {
             if (providerOfValue.isPresent()) {
                 collector.add(key, dest);
             } else {
-                throw new IllegalStateException(Providers.NULL_VALUE);
+                throw new MissingValueException(Providers.NULL_VALUE);
             }
         }
 
@@ -358,7 +358,7 @@ public class MapCollectors {
 
         @Override
         public void collectKeysInto(ValueCollector<Object> collector, Collection<Object> dest) {
-            throw new IllegalStateException(Providers.NULL_VALUE);
+            throw new MissingValueException(Providers.NULL_VALUE);
         }
 
         @Override

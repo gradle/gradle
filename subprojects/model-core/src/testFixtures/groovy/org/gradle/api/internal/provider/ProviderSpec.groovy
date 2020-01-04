@@ -172,8 +172,8 @@ abstract class ProviderSpec<T> extends Specification {
         provider.get()
 
         then:
-        def t = thrown(IllegalStateException)
-        t.message == "No value has been specified for ${displayName}."
+        def t = thrown(MissingValueException)
+        t.message == "Cannot query the value of ${displayName} because it has no value available."
     }
 
     def "mapped provider with no value does not use transformer"() {
@@ -192,8 +192,8 @@ abstract class ProviderSpec<T> extends Specification {
         mapped.get()
 
         then:
-        def t = thrown(IllegalStateException)
-        t.message == "No value has been specified for ${displayName}."
+        def t = thrown(MissingValueException)
+        t.message == "Cannot query the value of ${displayName} because it has no value available."
     }
 
     def "flat mapped provider with no value does not use transformer"() {
@@ -212,8 +212,8 @@ abstract class ProviderSpec<T> extends Specification {
         mapped.get()
 
         then:
-        def t = thrown(IllegalStateException)
-        t.message == "No value has been specified for ${displayName}."
+        def t = thrown(MissingValueException)
+        t.message == "Cannot query the value of ${displayName} because it has no value available."
     }
 
     def "can map to provider that uses value if present or a default value"() {
