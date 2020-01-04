@@ -21,6 +21,7 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
+import org.gradle.api.internal.project.DefaultProjectRegistry
 import org.gradle.api.internal.project.IProjectFactory
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateRegistry
@@ -104,7 +105,7 @@ class InstantExecutionHost internal constructor(
     inner class DefaultInstantExecutionBuild(
         override val gradle: GradleInternal,
         private val fileResolver: PathToFileResolver,
-        rootProjectName: String
+        private val rootProjectName: String
     ) : InstantExecutionBuild {
 
         init {
@@ -122,41 +123,31 @@ class InstantExecutionHost internal constructor(
                 settingsPreparer.prepareSettings(this)
 
                 setBaseProjectClassLoaderScope(coreScope)
-                rootProject = createProject(null, rootProjectName)
-                defaultProject = rootProject
+                projectDescriptorRegistry.rootProject!!.name = rootProjectName
             }
         }
 
-        override fun createProject(path: String): ProjectInternal {
+        override fun createProject(path: String) {
             val projectPath = Path.path(path)
             val name = projectPath.name
-            return when {
-                name != null -> createProject(projectPath.parent, name)
-                else -> gradle.rootProject
-            }
-        }
-
-        private
-        fun InstantExecutionHost.createProject(parentPath: Path?, name: String): ProjectInternal {
             val projectDescriptor = DefaultProjectDescriptor(
-                getProjectDescriptor(parentPath),
-                name,
+                getProjectDescriptor(projectPath.parent),
+                name ?: rootProjectName,
                 rootDir,
                 projectDescriptorRegistry,
                 fileResolver
             )
-            return projectFactory.createProject(
-                gradle,
-                projectDescriptor,
-                getProject(parentPath),
-                coreAndPluginsScope.createChild(projectDescriptor.path),
-                coreAndPluginsScope
-            )
+            projectDescriptorRegistry.addProject(projectDescriptor)
         }
 
         override fun registerProjects() {
             // Ensure projects are registered for look up e.g. by dependency resolution
             service<ProjectStateRegistry>().registerProjects(service<BuildState>())
+            for (project in projectDescriptorRegistry.allProjects) {
+                projectFactory.createProject(gradle, project, getProject(project.path().parent), coreAndPluginsScope, coreAndPluginsScope)
+            }
+            gradle.rootProject = getProject(Path.ROOT)!!
+            gradle.defaultProject = gradle.rootProject
 
             // Fire build operation required by build scans to determine build path (and settings execution time)
             // It may be better to instead point GE at the origin build that produced the cached task graph,
@@ -262,7 +253,7 @@ class InstantExecutionHost internal constructor(
 
     private
     fun getProject(parentPath: Path?) =
-        parentPath?.let { gradle.rootProject.project(it.path) }
+        parentPath?.let { service<DefaultProjectRegistry<ProjectInternal>>().getProject(it.path) }
 
     private
     fun getProjectDescriptor(parentPath: Path?): DefaultProjectDescriptor? =

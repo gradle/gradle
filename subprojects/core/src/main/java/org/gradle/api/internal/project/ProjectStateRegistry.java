@@ -18,6 +18,7 @@ package org.gradle.api.internal.project;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.internal.Factory;
 import org.gradle.internal.build.BuildState;
 import org.gradle.util.Path;
@@ -36,29 +37,29 @@ public interface ProjectStateRegistry {
     Collection<? extends ProjectState> getAllProjects();
 
     /**
-     * Locates the state object that owns the given public project model.
+     * Locates the state object that owns the given public project model. Can use {@link ProjectInternal#getMutationState()} instead.
      */
-    ProjectState stateFor(Project project);
+    ProjectState stateFor(Project project) throws IllegalArgumentException;
 
     /**
      * Locates the state object that owns the project with the given identifier.
      */
-    ProjectState stateFor(ProjectComponentIdentifier identifier);
+    ProjectState stateFor(ProjectComponentIdentifier identifier) throws IllegalArgumentException;
 
     /**
      * Locates the state object for the given project.
      */
-    ProjectState stateFor(BuildIdentifier buildIdentifier, Path projectPath);
-
-    /**
-     * Registers a project.
-     */
-    ProjectState register(BuildState owner, ProjectInternal project);
+    ProjectState stateFor(BuildIdentifier buildIdentifier, Path projectPath) throws IllegalArgumentException;
 
     /**
      * Registers the projects of a build.
      */
     void registerProjects(BuildState build);
+
+    /**
+     * Registers a single project.
+     */
+    void registerProject(BuildState owner, DefaultProjectDescriptor projectDescriptor);
 
     /**
      * Allows a section of code to be run with state locking disabled.  This should be used to allow
