@@ -51,12 +51,12 @@ public interface BuildStateRegistry {
     /**
      * Locates an included build by {@link BuildIdentifier}, if present. Fails if not an included build.
      */
-    IncludedBuildState getIncludedBuild(BuildIdentifier buildIdentifier);
+    IncludedBuildState getIncludedBuild(BuildIdentifier buildIdentifier) throws IllegalArgumentException;
 
     /**
      * Locates a build. Fails if not present.
      */
-    BuildState getBuild(BuildIdentifier buildIdentifier);
+    BuildState getBuild(BuildIdentifier buildIdentifier) throws IllegalArgumentException;
 
     /**
      * Notification that the settings have been loaded for the root build.

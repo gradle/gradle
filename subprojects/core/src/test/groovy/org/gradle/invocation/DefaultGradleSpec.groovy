@@ -423,7 +423,7 @@ class DefaultGradleSpec extends Specification {
         def project = Spy(DefaultProject, constructorArgs: [
             name,
             null, null, null, Stub(ScriptSource),
-            gradle, serviceRegistryFactory,
+            gradle, Stub(ProjectState), serviceRegistryFactory,
             Stub(ClassLoaderScope), Stub(ClassLoaderScope)
         ])
         project.getProjectConfigurator() >> crossProjectConfigurator

@@ -58,27 +58,26 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
         Set<DefaultProjectDescriptor> allProjects = owner.getLoadedSettings().getProjectRegistry().getAllProjects();
         synchronized (lock) {
             for (DefaultProjectDescriptor descriptor : allProjects) {
-                Path identityPath = owner.getIdentityPathForProject(descriptor.path());
-                ProjectComponentIdentifier projectIdentifier = owner.getIdentifierForProject(descriptor.path());
-                ProjectStateImpl projectState = new ProjectStateImpl(owner, identityPath, descriptor.getName(), projectIdentifier);
-                projectsByPath.put(identityPath, projectState);
-                projectsById.put(projectIdentifier, projectState);
-                projectsByCompId.put(Pair.of(owner.getBuildIdentifier(), descriptor.path()), projectState);
+                addProject(owner, descriptor);
             }
         }
     }
 
     @Override
-    public ProjectState register(BuildState owner, ProjectInternal project) {
+    public void registerProject(BuildState owner, DefaultProjectDescriptor projectDescriptor) {
         synchronized (lock) {
-            Path identityPath = project.getIdentityPath();
-            ProjectComponentIdentifier projectIdentifier = owner.getIdentifierForProject(project.getProjectPath());
-            ProjectStateImpl projectState = new ProjectStateImpl(owner, identityPath, project.getName(), projectIdentifier);
-            projectsByPath.put(projectState.projectIdentityPath, projectState);
-            projectsById.put(projectState.identifier, projectState);
-            projectsByCompId.put(Pair.of(owner.getBuildIdentifier(), project.getProjectPath()), projectState);
-            return projectState;
+            addProject(owner, projectDescriptor);
         }
+    }
+
+    private void addProject(BuildState owner, DefaultProjectDescriptor descriptor) {
+        Path projectPath = descriptor.path();
+        Path identityPath = owner.getIdentityPathForProject(projectPath);
+        ProjectComponentIdentifier projectIdentifier = owner.getIdentifierForProject(projectPath);
+        ProjectStateImpl projectState = new ProjectStateImpl(owner, identityPath, projectPath, descriptor.getName(), projectIdentifier);
+        projectsByPath.put(identityPath, projectState);
+        projectsById.put(projectIdentifier, projectState);
+        projectsByCompId.put(Pair.of(owner.getBuildIdentifier(), projectPath), projectState);
     }
 
     @Override
@@ -88,6 +87,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
         }
     }
 
+    // TODO - can kill this method, as the caller can use ProjectInternal.getMutationState() instead
     @Override
     public ProjectState stateFor(Project project) {
         synchronized (lock) {
@@ -143,18 +143,21 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
     }
 
     private class ProjectStateImpl implements ProjectState {
+        private final Path projectPath;
         private final String projectName;
         private final ProjectComponentIdentifier identifier;
         private final BuildState owner;
-        private final Path projectIdentityPath;
+        private final Path identityPath;
         private final ResourceLock projectLock;
+        private ProjectInternal project;
 
-        ProjectStateImpl(BuildState owner, Path projectIdentityPath, String projectName, ProjectComponentIdentifier identifier) {
+        ProjectStateImpl(BuildState owner, Path identityPath, Path projectPath, String projectName, ProjectComponentIdentifier identifier) {
             this.owner = owner;
-            this.projectIdentityPath = projectIdentityPath;
+            this.identityPath = identityPath;
+            this.projectPath = projectPath;
             this.projectName = projectName;
             this.identifier = identifier;
-            this.projectLock = workerLeaseService.getProjectLock(owner.getIdentityPath(), projectIdentityPath);
+            this.projectLock = workerLeaseService.getProjectLock(owner.getIdentityPath(), identityPath);
         }
 
         @Override
@@ -170,12 +173,42 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
         @Nullable
         @Override
         public ProjectState getParent() {
-            return projectIdentityPath.getParent() == null ? null : projectsByPath.get(projectIdentityPath.getParent());
+            return identityPath.getParent() == null ? null : projectsByPath.get(identityPath.getParent());
         }
 
         @Override
         public String getName() {
             return projectName;
+        }
+
+        @Override
+        public Path getIdentityPath() {
+            return identityPath;
+        }
+
+        @Override
+        public Path getProjectPath() {
+            return projectPath;
+        }
+
+        @Override
+        public void attachMutableModel(ProjectInternal project) {
+            synchronized (this) {
+                if (this.project != null) {
+                    throw new IllegalStateException(String.format("The project object for project %s has already been attached.", getIdentityPath()));
+                }
+                this.project = project;
+            }
+        }
+
+        @Override
+        public ProjectInternal getMutableModel() {
+            synchronized (this) {
+                if (project == null) {
+                    throw new IllegalStateException(String.format("The project object for project %s has not been attached yet.", getIdentityPath()));
+                }
+                return project;
+            }
         }
 
         @Override
@@ -207,7 +240,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
             Collection<? extends ResourceLock> currentLocks = workerLeaseService.getCurrentProjectLocks();
             if (currentLocks.contains(projectLock)) {
                 // if we already hold the project lock for this project
-                if (currentLocks.size() ==1) {
+                if (currentLocks.size() == 1) {
                     // the lock for this project is the only lock we hold
                     return factory.create();
                 } else {
