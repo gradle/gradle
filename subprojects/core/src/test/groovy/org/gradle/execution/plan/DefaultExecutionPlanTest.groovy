@@ -843,6 +843,48 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         executesNodes(node1, node2, node3)
     }
 
+    def "hasOverlap positive examples"() {
+        expect:
+        DefaultExecutionPlan.hasOverlap(normalizeSeparator(list1), normalizeSeparator(list2))
+        DefaultExecutionPlan.hasOverlap(normalizeSeparator(list2), normalizeSeparator(list1))
+
+        where:
+        list1        | list2
+        ["a"]        | ["a"] 
+        ["a"]        | ["a/b"] 
+        ["a", "b"]   | ["a", "c"] 
+        ["b", "a"]   | ["a", "c"] 
+        ["A"]        | ["A", "A/B", "A/C", "A.B", "ABB", "AbB"] 
+        ["A/B"]      | ["A", "A/B", "A/C", "A.B", "ABB", "AbB"] 
+        ["A/B/C"]    | ["A", "A/B", "A/C", "A.B", "ABB", "AbB"] 
+        ["A/C/D"]    | ["A", "A/B", "A/C", "A.B", "ABB", "AbB"] 
+        ["XYZ"]      | ["XYZ.ABC", "XYZ/ABC"] 
+    }
+
+    def "hasOverlap negative examples"() {
+        expect:
+        !DefaultExecutionPlan.hasOverlap(normalizeSeparator(list1), normalizeSeparator(list2))
+        !DefaultExecutionPlan.hasOverlap(normalizeSeparator(list2), normalizeSeparator(list1))
+
+        where:
+        list1        | list2
+        ["a"]        | [] 
+        ["a"]        | ["b"] 
+        ["ab"]       | ["ac"] 
+        ["a/b"]      | ["a/c"] 
+        ["a/"]       | ["a/b/"] 
+        ["a", "b"]   | ["c", "d"] 
+        ["0"]        | ["A", "A/B", "A/C", "A.B", "ABB", "AbB"] 
+        ["D"]        | ["A", "A/B", "A/C", "A.B", "ABB", "AbB"] 
+        ["B/B"]      | ["A", "A/B", "A/C", "A.B", "ABB", "AbB"] 
+        ["AB"]       | ["A", "A/B", "A/C", "A.B", "ABB", "AbB"] 
+        ["ABBB"]     | ["A", "A/B", "A/C", "A.B", "ABB", "AbB"] 
+    }
+
+    private List<String> normalizeSeparator(List<String> list) {
+        return list.collect { it.replace('/'.charAt(0), File.separatorChar) };
+    }
+
     private Node node(Node... dependencies) {
         def action = Stub(WorkNodeAction)
         _ * action.project >> null
