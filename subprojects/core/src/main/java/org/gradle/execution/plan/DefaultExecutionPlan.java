@@ -59,6 +59,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * A reusable implementation of ExecutionPlan. The {@link #addEntryTasks(java.util.Collection)} and {@link #clear()} methods are NOT threadsafe, and callers must synchronize access to these methods.
@@ -691,43 +692,35 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     }
 
     private static boolean hasOverlap(Iterable<String> paths1, Iterable<String> paths2) {
-        for (String path1 : paths1) {
-            for (String path2 : paths2) {
-                String overLappedPath = getOverLappedPath(path1, path2);
-                if (overLappedPath != null) {
+        //build a helper TreeSet with the contents of paths2
+        final TreeSet<String> set = new TreeSet<>();
+        for (final String path : paths2) {
+            set.add(path);
+        }
+
+        for (final String path1 : paths1) {
+            //check the path verbatim
+            if (set.contains(path1)) {
+                return true;
+            }
+            //first iterate over all path segments (prefixes)
+            int endIndex = path1.indexOf(File.separatorChar);
+            while (endIndex >= 0) {
+                final String currentPrefix = path1.substring(0, endIndex);
+                if (set.contains(currentPrefix)) {
                     return true;
                 }
+                endIndex = path1.indexOf(File.separatorChar, endIndex + 1);
+            }
+            //no prefix matched, so check if a suffix is contained
+            final String withGuard = path1 + File.separatorChar;
+            final String ceiling = set.ceiling(withGuard);
+            if (ceiling != null && ceiling.startsWith(withGuard)) {
+                return true;
             }
         }
 
         return false;
-    }
-
-    @Nullable
-    private static String getOverLappedPath(String firstPath, String secondPath) {
-        if (firstPath.equals(secondPath)) {
-            return firstPath;
-        }
-        if (firstPath.length() == secondPath.length()) {
-            return null;
-        }
-
-        String shorter;
-        String longer;
-        if (firstPath.length() > secondPath.length()) {
-            shorter = secondPath;
-            longer = firstPath;
-        } else {
-            shorter = firstPath;
-            longer = secondPath;
-        }
-
-        boolean isOverlapping = longer.startsWith(shorter) && longer.charAt(shorter.length()) == File.separatorChar;
-        if (isOverlapping) {
-            return shorter;
-        } else {
-            return null;
-        }
     }
 
     private void recordNodeExecutionStarted(Node node) {
