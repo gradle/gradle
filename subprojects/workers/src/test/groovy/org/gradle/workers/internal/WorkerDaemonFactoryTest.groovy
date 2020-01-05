@@ -34,7 +34,7 @@ class WorkerDaemonFactoryTest extends Specification {
     def workingDir = new File("some-dir")
     def options = Stub(DaemonForkOptions)
     def requirement = new ForkedWorkerRequirement(workingDir, options)
-    def spec = Stub(ActionExecutionSpec)
+    def spec = Stub(IsolatedParametersActionExecutionSpec)
 
     def setup() {
         _ * buildOperationExecutor.getCurrentOperation() >> buildOperation

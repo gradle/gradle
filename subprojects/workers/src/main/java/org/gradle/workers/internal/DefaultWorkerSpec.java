@@ -16,24 +16,7 @@
 
 package org.gradle.workers.internal;
 
-import org.gradle.workers.IsolationMode;
+import org.gradle.workers.WorkerSpec;
 
-import javax.inject.Inject;
-
-public class DefaultWorkerSpec implements WorkerSpecInternal {
-    private final IsolationMode isolationMode;
-
-    @Inject
-    public DefaultWorkerSpec() {
-        this(IsolationMode.NONE);
-    }
-
-    protected DefaultWorkerSpec(IsolationMode isolationMode) {
-        this.isolationMode = isolationMode;
-    }
-
-    @Override
-    public IsolationMode getIsolationMode() {
-        return isolationMode;
-    }
+public class DefaultWorkerSpec implements WorkerSpec {
 }

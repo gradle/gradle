@@ -22,24 +22,53 @@ import org.gradle.workers.WorkParameters;
 
 import java.io.File;
 
-public class IsolatedParametersActionExecutionSpec<T extends WorkParameters> extends AbstractActionExecutionSpec<T> {
+public class IsolatedParametersActionExecutionSpec<T extends WorkParameters> {
     private final Class<? extends WorkAction<T>> implementationClass;
+    private final String actionImplementationClassName;
     private final Isolatable<T> isolatedParams;
+    private final ClassLoaderStructure classLoaderStructure;
+    private final File baseDir;
+    private final boolean usesInternalServices;
+    private final String displayName;
 
-    public IsolatedParametersActionExecutionSpec(Class<? extends WorkAction<T>> implementationClass, String displayName, Isolatable<T> isolatedParams, ClassLoaderStructure classLoaderStructure, File baseDir, boolean usesInternalServices) {
-        super(displayName, baseDir, usesInternalServices, classLoaderStructure);
+    public IsolatedParametersActionExecutionSpec(Class<? extends WorkAction<T>> implementationClass, String displayName, String actionImplementationClassName, Isolatable<T> isolatedParams, ClassLoaderStructure classLoaderStructure, File baseDir, boolean usesInternalServices) {
         this.implementationClass = implementationClass;
+        this.displayName = displayName;
+        this.actionImplementationClassName = actionImplementationClassName;
         this.isolatedParams = isolatedParams;
+        this.classLoaderStructure = classLoaderStructure;
+        this.baseDir = baseDir;
+        this.usesInternalServices = usesInternalServices;
     }
 
-    @Override
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public File getBaseDir() {
+        return baseDir;
+    }
+
+    public ClassLoaderStructure getClassLoaderStructure() {
+        return classLoaderStructure;
+    }
+
+    /**
+     * The action to instantiate and execute, possibly a wrapper.
+     */
     public Class<? extends WorkAction<T>> getImplementationClass() {
         return implementationClass;
     }
 
-    @Override
-    public T getParameters() {
-        return isolatedParams.isolate();
+    /**
+     * The action that will do the work.
+     */
+    public String getActionImplementationClassName() {
+        return actionImplementationClassName;
+    }
+
+    public boolean isInternalServicesRequired() {
+        return usesInternalServices;
     }
 
     public Isolatable<T> getIsolatedParams() {
