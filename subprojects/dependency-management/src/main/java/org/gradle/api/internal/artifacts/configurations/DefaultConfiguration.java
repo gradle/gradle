@@ -72,6 +72,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ResolvedArtifactCollectingVi
 import org.gradle.api.internal.artifacts.ivyservice.ResolvedFileCollectionVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.ResolvedFilesCollectingVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfiguration;
 import org.gradle.api.internal.artifacts.transform.DefaultExtraExecutionGraphDependenciesResolverFactory;
@@ -713,18 +714,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public ExtraExecutionGraphDependenciesResolverFactory getDependenciesResolver() {
-        return new DefaultExtraExecutionGraphDependenciesResolverFactory(() -> getResultsForBuildDependencies(), () -> getResultsForArtifacts(), new WorkNodeAction() {
-            @Nullable
-            @Override
-            public Project getProject() {
-                return owner.getProject();
-            }
-
-            @Override
-            public void run(NodeExecutionContext context) {
-                resolveExclusively(GRAPH_RESOLVED);
-            }
-        }, fileCollectionFactory);
+        return new DefaultExtraExecutionGraphDependenciesResolverFactory(() -> getResultsForBuildDependencies(), () -> getResultsForArtifacts(), new ResolveGraphAction(this), fileCollectionFactory);
     }
 
     private ResolverResults getResultsForBuildDependencies() {
@@ -1253,17 +1243,17 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         @Override
         public Set<File> getFiles() {
             ResolvedFilesCollectingVisitor visitor = new ResolvedFilesCollectingVisitor();
-            visitFiles(visitor);
+            visitContents(visitor);
             return visitor.getFiles();
         }
 
         @Override
         public void visitStructure(FileCollectionStructureVisitor visitor) {
             ResolvedFilesCollectingVisitor collectingVisitor = new ResolvedFileCollectionVisitor(visitor);
-            visitFiles(collectingVisitor);
+            visitContents(collectingVisitor);
         }
 
-        private void visitFiles(ResolvedFilesCollectingVisitor visitor) {
+        private void visitContents(ResolvedFilesCollectingVisitor visitor) {
             getSelectedArtifacts().visitArtifacts(visitor, lenient);
 
             if (!lenient) {
@@ -1377,7 +1367,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public DeprecatableConfiguration deprecateForResolution(String... alternativesForResolving) {
-        this.resolutionAlternatives =ImmutableList.copyOf(alternativesForResolving);
+        this.resolutionAlternatives = ImmutableList.copyOf(alternativesForResolving);
         return this;
     }
 
@@ -1725,7 +1715,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
-    private class ConfigurationArtifactCollection implements ArtifactCollection {
+    private class ConfigurationArtifactCollection implements ArtifactCollectionInternal {
         private final ConfigurationFileCollection fileCollection;
         private final boolean lenient;
         private Set<ResolvedArtifactResult> artifactResults;
@@ -1765,6 +1755,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             return failures;
         }
 
+        @Override
+        public void visitArtifacts(ArtifactVisitor visitor) {
+            // TODO - if already resolved, use the results
+            fileCollection.getSelectedArtifacts().visitArtifacts(visitor, lenient);
+        }
+
         private synchronized void ensureResolved() {
             if (artifactResults != null) {
                 return;
@@ -1790,4 +1786,27 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
+    public static class ResolveGraphAction implements WorkNodeAction {
+        private final DefaultConfiguration configuration;
+
+        public ResolveGraphAction(DefaultConfiguration configuration) {
+            this.configuration = configuration;
+        }
+
+        @Override
+        public String toString() {
+            return "resolve graph for " + configuration;
+        }
+
+        @Nullable
+        @Override
+        public Project getProject() {
+            return configuration.owner.getProject();
+        }
+
+        @Override
+        public void run(NodeExecutionContext context) {
+            configuration.resolveExclusively(GRAPH_RESOLVED);
+        }
+    }
 }

@@ -335,18 +335,24 @@ In practice, it means you need to list the keys that you trust for each artifact
 ----
 <component group="com.github.javaparser" name="javaparser-core" version="3.6.11">
    <artifact name="javaparser-core-3.6.11.jar">
-      <pgp value="379ce192d401ab61"/>
+      <pgp value="8756c4f765c9ac3cb6b85d62379ce192d401ab61"/>
    </artifact>
 </component>
 ----
 
-This effectively means that you trust `com.github.javaparser:javaparser-core:3.6.11` if it's signed with the key `379ce192d401ab61`.
+[TIP]
+====
+Gradle supports both full fingerprint ids or long (64-bit) key ids in `pgp`, `trusted-key` and `ignore-key` elements.
+For maximum security, you should use full fingerprints as it's possible to have collisions for long key ids.
+====
+
+This effectively means that you trust `com.github.javaparser:javaparser-core:3.6.11` if it's signed with the key `8756c4f765c9ac3cb6b85d62379ce192d401ab61`.
 
 Without this, the build would fail with this error:
 
 ----
 > Dependency verification failed for configuration ':compileClasspath':
-    - On artifact javaparser-core-3.6.11.jar (com.github.javaparser:javaparser-core:3.6.11) in repository 'MavenRepo': Artifact was signed with key '379ce192d401ab61' (Bintray (by JFrog) <****>) and passed verification but the key isn't in your trusted keys list.
+    - On artifact javaparser-core-3.6.11.jar (com.github.javaparser:javaparser-core:3.6.11) in repository 'MavenRepo': Artifact was signed with key '8756c4f765c9ac3cb6b85d62379ce192d401ab61' (Bintray (by JFrog) <****>) and passed verification but the key isn't in your trusted keys list.
 ----
 
 [NOTE]

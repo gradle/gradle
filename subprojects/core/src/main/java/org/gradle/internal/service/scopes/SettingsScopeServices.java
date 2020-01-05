@@ -30,8 +30,6 @@ import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.plugins.PluginTarget;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
-import org.gradle.initialization.DefaultProjectDescriptorRegistry;
-import org.gradle.initialization.ProjectDescriptorRegistry;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
@@ -66,10 +64,6 @@ public class SettingsScopeServices extends DefaultServiceRegistry {
     protected PluginManagerInternal createPluginManager(Instantiator instantiator, PluginRegistry pluginRegistry, InstantiatorFactory instantiatorFactory, BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext, CollectionCallbackActionDecorator decorator, DomainObjectCollectionFactory domainObjectCollectionFactory) {
         PluginTarget target = new ImperativeOnlyPluginTarget<SettingsInternal>(settings);
         return instantiator.newInstance(DefaultPluginManager.class, pluginRegistry, instantiatorFactory.inject(this), target, buildOperationExecutor, userCodeApplicationContext, decorator, domainObjectCollectionFactory);
-    }
-
-    protected ProjectDescriptorRegistry createProjectDescriptorRegistry() {
-        return new DefaultProjectDescriptorRegistry();
     }
 
     protected ConfigurationTargetIdentifier createConfigurationTargetIdentifier() {

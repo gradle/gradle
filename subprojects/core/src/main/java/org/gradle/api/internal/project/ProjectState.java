@@ -22,6 +22,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.resources.ResourceLock;
+import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -48,9 +49,26 @@ public interface ProjectState extends ModelContainer {
     String getName();
 
     /**
+     * Returns an identifying path for this project in the build tree.
+     */
+    Path getIdentityPath();
+
+    /**
+     * Returns a path for this project within its containing build. These are not unique within a build tree.
+     */
+    Path getProjectPath();
+
+    /**
      * Returns the identifier of the default component produced by this project.
      */
     ProjectComponentIdentifier getComponentIdentifier();
+
+    void attachMutableModel(ProjectInternal project);
+
+    /**
+     * Returns the mutable model for this project. This should not be used directly. This property is here to help with migration away from direct usage.
+     */
+    ProjectInternal getMutableModel();
 
     /**
      * Returns the lock that will be acquired when accessing the mutable state of this project via {@link #withMutableState(Runnable)} and {@link #withMutableState(Factory)}.

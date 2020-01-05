@@ -88,7 +88,7 @@ public interface WorkerExecutor {
      * @since 5.6
      */
     @Incubating
-    WorkQueue noIsolation(Action<WorkerSpec> action);
+    WorkQueue noIsolation(Action<? super WorkerSpec> action);
 
     /**
      * Creates a {@link WorkQueue} to submit work for asynchronous execution with an isolated classloader and the requirements specified in the supplied {@link ClassLoaderWorkerSpec}.
@@ -96,7 +96,7 @@ public interface WorkerExecutor {
      * @since 5.6
      */
     @Incubating
-    WorkQueue classLoaderIsolation(Action<ClassLoaderWorkerSpec> action);
+    WorkQueue classLoaderIsolation(Action<? super ClassLoaderWorkerSpec> action);
 
     /**
      * Creates a {@link WorkQueue} to submit work for asynchronous execution in a daemon process.
@@ -106,7 +106,7 @@ public interface WorkerExecutor {
      * @since 5.6
      */
     @Incubating
-    WorkQueue processIsolation(Action<ProcessWorkerSpec> action);
+    WorkQueue processIsolation(Action<? super ProcessWorkerSpec> action);
 
     /**
      * Blocks until all work associated with the current build operation is complete.  Note that when using this method inside

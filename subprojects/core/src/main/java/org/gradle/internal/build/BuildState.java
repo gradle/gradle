@@ -35,7 +35,7 @@ public interface BuildState {
     BuildIdentifier getBuildIdentifier();
 
     /**
-     * Returns an identifying path for this build. This path is fixed for the lifetime of the build.
+     * Returns an identifying path for this build in the build tree. This path is fixed for the lifetime of the build.
      */
     Path getIdentityPath();
 

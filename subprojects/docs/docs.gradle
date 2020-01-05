@@ -94,7 +94,6 @@ gradleDocumentation {
     javadocs {
         javaApi = project.uri("https://docs.oracle.com/javase/8/docs/api")
         groovyApi = project.uri("https://docs.groovy-lang.org/docs/groovy-${groovyVersion}/html/gapi")
-        mavenApi = project.uri("https://maven.apache.org/ref/${libraries.maven3.version}/maven-model/apidocs")
     }
 }
 

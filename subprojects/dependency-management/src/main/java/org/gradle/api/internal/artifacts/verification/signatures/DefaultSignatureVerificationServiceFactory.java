@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.verification.signatures;
 import com.google.common.collect.ImmutableList;
 import org.bouncycastle.openpgp.PGPException;
 import org.bouncycastle.openpgp.PGPPublicKey;
+import org.bouncycastle.openpgp.PGPPublicKeyRing;
 import org.bouncycastle.openpgp.PGPSignature;
 import org.bouncycastle.openpgp.PGPSignatureList;
 import org.gradle.cache.CacheRepository;
@@ -30,8 +31,10 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.resource.connector.ResourceConnectorSpecification;
 import org.gradle.internal.resource.transfer.ExternalResourceConnector;
 import org.gradle.internal.resource.transport.http.HttpConnectorFactory;
+import org.gradle.security.internal.Fingerprint;
 import org.gradle.security.internal.KeyringFilePublicKeyService;
 import org.gradle.security.internal.PublicKeyDownloadService;
+import org.gradle.security.internal.PublicKeyResultBuilder;
 import org.gradle.security.internal.PublicKeyService;
 import org.gradle.security.internal.PublicKeyServiceChain;
 import org.gradle.security.internal.SecuritySupport;
@@ -42,8 +45,10 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URI;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import static org.gradle.security.internal.SecuritySupport.toLongIdHexString;
 
 public class DefaultSignatureVerificationServiceFactory implements SignatureVerificationServiceFactory {
     private final HttpConnectorFactory httpConnectorFactory;
@@ -94,6 +99,7 @@ public class DefaultSignatureVerificationServiceFactory implements SignatureVeri
             projectCacheDir,
             cacheRepository,
             decoratorFactory,
+            timeProvider,
             refreshKeys
         );
     }
@@ -109,26 +115,41 @@ public class DefaultSignatureVerificationServiceFactory implements SignatureVeri
         public void verify(File origin, File signature, Set<String> trustedKeys, Set<String> ignoredKeys, SignatureVerificationResultBuilder result) {
             PGPSignatureList pgpSignatures = SecuritySupport.readSignatures(signature);
             for (PGPSignature pgpSignature : pgpSignatures) {
-                String key = SecuritySupport.toHexString(pgpSignature.getKeyID());
-                if (ignoredKeys.contains(key)) {
-                    result.ignored(key);
+                String longIdKey = toLongIdHexString(pgpSignature.getKeyID());
+                if (ignoredKeys.contains(longIdKey)) {
+                    result.ignored(longIdKey);
                     continue;
                 }
-                Optional<PGPPublicKey> publicKey = keyService.findPublicKey(pgpSignature.getKeyID());
-                if (publicKey.isPresent()) {
-                    PGPPublicKey pgpPublicKey = publicKey.get();
-                    try {
-                        boolean verified = SecuritySupport.verify(origin, pgpSignature, pgpPublicKey);
-                        if (!verified) {
-                            result.failed(pgpPublicKey);
-                        } else {
-                            result.verified(pgpPublicKey, trustedKeys.contains(key));
-                        }
-                    } catch (PGPException e) {
-                        throw UncheckedException.throwAsUncheckedException(e);
+                AtomicBoolean missing = new AtomicBoolean(true);
+                keyService.findByLongId(pgpSignature.getKeyID(), new PublicKeyResultBuilder() {
+                    @Override
+                    public void keyRing(PGPPublicKeyRing keyring) {
+
                     }
-                } else {
-                    result.missingKey(key);
+
+                    @Override
+                    public void publicKey(PGPPublicKey pgpPublicKey) {
+                        missing.set(false);
+                        String fingerprint = Fingerprint.of(pgpPublicKey).toString();
+                        if (ignoredKeys.contains(fingerprint)) {
+                            result.ignored(fingerprint);
+                            return;
+                        }
+                        try {
+                            boolean verified = SecuritySupport.verify(origin, pgpSignature, pgpPublicKey);
+                            if (!verified) {
+                                result.failed(pgpPublicKey);
+                            } else {
+                                boolean trusted = trustedKeys.contains(fingerprint) || trustedKeys.contains(toLongIdHexString(pgpPublicKey.getKeyID()));
+                                result.verified(pgpPublicKey, trusted);
+                            }
+                        } catch (PGPException e) {
+                            throw UncheckedException.throwAsUncheckedException(e);
+                        }
+                    }
+                });
+                if (missing.get()) {
+                    result.missingKey(longIdKey);
                 }
             }
         }

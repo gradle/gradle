@@ -158,7 +158,7 @@ public interface MavenPom {
     List<?> getDependencies();
 
     /**
-     * Returns the underlying native Maven {@link org.apache.maven.model.Model} object. The MavenPom object
+     * Returns the underlying native Maven <a href="https://maven.apache.org/ref/3.0.4/maven-model/apidocs/org/apache/maven/model/Model.html">org.apache.maven.model.Model</a> object. The MavenPom object
      * delegates all the configuration information to this object. There Gradle MavenPom objects provides
      * delegation methods just for setting the groupId, artifactId, version and packaging. For all other
      * elements, either use the model object or {@link #project(groovy.lang.Closure)}.
@@ -168,7 +168,7 @@ public interface MavenPom {
     Object getModel();
 
     /**
-     * Sets the underlying native Maven {@link org.apache.maven.model.Model} object.
+     * Sets the underlying native Maven <a href="https://maven.apache.org/ref/3.0.4/maven-model/apidocs/org/apache/maven/model/Model.html">org.apache.maven.model.Model</a> object.
      *
      * @return this
      * @see #getModel()

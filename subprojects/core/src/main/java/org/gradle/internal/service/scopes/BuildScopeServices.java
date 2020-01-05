@@ -119,6 +119,7 @@ import org.gradle.initialization.ClassLoaderScopeListeners;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.initialization.DefaultClassLoaderScopeRegistry;
 import org.gradle.initialization.DefaultGradlePropertiesLoader;
+import org.gradle.initialization.DefaultProjectDescriptorRegistry;
 import org.gradle.initialization.DefaultSettingsLoaderFactory;
 import org.gradle.initialization.DefaultSettingsPreparer;
 import org.gradle.initialization.IGradlePropertiesLoader;
@@ -127,6 +128,7 @@ import org.gradle.initialization.InstantiatingBuildLoader;
 import org.gradle.initialization.ModelConfigurationListener;
 import org.gradle.initialization.NotifyingBuildLoader;
 import org.gradle.initialization.ProjectAccessListener;
+import org.gradle.initialization.ProjectDescriptorRegistry;
 import org.gradle.initialization.ProjectPropertySettingBuildLoader;
 import org.gradle.initialization.PropertiesLoadingSettingsProcessor;
 import org.gradle.initialization.RootBuildCacheControllerSettingsProcessor;
@@ -243,12 +245,16 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new TaskStatistics();
     }
 
-    protected ProjectRegistry<ProjectInternal> createProjectRegistry() {
+    protected DefaultProjectRegistry<ProjectInternal> createProjectRegistry() {
         return new DefaultProjectRegistry<ProjectInternal>();
     }
 
-    protected IProjectFactory createProjectFactory(Instantiator instantiator, ProjectRegistry<ProjectInternal> projectRegistry) {
-        return new ProjectFactory(instantiator, new DefaultTextFileResourceLoader(), projectRegistry);
+    protected IProjectFactory createProjectFactory(Instantiator instantiator, ProjectRegistry<ProjectInternal> projectRegistry, BuildState owner, ProjectStateRegistry projectStateRegistry) {
+        return new ProjectFactory(instantiator, new DefaultTextFileResourceLoader(), projectRegistry, owner, projectStateRegistry);
+    }
+
+    protected ProjectDescriptorRegistry createProjectDescriptorRegistry() {
+        return new DefaultProjectDescriptorRegistry();
     }
 
     protected ListenerManager createListenerManager(ListenerManager listenerManager) {

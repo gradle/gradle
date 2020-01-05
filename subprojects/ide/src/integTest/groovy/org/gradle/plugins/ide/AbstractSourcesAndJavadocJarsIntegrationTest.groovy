@@ -16,6 +16,7 @@
 package org.gradle.plugins.ide
 
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.*
 import org.junit.Rule
 
@@ -294,6 +295,53 @@ dependencies {
         ideFileContainsEntry("module-1.0.jar", "module-1.0-sources.jar", "module-1.0-javadoc.jar")
     }
 
+    @ToBeFixedForInstantExecution
+    def "sources for gradleApi() are resolved and attached when -all distribution is used"() {
+        given:
+        requireGradleDistribution()
+        TestFile sourcesDir = distribution.gradleHomeDir.createDir("src")
+        sourcesDir.createFile("org/gradle/Test.java").writelns("package org.gradle;", "public class Test {}")
+
+        buildScript """
+            apply plugin: "java"
+            apply plugin: "idea"
+            apply plugin: "eclipse"
+
+            dependencies {
+                implementation gradleApi()
+            }
+            """
+        when:
+        succeeds ideTask
+
+        then:
+        ideFileContainsGradleApiWithSources("gradle-api", sourcesDir.getPath())
+    }
+
+    @ToBeFixedForInstantExecution
+    def "sources for gradleTestKit() are resolved and attached when -all distribution is used"() {
+        given:
+        requireGradleDistribution()
+        TestFile sourcesDir = distribution.gradleHomeDir.createDir("src")
+        sourcesDir.createFile("org/gradle/Test.java").writelns("package org.gradle;", "public class Test {}")
+
+        buildScript """
+            apply plugin: "java"
+            apply plugin: "idea"
+            apply plugin: "eclipse"
+
+            dependencies {
+                implementation gradleTestKit()
+            }
+            """
+        when:
+        succeeds ideTask
+
+        then:
+        ideFileContainsGradleApiWithSources("gradle-test-kit", sourcesDir.getPath())
+        ideFileContainsGradleApiWithSources("gradle-api", sourcesDir.getPath())
+    }
+
     private useIvyRepo(def repo) {
         buildFile << """repositories { ivy { url "$repo.uri" } }"""
     }
@@ -357,6 +405,7 @@ task resolve {
         ideFileContainsEntry(jar, [sources], [javadoc])
     }
     abstract void ideFileContainsEntry(String jar, List<String> sources, List<String> javadoc)
+    abstract void ideFileContainsGradleApiWithSources(String apiJarPrefix, String sourcesPath)
     abstract void ideFileContainsNoSourcesAndJavadocEntry()
     abstract void expectBehaviorAfterBrokenMavenArtifact(HttpArtifact httpArtifact)
     abstract void expectBehaviorAfterBrokenIvyArtifact(HttpArtifact httpArtifact)

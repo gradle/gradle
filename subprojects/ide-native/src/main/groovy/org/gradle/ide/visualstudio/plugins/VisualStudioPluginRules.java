@@ -17,6 +17,7 @@
 package org.gradle.ide.visualstudio.plugins;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.internal.project.DefaultProjectRegistry;
 import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
@@ -48,7 +49,7 @@ class VisualStudioPluginRules {
         @Mutate
         public static void ensureSubprojectsAreRealized(TaskContainer tasks, ProjectIdentifier projectIdentifier, ServiceRegistry serviceRegistry) {
             ProjectModelResolver projectModelResolver = serviceRegistry.get(ProjectModelResolver.class);
-            ProjectRegistry<ProjectInternal> projectRegistry = Cast.uncheckedCast(serviceRegistry.get(ProjectRegistry.class));
+            ProjectRegistry<ProjectInternal> projectRegistry = Cast.uncheckedCast(serviceRegistry.get(DefaultProjectRegistry.class));
 
             for (ProjectInternal subproject : projectRegistry.getSubProjects(projectIdentifier.getPath())) {
                 projectModelResolver.resolveProjectModel(subproject.getPath()).find("visualStudio", VisualStudioExtension.class);

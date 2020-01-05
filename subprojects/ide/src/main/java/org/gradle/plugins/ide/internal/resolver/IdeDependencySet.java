@@ -59,11 +59,13 @@ public class IdeDependencySet {
     private final DependencyHandler dependencyHandler;
     private final Collection<Configuration> plusConfigurations;
     private final Collection<Configuration> minusConfigurations;
+    private final GradleApiSourcesResolver gradleApiSourcesResolver;
 
-    public IdeDependencySet(DependencyHandler dependencyHandler, Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {
+    public IdeDependencySet(DependencyHandler dependencyHandler, Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations, GradleApiSourcesResolver gradleApiSourcesResolver) {
         this.dependencyHandler = dependencyHandler;
         this.plusConfigurations = plusConfigurations;
         this.minusConfigurations = minusConfigurations;
+        this.gradleApiSourcesResolver = gradleApiSourcesResolver;
     }
 
     public void visit(IdeDependencyVisitor visitor) {
@@ -216,10 +218,17 @@ public class IdeDependencySet {
                     Set<ResolvedArtifactResult> javaDoc = auxiliaryArtifacts.get(componentIdentifier, JavadocArtifact.class);
                     javaDoc = javaDoc != null ? javaDoc : Collections.<ResolvedArtifactResult>emptySet();
                     visitor.visitModuleDependency(artifact, sources, javaDoc, isTestConfiguration(configurations.get(artifactIdentifier)));
+                } else if (isGradleApiDependency(artifact)) {
+                    visitor.visitGradleApiDependency(artifact, gradleApiSourcesResolver.resolveGradleApiSources(artifact.getFile()), isTestConfiguration(configurations.get(artifactIdentifier)));
                 } else {
                     visitor.visitFileDependency(artifact, isTestConfiguration(configurations.get(artifactIdentifier)));
                 }
             }
+        }
+
+        private boolean isGradleApiDependency(ResolvedArtifactResult artifact) {
+            String artifactFileName = artifact.getFile().getName();
+            return artifactFileName.startsWith("gradle-api") || artifactFileName.startsWith("gradle-test-kit");
         }
 
         private boolean isTestConfiguration(Set<Configuration> configurations) {

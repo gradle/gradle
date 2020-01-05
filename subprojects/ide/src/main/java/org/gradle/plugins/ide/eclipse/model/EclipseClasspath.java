@@ -28,6 +28,7 @@ import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.eclipse.model.internal.ClasspathFactory;
 import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
+import org.gradle.plugins.ide.internal.resolver.DefaultGradleApiSourcesResolver;
 import org.gradle.util.ConfigureUtil;
 
 import javax.inject.Inject;
@@ -322,7 +323,7 @@ public class EclipseClasspath {
         ProjectInternal projectInternal = (ProjectInternal) this.project;
         IdeArtifactRegistry ideArtifactRegistry = projectInternal.getServices().get(IdeArtifactRegistry.class);
         ProjectStateRegistry projectRegistry = projectInternal.getServices().get(ProjectStateRegistry.class);
-        ClasspathFactory classpathFactory = new ClasspathFactory(this, ideArtifactRegistry, projectRegistry);
+        ClasspathFactory classpathFactory = new ClasspathFactory(this, ideArtifactRegistry, projectRegistry, new DefaultGradleApiSourcesResolver());
         return classpathFactory.createEntries();
     }
 

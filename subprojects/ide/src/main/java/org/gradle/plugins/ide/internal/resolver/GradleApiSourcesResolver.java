@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,26 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.workers.internal;
-
-import org.gradle.api.Describable;
-import org.gradle.workers.WorkAction;
-import org.gradle.workers.WorkParameters;
+package org.gradle.plugins.ide.internal.resolver;
 
 import java.io.File;
-import java.io.Serializable;
 
-public interface ActionExecutionSpec<T extends WorkParameters> extends Serializable, Describable {
-    Class<? extends WorkAction<T>> getImplementationClass();
-
-    @Override
-    String getDisplayName();
-
-    T getParameters();
-
-    ClassLoaderStructure getClassLoaderStructure();
-
-    boolean isInternalServicesRequired();
-
-    File getBaseDir();
+public interface GradleApiSourcesResolver {
+    File resolveGradleApiSources(File artifact);
 }

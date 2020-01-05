@@ -36,6 +36,7 @@ import org.gradle.initialization.LoadProjectsBuildOperationType
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.internal.event.ListenerManager
 import org.gradle.invocation.DefaultGradle
+import org.gradle.jvm.toolchain.JavaInstallationRegistry
 import org.gradle.process.ExecOperations
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.workers.WorkerExecutor
@@ -87,7 +88,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         given:
         buildFile << """
             println "running build script"
-            
+
             class SomeTask extends DefaultTask {
                 SomeTask() {
                     println("create task")
@@ -165,10 +166,10 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
     def "restores task fields whose value is an object graph with cycles"() {
         buildFile << """
             class SomeBean {
-                String value 
+                String value
                 SomeBean parent
                 SomeBean child
-                
+
                 SomeBean(String value) {
                     println("creating bean")
                     this.value = value
@@ -178,7 +179,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
             class SomeTask extends DefaultTask {
                 @Internal
                 final SomeBean bean
-                
+
                 SomeTask() {
                     bean = new SomeBean("default")
                     bean.parent = new SomeBean("parent")
@@ -221,9 +222,9 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
             import java.util.concurrent.*
 
             class SomeBean {
-                ${type} value 
+                ${type} value
             }
-            
+
             enum SomeEnum {
                 One, Two
             }
@@ -231,7 +232,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
             class SomeTask extends DefaultTask {
                 private final SomeBean bean = new SomeBean()
                 private final ${type} value
-                
+
                 SomeTask() {
                     value = ${reference}
                     bean.value = ${reference}
@@ -302,18 +303,18 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
             buildscript {
                 ${jcenterRepository()}
                 dependencies {
-                    classpath 'com.google.guava:guava:28.0-jre' 
+                    classpath 'com.google.guava:guava:28.0-jre'
                 }
             }
 
             class SomeBean {
-                ${type.simpleName} value 
+                ${type.simpleName} value
             }
 
             class SomeTask extends DefaultTask {
                 private final SomeBean bean = new SomeBean()
                 private final ${type.simpleName} value
-                
+
                 SomeTask() {
                     value = ${reference}
                     bean.value = ${reference}
@@ -348,7 +349,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         buildFile << """
             class Placeholder implements Serializable {
                 String value
-                
+
                 private Object readResolve() {
                     return new OtherBean(prop: "[\$value]")
                 }
@@ -363,13 +364,13 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
             }
 
             class SomeBean {
-                OtherBean value 
+                OtherBean value
             }
 
             class SomeTask extends DefaultTask {
                 private final SomeBean bean = new SomeBean()
                 private final OtherBean value
-                
+
                 SomeTask() {
                     value = new OtherBean(prop: 'a')
                     bean.value = new OtherBean(prop: 'b')
@@ -434,7 +435,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
     def "restores task fields whose value is service of type #type"() {
         buildFile << """
             class SomeBean {
-                ${type} value 
+                ${type} value
             }
 
             class SomeTask extends DefaultTask {
@@ -472,6 +473,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         FileSystemOperations.name        | "project.services.get(${FileSystemOperations.name})"        | "toString()"
         ExecOperations.name              | "project.services.get(${ExecOperations.name})"              | "toString()"
         ListenerManager.name             | "project.services.get(${ListenerManager.name})"             | "toString()"
+        JavaInstallationRegistry.name    | "project.services.get(${JavaInstallationRegistry.name})"    | "installationForCurrentVirtualMachine"
     }
 
     @Unroll
@@ -620,6 +622,58 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
     }
 
     @Unroll
+    def "restores task fields whose value is FileCollection"() {
+        buildFile << """
+            import ${Inject.name}
+
+            class SomeBean {
+                @Internal
+                final FileCollection value
+
+                @Inject
+                SomeBean(ProjectLayout layout) {
+                    value = ${factory}
+                }
+            }
+
+            class SomeTask extends DefaultTask {
+                @Internal
+                final SomeBean bean = project.objects.newInstance(SomeBean)
+                @Internal
+                final FileCollection value
+
+                @Inject
+                SomeTask(ProjectLayout layout) {
+                    value = ${factory}
+                }
+
+                @TaskAction
+                void run() {
+                    println "this.value = " + value.files
+                    println "bean.value = " + bean.value.files
+                }
+            }
+
+            task ok(type: SomeTask) {
+            }
+        """
+
+        when:
+        instantRun "ok"
+        instantRun "ok"
+
+        then:
+        def expected = output.collect { file(it) }
+        outputContains("this.value = ${expected}")
+        outputContains("bean.value = ${expected}")
+
+        where:
+        factory                  | output
+        "layout.files()"         | []
+        "layout.files('a', 'b')" | ['a', 'b']
+    }
+
+    @Unroll
     def "restores task fields whose value is a serializable #kind Java lambda"() {
         given:
         file("buildSrc/src/main/java/my/LambdaTask.java").tap {
@@ -684,11 +738,11 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
             class SomeBean {
                 private ${baseType} badReference
             }
-            
+
             class SomeTask extends DefaultTask {
                 private final ${baseType} badReference
                 private final bean = new SomeBean()
-                
+
                 SomeTask() {
                     badReference = ${reference}
                     bean.badReference = ${reference}
@@ -732,10 +786,10 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         buildFile << """
             interface Bean {
                 @Internal
-                Property<String> getValue() 
+                Property<String> getValue()
 
                 @Internal
-                Property<String> getUnused() 
+                Property<String> getUnused()
             }
 
             abstract class SomeTask extends DefaultTask {
@@ -784,11 +838,11 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
             class SomeBean {
                 private SomeTask owner
             }
-            
+
             class SomeTask extends DefaultTask {
                 private final SomeTask thisTask
                 private final bean = new SomeBean()
-                
+
                 SomeTask() {
                     thisTask = this
                     bean.owner = this
@@ -796,7 +850,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
 
                 @TaskAction
                 void run() {
-                    println "thisTask = " + (thisTask == this) 
+                    println "thisTask = " + (thisTask == this)
                     println "bean.owner = " + (bean.owner == this)
                 }
             }

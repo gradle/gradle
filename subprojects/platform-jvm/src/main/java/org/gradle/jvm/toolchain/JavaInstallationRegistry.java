@@ -17,12 +17,11 @@
 package org.gradle.jvm.toolchain;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.file.Directory;
 import org.gradle.api.provider.Provider;
 
-import java.io.File;
-
 /**
- * Allows information about Java installations to be queried.
+ * Allows information about Java installations to be queried. A Java installation may contain a JDK, or a JRE, or both.
  *
  * <p>An instance of this service is available for injection into tasks, plugins and other types.
  *
@@ -41,6 +40,19 @@ public interface JavaInstallationRegistry {
      * <p>Note that this method may return an installation whose Java home directory is not the same as the installation directory. For example, if the given directory
      * points to a JRE installation contained within a JDK installation (as was the case for Java 8 and earlier), then the {@code JavaInstallation} for outer installation will be returned.
      * </p>
+     *
+     * @param installationDirectory The directory containing the Java installation.
      */
-    Provider<JavaInstallation> installationForDirectory(File installationDirectory);
+    Provider<JavaInstallation> installationForDirectory(Directory installationDirectory);
+
+    /**
+     * Returns information about the Java installation at the given location.
+     *
+     * <p>Note that this method may return an installation whose Java home directory is not the same as the installation directory. For example, if the given directory
+     * points to a JRE installation contained within a JDK installation (as was the case for Java 8 and earlier), then the {@code JavaInstallation} for outer installation will be returned.
+     * </p>
+     *
+     * @param installationDirectory The directory containing the Java installation.
+     */
+    Provider<JavaInstallation> installationForDirectory(Provider<Directory> installationDirectory);
 }

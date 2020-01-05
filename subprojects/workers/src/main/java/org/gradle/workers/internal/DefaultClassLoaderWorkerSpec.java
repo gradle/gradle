@@ -19,7 +19,6 @@ package org.gradle.workers.internal;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.workers.ClassLoaderWorkerSpec;
-import org.gradle.workers.IsolationMode;
 
 import javax.inject.Inject;
 
@@ -28,11 +27,6 @@ public class DefaultClassLoaderWorkerSpec extends DefaultWorkerSpec implements C
 
     @Inject
     public DefaultClassLoaderWorkerSpec(ObjectFactory objectFactory) {
-        this(IsolationMode.CLASSLOADER, objectFactory);
-    }
-
-    protected DefaultClassLoaderWorkerSpec(IsolationMode isolationMode, ObjectFactory objectFactory) {
-        super(isolationMode);
         this.classpath = objectFactory.fileCollection();
     }
 

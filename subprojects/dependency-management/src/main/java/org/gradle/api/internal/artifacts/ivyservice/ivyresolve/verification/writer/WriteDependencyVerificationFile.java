@@ -57,6 +57,8 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.security.internal.Fingerprint;
+import org.gradle.security.internal.PublicKeyResultBuilder;
 import org.gradle.security.internal.PublicKeyService;
 import org.gradle.security.internal.SecuritySupport;
 
@@ -69,7 +71,6 @@ import java.io.OutputStream;
 import java.math.BigInteger;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
@@ -464,11 +465,17 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
 
     private void exportKeyRingCollection(PublicKeyService publicKeyService, File keyringFile, Set<String> publicKeys) throws IOException {
         List<PGPPublicKeyRing> existingRings = loadExistingKeyRing(keyringFile);
-        List<PGPPublicKeyRing> keysSeenInVerifier = publicKeys.stream()
-            .map(keyId -> new BigInteger(keyId, 16).longValue())
-            .map(publicKeyService::findKeyRing)
-            .map(maybe -> maybe.orElse(null))
-            .filter(Objects::nonNull)
+        PGPPublicKeyRingListBuilder builder = new PGPPublicKeyRingListBuilder();
+        for (String publicKey : publicKeys) {
+            if (publicKey.length() <= 16) {
+                publicKeyService.findByLongId(new BigInteger(publicKey, 16).longValue(), builder);
+            } else {
+                publicKeyService.findByFingerprint(Fingerprint.fromString(publicKey).getBytes(), builder);
+            }
+        }
+
+        List<PGPPublicKeyRing> keysSeenInVerifier = builder.build()
+            .stream()
             .filter(WriteDependencyVerificationFile::hasAtLeastOnePublicKey)
             .filter(e -> existingRings.stream().noneMatch(ring -> keyIds(ring).equals(keyIds(e))))
             .collect(Collectors.toList());
@@ -482,6 +489,24 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
             }
         }
         LOGGER.lifecycle("Exported {} keys to {}", allKeyRings.size(), keyringFile);
+    }
+
+    private static class PGPPublicKeyRingListBuilder implements PublicKeyResultBuilder {
+        private final ImmutableList.Builder<PGPPublicKeyRing> builder = ImmutableList.builder();
+
+        @Override
+        public void keyRing(PGPPublicKeyRing keyring) {
+            builder.add(keyring);
+        }
+
+        @Override
+        public void publicKey(PGPPublicKey publicKey) {
+
+        }
+
+        public List<PGPPublicKeyRing> build() {
+            return builder.build();
+        }
     }
 
     private static boolean hasAtLeastOnePublicKey(PGPPublicKeyRing ring) {

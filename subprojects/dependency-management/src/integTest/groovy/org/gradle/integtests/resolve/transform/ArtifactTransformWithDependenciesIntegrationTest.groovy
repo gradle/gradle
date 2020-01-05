@@ -53,11 +53,11 @@ class ArtifactTransformWithDependenciesIntegrationTest extends AbstractHttpDepen
     void setupBuildWithNoSteps(@DelegatesTo(Builder) Closure cl = {}) {
         setupBuildWithColorAttributes(cl)
         buildFile << """
-                   
+
 allprojects {
     repositories {
-        maven { 
-            url = '${mavenHttpRepo.uri}' 
+        maven {
+            url = '${mavenHttpRepo.uri}'
             metadataSources { gradleMetadata() }
         }
     }
@@ -247,7 +247,6 @@ project(':common') {
         output.contains('Single step transform received dependencies files [] for processing otherLib.jar')
     }
 
-    @ToBeFixedForInstantExecution
     def "transform can access artifact dependencies as a set of files when using ArtifactView, even if first step did not use dependencies"() {
         given:
         setupBuildWithFirstStepThatDoesNotUseDependencies()
