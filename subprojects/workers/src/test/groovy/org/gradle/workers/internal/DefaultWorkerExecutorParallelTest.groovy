@@ -69,7 +69,7 @@ class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
         _ * instantiator.newInstance(DefaultWorkerSpec) >> { args -> new DefaultWorkerSpec() }
         _ * instantiator.newInstance(DefaultClassLoaderWorkerSpec) >> { args -> new DefaultClassLoaderWorkerSpec(objectFactory) }
         _ * instantiator.newInstance(DefaultProcessWorkerSpec, _) >> { args -> new DefaultProcessWorkerSpec(args[1][0], objectFactory) }
-        _ * instantiator.newInstance(DefaultWorkerExecutor.DefaultWorkQueue, _, _) >> { args -> new DefaultWorkerExecutor.DefaultWorkQueue(args[1][0], args[1][1]) }
+        _ * instantiator.newInstance(DefaultWorkerExecutor.DefaultWorkQueue, _, _, _) >> { args -> new DefaultWorkerExecutor.DefaultWorkQueue(args[1][0], args[1][1], args[1][2]) }
         workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, workerInProcessFactory, workerNoIsolationFactory, forkOptionsFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkerTracker, workerDirectoryProvider, executionQueueFactory, classLoaderStructureProvider, actionExecutionSpecFactory, instantiator, temporaryFolder.root)
         _ * actionExecutionSpecFactory.newIsolatedSpec(_, _, _, _, _) >> Mock(IsolatedParametersActionExecutionSpec)
     }

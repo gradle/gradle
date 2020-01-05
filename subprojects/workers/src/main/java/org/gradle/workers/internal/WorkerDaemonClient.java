@@ -18,11 +18,10 @@ package org.gradle.workers.internal;
 
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.process.internal.health.memory.JvmMemoryStatus;
 import org.gradle.process.internal.worker.WorkerProcess;
 
-class WorkerDaemonClient implements BuildOperationAwareWorker, Stoppable {
+class WorkerDaemonClient implements Stoppable {
     public static final String DISABLE_EXPIRATION_PROPERTY_KEY = "org.gradle.workers.internal.disable-daemons-expiration";
     private final DaemonForkOptions forkOptions;
     private final WorkerDaemonProcess workerDaemonProcess;
@@ -41,13 +40,7 @@ class WorkerDaemonClient implements BuildOperationAwareWorker, Stoppable {
         this.actionExecutionSpecFactory = actionExecutionSpecFactory;
     }
 
-    @Override
-    public DefaultWorkResult execute(final ActionExecutionSpec spec, final BuildOperationRef parentBuildOperation) {
-        return execute(spec);
-    }
-
-    @Override
-    public DefaultWorkResult execute(ActionExecutionSpec spec) {
+    public DefaultWorkResult execute(IsolatedParametersActionExecutionSpec<?> spec) {
         uses++;
         return workerDaemonProcess.execute(actionExecutionSpecFactory.newTransportableSpec(spec));
     }
@@ -100,12 +93,12 @@ class WorkerDaemonClient implements BuildOperationAwareWorker, Stoppable {
     @Override
     public String toString() {
         return "WorkerDaemonClient{" +
-                " log level=" + logLevel +
-                ", use count=" + uses +
-                ", has failed=" + failed +
-                ", can be expired=" + !cannotBeExpired +
-                ", workerProcess=" + workerProcess +
-                ", forkOptions=" + forkOptions +
-                '}';
+            " log level=" + logLevel +
+            ", use count=" + uses +
+            ", has failed=" + failed +
+            ", can be expired=" + !cannotBeExpired +
+            ", workerProcess=" + workerProcess +
+            ", forkOptions=" + forkOptions +
+            '}';
     }
 }

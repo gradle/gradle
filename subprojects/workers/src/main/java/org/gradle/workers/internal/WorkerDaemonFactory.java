@@ -16,10 +16,11 @@
 
 package org.gradle.workers.internal;
 
-import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.workers.IsolationMode;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Controls the lifecycle of the worker daemon and provides access to it.
@@ -38,7 +39,7 @@ public class WorkerDaemonFactory implements WorkerFactory {
     public BuildOperationAwareWorker getWorker(WorkerRequirement workerRequirement) {
         return new AbstractWorker(buildOperationExecutor) {
             @Override
-            public DefaultWorkResult execute(ActionExecutionSpec spec, BuildOperationRef parentBuildOperation) {
+            public DefaultWorkResult execute(IsolatedParametersActionExecutionSpec<?> spec, BuildOperationRef parentBuildOperation) {
                 final WorkerDaemonClient client = reserveClient();
                 try {
                     return executeWrappedInBuildOperation(spec, parentBuildOperation, client::execute);
@@ -48,7 +49,7 @@ public class WorkerDaemonFactory implements WorkerFactory {
             }
 
             private WorkerDaemonClient reserveClient() {
-                DaemonForkOptions forkOptions = ((ForkedWorkerRequirement)workerRequirement).getForkOptions();
+                DaemonForkOptions forkOptions = ((ForkedWorkerRequirement) workerRequirement).getForkOptions();
                 WorkerDaemonClient client = clientsManager.reserveIdleClient(forkOptions);
                 if (client == null) {
                     client = clientsManager.reserveNewClient(WorkerDaemonServer.class, forkOptions);
