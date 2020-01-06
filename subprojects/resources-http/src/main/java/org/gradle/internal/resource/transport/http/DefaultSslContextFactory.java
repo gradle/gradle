@@ -181,27 +181,30 @@ public class DefaultSslContextFactory implements SslContextFactory {
                 } else {
                     File keyStoreFile = null;
                     String s = props.get("javax.net.ssl.keyStore");
-                    if (s != null) {
+                    if (s != null && !"none".equalsIgnoreCase(s)) {
                         keyStoreFile = new File(s);
                     }
+                    kmFactory = KeyManagerFactory.getInstance(keyAlgorithm);
+                    String keyStoreProvider = props.get("javax.net.ssl.keyStoreProvider");
+                    KeyStore keyStore;
+                    if (keyStoreProvider != null) {
+                        keyStore = KeyStore.getInstance(keyStoreType, keyStoreProvider);
+                    } else {
+                        keyStore = KeyStore.getInstance(keyStoreType);
+                    }
+                    String keyStorePassword = props.get("javax.net.ssl.keyStorePassword");
+                    FileInputStream instream = null;
                     if (keyStoreFile != null) {
-                        kmFactory = KeyManagerFactory.getInstance(keyAlgorithm);
-                        String keyStoreProvider = props.get("javax.net.ssl.keyStoreProvider");
-                        KeyStore keyStore;
-                        if (keyStoreProvider != null) {
-                            keyStore = KeyStore.getInstance(keyStoreType, keyStoreProvider);
-                        } else {
-                            keyStore = KeyStore.getInstance(keyStoreType);
-                        }
-                        String keyStorePassword = props.get("javax.net.ssl.keyStorePassword");
-                        FileInputStream instream = new FileInputStream(keyStoreFile);
-                        try {
-                            keyStore.load(instream, keyStorePassword != null ? keyStorePassword.toCharArray() : EMPTY_PASSWORD);
-                        } finally {
+                        instream = new FileInputStream(keyStoreFile);
+                    }
+                    try {
+                        keyStore.load(instream, keyStorePassword != null ? keyStorePassword.toCharArray() : EMPTY_PASSWORD);
+                    } finally {
+                        if (instream != null) {
                             instream.close();
                         }
-                        kmFactory.init(keyStore, keyStorePassword != null ? keyStorePassword.toCharArray() : EMPTY_PASSWORD);
                     }
+                    kmFactory.init(keyStore, keyStorePassword != null ? keyStorePassword.toCharArray() : EMPTY_PASSWORD);
                 }
 
                 SSLContext sslcontext = SSLContext.getInstance("TLS");
