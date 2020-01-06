@@ -165,16 +165,10 @@ public class DefaultSslContextFactory implements SslContextFactory {
                     }
                 }
 
-                KeyManagerFactory kmFactory = null;
-                String keyAlgorithm = props.get("ssl.KeyManagerFactory.algorithm");
-                if (keyAlgorithm == null) {
-                    keyAlgorithm = KeyManagerFactory.getDefaultAlgorithm();
-                }
+                KeyManagerFactory kmFactory = keyManagerFactory(props);
+
                 String keyStoreType = keyStoreType(props);
-                if ("none".equalsIgnoreCase(keyStoreType)) {
-                    kmFactory = KeyManagerFactory.getInstance(keyAlgorithm);
-                } else {
-                    kmFactory = KeyManagerFactory.getInstance(keyAlgorithm);
+                if (!"none".equalsIgnoreCase(keyStoreType)) {
                     char[] keyStorePassword = keystorePassword(props);
                     KeyStore keyStore = keyStore(props, keyStoreType, keyStorePassword);
                     kmFactory.init(keyStore, keyStorePassword);
@@ -187,6 +181,14 @@ public class DefaultSslContextFactory implements SslContextFactory {
             } catch (GeneralSecurityException | IOException e) {
                 throw new SSLInitializationException(e.getMessage(), e);
             }
+        }
+
+        private static KeyManagerFactory keyManagerFactory(Map<String, String> props) throws NoSuchAlgorithmException {
+            String keyAlgorithm = props.get("ssl.KeyManagerFactory.algorithm");
+            if (keyAlgorithm == null) {
+                keyAlgorithm = KeyManagerFactory.getDefaultAlgorithm();
+            }
+            return KeyManagerFactory.getInstance(keyAlgorithm);
         }
 
         private static String keyStoreType(Map<String, String> props) {
