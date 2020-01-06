@@ -8,17 +8,8 @@ Include only their name, impactful features should be called out separately belo
  [Some person](https://github.com/some-person)
 -->
 
-<!-- 
-## 1
-
-details of 1
-
-## 2
-
-details of 2
-
-## n
--->
+[Vladimir Sitnikov](https://github.com/vlsi/)
+[Peter Stöckli](https://github.com/p-)
 
 ## Upgrade Instructions
 
