@@ -186,19 +186,19 @@ public class DefaultSslContextFactory implements SslContextFactory {
                     } else {
                         keyStore = KeyStore.getInstance(keyStoreType);
                     }
-                    String keyStorePassword = props.get("javax.net.ssl.keyStorePassword");
+                    char[] keyStorePassword = keystorePassword(props);
                     FileInputStream instream = null;
                     if (keyStoreFile != null) {
                         instream = new FileInputStream(keyStoreFile);
                     }
                     try {
-                        keyStore.load(instream, keyStorePassword != null ? keyStorePassword.toCharArray() : EMPTY_PASSWORD);
+                        keyStore.load(instream, keyStorePassword);
                     } finally {
                         if (instream != null) {
                             instream.close();
                         }
                     }
-                    kmFactory.init(keyStore, keyStorePassword != null ? keyStorePassword.toCharArray() : EMPTY_PASSWORD);
+                    kmFactory.init(keyStore, keyStorePassword);
                 }
 
                 SSLContext sslcontext = SSLContext.getInstance("TLS");
@@ -208,6 +208,11 @@ public class DefaultSslContextFactory implements SslContextFactory {
             } catch (GeneralSecurityException | IOException e) {
                 throw new SSLInitializationException(e.getMessage(), e);
             }
+        }
+
+        private static char[] keystorePassword(Map<String, String> props) {
+            String keyStorePassword = props.get("javax.net.ssl.keyStorePassword");
+            return keyStorePassword != null ? keyStorePassword.toCharArray() : EMPTY_PASSWORD;
         }
     }
 }
