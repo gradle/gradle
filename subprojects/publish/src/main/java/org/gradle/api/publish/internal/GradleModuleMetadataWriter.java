@@ -43,6 +43,7 @@ import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
+import org.gradle.api.internal.artifacts.PublishArtifactInternal;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependencyConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser;
@@ -379,6 +380,11 @@ public class GradleModuleMetadataWriter {
     }
 
     private void writeArtifact(PublicationInternal publication, PublishArtifact artifact, JsonWriter jsonWriter) throws IOException {
+        if (artifact instanceof PublishArtifactInternal) {
+            if (!((PublishArtifactInternal) artifact).shouldBePublished()) {
+                return;
+            }
+        }
         PublicationInternal.PublishedFile publishedFile = publication.getPublishedFile(artifact);
 
         jsonWriter.beginObject();
