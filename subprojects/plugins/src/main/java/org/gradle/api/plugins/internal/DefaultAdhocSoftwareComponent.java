@@ -16,8 +16,9 @@
 package org.gradle.api.plugins.internal;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.gradle.api.Action;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.ConfigurationVariantDetails;
@@ -25,16 +26,19 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.internal.java.usagecontext.ConfigurationVariantMapping;
+import org.gradle.internal.reflect.Instantiator;
 
-import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class DefaultAdhocSoftwareComponent implements AdhocComponentWithVariants, SoftwareComponentInternal {
     private final String componentName;
-    private final List<ConfigurationVariantMapping> variants = Lists.newArrayListWithExpectedSize(4);
+    private final Map<Configuration, ConfigurationVariantMapping> variants = Maps.newLinkedHashMapWithExpectedSize(4);
+    private final Instantiator instantiator;
 
-    public DefaultAdhocSoftwareComponent(String componentName) {
+    public DefaultAdhocSoftwareComponent(String componentName, Instantiator instantiator) {
         this.componentName = componentName;
+        this.instantiator = instantiator;
     }
 
     @Override
@@ -44,13 +48,21 @@ public class DefaultAdhocSoftwareComponent implements AdhocComponentWithVariants
 
     @Override
     public void addVariantsFromConfiguration(Configuration outgoingConfiguration, Action<? super ConfigurationVariantDetails> spec) {
-        variants.add(new ConfigurationVariantMapping((ConfigurationInternal) outgoingConfiguration, spec));
+        variants.put(outgoingConfiguration, new ConfigurationVariantMapping((ConfigurationInternal) outgoingConfiguration, spec, instantiator));
+    }
+
+    @Override
+    public void withVariantsFromConfiguration(Configuration outgoingConfiguration, Action<? super ConfigurationVariantDetails> action) {
+        if (!variants.containsKey(outgoingConfiguration)) {
+            throw new InvalidUserDataException("Variant for configuration " + outgoingConfiguration.getName() + " does not exist in component " + componentName);
+        }
+        variants.get(outgoingConfiguration).addAction(action);
     }
 
     @Override
     public Set<? extends UsageContext> getUsages() {
-        ImmutableSet.Builder<UsageContext> builder = new ImmutableSet.Builder<UsageContext>();
-        for (ConfigurationVariantMapping variant : variants) {
+        ImmutableSet.Builder<UsageContext> builder = new ImmutableSet.Builder<>();
+        for (ConfigurationVariantMapping variant : variants.values()) {
             variant.collectUsageContexts(builder);
         }
         return builder.build();

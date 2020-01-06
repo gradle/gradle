@@ -19,10 +19,10 @@ package org.gradle.scala.scaladoc
 import org.gradle.api.plugins.scala.ScalaPlugin
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.scala.ScalaCompilationFixture
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-
 
 class ScalaDocIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
 
@@ -30,6 +30,7 @@ class ScalaDocIntegrationTest extends AbstractIntegrationSpec implements Directo
     ScalaCompilationFixture classes = new ScalaCompilationFixture(testDirectory)
 
     @Requires(TestPrecondition.JDK8_OR_LATER)
+    @ToBeFixedForInstantExecution
     def "changing the Scala version makes Scaladoc out of date"() {
         classes.baseline()
         buildScript(classes.buildScript())
@@ -54,6 +55,7 @@ class ScalaDocIntegrationTest extends AbstractIntegrationSpec implements Directo
         executedAndNotSkipped scaladoc
     }
 
+    @ToBeFixedForInstantExecution
     def "scaladoc is loaded from cache"() {
         classes.baseline()
         buildScript(classes.buildScript())

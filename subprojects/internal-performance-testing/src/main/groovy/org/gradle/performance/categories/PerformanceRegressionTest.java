@@ -16,7 +16,7 @@
 
 package org.gradle.performance.categories;
 
-/*
+/**
  * A performance test that compares Gradle's current performance against
  * some baseline and fails if it is slower.
  */

@@ -22,8 +22,18 @@ class KotlinDslFileContentGenerator extends FileContentGenerator {
     }
 
     @Override
+    protected String generateEnableFeaturePreviewCode() {
+        return ""
+    }
+
+    @Override
     protected String missingJavaLibrarySupportFlag() {
         'val missingJavaLibrarySupport = GradleVersion.current() < GradleVersion.version("3.4")'
+    }
+
+    @Override
+    protected String noJavaLibraryPluginFlag() {
+        'val noJavaLibraryPlugin = hasProperty("noJavaLibraryPlugin")'
     }
 
     @Override
@@ -34,6 +44,12 @@ class KotlinDslFileContentGenerator extends FileContentGenerator {
         val testForkEvery: String by project
 
         tasks.withType<JavaCompile> {
+            options.isFork = true
+            options.isIncremental = true
+            options.forkOptions.memoryInitialSize = compilerMemory
+            options.forkOptions.memoryMaximumSize = compilerMemory
+        }
+        tasks.withType<GroovyCompile> {
             options.isFork = true
             options.isIncremental = true
             options.forkOptions.memoryInitialSize = compilerMemory
@@ -86,13 +102,18 @@ class KotlinDslFileContentGenerator extends FileContentGenerator {
                 "compile" { extendsFrom(configurations["implementation"]) }
                 "testCompile" { extendsFrom(configurations["testImplementation"]) }
             }
+        } else if (noJavaLibraryPlugin) {
+            configurations {
+                ${hasParent ? '"api"()' : ''}
+                ${hasParent ? '"compile" { extendsFrom(configurations["api"]) }' : ''}
+            }
         }
         """
     }
 
     @Override
     protected String directDependencyDeclaration(String configuration, String notation) {
-        "\"$configuration\"(\"$notation\")"
+        notation.endsWith('()') ? "\"$configuration\"($notation)" : "\"$configuration\"(\"$notation\")"
     }
 
     @Override

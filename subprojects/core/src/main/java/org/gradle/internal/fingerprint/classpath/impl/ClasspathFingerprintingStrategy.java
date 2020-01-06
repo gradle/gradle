@@ -18,23 +18,25 @@ package org.gradle.internal.fingerprint.classpath.impl;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
+import org.gradle.api.GradleException;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.state.ZipHasher;
 import org.gradle.api.internal.changedetection.state.ResourceFilter;
 import org.gradle.api.internal.changedetection.state.ResourceHasher;
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
 import org.gradle.api.internal.changedetection.state.RuntimeClasspathResourceHasher;
+import org.gradle.api.internal.changedetection.state.ZipHasher;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
+import org.gradle.internal.fingerprint.FingerprintHashingStrategy;
 import org.gradle.internal.fingerprint.impl.AbstractFingerprintingStrategy;
 import org.gradle.internal.fingerprint.impl.DefaultFileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.impl.IgnoredPathFileSystemLocationFingerprint;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
-import org.gradle.internal.snapshot.DirectorySnapshot;
-import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
+import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
@@ -71,7 +73,7 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
     private final HashCode zipHasherConfigurationHash;
 
     private ClasspathFingerprintingStrategy(String identifier, NonJarFingerprintingStrategy nonZipFingerprintingStrategy, ResourceHasher classpathResourceHasher, ResourceFilter classpathResourceFilter, ResourceSnapshotterCacheService cacheService, StringInterner stringInterner) {
-        super(identifier, ClasspathCompareStrategy.INSTANCE);
+        super(identifier);
         this.nonZipFingerprintingStrategy = nonZipFingerprintingStrategy;
         this.classpathResourceFilter = classpathResourceFilter;
         this.classpathResourceHasher = classpathResourceHasher;
@@ -92,7 +94,7 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
     }
 
     @Override
-    public String normalizePath(FileSystemLocationSnapshot snapshot) {
+    public String normalizePath(CompleteFileSystemLocationSnapshot snapshot) {
         return "";
     }
 
@@ -141,18 +143,20 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
         }
 
         @Override
-        public boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
+        public boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
             relativePathSegmentsTracker.enter(directorySnapshot);
             return delegate.preVisitDirectory(directorySnapshot);
         }
 
         @Override
-        public void visit(FileSystemLocationSnapshot fileSnapshot) {
-            if (fileSnapshot.getType() == FileType.RegularFile) {
+        public void visitFile(CompleteFileSystemLocationSnapshot fileSnapshot) {
+            if (fileSnapshot instanceof RegularFileSnapshot) {
                 HashCode normalizedContent = fingerprintFile((RegularFileSnapshot) fileSnapshot);
                 if (normalizedContent != null) {
                     delegate.visit(fileSnapshot, normalizedContent);
                 }
+            } else if (!relativePathSegmentsTracker.isRoot()) {
+                throw new GradleException(String.format("Couldn't read file content: '%s'.", fileSnapshot.getAbsolutePath()));
             }
         }
 
@@ -173,7 +177,7 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
         }
 
         @Override
-        public void postVisitDirectory(DirectorySnapshot directorySnapshot) {
+        public void postVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
             relativePathSegmentsTracker.leave();
             delegate.postVisitDirectory();
         }
@@ -203,12 +207,12 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
             this.relativePathStringTracker = new RelativePathStringTracker();
         }
 
-        public boolean preVisitDirectory(FileSystemLocationSnapshot directorySnapshot) {
+        public boolean preVisitDirectory(CompleteFileSystemLocationSnapshot directorySnapshot) {
             relativePathStringTracker.enter(directorySnapshot);
             return true;
         }
 
-        public void visit(FileSystemLocationSnapshot fileSnapshot, HashCode normalizedContentHash) {
+        public void visit(CompleteFileSystemLocationSnapshot fileSnapshot, HashCode normalizedContentHash) {
             String absolutePath = fileSnapshot.getAbsolutePath();
             if (processedEntries.add(absolutePath)) {
                 FileSystemLocationFingerprint fingerprint = relativePathStringTracker.isRoot() ? IgnoredPathFileSystemLocationFingerprint.create(fileSnapshot.getType(), normalizedContentHash) : createFileFingerprint(fileSnapshot, normalizedContentHash);
@@ -218,7 +222,7 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
             }
         }
 
-        private FileSystemLocationFingerprint createFileFingerprint(FileSystemLocationSnapshot snapshot, HashCode content) {
+        private FileSystemLocationFingerprint createFileFingerprint(CompleteFileSystemLocationSnapshot snapshot, HashCode content) {
             relativePathStringTracker.enter(snapshot);
             FileSystemLocationFingerprint fingerprint = new DefaultFileSystemLocationFingerprint(stringInterner.intern(relativePathStringTracker.getRelativePathString()), FileType.RegularFile, content);
             relativePathStringTracker.leave();
@@ -228,5 +232,10 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
         public void postVisitDirectory() {
             relativePathStringTracker.leave();
         }
+    }
+
+    @Override
+    public FingerprintHashingStrategy getHashingStrategy() {
+        return FingerprintHashingStrategy.KEEP_ORDER;
     }
 }

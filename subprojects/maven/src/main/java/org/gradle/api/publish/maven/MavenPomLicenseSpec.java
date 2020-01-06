@@ -17,7 +17,6 @@
 package org.gradle.api.publish.maven;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 
 /**
  * Allows to add licenses to a Maven publication.
@@ -26,7 +25,6 @@ import org.gradle.api.Incubating;
  * @see MavenPom
  * @see MavenPomLicense
  */
-@Incubating
 public interface MavenPomLicenseSpec {
 
     /**

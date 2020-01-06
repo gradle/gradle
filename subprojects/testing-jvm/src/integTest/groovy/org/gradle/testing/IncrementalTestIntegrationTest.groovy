@@ -15,6 +15,7 @@
  */
 package org.gradle.testing
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
@@ -44,6 +45,7 @@ class IncrementalTestIntegrationTest extends MultiVersionIntegrationSpec {
         succeeds('test')
     }
 
+    @ToBeFixedForInstantExecution
     def executesTestsWhenSourceChanges() {
         given:
         succeeds('test')
@@ -65,6 +67,7 @@ class IncrementalTestIntegrationTest extends MultiVersionIntegrationSpec {
         succeeds('test').assertTasksNotSkipped()
     }
 
+    @ToBeFixedForInstantExecution
     def executesTestsWhenTestFrameworkChanges() {
         given:
         succeeds('test')
@@ -101,7 +104,7 @@ public class BarTest {
         file("build.gradle") << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
-            dependencies { testCompile 'junit:junit:4.12' }
+            dependencies { testImplementation 'junit:junit:4.12' }
             test.beforeTest { println "executed " + it }
         """
 

@@ -34,7 +34,7 @@ abstract class JavaCompilerIntegrationSpec extends BasicJavaCompilerIntegrationS
         buildFile << '''
             dependencies {
                 file("$projectDir/lib/").mkdirs()
-                compile files((1..999).collect {
+                implementation files((1..999).collect {
                     createJarFile("$projectDir/lib/library${it}.jar")
                 })
             }

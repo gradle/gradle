@@ -17,7 +17,6 @@
 package org.gradle.vcs;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.component.ComponentSelector;
 
 /**
@@ -25,7 +24,6 @@ import org.gradle.api.artifacts.component.ComponentSelector;
  *
  * @since 4.4
  */
-@Incubating
 public interface VcsMapping {
     /**
      * The requested dependency, before it is resolved.

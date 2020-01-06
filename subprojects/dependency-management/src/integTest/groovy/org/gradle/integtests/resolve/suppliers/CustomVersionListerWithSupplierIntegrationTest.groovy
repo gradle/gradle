@@ -23,9 +23,7 @@ import org.gradle.integtests.fixtures.RequiredFeatures
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 
 @RequiredFeatures([
-    // we only need to check without experimental, it doesn't depend on this flag
-    @RequiredFeature(feature = GradleMetadataResolveRunner.EXPERIMENTAL_RESOLVE_BEHAVIOR, value = "false"),
-    // we only need to check without Gradle metadata, it doesn't matter either
+    // we only need to check without Gradle metadata, it doesn't matter
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false"),
 ])
 class CustomVersionListerWithSupplierIntegrationTest extends AbstractModuleDependencyResolveTest {

@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
+import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
@@ -52,7 +53,6 @@ class EdgeState implements DependencyGraphEdge {
     private final DependencyState dependencyState;
     private final DependencyMetadata dependencyMetadata;
     private final NodeState from;
-    private final SelectorState selector;
     private final ResolveState resolveState;
     private final ExcludeSpec transitiveExclusions;
     private final List<NodeState> targetNodes = Lists.newLinkedList();
@@ -60,10 +60,13 @@ class EdgeState implements DependencyGraphEdge {
     private final boolean isConstraint;
     private final int hashCode;
 
+    private SelectorState selector;
     private ModuleVersionResolveException targetNodeSelectionFailure;
     private ImmutableAttributes cachedAttributes;
     private ExcludeSpec cachedEdgeExclusions;
     private ExcludeSpec cachedExclusions;
+
+    private ResolvedVariantResult resolvedVariant;
 
     EdgeState(NodeState from, DependencyState dependencyState, ExcludeSpec transitiveExclusions, ResolveState resolveState) {
         this.from = from;
@@ -72,7 +75,6 @@ class EdgeState implements DependencyGraphEdge {
         // The accumulated exclusions that apply to this edge based on the path from the root
         this.transitiveExclusions = transitiveExclusions;
         this.resolveState = resolveState;
-        this.selector = resolveState.getSelector(dependencyState);
         this.isTransitive = from.isTransitive() && dependencyMetadata.isTransitive();
         this.isConstraint = dependencyMetadata.isConstraint();
         this.hashCode = computeHashCode();
@@ -85,6 +87,10 @@ class EdgeState implements DependencyGraphEdge {
             hashCode = 31 * hashCode + transitiveExclusions.hashCode();
         }
         return hashCode;
+    }
+
+    void computeSelector() {
+        this.selector = resolveState.getSelector(dependencyState, from.versionProvidedByAncestors(dependencyState));
     }
 
     @Override
@@ -126,7 +132,7 @@ class EdgeState implements DependencyGraphEdge {
         return isTransitive;
     }
 
-    public void attachToTargetConfigurations() {
+    void attachToTargetConfigurations() {
         ComponentState targetComponent = getTargetComponent();
         if (targetComponent == null) {
             // The selector failed or the module has been deselected. Do not attach.
@@ -153,7 +159,14 @@ class EdgeState implements DependencyGraphEdge {
         }
     }
 
-    public void removeFromTargetConfigurations() {
+    void cleanUpOnSourceChange(NodeState source) {
+        removeFromTargetConfigurations();
+        selector.getTargetModule().removeUnattachedDependency(this);
+        selector.release();
+        maybeDecreaseHardEdgeCount(source);
+    }
+
+    void removeFromTargetConfigurations() {
         if (!targetNodes.isEmpty()) {
             for (NodeState targetConfiguration : targetNodes) {
                 targetConfiguration.removeIncomingEdge(this);
@@ -169,7 +182,7 @@ class EdgeState implements DependencyGraphEdge {
      * perform as much resolution as possible, still have a valid graph, but in the
      * end fail resolution.
      */
-    public void failWith(Throwable err) {
+    void failWith(Throwable err) {
         targetNodeSelectionFailure = new ModuleVersionResolveException(dependencyState.getRequested(), err);
     }
 
@@ -215,6 +228,11 @@ class EdgeState implements DependencyGraphEdge {
                     for (EdgeState otherEdge : unattachedDependencies) {
                         if (otherEdge != this && !otherEdge.isConstraint()) {
                             otherEdge.attachToTargetConfigurations();
+                            if (otherEdge.targetNodeSelectionFailure != null) {
+                                // Copy selection failure
+                                this.targetNodeSelectionFailure = otherEdge.targetNodeSelectionFailure;
+                                return;
+                            }
                             break;
                         }
                     }
@@ -325,6 +343,20 @@ class EdgeState implements DependencyGraphEdge {
     }
 
     @Override
+    public ResolvedVariantResult getSelectedVariant() {
+        if (resolvedVariant != null) {
+            return resolvedVariant;
+        }
+        for (NodeState targetNode : targetNodes) {
+            if (targetNode.isSelected()) {
+                resolvedVariant = targetNode.getResolvedVariant();
+                return resolvedVariant;
+            }
+        }
+        return null;
+    }
+
+    @Override
     public ComponentSelectionReason getReason() {
         return selector.getSelectionReason();
     }
@@ -332,6 +364,11 @@ class EdgeState implements DependencyGraphEdge {
     @Override
     public boolean isConstraint() {
         return isConstraint;
+    }
+
+    @Override
+    public ResolvedVariantResult getFromVariant() {
+        return from.getResolvedVariant();
     }
 
     private ComponentState getSelectedComponent() {

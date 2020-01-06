@@ -16,6 +16,7 @@
 
 package org.gradle.language.cpp
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 
 class CppBinariesRelocationIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements CppTaskNames {
@@ -71,6 +72,7 @@ class CppBinariesRelocationIntegrationTest extends AbstractInstalledToolChainInt
         """
     }
 
+    @ToBeFixedForInstantExecution
     def "can execute application with dependencies when relocated"() {
         def installDir = file("build/install/main/debug")
         def relocatedInstallDir = file("relocated-install")

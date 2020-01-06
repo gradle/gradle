@@ -20,6 +20,8 @@ import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.event.ListenerManager;
@@ -36,7 +38,6 @@ import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.InputStreamBackedDecoder;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.process.internal.health.memory.DefaultJvmMemoryInfo;
 import org.gradle.process.internal.health.memory.DefaultMemoryManager;
 import org.gradle.process.internal.health.memory.DisabledOsMemoryInfo;
@@ -85,8 +86,7 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
         // Read logging config and setup logging
         int logLevel = decoder.readSmallInt();
         LoggingServiceRegistry loggingServiceRegistry = LoggingServiceRegistry.newEmbeddableLogging();
-        LoggingManagerInternal loggingManager = createLoggingManager(loggingServiceRegistry);
-        loggingManager.setLevelInternal(LogLevel.values()[logLevel]).start();
+        LoggingManagerInternal loggingManager = createLoggingManager(loggingServiceRegistry).setLevelInternal(LogLevel.values()[logLevel]);
 
         // Read whether process info should be published
         boolean shouldPublishJvmMemoryInfo = decoder.readBoolean();
@@ -98,17 +98,19 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
         // Read server address and start connecting
         MultiChoiceAddress serverAddress = new MultiChoiceAddressSerializer().read(decoder);
         NativeServices.initialize(gradleUserHomeDir, false);
-        MessagingServices messagingServices = new MessagingServices();
-        ServiceRegistry basicWorkerServices = ServiceRegistryBuilder.builder()
-                .parent(NativeServices.getInstance())
-                .parent(loggingServiceRegistry)
-                .parent(messagingServices)
-                .build();
+        DefaultServiceRegistry basicWorkerServices = new DefaultServiceRegistry(NativeServices.getInstance(), loggingServiceRegistry);
+        basicWorkerServices.add(ExecutorFactory.class, new DefaultExecutorFactory());
+        basicWorkerServices.addProvider(new MessagingServices());
         final WorkerServices workerServices = new WorkerServices(basicWorkerServices, gradleUserHomeDir);
+        WorkerLogEventListener workerLogEventListener = new WorkerLogEventListener();
+        workerServices.add(WorkerLogEventListener.class, workerLogEventListener);
 
         ObjectConnection connection = null;
-        WorkerLogEventListener workerLogEventListener = null;
-        PrintUnrecoverableErrorToFileHandler unrecoverableErrorHandler = new PrintUnrecoverableErrorToFileHandler(workerServices.get(WorkerDirectoryProvider.class));
+
+        File workingDirectory = workerServices.get(WorkerDirectoryProvider.class).getWorkingDirectory();
+        File errorLog = getLastResortErrorLogFile(workingDirectory);
+        PrintUnrecoverableErrorToFileHandler unrecoverableErrorHandler = new PrintUnrecoverableErrorToFileHandler(errorLog);
+
         try {
             // Read serialized worker
             byte[] serializedWorker = decoder.readBinary();
@@ -122,9 +124,11 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
 
-            connection = messagingServices.get(MessagingClient.class).getConnection(serverAddress);
+            connection = basicWorkerServices.get(MessagingClient.class).getConnection(serverAddress);
             connection.addUnrecoverableErrorHandler(unrecoverableErrorHandler);
-            workerLogEventListener = configureLogging(loggingManager, connection);
+            configureLogging(loggingManager, connection, workerLogEventListener);
+            // start logging now that the logging manager is connected
+            loggingManager.start();
             if (shouldPublishJvmMemoryInfo) {
                 configureWorkerJvmMemoryInfoEvents(workerServices, connection);
             }
@@ -147,58 +151,51 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
                 }
             });
         } finally {
-            if (workerLogEventListener != null) {
+            try {
                 loggingManager.removeOutputEventListener(workerLogEventListener);
+                CompositeStoppable.stoppable(connection, basicWorkerServices).stop();
+                loggingManager.stop();
+            } catch (Throwable t) {
+                // We're failing while shutting down, so log whatever might have happened.
+                unrecoverableErrorHandler.execute(t);
             }
-            if (connection != null) {
-                connection.stop();
-            }
-            unrecoverableErrorHandler.close();
-            messagingServices.close();
-            loggingManager.stop();
         }
 
         return null;
     }
 
-    private class PrintUnrecoverableErrorToFileHandler implements Action<Throwable> {
-        private final File workerDirectory;
-        private PrintStream ps;
+    private File getLastResortErrorLogFile(File workingDirectory) {
+        return new File(workingDirectory, "worker-error-" + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + ".txt");
+    }
 
-        private PrintUnrecoverableErrorToFileHandler(WorkerDirectoryProvider workerDirectoryProvider) {
-            this.workerDirectory = workerDirectoryProvider.getWorkingDirectory();
+    private static class PrintUnrecoverableErrorToFileHandler implements Action<Throwable> {
+        private final File errorLog;
+
+        private PrintUnrecoverableErrorToFileHandler(File errorLog) {
+            this.errorLog = errorLog;
         }
 
         @Override
         public void execute(Throwable throwable) {
-            if (ps == null) {
-                String fileName = "worker-error-" + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + ".txt";
+            try {
+                final PrintStream ps = new PrintStream(errorLog);
                 try {
-                    ps = new PrintStream(new File(workerDirectory, fileName));
-                } catch (FileNotFoundException ignored) {
-                    // ignored
+                    ps.println("Encountered unrecoverable error:");
+                    throwable.printStackTrace(ps);
+                } finally {
+                    ps.close();
                 }
-            }
-            if (ps != null) {
-                ps.println("Encountered unrecoverable error:");
-                throwable.printStackTrace(ps);
+            } catch (FileNotFoundException e) {
+                // ignore this, we won't be able to get any logs
             }
         }
-
-        private void close() {
-            if (ps != null) {
-                ps.close();
-            }
-        }
-
     }
 
-    private WorkerLogEventListener configureLogging(LoggingManagerInternal loggingManager, ObjectConnection connection) {
+    private void configureLogging(LoggingManagerInternal loggingManager, ObjectConnection connection, WorkerLogEventListener workerLogEventListener) {
         connection.useParameterSerializers(WorkerLoggingSerializer.create());
         WorkerLoggingProtocol workerLoggingProtocol = connection.addOutgoing(WorkerLoggingProtocol.class);
-        WorkerLogEventListener workerLogEventListener = new WorkerLogEventListener(workerLoggingProtocol);
+        workerLogEventListener.setWorkerLoggingProtocol(workerLoggingProtocol);
         loggingManager.addOutputEventListener(workerLogEventListener);
-        return workerLogEventListener;
     }
 
     private void configureWorkerJvmMemoryInfoEvents(WorkerServices services, ObjectConnection connection) {
@@ -251,10 +248,6 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
 
         WorkerDirectoryProvider createWorkerDirectoryProvider(GradleUserHomeDirProvider gradleUserHomeDirProvider) {
             return new DefaultWorkerDirectoryProvider(gradleUserHomeDirProvider);
-        }
-
-        WorkerServices createWorkerServices() {
-            return this;
         }
     }
 }

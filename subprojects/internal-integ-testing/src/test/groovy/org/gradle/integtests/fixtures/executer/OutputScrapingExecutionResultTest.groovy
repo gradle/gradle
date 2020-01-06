@@ -51,8 +51,7 @@ class OutputScrapingExecutionResultTest extends AbstractExecutionResultTest {
     }
 
     def "can assert build output is present in main content"() {
-        def output = """
-message
+        def output = """message
 message 2
 
 BUILD SUCCESSFUL in 12s
@@ -64,9 +63,9 @@ post build
 
         then:
         result.assertOutputContains("message")
-        result.assertOutputContains("\nmessage\nmessage 2")
-        result.assertOutputContains("\nmessage\nmessage 2\n")
-        result.assertOutputContains("\r\nmessage\r\nmessage 2")
+        result.assertOutputContains("message\nmessage 2")
+        result.assertOutputContains("message\nmessage 2\n")
+        result.assertOutputContains("message\r\nmessage 2")
 
         when:
         result.assertOutputContains("missing")
@@ -79,12 +78,11 @@ post build
              
             Build output:
             =======
-             
             message
             message 2
              
             Output:
-        '''))
+            '''))
 
         when:
         result.assertOutputContains("post build")
@@ -97,12 +95,11 @@ post build
              
             Build output:
             =======
-             
             message
             message 2
              
             Output:
-        '''))
+            '''))
 
         when:
         result.assertOutputContains("BUILD")
@@ -115,12 +112,11 @@ post build
              
             Build output:
             =======
-             
             message
             message 2
              
             Output:
-        '''))
+            '''))
 
         when:
         result.assertOutputContains("message extra")
@@ -133,34 +129,30 @@ post build
              
             Build output:
             =======
-             
             message
             message 2
              
             Output:
-        '''))
+            '''))
 
         when:
-        result.assertOutputContains("\n\nmessage\n\n")
+        result.assertOutputContains("message\n\n")
 
         then:
         def e6 = thrown(AssertionError)
         error(e6).startsWith(error('''
             Did not find expected text in build output.
-            Expected: 
-
-            message
+            Expected: message
             
             
             
             Build output:
             =======
-             
             message
             message 2
-             
+            
             Output:
-        '''))
+            '''))
     }
 
     def "can assert post build output is present"() {
@@ -198,7 +190,7 @@ more post build
             more post build
              
             Output:
-        '''))
+            '''))
 
         when:
         result.assertHasPostBuildOutput("message")
@@ -216,7 +208,7 @@ more post build
             more post build
              
             Output:
-        '''))
+            '''))
 
         when:
         result.assertHasPostBuildOutput("BUILD")
@@ -234,7 +226,7 @@ more post build
             more post build
              
             Output:
-        '''))
+            '''))
 
         when:
         result.assertHasPostBuildOutput("post build extra")
@@ -252,7 +244,7 @@ more post build
             more post build
              
             Output:
-        '''))
+            '''))
 
         when:
         result.assertHasPostBuildOutput("post build\n\n")
@@ -272,7 +264,7 @@ more post build
             more post build
              
             Output:
-        '''))
+            '''))
     }
 
     @Unroll
@@ -387,7 +379,7 @@ post build
             Build output does not contain the expected tasks.
             Expected: [:a]
             Actual: [:a, :b]
-        '''))
+            '''))
 
         when:
         result.assertTasksExecuted(":a", ":b", ":c")
@@ -398,7 +390,7 @@ post build
             Build output does not contain the expected tasks.
             Expected: [:a, :b, :c]
             Actual: [:a, :b]
-        '''))
+            '''))
 
         when:
         result.assertTasksExecutedInOrder(":b", ":a")
@@ -416,7 +408,7 @@ post build
             Build output does not contain the expected tasks.
             Expected: [:a]
             Actual: [:a, :b]
-        '''))
+            '''))
 
         when:
         result.assertTasksExecutedInOrder(":a", ":b", ":c")
@@ -427,7 +419,7 @@ post build
             Build output does not contain the expected tasks.
             Expected: [:a, :b, :c]
             Actual: [:a, :b]
-        '''))
+            '''))
 
         when:
         result.assertTaskExecuted(':c')
@@ -439,7 +431,7 @@ post build
             Expected: :c
             Actual: [:a, :b]
             Output:
-        '''))
+            '''))
 
         when:
         result.assertTaskNotExecuted(':b')
@@ -451,7 +443,7 @@ post build
             Expected: :b
             Actual: [:a, :b]
             Output:
-        '''))
+            '''))
 
         when:
         result.assertTasksSkipped()
@@ -462,7 +454,7 @@ post build
             Build output does not contain the expected skipped tasks.
             Expected: []
             Actual: [:b]
-        '''))
+            '''))
 
         when:
         result.assertTasksSkipped(":a")
@@ -473,7 +465,7 @@ post build
             Build output does not contain the expected skipped tasks.
             Expected: [:a]
             Actual: [:b]
-        '''))
+            '''))
 
         when:
         result.assertTasksSkipped(":b", ":c")
@@ -484,7 +476,7 @@ post build
             Build output does not contain the expected skipped tasks.
             Expected: [:b, :c]
             Actual: [:b]
-        '''))
+            '''))
 
         when:
         result.assertTaskSkipped(":a")
@@ -495,7 +487,7 @@ post build
             Build output does not contain the expected skipped task.
             Expected: :a
             Actual: [:b]
-        '''))
+            '''))
 
         when:
         result.assertTasksNotSkipped()
@@ -506,7 +498,7 @@ post build
             Build output does not contain the expected non skipped tasks.
             Expected: []
             Actual: [:a]
-        '''))
+            '''))
 
         when:
         result.assertTasksNotSkipped(":b")
@@ -517,7 +509,7 @@ post build
             Build output does not contain the expected non skipped tasks.
             Expected: [:b]
             Actual: [:a]
-        '''))
+            '''))
 
         when:
         result.assertTasksNotSkipped(":a", ":c")
@@ -528,7 +520,7 @@ post build
             Build output does not contain the expected non skipped tasks.
             Expected: [:a, :c]
             Actual: [:a]
-        '''))
+            '''))
 
         when:
         result.assertTaskNotSkipped(":b")
@@ -539,7 +531,7 @@ post build
             Build output does not contain the expected non skipped task.
             Expected: :b
             Actual: [:a]
-        '''))
+            '''))
     }
 
     def "creates failure result"() {

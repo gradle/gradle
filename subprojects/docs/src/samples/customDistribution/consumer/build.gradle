@@ -1,6 +1,0 @@
-apply plugin: 'greeting'
-
-wrapper {
-    // Need to configure the wrapper to point to the custom distribution
-    distributionUrl = uri("../plugin/build/distributions/custom-gradle-${gradle.gradleVersion}.zip")
-}

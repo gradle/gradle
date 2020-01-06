@@ -35,7 +35,7 @@ class ResourceVersionListerTest extends Specification {
     def artifact = new DefaultIvyArtifactName("proj1", "jar", "jar")
     def result = new DefaultBuildableModuleVersionListingResolveResult()
 
-    def ResourceVersionLister lister;
+    ResourceVersionLister lister;
 
     def setup() {
         lister = new ResourceVersionLister(repo)
@@ -142,6 +142,42 @@ class ResourceVersionListerTest extends Specification {
         1 * resource1.list() >> ["1.2", "1.3"]
         1 * repo.resource(new ExternalResourceName("/org.acme/")) >> resource2
         1 * resource2.list() >> ["1.3", "1.4"]
+        0 * _
+    }
+
+    def 'overlapping patterns filter out parts matching more than one pattern'() {
+        def resource1 = Mock(ExternalResource)
+
+        when:
+        def pattern1 = pattern("/[organisation]/[module]/[revision]/ivy-[revision].xml")
+        def pattern2 = pattern("/[organisation]/[module]/ivy-[revision].xml")
+        lister.listVersions(module, artifact, [pattern1, pattern2], result)
+        def versions = result.versions
+
+        then:
+        versions == ['1.0.0', '1.5.0', '2.0.0'] as Set
+
+        and:
+        1 * repo.resource(new ExternalResourceName('/org.acme/proj1/')) >> resource1
+        1 * resource1.list() >> ['1.0.0', '1.5.0', 'ivy-2.0.0.xml']
+        0 * _
+    }
+
+    def 'exact duplicates do not filter out all results'() {
+        def resource1 = Mock(ExternalResource)
+
+        when:
+        def pattern1 = pattern("/[organisation]/[module]/ivy-[revision].xml")
+        def pattern2 = pattern("/[organisation]/[module]/ivy-[revision].xml")
+        lister.listVersions(module, artifact, [pattern1, pattern2], result)
+        def versions = result.versions
+
+        then:
+        versions == ['1.0.0', '2.0.0'] as Set
+
+        and:
+        1 * repo.resource(new ExternalResourceName('/org.acme/proj1/')) >> resource1
+        1 * resource1.list() >> ['ivy-1.0.0.xml', 'ivy-2.0.0.xml']
         0 * _
     }
 

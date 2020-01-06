@@ -62,6 +62,9 @@ public interface BuildScanConfig {
 
     interface Attributes {
 
+        /**
+         * No longer actually used, but needed for binary compatibility.
+         */
         boolean isRootProjectHasVcsMappings();
 
         /**

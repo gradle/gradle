@@ -97,24 +97,8 @@ class DefaultVersionSelectorSchemeTest extends Specification {
         '20'             | '!(20)'
         '[3,10]'         | '!([3,10])'
         '(,10)'          | '!((,10))'
-    }
-
-    @Unroll
-    def "cannot compute rejection selector for strict dependency versions"() {
-        given:
-        def normal = matcher.parseSelector(selector)
-
-        when:
-        matcher.complementForRejection(normal)
-
-        then:
-        def e = thrown(IllegalArgumentException)
-        e.message == error
-
-        where:
-        selector         | error
-        'latest.release' | 'Version \'latest.release\' cannot be converted to a strict version constraint.'
-        '1+'             | 'Version \'1+\' cannot be converted to a strict version constraint.'
-        '[3,)'           | 'Version \'[3,)\' cannot be converted to a strict version constraint.'
+        'latest.release' | '!(latest.release)'
+        '1+'             | '!(1+)'
+        '[3,)'           | '!([3,))'
     }
 }

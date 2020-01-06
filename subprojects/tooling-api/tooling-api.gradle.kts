@@ -24,12 +24,11 @@ import org.gradle.plugins.ide.eclipse.model.SourceFolder
 
 plugins {
     `java-library`
+    gradlebuild.`publish-public-libraries`
     gradlebuild.`shaded-jar`
 }
 
-val testPublishRuntime by configurations.creating
-
-val buildReceipt: Provider<RegularFile> = rootProject.tasks.withType<BuildReceipt>().named("createBuildReceipt").map { layout.file(provider { it.receiptFile }).get() }
+val buildReceipt: Provider<RegularFile> = rootProject.tasks.named<BuildReceipt>("createBuildReceipt").map { layout.file(provider { it.receiptFile }).get() }
 
 shadedJar {
     shadedConfiguration.exclude(mapOf("group" to "org.slf4j", "module" to "slf4j-api"))
@@ -40,6 +39,8 @@ shadedJar {
 }
 
 dependencies {
+    "shadedImplementation"(library("slf4j_api")) { version { require(libraryVersion("slf4j_api")) } }
+
     implementation(project(":baseServices"))
     implementation(project(":messaging"))
     implementation(project(":logging"))
@@ -49,13 +50,15 @@ dependencies {
 
     implementation(library("guava"))
 
-    publishImplementation(library("slf4j_api")) { version { prefer(libraryVersion("slf4j_api")) } }
-
+    testFixturesImplementation(project(":coreApi"))
+    testFixturesImplementation(project(":core"))
     testFixturesImplementation(project(":modelCore"))
+    testFixturesImplementation(project(":baseServices"))
     testFixturesImplementation(project(":baseServicesGroovy"))
     testFixturesImplementation(project(":internalTesting"))
     testFixturesImplementation(project(":internalIntegTesting"))
     testFixturesImplementation(library("commons_io"))
+    testFixturesImplementation(library("slf4j_api"))
 
     integTestImplementation(project(":jvmServices"))
     integTestImplementation(project(":persistentCache"))
@@ -64,35 +67,34 @@ dependencies {
 
     crossVersionTestImplementation(project(":jvmServices"))
     crossVersionTestImplementation(testLibrary("jetty"))
+    crossVersionTestImplementation(library("commons_io"))
 
     crossVersionTestRuntimeOnly(project(":kotlinDsl"))
-    crossVersionTestRuntimeOnly(project(":buildComparison"))
+    crossVersionTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
+    crossVersionTestRuntimeOnly(project(":kotlinDslToolingBuilders"))
     crossVersionTestRuntimeOnly(project(":ivy"))
     crossVersionTestRuntimeOnly(project(":maven"))
     crossVersionTestRuntimeOnly(project(":apiMetadata"))
+    crossVersionTestRuntimeOnly(project(":runtimeApiInfo"))
+    crossVersionTestRuntimeOnly(project(":testingJunitPlatform"))
+    crossVersionTestRuntimeOnly(testLibrary("cglib")) {
+        because("BuildFinishedCrossVersionSpec classpath inference requires cglib enhancer")
+    }
+
+    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":logging")))
+    testImplementation(testFixtures(project(":dependencyManagement")))
+    testImplementation(testFixtures(project(":ide")))
+    testImplementation(testFixtures(project(":workers")))
+
+    integTestRuntimeOnly(project(":runtimeApiInfo"))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
 }
 
-testFixtures {
-    from(":core")
-    from(":logging")
-    from(":dependencyManagement")
-    from(":ide")
-    from(":workers")
-}
-
 apply(from = "buildship.gradle")
-
-tasks.sourceJar {
-    configurations.compile.allDependencies.withType<ProjectDependency>().forEach {
-        val sourceSet = it.dependencyProject.java.sourceSets[SourceSet.MAIN_SOURCE_SET_NAME]
-        from(sourceSet.groovy.srcDirs)
-        from(sourceSet.java.srcDirs)
-    }
-}
 
 eclipse {
     classpath {
@@ -101,24 +103,6 @@ eclipse {
             entries.removeAll { it is SourceFolder && it.path.contains("src/test/groovy") }
             entries.removeAll { it is SourceFolder && it.path.contains("src/integTest/groovy") }
         })
-    }
-}
-
-tasks.register<Upload>("publishLocalArchives") {
-    val repoBaseDir = rootProject.file("build/repo")
-    configuration = configurations.publishRuntime.get()
-    isUploadDescriptor = false
-    repositories {
-        ivy {
-            artifactPattern("$repoBaseDir/${project.group.toString().replace(".", "/")}/${base.archivesBaseName}/[revision]/[artifact]-[revision](-[classifier]).[ext]")
-        }
-    }
-
-    doFirst {
-        if (repoBaseDir.exists()) {
-            // Make sure tooling API artifacts do not pile up
-            repoBaseDir.deleteRecursively()
-        }
     }
 }
 

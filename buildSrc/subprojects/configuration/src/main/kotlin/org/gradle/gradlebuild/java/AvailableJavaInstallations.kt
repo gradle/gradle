@@ -2,21 +2,47 @@ package org.gradle.gradlebuild.java
 
 import org.gradle.api.GradleException
 import org.gradle.api.JavaVersion
-import org.gradle.api.Project
+import org.gradle.api.services.BuildService
+import org.gradle.api.services.BuildServiceParameters
+import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.jvm.JavaInfo
 import org.gradle.internal.jvm.Jvm
-import org.gradle.internal.jvm.inspection.JvmVersionDetector
+import org.gradle.internal.jvm.inspection.CachingJvmVersionDetector
+import org.gradle.internal.jvm.inspection.DefaultJvmVersionDetector
+import org.gradle.internal.nativeintegration.services.NativeServices
+import org.gradle.internal.service.ServiceRegistryBuilder
+import org.gradle.internal.service.scopes.GlobalScopeServices
 import org.gradle.jvm.toolchain.internal.JavaInstallationProbe
 import org.gradle.jvm.toolchain.internal.LocalJavaInstallation
+import org.gradle.process.internal.ExecActionFactory
+import org.gradle.process.internal.ExecHandleFactory
 import java.io.File
 
 
-class JavaInstallation(val current: Boolean, val jvm: JavaInfo, val javaVersion: JavaVersion, private val javaInstallationProbe: JavaInstallationProbe) {
-    val javaHome = jvm.javaHome
+class JavaInstallation(
+    val current: Boolean,
+    private val jvm: JavaInfo,
+    val javaVersion: JavaVersion,
+    private val javaInstallationProbe: JavaInstallationProbe
+) {
 
     override fun toString(): String = "$vendorAndMajorVersion (${javaHome.absolutePath})"
 
-    val toolsJar: File? by lazy { jvm.toolsJar }
+    val javaHome: File
+        get() = jvm.javaHome
+
+    val javaExecutable: File
+        get() = jvm.javaExecutable
+
+    val toolsClasspath: List<File> by lazy {
+        val toolsJar = jvm.toolsJar
+        if (!javaVersion.isJava9Compatible && toolsJar != null) {
+            listOf(toolsJar)
+        } else {
+            emptyList()
+        }
+    }
+
     val vendorAndMajorVersion: String by lazy {
         ProbedLocalJavaInstallation(jvm.javaHome).apply {
             javaInstallationProbe.checkJdk(jvm.javaHome).configure(this)
@@ -37,42 +63,64 @@ class ProbedLocalJavaInstallation(private val javaHome: File) : LocalJavaInstall
 
     override fun getName() = name
     override fun getDisplayName() = displayName
-    override fun setDisplayName(displayName: String) { this.displayName = displayName }
+    override fun setDisplayName(displayName: String) {
+        this.displayName = displayName
+    }
+
     override fun getJavaVersion() = javaVersion
-    override fun setJavaVersion(javaVersion: JavaVersion) { this.javaVersion = javaVersion }
+    override fun setJavaVersion(javaVersion: JavaVersion) {
+        this.javaVersion = javaVersion
+    }
+
     override fun getJavaHome() = javaHome
-    override fun setJavaHome(javaHome: File) { throw UnsupportedOperationException("JavaHome cannot be changed") }
+    override fun setJavaHome(javaHome: File) {
+        throw UnsupportedOperationException("JavaHome cannot be changed")
+    }
 }
 
 
-private
-const val java9HomePropertyName = "java9Home"
-
-
-private
 const val testJavaHomePropertyName = "testJavaHome"
 
 
 private
-const val productionJdkName = "OpenJDK 11"
+const val productionJdkName = "AdoptOpenJDK 11"
 
 
-open class AvailableJavaInstallations(private val project: Project, private val javaInstallationProbe: JavaInstallationProbe, private val jvmVersionDetector: JvmVersionDetector) {
+interface AvailableJavaInstallationsParameters : BuildServiceParameters {
+    var testJavaProperty: String?
+}
+
+
+abstract class AvailableJavaInstallations : BuildService<AvailableJavaInstallationsParameters>, AutoCloseable {
+    // Duplicate some of the Gradle services here because:
+    // 1. no services are currently available for injection into build services and
+    // 2. we probably don't want to expose these internal services anyway
+    // TODO - instead, extract a public service for locating JVM/JDK instances and querying their metadata and make this available for injection
+    private
+    val services = ServiceRegistryBuilder.builder().parent(NativeServices.getInstance()).provider(GlobalScopeServices(false)).build()
+    private
+    val jvmVersionDetector = CachingJvmVersionDetector(DefaultJvmVersionDetector(services.get(ExecHandleFactory::class.java)))
+    private
+    val javaInstallationProbe = JavaInstallationProbe(services.get(ExecActionFactory::class.java))
+
     val currentJavaInstallation: JavaInstallation = JavaInstallation(true, Jvm.current(), JavaVersion.current(), javaInstallationProbe)
-    val javaInstallationForTest: JavaInstallation
-    val javaInstallationForCompilation: JavaInstallation
+    val javaInstallationForTest by lazy {
+        determineJavaInstallation(testJavaHomePropertyName, parameters.testJavaProperty)
+    }
+    val javaInstallationForCompilation by lazy {
+        determineJavaInstallationForCompilation()
+    }
 
-    init {
-        javaInstallationForTest = determineJavaInstallation(testJavaHomePropertyName)
-        javaInstallationForCompilation = determineJavaInstallationForCompilation()
+    override fun close() {
+        CompositeStoppable.stoppable(services).stop()
     }
 
     private
-    fun determineJavaInstallationForCompilation() = if (JavaVersion.current().isJava9Compatible) currentJavaInstallation else determineJavaInstallation(java9HomePropertyName)
+    fun determineJavaInstallationForCompilation() = currentJavaInstallation
 
     private
-    fun determineJavaInstallation(propertyName: String): JavaInstallation {
-        val resolvedJavaHome = resolveJavaHomePath(propertyName)
+    fun determineJavaInstallation(propertyName: String, overrideValue: String?): JavaInstallation {
+        val resolvedJavaHome = resolveJavaHomePath(propertyName, overrideValue)
         return when (resolvedJavaHome) {
             null -> currentJavaInstallation
             else -> detectJavaInstallation(resolvedJavaHome)
@@ -84,7 +132,7 @@ open class AvailableJavaInstallations(private val project: Project, private val 
     }
 
     fun validateForProductionEnvironment() {
-//        validate(validateProductionJdks())
+        validate(validateProductionJdks())
     }
 
     private
@@ -98,8 +146,7 @@ open class AvailableJavaInstallations(private val project: Project, private val 
     private
     fun validateCompilationJdks(): Map<String, Boolean> =
         mapOf(
-            "Must use JDK 9+ to perform compilation in this build. It's currently ${javaInstallationForCompilation.vendorAndMajorVersion} at ${javaInstallationForCompilation.javaHome}. " +
-                "You can either run the build on JDK 9+ or set a project, system property, or environment variable '$java9HomePropertyName' to a Java9-compatible JDK home path" to
+            "Must use JDK 9+ to perform compilation in this build. It's currently ${javaInstallationForCompilation.vendorAndMajorVersion} at ${javaInstallationForCompilation.javaHome}." to
                 !javaInstallationForCompilation.javaVersion.isJava9Compatible
         )
 
@@ -124,8 +171,9 @@ open class AvailableJavaInstallations(private val project: Project, private val 
         }
 
     private
-    fun resolveJavaHomePath(propertyName: String): String? = when {
-        project.hasProperty(propertyName) -> project.property(propertyName) as String
+    fun resolveJavaHomePath(propertyName: String, overrideValue: String?): String? = when {
+        // TODO:instant-execution - these should be marked as a build input in some way
+        overrideValue != null -> overrideValue
         System.getProperty(propertyName) != null -> System.getProperty(propertyName)
         System.getenv(propertyName) != null -> System.getenv(propertyName)
         else -> null

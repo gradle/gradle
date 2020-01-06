@@ -18,11 +18,9 @@ package org.gradle.api.internal.artifacts.transform
 
 import com.google.common.collect.ImmutableList
 import org.gradle.api.Action
-import org.gradle.execution.ProjectExecutionServiceRegistry
+import org.gradle.api.internal.tasks.NodeExecutionContext
 import org.gradle.internal.Try
 import spock.lang.Specification
-
-import javax.annotation.Nullable
 
 class ChainedTransformerTest extends Specification {
     private TransformationSubject initialSubject = TransformationSubject.initial(new File("foo"))
@@ -44,7 +42,7 @@ class ChainedTransformerTest extends Specification {
         }
 
         @Override
-        CacheableInvocation<TransformationSubject> createInvocation(TransformationSubject subjectToTransform, ExecutionGraphDependenciesResolver dependenciesResolver, @Nullable ProjectExecutionServiceRegistry services) {
+        CacheableInvocation<TransformationSubject> createInvocation(TransformationSubject subjectToTransform, ExecutionGraphDependenciesResolver dependenciesResolver, NodeExecutionContext context) {
             return CacheableInvocation.cached(Try.successful(
                 subjectToTransform.createSubjectFromResult(ImmutableList.of(new File(subjectToTransform.files.first(), name)))
             ))

@@ -76,6 +76,7 @@ import org.gradle.platform.base.internal.DefaultPlatformRequirement;
 import org.gradle.platform.base.internal.PlatformRequirement;
 import org.gradle.platform.base.internal.PlatformResolvers;
 import org.gradle.util.CollectionUtils;
+import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 import java.io.IOException;
@@ -91,10 +92,12 @@ import static org.apache.commons.lang.StringUtils.capitalize;
  * container.
  */
 @Incubating
+@Deprecated
 public class JvmComponentPlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project project) {
+        DeprecationLogger.nagUserOfDeprecatedPlugin("jvm-component", 6, "upgrading_jvm_plugins");
     }
 
     @SuppressWarnings("UnusedDeclaration")
@@ -135,7 +138,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
                 @Override
                 public void execute(InstalledJdk installedJdk) {
                     installedJdk.setJavaHome(Jvm.current().getJavaHome());
-                    probe.current(installedJdk);
+                    probe.current().configure(installedJdk);
                 }
             });
         }

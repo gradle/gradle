@@ -19,7 +19,7 @@ package org.gradle.integtests
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class DifferentJnaVersionInPluginIntegrationSpec extends AbstractIntegrationSpec {
-    def 'Can build a plugin with a different jna version'() {
+    def 'can build a plugin with a different jna version'() {
         given:
         buildScript """
             plugins {
@@ -28,9 +28,9 @@ class DifferentJnaVersionInPluginIntegrationSpec extends AbstractIntegrationSpec
 
             ${mavenCentralRepository()}
             dependencies {
-                compile gradleApi()
-                compile 'net.java.dev.jna:jna:4.1.0'
-                testCompile 'junit:junit:4.12'
+                implementation gradleApi()
+                implementation 'net.java.dev.jna:jna:4.1.0'
+                testImplementation 'junit:junit:4.12'
             }
         """.stripIndent()
 

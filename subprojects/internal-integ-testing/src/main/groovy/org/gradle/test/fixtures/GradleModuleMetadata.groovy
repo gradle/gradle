@@ -22,6 +22,7 @@ import groovy.transform.Canonical
 import groovy.transform.EqualsAndHashCode
 import org.gradle.internal.hash.HashValue
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.gradle.ArtifactSelectorSpec
 import org.gradle.util.GradleVersion
 
 import javax.annotation.Nullable
@@ -35,7 +36,7 @@ class GradleModuleMetadata {
             JsonReader reader = new JsonReader(r)
             values = readObject(reader)
         }
-        assert values.formatVersion == '1.0'
+        assert values.formatVersion == '1.1'
         assert values.createdBy.gradle.version == GradleVersion.current().version
         assert values.createdBy.gradle.buildId
         variants = (values.variants ?: []).collect { new Variant(it.name, it) }
@@ -73,7 +74,7 @@ class GradleModuleMetadata {
         return matches.first()
     }
 
-    Variant variant(String name, @DelegatesTo(value=Variant, strategy=Closure.DELEGATE_FIRST) Closure<Void> action) {
+    Variant variant(String name, @DelegatesTo(value=Variant, strategy=Closure.DELEGATE_FIRST) Closure<Variant> action) {
         def variant = variant(name)
         action.delegate = variant
         action.resolveStrategy = Closure.DELEGATE_FIRST
@@ -163,7 +164,7 @@ class GradleModuleMetadata {
             if (dependencies == null) {
                 dependencies = (values.dependencies ?: []).collect {
                     def exclusions = it.excludes ? it.excludes.collect { "${it.group}:${it.module}" } : []
-                    new Dependency(it.group, it.module, it.version?.requires, it.version?.prefers, it.version?.strictly, it.version?.rejects ?: [], exclusions, it.reason, normalizeForTests(it.attributes))
+                    new Dependency(it.group, it.module, it.version?.requires, it.version?.prefers, it.version?.strictly, it.version?.rejects ?: [], exclusions, it.endorseStrictVersions, it.reason, it.thirdPartyCompatibility?.artifactSelector, normalizeForTests(it.attributes), it.requestedCapabilities)
                 }
             }
             dependencies
@@ -187,7 +188,7 @@ class GradleModuleMetadata {
         }
 
         List<File> getFiles() {
-            return (values.files ?: []).collect { new File(it.name, it.url, it.size, new HashValue(it.sha1), new HashValue(it.md5)) }
+            return (values.files ?: []).collect { new File(it.name, it.url, it.size, new HashValue(it.sha1), new HashValue(it.md5), new HashValue(it.sha256), new HashValue(it.sha512)) }
         }
 
         DependencyView dependency(String group, String module, String version, @DelegatesTo(value=DependencyView, strategy= Closure.DELEGATE_FIRST) Closure<Void> action = { exists() }) {
@@ -243,22 +244,55 @@ class GradleModuleMetadata {
             final String module
             final String version
             final Set<String> checkedExcludes = []
+            final Set<Capability> checkedRequestedCapabilities = []
+            final Iterator<Dependency> candidates
+
+            Dependency current
 
             DependencyView(String gid, String mid, String v) {
                 group = gid
                 module = mid
                 version = v
+                candidates = dependencies.findAll { it.group == group && it.module == module && it.version == version }.iterator()
+                next()
+            }
+
+            DependencyView isLast() {
+                assert !candidates.hasNext()
+                this
+            }
+
+            DependencyView next() {
+                if (candidates.hasNext()) {
+                    checkedExcludes.clear()
+                    current = candidates.next()
+                } else {
+                    current = null
+                }
+                return this
             }
 
             Dependency find() {
-                def dep = dependencies.find { it.group == group && it.module == module && it.version == version }
-                assert dep : "dependency ${group}:${module}:${version} not found in $dependencies"
-                checkedDependencies << dep
-                dep
+                assert current : "dependency ${group}:${module}:${version} not found in $dependencies"
+                checkedDependencies << current
+                current
             }
 
             DependencyView exists() {
                 assert find()
+                this
+            }
+
+            DependencyView hasRequestedCapability(String group, String name, String version = null) {
+                def capability = new Capability(group, name, version)
+                assert find()?.requestedCapabilities?.contains(capability)
+                checkedRequestedCapabilities << capability
+                this
+            }
+
+            DependencyView noMoreCapabilities() {
+                Set<Capability> uncheckedCapabilities = find()?.requestedCapabilities - checkedRequestedCapabilities
+                assert uncheckedCapabilities.empty
                 this
             }
 
@@ -311,8 +345,13 @@ class GradleModuleMetadata {
 
             DependencyView hasAttribute(String attribute, Object value) {
                 String expected = value?.toString()
-                assert find()?.attributes[attribute] == expected
+                assert find()?.attributes?.get(attribute) == expected
                 this
+            }
+
+            DependencyView noAttributes() {
+                def actualAttributes = find()?.attributes ?: [:]
+                assert actualAttributes == [:]
             }
 
             DependencyView hasAttributes(Map<String, Object> fullAttributeSet) {
@@ -320,6 +359,10 @@ class GradleModuleMetadata {
                 def actualAttributes = find()?.attributes
                 assert actualAttributes == expectedAttributes
                 this
+            }
+
+            ArtifactSelectorSpec getArtifactSelector() {
+                current.artifactSelector
             }
         }
 
@@ -439,10 +482,16 @@ class GradleModuleMetadata {
     @EqualsAndHashCode
     static class Dependency extends Coords {
         final List<String> excludes
+        final List<Capability> requestedCapabilities
+        final boolean endorseStrictVersions
+        final ArtifactSelectorSpec artifactSelector
 
-        Dependency(String group, String module, String requires, String prefers, String strictly, List<String> rejectedVersions, List<String> excludes, String reason, Map<String, String> attributes) {
+        Dependency(String group, String module, String requires, String prefers, String strictly, List<String> rejectedVersions, List<String> excludes, Boolean endorseStrictVersions, String reason, Map<String, String> artifactSelector, Map<String, String> attributes, List<Map<String, String>> requestedCapabilities) {
             super(group, module, requires, prefers, strictly, rejectedVersions, reason, attributes)
             this.excludes = excludes*.toString()
+            this.requestedCapabilities = requestedCapabilities.collect { new Capability(it.group, it.name, it.version) }
+            this.endorseStrictVersions = endorseStrictVersions
+            this.artifactSelector = artifactSelector != null ? new ArtifactSelectorSpec(artifactSelector.name, artifactSelector.type, artifactSelector.extesion, artifactSelector.classifier) : null
         }
 
         String toString() {
@@ -466,18 +515,22 @@ class GradleModuleMetadata {
         final String url
         final long size
         final HashValue sha1
+        final HashValue sha256
+        final HashValue sha512
         final HashValue md5
 
-        File(String name, String url, long size, HashValue sha1, HashValue md5) {
+        File(String name, String url, long size, HashValue sha1, HashValue md5, HashValue sha256, HashValue sha512) {
             this.name = name
             this.url = url
             this.size = size
             this.sha1 = sha1
             this.md5 = md5
+            this.sha256 = sha256
+            this.sha512 = sha512
         }
 
         String toString() {
-            "name($name) URL($url) size($size) sha1($sha1) md5($md5)"
+            "name($name) URL($url) size($size) sha1($sha1) sha256($sha256) sha512($sha512) md5($md5)"
         }
     }
 

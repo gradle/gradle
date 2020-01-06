@@ -26,9 +26,10 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.tasks.FinalizeAction;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier;
+import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.io.File;
@@ -37,28 +38,17 @@ public class DefaultResolvedArtifact implements ResolvedArtifact, ResolvableArti
     private final ModuleVersionIdentifier owner;
     private final IvyArtifactName artifact;
     private final ComponentArtifactIdentifier artifactId;
-    private final TaskDependency buildDependencies;
+    private final TaskDependencyContainer buildDependencies;
     private volatile Factory<File> artifactSource;
-    private final ResolvableArtifact sourceArtifact;
     private volatile File file;
     private volatile Throwable failure;
 
-    public DefaultResolvedArtifact(ModuleVersionIdentifier owner, IvyArtifactName artifact, ComponentArtifactIdentifier artifactId, TaskDependency buildDependencies, Factory<File> artifactSource) {
+    public DefaultResolvedArtifact(ModuleVersionIdentifier owner, IvyArtifactName artifact, ComponentArtifactIdentifier artifactId, TaskDependencyContainer builtBy, Factory<File> artifactSource) {
         this.owner = owner;
         this.artifact = artifact;
         this.artifactId = artifactId;
-        this.buildDependencies = buildDependencies;
-        this.sourceArtifact = null;
+        this.buildDependencies = builtBy;
         this.artifactSource = artifactSource;
-    }
-
-    public DefaultResolvedArtifact(ModuleVersionIdentifier owner, IvyArtifactName artifact, ComponentArtifactIdentifier artifactId, ResolvableArtifact sourceArtifact, File artifactFile) {
-        this.owner = owner;
-        this.artifact = artifact;
-        this.artifactId = artifactId;
-        this.buildDependencies = null;
-        this.sourceArtifact = sourceArtifact;
-        this.file = artifactFile;
     }
 
     @Override
@@ -66,16 +56,7 @@ public class DefaultResolvedArtifact implements ResolvedArtifact, ResolvableArti
         context.add(new FinalizeAction() {
             @Override
             public TaskDependencyContainer getDependencies() {
-                return new TaskDependencyContainer() {
-                    @Override
-                    public void visitDependencies(TaskDependencyResolveContext context) {
-                        if (buildDependencies != null) {
-                            context.add(buildDependencies);
-                        } else if (sourceArtifact != null) {
-                            context.add(sourceArtifact);
-                        }
-                    }
-                };
+                return buildDependencies;
             }
 
             @Override
@@ -91,6 +72,10 @@ public class DefaultResolvedArtifact implements ResolvedArtifact, ResolvableArti
                 }
             }
         });
+    }
+
+    public IvyArtifactName getArtifactName() {
+        return artifact;
     }
 
     @Override
@@ -117,12 +102,12 @@ public class DefaultResolvedArtifact implements ResolvedArtifact, ResolvableArti
             return false;
         }
         DefaultResolvedArtifact other = (DefaultResolvedArtifact) obj;
-        return other.owner.equals(owner) && other.artifactId.equals(artifactId);
+        return other.artifactId.equals(artifactId);
     }
 
     @Override
     public int hashCode() {
-        return owner.hashCode() ^ artifactId.hashCode();
+        return artifactId.hashCode();
     }
 
     @Override
@@ -148,6 +133,13 @@ public class DefaultResolvedArtifact implements ResolvedArtifact, ResolvableArti
     @Override
     public ResolvedArtifact toPublicView() {
         return this;
+    }
+
+    @Override
+    public ResolvableArtifact transformedTo(File file) {
+        IvyArtifactName artifactName = DefaultIvyArtifactName.forFile(file, getClassifier());
+        ComponentArtifactIdentifier newId = new ComponentFileArtifactIdentifier(artifactId.getComponentIdentifier(), artifactName);
+        return new PreResolvedResolvableArtifact(owner, artifactName, newId, file, buildDependencies);
     }
 
     @Override

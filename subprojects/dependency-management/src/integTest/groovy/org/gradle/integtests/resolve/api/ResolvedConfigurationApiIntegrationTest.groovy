@@ -75,8 +75,8 @@ task show {
 
         then:
         outputContains("files: [test-1.0, test-1.0, test-1.0-classy]")
-        outputContains("display-names: [test (org:test:1.0), test (org:test:1.0), test-classy (org:test:1.0)]")
-        outputContains("ids: [test (org:test:1.0), test (org:test:1.0), test-classy (org:test:1.0)]")
+        outputContains("display-names: [test-1.0 (org:test:1.0), test-1.0 (org:test:1.0), test-1.0-classy (org:test:1.0)]")
+        outputContains("ids: [test-1.0 (org:test:1.0), test-1.0 (org:test:1.0), test-1.0-classy (org:test:1.0)]")
         outputContains("names: [test::jar, test::, test::]")
         outputContains("classifiers: [null, null, classy]")
     }
@@ -100,7 +100,6 @@ task show {
         when:
         def m1 = mavenHttpRepo.module("test", "test1", "1.2")
         m1.pom.expectGetMissing()
-        m1.artifact.expectHeadMissing()
         def m2 = mavenHttpRepo.module("test", "test2", "1.2")
         m2.pom.expectGetUnauthorized()
         def m3 = mavenHttpRepo.module("test", "test3", "1.2").publish()
@@ -144,6 +143,6 @@ task show {
 
         then:
         failure.assertHasDescription("Execution failed for task ':show'.")
-        failure.assertHasCause("Could not find test1.jar (test:test1:1.2).")
+        failure.assertHasCause("Could not find test1-1.2.jar (test:test1:1.2).")
     }
 }

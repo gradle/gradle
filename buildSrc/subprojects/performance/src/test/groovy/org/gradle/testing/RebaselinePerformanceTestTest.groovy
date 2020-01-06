@@ -5,7 +5,7 @@ import spock.lang.Specification
 class RebaselinePerformanceTestTest extends Specification {
     def "replaces the existing baseline with the specified one"() {
         expect:
-        newContent == RebaselinePerformanceTests.rebaseline(oldContent, baseline)
+        newContent == RebaselinePerformanceTests.rebaselineContent(oldContent, baseline)
 
         where:
         oldContent                                     | baseline                  | newContent

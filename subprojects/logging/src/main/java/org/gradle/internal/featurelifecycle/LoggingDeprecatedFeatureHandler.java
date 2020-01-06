@@ -16,6 +16,7 @@
 
 package org.gradle.internal.featurelifecycle;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.internal.SystemProperties;
@@ -44,8 +45,9 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
     private final Set<String> messages = new HashSet<String>();
     private UsageLocationReporter locationReporter;
 
-    private WarningMode warningMode;
+    private WarningMode warningMode = WarningMode.Summary;
     private DeprecatedUsageBuildOperationProgressBroadaster buildOperationProgressBroadaster;
+    private GradleException error;
 
     public LoggingDeprecatedFeatureHandler() {
         this.locationReporter = DoNothingReporter.INSTANCE;
@@ -68,8 +70,13 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
             }
             message.append(featureMessage);
             appendLogTraceIfNecessary(usage.getStack(), message);
-            if (warningMode == WarningMode.All) {
+            if (warningMode.shouldDisplayMessages()) {
                 LOGGER.warn(message.toString());
+            }
+            if (warningMode == WarningMode.Fail) {
+                if (error == null) {
+                    error = new GradleException(WARNING_SUMMARY + " " + GradleVersion.current().getNextMajor().getVersion());
+                }
             }
         }
         fireDeprecatedUsageBuildOperationProgress(usage);
@@ -84,6 +91,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
     public void reset() {
         buildOperationProgressBroadaster = null;
         messages.clear();
+        error = null;
     }
 
     public void reportSuppressedDeprecations() {
@@ -173,6 +181,10 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
             deprecationMessage = initDeprecationMessage();
         }
         return deprecationMessage;
+    }
+
+    public GradleException getDeprecationFailure() {
+        return error;
     }
 
     private enum DoNothingReporter implements UsageLocationReporter {

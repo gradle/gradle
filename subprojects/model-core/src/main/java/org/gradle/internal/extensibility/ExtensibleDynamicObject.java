@@ -20,12 +20,12 @@ import groovy.lang.MissingPropertyException;
 import org.gradle.api.internal.HasConvention;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
+import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.CompositeDynamicObject;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.DynamicObject;
-import org.gradle.internal.reflect.Instantiator;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -52,12 +52,12 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
     private DynamicObject afterConvention;
     private DynamicObject extraPropertiesDynamicObject;
 
-    public ExtensibleDynamicObject(Object delegate, Class<?> publicType, Instantiator instantiator) {
-        this(delegate, createDynamicObject(delegate, publicType), new org.gradle.api.internal.plugins.DefaultConvention(instantiator));
+    public ExtensibleDynamicObject(Object delegate, Class<?> publicType, InstanceGenerator instanceGenerator) {
+        this(delegate, createDynamicObject(delegate, publicType), new DefaultConvention(instanceGenerator));
     }
 
-    public ExtensibleDynamicObject(Object delegate, AbstractDynamicObject dynamicDelegate, Instantiator instantiator) {
-        this(delegate, dynamicDelegate, new org.gradle.api.internal.plugins.DefaultConvention(instantiator));
+    public ExtensibleDynamicObject(Object delegate, AbstractDynamicObject dynamicDelegate, InstanceGenerator instanceGenerator) {
+        this(delegate, dynamicDelegate, new DefaultConvention(instanceGenerator));
     }
 
     public ExtensibleDynamicObject(Object delegate, AbstractDynamicObject dynamicDelegate, Convention convention) {

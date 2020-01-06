@@ -13,8 +13,12 @@
                 <td><literal><replaceable>sourceSet</replaceable>.compileClasspath</literal></td>
             </tr>
             <tr>
+                <td>destinationDirectory</td>
+                <td><literal><replaceable>sourceSet</replaceable>.<replaceable>sourceDirectorySet</replaceable>.destinationDirectory</literal></td>
+            </tr>
+            <tr>
                 <td>destinationDir</td>
-                <td><literal><replaceable>sourceSet</replaceable>.<replaceable>sourceDirectorySet</replaceable>.outputDir</literal></td>
+                <td><literal><replaceable>sourceSet</replaceable>.<replaceable>sourceDirectorySet</replaceable>.destinationDirectory</literal></td>
             </tr>
             <tr>
                 <td>sourceCompatibility</td>

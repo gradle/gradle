@@ -22,8 +22,10 @@ import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSetOutput;
-import org.gradle.util.DeprecationLogger;
+import org.gradle.api.tasks.TaskDependency;
+import org.gradle.api.tasks.compile.AbstractCompile;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -39,6 +41,7 @@ public class DefaultSourceSetOutput extends CompositeFileCollection implements S
     private final ConfigurableFileCollection dirs;
     private final ConfigurableFileCollection generatedSourcesDirs;
     private final FileResolver fileResolver;
+    private final DefaultTaskDependency compileTasks;
 
     public DefaultSourceSetOutput(String sourceSetDisplayName, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {
         this.fileResolver = fileResolver;
@@ -48,21 +51,12 @@ public class DefaultSourceSetOutput extends CompositeFileCollection implements S
         classesDirs.builtBy(this);
 
         this.outputDirectories = fileCollectionFactory.configurableFiles(sourceSetDisplayName + " classes");
-        outputDirectories.from(new Callable() {
-            @Override
-            public Object call() {
-                return classesDirs;
-            }
-        }, new Callable() {
-            @Override
-            public Object call() {
-                return getResourcesDir();
-            }
-        });
+        outputDirectories.from(classesDirs, (Callable) this::getResourcesDir);
 
         this.dirs = fileCollectionFactory.configurableFiles(sourceSetDisplayName + " dirs");
 
         this.generatedSourcesDirs = fileCollectionFactory.configurableFiles(sourceSetDisplayName + " generatedSourcesDirs");
+        this.compileTasks = new DefaultTaskDependency();
     }
 
     @Override
@@ -90,12 +84,6 @@ public class DefaultSourceSetOutput extends CompositeFileCollection implements S
     }
 
     @Override
-    public boolean isLegacyLayout() {
-        DeprecationLogger.nagUserOfDiscontinuedProperty("legacyLayout", "The method always returns false.");
-        return false;
-    }
-
-    @Override
     @Nullable
     public File getResourcesDir() {
         if (resourcesDir == null) {
@@ -120,7 +108,7 @@ public class DefaultSourceSetOutput extends CompositeFileCollection implements S
 
     @Override
     public void dir(Object dir) {
-        this.dir(Collections.<String, Object>emptyMap(), dir);
+        this.dir(Collections.emptyMap(), dir);
     }
 
     @Override
@@ -144,4 +132,13 @@ public class DefaultSourceSetOutput extends CompositeFileCollection implements S
     public ConfigurableFileCollection getGeneratedSourcesDirs() {
         return generatedSourcesDirs;
     }
+
+    public void registerCompileTask(Provider<? extends AbstractCompile> compileTask) {
+        compileTasks.add(compileTask);
+    }
+
+    public TaskDependency getCompileDependencies() {
+        return compileTasks;
+    }
+
 }

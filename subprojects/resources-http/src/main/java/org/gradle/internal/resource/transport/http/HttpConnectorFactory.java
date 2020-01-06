@@ -59,6 +59,7 @@ public class HttpConnectorFactory implements ResourceConnectorFactory {
         HttpClientHelper http = new HttpClientHelper(DefaultHttpSettings.builder()
             .withAuthenticationSettings(connectionDetails.getAuthentications())
             .withSslContextFactory(sslContextFactory)
+            .withRedirectVerifier(connectionDetails.getRedirectVerifier())
             .build()
         );
         HttpResourceAccessor accessor = new HttpResourceAccessor(http);

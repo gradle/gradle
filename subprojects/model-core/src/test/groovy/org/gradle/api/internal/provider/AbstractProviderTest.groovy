@@ -17,6 +17,7 @@
 package org.gradle.api.internal.provider
 
 import org.gradle.api.Transformer
+import org.gradle.internal.state.ManagedFactory
 
 class AbstractProviderTest extends ProviderSpec<String> {
     TestProvider provider = new TestProvider()
@@ -41,6 +42,11 @@ class AbstractProviderTest extends ProviderSpec<String> {
     @Override
     String someValue() {
         "s2"
+    }
+
+    @Override
+    ManagedFactory managedFactory() {
+        return new ManagedFactories.ProviderManagedFactory()
     }
 
     def "is present when value is not null"() {

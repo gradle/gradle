@@ -19,6 +19,7 @@ package org.gradle.ide.visualstudio.internal;
 import com.google.common.collect.Lists;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.tasks.Internal;
 import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.cpp.CppComponent;
 import org.gradle.language.cpp.internal.DefaultCppBinary;
@@ -53,6 +54,12 @@ abstract public class AbstractCppBinaryVisualStudioTargetBinary implements Visua
         this.projectLayout = projectLayout;
     }
 
+    @Override
+    public LanguageStandard getLanguageStandard() {
+        return LanguageStandard.from(getBinary().getCompileTask().get().getCompilerArgs().get());
+    }
+
+    @Internal
     abstract CppBinary getBinary();
 
     @Override

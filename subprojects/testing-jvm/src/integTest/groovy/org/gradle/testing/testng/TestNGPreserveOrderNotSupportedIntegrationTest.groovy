@@ -17,15 +17,17 @@
 package org.gradle.testing.testng
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 public class TestNGPreserveOrderNotSupportedIntegrationTest extends AbstractIntegrationSpec {
 
+    @ToBeFixedForInstantExecution
     def "run tests using TestNG version not supporting preserveOrder"() {
         given:
         buildFile << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
-            dependencies { testCompile 'org.testng:testng:5.14.4' }
+            dependencies { testImplementation 'org.testng:testng:5.14.4' }
             test { useTestNG { preserveOrder true } }
         """
 

@@ -39,8 +39,12 @@ include::installation.adoc[leveloffset=+2]
 
 include::troubleshooting.adoc[leveloffset=+2]
 
+include::compatibility.adoc[leveloffset=+2]
+
 [[part:upgrading_and_migrating]]
 == Upgrading and Migrating
+
+include::upgrading_version_6.adoc[leveloffset=+2]
 
 include::upgrading_version_5.adoc[leveloffset=+2]
 
@@ -63,8 +67,6 @@ include::intro_multi_project_builds.adoc[leveloffset=+2]
 
 include::build_cache.adoc[leveloffset=+2]
 
-include::composite_builds.adoc[leveloffset=+2]
-
 [[part:authoring_builds]]
 == Authoring Gradle Builds
 
@@ -75,8 +77,6 @@ include::more_about_tasks.adoc[leveloffset=+2]
 include::writing_build_scripts.adoc[leveloffset=+2]
 
 include::working_with_files.adoc[leveloffset=+2]
-
-include::custom_tasks.adoc[leveloffset=+2]
 
 include::plugins.adoc[leveloffset=+2]
 
@@ -99,44 +99,7 @@ include::ant.adoc[leveloffset=+2]
 [[part:dependency_management]]
 == Dependency Management
 
-include::introduction_dependency_management.adoc[leveloffset=+2]
-
-include::dependency_management_terminology.adoc[leveloffset=+2]
-
-include::dependency_types.adoc[leveloffset=+2]
-
-include::repository_types.adoc[leveloffset=+2]
-
-include::declaring_dependencies.adoc[leveloffset=+2]
-
-include::declaring_repositories.adoc[leveloffset=+2]
-
-include::inspecting_dependencies.adoc[leveloffset=+2]
-
-include::managing_dependency_configurations.adoc[leveloffset=+2]
-
-include::managing_transitive_dependencies.adoc[leveloffset=+2]
-
-include::feature_variants.adoc[leveloffset=+2]
-
-include::dependency_locking.adoc[leveloffset=+2]
-
-include::troubleshooting_dependency_resolution.adoc[leveloffset=+2]
-
-include::customizing_dependency_resolution_behavior.adoc[leveloffset=+2]
-
-include::dependency_cache.adoc[leveloffset=+2]
-
-include::working_with_dependencies.adoc[leveloffset=+2]
-
-include::dependency_management_attribute_based_matching.adoc[leveloffset=+2]
-
-[[part:publishing]]
-== Publishing Artifacts
-
-include::publishing_overview.adoc[leveloffset=+2]
-
-include::artifact_management.adoc[leveloffset=+2]
+include::dependency_management.adoc[leveloffset=+2]
 
 [[part:jvm_projects]]
 == Java & Other JVM Projects
@@ -147,14 +110,17 @@ include::java_testing.adoc[leveloffset=+2]
 
 include::dependency_management_for_java_projects.adoc[leveloffset=+2]
 
-[[part:cpp_projects]]
-== C++ Projects
+[[part:native_projects]]
+== C++ & Other Native Projects
 
 include::building_cpp_projects.adoc[leveloffset=+2]
 
 include::cpp_testing.adoc[leveloffset=+2]
 
-[[part:native_projects]]
+include::building_swift_projects.adoc[leveloffset=+2]
+
+include::swift_testing.adoc[leveloffset=+2]
+
 == Native Projects using the Software Model
 
 include::native_software.adoc[leveloffset=+2]
@@ -170,11 +136,13 @@ include::software_model_extend.adoc[leveloffset=+2]
 [[part:extending_gradle]]
 == Extending Gradle
 
+include::custom_tasks.adoc[leveloffset=+2]
+
 include::custom_plugins.adoc[leveloffset=+2]
 
-include::java_gradle_plugin.adoc[leveloffset=+2]
+include::custom_gradle_types.adoc[leveloffset=+2]
 
-include::embedding.adoc[leveloffset=+2]
+include::java_gradle_plugin.adoc[leveloffset=+2]
 
 [[part:reference]]
 == Reference
@@ -214,8 +182,6 @@ include::ear_plugin.adoc[leveloffset=+2]
 
 include::eclipse_plugin.adoc[leveloffset=+2]
 
-include::findbugs_plugin.adoc[leveloffset=+2]
-
 include::groovy_plugin.adoc[leveloffset=+2]
 
 include::idea_plugin.adoc[leveloffset=+2]
@@ -232,15 +198,9 @@ include::java_library_distribution_plugin.adoc[leveloffset=+2]
 
 include::java_platform_plugin.adoc[leveloffset=+2]
 
-include::jdepend_plugin.adoc[leveloffset=+2]
-
 include::publishing_maven.adoc[leveloffset=+2]
 
 include::maven_plugin.adoc[leveloffset=+2]
-
-include::osgi_plugin.adoc[leveloffset=+2]
-
-include::play_plugin.adoc[leveloffset=+2]
 
 include::pmd_plugin.adoc[leveloffset=+2]
 

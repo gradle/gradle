@@ -20,6 +20,7 @@ import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.changedetection.TaskExecutionMode
+import org.gradle.api.internal.tasks.InputChangesAwareTaskAction
 import org.gradle.api.internal.tasks.properties.TaskProperties
 import org.gradle.api.specs.AndSpec
 import spock.lang.Specification
@@ -58,6 +59,8 @@ class DefaultTaskExecutionModeResolverTest extends Specification {
     }
 
     def "no actions with outputs"() {
+        def nonIncrementalTaskAction = Mock(InputChangesAwareTaskAction)
+
         when:
         TaskExecutionMode state = repository.getExecutionMode(task, taskProperties)
 
@@ -66,6 +69,7 @@ class DefaultTaskExecutionModeResolverTest extends Specification {
         1 * upToDateSpec.isEmpty() >> true
         1 * taskProperties.hasDeclaredOutputs() >> false
         1 * task.hasTaskActions() >> true
+        1 * task.getTaskActions() >> [nonIncrementalTaskAction]
     }
 
     def "default"() {

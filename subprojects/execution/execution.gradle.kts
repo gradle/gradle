@@ -27,7 +27,9 @@ dependencies {
     implementation(project(":baseServices"))
     implementation(project(":messaging"))
     implementation(project(":coreApi"))
+    implementation(project(":files"))
     implementation(project(":snapshots"))
+    implementation(project(":modelCore"))
     implementation(project(":persistentCache"))
     implementation(project(":buildCache"))
     implementation(project(":buildCachePackaging"))
@@ -45,6 +47,17 @@ dependencies {
     testImplementation(project(":modelCore"))
     testImplementation(project(":baseServicesGroovy"))
     testImplementation(project(":resources"))
+    testImplementation(testFixtures(project(":baseServices")))
+    testImplementation(testFixtures(project(":fileCollections")))
+    testImplementation(testFixtures(project(":messaging")))
+    testImplementation(testFixtures(project(":snapshots")))
+    testImplementation(testFixtures(project(":core")))
+
+    testFixturesImplementation(library("guava"))
+    testFixturesImplementation(project(":baseServices"))
+    testFixturesImplementation(project(":buildCache"))
+    testFixturesImplementation(project(":snapshots"))
+    testFixturesImplementation(project(":modelCore"))
 }
 
 java {
@@ -53,10 +66,3 @@ java {
     }
 }
 
-testFixtures {
-    from(":baseServices")
-    from(":files")
-    from(":messaging")
-    from(":snapshots")
-    from(":core")
-}

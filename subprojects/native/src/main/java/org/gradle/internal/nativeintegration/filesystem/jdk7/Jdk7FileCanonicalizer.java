@@ -16,8 +16,8 @@
 
 package org.gradle.internal.nativeintegration.filesystem.jdk7;
 
+import org.gradle.internal.file.FileException;
 import org.gradle.internal.nativeintegration.filesystem.FileCanonicalizer;
-import org.gradle.internal.nativeintegration.filesystem.FileException;
 
 import java.io.File;
 import java.io.IOException;

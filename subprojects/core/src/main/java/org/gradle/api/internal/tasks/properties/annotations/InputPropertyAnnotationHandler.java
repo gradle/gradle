@@ -23,13 +23,15 @@ import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.reflect.AnnotationCategory;
-import org.gradle.internal.reflect.ParameterValidationContext;
 import org.gradle.internal.reflect.PropertyMetadata;
+import org.gradle.internal.reflect.TypeValidationContext;
+import org.gradle.model.internal.type.ModelType;
 
 import java.io.File;
 import java.lang.annotation.Annotation;
 
 import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.OPTIONAL;
+import static org.gradle.internal.reflect.TypeValidationContext.Severity.WARNING;
 
 public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler {
     @Override
@@ -58,17 +60,21 @@ public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler
     }
 
     @Override
-    public void validatePropertyMetadata(PropertyMetadata propertyMetadata, ParameterValidationContext visitor) {
+    public void validatePropertyMetadata(PropertyMetadata propertyMetadata, TypeValidationContext validationContext) {
         Class<?> valueType = propertyMetadata.getGetterMethod().getReturnType();
         if (File.class.isAssignableFrom(valueType)
             || java.nio.file.Path.class.isAssignableFrom(valueType)
             || FileCollection.class.isAssignableFrom(valueType)) {
-            visitor.visitError(null, propertyMetadata.getPropertyName(),
-                String.format("has @Input annotation used on property of type %s", valueType.getName()));
+            validationContext.visitPropertyProblem(WARNING,
+                propertyMetadata.getPropertyName(),
+                String.format("has @Input annotation used on property of type '%s'", ModelType.of(valueType).getDisplayName())
+            );
         }
         if (valueType.isPrimitive() && propertyMetadata.isAnnotationPresent(Optional.class)) {
-            visitor.visitError(null, propertyMetadata.getPropertyName(),
-                String.format("@Input properties with primitive type '%s' cannot be @Optional", valueType.getName()));
+            validationContext.visitPropertyProblem(WARNING,
+                propertyMetadata.getPropertyName(),
+                String.format("@Input properties with primitive type '%s' cannot be @Optional", valueType.getName())
+            );
         }
     }
 }

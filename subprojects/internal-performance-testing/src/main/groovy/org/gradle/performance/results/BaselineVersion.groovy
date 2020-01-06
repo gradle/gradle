@@ -69,20 +69,20 @@ class BaselineVersion implements VersionResults {
         }
     }
 
-    boolean significantlyFasterThan(MeasuredOperationList other) {
+    boolean significantlyFasterThan(MeasuredOperationList other, double minConfidence = MINIMUM_CONFIDENCE) {
         def myTime = results.totalTime
         def otherTime = other.totalTime
-        myTime && myTime.median < otherTime.median && differenceIsSignificant(myTime, otherTime)
+        myTime && myTime.median < otherTime.median && differenceIsSignificant(myTime, otherTime, minConfidence)
     }
 
-    boolean significantlySlowerThan(MeasuredOperationList other) {
+    boolean significantlySlowerThan(MeasuredOperationList other, double minConfidence = MINIMUM_CONFIDENCE) {
         def myTime = results.totalTime
         def otherTime = other.totalTime
-        myTime && myTime.median > otherTime.median && differenceIsSignificant(myTime, otherTime)
+        myTime && myTime.median > otherTime.median && differenceIsSignificant(myTime, otherTime, minConfidence)
     }
 
-    private static boolean differenceIsSignificant(DataSeries<Duration> myTime, DataSeries<Duration> otherTime) {
-        DataSeries.confidenceInDifference(myTime, otherTime) > MINIMUM_CONFIDENCE
+    private static boolean differenceIsSignificant(DataSeries<Duration> myTime, DataSeries<Duration> otherTime, double minConfidence) {
+        DataSeries.confidenceInDifference(myTime, otherTime) > minConfidence
     }
 
 }

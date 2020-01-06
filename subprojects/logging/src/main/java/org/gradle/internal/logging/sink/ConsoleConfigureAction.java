@@ -23,7 +23,6 @@ import org.gradle.internal.logging.console.Console;
 import org.gradle.internal.nativeintegration.console.ConsoleDetector;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.nativeintegration.console.FallbackConsoleMetaData;
-import org.gradle.internal.nativeintegration.console.TestConsoleMetadata;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 
 import java.io.OutputStream;
@@ -47,10 +46,6 @@ public class ConsoleConfigureAction {
     }
 
     private static ConsoleMetaData getConsoleMetaData() {
-        String testConsole = System.getProperty(TestConsoleMetadata.TEST_CONSOLE_PROPERTY);
-        if (testConsole != null) {
-            return TestConsoleMetadata.valueOf(testConsole);
-        }
         ConsoleDetector consoleDetector = NativeServices.getInstance().get(ConsoleDetector.class);
         ConsoleMetaData metaData = consoleDetector.getConsole();
         if (metaData != null) {

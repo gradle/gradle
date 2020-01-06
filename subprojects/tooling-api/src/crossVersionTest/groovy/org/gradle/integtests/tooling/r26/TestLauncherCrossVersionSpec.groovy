@@ -186,7 +186,8 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":secondTest")
         assertTestExecuted(className: "example.MyTest", methodName: "foo3", task: ":secondTest")
         assertTestExecuted(className: "example.MyTest", methodName: "foo4", task: ":secondTest")
-        events.tests.size() in (supportsEfficientClassFiltering() ? [7, 14] : [8, 16]) // also accept it as a valid result when the build gets executed twice.
+        events.testTasksAndExecutors.size() in [2, 3, 4] // also accept it as a valid result when the test task get started twice (event: 'Gradle Test Run :secondTest')
+        events.testClassesAndMethods.size() in (supportsEfficientClassFiltering() ? [5, 10] : [6, 12]) // also accept it as a valid result when tests get executed twice
     }
 
     public <T> T withCancellation(@ClosureParams(value = SimpleType, options = ["org.gradle.tooling.CancellationToken"]) Closure<T> cl) {

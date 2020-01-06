@@ -1,7 +1,9 @@
 package projects
 
+import configurations.FunctionalTest
 import configurations.StagePasses
 import jetbrains.buildServer.configs.kotlin.v2018_2.AbsoluteId
+import jetbrains.buildServer.configs.kotlin.v2018_2.ParameterDisplay
 import jetbrains.buildServer.configs.kotlin.v2018_2.Project
 import jetbrains.buildServer.configs.kotlin.v2018_2.projectFeatures.VersionedSettings
 import jetbrains.buildServer.configs.kotlin.v2018_2.projectFeatures.versionedSettings
@@ -26,13 +28,17 @@ class RootProject(model: CIBuildModel) : Project({
         }
     }
 
+    params {
+        password("teamcity.user.bot-gradle.token", "credentialsJSON:6b612db7-378d-4c16-adeb-f74543ff29ae", display = ParameterDisplay.HIDDEN)
+    }
+
     var prevStage: Stage? = null
-    var deferredAlreadyDeclared = false
+    val deferredFunctionalTests = mutableListOf<(Stage) -> List<FunctionalTest>>()
     model.stages.forEach { stage ->
-        val containsDeferredTests = !stage.omitsSlowProjects && !deferredAlreadyDeclared
-        deferredAlreadyDeclared = deferredAlreadyDeclared || containsDeferredTests
-        buildType(StagePasses(model, stage,  prevStage, containsDeferredTests, uuid))
-        subProject(StageProject(model, stage, containsDeferredTests, uuid))
+        val stageProject = StageProject(model, stage, uuid, deferredFunctionalTests)
+        val stagePasses = StagePasses(model, stage, prevStage, stageProject)
+        buildType(stagePasses)
+        subProject(stageProject)
         prevStage = stage
     }
 

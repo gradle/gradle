@@ -17,9 +17,9 @@
 package org.gradle.api.tasks.outputorigin
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.OriginFixture
 import org.gradle.integtests.fixtures.ScopeIdsFixture
-import org.gradle.internal.id.UniqueId
 import org.junit.Rule
 
 class IncrementalBuildOutputOriginIntegrationTest extends AbstractIntegrationSpec {
@@ -30,14 +30,15 @@ class IncrementalBuildOutputOriginIntegrationTest extends AbstractIntegrationSpe
     @Rule
     public final OriginFixture originBuildInvocationId = new OriginFixture(executer, temporaryFolder)
 
-    UniqueId getBuildInvocationId() {
-        scopeIds.buildInvocationId
+    String getBuildInvocationId() {
+        scopeIds.buildInvocationId.asString()
     }
 
-    UniqueId originBuildInvocationId(String taskPath) {
+    String originBuildInvocationId(String taskPath) {
         originBuildInvocationId.originId(taskPath)
     }
 
+    @ToBeFixedForInstantExecution
     def "exposes origin build id when reusing outputs"() {
         given:
         buildScript """
@@ -85,6 +86,7 @@ class IncrementalBuildOutputOriginIntegrationTest extends AbstractIntegrationSpe
         originBuildInvocationId(":write") == thirdBuildId
     }
 
+    @ToBeFixedForInstantExecution
     def "tracks different tasks"() {
         given:
         buildScript """
@@ -134,6 +136,7 @@ class IncrementalBuildOutputOriginIntegrationTest extends AbstractIntegrationSpe
         originBuildInvocationId(":w2") == firstBuildId
     }
 
+    @ToBeFixedForInstantExecution
     def "buildSrc tasks advertise build id"() {
         given:
         file("buildSrc/build.gradle").text = """
@@ -158,6 +161,7 @@ class IncrementalBuildOutputOriginIntegrationTest extends AbstractIntegrationSpe
         originBuildInvocationId(":buildSrc:w") == origin
     }
 
+    @ToBeFixedForInstantExecution
     def "composite participant tasks advertise build id"() {
         given:
         ["a", "b"].each {

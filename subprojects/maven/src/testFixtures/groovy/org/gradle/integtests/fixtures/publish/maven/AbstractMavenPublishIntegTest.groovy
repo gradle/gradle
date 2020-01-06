@@ -16,8 +16,6 @@
 package org.gradle.integtests.fixtures.publish.maven
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FeaturePreviewsFixture
-import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.test.fixtures.ArtifactResolutionExpectationSpec
 import org.gradle.test.fixtures.GradleMetadataAwarePublishingSpec
 import org.gradle.test.fixtures.ModuleArtifact
@@ -31,12 +29,8 @@ import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRep
 
 abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec implements GradleMetadataAwarePublishingSpec {
 
-    def setup() {
-        prepare()
-    }
-
-    protected static MavenJavaModule javaLibrary(MavenFileModule mavenFileModule) {
-        return new MavenJavaModule(mavenFileModule)
+    protected static MavenJavaModule javaLibrary(MavenFileModule mavenFileModule, List<String> features = [MavenJavaModule.MAIN_FEATURE], boolean withDocumentation = false) {
+        return new MavenJavaModule(mavenFileModule, features, withDocumentation)
     }
 
     protected static MavenJavaPlatformModule javaPlatform(MavenFileModule mavenFileModule) {
@@ -73,7 +67,6 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec imp
     private def doResolveArtifacts(ResolveParams params) {
         // Replace the existing buildfile with one for resolving the published module
         settingsFile.text = "rootProject.name = 'resolve'"
-        FeaturePreviewsFixture.enableGradleMetadata(settingsFile)
         def attributes = params.variant == null ?
             "" :
             """ 
@@ -112,8 +105,7 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec imp
         def optional = params.optionalFeatureCapabilities.collect {
             "resolve($dependencyNotation) { capabilities { requireCapability('$it') } }"
         }.join('\n')
-        buildFile.text = """import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport
-
+        buildFile.text = """
             apply plugin: 'java-base' // to get the standard Java library derivation strategy
             configurations {
                 resolve {
@@ -125,17 +117,13 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec imp
                     url "${mavenRepo.uri}"
                     metadataSources {
                         ${params.resolveModuleMetadata?'gradleMetadata':'mavenPom'}()
+                        ${params.resolveModuleMetadata?'':'ignoreGradleMetadataRedirection()'}
                     }
                 }
                 ${externalRepo}
             }
 
             dependencies {
-               attributesSchema { 
-                getMatchingStrategy(Category.CATEGORY_ATTRIBUTE)
-                   .disambiguationRules
-                   .add(PlatformSupport.PreferRegularPlatform)
-               }
                resolve($dependencyNotation) $extraArtifacts
                $optional
             }
@@ -165,7 +153,7 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec imp
         String classifier
         String ext
         String variant
-        boolean resolveModuleMetadata = GradleMetadataResolveRunner.isExperimentalResolveBehaviorEnabled()
+        boolean resolveModuleMetadata
         boolean expectFailure
 
         List<String> optionalFeatureCapabilities = []
@@ -185,8 +173,8 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec imp
         }
 
         void validate() {
-            singleValidation(true, withModuleMetadataSpec)
             singleValidation(false, withoutModuleMetadataSpec)
+            singleValidation(true, withModuleMetadataSpec)
         }
 
         void singleValidation(boolean withModuleMetadata, SingleArtifactResolutionResultSpec expectationSpec) {

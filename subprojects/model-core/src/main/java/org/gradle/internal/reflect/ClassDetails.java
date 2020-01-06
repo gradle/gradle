@@ -46,7 +46,7 @@ public interface ClassDetails {
      * Returns the non-private instance methods of this class that are not property getter or setter methods.
      * Includes inherited methods.
      */
-    List<Method> getInstanceMethods();
+    Collection<Method> getInstanceMethods();
 
     /**
      * The ordered super types of this type.

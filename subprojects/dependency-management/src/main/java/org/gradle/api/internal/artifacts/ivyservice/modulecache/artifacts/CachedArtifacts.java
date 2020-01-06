@@ -16,14 +16,14 @@
 package org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts;
 
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
+import org.gradle.internal.hash.HashCode;
 
-import java.math.BigInteger;
 import java.util.Set;
 
 public interface CachedArtifacts {
     Set<ComponentArtifactMetadata> getArtifacts();
 
-    BigInteger getDescriptorHash();
+    HashCode getDescriptorHash();
 
     long getAgeMillis();
 }

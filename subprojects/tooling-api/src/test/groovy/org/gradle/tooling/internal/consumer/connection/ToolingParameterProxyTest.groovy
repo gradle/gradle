@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.internal.consumer.connection
 
-import org.gradle.testing.internal.util.Specification
+import spock.lang.Specification
 
 import java.lang.reflect.Proxy
 

@@ -22,14 +22,14 @@ import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheSer
 import org.gradle.api.internal.changedetection.state.RuntimeClasspathResourceHasher;
 import org.gradle.api.tasks.ClasspathNormalizer;
 import org.gradle.api.tasks.FileNormalizer;
+import org.gradle.internal.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter;
 import org.gradle.internal.fingerprint.impl.AbstractFileCollectionFingerprinter;
-import org.gradle.internal.snapshot.FileSystemSnapshotter;
 
 public class DefaultClasspathFingerprinter extends AbstractFileCollectionFingerprinter implements ClasspathFingerprinter {
     public DefaultClasspathFingerprinter(
         ResourceSnapshotterCacheService cacheService,
-        FileSystemSnapshotter fileSystemSnapshotter,
+        FileCollectionSnapshotter fileCollectionSnapshotter,
         ResourceFilter classpathResourceFilter,
         StringInterner stringInterner
     ) {
@@ -39,7 +39,7 @@ public class DefaultClasspathFingerprinter extends AbstractFileCollectionFingerp
             cacheService,
             stringInterner
             ),
-            fileSystemSnapshotter);
+            fileCollectionSnapshotter);
     }
 
     @Override

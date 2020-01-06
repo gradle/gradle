@@ -48,16 +48,20 @@ $(document).ready(function () {
     // Add alternate row styles for tables
     $("table").each(function () {
         var counter = 0;
-        $(this).find("tr").each(function () {
-            var e = $(this);
-            if (e.children("th").length > 0) {
-                counter = 0;
-                return;
-            }
-            if (counter % 2 == 0) {
-                e.addClass("table-row-even");
-            }
-            counter++;
-        })
+        var rows = $(this).find("tr");
+        if (rows.length != 1) {
+            rows.each(function () {
+                var e = $(this);
+                if (e.children("th").length > 0) {
+                    counter = 0;
+                    return;
+                }
+                if (counter % 2 == 0) {
+                    e.addClass("table-row-even");
+                }
+                counter++;
+            })
+        }
+
     });
 });

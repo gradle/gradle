@@ -20,7 +20,7 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.tasks.TaskInputPropertyBuilder;
 
 @NonNullApi
-public class DefaultTaskInputPropertyRegistration extends TaskInputsDeprecationSupport implements TaskInputPropertyRegistration {
+public class DefaultTaskInputPropertyRegistration implements TaskInputPropertyRegistration {
 
     private final String propertyName;
     private final StaticValue value;

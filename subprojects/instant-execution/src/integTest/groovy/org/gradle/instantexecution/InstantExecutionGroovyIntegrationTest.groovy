@@ -16,41 +16,119 @@
 
 package org.gradle.instantexecution
 
-import spock.lang.Ignore
+
+import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.jcenterRepository
 
 
 class InstantExecutionGroovyIntegrationTest extends AbstractInstantExecutionIntegrationTest {
 
-    @Ignore
-    def "instant execution for compileGroovy on Groovy project with no dependencies"() {
+    def "build on Groovy build with JUnit tests"() {
 
         def instantExecution = newInstantExecutionFixture()
 
         given:
         buildFile << """
             plugins { id 'groovy' }
-        """
-        file("src/main/java/Thing.groovy") << """
-            class Thing {
+        
+            ${jcenterRepository()}
+            
+            dependencies {
+                implementation(localGroovy())
+                testImplementation("junit:junit:4.12")
             }
         """
+        file("src/main/groovy/Thing.groovy") << """
+            class Thing {}
+        """
+        file("src/test/groovy/ThingTest.groovy") << """
+            import org.junit.*
+            class ThingTest {
+                @Test void ok() { new Thing() }
+            } 
+        """
+
+        and:
+        def expectedTasks = [
+            ":compileJava", ":compileGroovy", ":processResources", ":classes", ":jar", ":assemble",
+            ":compileTestJava", ":compileTestGroovy", ":processTestResources", ":testClasses", ":test", ":check",
+            ":build"
+        ]
+        def classFile = file("build/classes/groovy/main/Thing.class")
+        def testClassFile = file("build/classes/groovy/test/ThingTest.class")
+        def testResults = file("build/test-results/test")
 
         when:
-        instantRun "compileGroovy"
+        instantRun "build"
 
         then:
         instantExecution.assertStateStored()
-        result.assertTasksExecuted(":compileGroovy")
-        def classFile = file("build/classes/java/main/Thing.class")
+        result.assertTasksExecuted(*expectedTasks)
+
+        and:
         classFile.isFile()
+        testClassFile.isFile()
+        testResults.isDirectory()
+
+        and:
+        assertTestsExecuted("ThingTest", "ok")
 
         when:
         classFile.delete()
-        instantRun "compileGroovy"
+        testClassFile.delete()
+        testResults.delete()
+
+        and:
+        instantRun "build"
 
         then:
         instantExecution.assertStateLoaded()
-        result.assertTasksExecuted(":compileGroovy")
+        result.assertTasksExecuted(*expectedTasks)
+
+        and:
         classFile.isFile()
+        testClassFile.isFile()
+        testResults.isDirectory()
+
+        and:
+        assertTestsExecuted("ThingTest", "ok")
+    }
+
+    def "compileGroovy without sources nor groovy dependency is executed but skipped"() {
+        given:
+        buildFile << """
+            plugins { id 'groovy' }
+        """
+
+        when:
+        instantRun "assemble"
+        instantRun "assemble"
+
+        then:
+        result.assertTaskExecuted(":compileGroovy")
+        result.assertTaskSkipped(":compileGroovy")
+    }
+
+    def "compileGroovy with sources but no groovy dependency is executed and fails with a reasonable error message"() {
+        given:
+        buildFile << """
+            plugins { id 'groovy' }
+        """
+        file("src/main/groovy/Thing.groovy") << """
+            class Thing {}
+        """
+
+        when:
+        instantFails "assemble"
+
+        then:
+        result.assertTaskExecuted(":compileGroovy")
+        failureCauseContains("Cannot infer Groovy class path because no Groovy Jar was found on class path")
+
+        when:
+        instantFails "assemble"
+
+        then:
+        result.assertTaskExecuted(":compileGroovy")
+        failureCauseContains("Cannot infer Groovy class path because no Groovy Jar was found on class path")
     }
 }

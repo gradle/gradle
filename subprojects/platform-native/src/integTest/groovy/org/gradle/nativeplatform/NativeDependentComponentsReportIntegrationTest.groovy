@@ -167,7 +167,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
             |    +--- lib:staticLibrary NOT BUILDABLE
             |    \\--- main:executable
             \\--- util:staticLibrary
-        '''.stripIndent()
+            '''.stripIndent()
 
         where:
         option            | _
@@ -225,7 +225,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
 
             main - Components that depend on native executable 'main'
             \\--- main:executable
-        '''.stripIndent()
+            '''.stripIndent()
     }
 
     def "displays dependents across projects in a build"() {
@@ -249,7 +249,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
             |    |    \\--- :bootstrap:main:executable
             |    \\--- :extensions:bazar:staticLibrary
             \\--- :libraries:foo:staticLibrary
-        '''.stripIndent()
+            '''.stripIndent()
     }
 
     @IgnoreIf({ GradleContextualExecuter.isParallel() })
@@ -282,7 +282,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
             |    |    \\--- :bootstrap:main:executable
             |    \\--- :extensions:bazar:staticLibrary
             \\--- :libraries:foo:staticLibrary
-        '''.stripIndent()
+            '''.stripIndent()
         output.contains '''
             ------------------------------------------------------------
             Project :extensions
@@ -297,7 +297,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
             +--- :extensions:cathedral:sharedLibrary
             |    \\--- :bootstrap:main:executable
             \\--- :extensions:cathedral:staticLibrary
-        '''.stripIndent()
+            '''.stripIndent()
     }
 
     def "don't fail with prebuilt libraries"() {
@@ -359,7 +359,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
             \\--- utilTest:cUnitExe (t)
 
             (t) - Test suite binary
-        """.stripIndent()
+            """.stripIndent()
 
         where:
         option          | _
@@ -393,7 +393,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
                  \\--- lib:sharedLibrary (*)
 
             (*) - details omitted (listed previously)
-        '''.stripIndent().trim()
+            '''.stripIndent().trim()
     }
 
     def "indirect circular dependencies are handled gracefully"() {
@@ -428,7 +428,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
                       \\--- another:sharedLibrary (*)
 
             (*) - details omitted (listed previously)
-        '''.stripIndent().trim()
+            '''.stripIndent().trim()
     }
 
     def "circular dependencies across projects are handled gracefully"() {
@@ -461,7 +461,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
                  \\--- :api:api:sharedLibrary (*)
 
             (*) - details omitted (listed previously)
-        '''.stripIndent().trim()
+            '''.stripIndent().trim()
 
     }
 
@@ -511,7 +511,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
             +--- main:freewareExecutable
             +--- main:sharewareExecutable
             \\--- main:shrinkwareExecutable
-        """.stripIndent()
+            """.stripIndent()
     }
 
     def "report for empty build displays no component"() {
@@ -561,7 +561,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
             No components.
 
             BUILD SUCCESSFUL
-        """.stripIndent().trim()
+            """.stripIndent().trim()
     }
 
     private static String simpleCppBuild() {
@@ -636,14 +636,14 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
             +--- lib:sharedLibrary
             |    \\--- main:executable
             \\--- lib:staticLibrary
-        '''.stripIndent()
+            '''.stripIndent()
     }
 
     private static String simpleCppMainDependents() {
         return '''
             main - Components that depend on native executable 'main'
             \\--- main:executable
-        '''.stripIndent()
+            '''.stripIndent()
     }
 
     private static String simpleCppUtilDependents() {
@@ -655,7 +655,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
             |    +--- lib:staticLibrary
             |    \\--- main:executable
             \\--- util:staticLibrary
-        '''.stripIndent()
+            '''.stripIndent()
     }
 
     private static String multiProjectSettings() {

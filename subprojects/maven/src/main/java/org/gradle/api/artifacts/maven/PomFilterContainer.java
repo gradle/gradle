@@ -22,6 +22,7 @@ import org.gradle.api.publication.maven.internal.PomFilter;
 /**
  * Manages a set of {@link MavenPom} instances and their associated {@link PublishFilter} instances.
  */
+@Deprecated
 public interface PomFilterContainer {
     String DEFAULT_ARTIFACT_POM_NAME = "default";
 

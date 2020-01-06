@@ -19,15 +19,14 @@ package org.gradle.buildinit.plugins
 import org.gradle.buildinit.plugins.fixtures.WrapperTestFixture
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.PomHttpArtifact
-import org.gradle.util.Requires
 import org.gradle.util.SetSystemProperties
-import org.gradle.util.TestPrecondition
 import org.gradle.util.TextUtil
 import org.junit.Rule
 import spock.lang.Issue
@@ -57,6 +56,7 @@ class MavenConversionIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    @ToBeFixedForInstantExecution
     def "multiModule"() {
         when:
         run 'init'
@@ -65,10 +65,16 @@ class MavenConversionIntegrationTest extends AbstractIntegrationSpec {
         gradleFilesGenerated()
         file("build.gradle").text.contains("options.encoding = 'UTF-8'")
         !file("webinar-war/build.gradle").text.contains("'options.encoding'")
-        assertContainsPublishingConfig(file("build.gradle"), "    ", ["sourcesJar"])
+        assertContainsPublishingConfig(file("build.gradle"), "    ")
+        buildFile.text.contains(TextUtil.toPlatformLineSeparators('''
+    java {
+        withSourcesJar()
+    }'''))
         file("webinar-impl/build.gradle").text.contains("publishing.publications.maven.artifact(testsJar)")
-        file("webinar-impl/build.gradle").text.contains("publishing.publications.maven.artifact(javadocJar)")
-
+        file("webinar-impl/build.gradle").text.contains(TextUtil.toPlatformLineSeparators('''
+java {
+    withJavadocJar()
+}'''))
         when:
         run 'clean', 'build'
 
@@ -109,6 +115,7 @@ Root project 'webinar-parent'
         new DefaultTestExecutionResult(file("webinar-impl")).assertTestClassesExecuted('webinar.WebinarTest')
     }
 
+    @ToBeFixedForInstantExecution
     def "flatmultimodule"() {
         when:
         executer.inDirectory(file("webinar-parent"))
@@ -141,6 +148,7 @@ Root project 'webinar-parent'
 """
     }
 
+    @ToBeFixedForInstantExecution
     def "singleModule"() {
         when:
         run 'init'
@@ -172,10 +180,11 @@ ${TextUtil.indent(configLines.join("\n"), "                        ")}
                     }
                 }
             }
-        """.stripIndent().trim(), indent))
+            """.stripIndent().trim(), indent))
         assert text.contains(publishingBlock)
     }
 
+    @ToBeFixedForInstantExecution
     def "singleModule with explicit project dir"() {
         setup:
         resources.maybeCopy('MavenConversionIntegrationTest/singleModule')
@@ -196,18 +205,18 @@ ${TextUtil.indent(configLines.join("\n"), "                        ")}
         failure.assertHasCause("There were failing tests.")
     }
 
+    @ToBeFixedForInstantExecution
     def 'sourcesJar'() {
         when: 'build is initialized'
         run 'init'
 
         then: 'sourcesJar task configuration is generated'
         buildFile.text.contains(TextUtil.toPlatformLineSeparators('''
-            task sourcesJar(type: Jar) {
-                classifier = 'sources'
-                from(sourceSets.main.allJava)
+            java {
+                withSourcesJar()
             }
-        '''.stripIndent().trim()))
-        assertContainsPublishingConfig(buildFile, '', ['sourcesJar'])
+            '''.stripIndent().trim()))
+        assertContainsPublishingConfig(buildFile)
 
         when: 'the generated task is executed'
         run 'clean', 'build', 'sourcesJar'
@@ -224,10 +233,10 @@ ${TextUtil.indent(configLines.join("\n"), "                        ")}
         then: 'testsJar task configuration is generated'
         buildFile.text.contains(TextUtil.toPlatformLineSeparators('''
             task testsJar(type: Jar) {
-                classifier = 'tests'
+                archiveClassifier = 'tests'
                 from(sourceSets.test.output)
             }
-        '''.stripIndent().trim()))
+            '''.stripIndent().trim()))
         assertContainsPublishingConfig(buildFile, '', ['testsJar'])
 
         when: 'the generated task is executed'
@@ -238,18 +247,18 @@ ${TextUtil.indent(configLines.join("\n"), "                        ")}
         file('build/libs/util-2.5-tests.jar').exists()
     }
 
+    @ToBeFixedForInstantExecution
     def 'javadocJar'() {
         when: 'build is initialized'
         run 'init'
 
         then: 'javadocJar task configuration is generated'
         buildFile.text.contains(TextUtil.toPlatformLineSeparators('''
-            task javadocJar(type: Jar) {
-                classifier = 'javadoc'
-                from(javadoc.destinationDir)
+            java {
+                withJavadocJar()
             }
-        '''.stripIndent().trim()))
-        assertContainsPublishingConfig(buildFile, '', ['javadocJar'])
+            '''.stripIndent().trim()))
+        assertContainsPublishingConfig(buildFile)
 
         when: 'the generated task is executed'
         run 'clean', 'build', 'javadocJar'
@@ -344,7 +353,6 @@ ${TextUtil.indent(configLines.join("\n"), "                        ")}
         file("build/libs/util-2.5.jar").exists()
     }
 
-    @Requires(TestPrecondition.FIX_TO_WORK_ON_JAVA9)
     @Issue("GRADLE-2872")
     def "expandProperties"() {
         setup:
@@ -364,6 +372,7 @@ ${TextUtil.indent(configLines.join("\n"), "                        ")}
     }
 
     @Issue("GRADLE-2819")
+    @ToBeFixedForInstantExecution
     def "multiModuleWithRemoteParent"() {
         setup:
         withSharedResources()

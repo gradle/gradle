@@ -44,7 +44,6 @@ import org.gradle.util.Path
 import org.gradle.util.TestUtil
 
 import static java.util.Collections.singletonMap
-import static org.gradle.util.WrapUtil.toList
 
 class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerSpec<Task> {
 
@@ -85,6 +84,13 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
     }
 
     final boolean externalProviderAllowed = false
+    final boolean directElementAdditionAllowed = false
+    final boolean elementRemovalAllowed = false
+
+    @Override
+    protected void addToContainer(Task element) {
+        container.addInternal(element)
+    }
 
     void 'cannot create task with no name'() {
         when:
@@ -303,26 +309,30 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         e.cause == failure
     }
 
-    void "replaces task by name"() {
+    void "replacing non-existent task by name throws exception"() {
         given:
         def task = task("task")
         taskFactory.create(_ as TaskIdentity) >> task
 
         when:
-        def replaced = container.replace("task")
+        container.replace("task")
 
         then:
-        replaced == task
-        container.getByName("task") == task
+        def e = thrown(DefaultTaskContainer.TaskCreationException)
+        e.cause.message == "Unnecessarily replacing a task that does not exist is not supported.  Use create() or register() directly instead.  You attempted to replace a task named 'task', but there is no existing task with that name."
     }
 
-    void "replaces by name and type"() {
+    void "replacing non-existent task by name and type throws exception"() {
         given:
         def task = task("task", CustomTask)
         taskFactory.create(_ as TaskIdentity) >> task
 
-        expect:
-        container.replace("task", CustomTask.class) == task
+        when:
+        container.replace("task", CustomTask.class)
+
+        then:
+        def e = thrown(DefaultTaskContainer.TaskCreationException)
+        e.cause.message == "Unnecessarily replacing a task that does not exist is not supported.  Use create() or register() directly instead.  You attempted to replace a task named 'task', but there is no existing task with that name."
     }
 
     void "does not fire rule when adding task"() {
@@ -353,7 +363,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         container.getByName("task") == task
     }
 
-    void "replaces duplicate task"() {
+    void "replacing existing duplicate task throws exception"() {
         given:
         addTask("task")
         def newTask = task("task")
@@ -363,7 +373,8 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         container.replace("task")
 
         then:
-        container.getByName("task") == newTask
+        def e = thrown(DefaultTaskContainer.TaskCreationException)
+        e.cause.message == "Replacing an existing task that may have already been used by other plugins is not supported.  Use a different name for this task ('task')."
     }
 
     void "replaces registered task without realizing it"() {
@@ -1382,7 +1393,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         0 * taskFactory.create(_ as TaskIdentity)
     }
 
-    void "can get() if eagerly created task type gets overwrite"() {
+    void "overwriting eagerly created task throws exception"() {
         given:
         def customTask = task("task", CustomTask)
         1 * taskFactory.create(_ as TaskIdentity, _ as Object[]) >> customTask
@@ -1398,10 +1409,10 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
 
         when:
         container.create([name: "task", type: DefaultTask, overwrite: true])
-        container.withType(DefaultTask).named("task")
 
         then:
-        noExceptionThrown()
+        def e = thrown(DefaultTaskContainer.TaskCreationException)
+        e.cause.message == "Replacing an existing task that may have already been used by other plugins is not supported.  Use a different name for this task ('task')."
     }
 
     void "can get() if lazy created task gets overwrite"() {
@@ -1425,61 +1436,6 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         1 * taskFactory.create(_ as TaskIdentity) >> task("task", MyCustomTask)
     }
 
-    void "can remove eager created task and named provider update his state"() {
-        def task = task("task", CustomTask)
-        given:
-        taskFactory.create(_ as TaskIdentity) >> task
-
-        and:
-        def customTask = container.create("task", CustomTask)
-
-        when:
-        def provider = container.named("task")
-
-        then:
-        provider.present
-        provider.get() == customTask
-
-        when:
-        def didRemoved = container.remove(customTask)
-
-        then:
-        didRemoved
-        !provider.present
-        provider.orNull == null
-
-        when:
-        provider.get()
-
-        then:
-        def ex = thrown(IllegalStateException)
-        ex.message == "The domain object 'task' (${task.class.simpleName}) for this provider is no longer present in its container."
-    }
-
-    void "lazy task that is realized and then removed is not recreated on iteration"() {
-        given:
-        taskFactory.create(_ as TaskIdentity) >> task("task", DefaultTask)
-        def task = container.register("task", DefaultTask).get()
-
-        when:
-        container.remove(task)
-
-        then:
-        !container.contains(task)
-    }
-
-    void "lazy task that is realized and then removed is not recreated on find"() {
-        given:
-        taskFactory.create(_ as TaskIdentity) >> task("task", DefaultTask)
-        def task = container.register("task", DefaultTask).get()
-
-        when:
-        container.remove(task)
-
-        then:
-        container.findByName("task") == null
-    }
-
     def "cannot add a provider directly to the task container"() {
         given:
         def provider = Mock(Provider) {
@@ -1488,6 +1444,31 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
 
         when:
         container.addLater(provider)
+
+        then:
+        thrown(UnsupportedOperationException)
+    }
+
+    def "cannot add a task directly to the task container"() {
+        given:
+        def task = task("foo")
+
+        when:
+        container.add(task)
+
+        then:
+        thrown(UnsupportedOperationException)
+    }
+
+    def "cannot add a collection of tasks directly to the task container"() {
+        given:
+        def task1 = task("foo")
+        def task2 = task("bar")
+        def task3 = task("baz")
+
+
+        when:
+        container.addAll([task1, task2, task3])
 
         then:
         thrown(UnsupportedOperationException)
@@ -1519,248 +1500,81 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         return elements.sort { it.name }
     }
 
-    def "can remove register providers without realizing them"() {
+    def "removing realized task throws exception"() {
+        given:
+        def task = addTask("a")
+
+        when:
+        container.remove(task)
+
+        then:
+        def e = thrown(UnsupportedOperationException)
+        e.message == "Removing tasks from the task container is not supported.  Disable the tasks or use replace() instead."
+    }
+
+    def "removing collection of tasks throws exception"() {
+        given:
+        def task1 = addTask("a")
+        def task2 = addTask("b")
+        def task3 = addTask("c")
+
+        when:
+        container.removeAll([task1, task2, task3])
+
+        then:
+        def e = thrown(UnsupportedOperationException)
+        e.message == "Removing tasks from the task container is not supported.  Disable the tasks or use replace() instead."
+    }
+
+    def "removing registered providers throws exception"() {
         given:
         def provider1 = container.register("a", type)
-        def provider2 = container.register("b", type)
 
         when:
-        def didRemoved1 = container.remove(provider1)
+        container.remove(provider1)
 
         then:
-        didRemoved1
-        container.names.toList() == ['b']
-        !provider1.present
-        provider2.present
-
-        and:
-        0 * taskFactory.create(_ as TaskIdentity)
-
-        when:
-        def didRemoved2 = container.remove(provider2)
-
-        then:
-        didRemoved2
-        container.names.toList() == []
-        !provider1.present
-        !provider2.present
+        def e = thrown(UnsupportedOperationException)
+        e.message == "Removing tasks from the task container is not supported.  Disable the tasks or use replace() instead."
 
         and:
         0 * taskFactory.create(_ as TaskIdentity)
     }
 
-    def "returns false when removing register providers a second time"() {
+    def "clearing container throws exception"() {
         given:
-        def provider1 = container.register("a", type)
-
-        when:
-        def didRemovedFirstTime = container.remove(provider1)
-
-        then:
-        didRemovedFirstTime
-        container.names.toList() == []
-
-        and:
-        0 * taskFactory.create(_ as TaskIdentity)
-
-        when:
-        def didRemovedSecondTime = container.remove(provider1)
-
-        then:
-        !didRemovedSecondTime
-        container.names.toList() == []
-
-        and:
-        0 * taskFactory.create(_ as TaskIdentity)
-    }
-
-    def "can remove realized register providers without realizing more providers"() {
-        1 * taskFactory.create(_ as TaskIdentity) >> { println "A"; a }
-        1 * taskFactory.create(_ as TaskIdentity) >> { println "B"; b }
-
-        given:
-        def provider1 = container.register("a", type)
-        def provider2 = container.register("b", type)
-        def provider3 = container.register("d", otherType)
-
-        // Realize all object of type `type`
-        toList(container.withType(type))
-
-        when:
-        def didRemoved1 = container.remove(provider1)
-
-        then:
-        didRemoved1
-        container.names.toList() == ['b', 'd']
-
-        and:
-        0 * taskFactory.create(_ as TaskIdentity)
-
-        when:
-        def didRemoved2 = container.remove(provider2)
-
-        then:
-        didRemoved2
-        container.names.toList() == ['d']
-
-        and:
-        0 * taskFactory.create(_ as TaskIdentity)
-    }
-
-    def "can remove realized register elements via instance"() {
-        1 * taskFactory.create(_ as TaskIdentity) >> a
-
-        given:
-        def provider1 = container.register("a", type)
-        def provider2 = container.register("d", otherType)
-
-        // Realize all object of type `type`
-        def element = container.withType(type).iterator().next()
-
-        when:
-        def didRemoved = container.remove(element)
-
-        then:
-        didRemoved
-        container.names.toList() == ['d']
-
-        and:
-        0 * taskFactory.create(_ as TaskIdentity)
-    }
-
-    def "will execute remove action when removing register provider only for realized elements"() {
-        1 * taskFactory.create(_ as TaskIdentity) >> a
-        def action = Mock(Action)
-
-        given:
-        def provider1 = container.register("a", type)
-        def provider2 = container.register("d", otherType)
-        container.whenObjectRemoved(action)
-
-        // Realize all object of type `type`
-        toList(container.withType(type))
-
-        when:
-        def didRemoved1 = container.remove(provider1)
-
-        then:
-        didRemoved1
-        container.names.toList() == ['d']
-
-        and:
-        1 * action.execute(a)
-        0 * action.execute(_)
-
-        when:
-        def didRemoved2 = container.remove(provider2)
-
-        then:
-        didRemoved2
-        container.names.toList() == []
-
-        and:
-        0 * action.execute(_)
-    }
-
-    def "will execute remove action when clearing the container only for realized register providers"() {
-        1 * taskFactory.create(_ as TaskIdentity) >> a
-        def action = Mock(Action)
-
-        given:
-        def provider1 = container.register("a", type)
-        def provider2 = container.register("d", otherType)
-        container.whenObjectRemoved(action)
-
-        // Realize all object of type `type`
-        toList(container.withType(type))
+        container.register("a", type)
+        container.register("b", type)
+        addTask("task")
 
         when:
         container.clear()
 
         then:
-        container.names.toList() == []
+        def e = thrown(UnsupportedOperationException)
+        e.message == "Removing tasks from the task container is not supported.  Disable the tasks or use replace() instead."
 
         and:
-        1 * action.execute(a)
-        0 * action.execute(_)
+        container.size() == 3
     }
 
-    def "will not query register providers when clearing"() {
+    def "retainAll throws exception"() {
         given:
-        def provider1 = container.register("a", type)
-        def provider2 = container.register("b", type)
+        def provider = container.register("a", type)
+        container.register("b", type)
 
         when:
-        container.clear()
+        container.retainAll([provider.get()])
 
         then:
-        container.names.toList() == []
+        def e = thrown(UnsupportedOperationException)
+        e.message == "Removing tasks from the task container is not supported.  Disable the tasks or use replace() instead."
 
         and:
-        0 * taskFactory.create(_ as TaskIdentity)
-    }
-
-    def "will execute remove action when not retaining register providers for all elements"() {
-        1 * taskFactory.create(_ as TaskIdentity) >> a
-        1 * taskFactory.create(_ as TaskIdentity) >> d
-        def action = Mock(Action)
-
-        given:
-        def provider1 = container.register("a", type)
-        def provider2 = container.register("d", otherType)
-        container.whenObjectRemoved(action)
-
-        // Realize all object of type `type`
-        toList(container.withType(type))
-
-        when:
-        def didRetained = container.retainAll([])
-
-        then:
-        didRetained
-        container.names.toList() == []
-
-        and:
-        1 * action.execute(a)
-        1 * action.execute(d)
-    }
-
-    def "will query register providers when not retaining them"() {
-        given:
-        def provider1 = container.register("a", type)
-        def provider2 = container.register("b", type)
-
-        when:
-        def didRetained = container.retainAll([provider2.get()])
-
-        then:
-        didRetained
-        container.names.toList() == ['b']
-
-        and:
-        1 * taskFactory.create(_ as TaskIdentity) >> b
-        1 * taskFactory.create(_ as TaskIdentity) >> a
-    }
-
-    def "will query retaining provider when retaining registered providers"() {
         1 * taskFactory.create(_ as TaskIdentity) >> a
 
-        given:
-        def provider1 = container.register("a", type)
-        def provider2 = container.register("d", otherType)
-
-        // Realize all object of type `type`
-        toList(container.withType(type))
-
-        when:
-        def didRetained = container.retainAll([provider1.get()])
-
-        then:
-        didRetained
-        container.names.toList() == ['a']
-
         and:
-        1 * taskFactory.create(_ as TaskIdentity) >> d
+        container.size() == 2
     }
 
     def "will realize all register provider when querying the iterator"() {
@@ -1775,15 +1589,14 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         1 * taskFactory.create(_ as TaskIdentity) >> a
     }
 
-    def "will execute remove action when removing realized register provider using iterator"() {
+    def "removing register provider using iterator throws exception"() {
         1 * taskFactory.create(_ as TaskIdentity) >> a
         1 * taskFactory.create(_ as TaskIdentity) >> b
         def action = Mock(Action)
 
         given:
-        def provider1 = container.register("a", type)
-        def provider2 = container.register("b", type)
-        container.whenObjectRemoved(action)
+        container.register("a", type)
+        container.register("b", type)
 
         when:
         def iterator = container.iterator()
@@ -1791,143 +1604,11 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         iterator.remove()
 
         then:
-        container.names.toList() == ['b']
+        def e = thrown(UnsupportedOperationException)
+        e.message == "Removing tasks from the task container is not supported.  Disable the tasks or use replace() instead."
 
         and:
-        1 * action.execute(a)
-        0 * action.execute(_)
-    }
-
-    def "will execute remove action when removing a collection of register provider only for realized elements"() {
-        1 * taskFactory.create(_ as TaskIdentity) >> a
-        def action = Mock(Action)
-
-        given:
-        def provider1 = container.register("a", type)
-        def provider2 = container.register("d", otherType)
-        container.whenObjectRemoved(action)
-
-        // Realize all object of type `type`
-        toList(container.withType(type))
-
-        when:
-        def didRemoved = container.removeAll([provider1, provider2])
-
-        then:
-        didRemoved
-        container.empty
-
-        and:
-        1 * action.execute(a)
-        0 * action.execute(_)
-    }
-
-    def "can remove unrealized registered element using register provider"() {
-        when:
-        def provider = container.register('obj')
-
-        then:
-        provider.present
-
-        when:
-        container.remove(provider)
-
-        then:
-        container.names.toList() == []
-
-        and:
-        !provider.present
-        provider.orNull == null
-
-        when:
-        provider.get()
-
-        then:
-        def ex = thrown(IllegalStateException)
-        ex.message == "The domain object 'obj' (DefaultTask) for this provider is no longer present in its container."
-    }
-
-    def "can remove unrealized registered element using named provider"() {
-        when:
-        def provider = container.register('obj')
-
-        then:
-        provider.present
-
-        when:
-        container.remove(container.named('obj'))
-
-        then:
-        container.names.toList() == []
-
-        and:
-        !provider.present
-        provider.orNull == null
-
-        when:
-        provider.get()
-
-        then:
-        def ex = thrown(IllegalStateException)
-        ex.message == "The domain object 'obj' (DefaultTask) for this provider is no longer present in its container."
-    }
-
-    def "can remove realized registered element using register provider"() {
-        1 * taskFactory.create(_ as TaskIdentity) >> task('obj')
-
-        when:
-        def provider = container.register('obj')
-        def obj = provider.get()
-
-        then:
-        provider.present
-        obj == container.getByName('obj')
-
-        when:
-        container.remove(provider)
-
-        then:
-        container.names.toList() == []
-
-        and:
-        !provider.present
-        provider.orNull == null
-
-        when:
-        provider.get()
-
-        then:
-        def ex = thrown(IllegalStateException)
-        ex.message == "The domain object 'obj' (DefaultTask) for this provider is no longer present in its container."
-    }
-
-    def "can remove realized registered element using named provider"() {
-        1 * taskFactory.create(_ as TaskIdentity) >> task('obj')
-
-        when:
-        def provider = container.register('obj')
-        def obj = provider.get()
-
-        then:
-        provider.present
-        obj == container.getByName('obj')
-
-        when:
-        container.remove(container.named('obj'))
-
-        then:
-        container.names.toList() == []
-
-        and:
-        !provider.present
-        provider.orNull == null
-
-        when:
-        provider.get()
-
-        then:
-        def ex = thrown(IllegalStateException)
-        ex.message == "The domain object 'obj' (DefaultTask) for this provider is no longer present in its container."
+        container.size() == 2
     }
 
     private ProjectInternal expectTaskLookupInOtherProject(final String projectPath, final String taskName, def task) {

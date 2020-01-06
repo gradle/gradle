@@ -15,8 +15,12 @@
  */
 package org.gradle.plugins.signing
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import spock.lang.Issue
+
 class InMemoryPgpSignatoryProviderIntegrationSpec extends SigningIntegrationSpec {
 
+    @ToBeFixedForInstantExecution
     def "signs with default signatory"() {
         given:
         buildFile << """
@@ -38,6 +42,7 @@ class InMemoryPgpSignatoryProviderIntegrationSpec extends SigningIntegrationSpec
         file("build", "libs", "sign-1.0.jar.asc").exists()
     }
 
+    @ToBeFixedForInstantExecution
     def "signs with custom signatory"() {
         given:
         buildFile << """
@@ -62,6 +67,7 @@ class InMemoryPgpSignatoryProviderIntegrationSpec extends SigningIntegrationSpec
         file("build", "libs", "sign-1.0.jar.asc").exists()
     }
 
+    @ToBeFixedForInstantExecution
     def "supports keys without passwords"() {
         given:
         buildFile << """
@@ -74,6 +80,30 @@ class InMemoryPgpSignatoryProviderIntegrationSpec extends SigningIntegrationSpec
         when:
         executer.withEnvironmentVars([
             ORG_GRADLE_PROJECT_secretKey: secretKeyWithoutPassword
+        ])
+        succeeds("signJar")
+
+        then:
+        executed(":signJar")
+        file("build", "libs", "sign-1.0.jar.asc").exists()
+    }
+
+    @Issue("gradle/gradle#10363")
+    @ToBeFixedForInstantExecution
+    def "supports signing subkeys"() {
+        given:
+        buildFile << """
+            signing {
+                useInMemoryPgpKeys(project.properties['keyId'], project.properties['secretKey'], project.properties['password'])
+                sign(jar)
+            }
+        """
+
+        when:
+        executer.withEnvironmentVars([
+            ORG_GRADLE_PROJECT_keyId: keyId,
+            ORG_GRADLE_PROJECT_secretKey: secretSubkeyWithPassword,
+            ORG_GRADLE_PROJECT_password: subkeyPassword
         ])
         succeeds("signJar")
 
@@ -202,5 +232,38 @@ A/4Op5poa+dMHPRj7FvJTX792XRau5iAUTS9N1PeITF+kT1sU/BC5jqCi8dghwEe
 t39qTMnx9LG1EdsZJ1KMUMau1/h15WVWUK10cK7IPSQ2vV+dThEj
 =Y8Fu
 -----END PGP PRIVATE KEY BLOCK-----'''
+
+    final secretSubkeyWithPassword = '''\
+-----BEGIN PGP PRIVATE KEY BLOCK-----
+
+lQCVBF1jpksBBADcYrxfdWFLpzL6M1uilFT6De3jp7cxrD84Z1lCEdJnZ1SSLlxh
+qJnFuptzw2SJLgbe11rkZi9B58i32KGfQeFo4esLC/I2JnfWEP6SFfWNxojrEGL7
+hcVfMZcb7+Umxg7RTvP4eH+P4o4tDPsWzSThQWyfqupngvknDcjEstHnYwARAQAB
+/gNlAkdOVQG0GUdyYWRsZSA8Z3JhZGxlQGxvY2FsaG9zdD6IuAQTAQIAIgUCXWOm
+SwIbAwYLCQgHAwIGFQgCCQoLBBYCAwECHgECF4AACgkQXuXfa+0uJE5gPwP/cFcJ
+3DcU6VVHa1FjQrCYNO9DglmG0AelqhcRNbnaX54nJcean9y2+Y5V6JyAsAwNPFUL
+4/mFQjvYeHrzm5cWExcYwaRukJo3jLve2JKsBtecSnbNWObbrDVZhuOv0mN/zrDd
++uxxBB9/rr+yyTCKLMIzp3RRQvco+b6TTmZICyidAf0EXWOnNAEEAMQSptDgnV5R
+Xh2XYg3jOfKVXIUm1+ocnTZXaPX8oQK8ztYPHYcxNnvxEL4yWqX9OifNF5bQdDNN
+O2218a8/NQWx5anZXHkv6boXhxuydgQlEz+aUVf6O5+k2Xi+fVoOpfC03lYQi0Tm
+wcLxFNP65FZ7pa/TTZH1WcJ7E9IV4kLBABEBAAH+AwMC0D/sjL6p9z9gLcdnJfu9
+LwdhzgvcxeaTiQ45fMwJgtqlllPwdc6S9C7g5l3AO4A5SuqwSATz7CyriPLuJpyC
+6RBea9AqC0Hic3/8Vrl4TH45jApOb7SYGI1EHQD28qbVafC+MPVAeLy7Y7EPeVN9
+kkXKWB6xOm5kclknNKNVfR0U7Ps+ZXdK1+uEomRt6IN8EUWeW+o0VVS2J4YkY9wj
+8/el2CZvWIU881fOBY5rjkISDeunSA2GlyTjv0rhNgYZ87GrqoD2Zk1mLQ+kXktg
+HNLAtzXssDgO+ga3S1nAo1X9LhNzIE1WX0etAkeKkOHIetqWMHkXWU9KHPn7sppT
+lT7kX2oYQ99mNHDKwvru1sCnGKWv3gAReEeymAf9V3GUDhyBJ2pVv8lwderUtZlh
+LJtQOA6vuIvqrN2LoNCILT1CkAeDcnm6wXkJXhMt3HPYjzs0NdvvJs4IoT6/HXb3
+ThU/Dz/AoiKtySv8fIkBPQQYAQIACQUCXWOnNAIbAgCoCRBe5d9r7S4kTp0gBBkB
+AgAGBQJdY6c0AAoJEG5Ev8mCjFTQGMYEALuOyLu87cWW+vJUJptQIdwBn68ZmJnh
+1ruFgn8SOs99mkOOfgO2pvmfAF3rJgDNUVW6Ly29mmwEWZUNYMcp6EZ+ItFglNmv
+FT79DcECUSLdYZNxDy6lj3RMKdhMFx+74JB7A2DX3U0z1tXTqgtr82VDmVuBKXSs
+pNdW+809T5mRJgIEAJ7xapChOfM0z5wXoNVTpDFRoL3Te0PMufMPH9111LXFSPNz
+Uzw93D1R02l5c4l0yPKu6FmGhIg+NhTtxImdkTcN9t52Gc8ZdDfHgOk4qpysZriF
+X7jZiv0UhMlU6Bkj0BAw0hDeB9tTf7FMXt1M/D700sBeMohxug/OF68hMtu2
+=IMnM
+-----END PGP PRIVATE KEY BLOCK-----'''
+    final keyId = '828C54D0'
+    final subkeyPassword = 'foo'
 
 }

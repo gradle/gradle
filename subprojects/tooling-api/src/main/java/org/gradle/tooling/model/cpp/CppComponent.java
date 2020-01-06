@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.model.cpp;
 
-import org.gradle.api.Incubating;
 import org.gradle.tooling.model.DomainObjectSet;
 
 /**
@@ -24,7 +23,6 @@ import org.gradle.tooling.model.DomainObjectSet;
  *
  * @since 4.10
  */
-@Incubating
 public interface CppComponent {
     /**
      * Returns the name of this component. This is used to disambiguate the component of a project. Each component has a unique name within its project. However, these names are not unique across multiple projects.

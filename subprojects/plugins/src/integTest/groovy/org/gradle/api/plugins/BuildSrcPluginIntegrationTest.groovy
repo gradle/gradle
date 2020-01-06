@@ -17,11 +17,13 @@
 package org.gradle.api.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Issue
 
 class BuildSrcPluginIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("GRADLE-2001")
+    @ToBeFixedForInstantExecution
     def "can use plugin from buildSrc that changes"() {
         given:
         executer.requireIsolatedDaemons() // make sure we get the same daemon both times
@@ -33,7 +35,7 @@ class BuildSrcPluginIntegrationTest extends AbstractIntegrationSpec {
         file("buildSrc/build.gradle") << """
             apply plugin: "groovy"
             dependencies {
-                runtime project(":testplugin")
+                runtimeOnly project(":testplugin")
             }
         """
 
@@ -41,8 +43,8 @@ class BuildSrcPluginIntegrationTest extends AbstractIntegrationSpec {
             apply plugin: "groovy"
 
             dependencies {
-                compile localGroovy()
-                compile gradleApi()
+                implementation localGroovy()
+                implementation gradleApi()
             }
         """
 
@@ -58,7 +60,6 @@ class BuildSrcPluginIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
-
 
         file("buildSrc/testplugin/src/main/resources/META-INF/gradle-plugins/test-plugin.properties") << """
             implementation-class=testplugin.TestPlugin
@@ -146,12 +147,12 @@ class BuildSrcPluginIntegrationTest extends AbstractIntegrationSpec {
             allprojects {
                 apply plugin: 'groovy'
                 dependencies {
-                    compile gradleApi()
-                    compile localGroovy()
+                    implementation gradleApi()
+                    implementation localGroovy()
                 }
             }
             dependencies {
-                runtime project(":subproject")
+                runtimeOnly project(":subproject")
             }
         """
         file("buildSrc/settings.gradle") << """
@@ -169,6 +170,26 @@ class BuildSrcPluginIntegrationTest extends AbstractIntegrationSpec {
         then:
         outputContains("From MyPlugin")
         outputContains("From MyPluginSub")
+    }
+
+    def "Default buildSrc root project dependencies are on the api"() {
+        when:
+        file("buildSrc/settings.gradle") << "include ':subInBuildSrc'"
+        file("buildSrc/subInBuildSrc/build.gradle") << """
+            plugins { id 'java-library' }
+            dependencies { implementation(project(':')) }
+        """
+        file("buildSrc/subInBuildSrc/src/main/java/MySubProjectClass.java") << """
+            import org.gradle.api.Project;
+            import groovy.lang.Closure;
+            public class MySubProjectClass {
+                private Project p;
+                private Closure c;
+            }
+        """
+        then:
+        succeeds "help"
+        outputContains("Task :buildSrc:subInBuildSrc:compileJava")
     }
 
     private void writeBuildSrcPlugin(String location, String className) {

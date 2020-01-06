@@ -16,6 +16,7 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.file.TestFile
@@ -37,37 +38,39 @@ class ArtifactDependenciesIntegrationTest extends AbstractIntegrationTest {
     public final TestResources testResources = new TestResources(testDirectoryProvider)
 
     @Before
-    public void setup() {
+    void setup() {
         executer.requireOwnGradleUserHomeDir()
     }
 
     @Test
-    public void canHaveConfigurationHierarchy() {
+    void canHaveConfigurationHierarchy() {
         File buildFile = testFile("projectWithConfigurationHierarchy.gradle");
         usingBuildFile(buildFile).run();
     }
 
     @Test
-    public void dependencyReportWithConflicts() {
+    @ToBeFixedForInstantExecution
+    void dependencyReportWithConflicts() {
+
         File buildFile = testFile("projectWithConflicts.gradle");
         usingBuildFile(buildFile).run();
         usingBuildFile(buildFile).withDependencyList().run();
     }
 
     @Test
-    public void canHaveCycleInDependencyGraph() throws IOException {
+    void canHaveCycleInDependencyGraph() throws IOException {
         File buildFile = testFile("projectWithCyclesInDependencyGraph.gradle");
         usingBuildFile(buildFile).run();
     }
 
     @Test
-    public void canUseDynamicVersions() throws IOException {
+    void canUseDynamicVersions() throws IOException {
         File buildFile = testFile("projectWithDynamicVersions.gradle");
         usingBuildFile(buildFile).run();
     }
 
     @Test
-    public void resolutionFailsWhenProjectHasNoRepositoriesEvenWhenArtifactIsCachedLocally() {
+    void resolutionFailsWhenProjectHasNoRepositoriesEvenWhenArtifactIsCachedLocally() {
         testFile('settings.gradle') << 'include "a", "b"'
         testFile('build.gradle') << """
 subprojects {
@@ -98,7 +101,7 @@ project(':b') {
     }
 
     @Test
-    public void resolutionFailsForMissingArtifact() {
+    void resolutionFailsForMissingArtifact() {
         testFile('build.gradle') << """
 repositories {
     maven { url '${repo.uri}' }
@@ -122,19 +125,19 @@ task listMissingClassifier { doLast { configurations.missingClassifier.each { } 
         inTestDirectory().withTasks('listJar').run()
 
         def result = inTestDirectory().withTasks('listMissingExt').runWithFailure()
-        result.assertHasCause("""Could not find lib.zip (org.gradle.test:lib:1.0).
+        result.assertHasCause("""Could not find lib-1.0.zip (org.gradle.test:lib:1.0).
 Searched in the following locations:
     ${module.artifactFile(type: 'zip').toURL()}""")
 
         result = inTestDirectory().withTasks('listMissingClassifier').runWithFailure()
-        result.assertHasCause("""Could not find lib-classifier1.jar (org.gradle.test:lib:1.0).
+        result.assertHasCause("""Could not find lib-1.0-classifier1.jar (org.gradle.test:lib:1.0).
 Searched in the following locations:
     ${module.artifactFile(classifier: 'classifier1').toURL()}""")
     }
 
     @Test
     @Issue("GRADLE-1342")
-    public void resolutionDoesNotUseCachedArtifactFromDifferentRepository() {
+    void resolutionDoesNotUseCachedArtifactFromDifferentRepository() {
         def repo1 = maven('repo1')
         repo1.module('org.gradle.test', 'external1', '1.0').publish()
         def repo2 = maven('repo2')
@@ -171,7 +174,7 @@ project(':b') {
     }
 
     @Test
-    public void artifactFilesPreserveFixedOrder() {
+    void artifactFilesPreserveFixedOrder() {
         repo.module('org', 'leaf1').publish()
         repo.module('org', 'leaf2').publish()
         repo.module('org', 'leaf3').publish()
@@ -203,7 +206,7 @@ project(':b') {
     }
 
     @Test
-    public void exposesMetaDataAboutResolvedArtifactsInAFixedOrder() {
+    void exposesMetaDataAboutResolvedArtifactsInAFixedOrder() {
         def module = repo.module('org.gradle.test', 'lib', '1.0')
         module.artifact(type: 'zip')
         module.artifact(classifier: 'classifier')
@@ -253,7 +256,7 @@ task test {
 
     @Test
     @Issue("GRADLE-1567")
-    public void resolutionDifferentiatesBetweenArtifactsThatDifferOnlyInClassifier() {
+    void resolutionDifferentiatesBetweenArtifactsThatDifferOnlyInClassifier() {
         def module = repo.module('org.gradle.test', 'external1', '1.0')
         module.artifact(classifier: 'classifier1')
         module.artifact(classifier: 'classifier2')
@@ -299,7 +302,7 @@ project(':b') {
 
     @Test
     @Issue("GRADLE-739")
-    public void singleConfigurationCanContainMultipleArtifactsThatOnlyDifferByClassifier() {
+    void singleConfigurationCanContainMultipleArtifactsThatOnlyDifferByClassifier() {
         def module = repo.module('org.gradle.test', 'external1', '1.0')
         module.artifact(classifier: 'baseClassifier')
         module.artifact(classifier: 'extendedClassifier')
@@ -354,7 +357,7 @@ task test {
 
     @Test
     @Issue("GRADLE-739")
-    public void canUseClassifiersCombinedWithArtifactWithNonStandardPackaging() {
+    void canUseClassifiersCombinedWithArtifactWithNonStandardPackaging() {
         def module = repo.module('org.gradle.test', 'external1', '1.0')
         module.artifact(type: 'txt')
         module.artifact(classifier: 'baseClassifier', type: 'jar')
@@ -399,7 +402,7 @@ task test {
 
     @Test
     @Issue("GRADLE-739")
-    public void configurationCanContainMultipleArtifactsThatOnlyDifferByType() {
+    void configurationCanContainMultipleArtifactsThatOnlyDifferByType() {
         def module = repo.module('org.gradle.test', 'external1', '1.0')
         module.artifact(type: 'zip')
         module.artifact(classifier: 'classifier')
@@ -438,7 +441,7 @@ task test {
     }
 
     @Test
-    public void nonTransitiveDependenciesAreNotRetrieved() {
+    void nonTransitiveDependenciesAreNotRetrieved() {
         repo.module('org.gradle.test', 'one', '1.0').publish()
         repo.module('org.gradle.test', 'two', '1.0').publish()
         def module = repo.module('org.gradle.test', 'external1', '1.0')
@@ -483,7 +486,7 @@ task test {
     }
 
     @Test
-    public void "configuration transitive = false overrides dependency transitive flag"() {
+    void "configuration transitive = false overrides dependency transitive flag"() {
         repo.module('org.gradle.test', 'one', '1.0').publish()
         def module = repo.module('org.gradle.test', 'external1', '1.0')
         module.dependsOn('org.gradle.test', 'one', '1.0')
@@ -515,7 +518,7 @@ task test {
      */
 
     @Test
-    public void addingClassifierToDuplicateDependencyDoesNotAffectOriginal() {
+    void addingClassifierToDuplicateDependencyDoesNotAffectOriginal() {
         def module = repo.module('org.gradle.test', 'external1', '1.0')
         module.artifact(classifier: 'withClassifier')
         module.publish()
@@ -548,13 +551,13 @@ task test {
     }
 
     @Test
-    public void projectCanDependOnItself() {
+    void projectCanDependOnItself() {
         TestFile buildFile = testFile("build.gradle");
         buildFile << '''
             configurations { compile; create('default') }
             dependencies { compile project(':') }
-            task jar1(type: Jar) { destinationDir = buildDir; baseName = '1' }
-            task jar2(type: Jar) { destinationDir = buildDir; baseName = '2' }
+            task jar1(type: Jar) { destinationDirectory = buildDir; archiveBaseName = '1' }
+            task jar2(type: Jar) { destinationDirectory = buildDir; archiveBaseName = '2' }
             artifacts { compile jar1; 'default' jar2 }
             task listJars {
                 doLast {

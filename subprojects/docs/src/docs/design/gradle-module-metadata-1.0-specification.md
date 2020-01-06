@@ -1,8 +1,8 @@
-# Gradle module metadata 1.0 specification
+# Gradle Module Metadata 1.0 specification
 
-Consumption of Gradle metadata is automatic. However publication needs to be enabled explicitly for any Gradle version prior to Gradle 6.
+Consumption of Gradle Module Metadata is automatic. However publication needs to be enabled explicitly for any Gradle version prior to Gradle 6.
 
-Publishing Gradle metadata can be enabled in Gradle settings file (`settings.gradle`):
+Publishing Gradle Module Metadata can be enabled in Gradle settings file (`settings.gradle`):
 
 ```
 enableFeaturePreview("GRADLE_METADATA")
@@ -34,7 +34,7 @@ The file must contain a JSON object with the following values:
 
 - `formatVersion`: must be present and the first value of the JSON object. Its value must be `"1.0"`
 - `component`: optional. Describes the identity of the component contained in the module.
-- `builtBy`: optional. Describes the producer of this metadata file and the contents of the module.
+- `createdBy`: optional. Describes the producer of this metadata file and the contents of the module.
 - `variants`: optional. Describes the variants of the component packaged in the module, if any.
 
 ### `component` value
@@ -46,7 +46,7 @@ This value must contain an object with the following values:
 - `version`: The version of this component. A string
 - `url`: optional. When present, indicates where the metadata for the component may be found. When missing, indicates that this metadata file defines the metadata for the whole component. 
 
-### `builtBy` value
+### `createdBy` value
 
 This value must contain an object with the following values:
 
@@ -54,7 +54,7 @@ This value must contain an object with the following values:
 
 ### `gradle` value
 
-This value must contain an object with the following values:
+This value, nested in `createdBy`, must contain an object with the following values:
 
 - `version`: The version of Gradle. A string
 - `buildId`: The buildId for the Gradle instance. A string
@@ -72,7 +72,8 @@ This value must contain an array with zero or more elements. Each element must b
 
 ### `attributes` value
 
-This value must contain an object with a value for each attribute. The attribute value must be a string or boolean.
+This value, nested in `variants` or elements of `dependencies` or `dependencyConstraints` nodes, must contain an object with a value for each attribute.
+The attribute value must be a string or boolean.
 
 ### `capabilities` value
 
@@ -86,8 +87,21 @@ This value must contain an array of 0 or more capabilities. Each capability is a
 
 - `org.gradle.usage` indicates the purpose of the variant. See the `org.gradle.api.attributes.Usage` class for more details. Value must be a string.
 - `org.gradle.status` indicates the kind of release: one of `release` or `integration`.
-- `org.gradle.category` indicates the type of component (library or platform). This attribute is mostly used to disambiguate Maven POM files derived either as a platform or a library. Value must be a string.
+- `org.gradle.category` indicates the type of component (library, platform or documentation). This attribute is mostly used to disambiguate Maven POM files derived either as a platform or a library. Value must be a string.
+- `org.gradle.libraryelements` indicates the content of a `org.gradle.category=library` variant, like `jar`, `classes` or `headers-cplusplus`. Value must be a string.
+- `org.gradle.docstype` indicates the documentation type of a `org.gradle.category=documentation` variant, like `javadoc`, `sources` or `doxygen`. Value must be a string.
 - `org.gradle.dependency.bundling` indicates how dependencies of the variant are bundled. Either externally, embedded or shadowed. See the `org.gradle.api.attributes.Bundling` for more details. Value must be a string.
+
+##### Deprecated attributes value
+
+The `org.gradle.usage` attribute has seen an evolution for its values.
+The values `java-api-*` and `java-runtime-*` are now deprecated and replaced by a new combination.
+
+The values for the Java ecosystem are now limited to `java-api` / `java-runtime` combined with the relevant value for `org.gradle.libraryelements`.
+
+Values for the native ecosystem remain unaffected.
+
+Existing metadata must remain compatible and thus tools supporting the Gradle Module Metadata format must support both old and new values, while no longer publishing the deprecated ones.
 
 #### Java Ecosystem specific attributes
 
@@ -99,7 +113,7 @@ This value must contain an array of 0 or more capabilities. Each capability is a
 
 ### `available-at` value
 
-This value must contain an object with the following values:
+This value, nested in `variants`, must contain an object with the following values:
 
 - `url`: The location of the metadata file that describes the variant. A string. In version 1.0, this must be a path relative to the module.
 - `group`: The group of the module. A string
@@ -108,7 +122,7 @@ This value must contain an object with the following values:
 
 ### `dependencies` value
 
-This value must contain an array with zero or more elements. Each element must be an object with the following values:
+This value, nested in `variants`, must contain an array with zero or more elements. Each element must be an object with the following values:
 
 - `group`: The group of the dependency.
 - `module`: The module of the dependency.
@@ -120,15 +134,15 @@ This value must contain an array with zero or more elements. Each element must b
 
 #### `version` value
 
-This value defines the version constraint of a dependency or dependency constraint. Has the same meaning as `version` in the Gradle DSL. A version constraint consists of:
+This value, nested in elements of the `dependencies` or `dependencyConstraints` nodes, defines the version constraint of a dependency or dependency constraint. Has the same meaning as `version` in the Gradle DSL. A version constraint consists of:
 - `requires`: optional. The required version for this dependency.
 - `prefers`: optional. The preferred version for this dependency.
 - `strictly`: optional. A strictly enforced version requirement for this dependency.
-- `rejects`: optional: An array of rejected versions for this dependency.
+- `rejects`: optional. An array of rejected versions for this dependency.
 
 #### `excludes` value
 
-This value must contain an array with zero or more elements. Each element has the same meaning as `exclude` in the Gradle DSL.
+This value, nested in elements of the `dependencies` node, must contain an array with zero or more elements. Each element has the same meaning as `exclude` in the Gradle DSL.
 
 Each element must be an object with the of the following values:
 
@@ -139,7 +153,7 @@ An exclude that has a wildcard value for both `group` and `module` will exclude 
 
 ### `dependencyConstraints` value
 
-This value must contain an array with zero or more elements. Each element must be an object with the following values:
+This value, nested in `variants`, must contain an array with zero or more elements. Each element must be an object with the following values:
 
 - `group`: The group of the dependency constraint.
 - `module`: The module of the dependency constraint.
@@ -149,13 +163,19 @@ This value must contain an array with zero or more elements. Each element must b
 
 ### `files` value
 
-This value must contain an array with zero or more elements. Each element must be an object with the following values:
+This value, nested in `variants`, must contain an array with zero or more elements. Each element must be an object with the following values:
 
 - `name`: The name of the file. A string. This will be used to calculate the identity of the file in the cache, which means it must be unique across variants for different files.
 - `url`: The location of the file. A string. In version 1.0, this must be a path relative to the module.
 - `size`: The size of the file in bytes. A number.
 - `sha1`: The SHA1 hash of the file content. A hex string.
 - `md5`: The MD5 hash of the file content. A hex string.
+
+### Changelog
+
+#### 1.0
+
+- Initial release
 
 ## Example
 
@@ -167,7 +187,7 @@ This value must contain an array with zero or more elements. Each element must b
         "module": "mylib",
         "version": "1.2"
     },
-    "builtBy": {
+    "createdBy": {
         "gradle": {
             "version": "4.3",
             "buildId": "abc123"
@@ -177,7 +197,9 @@ This value must contain an array with zero or more elements. Each element must b
         {
             "name": "api",
             "attributes": {
-                "usage": "java-compile"
+                "org.gradle.usage": "java-api",
+                "org.gradle.category": "library",
+                "org.gradle.libraryelements": "jar"
             },
             "files": [
                 { 
@@ -205,7 +227,9 @@ This value must contain an array with zero or more elements. Each element must b
         {
             "name": "runtime",
             "attributes": {
-                "usage": "java-runtime"
+                "org.gradle.usage": "java-runtime",
+                "org.gradle.category": "library",
+                "org.gradle.libraryelements": "jar"
             },
             "files": [
                 { 
@@ -221,6 +245,13 @@ This value must contain an array with zero or more elements. Each element must b
                     "group": "some.group", 
                     "module": "other-lib", 
                     "version": { "requires": "[3.0, 4.0)", "prefers": "3.4", "rejects": ["3.4.1"] } 
+                }
+            ],
+            "dependencyConstraints": [
+                { 
+                    "group": "some.group", 
+                    "module": "other-lib-2", 
+                    "version": { "requires": "1.0" } 
                 }
             ]
         }

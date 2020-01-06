@@ -36,6 +36,8 @@ import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Sync;
 import org.gradle.api.tasks.application.CreateStartScripts;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
@@ -108,10 +110,11 @@ public class PlayDistributionPlugin extends RuleSource {
     @Defaults
     void createDistributions(@Path("distributions") PlayDistributionContainer distributions, @Path("binaries") ModelMap<PlayApplicationBinarySpecInternal> playBinaries, PlayPluginConfigurations configurations, ServiceRegistry serviceRegistry) {
         FileOperations fileOperations = serviceRegistry.get(FileOperations.class);
-        Instantiator instantiator = serviceRegistry.get(Instantiator.class);
+        ObjectFactory objectFactory = serviceRegistry.get(ObjectFactory.class);
         for (PlayApplicationBinarySpecInternal binary : playBinaries) {
-            PlayDistribution distribution = instantiator.newInstance(DefaultPlayDistribution.class, binary.getProjectScopedName(), fileOperations.copySpec(), binary);
-            distribution.setBaseName(binary.getProjectScopedName());
+            PlayDistribution distribution = objectFactory.newInstance(DefaultPlayDistribution.class, binary.getProjectScopedName(), fileOperations.copySpec(), binary);
+
+            distribution.getDistributionBaseName().set(binary.getProjectScopedName());
             distributions.add(distribution);
         }
     }
@@ -196,7 +199,7 @@ public class PlayDistributionPlugin extends RuleSource {
             String capitalizedDistName = StringUtils.capitalize(distribution.getName());
             final String stageTaskName = "stage" + capitalizedDistName + "Dist";
             final File stageDir = new File(buildDir, "stage");
-            final String baseName = StringUtils.isNotEmpty(distribution.getBaseName()) ? distribution.getBaseName() : distribution.getName();
+            final Provider<String> baseName = distribution.getDistributionBaseName();
             tasks.create(stageTaskName, Sync.class, new Action<Sync>() {
                 @Override
                 public void execute(Sync sync) {

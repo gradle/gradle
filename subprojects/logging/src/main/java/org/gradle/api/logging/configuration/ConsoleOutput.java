@@ -16,8 +16,6 @@
 
 package org.gradle.api.logging.configuration;
 
-import org.gradle.api.Incubating;
-
 /**
  * Specifies how to treat color and dynamic console output.
  */
@@ -40,6 +38,5 @@ public enum ConsoleOutput {
      *
      * @since 4.3
      */
-    @Incubating
     Verbose
 }

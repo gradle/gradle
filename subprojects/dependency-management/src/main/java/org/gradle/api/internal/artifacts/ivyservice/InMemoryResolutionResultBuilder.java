@@ -37,6 +37,7 @@ public class InMemoryResolutionResultBuilder implements DependencyGraphVisitor {
 
     @Override
     public void start(RootGraphNode root) {
+        resolutionResultBuilder.setRequestedAttributes(root.getMetadata().getAttributes());
     }
 
     @Override

@@ -17,7 +17,6 @@ package org.gradle.api.artifacts;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.file.FileCollection;
 import org.gradle.internal.HasInternalProtocol;
@@ -73,7 +72,6 @@ public interface ResolvableDependencies extends ArtifactView {
      *
      * @since 4.6
      */
-    @Incubating
     DependencyConstraintSet getDependencyConstraints();
 
     /**

@@ -13,12 +13,10 @@ dependencies {
     implementation(project(":processServices"))
 
     implementation(library("slf4j_api"))
+
+    testImplementation(testFixtures(project(":core")))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.WORKER
-}
-
-testFixtures {
-    from(":core")
 }

@@ -17,13 +17,11 @@
 package org.gradle.internal.fingerprint.impl
 
 import org.gradle.api.internal.cache.StringInterner
-import org.gradle.api.internal.changedetection.state.DefaultWellKnownFileLocations
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.internal.MutableReference
 import org.gradle.internal.fingerprint.FingerprintingStrategy
-import org.gradle.internal.hash.TestFileHasher
+import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
-import org.gradle.internal.snapshot.impl.DefaultFileSystemMirror
-import org.gradle.internal.snapshot.impl.DefaultFileSystemSnapshotter
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -38,6 +36,8 @@ class PathNormalizationStrategyTest extends Specification {
     private StringInterner stringInterner = new StringInterner()
 
     public static final String IGNORED = "IGNORED"
+    def virtualFileSystem = TestFiles.virtualFileSystem()
+
     List<FileSystemSnapshot> roots
     TestFile jarFile1
     TestFile jarFile2
@@ -51,10 +51,6 @@ class PathNormalizationStrategyTest extends Specification {
     TestFile missingFile
 
     def setup() {
-        StringInterner interner = Mock(StringInterner) {
-            intern(_) >> { String string -> string }
-        }
-
         jarFile1 = file("dir/libs/library-a.jar")
         jarFile1 << "JAR file #1"
         jarFile2 = file("dir/libs/library-b.jar")
@@ -67,17 +63,20 @@ class PathNormalizationStrategyTest extends Specification {
         emptyDir.mkdirs()
         missingFile = file("missing-file")
 
-        def snapshotter = new DefaultFileSystemSnapshotter(new TestFileHasher(), interner, TestFiles.fileSystem(), new DefaultFileSystemMirror(new DefaultWellKnownFileLocations([])))
-
         roots = [
-            snapshotter.snapshot(jarFile1),
-            snapshotter.snapshot(jarFile2),
-            snapshotter.snapshot(resources),
-            snapshotter.snapshot(emptyDir),
-            snapshotter.snapshot(missingFile)
+            snapshot(jarFile1),
+            snapshot(jarFile2),
+            snapshot(resources),
+            snapshot(emptyDir),
+            snapshot(missingFile)
         ]
     }
 
+    private CompleteFileSystemLocationSnapshot snapshot(File file) {
+        MutableReference<CompleteFileSystemLocationSnapshot> result = MutableReference.empty()
+        virtualFileSystem.read(file.absolutePath, result.&set)
+        return result.get()
+    }
 
     def "sensitivity NONE"() {
         def fingerprints = collectFingerprints(IgnoredPathFingerprintingStrategy.INSTANCE)
@@ -154,6 +153,5 @@ class PathNormalizationStrategyTest extends Specification {
             fingerprints.put(new File(path), normalizedPath)
         }
         return fingerprints
-
     }
 }

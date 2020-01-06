@@ -31,8 +31,8 @@ class GradleRunnerMiscEndUserIntegrationTest extends BaseTestKitEndUserIntegrati
             apply plugin: 'groovy'
 
             dependencies {
-                compile localGroovy()
-                testCompile('org.spockframework:spock-core:1.0-groovy-2.4') {
+                implementation localGroovy()
+                testImplementation('org.spockframework:spock-core:1.0-groovy-2.4') {
                     exclude module: 'groovy-all'
                 }
             }
@@ -64,7 +64,7 @@ class GradleRunnerMiscEndUserIntegrationTest extends BaseTestKitEndUserIntegrati
         def testKitJar = jarsDir.listFiles().find { it.name.contains "test-kit" }
         buildFile << """
             dependencies {
-                testCompile fileTree(dir: 'jars', include: '*.jar')
+                testImplementation fileTree(dir: 'jars', include: '*.jar')
             }
         """
 
@@ -189,7 +189,7 @@ class GradleRunnerMiscEndUserIntegrationTest extends BaseTestKitEndUserIntegrati
     static String gradleTestKitDependency() {
         """
             dependencies {
-                testCompile gradleTestKit()
+                testImplementation gradleTestKit()
             }
         """
     }

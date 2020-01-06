@@ -39,6 +39,7 @@ import org.gradle.internal.component.external.model.ModuleComponentArtifactMetad
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.external.model.RealisedConfigurationMetadata;
+import org.gradle.internal.component.external.model.UrlBackedArtifactMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
@@ -95,7 +96,6 @@ public class RealisedMavenModuleResolveMetadataSerializationHelper extends Abstr
             if (dependency instanceof GradleDependencyMetadata) {
                 encoder.writeByte(GRADLE_DEPENDENCY_METADATA);
                 writeDependencyMetadata(encoder, (GradleDependencyMetadata) dependency);
-                break;
             } else if (dependency instanceof ConfigurationBoundExternalDependencyMetadata) {
                 ConfigurationBoundExternalDependencyMetadata dependencyMetadata = (ConfigurationBoundExternalDependencyMetadata) dependency;
                 ExternalDependencyDescriptor dependencyDescriptor = dependencyMetadata.getDependencyDescriptor();
@@ -115,6 +115,7 @@ public class RealisedMavenModuleResolveMetadataSerializationHelper extends Abstr
         encoder.writeSmallInt(derivedVariants.size());
         for (ConfigurationMetadata derivedVariant : derivedVariants) {
             writeConfiguration(encoder, derivedVariant);
+            writeFiles(encoder, derivedVariant.getArtifacts());
             writeDerivedVariantExtra(encoder, derivedVariant, deduplicationDependencyCache);
         }
     }
@@ -138,9 +139,11 @@ public class RealisedMavenModuleResolveMetadataSerializationHelper extends Abstr
             ImmutableSet<String> hierarchy = LazyToRealisedModuleComponentResolveMetadataHelper.constructHierarchy(configuration, configurationDefinitions);
             ImmutableAttributes attributes = getAttributeContainerSerializer().read(decoder);
             ImmutableCapabilities capabilities = readCapabilities(decoder);
+            ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts = readFiles(decoder, metadata.getId());
 
             RealisedConfigurationMetadata configurationMetadata = new RealisedConfigurationMetadata(metadata.getId(), configurationName, configuration.isTransitive(), configuration.isVisible(),
-                hierarchy, RealisedMavenModuleResolveMetadata.getArtifactsForConfiguration(metadata.getId(), configurationName), ImmutableList.<ExcludeMetadata>of(), attributes, capabilities);
+                hierarchy, artifacts, ImmutableList.of(), attributes, capabilities,
+                artifacts.stream().noneMatch(a -> a instanceof UrlBackedArtifactMetadata), false);
             ImmutableList<ModuleDependencyMetadata> dependencies = readDependencies(decoder, metadata, configurationMetadata, deduplicationDependencyCache);
             configurationMetadata.setDependencies(dependencies);
             configurations.put(configurationName, configurationMetadata);
@@ -200,6 +203,7 @@ public class RealisedMavenModuleResolveMetadataSerializationHelper extends Abstr
         String name = decoder.readString();
         ImmutableAttributes attributes = attributeContainerSerializer.read(decoder);
         ImmutableCapabilities immutableCapabilities = readCapabilities(decoder);
+        ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts = readFiles(decoder, resolveMetadata.getId());
         boolean transitive = decoder.readBoolean();
         boolean visible = decoder.readBoolean();
         ImmutableSet<String> hierarchy = ImmutableSet.copyOf(readStringSet(decoder));
@@ -210,10 +214,12 @@ public class RealisedMavenModuleResolveMetadataSerializationHelper extends Abstr
             transitive,
             visible,
             hierarchy,
-            ImmutableList.<ModuleComponentArtifactMetadata>of(),
+            artifacts,
             ImmutableList.copyOf(excludeMetadata),
             attributes,
-            immutableCapabilities
+            immutableCapabilities,
+            artifacts.stream().noneMatch(a -> a instanceof UrlBackedArtifactMetadata),
+            false
         );
         ImmutableList<ModuleDependencyMetadata> dependencies = readDependencies(decoder, resolveMetadata, realized, deduplicationDependencyCache);
         realized.setDependencies(dependencies);

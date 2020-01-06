@@ -76,26 +76,24 @@ public class RelativeFileNameTransformer implements Transformer<String, File> {
     }
 
     private String findRelativePath(String from, String to) {
-        List<String> fromPath = splitPath(from);
-        List<String> toPath = splitPath(to);
+        LinkedList<String> fromPath = splitPath(from);
+        LinkedList<String> toPath = splitPath(to);
         List<String> relativePath = new ArrayList<String>();
 
         while (!fromPath.isEmpty() && !toPath.isEmpty() && fromPath.get(0).equals(toPath.get(0))) {
-            fromPath.remove(0);
-            toPath.remove(0);
+            fromPath.removeFirst();
+            toPath.removeFirst();
         }
         for (String ignored : fromPath) {
             relativePath.add("..");
         }
-        for (String entry : toPath) {
-            relativePath.add(entry);
-        }
+        relativePath.addAll(toPath);
         return Joiner.on(File.separatorChar).join(relativePath);
     }
 
-    private List<String> splitPath(String path) {
+    private LinkedList<String> splitPath(String path) {
         File pathFile = new File(path);
-        List<String> split = new LinkedList<String>();
+        LinkedList<String> split = new LinkedList<String>();
         while (pathFile != null) {
             split.add(0, pathFile.getName());
             pathFile = pathFile.getParentFile();

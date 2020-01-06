@@ -24,10 +24,16 @@ public class DefaultEclipseWorkspaceProject implements EclipseWorkspaceProject, 
 
     private final String name;
     private final File location;
+    private final boolean isOpen;
 
-    public DefaultEclipseWorkspaceProject(String name, File location) {
+    public DefaultEclipseWorkspaceProject(String name, File location, boolean isOpen) {
         this.name = name;
         this.location = location;
+        this.isOpen = isOpen;
+    }
+
+    public DefaultEclipseWorkspaceProject(String name, File location) {
+        this(name, location, true);
     }
 
     @Override
@@ -38,5 +44,10 @@ public class DefaultEclipseWorkspaceProject implements EclipseWorkspaceProject, 
     @Override
     public File getLocation() {
         return location;
+    }
+
+    @Override
+    public boolean isOpen() {
+        return isOpen;
     }
 }

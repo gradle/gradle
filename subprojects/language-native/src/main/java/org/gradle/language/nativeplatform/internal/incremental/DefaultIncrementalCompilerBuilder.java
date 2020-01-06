@@ -25,8 +25,9 @@ import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.tasks.properties.LifecycleAwareValue;
 import org.gradle.api.provider.Provider;
 import org.gradle.cache.PersistentStateCache;
+import org.gradle.internal.file.Deleter;
 import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.snapshot.FileSystemSnapshotter;
+import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.nativeplatform.internal.Expression;
 import org.gradle.language.nativeplatform.internal.IncludeDirectives;
@@ -43,56 +44,97 @@ import java.util.Map;
 import java.util.Set;
 
 public class DefaultIncrementalCompilerBuilder implements IncrementalCompilerBuilder {
-    private final FileSystemSnapshotter fileSystemSnapshotter;
+    private final BuildOperationExecutor buildOperationExecutor;
     private final CompilationStateCacheFactory compilationStateCacheFactory;
     private final CSourceParser sourceParser;
+    private final Deleter deleter;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
+    private final VirtualFileSystem virtualFileSystem;
     private final TaskFileVarFactory fileVarFactory;
-    private final BuildOperationExecutor buildOperationExecutor;
 
-    public DefaultIncrementalCompilerBuilder(FileSystemSnapshotter fileSystemSnapshotter, CompilationStateCacheFactory compilationStateCacheFactory, CSourceParser sourceParser, DirectoryFileTreeFactory directoryFileTreeFactory, TaskFileVarFactory fileVarFactory, BuildOperationExecutor buildOperationExecutor) {
-        this.fileSystemSnapshotter = fileSystemSnapshotter;
-        this.compilationStateCacheFactory = compilationStateCacheFactory;
-        this.sourceParser = sourceParser;
-        this.directoryFileTreeFactory = directoryFileTreeFactory;
-        this.fileVarFactory = fileVarFactory;
+    public DefaultIncrementalCompilerBuilder(
+        BuildOperationExecutor buildOperationExecutor,
+        CompilationStateCacheFactory compilationStateCacheFactory,
+        CSourceParser sourceParser,
+        Deleter deleter,
+        DirectoryFileTreeFactory directoryFileTreeFactory,
+        VirtualFileSystem virtualFileSystem,
+        TaskFileVarFactory fileVarFactory
+    ) {
         this.buildOperationExecutor = buildOperationExecutor;
+        this.compilationStateCacheFactory = compilationStateCacheFactory;
+        this.deleter = deleter;
+        this.directoryFileTreeFactory = directoryFileTreeFactory;
+        this.virtualFileSystem = virtualFileSystem;
+        this.fileVarFactory = fileVarFactory;
+        this.sourceParser = sourceParser;
     }
 
     @Override
     public IncrementalCompiler newCompiler(TaskInternal task, FileCollection sourceFiles, FileCollection includeDirs, Map<String, String> macros, Provider<Boolean> importAware) {
-        return new StateCollectingIncrementalCompiler(task, includeDirs, sourceFiles, macros, fileSystemSnapshotter, compilationStateCacheFactory, sourceParser, directoryFileTreeFactory, fileVarFactory, buildOperationExecutor, importAware);
+        return new StateCollectingIncrementalCompiler(
+            task,
+            includeDirs,
+            sourceFiles,
+            macros,
+            importAware,
+            buildOperationExecutor,
+            compilationStateCacheFactory,
+            sourceParser,
+            deleter,
+            directoryFileTreeFactory,
+            virtualFileSystem,
+            fileVarFactory
+        );
     }
 
     private static class StateCollectingIncrementalCompiler implements IncrementalCompiler, MinimalFileSet, LifecycleAwareValue {
-        private final Map<String, String> macros;
-        private final FileSystemSnapshotter fileSystemSnapshotter;
+        private final BuildOperationExecutor buildOperationExecutor;
         private final CompilationStateCacheFactory compilationStateCacheFactory;
         private final CSourceParser sourceParser;
+        private final Deleter deleter;
         private final DirectoryFileTreeFactory directoryFileTreeFactory;
-        private final BuildOperationExecutor buildOperationExecutor;
+        private final VirtualFileSystem virtualFileSystem;
+
+        private final Map<String, String> macros;
+        private final Provider<Boolean> importAware;
         private final TaskOutputsInternal taskOutputs;
         private final FileCollection includeDirs;
         private final String taskPath;
         private final FileCollection sourceFiles;
         private final FileCollection headerFilesCollection;
-        private final Provider<Boolean> importAware;
         private PersistentStateCache<CompilationState> compileStateCache;
         private IncrementalCompilation incrementalCompilation;
 
-        StateCollectingIncrementalCompiler(TaskInternal task, FileCollection includeDirs, FileCollection sourceFiles, Map<String, String> macros, FileSystemSnapshotter fileSystemSnapshotter, CompilationStateCacheFactory compilationStateCacheFactory, CSourceParser sourceParser, DirectoryFileTreeFactory directoryFileTreeFactory, TaskFileVarFactory fileVarFactory, BuildOperationExecutor buildOperationExecutor, Provider<Boolean> importAware) {
+        StateCollectingIncrementalCompiler(
+            TaskInternal task,
+            FileCollection includeDirs,
+            FileCollection sourceFiles,
+            Map<String, String> macros,
+            Provider<Boolean> importAware,
+
+            BuildOperationExecutor buildOperationExecutor,
+            CompilationStateCacheFactory compilationStateCacheFactory,
+            CSourceParser sourceParser,
+            Deleter deleter,
+            DirectoryFileTreeFactory directoryFileTreeFactory,
+            VirtualFileSystem virtualFileSystem,
+            TaskFileVarFactory fileVarFactory
+        ) {
             this.taskOutputs = task.getOutputs();
             this.taskPath = task.getPath();
             this.includeDirs = includeDirs;
             this.sourceFiles = sourceFiles;
             this.macros = macros;
-            this.fileSystemSnapshotter = fileSystemSnapshotter;
-            this.compilationStateCacheFactory = compilationStateCacheFactory;
-            this.sourceParser = sourceParser;
-            this.directoryFileTreeFactory = directoryFileTreeFactory;
-            this.buildOperationExecutor = buildOperationExecutor;
             this.importAware = importAware;
-            headerFilesCollection = fileVarFactory.newCalculatedInputFileCollection(task, this, sourceFiles, includeDirs);
+            this.headerFilesCollection = fileVarFactory.newCalculatedInputFileCollection(task, this, sourceFiles, includeDirs);
+
+            this.buildOperationExecutor = buildOperationExecutor;
+            this.compilationStateCacheFactory = compilationStateCacheFactory;
+            this.deleter = deleter;
+            this.directoryFileTreeFactory = directoryFileTreeFactory;
+            this.virtualFileSystem = virtualFileSystem;
+            this.sourceParser = sourceParser;
         }
 
         @Override
@@ -100,7 +142,7 @@ public class DefaultIncrementalCompilerBuilder implements IncrementalCompilerBui
             if (incrementalCompilation == null) {
                 throw new IllegalStateException("Header files should be calculated before compiler is created.");
             }
-            return new IncrementalNativeCompiler<T>(taskOutputs, compiler, compileStateCache, incrementalCompilation);
+            return new IncrementalNativeCompiler<T>(taskOutputs, compiler, deleter, compileStateCache, incrementalCompilation);
         }
 
         @Override
@@ -108,9 +150,9 @@ public class DefaultIncrementalCompilerBuilder implements IncrementalCompilerBui
             List<File> includeRoots = ImmutableList.copyOf(includeDirs);
             compileStateCache = compilationStateCacheFactory.create(taskPath);
             DefaultSourceIncludesParser sourceIncludesParser = new DefaultSourceIncludesParser(sourceParser, importAware.get());
-            DefaultSourceIncludesResolver dependencyParser = new DefaultSourceIncludesResolver(includeRoots, fileSystemSnapshotter);
+            DefaultSourceIncludesResolver dependencyParser = new DefaultSourceIncludesResolver(includeRoots, virtualFileSystem);
             IncludeDirectives includeDirectives = directivesForMacros(macros);
-            IncrementalCompileFilesFactory incrementalCompileFilesFactory = new IncrementalCompileFilesFactory(includeDirectives, sourceIncludesParser, dependencyParser, fileSystemSnapshotter);
+            IncrementalCompileFilesFactory incrementalCompileFilesFactory = new IncrementalCompileFilesFactory(includeDirectives, sourceIncludesParser, dependencyParser, virtualFileSystem);
             IncrementalCompileProcessor incrementalCompileProcessor = new IncrementalCompileProcessor(compileStateCache, incrementalCompileFilesFactory, buildOperationExecutor);
 
             incrementalCompilation = incrementalCompileProcessor.processSourceFiles(sourceFiles.getFiles());

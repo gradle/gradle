@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import org.apache.commons.io.FileUtils;
 import org.gradle.caching.internal.command.BuildCacheCommandFactory;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.controller.BuildCacheLoadCommand;
@@ -23,65 +24,77 @@ import org.gradle.caching.internal.controller.BuildCacheStoreCommand;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.DefaultBuildCancellationToken;
 import org.gradle.internal.execution.CachingResult;
-import org.gradle.internal.execution.IncrementalContext;
+import org.gradle.internal.execution.ExecutionRequestContext;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.history.OutputFilesRepository;
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector;
 import org.gradle.internal.execution.timeout.impl.DefaultTimeoutHandler;
+import org.gradle.internal.file.Deleter;
+import org.gradle.internal.fingerprint.overlap.impl.DefaultOverlappingOutputDetector;
+import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.id.UniqueId;
+import org.gradle.internal.operations.TestBuildOperationExecutor;
 import org.gradle.internal.scan.config.BuildScanPluginApplied;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.service.scopes.ExecutionGradleServices;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.snapshot.impl.DefaultFileSystemMirror;
+import org.gradle.internal.snapshot.ValueSnapshotter;
+import org.gradle.internal.vfs.VirtualFileSystem;
+import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Optional;
 
 public class WorkExecutorTestFixture {
 
-    private final BuildCacheController buildCacheController = new BuildCacheController() {
-        @Override
-        public boolean isEnabled() {
-            return false;
-        }
+    private final WorkExecutor<ExecutionRequestContext, CachingResult> workExecutor;
 
-        @Override
-        public boolean isEmitDebugLogging() {
-            return false;
-        }
+    WorkExecutorTestFixture(
+        VirtualFileSystem virtualFileSystem,
+        ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
+        ValueSnapshotter valueSnapshotter
 
-        @Override
-        public <T> Optional<T> load(BuildCacheLoadCommand<T> command) {
-            return Optional.empty();
-        }
+    ) {
+        BuildCacheController buildCacheController = new BuildCacheController() {
+            @Override
+            public boolean isEnabled() {
+                return false;
+            }
 
-        @Override
-        public void store(BuildCacheStoreCommand command) {
+            @Override
+            public boolean isEmitDebugLogging() {
+                return false;
+            }
 
-        }
+            @Override
+            public <T> Optional<T> load(BuildCacheLoadCommand<T> command) {
+                return Optional.empty();
+            }
 
-        @Override
-        public void close() {
+            @Override
+            public void store(BuildCacheStoreCommand command) {
 
-        }
-    };
-    private BuildInvocationScopeId buildInvocationScopeId = new BuildInvocationScopeId(UniqueId.generate());
-    private BuildCancellationToken cancellationToken = new DefaultBuildCancellationToken();
-    private final WorkExecutor<IncrementalContext, CachingResult> workExecutor;
+            }
 
-    WorkExecutorTestFixture(DefaultFileSystemMirror fileSystemMirror) {
+            @Override
+            public void close() {
+
+            }
+        };
+        BuildInvocationScopeId buildInvocationScopeId = new BuildInvocationScopeId(UniqueId.generate());
+        BuildCancellationToken cancellationToken = new DefaultBuildCancellationToken();
         BuildCacheCommandFactory buildCacheCommandFactory = null;
         OutputChangeListener outputChangeListener = new OutputChangeListener() {
             @Override
             public void beforeOutputChange() {
-                fileSystemMirror.beforeOutputChange();
+                virtualFileSystem.invalidateAll();
             }
 
             @Override
             public void beforeOutputChange(Iterable<String> affectedOutputPaths) {
-                fileSystemMirror.beforeOutputChange(affectedOutputPaths);
+                virtualFileSystem.update(affectedOutputPaths, () -> {});
             }
         };
         OutputFilesRepository outputFilesRepository = new OutputFilesRepository() {
@@ -100,20 +113,59 @@ public class WorkExecutorTestFixture {
                 return false;
             }
         };
+        Deleter deleter = new Deleter() {
+            @Override
+            public boolean deleteRecursively(File target) {
+                return deleteRecursively(target, false);
+            }
+
+            @Override
+            public boolean deleteRecursively(File target, boolean followSymlinks) {
+                return FileUtils.deleteQuietly(target);
+            }
+
+            @Override
+            public boolean ensureEmptyDirectory(File target) throws IOException {
+                return ensureEmptyDirectory(target, false);
+            }
+
+            @Override
+            public boolean ensureEmptyDirectory(File target, boolean followSymlinks) throws IOException {
+                File[] children = target.listFiles();
+                FileUtils.forceDelete(target);
+                FileUtils.forceMkdir(target);
+                return children == null || children.length == 0;
+            }
+
+            @Override
+            public boolean delete(File target) throws IOException {
+                if (!target.exists()) {
+                    return false;
+                }
+                FileUtils.forceDelete(target);
+                return true;
+            }
+        };
         workExecutor = new ExecutionGradleServices().createWorkExecutor(
             buildCacheCommandFactory,
             buildCacheController,
-            buildScanPluginApplied,
             cancellationToken,
             buildInvocationScopeId,
+            new TestBuildOperationExecutor(),
+            buildScanPluginApplied,
+            classLoaderHierarchyHasher,
+            deleter,
             new DefaultExecutionStateChangeDetector(),
             outputChangeListener,
             outputFilesRepository,
-            new DefaultTimeoutHandler(null)
+            new DefaultOverlappingOutputDetector(),
+            new DefaultTimeoutHandler(null),
+            DeprecationLogger::nagUserOfDeprecatedBehaviour,
+            valueSnapshotter
         );
     }
 
-    public WorkExecutor<IncrementalContext, CachingResult> getWorkExecutor() {
+    public WorkExecutor<ExecutionRequestContext, CachingResult> getWorkExecutor() {
         return workExecutor;
     }
 }

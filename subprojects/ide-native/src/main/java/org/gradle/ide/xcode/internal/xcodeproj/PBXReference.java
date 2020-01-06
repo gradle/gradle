@@ -140,16 +140,17 @@ public class PBXReference extends PBXContainerItem implements Named {
          */
         public static Optional<SourceTree> fromBuildSetting(String buildSetting) {
             String data = CharMatcher.is('$').trimLeadingFrom(buildSetting);
-            if (data.equals("BUILT_PRODUCTS_DIR")) {
-                return Optional.of(BUILT_PRODUCTS_DIR);
-            } else if (data.equals("SDKROOT")) {
-                return Optional.of(SDKROOT);
-            } else if (data.equals("SOURCE_ROOT")) {
-                return Optional.of(SOURCE_ROOT);
-            } else if (data.equals("DEVELOPER_DIR")) {
-                return Optional.of(DEVELOPER_DIR);
-            } else {
-                return Optional.absent();
+            switch (data) {
+                case "BUILT_PRODUCTS_DIR":
+                    return Optional.of(BUILT_PRODUCTS_DIR);
+                case "SDKROOT":
+                    return Optional.of(SDKROOT);
+                case "SOURCE_ROOT":
+                    return Optional.of(SOURCE_ROOT);
+                case "DEVELOPER_DIR":
+                    return Optional.of(DEVELOPER_DIR);
+                default:
+                    return Optional.absent();
             }
         }
 

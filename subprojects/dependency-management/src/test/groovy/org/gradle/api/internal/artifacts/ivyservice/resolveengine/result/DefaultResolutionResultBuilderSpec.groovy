@@ -20,11 +20,11 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.result.ComponentSelectionReason
+import org.gradle.api.artifacts.result.ResolvedVariantResult
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphComponent
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphDependency
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedVariantDetails
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.resolve.ModuleVersionResolveException
@@ -269,12 +269,14 @@ class DefaultResolutionResultBuilderSpec extends Specification {
         ComponentSelectionReason selectionReason
         ComponentIdentifier componentId
         String repositoryName
-        List<ResolvedVariantDetails> resolvedVariants = []
+        List<ResolvedVariantResult> resolvedVariants = []
     }
 
     class DummyInternalDependencyResult implements ResolvedGraphDependency {
         ComponentSelector requested
         Long selected
+        ResolvedVariantResult fromVariant
+        ResolvedVariantResult selectedVariant
         ModuleVersionResolveException failure
         ComponentSelectionReason reason
         boolean constraint

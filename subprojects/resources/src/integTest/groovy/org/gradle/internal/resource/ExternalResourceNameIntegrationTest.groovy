@@ -47,7 +47,6 @@ class ExternalResourceNameIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause """Could not find org:name:1.0.
 Searched in the following locations:
   - file:${expectLeadingSlashes}MISSING/folder/ivy/org/name/1.0/ivy-1.0.xml
-  - file:${expectLeadingSlashes}MISSING/folder/ivy/org/name/1.0/name-1.0.jar
 """
          where:
          hostPrefix << ['//', 'file://', 'file:////']

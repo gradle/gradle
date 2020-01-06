@@ -65,7 +65,6 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
             invocation {
                 args(*jobArgs)
                 tasksToRun(*tasks)
-                useDaemon()
                 gradleOpts(*opts)
                 if (withFailure) {
                     expectFailure()
@@ -83,7 +82,6 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
                 args(*jobArgs)
                 args("-DenableScan=true")
                 tasksToRun(*tasks)
-                useDaemon()
                 gradleOpts(*opts)
                 if (withFailure) {
                     expectFailure()
@@ -181,24 +179,31 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
         void beforeExperiment(BuildExperimentSpec experimentSpec, File projectDir) {
 
             def projectTestDir = new TestFile(projectDir)
-            def rootBuildScript = projectTestDir.file('build.gradle')
-            rootBuildScript.text = """
+            def settingsScript = projectTestDir.file('settings.gradle')
+            settingsScript.text = """
                     buildscript {
                         repositories {
                             maven {
                                 url 'https://repo.gradle.org/gradle/enterprise-libs-snapshots-local/'
+                                credentials {
+                                    username = System.getenv("ARTIFACTORY_USERNAME")
+                                    password = System.getenv("ARTIFACTORY_PASSWORD")
+                                }
+                                authentication {
+                                    basic(BasicAuthentication)
+                                }
                             }
                         }
-                    
+
                         dependencies {
-                            classpath "com.gradle:build-scan-plugin:${buildScanPluginVersion}"
+                            classpath "com.gradle:gradle-enterprise-gradle-plugin:${buildScanPluginVersion}"
                         }
                     }
-                    
+
                     if (System.getProperty('enableScan')) {
-                        apply plugin: 'com.gradle.build-scan'
+                        apply plugin: 'com.gradle.enterprise'
                     }
-                    """ + rootBuildScript.text
+                    """ + settingsScript.text
         }
     }
 }

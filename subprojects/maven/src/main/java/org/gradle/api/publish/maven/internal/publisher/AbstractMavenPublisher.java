@@ -21,6 +21,7 @@ import org.apache.maven.artifact.repository.metadata.Versioning;
 import org.apache.maven.artifact.repository.metadata.io.xpp3.MetadataXpp3Reader;
 import org.apache.maven.artifact.repository.metadata.io.xpp3.MetadataXpp3Writer;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver;
 import org.gradle.api.internal.artifacts.repositories.transport.NetworkOperationBackOffAndRetry;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.internal.Factory;
@@ -37,10 +38,16 @@ import org.gradle.internal.xml.XmlTransformer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.stream.Stream;
 
 import static org.apache.maven.artifact.ArtifactUtils.isSnapshot;
 
@@ -56,10 +63,9 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
     }
 
     protected void publish(MavenNormalizedPublication publication, ExternalResourceRepository repository, URI rootUri, boolean localRepo) {
-        MavenProjectIdentity projectIdentity = publication.getProjectIdentity();
-        String groupId = projectIdentity.getGroupId().get();
-        String artifactId = projectIdentity.getArtifactId().get();
-        String version = projectIdentity.getVersion().get();
+        String groupId = publication.getGroupId();
+        String artifactId = publication.getArtifactId();
+        String version = publication.getVersion();
 
         ModuleArtifactPublisher artifactPublisher = new ModuleArtifactPublisher(repository, localRepo, rootUri, groupId, artifactId, version);
 
@@ -77,7 +83,7 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
         }
 
         if (publication.getMainArtifact() != null) {
-            artifactPublisher.publish(null, publication.getPackaging(), publication.getMainArtifact().getFile());
+            artifactPublisher.publish(null, publication.getMainArtifact().getExtension(), publication.getMainArtifact().getFile());
         }
         artifactPublisher.publish(null, "pom", publication.getPomArtifact().getFile());
         for (MavenArtifact artifact : publication.getAdditionalArtifacts()) {
@@ -207,7 +213,36 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
             }
 
             ExternalResourceName externalResource = new ExternalResourceName(rootUri, path.toString());
-            publish(externalResource, content);
+            publish(externalResource, maybeSubstituteVersion(extension, content));
+        }
+
+        // When publishing unique snapshot versions, we need to tweak the generated
+        // Gradle Module Metadata file in order to replace the URI/file names of the
+        // published files
+        private File maybeSubstituteVersion(String extension, File content) {
+            if ("module".equals(extension) && !artifactVersion.equals(moduleVersion)) {
+                File timestamped = new File(content.getParentFile(), content.getName() + "-" + artifactVersion);
+                if (timestamped.exists()) {
+                    return timestamped;
+                }
+                // we're publishing a timestamped snapshot version so we need to tweak the generated module file
+                try (PrintWriter writer = new PrintWriter(new BufferedWriter(new OutputStreamWriter(new FileOutputStream(timestamped), StandardCharsets.UTF_8)))) {
+                    try (Stream<String> lines = Files.lines(content.toPath(), StandardCharsets.UTF_8)) {
+                        lines.forEach(line -> {
+                            if (line.contains("\"url\"")) {
+                                // We cannot replace versions that appear as path elements, and so there should only be one version to replace at most
+                                writer.println(line.replaceFirst(moduleVersion + "([^/])", artifactVersion + "$1"));
+                            } else {
+                                writer.println(line);
+                            }
+                        });
+                    }
+                } catch (IOException e) {
+                    throw UncheckedException.throwAsUncheckedException(e);
+                }
+                return timestamped;
+            }
+            return content;
         }
 
         void publish(ExternalResourceName externalResource, File content) {
@@ -221,11 +256,25 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
         }
 
         private void publishChecksums(ExternalResourceName destination, File content) {
-            byte[] sha1 = createChecksumFile(content, "SHA1", 40);
-            putResource(destination.append(".sha1"), new ByteArrayReadableContent(sha1));
+            publishChecksum(destination, content, "sha1", 40);
+            publishChecksum(destination, content, "md5", 32);
+            if (!ExternalResourceResolver.disableExtraChecksums()) {
+                publishPossiblyUnsupportedChecksum(destination, content, "sha-256", 64);
+                publishPossiblyUnsupportedChecksum(destination, content, "sha-512", 128);
+            }
+        }
 
-            byte[] md5 = createChecksumFile(content, "MD5", 32);
-            putResource(destination.append(".md5"), new ByteArrayReadableContent(md5));
+        private void publishPossiblyUnsupportedChecksum(ExternalResourceName destination, File content, String algorithm, int length) {
+            try {
+                publishChecksum(destination, content, algorithm, length);
+            } catch (Exception ex) {
+                LOGGER.warn("Cannot upload checksum for " + content.getName() + ". Remote repository doesn't support " + algorithm + ". Error: " + ex.getMessage());
+            }
+        }
+
+        private void publishChecksum(ExternalResourceName destination, File content, String algorithm, int length) {
+            byte[] checksum = createChecksumFile(content, algorithm.toUpperCase(), length);
+            putResource(destination.append("." + algorithm.replaceAll("-", "")), new ByteArrayReadableContent(checksum));
         }
 
         private byte[] createChecksumFile(File src, String algorithm, int checksumLength) {
@@ -248,4 +297,5 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
             });
         }
     }
+
 }

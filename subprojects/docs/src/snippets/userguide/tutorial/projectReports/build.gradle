@@ -1,0 +1,89 @@
+/*
+ * Copyright 2010 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+defaultTasks 'dists'
+
+allprojects {
+    version = '1.0-SNAPSHOT'
+    task clean {
+        description = "Deletes the build directory ($buildDir.name)"
+        group = 'build'
+    }
+}
+
+task docs {
+    description = 'Builds the documentation'
+}
+
+task dists {
+    dependsOn { subprojects*.libs }
+    dependsOn docs
+}
+
+// tag::add-task-to-report[]
+dists {
+    description = 'Builds the distribution'
+    group = 'build'
+}
+// end::add-task-to-report[]
+
+subprojects {
+    configurations {
+        implementation
+        testImplementation
+    }
+    repositories {
+        mavenCentral()
+    }
+    task compile {
+        description = 'Compiles the source files'
+    }
+    task libs {
+        group = 'build'
+        description = 'Builds the JAR'
+        dependsOn compile
+    }
+    tasks.addRule(new TestRule())
+}
+
+project(':api') {
+// tag::project-description[]
+description = 'The shared API for the application'
+// end::project-description[]
+    dependencies {
+        implementation "org.codehaus.groovy:groovy-all:2.4.15"
+        testImplementation "junit:junit:4.12"
+    }
+}
+
+project(':webapp') {
+    description = 'The Web application implementation'
+    dependencies {
+        implementation project(path: ':api', configuration: 'implementation'), "commons-io:commons-io:1.2"
+    }
+    libs {
+        dependsOn ':api:libs'
+    }
+}
+
+class TestRule implements Rule {
+    public String getDescription() {
+        'build<ConfigurationName>: builds the artifacts of the given configuration'
+    }
+
+    public void apply(String taskName) {
+    }
+}

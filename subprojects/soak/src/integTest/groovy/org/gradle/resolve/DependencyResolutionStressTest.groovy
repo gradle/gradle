@@ -167,7 +167,7 @@ task check {
         }
 
         URI getUri() {
-            return new URI("http://localhost:${connector.localPort}/")
+            return new URI("http://127.0.0.1:${connector.localPort}/")
         }
     }
 

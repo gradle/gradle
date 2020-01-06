@@ -16,14 +16,12 @@
 
 package org.gradle.internal.execution.steps
 
-import org.gradle.internal.execution.Context
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.Result
 
-class BroadcastChangingOutputsStepTest extends StepSpec {
+class BroadcastChangingOutputsStepTest extends ContextInsensitiveStepSpec {
     def outputChangeListener = Mock(OutputChangeListener)
     def step = new BroadcastChangingOutputsStep<>(outputChangeListener, delegate)
-    def context = Mock(Context)
     def delegateResult = Mock(Result)
 
     def "notifies listener about all outputs changing"() {
@@ -33,8 +31,7 @@ class BroadcastChangingOutputsStepTest extends StepSpec {
         then:
         result == delegateResult
 
-        1 * context.work >> work
-        1 * work.changingOutputs >> Optional.empty()
+        _ * work.changingOutputs >> Optional.empty()
 
         then:
         1 * outputChangeListener.beforeOutputChange()
@@ -53,8 +50,7 @@ class BroadcastChangingOutputsStepTest extends StepSpec {
         then:
         result == delegateResult
 
-        1 * context.work >> work
-        1 * work.changingOutputs >> Optional.of(changingOutputs)
+        _ * work.changingOutputs >> Optional.of(changingOutputs)
 
         then:
         1 * outputChangeListener.beforeOutputChange(changingOutputs)

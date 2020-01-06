@@ -16,23 +16,19 @@
 
 package org.gradle.internal.build;
 
-import org.gradle.api.internal.GradleInternal;
 import org.gradle.util.Path;
 
-public class DefaultPublicBuildPath implements MutablePublicBuildPath {
+public class DefaultPublicBuildPath implements PublicBuildPath {
 
-    private GradleInternal gradle;
+    private final Path path;
+
+    public DefaultPublicBuildPath(Path path) {
+        this.path = path;
+    }
 
     @Override
     public Path getBuildPath() {
-        if (gradle == null) {
-            throw new IllegalStateException("public build path not yet available");
-        }
-        return gradle.getIdentityPath();
+        return path;
     }
 
-    @Override
-    public void set(GradleInternal gradle) {
-        this.gradle = gradle;
-    }
 }

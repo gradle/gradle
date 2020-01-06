@@ -16,15 +16,12 @@
 
 package org.gradle.internal.reflect.annotations.impl;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.internal.reflect.AnnotationCategory;
-import org.gradle.internal.reflect.ParameterValidationContext;
 import org.gradle.internal.reflect.annotations.PropertyAnnotationMetadata;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
@@ -33,14 +30,12 @@ public class DefaultPropertyAnnotationMetadata implements PropertyAnnotationMeta
     private final Method method;
     private final ImmutableMap<AnnotationCategory, Annotation> annotations;
     private final ImmutableSet<Class<? extends Annotation>> annotationTypes;
-    private final ImmutableList<String> validationProblems;
 
-    public DefaultPropertyAnnotationMetadata(String propertyName, Method method, ImmutableMap<AnnotationCategory, Annotation> annotations, ImmutableList<String> validationProblems) {
+    public DefaultPropertyAnnotationMetadata(String propertyName, Method method, ImmutableMap<AnnotationCategory, Annotation> annotations) {
         this.propertyName = propertyName;
         this.method = method;
         this.annotations = annotations;
         this.annotationTypes = collectAnnotationTypes(annotations);
-        this.validationProblems = validationProblems;
     }
 
     private static ImmutableSet<Class<? extends Annotation>> collectAnnotationTypes(ImmutableMap<AnnotationCategory, Annotation> annotations) {
@@ -69,11 +64,6 @@ public class DefaultPropertyAnnotationMetadata implements PropertyAnnotationMeta
     @Override
     public ImmutableMap<AnnotationCategory, Annotation> getAnnotations() {
         return annotations;
-    }
-
-    @Override
-    public void visitValidationFailures(@Nullable String ownerPath, ParameterValidationContext validationContext) {
-        validationProblems.forEach(validationProblem -> validationContext.visitError(ownerPath, getPropertyName(), validationProblem));
     }
 
     @Override

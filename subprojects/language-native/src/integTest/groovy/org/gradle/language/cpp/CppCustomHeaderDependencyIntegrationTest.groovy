@@ -16,10 +16,12 @@
 
 package org.gradle.language.cpp
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppApp
 
 class CppCustomHeaderDependencyIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+    @ToBeFixedForInstantExecution
     def "can consume a directory as a header dependency"() {
         def app = new CppApp()
         settingsFile << """
@@ -75,52 +77,47 @@ class CppCustomHeaderDependencyIntegrationTest extends AbstractInstalledToolChai
                     }
                 }
                 
-                registerTransform {
+                registerTransform(UnzipTransform) {
                     from.attribute(USAGE, CUSTOM).attribute(artifactType, 'zip')
                     to.attribute(USAGE, C_PLUS_PLUS_API).attribute(artifactType, 'directory')
-                    artifactTransform(UnzipTransform) {
-                        params(file('lib/src/main/headers'))
+                    parameters {
+                        headerDir = file('lib/src/main/headers')
                     }
                 }
                 
-                registerTransform {
+                registerTransform(EmptyTransform) {
                     from.attribute(USAGE, CUSTOM).attribute(artifactType, 'zip')
                     to.attribute(USAGE, NATIVE_RUNTIME).attribute(artifactType, 'directory')
-                    artifactTransform(EmptyTransform)
                 }
                 
-                registerTransform {
+                registerTransform(EmptyTransform) {
                     from.attribute(USAGE, CUSTOM).attribute(artifactType, 'zip')
                     to.attribute(USAGE, NATIVE_LINK).attribute(artifactType, 'directory')
-                    artifactTransform(EmptyTransform)
                 }
             }
-            
+
             // Simulates unzipping headers by copying the contents of a configured directory
             // This is to avoid pulling in an external dependency to do this or investing the 
             // effort of writing our own unzip which would be pure yak-shaving for this test.
-            class UnzipTransform extends ArtifactTransform {
-                File headerDir
-                
-                @Inject
-                UnzipTransform(File headerDir) {
-                   this.headerDir = headerDir
+            import org.gradle.api.artifacts.transform.TransformParameters
+            
+            abstract class UnzipTransform implements TransformAction<Parameters> {
+                interface Parameters extends TransformParameters {
+                    @InputDirectory
+                    DirectoryProperty getHeaderDir()
                 }
                 
-                List<File> transform(File file) {
-                    def unzipped = new File(outputDirectory, "unzipped")
-                    unzipped.mkdirs()
-                    headerDir.listFiles().each { sourceFile ->
+                void transform(TransformOutputs outputs) {
+                    def unzipped = outputs.dir("unzipped")
+                    parameters.headerDir.get().asFile.listFiles().each { sourceFile ->
                         def headerFile = new File(unzipped, sourceFile.name)
                         headerFile.text = sourceFile.text
                     }
-                    return [unzipped]
                 }
             }
             
-            class EmptyTransform extends ArtifactTransform {
-                List<File> transform(File file) {
-                    return []
+            abstract class EmptyTransform implements TransformAction<TransformParameters.None> {
+                void transform(TransformOutputs outputs) {
                 }
             }
         """

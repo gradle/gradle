@@ -17,8 +17,7 @@
 package org.gradle.api.publish.ivy.internal.publication;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.InvalidUserDataException;
@@ -33,12 +32,9 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.capabilities.Capability;
-import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.CompositeDomainObjectSet;
-import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
@@ -49,7 +45,6 @@ import org.gradle.api.internal.component.IvyPublishingAwareContext;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.java.JavaLibraryPlatform;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -61,6 +56,7 @@ import org.gradle.api.publish.internal.PublicationArtifactSet;
 import org.gradle.api.publish.internal.validation.PublicationWarningsCollector;
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
 import org.gradle.api.publish.ivy.IvyArtifact;
+import org.gradle.api.publish.ivy.IvyConfiguration;
 import org.gradle.api.publish.ivy.IvyConfigurationContainer;
 import org.gradle.api.publish.ivy.IvyModuleDescriptorSpec;
 import org.gradle.api.publish.ivy.internal.artifact.DefaultIvyArtifactSet;
@@ -80,18 +76,16 @@ import org.gradle.internal.DisplayName;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
-import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 import java.io.File;
 import java.util.Collections;
-import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
-import java.util.List;
+import java.util.Map;
 import java.util.Set;
-
-import static org.gradle.api.internal.FeaturePreviews.Feature.GRADLE_METADATA;
 
 public class DefaultIvyPublication implements IvyPublicationInternal {
 
@@ -101,18 +95,11 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     private static final String API_ELEMENTS_VARIANT = "apiElements";
     private static final String RUNTIME_VARIANT = "runtime";
     private static final String RUNTIME_ELEMENTS_VARIANT = "runtimeElements";
-    private static final Comparator<String> VARIANT_ORDERING = (left, right) -> {
-        // API first
-        if (API_VARIANT.equals(left) || API_ELEMENTS_VARIANT.equals(left)) {
-            return -1;
-        }
-        if (API_VARIANT.equals(right) || API_ELEMENTS_VARIANT.equals(right)) {
-            return 1;
-        }
-        return left.compareTo(right);
-    };
+
     @VisibleForTesting
     public static final String UNSUPPORTED_FEATURE = " contains dependencies that cannot be represented in a published ivy descriptor.";
+    @VisibleForTesting
+    public static final String PUBLICATION_WARNING_FOOTER = "These issues indicate information that is lost in the published 'ivy.xml' metadata file, which may be an issue if the published library is consumed by an old Gradle version or Apache Ivy.\nThe 'module' metadata file, which is used by Gradle 6+ is not affected.";
 
     private final String name;
     private final IvyModuleDescriptorSpecInternal descriptor;
@@ -124,9 +111,10 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     private final PublicationArtifactSet<IvyArtifact> publishableArtifacts;
     private final DefaultIvyDependencySet ivyDependencies;
     private final ProjectDependencyPublicationResolver projectDependencyResolver;
+    private final PlatformSupport platformSupport;
     private final ImmutableAttributesFactory immutableAttributesFactory;
     private final VersionMappingStrategyInternal versionMappingStrategy;
-    private final FeaturePreviews featurePreviews;
+    private final Set<String> silencedVariants = new HashSet<>();
     private IvyArtifact ivyDescriptorArtifact;
     private TaskProvider<? extends Task> moduleDescriptorGenerator;
     private SingleOutputTaskIvyArtifact gradleModuleDescriptorArtifact;
@@ -136,19 +124,21 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     private boolean populated;
     private boolean artifactsOverridden;
     private boolean versionMappingInUse = false;
+    private boolean silenceAllPublicationWarnings;
 
+    @Inject
     public DefaultIvyPublication(
         String name, Instantiator instantiator, ObjectFactory objectFactory, IvyPublicationIdentity publicationIdentity, NotationParser<Object, IvyArtifact> ivyArtifactNotationParser,
         ProjectDependencyPublicationResolver projectDependencyResolver, FileCollectionFactory fileCollectionFactory,
-        ImmutableAttributesFactory immutableAttributesFactory, FeaturePreviews featurePreviews,
-        CollectionCallbackActionDecorator collectionCallbackActionDecorator, VersionMappingStrategyInternal versionMappingStrategy) {
+        ImmutableAttributesFactory immutableAttributesFactory,
+        CollectionCallbackActionDecorator collectionCallbackActionDecorator, VersionMappingStrategyInternal versionMappingStrategy, PlatformSupport platformSupport) {
         this.name = name;
         this.publicationIdentity = publicationIdentity;
         this.projectDependencyResolver = projectDependencyResolver;
+        this.platformSupport = platformSupport;
         this.configurations = instantiator.newInstance(DefaultIvyConfigurationContainer.class, instantiator, collectionCallbackActionDecorator);
         this.immutableAttributesFactory = immutableAttributesFactory;
         this.versionMappingStrategy = versionMappingStrategy;
-        this.featurePreviews = featurePreviews;
         this.mainArtifacts = instantiator.newInstance(DefaultIvyArtifactSet.class, name, ivyArtifactNotationParser, fileCollectionFactory, collectionCallbackActionDecorator);
         this.metadataArtifacts = new DefaultPublicationArtifactSet<>(IvyArtifact.class, "metadata artifacts for " + name, fileCollectionFactory, collectionCallbackActionDecorator);
         this.derivedArtifacts = new DefaultPublicationArtifactSet<>(IvyArtifact.class, "derived artifacts for " + name, fileCollectionFactory, collectionCallbackActionDecorator);
@@ -236,9 +226,6 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
             throw new InvalidUserDataException(String.format("Ivy publication '%s' cannot include multiple components", name));
         }
         this.component = (SoftwareComponentInternal) component;
-        if (component instanceof JavaLibraryPlatform) {
-            DeprecationLogger.nagUserWithDeprecatedIndirectUserCodeCause("components.javaLibraryPlatform", "Use the 'java-platform' plugin instead.");
-        }
         artifactsOverridden = false;
         updateModuleDescriptorArtifact();
     }
@@ -251,49 +238,101 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         if (component == null) {
             return;
         }
-        PublicationWarningsCollector publicationWarningsCollector = new PublicationWarningsCollector(LOG, UNSUPPORTED_FEATURE, "");
-        configurations.maybeCreate("default");
+        PublicationWarningsCollector publicationWarningsCollector = new PublicationWarningsCollector(LOG, UNSUPPORTED_FEATURE, "", PUBLICATION_WARNING_FOOTER, "suppressIvyMetadataWarningsFor");
+        Set<? extends UsageContext> usageContexts = component.getUsages();
 
-        Set<PublishArtifact> seenArtifacts = Sets.newHashSet();
-        Set<ModuleDependency> seenDependencies = Sets.newHashSet();
-        for (UsageContext usageContext : getSortedUsageContexts()) {
-            String conf = mapUsage(usageContext.getName());
+        populateConfigurations(usageContexts);
+        populateArtifacts(usageContexts);
+        populateDependencies(usageContexts, publicationWarningsCollector);
+        populateGlobalExcludes(usageContexts);
+
+        if (!silenceAllPublicationWarnings) {
+            publicationWarningsCollector.complete(getDisplayName() + " ivy metadata", silencedVariants);
+        }
+    }
+
+    private void populateConfigurations(Set<? extends UsageContext> usageContexts) {
+        IvyConfiguration defaultConfiguration = configurations.maybeCreate("default");
+        for (UsageContext usageContext : usageContexts) {
+            String conf = mapUsageNameToIvyConfiguration(usageContext.getName());
             configurations.maybeCreate(conf);
-            if (usageContext instanceof IvyPublishingAwareContext) {
-                if (!((IvyPublishingAwareContext) usageContext).isOptional()) {
-                    configurations.getByName("default").extend(conf);
-                }
-            } else {
-                configurations.getByName("default").extend(conf);
+            if (defaultShouldExtend(usageContext)) {
+                defaultConfiguration.extend(conf);
             }
+        }
+    }
 
+    /**
+     * In general, default extends all configurations such that you get 'everything' when depending on default.
+     * If a usage is optional, however it is not included.
+     * If a usage represents the Java API variant, it is also not included, because the Java Runtime variant already includes everything
+     * (including both also works but would lead to some duplication, that might break backwards compatibility in certain cases).
+     */
+    private boolean defaultShouldExtend(UsageContext usageContext) {
+        if (!(usageContext instanceof IvyPublishingAwareContext)) {
+            return true;
+        }
+        if (((IvyPublishingAwareContext) usageContext).isOptional()) {
+            return false;
+        }
+        return !isJavaApiVariant(usageContext.getName());
+    }
+
+    private boolean isJavaRuntimeVariant(String usageName) {
+        return RUNTIME_VARIANT.equals(usageName) || RUNTIME_ELEMENTS_VARIANT.equals(usageName);
+    }
+
+    private boolean isJavaApiVariant(String usageName) {
+        return API_VARIANT.equals(usageName) || API_ELEMENTS_VARIANT.equals(usageName);
+    }
+
+    private void populateArtifacts(Set<? extends UsageContext> usageContexts) {
+        if (artifactsOverridden) {
+            return;
+        }
+        Map<String, IvyArtifact> seenArtifacts = Maps.newHashMap();
+        for (UsageContext usageContext : usageContexts) {
+            String conf = mapUsageNameToIvyConfiguration(usageContext.getName());
             for (PublishArtifact publishArtifact : usageContext.getArtifacts()) {
-                if (!artifactsOverridden && seenArtifacts.add(publishArtifact)) {
-                    artifact(publishArtifact).setConf(conf);
+                String key = artifactKey(publishArtifact);
+                IvyArtifact ivyArtifact = seenArtifacts.get(key);
+                if (ivyArtifact == null) {
+                    ivyArtifact = artifact(publishArtifact);
+                    ivyArtifact.setConf(conf);
+                    seenArtifacts.put(key, ivyArtifact);
+                } else {
+                    ivyArtifact.setConf(ivyArtifact.getConf() + "," + conf);
+                }
+            }
+        }
+    }
+
+    private String artifactKey(PublishArtifact publishArtifact) {
+        return publishArtifact.getName() + ":" + publishArtifact.getType() + ":" + publishArtifact.getExtension() + ":" + publishArtifact.getClassifier();
+    }
+
+    private void populateDependencies(Set<? extends UsageContext> usageContexts, PublicationWarningsCollector publicationWarningsCollector) {
+        for (UsageContext usageContext : usageContexts) {
+            publicationWarningsCollector.newContext(usageContext.getName());
+            for (ModuleDependency dependency : usageContext.getDependencies()) {
+                String confMapping = confMappingFor(usageContext, dependency);
+                if (!dependency.getAttributes().isEmpty()) {
+                    publicationWarningsCollector.addUnsupported(String.format("%s:%s:%s declared with Gradle attributes", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
+                }
+                if (dependency instanceof ProjectDependency) {
+                    addProjectDependency((ProjectDependency) dependency, confMapping);
+                } else {
+                    ExternalDependency externalDependency = (ExternalDependency) dependency;
+                    if (platformSupport.isTargetingPlatform(dependency)) {
+                        publicationWarningsCollector.addUnsupported(String.format("%s:%s:%s declared as platform", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
+                    }
+                    if (!versionMappingInUse && externalDependency.getVersion() == null) {
+                        publicationWarningsCollector.addUnsupported(String.format("%s:%s declared without version", externalDependency.getGroup(), externalDependency.getName()));
+                    }
+                    addExternalDependency(externalDependency, confMapping, ((AttributeContainerInternal) usageContext.getAttributes()).asImmutable());
                 }
             }
 
-            for (ModuleDependency dependency : usageContext.getDependencies()) {
-                if (seenDependencies.add(dependency)) {
-                // TODO: When we support multiple components or configurable dependencies, we'll need to merge the confs of multiple dependencies with same id.
-                    String confMapping = String.format("%s->%s", conf, dependency.getTargetConfiguration() == null ? Dependency.DEFAULT_CONFIGURATION : dependency.getTargetConfiguration());
-                    if (!dependency.getAttributes().isEmpty()) {
-                        publicationWarningsCollector.addUnsupported(String.format("%s:%s:%s declared with Gradle attributes", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
-                    }
-                    if (dependency instanceof ProjectDependency) {
-                        addProjectDependency((ProjectDependency) dependency, confMapping);
-                    } else {
-                        ExternalDependency externalDependency = (ExternalDependency) dependency;
-                        if (PlatformSupport.isTargettingPlatform(dependency)) {
-                            publicationWarningsCollector.addUnsupported(String.format("%s:%s:%s declared as platform", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
-                        }
-                        if (!versionMappingInUse && externalDependency.getVersion() == null) {
-                            publicationWarningsCollector.addUnsupported(String.format("%s:%s declared without version", externalDependency.getGroup(), externalDependency.getName()));
-                        }
-                        addExternalDependency(externalDependency, confMapping, ((AttributeContainerInternal) usageContext.getAttributes()).asImmutable());
-                    }
-                }
-            }
             if (!usageContext.getDependencyConstraints().isEmpty()) {
                 for (DependencyConstraint constraint : usageContext.getDependencyConstraints()) {
                     publicationWarningsCollector.addUnsupported(String.format("%s:%s:%s declared as a dependency constraint", constraint.getGroup(), constraint.getName(), constraint.getVersion()));
@@ -301,31 +340,58 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
             }
             if (!usageContext.getCapabilities().isEmpty()) {
                 for (Capability capability : usageContext.getCapabilities()) {
-                    publicationWarningsCollector.addUnsupported(String.format("Declares capability %s:%s:%s", capability.getGroup(), capability.getName(), capability.getVersion()));
+                    publicationWarningsCollector.addVariantUnsupported(String.format("Declares capability %s:%s:%s which cannot be mapped to Ivy", capability.getGroup(), capability.getName(), capability.getVersion()));
                 }
             }
 
+        }
+    }
+
+    private void populateGlobalExcludes(Set<? extends UsageContext> usageContexts) {
+        for (UsageContext usageContext : usageContexts) {
+            String conf = mapUsageNameToIvyConfiguration(usageContext.getName());
             for (ExcludeRule excludeRule : usageContext.getGlobalExcludes()) {
                 globalExcludes.add(new DefaultIvyExcludeRule(excludeRule, conf));
             }
         }
-        publicationWarningsCollector.complete(getDisplayName());
     }
 
-    private List<UsageContext> getSortedUsageContexts() {
-        List<UsageContext> usageContexts = Lists.newArrayList(component.getUsages());
-        Collections.sort(usageContexts, (u1, u2) -> VARIANT_ORDERING.compare(u1.getName(), u2.getName()));
-        return usageContexts;
+    private String confMappingFor(UsageContext usageContext, ModuleDependency dependency) {
+        String conf = mapUsageNameToIvyConfiguration(usageContext.getName());
+        String confMappingTarget = mapUsageNameToIvyConfiguration(dependency.getTargetConfiguration());
+
+        // If the following code is activated implementation/runtime separation will be published to ivy. This however is a breaking change.
+        //
+        // if (confMappingTarget == null) {
+        //     if (usageContext instanceof MavenPublishingAwareContext) {
+        //         MavenPublishingAwareContext.ScopeMapping mapping = ((MavenPublishingAwareContext) usageContext).getScopeMapping();
+        //         if (mapping == runtime || mapping == runtime_optional) {
+        //             confMappingTarget = "runtime";
+        //         }
+        //         if (mapping == compile || mapping == compile_optional) {
+        //             confMappingTarget = "compile";
+        //         }
+        //     }
+        // }
+
+        if (confMappingTarget == null) {
+            confMappingTarget = Dependency.DEFAULT_CONFIGURATION;
+        }
+        return conf + "->" + confMappingTarget;
     }
 
-    private String mapUsage(String name) {
-        if (API_VARIANT.equals(name) || API_ELEMENTS_VARIANT.equals(name)) {
+    /**
+     * The usage name usually corresponds to the name of the Gradle configuration on which the variant represented by the usage is based on.
+     * For backward compatibility, the 'apiElements' and 'runtimeElements' configurations/variants of the Java ecosystem are named 'compile' and 'runtime' in the publication.
+     */
+    private String mapUsageNameToIvyConfiguration(String usageName) {
+        if (isJavaApiVariant(usageName)) {
             return "compile";
         }
-        if (RUNTIME_VARIANT.equals(name) || RUNTIME_ELEMENTS_VARIANT.equals(name)) {
+        if (isJavaRuntimeVariant(usageName)) {
             return "runtime";
         }
-        return name;
+        return usageName;
     }
 
     private void addProjectDependency(ProjectDependency dependency, String confMapping) {
@@ -406,12 +472,6 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     }
 
     @Override
-    public FileCollection getPublishableFiles() {
-        populateFromComponent();
-        return getPublishableArtifacts().getFiles();
-    }
-
-    @Override
     public PublicationArtifactSet<IvyArtifact> getPublishableArtifacts() {
         populateFromComponent();
         return publishableArtifacts;
@@ -481,15 +541,8 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     }
 
     private boolean canPublishModuleMetadata() {
-        if (getComponent() == null) {
-            // Cannot yet publish module metadata without component
-            return false;
-        }
-        if (getComponent() instanceof ComponentWithVariants) {
-            // Always publish `ComponentWithVariants`
-            return true;
-        }
-        return featurePreviews.isFeatureEnabled(GRADLE_METADATA);
+        // Cannot yet publish module metadata without component
+        return getComponent() != null;
     }
 
     private File getIvyDescriptorFile() {
@@ -559,6 +612,16 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     public void versionMapping(Action<? super VersionMappingStrategy> configureAction) {
         this.versionMappingInUse = true;
         configureAction.execute(versionMappingStrategy);
+    }
+
+    @Override
+    public void suppressIvyMetadataWarningsFor(String variantName) {
+        silencedVariants.add(variantName);
+    }
+
+    @Override
+    public void suppressAllIvyMetadataWarnings() {
+        this.silenceAllPublicationWarnings = true;
     }
 
     @Override

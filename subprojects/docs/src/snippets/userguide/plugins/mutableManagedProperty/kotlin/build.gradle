@@ -1,0 +1,4 @@
+
+task download(type: Download) {
+    uri = uri("https://gradle.org")
+}

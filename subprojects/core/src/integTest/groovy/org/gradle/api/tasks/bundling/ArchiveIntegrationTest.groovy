@@ -15,11 +15,13 @@
  */
 package org.gradle.api.tasks.bundling
 
-
 import org.apache.commons.lang.RandomStringUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
+import org.gradle.test.fixtures.archive.ArchiveTestFixture
 import org.gradle.test.fixtures.archive.TarTestFixture
+import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.hamcrest.CoreMatchers
 import org.junit.Assume
@@ -28,6 +30,7 @@ import spock.lang.Unroll
 
 import static org.hamcrest.CoreMatchers.equalTo
 
+@Unroll
 @TestReproducibleArchives
 class ArchiveIntegrationTest extends AbstractIntegrationSpec {
 
@@ -42,6 +45,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
                 file 'file2.xml'
             }
         }
+
         and:
         buildFile << '''
             task copy(type: Copy) {
@@ -52,8 +56,40 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
 '''
         when:
         run 'copy'
+
         then:
+        result.assertTaskExecuted(":copy")
         file('dest').assertHasDescendants('subdir1/file1.txt', 'subdir2/file2.txt')
+
+        when:
+        run 'copy'
+
+        then:
+        result.assertTasksSkipped(":copy")
+
+        when:
+        createZip('test.zip') {
+            subdir1 {
+                file 'file1.txt'
+            }
+            subdir2 {
+                file 'file2.xml'
+            }
+            file 'file3.txt'
+        }
+
+        run 'copy'
+
+        then:
+        result.assertTasksExecutedAndNotSkipped(":copy")
+        // Copy (intentionally) leaves stuff behind
+        file('dest').assertHasDescendants('subdir1/file1.txt', 'subdir2/file2.txt', 'file3.txt')
+
+        when:
+        run 'copy'
+
+        then:
+        result.assertTasksSkipped(":copy")
     }
 
     def cannotCreateAnEmptyTar() {
@@ -61,8 +97,8 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             task tar(type: Tar) {
                 from 'test'
-                destinationDir = buildDir
-                archiveName = 'test.tar'
+                destinationDirectory = buildDir
+                archiveFileName = 'test.tar'
             }
             """
         when:
@@ -83,6 +119,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
                 file 'file2.xml'
             }
         }
+
         and:
         buildFile << '''
             task copy(type: Copy) {
@@ -93,8 +130,40 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
 '''
         when:
         run 'copy'
+
         then:
+        result.assertTaskExecuted(":copy")
         file('dest').assertHasDescendants('subdir1/file1.txt', 'subdir2/file2.txt')
+
+        when:
+        run 'copy'
+
+        then:
+        result.assertTasksSkipped(":copy")
+
+        when:
+        createTar('test.tar') {
+            subdir1 {
+                file 'file1.txt'
+            }
+            subdir2 {
+                file 'file2.xml'
+            }
+            file 'file3.txt'
+        }
+
+        run 'copy'
+
+        then:
+        result.assertTasksExecutedAndNotSkipped(":copy")
+        // Copy (intentionally) leaves stuff behind
+        file('dest').assertHasDescendants('subdir1/file1.txt', 'subdir2/file2.txt', 'file3.txt')
+
+        when:
+        run 'copy'
+
+        then:
+        result.assertTasksSkipped(":copy")
     }
 
     def "handles gzip compressed tars"() {
@@ -146,6 +215,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         file('dest').assertHasDescendants('someDir/1.txt')
     }
 
+    @ToBeFixedForInstantExecution
     def "allows user to provide a custom resource for the tarTree"() {
         given:
         TestFile tar = file('tar-contents')
@@ -228,7 +298,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << '''
             task myTar(type: Tar) {
-                destinationDir = buildDir
+                destinationDirectory = buildDir
 
                 assert compression == Compression.NONE
 
@@ -294,8 +364,8 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         buildFile << '''
             task zip(type: Zip) {
                 from 'test'
-                destinationDir = buildDir
-                archiveName = 'test.zip'
+                destinationDirectory = buildDir
+                archiveFileName = 'test.zip'
             }
         '''
         when:
@@ -335,8 +405,8 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
                     include '**/*.properties'
                     rename { null }
                 }
-                destinationDir = buildDir
-                archiveName = 'test.zip'
+                destinationDirectory = buildDir
+                archiveFileName = 'test.zip'
             }
         '''
         when:
@@ -378,8 +448,8 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
                     from 'test'
                     include '**/*.sh'
                 }
-                destinationDir = buildDir
-                archiveName = 'uncompressedTest.zip'
+                destinationDirectory = buildDir
+                archiveFileName = 'uncompressedTest.zip'
                 entryCompression = ZipEntryCompression.STORED
             }
 
@@ -392,8 +462,8 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
                     from 'test'
                     include '**/*.sh'
                 }
-                destinationDir = buildDir
-                archiveName = 'compressedTest.zip'
+                destinationDirectory = buildDir
+                archiveFileName = 'compressedTest.zip'
             }
         '''
         when:
@@ -450,8 +520,8 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
                     include '**/*.sh'
                     into 'scripts'
                 }
-                destinationDir = buildDir
-                archiveName = 'test.tar'
+                destinationDirectory = buildDir
+                archiveFileName = 'test.tar'
             }
 '''
         when:
@@ -482,8 +552,8 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
                 compression = Compression.GZIP
                 from 'test'
                 include '**/*.txt'
-                destinationDir = buildDir
-                archiveName = 'test.tgz'
+                destinationDirectory = buildDir
+                archiveFileName = 'test.tgz'
             }
 '''
         when:
@@ -512,8 +582,8 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
                 compression = Compression.BZIP2
                 from 'test'
                 include '**/*.txt'
-                destinationDir = buildDir
-                archiveName = 'test.tbz2'
+                destinationDirectory = buildDir
+                archiveFileName = 'test.tbz2'
             }
 '''
         when:
@@ -552,8 +622,8 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
                 with distImage
             }
             task zip(type: Zip) {
-                destinationDir = file('build')
-                archiveName = 'test.zip'
+                destinationDirectory = file('build')
+                archiveFileName = 'test.zip'
                 into 'prefix'
                 with distImage
             }
@@ -584,8 +654,8 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         and:
         buildFile << '''
             task zip(type: Zip) {
-                destinationDir = file('build')
-                archiveName = 'test.zip'
+                destinationDirectory = file('build')
+                archiveFileName = 'test.zip'
                 into 'prefix'
                 from 'test'
                 include '**/*.txt'
@@ -642,8 +712,8 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
             from zipTree('test.zip')
             from tarTree('test.tar')
             from fileTree('test')
-            destinationDir = buildDir
-            archiveName = 'test.zip'
+            destinationDirectory = buildDir
+            archiveFileName = 'test.zip'
         }
         '''
         when:
@@ -654,49 +724,116 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         expandDir.assertHasDescendants('shared/zip.txt', 'zipdir1/file1.txt', 'shared/tar.txt', 'tardir1/file1.txt', 'shared/dir.txt', 'dir1/file1.txt')
     }
 
-
-    def ensureDuplicatesIncludedInTarByDefault() {
+    @Issue("https://github.com/gradle/gradle/issues/9673")
+    def "can extract #archiveFile with exclusions"() {
         given:
-        createFilesStructureForDupeTests()
-        buildFile << '''
-            task tar(type: Tar) {
-                from 'dir1'
-                from 'dir2'
-                from 'dir3'
-                destinationDir = buildDir
-                archiveName = 'test.tar'
+        "$archive"(archiveFile) {
+            lib {
+                file("exclude").text = "exclude"
+                file("include").text = "include"
             }
-            '''
-        when:
-        run 'tar'
+        }
+        and:
+        buildFile << """
+        task extract(type: Copy) {
+            from $unarchive ("$archiveFile")
 
+            exclude { details ->
+                details.isDirectory() ||
+                details.file.text.contains('exclude')
+            }
+            destinationDir = new File(buildDir, "output")
+        }
+        """
+        when:
+        succeeds 'extract'
         then:
-        def tar = new TarTestFixture(file("build/test.tar"))
-        tar.assertContainsFile('file1.txt', 2)
-        tar.assertContainsFile('file2.txt')
+        file("build/output/lib/exclude").assertDoesNotExist()
+        file("build/output/lib/include").assertExists()
+
+        where:
+        archiveFile | unarchive | archive
+        "test.zip"  | "zipTree" | "createZip"
+        "test.tar"  | "tarTree" | "createTar"
     }
 
-    def ensureDuplicatesCanBeExcludedFromTar() {
+    def 'emit deprecation warning when duplicates are included in #archiveType for default duplicates strategy'() {
         given:
         createFilesStructureForDupeTests()
-        buildFile << '''
-            task tar(type: Tar) {
-                from 'dir1'
-                from 'dir2'
-                from 'dir3'
-                destinationDir = buildDir
-                archiveName = 'test.tar'
+        buildFile << archiveTaskWithDuplicates(archiveType)
+
+        expect:
+        executer.expectDeprecationWarning('Copying or archiving duplicate paths with the default duplicates strategy has been deprecated. This is scheduled to be removed in Gradle 7.0. Duplicate path: "file1.txt". Explicitly set the duplicates strategy to \'DuplicatesStrategy.INCLUDE\' if you want to allow duplicate paths.')
+        succeeds 'archive'
+
+        where:
+        archiveType << ['tar', 'zip']
+    }
+
+    def 'ensure duplicates can be included in #archiveType'() {
+        given:
+        createFilesStructureForDupeTests()
+        buildFile << archiveTaskWithDuplicates(archiveType) << """
+            archive {
+                duplicatesStrategy = DuplicatesStrategy.INCLUDE
+            }
+        """
+        when:
+        run 'archive'
+
+        def archive = archiveFixture(archiveType, file("build/test.${archiveType}"))
+        then:
+        archive.assertContainsFile('file1.txt', 2)
+        archive.assertContainsFile('file2.txt', 1)
+
+        where:
+        archiveType << ['tar', 'zip']
+    }
+
+    def "ensure duplicates can be excluded from #archiveType"() {
+        given:
+        createFilesStructureForDupeTests()
+        buildFile << archiveTaskWithDuplicates(archiveType) << """
+            archive {
                 eachFile { it.duplicatesStrategy = 'exclude' }
             }
-            '''
+        """
         when:
-        run 'tar'
+        run 'archive'
 
         then:
-        def tar = new TarTestFixture(file("build/test.tar"))
-        tar.assertContainsFile('file1.txt')
-        tar.assertContainsFile('file2.txt')
-        tar.content("file1.txt") == "dir1/file1.txt"
+        def archive = archiveFixture(archiveType, file("build/test.${archiveType}"))
+        archive.assertContainsFile('file1.txt')
+        archive.assertContainsFile('file2.txt')
+        archive.content("file1.txt") == "dir1/file1.txt"
+
+        where:
+        archiveType << ['tar', 'zip']
+    }
+
+    def "renamed file will be treated as duplicate in #archiveType"() {
+        given:
+        createFilesStructureForDupeTests()
+        buildFile << """
+                task archive(type: ${archiveType.capitalize()}) {
+                    from 'dir1'
+                    from 'dir2'
+                    destinationDirectory = buildDir
+                    rename 'file2.txt', 'file1.txt'
+                    archiveFileName = 'test.${archiveType}'
+                    eachFile { it.duplicatesStrategy = 'exclude' }
+                }
+                """
+        when:
+        run 'archive'
+
+        then:
+        def archive = archiveFixture(archiveType, file("build/test.${archiveType}"))
+        archive.hasDescendants('file1.txt')
+        archive.assertFileContent('file1.txt', "dir1/file1.txt")
+
+        where:
+        archiveType << ['tar', 'zip']
     }
 
     def "ensure that the archiveFile can be used as an input to another task"() {
@@ -708,16 +845,16 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         class TaskWithAutomaticDependency extends DefaultTask {
             @InputFile
             final RegularFileProperty inputFile = project.objects.fileProperty()
-            
+
             @TaskAction
             void doNothing() {
                 // does nothing
             }
         }
-        
+
         task tar(type: Tar) {
             from 'dir1'
-            baseName = "test"
+            archiveBaseName = "test"
             destinationDirectory.set(layout.buildDirectory)
         }
         task shouldRun(type: TaskWithAutomaticDependency) {
@@ -728,11 +865,11 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         when:
         run "shouldRun"
         then:
-        ":tar" in executedTasks
+        executed(":tar")
     }
 
     @Issue("https://github.com/gradle/gradle#1108")
-    @Unroll
+    @ToBeFixedForInstantExecution
     def "can copy files into a different root with includeEmptyDirs=#includeEmptyDirs"() {
         Assume.assumeFalse("This test case is not implemented when includeEmptyDirs=true", includeEmptyDirs)
 
@@ -774,9 +911,44 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         false            | ["file2.txt", "file3.txt"]
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/10311")
+    def "can clear version property on #taskType tasks"() {
+        buildFile << """
+            apply plugin: 'base'
+            version = "1.0"
+            task archive(type: $taskType) {
+                from("src")
+                $prop = null
+            }
+        """
+        settingsFile << """
+            rootProject.name = "archive"
+        """
+        file("src/input").touch()
+        when:
+        // This is explicitly checking that the old API works
+        executer.noDeprecationChecks()
+        succeeds "archive"
+        then:
+        file(archiveFile).assertExists()
+
+        where:
+        taskType | prop | archiveFile
+        "Zip"    | "version"   | "build/distributions/archive.zip"
+        "Jar"    | "version"   | "build/libs/archive.jar"
+        "Tar"    | "version"   | "build/distributions/archive.tar"
+
+        "Zip"    | "baseName"   | "build/distributions/1.0.zip"
+        "Jar"    | "baseName"   | "build/libs/1.0.jar"
+        "Tar"    | "baseName"   | "build/distributions/1.0.tar"
+
+    }
+
     private def createTar(String name, Closure cl) {
         TestFile tarRoot = file("${name}.root")
+        tarRoot.deleteDir()
         TestFile tar = file(name)
+        tar.delete()
         tarRoot.create(cl)
         tarRoot.tarTo(tar)
     }
@@ -791,5 +963,24 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         createDir('dir3', {
             file('file1.txt').text = "dir3/file1.txt"
         })
+    }
+
+    private static ArchiveTestFixture archiveFixture(String archiveType, TestFile archiveFile) {
+        archiveType == 'tar'
+            ? new TarTestFixture(archiveFile)
+            : new ZipTestFixture(archiveFile)
+    }
+
+    private static String archiveTaskWithDuplicates(String archiveType) {
+        def taskType = archiveType.capitalize()
+        """
+            task archive(type: ${taskType}) {
+                from 'dir1'
+                from 'dir2'
+                from 'dir3'
+                destinationDirectory = buildDir
+                archiveFileName = 'test.${archiveType}'
+            }
+        """
     }
 }

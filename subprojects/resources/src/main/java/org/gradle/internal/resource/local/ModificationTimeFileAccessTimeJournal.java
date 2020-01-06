@@ -16,6 +16,7 @@
 
 package org.gradle.internal.resource.local;
 
+import org.gradle.internal.file.FileAccessTimeJournal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

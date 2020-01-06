@@ -73,8 +73,8 @@ class OutputEventRendererTest extends OutputSpecification {
         renderer.onOutput(event(tenAm, 'error', LogLevel.ERROR))
 
         then:
-        outputs.stdOut.readLines() == ['10:00:00.000 [INFO] [category] info']
-        outputs.stdErr.readLines() == ['10:00:00.000 [ERROR] [category] error']
+        outputs.stdOut.readLines() == ["${tenAmFormatted} [INFO] [category] info"]
+        outputs.stdErr.readLines() == ["${tenAmFormatted} [ERROR] [category] error"]
     }
 
     def rendersLogEventsToStdOutListener() {
@@ -114,7 +114,7 @@ class OutputEventRendererTest extends OutputSpecification {
         renderer.onOutput(event(tenAm, 'message', LogLevel.INFO))
 
         then:
-        listener.value.readLines() == ['10:00:00.000 [INFO] [category] message']
+        listener.value.readLines() == ["${tenAmFormatted} [INFO] [category] message"]
     }
 
     def rendersErrorLogEventsToStdErrListener() {
@@ -154,7 +154,7 @@ class OutputEventRendererTest extends OutputSpecification {
         renderer.onOutput(event(tenAm, 'message', LogLevel.ERROR))
 
         then:
-        listener.value.readLines() == ['10:00:00.000 [ERROR] [category] message']
+        listener.value.readLines() == ["${tenAmFormatted} [ERROR] [category] message"]
     }
 
     def cannotAddStdOutListenerWhenNotEnabled() {
@@ -367,7 +367,9 @@ class OutputEventRendererTest extends OutputSpecification {
         renderer.restore(snapshot) // close console to flush
 
         then:
-        console.buildOutputArea.toString().readLines() == ['10:00:00.000 [INFO] [category] info', '{error}10:00:00.000 [ERROR] [category] error', '{normal}']
+        console.buildOutputArea.toString().readLines() == ["${tenAmFormatted} [INFO] [category] info",
+                                                           "{error}${tenAmFormatted} [ERROR] [category] error",
+                                                           '{normal}']
         outputs.stdOut == ''
         outputs.stdErr == ''
     }
@@ -449,8 +451,8 @@ class OutputEventRendererTest extends OutputSpecification {
         renderer.restore(snapshot) // close console to flush
 
         then:
-        output.toString().readLines() == ['10:00:00.000 [INFO] [category] info']
-        error.toString().readLines() == ['10:00:00.000 [ERROR] [category] error']
+        output.toString().readLines() == ["${tenAmFormatted} [INFO] [category] info"]
+        error.toString().readLines() == ["${tenAmFormatted} [ERROR] [category] error"]
     }
 
     def "attaches plain console when stdout and stderr are attached"() {

@@ -16,13 +16,13 @@
 
 package org.gradle.binarycompatibility.rules
 
-import me.champeau.gradle.japicmp.report.Violation
 import japicmp.model.JApiClass
 import japicmp.model.JApiCompatibility
 import japicmp.model.JApiCompatibilityChange
 import javassist.CtClass
 import javassist.CtMethod
 import javassist.Modifier
+import me.champeau.gradle.japicmp.report.Violation
 
 class MethodsRemovedInInternalSuperClassRule extends AbstractSuperClassChangesRule {
 
@@ -35,8 +35,8 @@ class MethodsRemovedInInternalSuperClassRule extends AbstractSuperClassChangesRu
     }
 
     protected Violation checkSuperClassChanges(JApiClass c, CtClass oldClass, CtClass newClass) {
-        Set<CtMethod> oldMethods = collectAllPublicApiMethods(oldClass)
-        Set<CtMethod> newMethods = collectAllPublicApiMethods(newClass)
+        Set<CtMethod> oldMethods = collectAllPublicApiMethods(oldClass.superclass)
+        Set<CtMethod> newMethods = collectAllPublicApiMethods(newClass.superclass)
 
         oldMethods.removeAll(newMethods)
 
@@ -53,7 +53,7 @@ class MethodsRemovedInInternalSuperClassRule extends AbstractSuperClassChangesRu
 
     private Set<CtMethod> collectAllPublicApiMethods(CtClass c) {
         Set<CtMethod> result = [] as Set
-        collect(result, c.superclass)
+        collect(result, c)
         return result
     }
 
@@ -73,10 +73,6 @@ class MethodsRemovedInInternalSuperClassRule extends AbstractSuperClassChangesRu
 
     private List<String> filterChangesToReport(CtClass c, Set<CtMethod> methods) {
         return methods.findAll { isFirstPublicClassInHierarchy(it, c) }*.longName.sort()
-    }
-
-    private boolean declaredInInternalClass(CtMethod method) {
-        return isInternal(method.declaringClass)
     }
 
     private boolean isFirstPublicClassInHierarchy(CtMethod method, CtClass c) {
@@ -108,6 +104,6 @@ class MethodsRemovedInInternalSuperClassRule extends AbstractSuperClassChangesRu
     private boolean containsMethod(CtClass c, CtMethod method) {
         // TODO signature contains return type
         // but return type can be overridden
-        return collectAllPublicApiMethods(c).any { it.signature == method.signature }
+        return collectAllPublicApiMethods(c).any { it.name == method.name && it.signature == method.signature }
     }
 }

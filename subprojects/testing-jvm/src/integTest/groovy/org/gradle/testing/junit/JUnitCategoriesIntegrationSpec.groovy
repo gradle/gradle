@@ -18,6 +18,7 @@ package org.gradle.testing.junit
 
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -63,7 +64,7 @@ class JUnitCategoriesIntegrationSpec extends AbstractSampleIntegrationTest {
         succeeds("test")
 
         then:
-        ":test" in nonSkippedTasks
+        executedAndNotSkipped(":test")
         DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
         def testClass = result.testClass("Not a real class name")
         testClass.assertTestCount(1, 0, 0)
@@ -80,9 +81,9 @@ apply plugin: 'java'
 ${mavenCentralRepository()}
 
 dependencies {
-    testCompile "junit:junit:4.12"
-    testCompile "org.powermock:powermock-api-mockito:1.6.5"
-    testCompile "org.powermock:powermock-module-junit4:1.6.5"
+    testImplementation "junit:junit:4.12"
+    testImplementation "org.powermock:powermock-api-mockito:1.6.5"
+    testImplementation "org.powermock:powermock-module-junit4:1.6.5"
 }
 
 test {
@@ -118,6 +119,7 @@ public class MyTest {
 
     @Unroll
     @Issue('https://github.com/gradle/gradle/issues/4924')
+    @ToBeFixedForInstantExecution
     def "re-executes test when #type is changed"() {
         given:
         resources.maybeCopy("JUnitCategoriesIntegrationSpec/reExecutesWhenPropertyIsChanged")

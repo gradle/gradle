@@ -24,9 +24,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
-import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.nio.file.Path;
@@ -189,6 +187,7 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
 
     private static class TaskDependencySet implements Set<Object> {
         private final Set<Object> delegate = Sets.newHashSet();
+        private final static String REMOVE_ERROR = "Removing a task dependency from a task instance is not supported.";
 
         @Override
         public int size() {
@@ -227,27 +226,7 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
 
         @Override
         public boolean remove(Object o) {
-            DeprecationLogger.nagUserOfDeprecatedBehaviour("Do not remove a task dependency from a Task instance.");
-            if (delegate.remove(o)) {
-                return true;
-            }
-
-            for (Iterator<Object> it = delegate.iterator(); it.hasNext();) {
-                Object obj = it.next();
-                if (isTaskProvider(obj) && o instanceof Task && isTaskProviderOfTask((TaskProvider) obj, (Task) o)) {
-                    it.remove();
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        private static boolean isTaskProvider(Object obj) {
-            return obj instanceof TaskProvider;
-        }
-
-        private static boolean isTaskProviderOfTask(TaskProvider provider, Task task) {
-            return provider instanceof ProviderInternal && ((ProviderInternal) provider).getType().isInstance(task) && provider.getName().equals(task.getName());
+            throw new UnsupportedOperationException(REMOVE_ERROR);
         }
 
         @Override
@@ -262,12 +241,12 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
 
         @Override
         public boolean retainAll(Collection<?> c) {
-            return delegate.retainAll(c);
+            throw new UnsupportedOperationException(REMOVE_ERROR);
         }
 
         @Override
         public boolean removeAll(Collection<?> c) {
-            return delegate.removeAll(c);
+            throw new UnsupportedOperationException(REMOVE_ERROR);
         }
 
         @Override

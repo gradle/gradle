@@ -25,7 +25,6 @@ import org.gradle.internal.HasInternalProtocol;
  *
  * @since 5.3
  */
-@Incubating
 @HasInternalProtocol
 public interface FeatureSpec {
     /**
@@ -47,4 +46,22 @@ public interface FeatureSpec {
      * @param version the version of the capability
      */
     void capability(String group, String name, String version);
+
+    /**
+     * Automatically package Javadoc and register the produced JAR as a variant.
+     * See also {@link JavaPluginExtension#withJavadocJar()}.
+     *
+     * @since 6.0
+     */
+    @Incubating
+    void withJavadocJar();
+
+    /**
+     * Automatically package sources from the linked {@link #usingSourceSet(SourceSet) SourceSet} and register the produced JAR as a variant.
+     * See also {@link JavaPluginExtension#withSourcesJar()} ()}.
+     *
+     * @since 6.0
+     */
+    @Incubating
+    void withSourcesJar();
 }

@@ -25,7 +25,8 @@ import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.ExternalR
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.internal.Factory;
-import org.gradle.internal.hash.HashUtil;
+import org.gradle.internal.hash.ChecksumService;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ExternalResourceName;
@@ -50,6 +51,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.function.Supplier;
 
 public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExternalResourceAccessor {
 
@@ -63,8 +65,9 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
     private final ExternalResourceCachePolicy externalResourceCachePolicy;
     private final ProducerGuard<ExternalResourceName> producerGuard;
     private final FileResourceRepository fileResourceRepository;
+    private final ChecksumService checksumService;
 
-    public DefaultCacheAwareExternalResourceAccessor(ExternalResourceRepository delegate, CachedExternalResourceIndex<String> cachedExternalResourceIndex, BuildCommencedTimeProvider timeProvider, TemporaryFileProvider temporaryFileProvider, ArtifactCacheLockingManager artifactCacheLockingManager, ExternalResourceCachePolicy externalResourceCachePolicy, ProducerGuard<ExternalResourceName> producerGuard, FileResourceRepository fileResourceRepository) {
+    public DefaultCacheAwareExternalResourceAccessor(ExternalResourceRepository delegate, CachedExternalResourceIndex<String> cachedExternalResourceIndex, BuildCommencedTimeProvider timeProvider, TemporaryFileProvider temporaryFileProvider, ArtifactCacheLockingManager artifactCacheLockingManager, ExternalResourceCachePolicy externalResourceCachePolicy, ProducerGuard<ExternalResourceName> producerGuard, FileResourceRepository fileResourceRepository, ChecksumService checksumService) {
         this.delegate = delegate;
         this.cachedExternalResourceIndex = cachedExternalResourceIndex;
         this.timeProvider = timeProvider;
@@ -73,14 +76,15 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
         this.externalResourceCachePolicy = externalResourceCachePolicy;
         this.producerGuard = producerGuard;
         this.fileResourceRepository = fileResourceRepository;
+        this.checksumService = checksumService;
     }
 
     @Nullable
     @Override
-    public LocallyAvailableExternalResource getResource(final ExternalResourceName location, @Nullable String baseName, final ResourceFileStore fileStore, @Nullable final LocallyAvailableResourceCandidates additionalCandidates) throws IOException {
-        return producerGuard.guardByKey(location, new Factory<LocallyAvailableExternalResource>() {
+    public LocallyAvailableExternalResource getResource(final ExternalResourceName location, @Nullable String baseName, final ResourceFileStore fileStore, @Nullable final LocallyAvailableResourceCandidates additionalCandidates) {
+        return producerGuard.guardByKey(location, new Supplier<LocallyAvailableExternalResource>() {
             @Override
-            public LocallyAvailableExternalResource create() {
+            public LocallyAvailableExternalResource get() {
                 LOGGER.debug("Constructing external resource: {}", location);
                 CachedExternalResource cached = cachedExternalResourceIndex.lookup(location.toString());
 
@@ -127,7 +131,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
                 boolean hasLocalCandidates = additionalCandidates != null && !additionalCandidates.isNone();
                 if (hasLocalCandidates) {
                     // The “remote” may have already given us the checksum
-                    HashValue remoteChecksum = remoteMetaData.getSha1();
+                    HashCode remoteChecksum = remoteMetaData.getSha1();
 
                     if (remoteChecksum == null) {
                         remoteChecksum = getResourceSha1(location, revalidate);
@@ -157,16 +161,21 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
         });
     }
 
-    private HashValue getResourceSha1(ExternalResourceName location, boolean revalidate) {
+    private HashCode getResourceSha1(ExternalResourceName location, boolean revalidate) {
         try {
             ExternalResourceName sha1Location = location.append(".sha1");
             ExternalResource resource = delegate.resource(sha1Location, revalidate);
-            ExternalResourceReadResult<HashValue> result = resource.withContentIfPresent(new Transformer<HashValue, InputStream>() {
+            ExternalResourceReadResult<HashCode> result = resource.withContentIfPresent(new Transformer<HashCode, InputStream>() {
                 @Override
-                public HashValue transform(InputStream inputStream) {
+                public HashCode transform(InputStream inputStream) {
                     try {
                         String sha = IOUtils.toString(inputStream, "us-ascii");
-                        return HashValue.parse(sha);
+                        if (sha.length() < 40) {
+                            // servers may return sha-1 with leading 0 stripped, which is not
+                            // supported by HashCode.fromString
+                            return HashCode.fromBytes(HashValue.parse(sha).asByteArray());
+                        }
+                        return HashCode.fromString(sha);
                     } catch (IOException e) {
                         throw new UncheckedIOException(e);
                     }
@@ -179,11 +188,11 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
         }
     }
 
-    private LocallyAvailableExternalResource copyCandidateToCache(ExternalResourceName source, ResourceFileStore fileStore, ExternalResourceMetaData remoteMetaData, HashValue remoteChecksum, LocallyAvailableResource local) throws IOException {
+    private LocallyAvailableExternalResource copyCandidateToCache(ExternalResourceName source, ResourceFileStore fileStore, ExternalResourceMetaData remoteMetaData, HashCode remoteChecksum, LocallyAvailableResource local) throws IOException {
         final File destination = temporaryFileProvider.createTemporaryFile("gradle_download", "bin");
         try {
             Files.copy(local.getFile(), destination);
-            HashValue localChecksum = HashUtil.createHash(destination, "SHA1");
+            HashCode localChecksum = checksumService.sha1(destination);
             if (!localChecksum.equals(remoteChecksum)) {
                 return null;
             }

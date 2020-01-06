@@ -16,6 +16,7 @@
 package org.gradle.testing.testng
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.TestNGExecutionResult
 import spock.lang.Unroll
@@ -25,6 +26,7 @@ public class TestNGProducesOldReportsIntegrationTest extends AbstractIntegration
         executer.noExtraLogging()
     }
 
+    @ToBeFixedForInstantExecution
     def "always produces the new xml reports"() {
         given:
         file("src/test/java/org/MixedMethodsTest.java") << """package org;
@@ -44,7 +46,7 @@ public class MixedMethodsTest {
         buildFile << """
 apply plugin: 'java'
 ${mavenCentralRepository()}
-dependencies { testCompile 'org.testng:testng:6.3.1' }
+dependencies { testImplementation 'org.testng:testng:6.3.1' }
 
 test {
     reports.html.enabled = false
@@ -60,6 +62,7 @@ test {
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     "can generate the old xml reports"() {
         given:
         file("src/test/java/org/SomeTest.java") << """package org;
@@ -73,7 +76,7 @@ public class SomeTest {
         buildFile << """
 apply plugin: 'java'
 ${mavenCentralRepository()}
-dependencies { testCompile 'org.testng:testng:6.3.1' }
+dependencies { testImplementation 'org.testng:testng:6.3.1' }
 test {
   reports.html.enabled = false
   $preConfig

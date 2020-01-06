@@ -22,13 +22,23 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
  * point.
  */
 public class ResolveOptimizations {
+    private boolean hasVirtualPlatforms;
     private boolean hasForcedPlatforms;
 
     void declareForcedPlatformInUse() {
         hasForcedPlatforms = true;
     }
 
+    void declareVirtualPlatformInUse() {
+        hasVirtualPlatforms = true;
+    }
+
     public boolean mayHaveForcedPlatforms() {
         return hasForcedPlatforms;
+    }
+
+
+    public boolean mayHaveVirtualPlatforms() {
+        return hasVirtualPlatforms;
     }
 }

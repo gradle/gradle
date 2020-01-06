@@ -17,10 +17,13 @@
 package org.gradle.api.internal.changedetection.changes;
 
 import org.gradle.StartParameter;
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskExecutionMode;
 import org.gradle.api.internal.changedetection.TaskExecutionModeResolver;
+import org.gradle.api.internal.project.taskfactory.AbstractIncrementalTaskAction;
+import org.gradle.api.internal.tasks.InputChangesAwareTaskAction;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.api.specs.AndSpec;
 
@@ -39,7 +42,11 @@ public class DefaultTaskExecutionModeResolver implements TaskExecutionModeResolv
         AndSpec<? super TaskInternal> upToDateSpec = task.getOutputs().getUpToDateSpec();
         if (!properties.hasDeclaredOutputs() && upToDateSpec.isEmpty()) {
             if (task.hasTaskActions()) {
-                return TaskExecutionMode.NO_OUTPUTS_WITH_ACTIONS;
+                if (requiresInputChanges(task)) {
+                    throw new InvalidUserCodeException("You must declare outputs or use `TaskOutputs.upToDateWhen()` when using the incremental task API");
+                } else {
+                    return TaskExecutionMode.NO_OUTPUTS_WITH_ACTIONS;
+                }
             } else {
                 return TaskExecutionMode.NO_OUTPUTS_WITHOUT_ACTIONS;
             }
@@ -54,5 +61,14 @@ public class DefaultTaskExecutionModeResolver implements TaskExecutionModeResolv
         }
 
         return TaskExecutionMode.INCREMENTAL;
+    }
+
+    private static boolean requiresInputChanges(TaskInternal task) {
+        for (InputChangesAwareTaskAction taskAction : task.getTaskActions()) {
+            if (taskAction instanceof AbstractIncrementalTaskAction) {
+                return true;
+            }
+        }
+        return false;
     }
 }

@@ -18,7 +18,7 @@ package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
-import org.gradle.internal.snapshot.WellKnownFileLocations;
+import org.gradle.internal.vfs.AdditiveCacheLocations;
 
 /**
  * A {@link ResourceSnapshotterCacheService} that delegates to the global service for immutable files
@@ -27,17 +27,17 @@ import org.gradle.internal.snapshot.WellKnownFileLocations;
 public class SplitResourceSnapshotterCacheService implements ResourceSnapshotterCacheService {
     private final ResourceSnapshotterCacheService globalCache;
     private final ResourceSnapshotterCacheService localCache;
-    private final WellKnownFileLocations wellKnownFileLocations;
+    private final AdditiveCacheLocations additiveCacheLocations;
 
-    public SplitResourceSnapshotterCacheService(ResourceSnapshotterCacheService globalCache, ResourceSnapshotterCacheService localCache, WellKnownFileLocations wellKnownFileLocations) {
+    public SplitResourceSnapshotterCacheService(ResourceSnapshotterCacheService globalCache, ResourceSnapshotterCacheService localCache, AdditiveCacheLocations additiveCacheLocations) {
         this.globalCache = globalCache;
         this.localCache = localCache;
-        this.wellKnownFileLocations = wellKnownFileLocations;
+        this.additiveCacheLocations = additiveCacheLocations;
     }
 
     @Override
     public HashCode hashFile(RegularFileSnapshot fileSnapshot, RegularFileHasher hasher, HashCode configurationHash) {
-        if (wellKnownFileLocations.isImmutable(fileSnapshot.getAbsolutePath())) {
+        if (additiveCacheLocations.isInsideAdditiveCache(fileSnapshot.getAbsolutePath())) {
             return globalCache.hashFile(fileSnapshot, hasher, configurationHash);
         } else {
             return localCache.hashFile(fileSnapshot, hasher, configurationHash);

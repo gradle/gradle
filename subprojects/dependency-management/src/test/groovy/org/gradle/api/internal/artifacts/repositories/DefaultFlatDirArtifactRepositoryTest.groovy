@@ -16,39 +16,40 @@
 package org.gradle.api.internal.artifacts.repositories
 
 import org.gradle.api.InvalidUserDataException
-import org.gradle.internal.instantiation.InstantiatorFactory
+import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory
 import org.gradle.api.internal.artifacts.repositories.resolver.IvyResolver
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
-import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore
 import org.gradle.api.model.ObjectFactory
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
+import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.resource.ExternalResourceRepository
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
-import org.gradle.util.AttributeTestUtil
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DefaultFlatDirArtifactRepositoryTest extends Specification {
-    final FileResolver fileResolver = Mock()
+    final FileCollectionFactory fileCollectionFactory = Mock()
     final ExternalResourceRepository resourceRepository = Mock()
     final RepositoryTransport repositoryTransport = Mock()
     final RepositoryTransportFactory transportFactory = Mock()
     final LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder = Mock()
     final ArtifactIdentifierFileStore artifactIdentifierFileStore = Stub()
     final ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock()
-    final IvyMutableModuleMetadataFactory metadataFactory = new IvyMutableModuleMetadataFactory(moduleIdentifierFactory, AttributeTestUtil.attributesFactory())
+    final IvyMutableModuleMetadataFactory metadataFactory = DependencyManagementTestUtil.ivyMetadataFactory()
 
-    final DefaultFlatDirArtifactRepository repository = new DefaultFlatDirArtifactRepository(fileResolver, transportFactory, locallyAvailableResourceFinder, artifactIdentifierFileStore, moduleIdentifierFactory, metadataFactory, Mock(InstantiatorFactory), Mock(ObjectFactory))
+    final DefaultFlatDirArtifactRepository repository = new DefaultFlatDirArtifactRepository(fileCollectionFactory, transportFactory, locallyAvailableResourceFinder, artifactIdentifierFileStore, moduleIdentifierFactory, metadataFactory, Mock(InstantiatorFactory), Mock(ObjectFactory), TestUtil.checksumService)
 
     def "creates a repository with multiple root directories"() {
         given:
         def dir1 = new File('a')
         def dir2 = new File('b')
-        _ * fileResolver.resolveFiles(['a', 'b']) >> ImmutableFileCollection.of(dir1, dir2)
+        _ * fileCollectionFactory.resolving(['a', 'b']) >> ImmutableFileCollection.of(dir1, dir2)
         _ * repositoryTransport.repository >> resourceRepository
 
         and:
@@ -59,7 +60,7 @@ class DefaultFlatDirArtifactRepositoryTest extends Specification {
         def repo = repository.createResolver()
 
         then:
-        1 * transportFactory.createTransport("file", "repo-name", []) >> repositoryTransport
+        1 * transportFactory.createFileTransport('repo-name') >> repositoryTransport
 
         and:
         repo instanceof IvyResolver
@@ -75,7 +76,7 @@ class DefaultFlatDirArtifactRepositoryTest extends Specification {
 
     def "fails when no directories specified"() {
         given:
-        _ * fileResolver.resolveFiles(_) >> ImmutableFileCollection.of()
+        _ * fileCollectionFactory.resolving(_) >> ImmutableFileCollection.of()
 
         when:
         repository.createResolver()

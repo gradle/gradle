@@ -16,11 +16,9 @@
 
 package org.gradle
 
-import groovy.io.FileType
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Shared
-
-import static org.hamcrest.CoreMatchers.containsString
 
 class AllDistributionIntegrationSpec extends DistributionIntegrationSpec {
 
@@ -31,6 +29,7 @@ class AllDistributionIntegrationSpec extends DistributionIntegrationSpec {
         "all"
     }
 
+    @ToBeFixedForInstantExecution
     def allZipContents() {
         given:
         TestFile contentsDir = unpackDistribution()
@@ -44,31 +43,8 @@ class AllDistributionIntegrationSpec extends DistributionIntegrationSpec {
         contentsDir.file('src/wrapper/org/gradle/wrapper/WrapperExecutor.java').assertIsFile()
 
         // Samples
-        contentsDir.file('samples/java/quickstart/groovy/build.gradle').assertIsFile()
+        contentsDir.file('samples').assertDoesNotExist()
 
-        def buildAndGradleDirs = []
-        contentsDir.file('samples').eachFileRecurse(FileType.DIRECTORIES) {
-            if (it.name == "build" || it.name == ".gradle") {
-                buildAndGradleDirs << it
-            }
-        }
-        buildAndGradleDirs == []
-
-        // Javadoc
-        contentsDir.file('docs/javadoc/index.html').assertIsFile()
-        contentsDir.file('docs/javadoc/index.html').assertContents(containsString("Gradle API ${version}"))
-        contentsDir.file('docs/javadoc/org/gradle/api/Project.html').assertIsFile()
-
-        // Userguide
-        contentsDir.file('docs/userguide/userguide.html').assertIsFile()
-        contentsDir.file('docs/userguide/userguide.html').assertContents(containsString("Gradle User Manual</h1>"))
-        contentsDir.file('docs/userguide/userguide_single.html').assertIsFile()
-        contentsDir.file('docs/userguide/userguide_single.html').assertContents(containsString("<h1>Gradle User Manual: Version ${version}</h1>"))
-//        contentsDir.file('docs/userguide/userguide.pdf').assertIsFile()
-
-        // DSL reference
-        contentsDir.file('docs/dsl/index.html').assertIsFile()
-        contentsDir.file('docs/dsl/index.html').assertContents(containsString("<title>Gradle DSL Version ${version}</title>"))
+        assertDocsExist(contentsDir, version)
     }
-
 }

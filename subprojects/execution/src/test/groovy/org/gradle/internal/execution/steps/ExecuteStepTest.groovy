@@ -20,30 +20,31 @@ import org.gradle.internal.execution.ExecutionOutcome
 import org.gradle.internal.execution.InputChangesContext
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.history.changes.InputChangesInternal
-import spock.lang.Specification
 import spock.lang.Unroll
 
-class ExecuteStepTest extends Specification {
-    def step = new ExecuteStep<InputChangesContext>()
-    def context = Mock(InputChangesContext)
-    def work = Mock(UnitOfWork)
+class ExecuteStepTest extends StepSpec<InputChangesContext> {
+    def step = new ExecuteStep<>()
     def inputChanges = Mock(InputChangesInternal)
 
+    @Override
+    protected InputChangesContext createContext() {
+        Stub(InputChangesContext)
+    }
+
     @Unroll
-    def "result #workResult yields outcome #outcome (incremental false)"() {
+    def "result #workResult yields outcome #expectedOutcome (incremental false)"() {
         when:
         def result = step.execute(context)
 
         then:
-        result.outcome.get() == outcome
+        result.outcome.get() == expectedOutcome
 
-        1 * context.work >> work
-        1 * context.inputChanges >> Optional.empty()
-        1 * work.execute(null) >> workResult
+        _ * context.inputChanges >> Optional.empty()
+        _ * work.execute(null, context) >> workResult
         0 * _
 
         where:
-        workResult                        | outcome
+        workResult                        | expectedOutcome
         UnitOfWork.WorkResult.DID_WORK    | ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
         UnitOfWork.WorkResult.DID_NO_WORK | ExecutionOutcome.UP_TO_DATE
     }
@@ -57,9 +58,8 @@ class ExecuteStepTest extends Specification {
         def ex = thrown Throwable
         ex == failure
 
-        1 * context.work >> work
-        1 * context.inputChanges >> Optional.empty()
-        1 * work.execute(null) >> { throw failure }
+        _ * context.inputChanges >> Optional.empty()
+        _ * work.execute(null, context) >> { throw failure }
         0 * _
 
         where:
@@ -72,16 +72,15 @@ class ExecuteStepTest extends Specification {
         def result = step.execute(context)
 
         then:
-        result.outcome.get() == outcome
+        result.outcome.get() == expectedOutcome
 
-        1 * context.work >> work
-        1 * context.inputChanges >> Optional.of(inputChanges)
+        _ * context.inputChanges >> Optional.of(inputChanges)
         1 * inputChanges.incremental >> incrementalExecution
-        1 * work.execute(inputChanges) >> workResult
+        _ * work.execute(inputChanges, context) >> workResult
         0 * _
 
         where:
-        incrementalExecution | workResult                        | outcome
+        incrementalExecution | workResult                        | expectedOutcome
         true                 | UnitOfWork.WorkResult.DID_WORK    | ExecutionOutcome.EXECUTED_INCREMENTALLY
         false                | UnitOfWork.WorkResult.DID_WORK    | ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
         true                 | UnitOfWork.WorkResult.DID_NO_WORK | ExecutionOutcome.UP_TO_DATE

@@ -40,7 +40,7 @@ class JavaCompileTaskIntegrationTest extends AbstractIntegrationSpec {
                 classpath = files()
                 sourceCompatibility = JavaVersion.current()
                 targetCompatibility = JavaVersion.current()
-                destinationDir = file("build/classes")
+                destinationDirectory = file("build/classes")
                 source "src/main/java"
             }
         """

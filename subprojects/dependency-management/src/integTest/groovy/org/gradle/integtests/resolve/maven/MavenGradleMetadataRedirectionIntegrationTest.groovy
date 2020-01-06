@@ -36,9 +36,7 @@ class MavenGradleMetadataRedirectionIntegrationTest extends AbstractHttpDependen
                 maven { url "${mavenHttpRepo.uri}" }
             }
         """
-        resolve = new ResolveTestFixture(buildFile, "compileClasspath")
-        resolve.expectDefaultConfiguration('compile')
-        resolve.prepare()
+        prepareResolution()
     }
 
     def "doesn't try to fetch Gradle metadata if published and marker is not present"() {
@@ -87,7 +85,7 @@ class MavenGradleMetadataRedirectionIntegrationTest extends AbstractHttpDependen
         resolve.expectGraph {
             root(":", ":test:") {
                 module('org:main:1.0') {
-                    variant('api', ['org.gradle.status': 'release', 'org.gradle.usage': 'java-api-jars'])
+                    variant('api', ['org.gradle.status': 'release', 'org.gradle.usage': 'java-api', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library'])
                     edge('org:foo:{prefer 1.9}', 'org:foo:1.9')
                 }
             }
@@ -120,9 +118,46 @@ class MavenGradleMetadataRedirectionIntegrationTest extends AbstractHttpDependen
         }
     }
 
+    def "doesn't try to fetch Gradle metadata if published has marker present and ignoreGradleMetadataRedirection is set"() {
+        setup:
+        buildFile.text = """
+            apply plugin: 'java-library'
+            
+            repositories {
+                maven { 
+                    url "${mavenHttpRepo.uri}"
+                    metadataSources {
+                        mavenPom()
+                        artifact()
+                        ignoreGradleMetadataRedirection()
+                    }
+                }
+            }
+            
+             dependencies {
+                api "org:main:1.0"
+            }
+        """
+        prepareResolution()
+        createPomFile(true)
+
+        when:
+        mainModule.pom.expectGet()
+        mainModule.artifact.expectGet()
+
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org:main:1.0')
+            }
+        }
+    }
+
     private void createPomFile(boolean marker) {
-        if (marker) {
-            mainModule.withGradleMetadataRedirection()
+        if (!marker) {
+            mainModule.withoutGradleMetadataRedirection()
         }
         mainModule.publish()
         // and now we manually patch the Gradle metadata so that its dependencies
@@ -132,5 +167,11 @@ class MavenGradleMetadataRedirectionIntegrationTest extends AbstractHttpDependen
         moduleFile.replace('"dependencies":[]', '''"dependencies":[
             { "group": "org", "module": "foo", "version": { "prefers": "1.9" } }
         ]''')
+    }
+
+    private void prepareResolution() {
+        resolve = new ResolveTestFixture(buildFile, "compileClasspath")
+        resolve.expectDefaultConfiguration('compile')
+        resolve.prepare()
     }
 }

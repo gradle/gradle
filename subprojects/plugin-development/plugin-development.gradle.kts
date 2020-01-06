@@ -27,8 +27,10 @@ dependencies {
     implementation(project(":baseServices"))
     implementation(project(":logging"))
     implementation(project(":processServices"))
+    implementation(project(":files"))
     implementation(project(":coreApi"))
     implementation(project(":modelCore"))
+    implementation(project(":execution"))
     implementation(project(":core"))
     implementation(project(":dependencyManagement"))
     implementation(project(":maven"))
@@ -40,6 +42,8 @@ dependencies {
     implementation(project(":plugins"))
     implementation(project(":pluginUse"))
     implementation(project(":publish"))
+    implementation(project(":messaging"))
+    implementation(project(":workers"))
 
     implementation(library("slf4j_api"))
     implementation(library("groovy"))
@@ -48,25 +52,24 @@ dependencies {
     implementation(library("inject"))
     implementation(library("asm"))
 
-    testImplementation(project(":files"))
+    testImplementation(project(":fileCollections"))
+    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":logging")))
 
     testRuntimeOnly(project(":toolingApi"))
-    testRuntimeOnly(project(":launcher"))
     testRuntimeOnly(project(":testKit"))
+    testRuntimeOnly(project(":runtimeApiInfo"))
 
     integTestImplementation(project(":baseServicesGroovy"))
     integTestImplementation(library("jetbrains_annotations"))
-    
+
     integTestRuntimeOnly(project(":toolingApiBuilders"))
+    integTestRuntimeOnly(project(":runtimeApiInfo"))
+    integTestRuntimeOnly(project(":testingJunitPlatform"))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
-}
-
-testFixtures {
-    from(":core")
-    from(":logging")
 }
 
 testFilesCleanup {

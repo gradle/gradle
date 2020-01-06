@@ -21,10 +21,10 @@ import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.FileCollectionDependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.dependencies.SelfResolvingDependencyInternal;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.internal.component.local.model.BuildableLocalConfigurationMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 
@@ -96,8 +96,8 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
         }
 
         @Override
-        public FileCollection getFiles() {
-            return fileDependency.getFiles();
+        public FileCollectionInternal getFiles() {
+            return (FileCollectionInternal) fileDependency.getFiles();
         }
     }
 }

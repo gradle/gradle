@@ -28,6 +28,7 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.attributes.Bundling;
+import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ConventionMapping;
@@ -40,18 +41,23 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.DefaultJavaPluginConvention;
 import org.gradle.api.plugins.internal.DefaultJavaPluginExtension;
-import org.gradle.api.plugins.internal.SourceSetUtil;
+import org.gradle.api.plugins.internal.JvmPluginsHelper;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
+import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.javadoc.Javadoc;
+import org.gradle.api.tasks.testing.JUnitXmlReport;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.component.external.model.JavaEcosystemVariantDerivationStrategy;
+import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.internal.model.RuleBasedPluginListener;
+import org.gradle.jvm.toolchain.JavaInstallationRegistry;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.jvm.tasks.ProcessResources;
 
@@ -76,12 +82,21 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     public static final String DOCUMENTATION_GROUP = "documentation";
 
     /**
+     * Set this property to use JARs build from subprojects, instead of the classes folder from these project, on the compile classpath.
+     * The main use case for this is to mitigate performance issues on very large multi-projects building on Windows.
+     * Setting this property will cause the 'jar' task of all subprojects in the dependency tree to always run during compilation.
+     *
+     * @since 5.6
+     */
+    @Incubating
+    public static final String COMPILE_CLASSPATH_PACKAGING_SYSTEM_PROPERTY = "org.gradle.java.compile-classpath-packaging";
+
+    /**
      * A list of known artifact types which are known to prevent from
      * publication.
      *
      * @since 5.3
      */
-    @Incubating
     public static final Set<String> UNPUBLISHABLE_VARIANT_ARTIFACTS = ImmutableSet.of(
             ArtifactTypeDefinition.JVM_CLASS_DIRECTORY,
             ArtifactTypeDefinition.JVM_RESOURCES_DIRECTORY,
@@ -89,10 +104,14 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     );
 
     private final ObjectFactory objectFactory;
+    private final JavaInstallationRegistry javaInstallationRegistry;
+    private final boolean javaClasspathPackaging;
 
     @Inject
-    public JavaBasePlugin(ObjectFactory objectFactory) {
+    public JavaBasePlugin(ObjectFactory objectFactory, JavaInstallationRegistry javaInstallationRegistry) {
         this.objectFactory = objectFactory;
+        this.javaInstallationRegistry = javaInstallationRegistry;
+        this.javaClasspathPackaging = Boolean.getBoolean(COMPILE_CLASSPATH_PACKAGING_SYSTEM_PROPERTY);
     }
 
     @Override
@@ -124,6 +143,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         project.getConvention().getPlugins().put("java", javaConvention);
         project.getExtensions().add(SourceSetContainer.class, "sourceSets", javaConvention.getSourceSets());
         project.getExtensions().create(JavaPluginExtension.class, "java", DefaultJavaPluginExtension.class, javaConvention, project);
+        project.getExtensions().add(JavaInstallationRegistry.class, "javaInstalls", javaInstallationRegistry);
         return javaConvention;
     }
 
@@ -139,10 +159,10 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     private void configureSchema(ProjectInternal project) {
         AttributesSchema attributesSchema = project.getDependencies().getAttributesSchema();
         JavaEcosystemSupport.configureSchema(attributesSchema, objectFactory);
-        project.getDependencies().getArtifactTypes().create(ArtifactTypeDefinition.JAR_TYPE).getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME_JARS));
+        project.getDependencies().getArtifactTypes().create(ArtifactTypeDefinition.JAR_TYPE).getAttributes()
+                .attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME))
+                .attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, LibraryElements.JAR));
     }
-
-
 
     private void configureSourceSetDefaults(final JavaPluginConvention pluginConvention) {
         final Project project = pluginConvention.getProject();
@@ -157,10 +177,10 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
                 definePathsForSourceSet(sourceSet, outputConventionMapping, project);
 
                 createProcessResourcesTask(sourceSet, sourceSet.getResources(), project);
-                Provider<JavaCompile> compileTask = createCompileJavaTask(sourceSet, sourceSet.getJava(), project);
+                TaskProvider<JavaCompile> compileTask = createCompileJavaTask(sourceSet, sourceSet.getJava(), project);
                 createClassesTask(sourceSet, project);
 
-                SourceSetUtil.configureOutputDirectoryForSourceSet(sourceSet, sourceSet.getJava(), project, compileTask, compileTask.map(new Transformer<CompileOptions, JavaCompile>() {
+                JvmPluginsHelper.configureOutputDirectoryForSourceSet(sourceSet, sourceSet.getJava(), project, compileTask, compileTask.map(new Transformer<CompileOptions, JavaCompile>() {
                     @Override
                     public CompileOptions transform(JavaCompile javaCompile) {
                         return javaCompile.getOptions();
@@ -170,7 +190,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         });
     }
 
-    private Provider<JavaCompile> createCompileJavaTask(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, final Project target) {
+    private TaskProvider<JavaCompile> createCompileJavaTask(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, final Project target) {
         return target.getTasks().register(sourceSet.getCompileJavaTaskName(), JavaCompile.class, new Action<JavaCompile>() {
             @Override
             public void execute(JavaCompile compileTask) {
@@ -183,13 +203,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
                         return sourceSet.getCompileClasspath();
                     }
                 });
-                SourceSetUtil.configureAnnotationProcessorPath(sourceSet, sourceDirectorySet, compileTask.getOptions(), target);
-                compileTask.setDestinationDir(target.provider(new Callable<File>() {
-                    @Override
-                    public File call() {
-                        return sourceDirectorySet.getOutputDir();
-                    }
-                }));
+                JvmPluginsHelper.configureAnnotationProcessorPath(sourceSet, sourceDirectorySet, compileTask.getOptions(), target);
             }
         });
     }
@@ -246,11 +260,13 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         String compileClasspathConfigurationName = sourceSet.getCompileClasspathConfigurationName();
         String annotationProcessorConfigurationName = sourceSet.getAnnotationProcessorConfigurationName();
         String runtimeClasspathConfigurationName = sourceSet.getRuntimeClasspathConfigurationName();
+        String apiElementsConfigurationName = sourceSet.getApiElementsConfigurationName();
+        String runtimeElementsConfigurationName = sourceSet.getRuntimeElementsConfigurationName();
         String sourceSetName = sourceSet.toString();
         Action<ConfigurationInternal> configureDefaultTargetPlatform = configureDefaultTargetPlatform(convention);
 
 
-        Configuration compileConfiguration = configurations.maybeCreate(compileConfigurationName);
+        DeprecatableConfiguration compileConfiguration = (DeprecatableConfiguration) configurations.maybeCreate(compileConfigurationName);
         compileConfiguration.setVisible(false);
         compileConfiguration.setDescription("Dependencies for " + sourceSetName + " (deprecated, use '" + implementationConfigurationName + "' instead).");
 
@@ -261,25 +277,26 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         implementationConfiguration.setCanBeResolved(false);
         implementationConfiguration.extendsFrom(compileConfiguration);
 
-        Configuration runtimeConfiguration = configurations.maybeCreate(runtimeConfigurationName);
+        DeprecatableConfiguration runtimeConfiguration = (DeprecatableConfiguration) configurations.maybeCreate(runtimeConfigurationName);
         runtimeConfiguration.setVisible(false);
         runtimeConfiguration.extendsFrom(compileConfiguration);
         runtimeConfiguration.setDescription("Runtime dependencies for " + sourceSetName + " (deprecated, use '" + runtimeOnlyConfigurationName + "' instead).");
 
-        Configuration compileOnlyConfiguration = configurations.maybeCreate(compileOnlyConfigurationName);
+        DeprecatableConfiguration compileOnlyConfiguration = (DeprecatableConfiguration) configurations.maybeCreate(compileOnlyConfigurationName);
         compileOnlyConfiguration.setVisible(false);
         compileOnlyConfiguration.setDescription("Compile only dependencies for " + sourceSetName + ".");
 
-        Configuration compileClasspathConfiguration = configurations.maybeCreate(compileClasspathConfigurationName);
+        ConfigurationInternal compileClasspathConfiguration = (ConfigurationInternal) configurations.maybeCreate(compileClasspathConfigurationName);
         compileClasspathConfiguration.setVisible(false);
         compileClasspathConfiguration.extendsFrom(compileOnlyConfiguration, implementationConfiguration);
         compileClasspathConfiguration.setDescription("Compile classpath for " + sourceSetName + ".");
         compileClasspathConfiguration.setCanBeConsumed(false);
         compileClasspathConfiguration.getAttributes().attribute(USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_API));
+        compileClasspathConfiguration.getAttributes().attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, javaClasspathPackaging? LibraryElements.JAR : LibraryElements.CLASSES));
         compileClasspathConfiguration.getAttributes().attribute(BUNDLING_ATTRIBUTE, objectFactory.named(Bundling.class, Bundling.EXTERNAL));
-        ((ConfigurationInternal)compileClasspathConfiguration).beforeLocking(configureDefaultTargetPlatform);
+        compileClasspathConfiguration.beforeLocking(configureDefaultTargetPlatform);
 
-        Configuration annotationProcessorConfiguration = configurations.maybeCreate(annotationProcessorConfigurationName);
+        DeprecatableConfiguration annotationProcessorConfiguration = (DeprecatableConfiguration) configurations.maybeCreate(annotationProcessorConfigurationName);
         annotationProcessorConfiguration.setVisible(false);
         annotationProcessorConfiguration.setDescription("Annotation processors and their dependencies for " + sourceSetName + ".");
         annotationProcessorConfiguration.setCanBeConsumed(false);
@@ -291,19 +308,34 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         runtimeOnlyConfiguration.setCanBeResolved(false);
         runtimeOnlyConfiguration.setDescription("Runtime only dependencies for " + sourceSetName + ".");
 
-        Configuration runtimeClasspathConfiguration = configurations.maybeCreate(runtimeClasspathConfigurationName);
+        ConfigurationInternal runtimeClasspathConfiguration = (ConfigurationInternal) configurations.maybeCreate(runtimeClasspathConfigurationName);
         runtimeClasspathConfiguration.setVisible(false);
         runtimeClasspathConfiguration.setCanBeConsumed(false);
         runtimeClasspathConfiguration.setCanBeResolved(true);
         runtimeClasspathConfiguration.setDescription("Runtime classpath of " + sourceSetName + ".");
         runtimeClasspathConfiguration.extendsFrom(runtimeOnlyConfiguration, runtimeConfiguration, implementationConfiguration);
         runtimeClasspathConfiguration.getAttributes().attribute(USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME));
+        runtimeClasspathConfiguration.getAttributes().attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, LibraryElements.JAR));
         runtimeClasspathConfiguration.getAttributes().attribute(BUNDLING_ATTRIBUTE, objectFactory.named(Bundling.class, Bundling.EXTERNAL));
-        ((ConfigurationInternal)runtimeClasspathConfiguration).beforeLocking(configureDefaultTargetPlatform);
+        runtimeClasspathConfiguration.beforeLocking(configureDefaultTargetPlatform);
 
         sourceSet.setCompileClasspath(compileClasspathConfiguration);
         sourceSet.setRuntimeClasspath(sourceSet.getOutput().plus(runtimeClasspathConfiguration));
         sourceSet.setAnnotationProcessorPath(annotationProcessorConfiguration);
+
+        compileConfiguration.deprecateForDeclaration(implementationConfigurationName);
+        compileConfiguration.deprecateForConsumption(apiElementsConfigurationName);
+        compileConfiguration.deprecateForResolution(compileClasspathConfigurationName);
+
+        compileOnlyConfiguration.deprecateForConsumption(apiElementsConfigurationName);
+        compileOnlyConfiguration.deprecateForResolution(compileClasspathConfigurationName);
+
+        runtimeConfiguration.deprecateForDeclaration(runtimeOnlyConfigurationName);
+        runtimeConfiguration.deprecateForConsumption(runtimeElementsConfigurationName);
+        runtimeConfiguration.deprecateForResolution(runtimeClasspathConfigurationName);
+
+        compileClasspathConfiguration.deprecateForDeclaration(implementationConfigurationName, compileOnlyConfigurationName);
+        runtimeClasspathConfiguration.deprecateForDeclaration(implementationConfigurationName, compileOnlyConfigurationName, runtimeOnlyConfigurationName);
     }
 
     private Action<ConfigurationInternal> configureDefaultTargetPlatform(final JavaPluginConvention convention) {
@@ -389,36 +421,17 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     }
 
     private void configureTest(final Project project, final JavaPluginConvention convention) {
-        project.getTasks().withType(Test.class).configureEach(new Action<Test>() {
-            @Override
-            public void execute(final Test test) {
-                configureTestDefaults(test, project, convention);
-            }
-        });
+        project.getTasks().withType(Test.class).configureEach(test -> configureTestDefaults(test, project, convention));
     }
 
     private void configureTestDefaults(final Test test, Project project, final JavaPluginConvention convention) {
-        DslObject htmlReport = new DslObject(test.getReports().getHtml());
-        DslObject xmlReport = new DslObject(test.getReports().getJunitXml());
+        DirectoryReport htmlReport = test.getReports().getHtml();
+        JUnitXmlReport xmlReport = test.getReports().getJunitXml();
 
-        xmlReport.getConventionMapping().map("destination", new Callable<Object>() {
-            @Override
-            public Object call() {
-                return new File(convention.getTestResultsDir(), test.getName());
-            }
-        });
-        htmlReport.getConventionMapping().map("destination", new Callable<Object>() {
-            @Override
-            public Object call() {
-                return new File(convention.getTestReportDir(), test.getName());
-            }
-        });
-        test.getConventionMapping().map("binResultsDir", new Callable<Object>() {
-            @Override
-            public Object call() {
-                return new File(convention.getTestResultsDir(), test.getName() + "/binary");
-            }
-        });
+        // TODO - should replace `testResultsDir` and `testReportDir` with `Property` types and map their values
+        xmlReport.getOutputLocation().convention(project.getLayout().getProjectDirectory().dir(project.provider(() -> new File(convention.getTestResultsDir(), test.getName()).getAbsolutePath())));
+        htmlReport.getOutputLocation().convention(project.getLayout().getProjectDirectory().dir(project.provider(() -> new File(convention.getTestReportDir(), test.getName()).getAbsolutePath())));
+        test.getBinaryResultsDirectory().convention(project.getLayout().getProjectDirectory().dir(project.provider(() -> new File(convention.getTestResultsDir(), test.getName() + "/binary").getAbsolutePath())));
         test.workingDir(project.getProjectDir());
     }
 }

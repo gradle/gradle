@@ -26,6 +26,7 @@ dependencies {
     implementation(project(":buildCache"))
     implementation(project(":coreApi"))
     implementation(project(":core"))
+    implementation(project(":logging"))
     implementation(project(":resources"))
     implementation(project(":resourcesHttp"))
 
@@ -35,14 +36,14 @@ dependencies {
     implementation(library("commons_lang"))
     implementation(library("inject"))
 
-    integTestImplementation(project(":logging"))
+    testImplementation(testFixtures(project(":core")))
+
     integTestImplementation(testLibrary("jetty"))
+
+    integTestRuntimeOnly(project(":runtimeApiInfo"))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
 }
 
-testFixtures {
-    from(":core")
-}

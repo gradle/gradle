@@ -55,7 +55,7 @@ public class Amount<Q> implements Comparable<Amount<Q>> {
         if (value == null) {
             return null;
         }
-        return new Amount<Q>(value, units);
+        return new Amount<>(value, units);
     }
 
     /**
@@ -64,7 +64,7 @@ public class Amount<Q> implements Comparable<Amount<Q>> {
     @Override
     public String toString() {
         if (cachedToString == null) {
-            cachedToString = String.valueOf(value) + " " + units.format(value);
+            cachedToString = value + " " + units.format(value);
         }
         return cachedToString;
     }
@@ -115,7 +115,7 @@ public class Amount<Q> implements Comparable<Amount<Q>> {
         if (units.equals(this.units)) {
             return this;
         }
-        return new Amount<Q>(this.units.scaleTo(value, units), units);
+        return new Amount<>(this.units.scaleTo(value, units), units);
     }
 
     @Override
@@ -153,12 +153,12 @@ public class Amount<Q> implements Comparable<Amount<Q>> {
         }
         int diff = units.compareTo(other.units);
         if (diff == 0) {
-            return new Amount<Q>(value.add(other.value), units);
+            return new Amount<>(value.add(other.value), units);
         }
         if (diff < 0) {
-            return new Amount<Q>(value.add(other.units.scaleTo(other.value, units)), units);
+            return new Amount<>(value.add(other.units.scaleTo(other.value, units)), units);
         }
-        return new Amount<Q>(units.scaleTo(value, other.units).add(other.value), other.units);
+        return new Amount<>(units.scaleTo(value, other.units).add(other.value), other.units);
     }
 
     public Amount<Q> minus(Amount<Q> other) {
@@ -167,23 +167,23 @@ public class Amount<Q> implements Comparable<Amount<Q>> {
         }
         int diff = units.compareTo(other.units);
         if (diff == 0) {
-            return new Amount<Q>(value.subtract(other.value), units);
+            return new Amount<>(value.subtract(other.value), units);
         }
         if (diff < 0) {
-            return new Amount<Q>(value.subtract(other.units.scaleTo(other.value, units)), units);
+            return new Amount<>(value.subtract(other.units.scaleTo(other.value, units)), units);
         }
-        return new Amount<Q>(units.scaleTo(value, other.units).subtract(other.value), other.units);
+        return new Amount<>(units.scaleTo(value, other.units).subtract(other.value), other.units);
     }
 
     public Amount<Q> multiply(BigDecimal other) {
-        return new Amount<Q>(value.multiply(other), units);
+        return new Amount<>(value.multiply(other), units);
     }
 
     public Amount<Q> div(long other) {
         return div(BigDecimal.valueOf(other));
     }
     public Amount<Q> div(BigDecimal other) {
-        return new Amount<Q>(value.divide(other, 6, RoundingMode.HALF_UP), units);
+        return new Amount<>(value.divide(other, 6, RoundingMode.HALF_UP), units);
     }
 
     public BigDecimal div(Amount<Q> other) {
@@ -194,6 +194,6 @@ public class Amount<Q> implements Comparable<Amount<Q>> {
         if (value.compareTo(BigDecimal.ZERO) >= 0) {
             return this;
         }
-        return new Amount<Q>(value.abs(), units);
+        return new Amount<>(value.abs(), units);
     }
 }

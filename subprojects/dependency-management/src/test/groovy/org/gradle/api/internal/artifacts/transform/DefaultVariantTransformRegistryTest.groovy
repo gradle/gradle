@@ -25,15 +25,20 @@ import org.gradle.api.artifacts.transform.TransformOutputs
 import org.gradle.api.artifacts.transform.TransformParameters
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException
 import org.gradle.api.attributes.Attribute
+import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.DynamicObjectAware
 import org.gradle.api.internal.file.FileCollectionFactory
+import org.gradle.api.internal.file.FileLookup
+import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.tasks.properties.InspectionScheme
 import org.gradle.api.internal.tasks.properties.PropertyWalker
 import org.gradle.api.plugins.ExtensionAware
-import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry
+import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.isolation.TestIsolatableFactory
+import org.gradle.internal.operations.TestBuildOperationExecutor
+import org.gradle.internal.service.ServiceLookup
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.snapshot.ValueSnapshotter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -51,7 +56,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
     final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     def instantiatorFactory = TestUtil.instantiatorFactory()
-    def transformerInvoker = Mock(TransformerInvoker)
+    def transformerInvocationFactory = Mock(TransformerInvocationFactory)
     def valueSnapshotter = Mock(ValueSnapshotter)
     def fileCollectionFingerprinterRegistry = Mock(FileCollectionFingerprinterRegistry)
     def fileCollectionFactory = Mock(FileCollectionFactory)
@@ -62,8 +67,30 @@ class DefaultVariantTransformRegistryTest extends Specification {
     def isolatableFactory = new TestIsolatableFactory()
     def classLoaderHierarchyHasher = Mock(ClassLoaderHierarchyHasher)
     def attributesFactory = AttributeTestUtil.attributesFactory()
-    def domainObjectContextProjectStateHandler = Mock(DomainObjectProjectStateHandler)
-    def registryFactory = new DefaultTransformationRegistrationFactory(isolatableFactory, classLoaderHierarchyHasher, transformerInvoker, valueSnapshotter, fileCollectionFactory, fileCollectionFingerprinterRegistry, domainObjectContextProjectStateHandler, new ArtifactTransformParameterScheme(instantiatorFactory.injectScheme(), inspectionScheme), new ArtifactTransformActionScheme(instantiatorFactory.injectScheme(ImmutableSet.of(InputArtifact.class, InputArtifactDependencies.class)), inspectionScheme, instantiatorFactory.injectScheme()))
+    def registryFactory = new DefaultTransformationRegistrationFactory(
+        new TestBuildOperationExecutor(),
+        isolatableFactory,
+        classLoaderHierarchyHasher,
+        transformerInvocationFactory,
+        valueSnapshotter,
+        fileCollectionFactory,
+        Mock(FileLookup),
+        fileCollectionFingerprinterRegistry,
+        Mock(DomainObjectContext),
+        Mock(ProjectStateRegistry),
+        new ArtifactTransformParameterScheme(
+            instantiatorFactory.injectScheme(),
+            inspectionScheme
+        ),
+        new ArtifactTransformActionScheme(
+            instantiatorFactory.injectScheme(
+                ImmutableSet.of(InputArtifact, InputArtifactDependencies)
+            ),
+            inspectionScheme,
+            instantiatorFactory.injectScheme()
+        ),
+        Stub(ServiceLookup)
+    )
     def registry = new DefaultVariantTransformRegistry(instantiatorFactory, attributesFactory, Stub(ServiceRegistry), registryFactory, instantiatorFactory.injectScheme())
 
     def "setup"() {
@@ -168,8 +195,8 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
         then:
         def e = thrown(VariantTransformConfigurationException)
-        e.message == 'Could not register transform: must use a sub-type of TransformParameters as parameter type. Use TransformParameters.None for transforms without parameters.'
-        e.cause == null
+        e.message == 'Could not register artifact transform DefaultVariantTransformRegistryTest.UnspecifiedTestTransform.'
+        e.cause.message == 'Could not create the parameters for DefaultVariantTransformRegistryTest.UnspecifiedTestTransform: must use a sub-type of TransformParameters as the parameters type. Use TransformParameters.None as the parameters type for implementations that do not take parameters.'
     }
 
     def "cannot configure parameters for parameterless action"() {
@@ -183,8 +210,8 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
         then:
         def e = thrown(VariantTransformConfigurationException)
-        e.message == 'Cannot configure parameters for artifact transform without parameters.'
-        e.cause == null
+        e.message == 'Could not register artifact transform DefaultVariantTransformRegistryTest.ParameterlessTestTransform.'
+        e.cause.message == 'Cannot configure parameters for artifact transform without parameters.'
     }
 
     def "cannot query parameters object for parameterless action"() {
@@ -197,8 +224,8 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
         then:
         def e = thrown(VariantTransformConfigurationException)
-        e.message == 'Cannot query parameters for artifact transform without parameters.'
-        e.cause == null
+        e.message == 'Could not register artifact transform DefaultVariantTransformRegistryTest.ParameterlessTestTransform.'
+        e.cause.message == 'Cannot query parameters for artifact transform without parameters.'
     }
 
     def "delegates are DSL decorated but not extensible when registering with config object"() {
@@ -229,8 +256,9 @@ class DefaultVariantTransformRegistryTest extends Specification {
         }
 
         then:
-        def e = thrown(RuntimeException)
-        e == failure
+        def e = thrown(VariantTransformConfigurationException)
+        e.message == 'Could not register artifact transform DefaultVariantTransformRegistryTest.TestArtifactTransform (from {TEST=from} to {TEST=to}).'
+        e.cause == failure
     }
 
     def "fails when no artifactTransform provided for registration"() {
@@ -240,8 +268,8 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
         then:
         def e = thrown(VariantTransformConfigurationException)
-        e.message == 'Could not register transform: an artifact transform action must be provided.'
-        e.cause == null
+        e.message == 'Could not register artifact transform.'
+        e.cause.message == 'An artifact transform action type must be provided.'
     }
 
     def "fails when multiple artifactTransforms are provided for registration"() {
@@ -253,8 +281,8 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
         then:
         def e = thrown(VariantTransformConfigurationException)
-        e.message == 'Could not register transform: only one ArtifactTransform may be provided for registration.'
-        e.cause == null
+        e.message == 'Could not register artifact transform.'
+        e.cause.message == 'Only one ArtifactTransform may be provided for registration.'
     }
 
     def "fails when no from attributes are provided for legacy registration"() {
@@ -266,8 +294,8 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
         then:
         def e = thrown(VariantTransformConfigurationException)
-        e.message == "Could not register transform: at least one 'from' attribute must be provided."
-        e.cause == null
+        e.message == "Could not register artifact transform DefaultVariantTransformRegistryTest.TestArtifactTransform (from {} to {TEST=to})."
+        e.cause.message == "At least one 'from' attribute must be provided."
     }
 
     def "fails when no from attributes are provided for registerTransform"() {
@@ -278,8 +306,8 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
         then:
         def e = thrown(VariantTransformConfigurationException)
-        e.message == "Could not register transform: at least one 'from' attribute must be provided."
-        e.cause == null
+        e.message == "Could not register artifact transform DefaultVariantTransformRegistryTest.TestTransform (from {} to {TEST=to})."
+        e.cause.message == "At least one 'from' attribute must be provided."
     }
 
     def "fails when no to attributes are provided for legacy registration"() {
@@ -291,8 +319,8 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
         then:
         def e = thrown(VariantTransformConfigurationException)
-        e.message == "Could not register transform: at least one 'to' attribute must be provided."
-        e.cause == null
+        e.message == "Could not register artifact transform DefaultVariantTransformRegistryTest.TestArtifactTransform (from {TEST=from} to {})."
+        e.cause.message == "At least one 'to' attribute must be provided."
     }
 
     def "fails when no to attributes are provided for registerTransform"() {
@@ -303,8 +331,8 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
         then:
         def e = thrown(VariantTransformConfigurationException)
-        e.message == "Could not register transform: at least one 'to' attribute must be provided."
-        e.cause == null
+        e.message == "Could not register artifact transform DefaultVariantTransformRegistryTest.TestTransform (from {TEST=from} to {})."
+        e.cause.message == "At least one 'to' attribute must be provided."
     }
 
     def "fails when to attributes are not a subset of from attributes for legacy registration"() {
@@ -319,8 +347,8 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
         then:
         def e = thrown(VariantTransformConfigurationException)
-        e.message == "Could not register transform: each 'to' attribute must be included as a 'from' attribute."
-        e.cause == null
+        e.message == "Could not register artifact transform DefaultVariantTransformRegistryTest.TestArtifactTransform (from {TEST=from, from2=from} to {TEST=to, other=12})."
+        e.cause.message == "Each 'to' attribute must be included as a 'from' attribute."
     }
 
     def "fails when to attributes are not a subset of from attributes for registerTransform"() {
@@ -334,8 +362,8 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
         then:
         def e = thrown(VariantTransformConfigurationException)
-        e.message == "Could not register transform: each 'to' attribute must be included as a 'from' attribute."
-        e.cause == null
+        e.message == "Could not register artifact transform DefaultVariantTransformRegistryTest.TestTransform (from {TEST=from, from2=from} to {TEST=to, other=12})."
+        e.cause.message == "Each 'to' attribute must be included as a 'from' attribute."
     }
 
     static class UnAnnotatedTestTransformConfig {

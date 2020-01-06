@@ -20,6 +20,7 @@ import org.gradle.BuildListener;
 import org.gradle.BuildResult;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.UnknownDomainObjectException;
@@ -27,6 +28,7 @@ import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.plugins.PluginAware;
+import org.gradle.api.services.BuildServiceRegistry;
 import org.gradle.internal.HasInternalProtocol;
 
 import javax.annotation.Nullable;
@@ -189,6 +191,24 @@ public interface Gradle extends PluginAware {
     void buildStarted(Action<? super Gradle> action);
 
     /**
+     * Adds an action to be called before the build settings have been loaded and evaluated.
+     *
+     * @param closure The action to execute.
+     * @since 6.0
+     */
+    @Incubating
+    void beforeSettings(Closure<?> closure);
+
+    /**
+     * Adds an action to be called before the build settings have been loaded and evaluated.
+     *
+     * @param action The action to execute.
+     * @since 6.0
+     */
+    @Incubating
+    void beforeSettings(Action<? super Settings> action);
+
+    /**
      * Adds a closure to be called when the build settings have been loaded and evaluated.
      *
      * The settings object is fully configured and is ready to use to load the build projects. The
@@ -343,6 +363,14 @@ public interface Gradle extends PluginAware {
      * @return this. Never returns null.
      */
     Gradle getGradle();
+
+    /**
+     * Returns the build services that are shared by all projects of this build.
+     *
+     * @since 6.1
+     */
+    @Incubating
+    BuildServiceRegistry getSharedServices();
 
     /**
      * Returns the included builds for this build.

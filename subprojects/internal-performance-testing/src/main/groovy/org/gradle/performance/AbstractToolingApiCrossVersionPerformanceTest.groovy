@@ -16,6 +16,7 @@
 
 package org.gradle.performance
 
+import org.apache.commons.io.FileUtils
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
@@ -34,11 +35,10 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.time.Clock
 import org.gradle.internal.time.Time
 import org.gradle.performance.categories.PerformanceRegressionTest
+import org.gradle.performance.fixture.AbstractCrossVersionPerformanceTestRunner
 import org.gradle.performance.fixture.BuildExperimentSpec
-import org.gradle.performance.fixture.CrossVersionPerformanceTestRunner
 import org.gradle.performance.fixture.InvocationSpec
 import org.gradle.performance.fixture.OperationTimer
-import org.gradle.performance.fixture.PerformanceTestConditions
 import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
 import org.gradle.performance.fixture.PerformanceTestGradleDistribution
 import org.gradle.performance.fixture.PerformanceTestIdProvider
@@ -63,13 +63,10 @@ import org.junit.Rule
 import org.junit.experimental.categories.Category
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import spock.lang.Retry
 import spock.lang.Shared
 import spock.lang.Specification
 
 import java.lang.reflect.Proxy
-
-import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
 
 /**
  * Base class for all Tooling API performance regression tests. Subclasses can profile arbitrary actions against a {@link ProjectConnection).
@@ -78,7 +75,6 @@ import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
  */
 @Category(PerformanceRegressionTest)
 @CleanupTestDirectory
-@Retry(condition = { PerformanceTestConditions.whenSlowerButNotAdhoc(failure) }, mode = SETUP_FEATURE_CLEANUP, count = 2)
 abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specification {
     protected final static ReleasedVersionDistributions RELEASES = new ReleasedVersionDistributions()
     protected final static GradleDistribution CURRENT = new UnderDevelopmentGradleDistribution()
@@ -130,8 +126,9 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
     public class ToolingApiExperiment {
         final String projectName
         String displayName
+        String testClassName
         List<String> targetVersions = []
-        String minimumVersion
+        String minimumBaseVersion
         List<File> extraTestClassPath = []
         Closure<?> action
         Integer invocationCount
@@ -168,8 +165,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
 
         private CrossVersionPerformanceResults run() {
             def testId = experiment.displayName
-            def scenarioSelector = new TestScenarioSelector()
-            Assume.assumeTrue(scenarioSelector.shouldRun(testId, [experiment.projectName].toSet(), resultStore))
+            Assume.assumeTrue(TestScenarioSelector.shouldRun(experiment.testClassName, testId, [experiment.projectName].toSet(), resultStore))
             profiler = Profiler.create()
             try {
                 doRun(testId)
@@ -203,7 +199,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
             )
             def resolver = new ToolingApiDistributionResolver().withDefaultRepository()
             try {
-                List<String> baselines = CrossVersionPerformanceTestRunner.toBaselineVersions(RELEASES, experiment.targetVersions, experiment.minimumVersion).toList()
+                List<String> baselines = AbstractCrossVersionPerformanceTestRunner.toBaselineVersions(RELEASES, experiment.targetVersions, experiment.minimumBaseVersion).toList()
                 [*baselines, 'current'].each { String version ->
                     def experimentSpec = new ToolingApiBuildExperimentSpec(version, temporaryFolder.testDirectory, experiment)
                     def workingDirProvider = copyTemplateTo(projectDir, experimentSpec.workingDirectory, version)
@@ -241,7 +237,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
         private TestDirectoryProvider copyTemplateTo(File templateDir, File workingDir, String version) {
             TestFile perVersionDir = new TestFile(workingDir, version)
             if (perVersionDir.exists()) {
-                GFileUtils.cleanDirectory(perVersionDir)
+                FileUtils.cleanDirectory(perVersionDir)
             } else {
                 perVersionDir.mkdirs()
             }

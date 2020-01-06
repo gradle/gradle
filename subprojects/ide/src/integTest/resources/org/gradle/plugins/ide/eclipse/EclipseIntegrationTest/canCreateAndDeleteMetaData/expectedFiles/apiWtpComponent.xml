@@ -2,5 +2,6 @@
 	<wb-module deploy-name="api">
 		<wb-resource deploy-path="/" source-path="src/main/java"/>
 		<wb-resource deploy-path="/" source-path="src/main/resources"/>
+		<wb-resource deploy-path="/" source-path="src/main/testbutnottest"/>
 	</wb-module>
 </project-modules>

@@ -19,16 +19,13 @@ import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.FileVisitorUtil
-import org.gradle.api.internal.tasks.TaskDependencyInternal
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GUtil
 import org.gradle.util.TestUtil
 import org.gradle.util.UsesNativeServices
-import org.junit.Rule
-import spock.lang.Specification
 
 import static org.gradle.api.tasks.AntBuilderAwareUtil.assertSetContains
 import static org.gradle.api.tasks.AntBuilderAwareUtil.assertSetContainsForFileSet
@@ -38,44 +35,24 @@ import static org.gradle.util.WrapUtil.toLinkedSet
 import static org.gradle.util.WrapUtil.toList
 import static org.gradle.util.WrapUtil.toSet
 import static org.hamcrest.CoreMatchers.equalTo
-import static org.hamcrest.CoreMatchers.instanceOf
-import static org.hamcrest.CoreMatchers.sameInstance
-import static org.junit.Assert.assertFalse
+import static org.hamcrest.core.IsInstanceOf.instanceOf
 import static org.junit.Assert.assertThat
-import static org.junit.Assert.assertTrue
-import static org.junit.Assert.fail
 
 @UsesNativeServices
-class AbstractFileCollectionTest extends Specification {
-    @Rule
-    final TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider()
+class AbstractFileCollectionTest extends FileCollectionSpec {
     final TaskDependency dependency = Mock(TaskDependency.class)
 
-    void usesDisplayNameAsToString() {
-        TestFileCollection collection = new TestFileCollection()
-
-        expect:
-        assertThat(collection.toString(), equalTo("collection-display-name"))
-    }
-
-    void canIterateOverFiles() {
-        File file1 = new File("f1")
-        File file2 = new File("f2")
-        TestFileCollection collection = new TestFileCollection(file1, file2)
-
-        expect:
-        Iterator<File> iterator = collection.iterator()
-        assertThat(iterator.next(), sameInstance(file1))
-        assertThat(iterator.next(), sameInstance(file2))
-        assertFalse(iterator.hasNext())
+    @Override
+    AbstractFileCollection containing(File... files) {
+        return new TestFileCollection(files)
     }
 
     void canGetSingleFile() {
-        File file = new File("f1")
-        TestFileCollection collection = new TestFileCollection(file)
+        def file = new File("f1")
+        def collection = new TestFileCollection(file)
 
         expect:
-        assertThat(collection.getSingleFile(), sameInstance(file))
+        collection.getSingleFile().is(file)
     }
 
     void failsToGetSingleFileWhenCollectionContainsMultipleFiles() {
@@ -105,12 +82,12 @@ class AbstractFileCollectionTest extends Specification {
     }
 
     void containsFile() {
-        File file1 = new File("f1")
-        TestFileCollection collection = new TestFileCollection(file1)
+        def file1 = new File("f1")
+        def collection = new TestFileCollection(file1)
 
         expect:
-        assertTrue(collection.contains(file1))
-        assertFalse(collection.contains(new File("f2")))
+        collection.contains(file1)
+        !collection.contains(new File("f2"))
     }
 
     void canGetFilesAsAPath() {
@@ -264,12 +241,6 @@ class AbstractFileCollectionTest extends Specification {
         assertSetContainsForMatchingTask(collection, toSet("f1", "f2"))
     }
 
-    void isEmptyWhenFilesIsEmpty() {
-        expect:
-        assertTrue(new TestFileCollection().isEmpty())
-        assertFalse(new TestFileCollection(new File("f1")).isEmpty())
-    }
-
     void canConvertToCollectionTypes() {
         File file = new File("f1")
         TestFileCollection collection = new TestFileCollection(file)
@@ -357,15 +328,28 @@ class AbstractFileCollectionTest extends Specification {
         assertHasSameDependencies(collection.filter(TestUtil.toClosure("{true}")))
     }
 
-    void canVisitRootElements() {
+    void visitsSelfAsLeafCollection() {
         def collection = new TestFileCollection()
-        def visitor = Mock(FileCollectionLeafVisitor)
+        def visitor = Mock(FileCollectionStructureVisitor)
 
         when:
-        collection.visitLeafCollections(visitor)
+        collection.visitStructure(visitor)
 
         then:
-        1 * visitor.visitCollection(collection)
+        1 * visitor.prepareForVisit(FileCollectionInternal.OTHER) >> FileCollectionStructureVisitor.VisitType.Visit
+        1 * visitor.visitCollection(FileCollectionInternal.OTHER, collection)
+        0 * visitor._
+    }
+
+    void doesNotVisitSelfWhenVisitorIsNotInterested() {
+        def collection = new TestFileCollection()
+        def visitor = Mock(FileCollectionStructureVisitor)
+
+        when:
+        collection.visitStructure(visitor)
+
+        then:
+        1 * visitor.prepareForVisit(FileCollectionInternal.OTHER) >> FileCollectionStructureVisitor.VisitType.NoContents
         0 * visitor._
     }
 
@@ -393,11 +377,6 @@ class AbstractFileCollectionTest extends Specification {
         Set<File> getFiles() {
             return files
         }
-
-        @Override
-        TaskDependency getBuildDependencies() {
-            TaskDependencyInternal.EMPTY
-        }
     }
 
     private class TestFileCollectionWithDependency extends TestFileCollection {
@@ -406,8 +385,8 @@ class AbstractFileCollectionTest extends Specification {
         }
 
         @Override
-        TaskDependency getBuildDependencies() {
-            return dependency
+        void visitDependencies(TaskDependencyResolveContext context) {
+            context.add(dependency)
         }
     }
 }

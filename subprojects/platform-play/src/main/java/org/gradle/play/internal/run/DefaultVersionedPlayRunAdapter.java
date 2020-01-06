@@ -68,36 +68,37 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
         return Proxy.newProxyInstance(classLoader, new Class<?>[]{getBuildLinkClass(classLoader)}, new InvocationHandler() {
             @Override
             public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                if (method.getName().equals("projectPath")) {
-                    return projectPath;
-                } else if (method.getName().equals("reload")) {
-                    Reloader.Result result = reloader.requireUpToDate();
+                switch (method.getName()) {
+                    case "projectPath":
+                        return projectPath;
+                    case "reload":
+                        Reloader.Result result = reloader.requireUpToDate();
 
-                    // We can't close replaced loaders immediately, because their classes may be used during shutdown,
-                    // after the return of the reload() call that caused the loader to be swapped out.
-                    // We have no way of knowing when the loader is actually done with, so we use the request after the request
-                    // that triggered the reload as the trigger point to close the replaced loader.
-                    closeOldLoaders();
-                    if (result.changed) {
-                        ClassPath classpath = DefaultClassPath.of(applicationJar).plus(DefaultClassPath.of(changingClasspath));
-                        URLClassLoader currentClassLoader = new URLClassLoader(classpath.getAsURLArray(), assetsClassLoader);
-                        storeClassLoader(currentClassLoader);
-                        return currentClassLoader;
-                    } else {
-                        Throwable failure = result.failure;
-                        if (failure == null) {
-                            return null;
+                        // We can't close replaced loaders immediately, because their classes may be used during shutdown,
+                        // after the return of the reload() call that caused the loader to be swapped out.
+                        // We have no way of knowing when the loader is actually done with, so we use the request after the request
+                        // that triggered the reload as the trigger point to close the replaced loader.
+                        closeOldLoaders();
+                        if (result.changed) {
+                            ClassPath classpath = DefaultClassPath.of(applicationJar).plus(DefaultClassPath.of(changingClasspath));
+                            URLClassLoader currentClassLoader = new URLClassLoader(classpath.getAsURLArray(), assetsClassLoader);
+                            storeClassLoader(currentClassLoader);
+                            return currentClassLoader;
                         } else {
-                            try {
-                                return DirectInstantiator.instantiate(playExceptionClass, "Gradle Build Failure", failure.getMessage(), failure);
-                            } catch (Exception e) {
-                                LOGGER.warn("Could not translate " + failure + " to " + PLAY_EXCEPTION_CLASSNAME, e);
-                                return failure;
+                            Throwable failure = result.failure;
+                            if (failure == null) {
+                                return null;
+                            } else {
+                                try {
+                                    return DirectInstantiator.instantiate(playExceptionClass, "Gradle Build Failure", failure.getMessage(), failure);
+                                } catch (Exception e) {
+                                    LOGGER.warn("Could not translate " + failure + " to " + PLAY_EXCEPTION_CLASSNAME, e);
+                                    return failure;
+                                }
                             }
                         }
-                    }
-                } else if (method.getName().equals("settings")) {
-                    return new HashMap<String, String>();
+                    case "settings":
+                        return new HashMap<String, String>();
                 }
                 //TODO: all methods
                 return null;
@@ -107,7 +108,7 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
 
     private void storeClassLoader(ClassLoader classLoader) {
         final ClassLoader previous = currentClassloader.getAndSet(classLoader);
-        if (previous != null && previous instanceof Closeable) {
+        if (previous instanceof Closeable) {
             loadersToClose.add(new SoftReference<Closeable>(Cast.cast(Closeable.class, previous)));
         }
     }

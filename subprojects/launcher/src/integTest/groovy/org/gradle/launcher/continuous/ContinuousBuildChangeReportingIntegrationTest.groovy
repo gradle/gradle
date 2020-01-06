@@ -17,14 +17,15 @@
 package org.gradle.launcher.continuous
 
 import groovy.transform.TupleConstructor
+import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
 
-import static org.gradle.internal.filewatch.DefaultFileWatcherEventListener.SHOW_INDIVIDUAL_CHANGES_LIMIT
 import static org.gradle.internal.filewatch.DefaultFileSystemChangeWaiterFactory.QUIET_PERIOD_SYSPROP
+import static org.gradle.internal.filewatch.DefaultFileWatcherEventListener.SHOW_INDIVIDUAL_CHANGES_LIMIT
 
 // Developer is able to easily determine the file(s) that triggered a rebuild
-class ContinuousBuildChangeReportingIntegrationTest extends Java7RequiringContinuousIntegrationTest {
+class ContinuousBuildChangeReportingIntegrationTest extends AbstractContinuousIntegrationTest {
     TestFile inputDir
     private static int changesLimit = SHOW_INDIVIDUAL_CHANGES_LIMIT
     // Use an extended quiet period in the test to ensure all file events are reported together.
@@ -196,7 +197,7 @@ class ContinuousBuildChangeReportingIntegrationTest extends Java7RequiringContin
         sendEOT()
         results.size() == 2
         results.each {
-            assert it.executedTasks == [':theTask']
+            assert it.assertTasksExecuted(':theTask')
         }
         assertReportsChanges([new ChangeEntry("new file", file("inputDir/input.txt"))])
     }

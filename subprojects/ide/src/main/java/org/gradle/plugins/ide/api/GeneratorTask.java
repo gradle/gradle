@@ -16,7 +16,6 @@
 package org.gradle.plugins.ide.api;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.Incubating;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.InputFile;
@@ -74,7 +73,6 @@ public class GeneratorTask<T> extends ConventionTask {
      * @since 4.7
      */
     @Internal
-    @Incubating
     protected boolean getIncremental() {
         return false;
     }

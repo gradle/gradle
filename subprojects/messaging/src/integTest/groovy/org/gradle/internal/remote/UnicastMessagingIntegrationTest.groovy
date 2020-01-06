@@ -20,12 +20,11 @@ import org.gradle.api.Action
 import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.remote.services.MessagingServices
+import org.gradle.internal.service.ServiceRegistryBuilder
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import spock.lang.Timeout
 
 import java.util.concurrent.CountDownLatch
-import java.util.concurrent.locks.Condition
-import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
 
 @Timeout(60)
@@ -226,9 +225,9 @@ class UnicastMessagingIntegrationTest extends ConcurrentSpec {
     }
 
     class Server extends Participant {
-        private final Lock lock = new ReentrantLock()
-        private final Condition condition = lock.newCondition()
-        private final MessagingServices services = new TestMessagingServices()
+        private final lock = new ReentrantLock()
+        private final condition = lock.newCondition()
+        private final services = ServiceRegistryBuilder.builder().provider(new TestMessagingServices()).build()
         private ConnectionAcceptor acceptor
         private ObjectConnection connection
         final Address address
@@ -270,13 +269,13 @@ class UnicastMessagingIntegrationTest extends ConcurrentSpec {
                 acceptor = null
                 lock.unlock()
             }
-            services.stop()
+            services.close()
         }
     }
 
     class Client extends Participant {
         final ObjectConnection connection
-        final MessagingServices services = new TestMessagingServices()
+        final services = ServiceRegistryBuilder.builder().provider(new TestMessagingServices()).build()
 
         Client(Address serverAddress) {
             def client = services.get(MessagingClient)
@@ -286,12 +285,11 @@ class UnicastMessagingIntegrationTest extends ConcurrentSpec {
         @Override
         void stop() {
             connection?.stop()
-            services.stop()
+            services.close()
         }
     }
 
     class TestMessagingServices extends MessagingServices {
-        @Override
         protected ExecutorFactory createExecutorFactory() {
             return getExecutorFactory()
         }

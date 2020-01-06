@@ -19,13 +19,6 @@ package org.gradle.process.internal;
 import org.gradle.process.JavaForkOptions;
 
 public interface JavaForkOptionsInternal extends JavaForkOptions {
-    /**
-     * Merges these options with the given options.
-     *
-     * @param options The target options.
-     * @return A new {@link JavaForkOptionsInternal} with the merged values.
-     */
-    JavaForkOptionsInternal mergeWith(JavaForkOptions options);
 
     /**
      * Returns true if the given options are compatible with this set of options.

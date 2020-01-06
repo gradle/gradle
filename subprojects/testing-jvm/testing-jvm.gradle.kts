@@ -27,9 +27,10 @@ dependencies {
 
     implementation(project(":baseServices"))
     implementation(project(":messaging"))
+    implementation(project(":native"))
     implementation(project(":logging"))
     implementation(project(":processServices"))
-    implementation(project(":files"))
+    implementation(project(":fileCollections"))
     implementation(project(":jvmServices"))
     implementation(project(":coreApi"))
     implementation(project(":modelCore"))
@@ -57,6 +58,14 @@ dependencies {
     testImplementation("com.google.inject:guice:2.0") {
         because("This is for TestNG")
     }
+    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":testingBase")))
+    testImplementation(testFixtures(project(":diagnostics")))
+    testImplementation(testFixtures(project(":messaging")))
+    testImplementation(testFixtures(project(":baseServices")))
+    testImplementation(testFixtures(project(":platformNative")))
+
+    testRuntimeOnly(project(":runtimeApiInfo"))
 
     integTestRuntimeOnly(project(":testingJunitPlatform"))
 }
@@ -70,11 +79,3 @@ tasks.named<Test>("test").configure {
     exclude("org/gradle/api/internal/tasks/testing/junit/ABroken*TestClass*.*")
 }
 
-testFixtures {
-    from(":core")
-    from(":testingBase")
-    from(":diagnostics")
-    from(":messaging")
-    from(":baseServices")
-    from(":platformNative")
-}

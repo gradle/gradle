@@ -18,6 +18,7 @@ package org.gradle.api.internal.model
 
 import org.gradle.api.Named
 import org.gradle.api.reflect.ObjectInstantiationException
+import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.state.Managed
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.util.Matchers
@@ -27,7 +28,7 @@ import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.CyclicBarrier
 
 class NamedObjectInstantiatorTest extends ConcurrentSpec {
-    static factory = NamedObjectInstantiator.INSTANCE
+    static factory = new NamedObjectInstantiator(new TestCrossBuildInMemoryCacheFactory())
 
     def "creates instance of Named"() {
         expect:
@@ -63,7 +64,7 @@ class NamedObjectInstantiatorTest extends ConcurrentSpec {
         def state = n1.unpackState()
         state == "a"
 
-        def n2 = n1.managedFactory().fromState(Named, state)
+        def n2 = factory.fromState(Named, state)
         n2.is(n1)
     }
 
@@ -106,7 +107,7 @@ class NamedObjectInstantiatorTest extends ConcurrentSpec {
         def state = n1.unpackState()
         state == "a"
 
-        def n2 = n1.managedFactory().fromState(CustomNamed, state)
+        def n2 = factory.fromState(CustomNamed, state)
         n2.is(n1)
     }
 
@@ -190,7 +191,7 @@ class NamedObjectInstantiatorTest extends ConcurrentSpec {
         def state = n1.unpackState()
         state == "a"
 
-        def n2 = n1.managedFactory().fromState(AbstractNamed, state)
+        def n2 = factory.fromState(AbstractNamed, state)
         n2.is(n1)
     }
 

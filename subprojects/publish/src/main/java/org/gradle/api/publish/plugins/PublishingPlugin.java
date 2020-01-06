@@ -98,9 +98,9 @@ public class PublishingPlugin implements Plugin<Project> {
                 }
             }
             for (Publication publication : extension.getPublications()) {
-                String repositoryName = publication.getName();
-                if (!repositoryName.matches(VALID_NAME_REGEX)) {
-                    throw new InvalidUserDataException("Publication name '" + repositoryName + "' is not valid for publication. Must match regex " + VALID_NAME_REGEX + ".");
+                String publicationName = publication.getName();
+                if (!publicationName.matches(VALID_NAME_REGEX)) {
+                    throw new InvalidUserDataException("Publication name '" + publicationName + "' is not valid for publication. Must match regex " + VALID_NAME_REGEX + ".");
                 }
             }
         });

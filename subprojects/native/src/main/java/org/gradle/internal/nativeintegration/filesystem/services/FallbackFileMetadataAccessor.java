@@ -17,7 +17,7 @@
 package org.gradle.internal.nativeintegration.filesystem.services;
 
 import org.gradle.internal.file.FileMetadataSnapshot;
-import org.gradle.internal.nativeintegration.filesystem.DefaultFileMetadata;
+import org.gradle.internal.file.impl.DefaultFileMetadata;
 import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor;
 
 import java.io.File;

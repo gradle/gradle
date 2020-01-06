@@ -22,8 +22,8 @@ import spock.lang.Unroll
 class TaskOutputCachingNativePerformanceTest extends AbstractTaskOutputCachingPerformanceTest {
 
     def setup() {
-        runner.minimumVersion = "4.3"
-        runner.targetVersions = ["5.5-20190515115345+0000"]
+        runner.minimumBaseVersion = "4.3"
+        runner.targetVersions = ["6.1-20191209153604+0000"]
         runner.args += ["-Dorg.gradle.caching.native=true", "--parallel", "--${ParallelismBuildOptions.MaxWorkersOption.LONG_OPTION}=6"]
     }
 

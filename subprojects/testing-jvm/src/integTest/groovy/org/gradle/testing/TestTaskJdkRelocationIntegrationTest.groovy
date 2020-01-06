@@ -65,7 +65,7 @@ class TestTaskJdkRelocationIntegrationTest extends AbstractTaskRelocationIntegra
             ${mavenCentralRepository()}
 
             dependencies {
-                testCompile "junit:junit:4.12"
+                testImplementation "junit:junit:4.12"
             }
 
             sourceCompatibility = "1.7"

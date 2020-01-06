@@ -40,6 +40,7 @@ class ModelReportIntegrationTest extends AbstractIntegrationSpec {
                     help()
                     init()
                     model()
+                    outgoingVariants()
                     prepareKotlinBuildScriptModel()
                     projects()
                     properties()
@@ -213,7 +214,7 @@ model {
     }
 
     // nb: specifically doesn't use the parsing fixture, so that the output is visualised
-    //If you're changing this you will also need to change: src/samples/modelRules/basicRuleSourcePlugin/basicRuleSourcePlugin-model-task.out
+    //If you're changing this you will also need to change: src/snippets/modelRules/basicRuleSourcePlugin/basicRuleSourcePlugin-model-task.out
     def "displays a report in the correct format"() {
         given:
         buildFile << """
@@ -336,6 +337,12 @@ model {
           | Type:   \torg.gradle.api.reporting.model.ModelReport
           | Value:  \ttask ':model\'
           | Creator: \tProject.<init>.tasks.model()
+          | Rules:
+             ⤷ copyToTaskContainer
+    + outgoingVariants
+          | Type:   \torg.gradle.api.tasks.diagnostics.OutgoingVariantsReportTask
+          | Value:  \ttask ':outgoingVariants\'
+          | Creator: \tProject.<init>.tasks.outgoingVariants()
           | Rules:
              ⤷ copyToTaskContainer
     + prepareKotlinBuildScriptModel

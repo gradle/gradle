@@ -15,6 +15,7 @@
  */
 package org.gradle.plugins.ide.eclipse
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 import org.junit.Test
@@ -24,6 +25,7 @@ class EclipseDependencySubstitutionIntegrationTest extends AbstractEclipseIntegr
     public final TestResources testResources = new TestResources(testDirectoryProvider)
 
     @Test
+    @ToBeFixedForInstantExecution
     void "external dependency substituted with project dependency"() {
         runEclipseTask("include 'project1', 'project2'", """
 allprojects {
@@ -33,7 +35,7 @@ allprojects {
 
 project(":project2") {
     dependencies {
-        compile group: "junit", name: "junit", version: "4.7"
+        implementation group: "junit", name: "junit", version: "4.7"
     }
 
     configurations.all {
@@ -50,6 +52,7 @@ project(":project2") {
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     void "transitive external dependency substituted with project dependency"() {
         mavenRepo.module("org.gradle", "module1").dependsOnModules("module2").publish()
         mavenRepo.module("org.gradle", "module2").publish()
@@ -66,7 +69,7 @@ project(":project2") {
     }
 
     dependencies {
-        compile "org.gradle:module1:1.0"
+        implementation "org.gradle:module1:1.0"
     }
 
     configurations.all {
@@ -84,6 +87,7 @@ project(":project2") {
 
 
     @Test
+    @ToBeFixedForInstantExecution
     void "project dependency substituted with external dependency"() {
         runEclipseTask("include 'project1', 'project2'", """
  allprojects {
@@ -95,7 +99,7 @@ project(":project2") {
     ${mavenCentralRepository()}
 
     dependencies {
-        compile project(":project1")
+        implementation project(":project1")
     }
 
     configurations.all {

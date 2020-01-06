@@ -17,11 +17,12 @@
 package org.gradle.nativeplatform.test.xctest
 
 import org.gradle.language.AbstractNativeUnitTestComponentDependenciesIntegrationTest
+import org.gradle.language.swift.SwiftTaskNames
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
-class XCTestWithApplicationDependenciesIntegrationTest extends AbstractNativeUnitTestComponentDependenciesIntegrationTest {
+class XCTestWithApplicationDependenciesIntegrationTest extends AbstractNativeUnitTestComponentDependenciesIntegrationTest implements SwiftTaskNames {
     @Override
     protected void makeTestSuiteAndComponentWithLibrary() {
         buildFile << """
@@ -60,11 +61,11 @@ class XCTestWithApplicationDependenciesIntegrationTest extends AbstractNativeUni
 
     @Override
     protected List<String> getRunTestTasks() {
-        return [":compileDebugSwift", ":relocateMainForTest", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest"]
+        return [tasks.debug.compile, tasks.test.relocate, tasks.test.allToInstall, ":xcTest"]
     }
 
     @Override
     protected List<String> getLibDebugTasks() {
-        return [":lib:compileDebugSwift", ":lib:linkDebug"]
+        return [tasks(":lib").debug.allToLink]
     }
 }

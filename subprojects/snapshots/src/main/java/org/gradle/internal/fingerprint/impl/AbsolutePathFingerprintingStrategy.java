@@ -19,9 +19,10 @@ package org.gradle.internal.fingerprint.impl;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
+import org.gradle.internal.fingerprint.FingerprintHashingStrategy;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
-import org.gradle.internal.snapshot.DirectorySnapshot;
-import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
+import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 
@@ -34,16 +35,17 @@ import java.util.Map;
 public class AbsolutePathFingerprintingStrategy extends AbstractFingerprintingStrategy {
     public static final FingerprintingStrategy INCLUDE_MISSING = new AbsolutePathFingerprintingStrategy(true);
     public static final FingerprintingStrategy IGNORE_MISSING = new AbsolutePathFingerprintingStrategy(false);
+    public static final String IDENTIFIER = "ABSOLUTE_PATH";
 
-    private final boolean includeMissing;
+    private final boolean includeMissingRoots;
 
-    private AbsolutePathFingerprintingStrategy(boolean includeMissing) {
-        super("ABSOLUTE_PATH", AbsolutePathFingerprintCompareStrategy.INSTANCE);
-        this.includeMissing = includeMissing;
+    private AbsolutePathFingerprintingStrategy(boolean includeMissingRoots) {
+        super(IDENTIFIER);
+        this.includeMissingRoots = includeMissingRoots;
     }
 
     @Override
-    public String normalizePath(FileSystemLocationSnapshot snapshot) {
+    public String normalizePath(CompleteFileSystemLocationSnapshot snapshot) {
         return snapshot.getAbsolutePath();
     }
 
@@ -53,9 +55,11 @@ public class AbsolutePathFingerprintingStrategy extends AbstractFingerprintingSt
         final HashSet<String> processedEntries = new HashSet<String>();
         for (FileSystemSnapshot root : roots) {
             root.accept(new FileSystemSnapshotVisitor() {
+                private int treeDepth = 0;
 
                 @Override
-                public boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
+                public boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
+                    treeDepth++;
                     String absolutePath = directorySnapshot.getAbsolutePath();
                     if (processedEntries.add(absolutePath)) {
                         builder.put(absolutePath, new DefaultFileSystemLocationFingerprint(directorySnapshot.getAbsolutePath(), directorySnapshot));
@@ -64,8 +68,8 @@ public class AbsolutePathFingerprintingStrategy extends AbstractFingerprintingSt
                 }
 
                 @Override
-                public void visit(FileSystemLocationSnapshot fileSnapshot) {
-                    if (!includeMissing && fileSnapshot.getType() == FileType.Missing) {
+                public void visitFile(CompleteFileSystemLocationSnapshot fileSnapshot) {
+                    if (!includeMissingRoots && isRoot() && fileSnapshot.getType() == FileType.Missing) {
                         return;
                     }
                     String absolutePath = fileSnapshot.getAbsolutePath();
@@ -75,11 +79,21 @@ public class AbsolutePathFingerprintingStrategy extends AbstractFingerprintingSt
                 }
 
                 @Override
-                public void postVisitDirectory(DirectorySnapshot directorySnapshot) {
+                public void postVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
+                    treeDepth--;
+                }
+
+                private boolean isRoot() {
+                    return treeDepth == 0;
                 }
 
             });
         }
         return builder.build();
+    }
+
+    @Override
+    public FingerprintHashingStrategy getHashingStrategy() {
+        return FingerprintHashingStrategy.SORT;
     }
 }

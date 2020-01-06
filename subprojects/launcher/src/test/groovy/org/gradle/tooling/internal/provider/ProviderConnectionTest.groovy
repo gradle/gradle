@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.internal.provider
 
-import org.gradle.testing.internal.util.Specification
+import spock.lang.Specification
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters
 

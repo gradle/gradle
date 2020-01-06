@@ -17,92 +17,88 @@
 package org.gradle.internal.scan.config
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.scan.config.fixtures.BuildScanPluginFixture
-import org.gradle.plugin.management.internal.autoapply.AutoAppliedBuildScanPlugin
+import org.gradle.internal.scan.config.fixtures.GradleEnterprisePluginFixture
+import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.util.VersionNumber
 import spock.lang.Issue
 import spock.lang.Unroll
 
 import static org.gradle.initialization.StartParameterBuildOptions.BuildScanOption
-import static org.gradle.internal.scan.config.fixtures.BuildScanPluginFixture.BUILD_SCAN_PLUGIN_ID
-import static org.gradle.internal.scan.config.fixtures.BuildScanPluginFixture.FULLY_QUALIFIED_DUMMY_BUILD_SCAN_PLUGIN_IMPL_CLASS
-import static org.gradle.internal.scan.config.fixtures.BuildScanPluginFixture.PUBLISHING_BUILD_SCAN_MESSAGE_PREFIX
+import static org.gradle.internal.scan.config.fixtures.GradleEnterprisePluginFixture.GRADLE_ENTERPRISE_PLUGIN_CLASS_NAME
+import static org.gradle.internal.scan.config.fixtures.GradleEnterprisePluginFixture.GRADLE_ENTERPRISE_PLUGIN_ID
+import static org.gradle.internal.scan.config.fixtures.GradleEnterprisePluginFixture.PUBLISHING_BUILD_SCAN_MESSAGE_PREFIX
 
 class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
-    private static final String BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION = AutoAppliedBuildScanPlugin.VERSION
-    private static final String BUILD_SCAN_PLUGIN_MINIMUM_VERSION = BuildScanPluginCompatibility.MIN_SUPPORTED_VERSION.toString()
-    private static final String BUILD_SCAN_PLUGIN_NEWER_VERSION = newerThanAutoApplyPluginVersion()
-    private final BuildScanPluginFixture fixture = new BuildScanPluginFixture(testDirectory, mavenRepo, createExecuter())
+    private static final String PLUGIN_AUTO_APPLY_VERSION = AutoAppliedGradleEnterprisePlugin.VERSION
+    private static final String PLUGIN_MINIMUM_VERSION = BuildScanPluginCompatibility.FIRST_GRADLE_ENTERPRISE_PLUGIN_VERSION_DISPLAY
+    private static final String PLUGIN_NEWER_VERSION = newerThanAutoApplyPluginVersion()
+    private final GradleEnterprisePluginFixture fixture = new GradleEnterprisePluginFixture(testDirectory, mavenRepo, createExecuter())
 
     def setup() {
         buildFile << """
             task dummy {}
         """
         settingsFile << fixture.pluginManagement()
-        fixture.publishDummyBuildScanPlugin(executer)
+        fixture.publishDummyPlugin(executer)
     }
 
-    def "automatically applies build scan plugin when --scan is provided on command-line"() {
+    @ToBeFixedForInstantExecution
+    def "automatically applies plugin when --scan is provided on command-line"() {
         when:
         runBuildWithScanRequest()
 
         then:
-        buildScanPluginApplied(BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION)
+        pluginAppliedOnce()
     }
 
-    def "does not automatically apply build scan plugin when --scan is not provided on command-line"() {
+    @ToBeFixedForInstantExecution
+    def "only applies once when -b used"() {
+        when:
+        file("other-build.gradle") << "task dummy {}"
+        runBuildWithScanRequest("-b", "other-build.gradle")
+
+        then:
+        pluginAppliedOnce()
+    }
+
+    @ToBeFixedForInstantExecution
+    def "does not automatically apply plugin when --scan is not provided on command-line"() {
         when:
         runBuildWithoutScanRequest()
 
         then:
-        buildScanPluginNotApplied()
+        pluginNotApplied()
     }
 
-    def "does not automatically apply build scan plugin to subprojects"() {
+    @ToBeFixedForInstantExecution
+    def "does not automatically apply plugin to subprojects"() {
         when:
         settingsFile << """
             include 'a', 'b'
-        """
-        buildFile << """
-            assert pluginManager.hasPlugin('$BUILD_SCAN_PLUGIN_ID')
-            subprojects {
-                assert !pluginManager.hasPlugin('$BUILD_SCAN_PLUGIN_ID')
-            }
+            assert pluginManager.hasPlugin('$GRADLE_ENTERPRISE_PLUGIN_ID')
         """
 
         and:
         runBuildWithScanRequest()
 
         then:
-        buildScanPluginApplied(BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION)
+        pluginAppliedOnce()
     }
 
-    def "does not apply build scan plugin to buildSrc build"() {
-        when:
-        file('buildSrc/build.gradle') << """
-            println 'in buildSrc'
-            assert !pluginManager.hasPlugin('$BUILD_SCAN_PLUGIN_ID')
-        """
-
-        and:
-        runBuildWithScanRequest()
-
-        then:
-        outputContains 'in buildSrc'
-        buildScanPluginApplied(BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION)
-    }
-
-    def "does not apply build scan plugin to nested builds in a composite"() {
+    @ToBeFixedForInstantExecution
+    def "does not apply plugin to nested builds in a composite"() {
         when:
         settingsFile << """
             includeBuild 'a'
+            assert pluginManager.hasPlugin('$GRADLE_ENTERPRISE_PLUGIN_ID')
         """
         file('a/settings.gradle') << """
             rootProject.name = 'a'
+            assert !pluginManager.hasPlugin('$GRADLE_ENTERPRISE_PLUGIN_ID')
         """
         file('a/build.gradle') << """
             println 'in nested build'
-            assert !pluginManager.hasPlugin('$BUILD_SCAN_PLUGIN_ID')
         """
 
         and:
@@ -110,82 +106,119 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         outputContains 'in nested build'
-        buildScanPluginApplied(BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION)
+        pluginAppliedOnce()
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "uses #sequence version of plugin when explicit in plugins block"() {
         when:
         fixture.runtimeVersion = version
         fixture.artifactVersion = version
-        pluginsRequest "id '$BUILD_SCAN_PLUGIN_ID' version '$version'"
+        settingsFile << """
+            plugins {
+                id '$GRADLE_ENTERPRISE_PLUGIN_ID' version '$version'
+            }
+        """
 
         and:
         runBuildWithScanRequest()
 
         then:
-        buildScanPluginApplied(version)
+        pluginAppliedOnce(version)
 
         where:
         sequence | version
-        "older"  | BUILD_SCAN_PLUGIN_MINIMUM_VERSION
-        "same"   | BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION
-        "newer"  | BUILD_SCAN_PLUGIN_NEWER_VERSION
+        "older"  | PLUGIN_MINIMUM_VERSION
+        "same"   | PLUGIN_AUTO_APPLY_VERSION
+        "newer"  | PLUGIN_NEWER_VERSION
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "uses #sequence version of plugin when added to buildscript classpath"() {
         when:
         fixture.runtimeVersion = version
         fixture.artifactVersion = version
-        buildscriptApply "com.gradle:build-scan-plugin:$version"
+        settingsFile.text = """
+            buildscript {
+                repositories {
+                    maven { url '${mavenRepo.uri}' }
+                }
+                dependencies {
+                    classpath '${"com.gradle:gradle-enterprise-gradle-plugin:$version"}'
+                }
+            }
+            apply plugin: '$GRADLE_ENTERPRISE_PLUGIN_ID'
+        """
 
         and:
         runBuildWithScanRequest()
 
         then:
-        buildScanPluginApplied(version)
+        pluginAppliedOnce(version)
 
         where:
         sequence | version
-        "older"  | BUILD_SCAN_PLUGIN_MINIMUM_VERSION
-        "same"   | BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION
-        "newer"  | BUILD_SCAN_PLUGIN_NEWER_VERSION
+        "older"  | PLUGIN_MINIMUM_VERSION
+        "same"   | PLUGIN_AUTO_APPLY_VERSION
+        "newer"  | PLUGIN_NEWER_VERSION
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "uses #sequence version of plugin when added to initscript classpath"() {
         when:
         fixture.runtimeVersion = version
         fixture.artifactVersion = version
-        initScriptApply "com.gradle:build-scan-plugin:$version"
+        file('init.gradle') << """
+            initscript {
+                repositories {
+                    maven { url '${mavenRepo.uri}' }
+                }
+            
+                dependencies {
+                    classpath '${"com.gradle:gradle-enterprise-gradle-plugin:$version"}'
+                }
+            }
+            
+            beforeSettings {
+                it.apply plugin: $GRADLE_ENTERPRISE_PLUGIN_CLASS_NAME
+            }
+        """
 
         and:
         runBuildWithScanRequest('-I', 'init.gradle')
 
         then:
-        buildScanPluginApplied(version)
+        pluginAppliedOnce(version)
 
         where:
         sequence | version
-        "older"  | BUILD_SCAN_PLUGIN_MINIMUM_VERSION
-        "same"   | BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION
-        "newer"  | BUILD_SCAN_PLUGIN_NEWER_VERSION
+        "older"  | PLUGIN_MINIMUM_VERSION
+        "same"   | PLUGIN_AUTO_APPLY_VERSION
+        "newer"  | PLUGIN_NEWER_VERSION
     }
 
-    def "does not auto-apply build scan plugin when explicitly requested and not applied"() {
+    @ToBeFixedForInstantExecution
+    def "does not auto-apply plugin when explicitly requested and not applied"() {
         when:
-        pluginsRequest "id '$BUILD_SCAN_PLUGIN_ID' version '${BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION}' apply false"
+        settingsFile << """
+            plugins {
+                id '$GRADLE_ENTERPRISE_PLUGIN_ID' version '${PLUGIN_AUTO_APPLY_VERSION}' apply false
+            }
+        """
 
         and:
         runBuildWithScanRequest()
 
         then:
-        buildScanPluginNotApplied()
+        pluginNotApplied()
     }
 
     @Issue("gradle/gradle#3250")
-    def "automatically applies build scan plugin when --scan is provided on command-line and a script is applied in the buildscript block"() {
+    @ToBeFixedForInstantExecution
+    def "automatically applies plugin when --scan is provided on command-line and a script is applied in the buildscript block"() {
         given:
         buildFile << """
             buildscript {
@@ -198,11 +231,31 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         runBuildWithScanRequest()
 
         then:
-        buildScanPluginApplied(BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION)
+        pluginAppliedOnce()
+    }
+
+    @ToBeFixedForInstantExecution
+    def "fails well when trying to use old plugin"() {
+        given:
+        buildFile.text = """
+            plugins {
+                id "com.gradle.build-scan" version "$PLUGIN_AUTO_APPLY_VERSION"
+            }
+        """ + buildFile.text
+
+        when:
+        fails("--scan", "dummy")
+
+        then:
+        failure.assertHasDescription("Error resolving plugin [id: 'com.gradle.build-scan', version: '$PLUGIN_AUTO_APPLY_VERSION']")
+        failure.assertHasCause(
+            "The build scan plugin is not compatible with this version of Gradle.\n" +
+            "Please see https://gradle.com/help/gradle-6-build-scan-plugin for more information."
+        )
     }
 
     private void runBuildWithScanRequest(String... additionalArgs) {
-        List<String> allArgs = ["--${BuildScanOption.LONG_OPTION}"]
+        List<String> allArgs = ["--${BuildScanOption.LONG_OPTION}", "-s"]
 
         if (additionalArgs) {
             allArgs.addAll(additionalArgs)
@@ -216,56 +269,17 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         succeeds("dummy")
     }
 
-    private void buildScanPluginApplied(String version) {
-        assert output.contains("${PUBLISHING_BUILD_SCAN_MESSAGE_PREFIX}${version}")
+    private void pluginAppliedOnce(String version = PLUGIN_AUTO_APPLY_VERSION) {
+        assert output.count("${PUBLISHING_BUILD_SCAN_MESSAGE_PREFIX}${version}") == 1
     }
 
-    private void buildScanPluginNotApplied() {
+    private void pluginNotApplied() {
         assert !output.contains(PUBLISHING_BUILD_SCAN_MESSAGE_PREFIX)
     }
 
-    private void pluginsRequest(String request) {
-        buildFile.text = """
-            plugins {
-                ${request}
-            }
-        """ + buildFile.text
-    }
-
-    private void buildscriptApply(String coordinates) {
-        buildFile.text = """
-            buildscript {
-                repositories {
-                    maven { url '${mavenRepo.uri}' }
-                }
-                dependencies {
-                    classpath '${coordinates}'
-                }
-            }
-            apply plugin: '$BUILD_SCAN_PLUGIN_ID'
-        """ + buildFile.text
-    }
-
-    private void initScriptApply(String coordinates) {
-        file('init.gradle') << """
-            initscript {
-                repositories {
-                    maven { url '${mavenRepo.uri}' }
-                }
-            
-                dependencies {
-                    classpath '${coordinates}'
-                }
-            }
-            
-            rootProject {
-                apply plugin: $FULLY_QUALIFIED_DUMMY_BUILD_SCAN_PLUGIN_IMPL_CLASS
-            }
-        """
-    }
 
     static String newerThanAutoApplyPluginVersion() {
-        def autoApplyVersion = VersionNumber.parse(BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION)
+        def autoApplyVersion = VersionNumber.parse(PLUGIN_AUTO_APPLY_VERSION)
         VersionNumber.version(autoApplyVersion.major + 1).toString()
     }
 }

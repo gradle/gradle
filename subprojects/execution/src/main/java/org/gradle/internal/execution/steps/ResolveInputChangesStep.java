@@ -25,6 +25,7 @@ import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
+import org.gradle.work.InputChanges;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +42,7 @@ public class ResolveInputChangesStep<C extends IncrementalChangesContext> implem
 
     @Override
     public Result execute(C context) {
-        final UnitOfWork work = context.getWork();
+        UnitOfWork work = context.getWork();
         Optional<InputChangesInternal> inputChanges = work.getInputChangeTrackingStrategy().requiresInputChanges()
             ? Optional.of(determineInputChanges(work, context))
             : Optional.empty();
@@ -53,7 +54,7 @@ public class ResolveInputChangesStep<C extends IncrementalChangesContext> implem
 
             @Override
             public boolean isIncrementalExecution() {
-                return inputChanges.map(changes -> changes.isIncremental()).orElse(false);
+                return inputChanges.map(InputChanges::isIncremental).orElse(false);
             }
 
             @Override
@@ -83,7 +84,7 @@ public class ResolveInputChangesStep<C extends IncrementalChangesContext> implem
         ExecutionStateChanges changes = context.getChanges().get();
         InputChangesInternal inputChanges = changes.createInputChanges();
         if (!inputChanges.isIncremental()) {
-            LOGGER.info("All input files are considered out-of-date for incremental {}.", work.getDisplayName());
+            LOGGER.info("The input changes require a full rebuild for incremental {}.", work.getDisplayName());
         }
         return inputChanges;
     }

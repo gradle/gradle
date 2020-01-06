@@ -148,9 +148,6 @@
                 <td>org.gradle.api.Script</td>
             </tr>
             <tr>
-                <td>org.gradle.jvm.toolchain.JavaToolChain</td>
-            </tr>
-            <tr>
                 <td>org.gradle.api.tasks.SourceSet</td>
             </tr>
             <tr>
@@ -437,9 +434,6 @@
                 <td>org.gradle.api.plugins.quality.CodeNarc</td>
             </tr>
             <tr>
-                <td>org.gradle.api.plugins.buildcomparison.gradle.CompareGradleBuilds</td>
-            </tr>
-            <tr>
                 <td>org.gradle.api.tasks.Copy</td>
             </tr>
             <tr>
@@ -453,9 +447,6 @@
             </tr>
             <tr>
                 <td>org.gradle.api.tasks.Exec</td>
-            </tr>
-            <tr>
-                <td>org.gradle.api.plugins.quality.FindBugs</td>
             </tr>
             <tr>
                 <td>org.gradle.api.publish.ivy.tasks.GenerateIvyDescriptor</td>
@@ -498,9 +489,6 @@
             </tr>
             <tr>
                 <td>org.gradle.api.tasks.JavaExec</td>
-            </tr>
-            <tr>
-                <td>org.gradle.api.plugins.quality.JDepend</td>
             </tr>
             <tr>
                 <td>org.gradle.api.plugins.quality.Pmd</td>
@@ -569,9 +557,6 @@
             </tr>
             <tr>
                 <td>org.gradle.api.reporting.DirectoryReport</td>
-            </tr>
-            <tr>
-                <td>org.gradle.api.plugins.quality.FindBugsXmlReport</td>
             </tr>
             <tr>
                 <td>org.gradle.api.reporting.Report</td>
@@ -723,7 +708,7 @@
 
     <section>
         <title>Native tool chains model types</title>
-        <para>Used to configure tool chains for building C++ components.</para>
+        <para>Used to configure tool chains for building C++ and Swift components.</para>
         <table>
             <title>Native tool chain types</title>
             <tr>
@@ -734,6 +719,9 @@
             </tr>
             <tr>
                 <td>org.gradle.nativeplatform.toolchain.VisualCpp</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativeplatform.toolchain.Swiftc</td>
             </tr>
         </table>
     </section>
@@ -866,12 +854,32 @@
     </section>
 
     <section>
-        <title>C++ binary task types</title>
-        <para>Tasks used to build C++ binaries.</para>
+        <title>Swift component model types</title>
+        <para>Used to configure Swift components.</para>
         <table>
-            <title>C++ component task types</title>
+            <title>Swift component types</title>
+            <tr>
+                <td>org.gradle.language.swift.SwiftApplication</td>
+            </tr>
+            <tr>
+                <td>org.gradle.language.swift.SwiftLibrary</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativeplatform.test.xctest.SwiftXCTestSuite</td>
+            </tr>
+        </table>
+    </section>
+
+    <section>
+        <title>Native binary task types</title>
+        <para>Tasks used to build native binaries.</para>
+        <table>
+            <title>Native component task types</title>
             <tr>
                 <td>org.gradle.language.cpp.tasks.CppCompile</td>
+            </tr>
+            <tr>
+                <td>org.gradle.language.swift.tasks.SwiftCompile</td>
             </tr>
             <tr>
                 <td>org.gradle.nativeplatform.tasks.LinkExecutable</td>
@@ -883,10 +891,19 @@
                 <td>org.gradle.nativeplatform.tasks.CreateStaticLibrary</td>
             </tr>
             <tr>
+                <td>org.gradle.nativeplatform.tasks.LinkMachOBundle</td>
+            </tr>
+            <tr>
                 <td>org.gradle.nativeplatform.tasks.InstallExecutable</td>
             </tr>
             <tr>
+                <td>org.gradle.nativeplatform.test.xctest.tasks.InstallXCTestBundle</td>
+            </tr>
+            <tr>
                 <td>org.gradle.nativeplatform.test.tasks.RunTestExecutable</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativeplatform.test.xctest.tasks.XCTest</td>
             </tr>
         </table>
     </section>
@@ -911,65 +928,6 @@
             <tr>
                 <td>org.gradle.language.rc.tasks.WindowsResourceCompile</td>
             </tr>
-        </table>
-    </section>
-
-    <section condition="noNavBar">
-        <title>Play Framework model types</title>
-        <para>Used to configure software components developed with the Play Framework.</para>
-        <table>
-            <title>Play Framework model types</title>
-            <tr>
-                <td>org.gradle.play.PlayApplicationBinarySpec</td>
-            </tr>
-            <tr>
-                <td>org.gradle.play.PlayApplicationSpec</td>
-            </tr>
-            <tr>
-                <td>org.gradle.play.platform.PlayPlatform</td>
-            </tr>
-            <tr>
-                <td>org.gradle.play.JvmClasses</td>
-            </tr>
-            <tr>
-                <td>org.gradle.play.PublicAssets</td>
-            </tr>
-            <tr>
-                <td>org.gradle.play.distribution.PlayDistributionContainer</td>
-            </tr>
-            <tr>
-                <td>org.gradle.language.twirl.TwirlSourceSet</td>
-            </tr>
-            <tr>
-                <td>org.gradle.language.routes.RoutesSourceSet</td>
-            </tr>
-            <tr>
-                <td>org.gradle.language.coffeescript.CoffeeScriptSourceSet</td>
-            </tr>
-            <tr>
-                <td>org.gradle.language.javascript.JavaScriptSourceSet</td>
-            </tr>
-        </table>
-    </section>
-
-    <section condition="noNavBar">
-        <title>Play Framework task types</title>
-        <para>Tasks used to build applications using the Play Framework.</para>
-        <table>
-            <title>Play Framework task types</title>
-            <tr>
-                <td>org.gradle.play.tasks.JavaScriptMinify</td>
-            </tr>
-            <tr>
-                <td>org.gradle.play.tasks.PlayRun</td>
-            </tr>
-            <tr>
-                <td>org.gradle.play.tasks.RoutesCompile</td>
-            </tr>
-            <tr>
-                <td>org.gradle.play.tasks.TwirlCompile</td>
-            </tr>
-            <!-- add PlatformScalaCompile -->
         </table>
     </section>
 

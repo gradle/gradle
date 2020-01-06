@@ -16,6 +16,7 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.resolve.JvmLibraryArtifactResolveTestFixture
 import org.gradle.test.fixtures.maven.MavenRepository
 import spock.lang.Unroll
@@ -44,6 +45,7 @@ repositories {
 """
     }
 
+    @ToBeFixedForInstantExecution
     def "resolves and caches source artifacts"() {
         fixture.requestingSource()
                 .expectSourceArtifact("sources")
@@ -58,6 +60,7 @@ repositories {
         checkArtifactsResolvedAndCached()
     }
 
+    @ToBeFixedForInstantExecution
     def "resolve javadoc artifacts"() {
         fixture.requestingJavadoc()
                 .expectJavadocArtifact("javadoc")
@@ -72,6 +75,7 @@ repositories {
         checkArtifactsResolvedAndCached()
     }
 
+    @ToBeFixedForInstantExecution
     def "resolves and caches all artifacts"() {
         fixture.expectSourceArtifact("sources")
                 .expectJavadocArtifact("javadoc")
@@ -89,6 +93,7 @@ repositories {
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "fetches missing snapshot artifacts #condition"() {
         buildFile << """
 if (project.hasProperty('nocache')) {
@@ -143,6 +148,7 @@ if (project.hasProperty('nocache')) {
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "updates snapshot artifacts #condition"() {
         buildFile << """
 if (project.hasProperty('nocache')) {
@@ -201,33 +207,31 @@ if (project.hasProperty('nocache')) {
         "when snapshot pom changes"   | "-Pnocache"
     }
 
+    @ToBeFixedForInstantExecution
     def "reports failure to resolve artifacts of non-existing component"() {
         fixture.expectComponentNotFound().prepare()
 
         when:
         module.pom.expectGetMissing()
-        module.artifact.expectHeadMissing()
 
         then:
         fails("verify")
         failure.assertHasCause("""Could not find some.group:some-artifact:1.0.
 Searched in the following locations:
-  - ${module.pom.uri}
-  - ${module.artifact.uri}""")
+  - ${module.pom.uri}""")
 
         when:
         server.resetExpectations()
         module.pom.expectGetMissing()
-        module.artifact.expectHeadMissing()
 
         then:
         fails("verify")
         failure.assertHasCause("""Could not find some.group:some-artifact:1.0.
 Searched in the following locations:
-  - ${module.pom.uri}
-  - ${module.artifact.uri}""")
+  - ${module.pom.uri}""")
     }
 
+    @ToBeFixedForInstantExecution
     def "resolve and caches missing artifacts of existing component"() {
         fixture.prepare()
 
@@ -240,6 +244,7 @@ Searched in the following locations:
         checkArtifactsResolvedAndCached()
     }
 
+    @ToBeFixedForInstantExecution
     def "resolves and caches artifacts where some are present"() {
         fixture.expectSourceArtifact("sources")
                 .prepare()
@@ -294,7 +299,7 @@ Searched in the following locations:
 
         then:
         fails("verify")
-        failure.assertHasCause("Could not download some-artifact-javadoc.jar (some.group:some-artifact:1.0)")
+        failure.assertHasCause("Could not download some-artifact-1.0-javadoc.jar (some.group:some-artifact:1.0)")
         failure.assertHasCause("Could not get resource '${javadocArtifact.uri}'")
         failure.assertHasCause("Could not GET '${javadocArtifact.uri}'. Received status code 500 from server: broken")
 
@@ -311,6 +316,7 @@ Searched in the following locations:
         succeeds("verifyFixed")
     }
 
+    @ToBeFixedForInstantExecution
     def "resolve and does not cache artifacts from local repository"() {
         initBuild(fileRepo)
 

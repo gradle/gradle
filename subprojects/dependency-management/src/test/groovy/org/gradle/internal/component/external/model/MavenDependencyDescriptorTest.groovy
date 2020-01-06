@@ -48,12 +48,12 @@ import org.gradle.internal.component.model.ComponentResolveMetadata
 import org.gradle.internal.component.model.ConfigurationMetadata
 import org.gradle.internal.component.model.ConfigurationNotFoundException
 import org.gradle.internal.component.model.Exclude
-import org.gradle.internal.component.model.ExcludeMetadata 
+import org.gradle.internal.component.model.ExcludeMetadata
 
 class MavenDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
     final ModuleExclusions moduleExclusions = new ModuleExclusions()
     final ExcludeSpec nothing = moduleExclusions.nothing()
-    
+
     @Override
     ExternalDependencyDescriptor create(ModuleComponentSelector selector) {
         return mavenDependencyMetadata(MavenScope.Compile, selector, [])
@@ -92,7 +92,7 @@ class MavenDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         fromCompile.name >> "compile"
         toComponent.getConfiguration("compile") >> toCompile
         toComponent.getConfiguration("master") >> toMaster
-        toMaster.artifacts >> [Stub(ComponentArtifactMetadata)]
+        toMaster.artifacts >> ImmutableList.of(ComponentArtifactMetadata)
 
         def dep = mavenDependencyMetadata(MavenScope.Compile, Stub(ModuleComponentSelector), [])
 
@@ -113,7 +113,7 @@ class MavenDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         toComponent.getConfiguration("runtime") >> toRuntime
         toComponent.getConfiguration("compile") >> toCompile
         toComponent.getConfiguration("master") >> toMaster
-        toMaster.artifacts >> [Stub(ComponentArtifactMetadata)]
+        toMaster.artifacts >> ImmutableList.of(ComponentArtifactMetadata)
 
         def dep = mavenDependencyMetadata(MavenScope.Compile, Stub(ModuleComponentSelector), [])
 
@@ -134,7 +134,7 @@ class MavenDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         toComponent.getConfiguration("runtime") >> toRuntime
         toComponent.getConfiguration("master") >> toMaster
         toRuntime.hierarchy >> ImmutableSet.of("runtime", "compile")
-        toMaster.artifacts >> [Stub(ComponentArtifactMetadata)]
+        toMaster.artifacts >> ImmutableList.of(ComponentArtifactMetadata)
 
         def dep = mavenDependencyMetadata(MavenScope.Compile, Stub(ModuleComponentSelector), [])
 
@@ -165,6 +165,8 @@ class MavenDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         def fromRuntime = Stub(ConfigurationMetadata)
         def toRuntime = Stub(ConfigurationMetadata)
         def toMaster = Stub(ConfigurationMetadata)
+        toRuntime.artifacts >> ImmutableList.of()
+        toMaster.artifacts >> ImmutableList.of()
         fromRuntime.name >> "runtime"
         toComponent.getConfiguration("runtime") >> toRuntime
         toComponent.getConfiguration("master") >> toMaster
@@ -186,7 +188,7 @@ class MavenDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         toComponent.getConfiguration("compile") >> null
         toComponent.getConfiguration("default") >> toDefault
         toComponent.getConfiguration("master") >> toMaster
-        toMaster.artifacts >> [Stub(ComponentArtifactMetadata)]
+        toMaster.artifacts >> ImmutableList.of(ComponentArtifactMetadata)
 
         def dep = mavenDependencyMetadata(MavenScope.Compile, Stub(ModuleComponentSelector), [])
 
@@ -205,7 +207,7 @@ class MavenDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         toComponent.getConfiguration("default") >> toDefault
         toComponent.getConfiguration("master") >> toMaster
         toDefault.hierarchy >> ImmutableSet.of("compile", "default")
-        toMaster.artifacts >> [Stub(ComponentArtifactMetadata)]
+        toMaster.artifacts >> ImmutableList.of(ComponentArtifactMetadata)
 
         def dep = mavenDependencyMetadata(MavenScope.Compile, Stub(ModuleComponentSelector), [])
 

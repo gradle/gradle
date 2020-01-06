@@ -155,13 +155,19 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Parallelis
     }
 
     @Override
+    public void releaseCurrentProjectLocks() {
+        final Iterable<? extends ResourceLock> projectLocks = getCurrentProjectLocks();
+        releaseLocks(projectLocks);
+    }
+
+    @Override
     public void withoutProjectLock(Runnable runnable) {
         withoutProjectLock(Factories.toFactory(runnable));
     }
 
     @Override
     public <T> T withoutProjectLock(Factory<T> factory) {
-        final Iterable<? extends ResourceLock> projectLocks = projectLockRegistry.getResourceLocksByCurrentThread();
+        final Iterable<? extends ResourceLock> projectLocks = getCurrentProjectLocks();
         return withoutLocks(projectLocks, factory);
     }
 
@@ -264,6 +270,8 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Parallelis
         List<ResourceLock> allLocks = Lists.newArrayList();
         allLocks.add(workerLease);
         Iterables.addAll(allLocks, locks);
+        // We free the worker lease but keep shared resource leases. We don't want to free shared resources until a task completes,
+        // regardless of whether it is actually doing work just to make behavior more predictable. This might change in the future.
         coordinationService.withStateLock(unlock(workerLease));
         acquireLocks(allLocks);
     }

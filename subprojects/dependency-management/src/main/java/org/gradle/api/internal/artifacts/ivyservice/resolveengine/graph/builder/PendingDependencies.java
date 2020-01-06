@@ -24,11 +24,13 @@ public class PendingDependencies {
     private final ModuleIdentifier moduleIdentifier;
     private final Set<NodeState> affectedComponents;
     private int hardEdges;
+    private boolean reportActivePending;
 
     PendingDependencies(ModuleIdentifier moduleIdentifier) {
         this.moduleIdentifier = moduleIdentifier;
         this.affectedComponents = Sets.newLinkedHashSet();
         this.hardEdges = 0;
+        this.reportActivePending = true;
     }
 
     ModuleIdentifier getModuleIdentifier() {
@@ -40,6 +42,9 @@ public class PendingDependencies {
             throw new IllegalStateException("Cannot add a pending node for a dependency which is not pending");
         }
         affectedComponents.add(state);
+        if (state.getComponent().getModule().isVirtualPlatform()) {
+            reportActivePending = false;
+        }
     }
 
     void turnIntoHardDependencies() {
@@ -47,6 +52,7 @@ public class PendingDependencies {
             affectedComponent.prepareForConstraintNoLongerPending(moduleIdentifier);
         }
         affectedComponents.clear();
+        reportActivePending = true;
     }
 
     public boolean isPending() {
@@ -64,5 +70,9 @@ public class PendingDependencies {
     void decreaseHardEdgeCount() {
         assert hardEdges > 0 : "Cannot remove a hard edge when none recorded";
         hardEdges--;
+    }
+
+    public boolean shouldReportActivatePending() {
+        return reportActivePending;
     }
 }

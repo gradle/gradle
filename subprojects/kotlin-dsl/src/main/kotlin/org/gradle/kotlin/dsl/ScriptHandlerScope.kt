@@ -16,7 +16,6 @@
 
 package org.gradle.kotlin.dsl
 
-import org.gradle.api.Incubating
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.artifacts.Configuration
@@ -24,13 +23,10 @@ import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencyConstraint
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.ModuleDependency
-
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
 import org.gradle.api.artifacts.dsl.DependencyHandler
-
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.initialization.dsl.ScriptHandler.CLASSPATH_CONFIGURATION
-
 import org.gradle.kotlin.dsl.support.delegates.ScriptHandlerDelegate
 import org.gradle.kotlin.dsl.support.unsafeLazy
 
@@ -159,7 +155,6 @@ private constructor(
      * @see [DependencyConstraintHandler.add]
      * @since 5.0
      */
-    @Incubating
     fun DependencyConstraintHandler.classpath(dependencyConstraintNotation: Any): DependencyConstraint? =
         add(CLASSPATH_CONFIGURATION, dependencyConstraintNotation)
 
@@ -174,7 +169,6 @@ private constructor(
      * @see [DependencyConstraintHandler.add]
      * @since 5.0
      */
-    @Incubating
     fun DependencyConstraintHandler.classpath(dependencyConstraintNotation: Any, configuration: DependencyConstraint.() -> Unit): DependencyConstraint? =
         add(CLASSPATH_CONFIGURATION, dependencyConstraintNotation, configuration)
 }

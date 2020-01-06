@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 
 class MemoryStatusUpdateIntegrationTest extends AbstractIntegrationSpec {
 
-    @IntegrationTestTimeout(20)
+    @IntegrationTestTimeout(60)
     def "can register a listener for JVM and OS memory status update events"() {
         given:
         buildFile << waitForMemoryEventsTask()
@@ -43,7 +43,7 @@ class MemoryStatusUpdateIntegrationTest extends AbstractIntegrationSpec {
                 doLast {
                     final CountDownLatch osNotification = new CountDownLatch(1)
                     final CountDownLatch jvmNotification = new CountDownLatch(1)
-                    
+
                     MemoryManager manager = project.services.get(MemoryManager.class)
                     manager.addListener(new JvmMemoryStatusListener() {
                         void onJvmMemoryStatus(JvmMemoryStatus memoryStatus) {

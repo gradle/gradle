@@ -27,6 +27,7 @@ import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.authentication.Authentication;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.internal.authentication.AuthenticationInternal;
+import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.resource.ExternalResourceName;
@@ -37,6 +38,7 @@ import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.transfer.ExternalResourceConnector;
 import org.gradle.internal.resource.transport.ResourceConnectorRepositoryTransport;
 import org.gradle.internal.resource.transport.file.FileTransport;
+import org.gradle.internal.verifier.HttpRedirectVerifier;
 import org.gradle.util.BuildCommencedTimeProvider;
 
 import java.util.Collection;
@@ -56,6 +58,7 @@ public class RepositoryTransportFactory {
     private final StartParameterResolutionOverride startParameterResolutionOverride;
     private final ProducerGuard<ExternalResourceName> producerGuard;
     private final FileResourceRepository fileRepository;
+    private final ChecksumService checksumService;
 
     public RepositoryTransportFactory(Collection<ResourceConnectorFactory> resourceConnectorFactory,
                                       ProgressLoggerFactory progressLoggerFactory,
@@ -66,7 +69,8 @@ public class RepositoryTransportFactory {
                                       BuildOperationExecutor buildOperationExecutor,
                                       StartParameterResolutionOverride startParameterResolutionOverride,
                                       ProducerGuard<ExternalResourceName> producerGuard,
-                                      FileResourceRepository fileRepository) {
+                                      FileResourceRepository fileRepository,
+                                      ChecksumService checksumService) {
         this.progressLoggerFactory = progressLoggerFactory;
         this.temporaryFileProvider = temporaryFileProvider;
         this.cachedExternalResourceIndex = cachedExternalResourceIndex;
@@ -76,6 +80,7 @@ public class RepositoryTransportFactory {
         this.startParameterResolutionOverride = startParameterResolutionOverride;
         this.producerGuard = producerGuard;
         this.fileRepository = fileRepository;
+        this.checksumService = checksumService;
 
         for (ResourceConnectorFactory connectorFactory : resourceConnectorFactory) {
             register(connectorFactory);
@@ -94,11 +99,15 @@ public class RepositoryTransportFactory {
         return validSchemes;
     }
 
-    public RepositoryTransport createTransport(String scheme, String name, Collection<Authentication> authentications) {
-        return createTransport(Collections.singleton(scheme), name, authentications);
+    public RepositoryTransport createFileTransport(String name) {
+        return new FileTransport(name, fileRepository, cachedExternalResourceIndex, temporaryFileProvider, timeProvider, artifactCacheLockingManager, producerGuard, checksumService);
     }
 
-    public RepositoryTransport createTransport(Set<String> schemes, String name, Collection<Authentication> authentications) {
+    public RepositoryTransport createTransport(String scheme, String name, Collection<Authentication> authentications, HttpRedirectVerifier redirectVerifier) {
+        return createTransport(Collections.singleton(scheme), name, authentications, redirectVerifier);
+    }
+
+    public RepositoryTransport createTransport(Set<String> schemes, String name, Collection<Authentication> authentications, HttpRedirectVerifier redirectVerifier) {
         validateSchemes(schemes);
 
         ResourceConnectorFactory connectorFactory = findConnectorFactory(schemes);
@@ -111,9 +120,9 @@ public class RepositoryTransportFactory {
         // 1) we don't cache their files
         // 2) we don't do progress logging for "downloading"
         if (schemes.equals(Collections.singleton("file"))) {
-            return new FileTransport(name, fileRepository, cachedExternalResourceIndex, temporaryFileProvider, timeProvider, artifactCacheLockingManager, producerGuard);
+            return createFileTransport(name);
         }
-        ResourceConnectorSpecification connectionDetails = new DefaultResourceConnectorSpecification(authentications);
+        ResourceConnectorSpecification connectionDetails = new DefaultResourceConnectorSpecification(authentications, redirectVerifier);
 
         ExternalResourceConnector resourceConnector = connectorFactory.createResourceConnector(connectionDetails);
         resourceConnector = startParameterResolutionOverride.overrideExternalResourceConnector(resourceConnector);
@@ -121,7 +130,7 @@ public class RepositoryTransportFactory {
         ExternalResourceCachePolicy cachePolicy = new DefaultExternalResourceCachePolicy();
         cachePolicy = startParameterResolutionOverride.overrideExternalResourceCachePolicy(cachePolicy);
 
-        return new ResourceConnectorRepositoryTransport(name, progressLoggerFactory, temporaryFileProvider, cachedExternalResourceIndex, timeProvider, artifactCacheLockingManager, resourceConnector, buildOperationExecutor, cachePolicy, producerGuard, fileRepository);
+        return new ResourceConnectorRepositoryTransport(name, progressLoggerFactory, temporaryFileProvider, cachedExternalResourceIndex, timeProvider, artifactCacheLockingManager, resourceConnector, buildOperationExecutor, cachePolicy, producerGuard, fileRepository, checksumService);
     }
 
     private void validateSchemes(Set<String> schemes) {
@@ -180,11 +189,13 @@ public class RepositoryTransportFactory {
         throw new InvalidUserDataException("You cannot mix different URL schemes for a single repository. Please declare separate repositories.");
     }
 
-    private class DefaultResourceConnectorSpecification implements ResourceConnectorSpecification {
+    private static class DefaultResourceConnectorSpecification implements ResourceConnectorSpecification {
         private final Collection<Authentication> authentications;
+        private final HttpRedirectVerifier redirectVerifier;
 
-        private DefaultResourceConnectorSpecification(Collection<Authentication> authentications) {
+        private DefaultResourceConnectorSpecification(Collection<Authentication> authentications, HttpRedirectVerifier redirectVerifier) {
             this.authentications = authentications;
+            this.redirectVerifier = redirectVerifier;
         }
 
         @Override
@@ -208,6 +219,11 @@ public class RepositoryTransportFactory {
         @Override
         public Collection<Authentication> getAuthentications() {
             return authentications;
+        }
+
+        @Override
+        public HttpRedirectVerifier getRedirectVerifier() {
+            return redirectVerifier;
         }
     }
 }

@@ -50,14 +50,18 @@ abstract trait LanguageTaskNames {
      * Returns the tasks for the project with the given path.
      */
     ProjectTasks tasks(String project) {
-        return new ProjectTasks(project, toolchainUnderTest, languageTaskSuffix)
+        return new ProjectTasks(project, toolchainUnderTest, languageTaskSuffix, additionalTestTaskNames)
     }
 
     /**
      * Returns the tasks for the root project.
      */
     ProjectTasks getTasks() {
-        return new ProjectTasks('', toolchainUnderTest, languageTaskSuffix)
+        return new ProjectTasks('', toolchainUnderTest, languageTaskSuffix, additionalTestTaskNames)
+    }
+
+    String[] getAdditionalTestTaskNames() {
+        return []
     }
 
     static class ProjectTasks {
@@ -66,11 +70,13 @@ abstract trait LanguageTaskNames {
         private final String languageTaskSuffix
         private String architecture = null
         private String operatingSystemFamily = null
+        private final String[] additionalTestTaskNames
 
-        ProjectTasks(String project, AvailableToolChains.InstalledToolChain toolChainUnderTest, String languageTaskSuffix) {
+        ProjectTasks(String project, AvailableToolChains.InstalledToolChain toolChainUnderTest, String languageTaskSuffix, String[] additionalTestTaskNames) {
             this.toolChainUnderTest = toolChainUnderTest
             this.project = project
             this.languageTaskSuffix = languageTaskSuffix
+            this.additionalTestTaskNames = additionalTestTaskNames
         }
 
         ProjectTasks withArchitecture(String architecture) {
@@ -217,7 +223,7 @@ abstract trait LanguageTaskNames {
             }
 
             List<String> getAllToLink() {
-                return [compile, link]
+                return [*additionalTestTaskNames.collect { withProject(it) }, compile, link]
             }
 
             List<String> getAllToInstall() {

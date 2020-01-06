@@ -16,7 +16,7 @@
 
 package org.gradle.internal.logging.console
 
-
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.console.AbstractConsoleGroupedTaskFunctionalTest
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.test.fixtures.ConcurrentTestUtil
@@ -121,6 +121,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
         gradle.waitForFinish()
     }
 
+    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
     def "shows progress bar and percent phase completion with included build"() {
         settingsFile << """
             ${server.callFromBuild('settings')}
@@ -240,17 +241,22 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
         """
 
         given:
+        def settings = server.expectAndBlock('settings')
         def childBuildScript = server.expectAndBlock('buildsrc-build-script')
         def childTaskGraph = server.expectAndBlock('buildsrc-task-graph')
         def task1 = server.expectAndBlock('buildsrc-task')
         def childBuildFinished = server.expectAndBlock('buildsrc-build-finished')
-        def settings = server.expectAndBlock('settings')
         def rootBuildScript = server.expectAndBlock('root-build-script')
         def task2 = server.expectAndBlock('task2')
         def rootBuildFinished = server.expectAndBlock('root-build-finished')
         gradle = executer.withTasks("hello").start()
 
         expect:
+        settings.waitForAllPendingCalls()
+        assertHasBuildPhase("0% INITIALIZING")
+        settings.releaseAll()
+
+        and:
         childBuildScript.waitForAllPendingCalls()
         assertHasBuildPhase("0% INITIALIZING")
         childBuildScript.releaseAll()
@@ -271,11 +277,6 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
         childBuildFinished.releaseAll()
 
         and:
-        settings.waitForAllPendingCalls()
-        assertHasBuildPhase("0% INITIALIZING")
-        settings.releaseAll()
-
-        and:
         rootBuildScript.waitForAllPendingCalls()
         assertHasBuildPhase("0% CONFIGURING")
         rootBuildScript.releaseAll()
@@ -294,6 +295,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
         gradle.waitForFinish()
     }
 
+    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
     def "shows progress bar and percent phase completion with artifact transforms"() {
         given:
         settingsFile << """
@@ -347,8 +349,8 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
             project(':lib') {
                 apply plugin: 'base'
                 task jar(type: Jar) {
-                    destinationDir = buildDir
-                    archiveName = 'lib.jar'
+                    destinationDirectory = buildDir
+                    archiveFileName = 'lib.jar'
                     doLast {
                         ${server.callFromBuild('jar')}
                     }
@@ -436,6 +438,6 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
     }
 
     String regexFor(String message) {
-        /<.*> $message \[\d+s]/
+        /<.*> $message \[[\dms ]+]/
     }
 }

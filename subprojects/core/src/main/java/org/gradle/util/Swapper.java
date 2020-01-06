@@ -16,26 +16,26 @@
 package org.gradle.util;
 
 import org.gradle.api.Action;
-import java.util.concurrent.Callable;
+import org.gradle.internal.Factory;
 
 /**
  * Generic utility for temporarily changing something.
  */
 public class Swapper<T> {
 
-    private final Callable<? extends T> getter;
+    private final Factory<? extends T> getter;
     private final Action<? super T> setter;
 
-    public Swapper(Callable<? extends T> getter, Action<? super T> setter) {
+    public Swapper(Factory<? extends T> getter, Action<? super T> setter) {
         this.getter = getter;
         this.setter = setter;
     }
 
-    public <Y extends T, N> N swap(Y value, Callable<N> whileSwapped) throws Exception {
-        T originalValue = getter.call();
+    public <Y extends T, N> N swap(Y value, Factory<N> whileSwapped) {
+        T originalValue = getter.create();
         setter.execute(value);
         try {
-            return whileSwapped.call();
+            return whileSwapped.create();
         } finally {
             setter.execute(originalValue);
         }

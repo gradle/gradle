@@ -26,9 +26,9 @@
             <div class="site-footer__link-group">
                 <header><strong>Products</strong></header>
                 <ul class="site-footer__links-list">
-                    <li itemprop="name"><a href="https://gradle.com/build-scans" itemprop="url">Build Scans</a></li>
-                    <li itemprop="name"><a href="https://gradle.com/build-cache" itemprop="url">Build Cache</a></li>
-                    <li itemprop="name"><a href="https://gradle.com/enterprise/resources" itemprop="url">Enterprise Docs</a></li>
+                    <li itemprop="name"><a href="https://gradle.com/build-scans/" itemprop="url">Build Scans</a></li>
+                    <li itemprop="name"><a href="https://gradle.com/build-cache/" itemprop="url">Build Cache</a></li>
+                    <li itemprop="name"><a href="https://gradle.com/enterprise/resources/" itemprop="url">Enterprise Docs</a></li>
                 </ul>
             </div>
             <div class="site-footer__link-group">
@@ -36,14 +36,14 @@
                 <ul class="site-footer__links-list">
                     <li itemprop="name"><a href="https://discuss.gradle.org/c/help-discuss" itemprop="url">Forums</a></li>
                     <li itemprop="name"><a href="https://github.com/gradle/" itemprop="url">GitHub</a></li>
-                    <li itemprop="name"><a href="https://gradle.org/training/" itemprop="url">Training</a></li>
+                    <li itemprop="name"><a href="https://gradle.com/training/" itemprop="url">Training</a></li>
                     <li itemprop="name"><a href="https://gradle.org/services/" itemprop="url">Services</a></li>
                 </ul>
             </div>
         </section>
         <section class="site-footer__subscribe-newsletter" id="newsletter-form-container">
             <header class="newsletter-form__header"><h5>Stay <code>UP-TO-DATE</code> on new features and news</h5></header>
-            <p class="disclaimer">By entering your email, you agree to our <a href="https://gradle.org/terms/">Terms</a> and <a href="https://gradle.org/privacy/">Privacy Policy</a>, including receipt of emails. You can unsubscribe at any time.</p>
+            <p class="disclaimer">By entering your email, you agree to our <a href="https://gradle.com/legal/terms-of-service/">Terms</a> and <a href="https://gradle.com/legal/privacy/">Privacy Policy</a>, including receipt of emails. You can unsubscribe at any time.</p>
             <div class="newsletter-form__container">
                 <form id="newsletter-form" class="newsletter-form" action="https://go.gradle.com/l/68052/2018-09-07/bk6wml" method="post">
                     <input id="email" class="email" name="email" type="email" placeholder="name@email.com" pattern="[^@\s]+@[^@\s]+\.[^@\s]+" maxlength="255" required=""/>
@@ -71,9 +71,9 @@
                 </svg>
             </a></div>
             <div class="site-footer-secondary__links">
-                <a href="https://gradle.com/careers">Careers</a> |
-                <a href="https://gradle.org/privacy">Privacy</a> |
-                <a href="https://gradle.org/terms">Terms of Service</a> |
+                <a href="https://gradle.com/careers/">Careers</a> |
+                <a href="https://gradle.com/legal/privacy/">Privacy</a> |
+                <a href="https://gradle.com/legal/terms-of-service/">Terms of Service</a> |
                 <a href="https://gradle.org/contact/">Contact</a>
             </div>
         </div>
@@ -99,6 +99,10 @@
     }
 
     var currentChapterFileName = window.location.pathname.substr(window.location.pathname.lastIndexOf("/") + 1);
+    if (currentChapterFileName === "index.html") {
+        currentChapterFileName = window.location.pathname.substr(0, window.location.pathname.lastIndexOf("/"));
+        currentChapterFileName = currentChapterFileName.substr(currentChapterFileName.lastIndexOf("/") + 1) + "/index.html";
+    }
     [].forEach.call(document.querySelectorAll(".docs-navigation a[href$='" + currentChapterFileName + "']"), function (link) {
         // Add "active" to all links same as current URL
         link.classList.add("active");

@@ -41,7 +41,7 @@ abstract class CheckstyleInvoker {
         def ignoreFailures = checkstyleTask.ignoreFailures
         def logger = checkstyleTask.logger
         def config = checkstyleTask.config
-        def configDir = checkstyleTask.configDir
+        def configDir = checkstyleTask.configDirectory.getAsFile().getOrNull()
         def xmlDestination = reports.xml.destination
 
         if (isHtmlReportEnabledOnly(reports)) {
@@ -69,18 +69,19 @@ abstract class CheckstyleInvoker {
                     formatter(type: 'xml', toFile: xmlDestination)
                 }
 
-                // User provided their own config_loc
-                def userProvidedConfigLoc = configProperties[CONFIG_LOC_PROPERTY]
-
-                if (userProvidedConfigLoc) {
-                    SingleMessageLogger.nagUserWithDeprecatedIndirectUserCodeCause("Adding 'config_loc' to checkstyle.configProperties", "Use checkstyle.configDir instead as this will behave better with up-to-date checks.")
-                } else if (configDir) {
-                    // Use configDir for config_loc
-                    property(key: CONFIG_LOC_PROPERTY, value: configDir.toString())
-                }
-
                 configProperties.each { key, value ->
                     property(key: key, value: value.toString())
+                }
+
+                if (configDir) {
+                    // User provided their own config_loc
+                    def userProvidedConfigLoc = configProperties[CONFIG_LOC_PROPERTY]
+                    if (userProvidedConfigLoc) {
+                        SingleMessageLogger.nagUserWithDeprecatedIndirectUserCodeCause("Adding 'config_loc' to checkstyle.configProperties", "This property is now ignored and the value of configDirectory is always used for 'config_loc'.")
+
+                    }
+                    // Use configDir for config_loc
+                    property(key: CONFIG_LOC_PROPERTY, value: configDir.toString())
                 }
             }
 

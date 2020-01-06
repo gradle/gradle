@@ -26,10 +26,8 @@ public class FeaturePreviews {
      * A feature that is no longer relevant will have the {@code active} flag set to {@code false}.
      */
     public enum Feature {
-        IMPROVED_POM_SUPPORT(false),
-        GRADLE_METADATA(true),
-        STABLE_PUBLISHING(false),
-        INCREMENTAL_ARTIFACT_TRANSFORMATIONS(false);
+        GRADLE_METADATA(false),
+        GROOVY_COMPILATION_AVOIDANCE(true);
 
         public static Feature withName(String name) {
             try {

@@ -69,8 +69,11 @@ import org.gradle.api.NonExtensible;
  *     <li>{@link #outOfDate} and {@link #removed} can each only be executed a single time per {@link IncrementalTaskInputs} instance.</li>
  *     <li>{@link #outOfDate} must be executed before {@link #removed} is called.</li>
  * </ul>
+ *
+ * @deprecated Use {@link org.gradle.work.InputChanges} instead.
  */
 @NonExtensible
+@Deprecated
 public interface IncrementalTaskInputs {
     /**
      * Indicates if it was possible for Gradle to determine which input files were out of date compared to a previous execution.

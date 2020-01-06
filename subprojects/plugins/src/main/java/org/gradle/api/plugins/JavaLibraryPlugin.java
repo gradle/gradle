@@ -17,18 +17,14 @@ package org.gradle.api.plugins;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.provider.Provider;
+import org.gradle.api.attributes.Usage;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
-import org.gradle.api.tasks.compile.JavaCompile;
+import org.gradle.internal.deprecation.DeprecatableConfiguration;
 
-import javax.inject.Inject;
-
-import static org.gradle.api.plugins.JavaPlugin.COMPILE_JAVA_TASK_NAME;
-import static org.gradle.api.plugins.internal.JavaPluginsHelper.registerClassesDirVariant;
+import static org.gradle.api.plugins.internal.JvmPluginsHelper.addApiToSourceSet;
+import static org.gradle.api.plugins.internal.JvmPluginsHelper.configureClassesDirectoryVariant;
 
 /**
  * <p>A {@link Plugin} which extends the capabilities of the {@link JavaPlugin Java plugin} by cleanly separating
@@ -37,12 +33,6 @@ import static org.gradle.api.plugins.internal.JavaPluginsHelper.registerClassesD
  * @since 3.4
  */
 public class JavaLibraryPlugin implements Plugin<Project> {
-    private final ObjectFactory objectFactory;
-
-    @Inject
-    public JavaLibraryPlugin(ObjectFactory objectFactory) {
-        this.objectFactory = objectFactory;
-    }
 
     @Override
     public void apply(Project project) {
@@ -50,29 +40,32 @@ public class JavaLibraryPlugin implements Plugin<Project> {
 
         SourceSetContainer sourceSets = project.getExtensions().getByType(SourceSetContainer.class);
         ConfigurationContainer configurations = project.getConfigurations();
-        addApiToMainSourceSet(project, sourceSets, configurations);
+        SourceSet sourceSet = sourceSets.getByName("main");
+        addApiToSourceSet(sourceSet, configurations);
+        configureClassesDirectoryVariant(sourceSet, project, sourceSet.getApiElementsConfigurationName(), Usage.JAVA_API);
+        deprecateConfigurationsForDeclaration(sourceSets, configurations);
     }
 
-    private void addApiToMainSourceSet(Project project, SourceSetContainer sourceSets, ConfigurationContainer configurations) {
+    private void deprecateConfigurationsForDeclaration(SourceSetContainer sourceSets, ConfigurationContainer configurations) {
         SourceSet sourceSet = sourceSets.getByName("main");
 
-        Configuration apiConfiguration = configurations.maybeCreate(sourceSet.getApiConfigurationName());
-        apiConfiguration.setVisible(false);
-        apiConfiguration.setDescription("API dependencies for " + sourceSet + ".");
-        apiConfiguration.setCanBeResolved(false);
-        apiConfiguration.setCanBeConsumed(false);
+        DeprecatableConfiguration compileConfiguration = (DeprecatableConfiguration) configurations.getByName(sourceSet.getCompileConfigurationName());
+        DeprecatableConfiguration apiElementsConfiguration = (DeprecatableConfiguration) configurations.getByName(sourceSet.getApiElementsConfigurationName());
+        DeprecatableConfiguration runtimeElementsConfiguration = (DeprecatableConfiguration) configurations.getByName(sourceSet.getRuntimeElementsConfigurationName());
+        DeprecatableConfiguration compileClasspathConfiguration = (DeprecatableConfiguration) configurations.getByName(sourceSet.getCompileClasspathConfigurationName());
+        DeprecatableConfiguration runtimeClasspathConfiguration = (DeprecatableConfiguration) configurations.getByName(sourceSet.getRuntimeClasspathConfigurationName());
 
-        Configuration apiElementsConfiguration = configurations.getByName(sourceSet.getApiElementsConfigurationName());
-        apiElementsConfiguration.extendsFrom(apiConfiguration);
+        String implementationConfigurationName = sourceSet.getImplementationConfigurationName();
+        String compileOnlyConfigurationName = sourceSet.getCompileOnlyConfigurationName();
+        String runtimeOnlyConfigurationName = sourceSet.getRuntimeOnlyConfigurationName();
+        String apiConfigurationName = sourceSet.getApiConfigurationName();
 
-        final Provider<JavaCompile> javaCompile = project.getTasks().named(COMPILE_JAVA_TASK_NAME, JavaCompile.class);
-        registerClassesDirVariant(javaCompile, objectFactory, apiElementsConfiguration);
+        compileConfiguration.deprecateForDeclaration(implementationConfigurationName, apiConfigurationName);
 
-        Configuration implementationConfiguration = configurations.getByName(sourceSet.getImplementationConfigurationName());
-        implementationConfiguration.extendsFrom(apiConfiguration);
+        apiElementsConfiguration.deprecateForDeclaration(implementationConfigurationName, apiConfigurationName, compileOnlyConfigurationName);
+        runtimeElementsConfiguration.deprecateForDeclaration(implementationConfigurationName, apiConfigurationName, compileOnlyConfigurationName, runtimeOnlyConfigurationName);
 
-        Configuration compileConfiguration = configurations.getByName(sourceSet.getCompileConfigurationName());
-        apiConfiguration.extendsFrom(compileConfiguration);
+        compileClasspathConfiguration.deprecateForDeclaration(implementationConfigurationName, apiConfigurationName, compileOnlyConfigurationName);
+        runtimeClasspathConfiguration.deprecateForDeclaration(implementationConfigurationName, apiConfigurationName, compileOnlyConfigurationName, runtimeOnlyConfigurationName);
     }
-
 }

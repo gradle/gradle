@@ -48,6 +48,7 @@ class AbstractInitIntegrationSpec extends AbstractIntegrationSpec {
     protected void commonFilesGenerated(BuildInitDsl scriptDsl) {
         dslFixtureFor(scriptDsl).assertGradleFilesGenerated()
         targetDir.file(".gitignore").assertIsFile()
+        targetDir.file(".gitattributes").assertIsFile()
     }
     protected void commonJvmFilesGenerated(BuildInitDsl scriptDsl) {
         commonFilesGenerated(scriptDsl)

@@ -18,14 +18,16 @@ package org.gradle.integtests.fixtures.executer;
 
 import org.gradle.integtests.fixtures.logging.GroupedOutputFixture;
 
-import java.util.List;
-import java.util.Set;
-
 public class ErrorsOnStdoutScrapingExecutionResult implements ExecutionResult {
     private final ExecutionResult delegate;
 
     public ErrorsOnStdoutScrapingExecutionResult(ExecutionResult delegate) {
         this.delegate = delegate;
+    }
+
+    @Override
+    public ExecutionResult getIgnoreBuildSrc() {
+        return new ErrorsOnStdoutScrapingExecutionResult(delegate.getIgnoreBuildSrc());
     }
 
     @Override
@@ -56,6 +58,11 @@ public class ErrorsOnStdoutScrapingExecutionResult implements ExecutionResult {
     @Override
     public String getError() {
         return delegate.getError();
+    }
+
+    @Override
+    public String getOutputLineThatContains(String text) {
+        return delegate.getOutputLineThatContains(text);
     }
 
     @Override
@@ -100,11 +107,6 @@ public class ErrorsOnStdoutScrapingExecutionResult implements ExecutionResult {
     }
 
     @Override
-    public List<String> getExecutedTasks() {
-        return delegate.getExecutedTasks();
-    }
-
-    @Override
     public ExecutionResult assertTasksExecutedInOrder(Object... taskPaths) {
         delegate.assertTasksExecutedInOrder(taskPaths);
         return this;
@@ -138,11 +140,6 @@ public class ErrorsOnStdoutScrapingExecutionResult implements ExecutionResult {
     public ExecutionResult assertTaskOrder(Object... taskPaths) {
         delegate.assertTaskOrder(taskPaths);
         return this;
-    }
-
-    @Override
-    public Set<String> getSkippedTasks() {
-        return delegate.getSkippedTasks();
     }
 
     @Override

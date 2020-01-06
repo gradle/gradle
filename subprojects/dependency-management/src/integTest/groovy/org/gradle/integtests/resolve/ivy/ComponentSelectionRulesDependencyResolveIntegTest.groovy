@@ -16,18 +16,20 @@
 
 package org.gradle.integtests.resolve.ivy
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.junit.Assume
 import spock.lang.Issue
 import spock.lang.Unroll
 
 
-class  ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponentSelectionRulesIntegrationTest {
+class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponentSelectionRulesIntegrationTest {
     boolean isWellBehaved(boolean mavenCompatible, boolean gradleCompatible = true) {
-        (GradleMetadataResolveRunner.useIvy() || mavenCompatible) && (!GradleMetadataResolveRunner.gradleMetadataEnabled || gradleCompatible)
+        (GradleMetadataResolveRunner.useIvy() || mavenCompatible) && (!GradleMetadataResolveRunner.gradleMetadataPublished || gradleCompatible)
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "uses '#rule' rule to choose component for #selector"() {
         given:
         Assume.assumeTrue isWellBehaved(mavenCompatible, gradleCompatible)
@@ -115,6 +117,7 @@ class  ComponentSelectionRulesDependencyResolveIntegTest extends AbstractCompone
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "uses '#rule' rule to reject all candidates for dynamic version #selector"() {
         given:
         Assume.assumeTrue isWellBehaved(mavenCompatible)
@@ -187,6 +190,7 @@ class  ComponentSelectionRulesDependencyResolveIntegTest extends AbstractCompone
         "latest.milestone"   | "select 1.1"               | '["2.0"]'               | ['2.1', '2.0']        | false
     }
 
+    @ToBeFixedForInstantExecution
     def "reports all candidates rejected by rule"() {
         buildFile << """
 
@@ -220,9 +224,9 @@ Versions rejected by component selection rules:
   - 1.0
 Searched in the following locations:
   - ${versionListingURI('org.utils', 'api')}
-${triedMetadata('org.utils', 'api', "1.2", false, gradleMetadataEnabled || !experimentalEnabled)}
-${triedMetadata('org.utils', 'api', "1.1", false, gradleMetadataEnabled || !experimentalEnabled)}
-${triedMetadata('org.utils', 'api', "1.0", false, gradleMetadataEnabled || !experimentalEnabled)}
+${triedMetadata('org.utils', 'api', "1.2")}
+${triedMetadata('org.utils', 'api', "1.1")}
+${triedMetadata('org.utils', 'api', "1.0")}
 Required by:
 """)
 
@@ -429,6 +433,7 @@ Required by:
     }
 
     @Issue("GRADLE-3236")
+    @ToBeFixedForInstantExecution
     def "can select a different component for the same selector in different configurations"() {
         def descriptorArg = GradleMetadataResolveRunner.useIvy() ? 'selection.getDescriptor(IvyModuleDescriptor)' : 'selection.metadata'
         buildFile << """

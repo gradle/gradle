@@ -26,11 +26,20 @@ class ZincScalaCompilerMultiVersionIntegrationTest extends MultiVersionIntegrati
         buildFile << """
             apply plugin: "scala"
 
-            ${jcenterRepository()}
+            ${mavenCentralRepository()}
 
+            scala {
+                zincVersion = "${version}"
+            }
             dependencies {
-                compile "org.scala-lang:scala-library:2.10.7"
-                zinc "com.typesafe.zinc:zinc:${version}"
+                implementation "org.scala-lang:scala-library:2.10.7"
+            }
+            task assertZincVersion {
+                dependsOn configurations.zinc
+                doLast {
+                    def resolvedDependencies = configurations.zinc.getResolvedConfiguration().getFirstLevelModuleDependencies()
+                    assert resolvedDependencies.find { it.moduleGroup == "org.scala-sbt" && it.moduleName == "zinc_2.12" && it.moduleVersion == "${version}" }
+                }
             }
         """
         args("--info")
@@ -41,7 +50,7 @@ class ZincScalaCompilerMultiVersionIntegrationTest extends MultiVersionIntegrati
         withScalaSources()
 
         expect:
-        succeeds("compileScala")
+        succeeds("assertZincVersion", "compileScala")
         output.contains("Compiling with Zinc Scala compiler")
         scalaClassFile("compile/test").assertContainsDescendants(
             "Person.class",
@@ -54,11 +63,11 @@ class ZincScalaCompilerMultiVersionIntegrationTest extends MultiVersionIntegrati
             """
 package compile.test
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 class Person(val name: String, val age: Int) {
     def hello() {
-        val x: java.util.List[Int] = List(3, 1, 2)
+        val x: java.util.List[Int] = List(3, 1, 2).asJava
         java.util.Collections.reverse(x)
     }
 }

@@ -27,6 +27,7 @@ dependencies {
     implementation(project(":native"))
     implementation(project(":coreApi"))
     implementation(project(":buildCache"))
+    implementation(project(":files"))
     implementation(project(":snapshots"))
 
     implementation(library("jsr305"))
@@ -37,17 +38,15 @@ dependencies {
     implementation(library("commons_io"))
 
     testImplementation(project(":processServices"))
-    testImplementation(project(":files"))
+    testImplementation(project(":fileCollections"))
     testImplementation(project(":resources"))
+    
+    testImplementation(testFixtures(project(":baseServices")))
+    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":snapshots")))
+    testImplementation(testFixtures(project(":coreApi")))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
-}
-
-testFixtures {
-    from(":baseServices")
-    from(":snapshots")
-    from(":core")
-    from(":coreApi")
 }

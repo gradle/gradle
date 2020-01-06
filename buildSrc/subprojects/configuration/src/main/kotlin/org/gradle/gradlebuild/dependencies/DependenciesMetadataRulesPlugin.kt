@@ -28,12 +28,18 @@ import org.gradle.api.artifacts.dsl.ComponentMetadataHandler
 import org.gradle.kotlin.dsl.dependencies
 import org.gradle.kotlin.dsl.extra
 import java.io.File
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 import kotlin.reflect.KClass
 
 
 open class DependenciesMetadataRulesPlugin : Plugin<Project> {
+    companion object {
+        val warnedAboutCapabilities = AtomicBoolean()
+    }
+
     override fun apply(project: Project): Unit = project.run {
+        applyAutomaticUpgradeOfCapabilities()
         dependencies {
             components {
                 // Gradle distribution - minify: remove unused transitive dependencies
@@ -72,6 +78,15 @@ open class DependenciesMetadataRulesPlugin : Plugin<Project> {
                 // Test dependencies - minify: remove unused transitive dependencies
                 withLibraryDependencies("org.gradle.org.littleshoot:littleproxy", DependencyRemovalByNameRule::class,
                     setOf("barchart-udt-bundle", "guava", "commons-cli"))
+            }
+        }
+    }
+
+    private
+    fun Project.applyAutomaticUpgradeOfCapabilities() {
+        configurations.all {
+            resolutionStrategy.capabilitiesResolution.all {
+                selectHighestVersion()
             }
         }
     }

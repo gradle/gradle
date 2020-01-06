@@ -15,10 +15,8 @@
  */
 package org.gradle.plugin.management.internal.autoapply;
 
-import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
@@ -26,12 +24,8 @@ import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.plugins.PluginContainer;
-import org.gradle.plugin.management.internal.DefaultPluginRequests;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.management.internal.PluginRequests;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class DefaultAutoAppliedPluginHandler implements AutoAppliedPluginHandler {
 
@@ -67,20 +61,13 @@ public class DefaultAutoAppliedPluginHandler implements AutoAppliedPluginHandler
     }
 
     PluginRequests mergePluginRequests(PluginRequests autoAppliedPlugins, PluginRequests initialRequests, PluginContainer pluginContainer, ScriptHandler scriptHandler) {
-        List<PluginRequestInternal> filteredAutoAppliedPlugins = filterAlreadyAppliedOrRequested(autoAppliedPlugins, initialRequests, pluginContainer, scriptHandler);
-        List<PluginRequestInternal> merged = new ArrayList<PluginRequestInternal>(initialRequests.size() + autoAppliedPlugins.size());
-        merged.addAll(filteredAutoAppliedPlugins);
-        merged.addAll(ImmutableList.copyOf(initialRequests));
-        return new DefaultPluginRequests(merged);
+        PluginRequests filteredAutoAppliedPlugins = filterAlreadyAppliedOrRequested(autoAppliedPlugins, initialRequests, pluginContainer, scriptHandler);
+        return filteredAutoAppliedPlugins.mergeWith(initialRequests);
     }
 
-    private List<PluginRequestInternal> filterAlreadyAppliedOrRequested(PluginRequests autoAppliedPlugins, final PluginRequests initialRequests, final PluginContainer pluginContainer, final ScriptHandler scriptHandler) {
-        return Lists.newArrayList(Iterables.filter(autoAppliedPlugins, new Predicate<PluginRequestInternal>() {
-            @Override
-            public boolean apply(PluginRequestInternal autoAppliedPlugin) {
-                return !isAlreadyAppliedOrRequested(autoAppliedPlugin, initialRequests, pluginContainer, scriptHandler);
-            }
-        }));
+    private PluginRequests filterAlreadyAppliedOrRequested(PluginRequests autoAppliedPlugins, final PluginRequests initialRequests, final PluginContainer pluginContainer, final ScriptHandler scriptHandler) {
+        //noinspection StaticPseudoFunctionalStyleMethod
+        return PluginRequests.of(ImmutableList.copyOf(Iterables.filter(autoAppliedPlugins, autoAppliedPlugin -> !isAlreadyAppliedOrRequested(autoAppliedPlugin, initialRequests, pluginContainer, scriptHandler))));
     }
 
     private static boolean isAlreadyAppliedOrRequested(PluginRequestInternal autoAppliedPlugin, PluginRequests requests, PluginContainer pluginContainer, ScriptHandler scriptHandler) {

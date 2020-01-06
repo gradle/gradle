@@ -16,8 +16,6 @@
 
 package org.gradle.tooling.events;
 
-import org.gradle.api.Incubating;
-
 import java.net.URI;
 
 /**
@@ -25,7 +23,6 @@ import java.net.URI;
  *
  * @since 5.1
  */
-@Incubating
 public interface ScriptPluginIdentifier extends PluginIdentifier {
 
     /**

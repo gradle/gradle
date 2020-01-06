@@ -17,32 +17,32 @@
 package org.gradle.api.internal.artifacts.transform
 
 import org.gradle.api.Action
-import org.gradle.api.Project
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
 import org.gradle.api.internal.tasks.TaskDependencyContainer
 import org.gradle.execution.plan.Node
 import org.gradle.execution.plan.TaskDependencyResolver
+import org.gradle.internal.operations.BuildOperationExecutor
 import spock.lang.Specification
-
-import javax.annotation.Nonnull
 
 class TransformationNodeSpec extends Specification {
 
     def artifact = Mock(ResolvableArtifact)
     def dependencyResolver = Mock(TaskDependencyResolver)
-    def artifactNode = new TestNode()
     def transformerDependencies = Mock(TaskDependencyContainer)
     def hardSuccessor = Mock(Action)
     def transformationStep = Mock(TransformationStep)
     def graphDependenciesResolver = Mock(ExecutionGraphDependenciesResolver)
+    def buildOperationExecutor = Mock(BuildOperationExecutor)
+    def transformListener = Mock(ArtifactTransformListener)
 
     def "initial node adds dependency on artifact node and dependencies"() {
         def container = Stub(TaskDependencyContainer)
-        def additionalNode = new TestNode()
-        def isolationNode = new TestNode()
+        def artifactNode = node()
+        def additionalNode = node()
+        def isolationNode = node()
 
         given:
-        def node = TransformationNode.initial(transformationStep, artifact, graphDependenciesResolver)
+        def node = TransformationNode.initial(transformationStep, artifact, graphDependenciesResolver, buildOperationExecutor, transformListener)
 
         when:
         node.resolveDependencies(dependencyResolver, hardSuccessor)
@@ -61,76 +61,31 @@ class TransformationNodeSpec extends Specification {
 
     def "chained node with empty extra resolver only adds dependency on previous step and dependencies"() {
         def container = Stub(TaskDependencyContainer)
-        def additionalNode = new TestNode()
-        def isolationNode = new TestNode()
-        def initialNode = TransformationNode.initial(Stub(TransformationStep), artifact, Stub(ExecutionGraphDependenciesResolver))
+        def additionalNode = node()
+        def isolationNode = node()
+        def initialNode = TransformationNode.initial(Stub(TransformationStep), artifact, graphDependenciesResolver, buildOperationExecutor, transformListener)
 
         given:
-        def node = TransformationNode.chained(transformationStep, initialNode, graphDependenciesResolver)
+        def node = TransformationNode.chained(transformationStep, initialNode, graphDependenciesResolver, buildOperationExecutor, transformListener)
 
         when:
         node.resolveDependencies(dependencyResolver, hardSuccessor)
 
         then:
-        1 * hardSuccessor.execute(initialNode)
-        1 * graphDependenciesResolver.computeDependencyNodes(transformationStep) >> container
-        1 * dependencyResolver.resolveDependenciesFor(null, container) >> [additionalNode]
-        1 * hardSuccessor.execute(additionalNode)
         1 * transformationStep.dependencies >> transformerDependencies
         1 * dependencyResolver.resolveDependenciesFor(null, transformerDependencies) >> [isolationNode]
         1 * hardSuccessor.execute(isolationNode)
+        1 * graphDependenciesResolver.computeDependencyNodes(transformationStep) >> container
+        1 * dependencyResolver.resolveDependenciesFor(null, container) >> [additionalNode]
+        1 * hardSuccessor.execute(additionalNode)
+        1 * hardSuccessor.execute(initialNode)
         0 * hardSuccessor._
     }
 
-    class TestNode extends Node {
-        @Override
-        Project getProject() {
-            return null
-        }
-
-        @Override
-        Throwable getNodeFailure() {
-            return null
-        }
-
-        @Override
-        void rethrowNodeFailure() {
-
-        }
-
-        @Override
-        void prepareForExecution() {
-
-        }
-
-        @Override
-        void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<Node> processHardSuccessor) {
-
-        }
-
-        @Override
-        Set<Node> getFinalizers() {
-            return null
-        }
-
-        @Override
-        boolean isPublicNode() {
-            return true
-        }
-
-        @Override
-        boolean requiresMonitoring() {
-            return false
-        }
-
-        @Override
-        String toString() {
-            return null
-        }
-
-        @Override
-        int compareTo(@Nonnull Node o) {
-            return 0
-        }
+    private Node node() {
+        def node = Stub(Node)
+        _ * node.dependencyPredecessors >> new LinkedHashSet<Node>()
+        return node
     }
+
 }

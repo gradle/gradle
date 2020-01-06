@@ -49,9 +49,9 @@ public class Describables {
     }
 
     /**
-     * Returns a describable for an object that has a type and name.
+     * Returns a describable for an object that has a type and name. Quotes are added around the name.
      */
-    public static DisplayName withTypeAndName(final String type, final String name) {
+    public static DisplayName withTypeAndName(final Object type, final String name) {
         return new AbstractDescribable() {
             @Override
             public String getCapitalizedDisplayName() {
@@ -66,8 +66,9 @@ public class Describables {
             }
 
             private StringBuilder asMutable() {
-                StringBuilder result = new StringBuilder(type.length() + name.length() + 3);
-                result.append(type);
+                String typeStr = type.toString();
+                StringBuilder result = new StringBuilder(typeStr.length() + name.length() + 3);
+                result.append(typeStr);
                 result.append(" '");
                 result.append(name);
                 result.append('\'');

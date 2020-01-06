@@ -33,9 +33,13 @@ repositories {
             name 'Gradle distributions'
             url 'https://services.gradle.org'
             patternLayout {
-                // Dummy 'ivy' pattern: Ivy files do not exist on services.gradle.org
-                ivy '[module]-[revision]-ivy.xml'
                 artifact "/${distUrl}/[module]-[revision]-bin(.[ext])"
+            }
+            metadataSources {
+                artifact()
+            }
+            content {
+                includeModule('gradle', 'gradle')
             }
         }
     }
@@ -100,7 +104,7 @@ configurations {
         canBeConsumed = false
         canBeResolved = true
         description = "Classpath to check binary compatibility against"
-        attributes.attribute(USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.JAVA_RUNTIME))
+        attributes.attribute(USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
     }
 }
 

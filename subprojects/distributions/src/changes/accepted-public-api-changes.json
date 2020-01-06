@@ -1,41 +1,11 @@
 {
     "acceptedApiChanges": [
         {
-            "type": "org.gradle.api.publish.maven.tasks.AbstractPublishToMaven",
-            "member": "Method org.gradle.api.publish.maven.tasks.AbstractPublishToMaven.getMavenPublishers()",
-            "acceptation": "Injected Service",
-            "changes": []
-        },
-        {
-            "type": "org.gradle.api.publish.maven.tasks.AbstractPublishToMaven",
-            "member": "Method org.gradle.api.publish.maven.tasks.AbstractPublishToMaven.getMavenRepositoryLocator()",
-            "acceptation": "Replaced by factory service: MavenPublishers",
+            "type": "org.gradle.plugins.signing.signatory.pgp.PgpSignatoryProvider",
+            "member": "Class org.gradle.plugins.signing.signatory.pgp.PgpSignatoryProvider",
+            "acceptation": "Introduced a new internal API interface for bridging with the security subproject",
             "changes": [
-                "Method has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.api.publish.maven.tasks.PublishToMavenLocal",
-            "member": "Class org.gradle.api.publish.maven.tasks.PublishToMavenLocal",
-            "acceptation": "Replaced by factory service: MavenPublishers",
-            "changes": [
-                "org.gradle.api.publish.maven.tasks.AbstractPublishToMaven.getMavenRepositoryLocator()"
-            ]
-        },
-        {
-            "type": "org.gradle.api.publish.maven.tasks.PublishToMavenRepository",
-            "member": "Class org.gradle.api.publish.maven.tasks.PublishToMavenRepository",
-            "acceptation": "Replaced by factory service: MavenPublishers",
-            "changes": [
-                "org.gradle.api.publish.maven.tasks.AbstractPublishToMaven.getMavenRepositoryLocator()"
-            ]
-        },
-        {
-            "type": "org.gradle.api.publish.maven.tasks.PublishToMavenRepository",
-            "member": "Method org.gradle.api.publish.maven.tasks.PublishToMavenRepository.getRepositoryTransportFactory()",
-            "acceptation": "Replaced by factory service: MavenPublishers",
-            "changes": [
-                "Method has been removed"
+                "org.gradle.plugins.signing.signatory.internal.ConfigurableSignatoryProvider"
             ]
         }
     ]

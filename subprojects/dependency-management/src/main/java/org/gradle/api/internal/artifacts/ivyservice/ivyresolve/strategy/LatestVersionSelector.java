@@ -46,7 +46,8 @@ public class LatestVersionSelector extends AbstractStringVersionSelector {
 
     @Override
     public boolean accept(String candidate) {
-        throw new UnsupportedOperationException("accept(String)");
+        // the ONLY case where this is called for this selector is from InverseVersionSelector, used to reject candidates
+        return true;
     }
 
     @Override

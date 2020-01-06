@@ -60,12 +60,15 @@ import org.gradle.kotlin.dsl.support.loggerFor
 import org.gradle.kotlin.dsl.typeOf
 
 import org.gradle.nativeplatform.BuildType
-
+import org.junit.Assert.assertEquals
 import org.junit.Test
 
 import org.mockito.ArgumentMatchers.anyMap
 
 import java.io.File
+import java.lang.reflect.Method
+import java.lang.reflect.Modifier.PUBLIC
+import java.lang.reflect.Modifier.STATIC
 
 
 class ProjectAccessorsClassPathTest : AbstractDslTest() {
@@ -131,6 +134,55 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
     }
 
     @Test
+    fun `#buildAccessorsFor (deprecated configurations)`() {
+        val schema =
+            TypedProjectSchema(
+                extensions = listOf(),
+                conventions = listOf(),
+                containerElements = listOf(),
+                tasks = listOf(),
+                configurations = listOf(
+                    ConfigurationEntry("api"),
+                    ConfigurationEntry("implementation"),
+                    ConfigurationEntry("compile", listOf("api", "implementation"))
+                )
+            )
+
+        val srcDir = newFolder("src")
+        val binDir = newFolder("bin")
+
+        withClassLoaderFor(binDir) {
+            // when:
+            buildAccessorsFromSourceFor(
+                schema,
+                testRuntimeClassPath,
+                srcDir,
+                binDir
+            )
+
+            val binaryAccessorsDir = File(binDir, "org/gradle/kotlin/dsl")
+
+            // then:
+            schema.configurations.forEach { config ->
+                val name = config.target
+                val className = "${name.capitalize()}ConfigurationAccessorsKt"
+                val classFile = File(binaryAccessorsDir, "$className.class")
+
+                require(classFile.exists())
+
+                loadClass("org.gradle.kotlin.dsl.$className").run {
+                    dependencyHandlerExtensionMethods(name).forEach {
+                        assertEquals(
+                            isDeprecated(it),
+                            config.hasDeclarationDeprecations()
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
     fun `#buildAccessorsFor (default package types)`() {
 
         // given:
@@ -179,6 +231,17 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
     }
 
     private
+    fun Class<*>.dependencyHandlerExtensionMethods(name: String): List<Method> {
+        return declaredMethods.filter(Method::isPublicStatic)
+            .filter { it.name == name }
+            .filter { it.parameterCount > 0 }
+            .filter { it.parameterTypes[0].simpleName == "DependencyHandler" }
+    }
+
+    private
+    fun isDeprecated(it: Method) = it.annotations.map { it.annotationClass }.contains(Deprecated::class)
+
+    private
     fun buildAccessorsFromSourceFor(
         schema: TypedProjectSchema,
         classPath: ClassPath,
@@ -225,7 +288,7 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
                 tasks = listOf(
                     entry<TaskContainer, Delete>("clean")
                 ),
-                configurations = listOf("api")
+                configurations = listOf(ConfigurationEntry("api"))
             )
 
         val apiConfiguration = mock<NamedDomainObjectProvider<Configuration>>()
@@ -450,3 +513,8 @@ fun namedDomainObjectContainerOf(elementType: SchemaType) =
 internal
 inline fun <reified ReceiverType, reified EntryType> entry(name: String): ProjectSchemaEntry<SchemaType> =
     ProjectSchemaEntry(SchemaType.of<ReceiverType>(), name, SchemaType.of<EntryType>())
+
+
+private
+fun Method.isPublicStatic() = (modifiers and STATIC == STATIC) &&
+    (modifiers and PUBLIC == PUBLIC)

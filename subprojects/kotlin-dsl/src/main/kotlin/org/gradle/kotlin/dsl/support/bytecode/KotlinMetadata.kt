@@ -91,9 +91,11 @@ fun ClassVisitor.publicStaticMethod(
     jvmMethodSignature: JvmMethodSignature,
     signature: String? = null,
     exceptions: Array<String>? = null,
+    deprecated: Boolean = false,
+    annotations: MethodVisitor.() -> Unit = {},
     methodBody: MethodVisitor.() -> Unit
 ) = jvmMethodSignature.run {
-    publicStaticMethod(name, desc, signature, exceptions, methodBody)
+    publicStaticMethod(name, desc, signature, exceptions, deprecated, annotations, methodBody)
 }
 
 
@@ -226,7 +228,7 @@ fun KotlinClassMetadata.FileFacade.Writer.writePropertyOf(
         visitReceiverParameterType(0).with(receiverType)
         visitReturnType(0).with(returnType)
         (visitExtensions(JvmPropertyExtensionVisitor.TYPE) as JvmPropertyExtensionVisitor).run {
-            visit(null, getterSignature, null)
+            visit(flagsOf(), null, getterSignature, null)
             visitSyntheticMethodForAnnotations(null)
             visitEnd()
         }
@@ -309,3 +311,7 @@ val inlineGetterFlags = flagsOf(
 
 internal
 val publicFunctionFlags = flagsOf(Flag.IS_PUBLIC)
+
+
+internal
+val publicFunctionWithAnnotationsFlags = flagsOf(Flag.IS_PUBLIC, Flag.HAS_ANNOTATIONS)

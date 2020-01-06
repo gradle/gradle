@@ -31,6 +31,7 @@ import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.api.tasks.testing.Test
 import org.gradle.jvm.ClassDirectoryBinarySpec
+import org.gradle.jvm.toolchain.JavaInstallationRegistry
 import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.java.JavaSourceSet
 import org.gradle.language.jvm.JvmResourceSet
@@ -62,6 +63,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         project.convention.plugins.java instanceof JavaPluginConvention
         project.extensions.sourceSets.is(project.convention.plugins.java.sourceSets)
         project.extensions.java instanceof JavaPluginExtension
+        project.extensions.javaInstalls instanceof JavaInstallationRegistry
     }
 
     void "sourceSets extension is exposed as SourceSetContainer"() {
@@ -131,7 +133,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         SourceSet set = project.sourceSets.custom
         set.java.srcDirs == toLinkedSet(project.file('src/custom/java'))
         set.resources.srcDirs == toLinkedSet(project.file('src/custom/resources'))
-        set.java.outputDir == new File(project.buildDir, 'classes/java/custom')
+        set.java.destinationDirectory.set(new File(project.buildDir, 'classes/java/custom'))
         set.output.resourcesDir == new File(project.buildDir, 'resources/custom')
         set.output.generatedSourcesDirs.files == toLinkedSet(new File(project.buildDir, 'generated/sources/annotationProcessor/java/custom'))
 
@@ -169,7 +171,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         SourceSet set = project.sourceSets.main
         set.java.srcDirs == toLinkedSet(project.file('src/main/java'))
         set.resources.srcDirs == toLinkedSet(project.file('src/main/resources'))
-        set.java.outputDir == new File(project.buildDir, 'classes/java/main')
+        set.java.destinationDirectory.set(new File(project.buildDir, 'classes/java/main'))
         set.output.resourcesDir == new File(project.buildDir, 'resources/main')
         set.output.generatedSourcesDirs.files == toLinkedSet(new File(project.buildDir, 'generated/sources/annotationProcessor/java/main'))
 
@@ -448,60 +450,15 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         where:
         consumer                     | producer                     | compatible
         Usage.JAVA_API               | Usage.JAVA_API               | true
-        Usage.JAVA_API               | Usage.JAVA_API_CLASSES       | true
-        Usage.JAVA_API               | Usage.JAVA_API_JARS          | true
         Usage.JAVA_API               | Usage.JAVA_RUNTIME           | true
-        Usage.JAVA_API               | Usage.JAVA_RUNTIME_CLASSES   | true
-        Usage.JAVA_API               | Usage.JAVA_RUNTIME_RESOURCES | false
-        Usage.JAVA_API               | Usage.JAVA_RUNTIME_JARS      | true
-
-        Usage.JAVA_API_CLASSES       | Usage.JAVA_API               | true
-        Usage.JAVA_API_CLASSES       | Usage.JAVA_API_CLASSES       | true
-        Usage.JAVA_API_CLASSES       | Usage.JAVA_API_JARS          | true
-        Usage.JAVA_API_CLASSES       | Usage.JAVA_RUNTIME           | true
-        Usage.JAVA_API_CLASSES       | Usage.JAVA_RUNTIME_CLASSES   | true
-        Usage.JAVA_API_CLASSES       | Usage.JAVA_RUNTIME_RESOURCES | false
-        Usage.JAVA_API_CLASSES       | Usage.JAVA_RUNTIME_JARS      | true
-
-        Usage.JAVA_API_JARS          | Usage.JAVA_API               | true
-        Usage.JAVA_API_JARS          | Usage.JAVA_API_CLASSES       | false
-        Usage.JAVA_API_JARS          | Usage.JAVA_API_JARS          | true
-        Usage.JAVA_API_JARS          | Usage.JAVA_RUNTIME           | true
-        Usage.JAVA_API_JARS          | Usage.JAVA_RUNTIME_CLASSES   | false
-        Usage.JAVA_API_JARS          | Usage.JAVA_RUNTIME_RESOURCES | false
-        Usage.JAVA_API_JARS          | Usage.JAVA_RUNTIME_JARS      | true
 
         Usage.JAVA_RUNTIME           | Usage.JAVA_API               | false
-        Usage.JAVA_RUNTIME           | Usage.JAVA_API_CLASSES       | false
-        Usage.JAVA_RUNTIME           | Usage.JAVA_API_JARS          | false
         Usage.JAVA_RUNTIME           | Usage.JAVA_RUNTIME           | true
-        Usage.JAVA_RUNTIME           | Usage.JAVA_RUNTIME_CLASSES   | false
-        Usage.JAVA_RUNTIME           | Usage.JAVA_RUNTIME_RESOURCES | false
+
+        // Temporary compatibility
+        Usage.JAVA_API               | Usage.JAVA_RUNTIME_JARS      | true
         Usage.JAVA_RUNTIME           | Usage.JAVA_RUNTIME_JARS      | true
 
-        Usage.JAVA_RUNTIME_CLASSES   | Usage.JAVA_API               | false
-        Usage.JAVA_RUNTIME_CLASSES   | Usage.JAVA_API_CLASSES       | false
-        Usage.JAVA_RUNTIME_CLASSES   | Usage.JAVA_API_JARS          | false
-        Usage.JAVA_RUNTIME_CLASSES   | Usage.JAVA_RUNTIME           | true
-        Usage.JAVA_RUNTIME_CLASSES   | Usage.JAVA_RUNTIME_CLASSES   | true
-        Usage.JAVA_RUNTIME_CLASSES   | Usage.JAVA_RUNTIME_RESOURCES | false
-        Usage.JAVA_RUNTIME_CLASSES   | Usage.JAVA_RUNTIME_JARS      | true
-
-        Usage.JAVA_RUNTIME_RESOURCES | Usage.JAVA_API               | false
-        Usage.JAVA_RUNTIME_RESOURCES | Usage.JAVA_API_CLASSES       | false
-        Usage.JAVA_RUNTIME_RESOURCES | Usage.JAVA_API_JARS          | false
-        Usage.JAVA_RUNTIME_RESOURCES | Usage.JAVA_RUNTIME           | true
-        Usage.JAVA_RUNTIME_RESOURCES | Usage.JAVA_RUNTIME_CLASSES   | false
-        Usage.JAVA_RUNTIME_RESOURCES | Usage.JAVA_RUNTIME_RESOURCES | true
-        Usage.JAVA_RUNTIME_RESOURCES | Usage.JAVA_RUNTIME_JARS      | true
-
-        Usage.JAVA_RUNTIME_JARS      | Usage.JAVA_API               | false
-        Usage.JAVA_RUNTIME_JARS      | Usage.JAVA_API_CLASSES       | false
-        Usage.JAVA_RUNTIME_JARS      | Usage.JAVA_API_JARS          | false
-        Usage.JAVA_RUNTIME_JARS      | Usage.JAVA_RUNTIME           | true
-        Usage.JAVA_RUNTIME_JARS      | Usage.JAVA_RUNTIME_CLASSES   | false
-        Usage.JAVA_RUNTIME_JARS      | Usage.JAVA_RUNTIME_RESOURCES | false
-        Usage.JAVA_RUNTIME_JARS      | Usage.JAVA_RUNTIME_JARS      | true
     }
 
     @Issue("gradle/gradle#8700")
@@ -511,11 +468,8 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         JavaEcosystemSupport.UsageDisambiguationRules rules = new JavaEcosystemSupport.UsageDisambiguationRules(
                 usage(Usage.JAVA_API),
                 usage(Usage.JAVA_API_JARS),
-                usage(Usage.JAVA_API_CLASSES),
                 usage(Usage.JAVA_RUNTIME),
-                usage(Usage.JAVA_RUNTIME_JARS),
-                usage(Usage.JAVA_RUNTIME_CLASSES),
-                usage(Usage.JAVA_RUNTIME_RESOURCES)
+                usage(Usage.JAVA_RUNTIME_JARS)
         )
         MultipleCandidatesDetails details = Mock()
 
@@ -528,14 +482,13 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         1 * details.closestMatch(usage(preferred))
 
         where: // not exhaustive, tests pathological cases
-        consumer                | candidates                                            | preferred
-        Usage.JAVA_API          | [Usage.JAVA_API_JARS, Usage.JAVA_API_CLASSES]         | Usage.JAVA_API_CLASSES
-        Usage.JAVA_API          | [Usage.JAVA_RUNTIME_CLASSES, Usage.JAVA_API_CLASSES]  | Usage.JAVA_API_CLASSES
-        Usage.JAVA_API          | [Usage.JAVA_RUNTIME_CLASSES, Usage.JAVA_RUNTIME_JARS] | Usage.JAVA_RUNTIME_CLASSES
-        Usage.JAVA_API          | [Usage.JAVA_API_JARS, Usage.JAVA_RUNTIME_JARS]        | Usage.JAVA_API_JARS
+        consumer                | candidates                                     | preferred
+        Usage.JAVA_API          | [Usage.JAVA_API, Usage.JAVA_RUNTIME]           | Usage.JAVA_API
+        Usage.JAVA_RUNTIME      | [Usage.JAVA_RUNTIME, Usage.JAVA_API]           | Usage.JAVA_RUNTIME
 
-        Usage.JAVA_RUNTIME      | [Usage.JAVA_RUNTIME, Usage.JAVA_RUNTIME_JARS]         | Usage.JAVA_RUNTIME
-        Usage.JAVA_RUNTIME_JARS | [Usage.JAVA_RUNTIME, Usage.JAVA_RUNTIME_JARS]         | Usage.JAVA_RUNTIME_JARS
+        //Temporary compatibility
+        Usage.JAVA_API          | [Usage.JAVA_API_JARS, Usage.JAVA_RUNTIME_JARS] | Usage.JAVA_API_JARS
+        Usage.JAVA_RUNTIME      | [Usage.JAVA_API, Usage.JAVA_RUNTIME_JARS]      | Usage.JAVA_RUNTIME_JARS
 
     }
 

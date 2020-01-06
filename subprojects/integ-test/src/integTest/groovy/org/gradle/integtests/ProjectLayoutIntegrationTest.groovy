@@ -48,8 +48,8 @@ apply plugin: 'scala'
 
 ${mavenCentralRepository()}
 dependencies {
-    compile 'org.codehaus.groovy:groovy-all:2.4.10'
-    compile 'org.scala-lang:scala-library:2.11.12'
+    implementation 'org.codehaus.groovy:groovy-all:2.4.10'
+    implementation 'org.scala-lang:scala-library:2.11.12'
 }
 
 sourceSets.each {
@@ -168,7 +168,7 @@ sourceSets.main.java {
 '''
         file('b/build.gradle') << '''
 apply plugin: 'java'
-dependencies { compile project(':a') }
+dependencies { implementation project(':a') }
 sourceSets.main.java {
     srcDirs '../src'
     include 'org/gradle/b/**'

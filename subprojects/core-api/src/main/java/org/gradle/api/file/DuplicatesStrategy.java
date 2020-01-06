@@ -40,7 +40,7 @@ public enum DuplicatesStrategy {
     EXCLUDE,
 
     /**
-     * Do not attempt to prevent duplicates, but log a warning message when multiple items 
+     * Do not attempt to prevent duplicates, but log a warning message when multiple items
      * are to be created at the same path.
      * <p>
      * This behaves exactly as INCLUDE otherwise.
@@ -49,7 +49,7 @@ public enum DuplicatesStrategy {
 
     /**
      * Throw a {@link DuplicateFileCopyingException} when subsequent items are to be created at the same path.
-     * <p> 
+     * <p>
      * Use this strategy when duplicates are an error condition that should cause the build to fail.
      */
     FAIL,

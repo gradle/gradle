@@ -16,12 +16,10 @@
 
 package org.gradle.plugins.javascript.jshint
 
+import groovy.json.JsonSlurper
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import spock.lang.IgnoreIf
 
 import static org.gradle.plugins.javascript.base.JavaScriptBasePluginTestFixtures.addGradlePublicJsRepoScript
-import groovy.json.JsonSlurper
 
 class JsHintPluginIntegrationTest extends WellBehavedPluginTest {
     @Override
@@ -35,6 +33,9 @@ class JsHintPluginIntegrationTest extends WellBehavedPluginTest {
         buildFile << """
             ${mavenCentralRepository()}
         """
+        executer.expectDeprecationWarning("The org.gradle.jshint plugin has been deprecated. This is scheduled to be removed in Gradle 7.0.")
+        executer.expectDeprecationWarning("The org.gradle.rhino plugin has been deprecated. This is scheduled to be removed in Gradle 7.0.")
+        executer.expectDeprecationWarning("The org.gradle.javascript-base plugin has been deprecated. This is scheduled to be removed in Gradle 7.0.")
     }
 
     def taskForFileTree(String path = "src/main/js", File file = buildFile) {
@@ -75,7 +76,6 @@ class JsHintPluginIntegrationTest extends WellBehavedPluginTest {
         json[file("src/main/js/dir1/f1.js").absolutePath] instanceof Map
     }
 
-    @IgnoreIf({GradleContextualExecuter.parallel})
     def "can analyse good javascript"() {
         given:
         file("src/main/js/dir1/f1.js") << """
@@ -92,7 +92,7 @@ class JsHintPluginIntegrationTest extends WellBehavedPluginTest {
         succeeds "jsHint"
 
         and:
-        ":jsHint" in nonSkippedTasks
+        executedAndNotSkipped(":jsHint")
 
         and:
         File jsonReport = file("build/reports/jsHint/report.json")
@@ -103,10 +103,11 @@ class JsHintPluginIntegrationTest extends WellBehavedPluginTest {
         json[file("src/main/js/dir1/f1.js").absolutePath] instanceof Map
 
         when:
+        executer.noDeprecationChecks()
         run "jsHint"
 
         then:
-        ":jsHint" in skippedTasks
+        skipped(":jsHint")
     }
 
 }

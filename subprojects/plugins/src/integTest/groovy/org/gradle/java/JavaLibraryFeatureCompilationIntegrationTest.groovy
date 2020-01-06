@@ -18,6 +18,7 @@ package org.gradle.java
 
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Issue
 import spock.lang.Unroll
 
 class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSpec {
@@ -34,8 +35,17 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
         """
     }
 
+    private toggleCompileClasspathPackaging(boolean activate) {
+        if (activate) {
+            propertiesFile << """
+                systemProp.org.gradle.java.compile-classpath-packaging=true
+            """.trim()
+        }
+    }
+
     @Unroll
-    def "project can declare and compile feature (configuration=#configuration)"() {
+    def "project can declare and compile feature [configuration=#configuration][compileClasspathPackaging=#compileClasspathPackaging]"() {
+        toggleCompileClasspathPackaging(compileClasspathPackaging)
         settingsFile << """
             include 'b'
         """
@@ -80,13 +90,19 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
 
         then:
         executedAndNotSkipped ':b:compileJava'
-        notExecuted ':b:processResources', ':b:classes', ':b:jar'
+        packagingTasks(compileClasspathPackaging, 'b')
 
         where:
-        configuration << ["myFeatureApi", "myFeatureImplementation"]
+        compileClasspathPackaging | configuration
+        false                     | "myFeatureApi"
+        true                      | "myFeatureApi"
+        false                     | "myFeatureImplementation"
+        true                      | "myFeatureImplementation"
     }
 
-    def "Java Library can depend on feature of component"() {
+    @Unroll
+    def "Java Library can depend on feature of component [compileClasspathPackaging=#compileClasspathPackaging]"() {
+        toggleCompileClasspathPackaging(compileClasspathPackaging)
         settingsFile << """
             include 'b', 'c', 'd'
         """
@@ -164,17 +180,26 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
 
         then:
         executedAndNotSkipped ':b:compileJava', ':c:compileJava', ':d:compileJava'
-        notExecuted ':b:processResources', ':b:classes', ':b:jar', ':c:processResources', ':c:classes', ':c:jar', ':d:processResources', ':d:classes', ':d:jar'
+        packagingTasks(compileClasspathPackaging, 'b')
+        packagingTasks(compileClasspathPackaging, 'c')
+        packagingTasks(compileClasspathPackaging, 'd')
 
         when:
-        succeeds ':verifyClasspath'
+        succeeds 'clean', ':verifyClasspath'
 
         then:
         executedAndNotSkipped ':b:jar', ':c:jar', ':d:jar'
 
+        where:
+        compileClasspathPackaging | _
+        false                     | _
+        true                      | _
+
     }
 
-    def "main component doesn't expose dependencies from feature"() {
+    @Unroll
+    def "main component doesn't expose dependencies from feature [compileClasspathPackaging=#compileClasspathPackaging]"() {
+        toggleCompileClasspathPackaging(compileClasspathPackaging)
         settingsFile << """
             include 'b', 'c'
         """
@@ -238,17 +263,24 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
 
         then:
         executedAndNotSkipped ':b:compileJava', ':c:compileJava'
-        notExecuted ':b:processResources', ':b:classes', ':b:jar', ':c:processResources', ':c:classes', ':c:jar'
+        packagingTasks(compileClasspathPackaging, 'b')
+        packagingTasks(compileClasspathPackaging, 'c')
 
         when:
-        succeeds ':resolveRuntime'
+        succeeds 'clean', ':resolveRuntime'
 
         then:
         executedAndNotSkipped ':b:jar'
 
+        where:
+        compileClasspathPackaging | _
+        false                     | _
+        true                      | _
     }
 
-    def "can build a feature that uses its own source directory"() {
+    @Unroll
+    def "can build a feature that uses its own source directory [compileClasspathPackaging=#compileClasspathPackaging]"() {
+        toggleCompileClasspathPackaging(compileClasspathPackaging)
         settingsFile << """
             include 'b'
         """
@@ -301,13 +333,20 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
 
         then:
         executedAndNotSkipped ':b:compileJava'
-        notExecuted ':b:processResources', ':b:classes', ':b:jar', ':compileJava'
+        packagingTasks(compileClasspathPackaging, 'b')
+        notExecuted ':compileJava'
 
         where:
-        configuration << ["myFeatureApi", "myFeatureImplementation"]
+        compileClasspathPackaging | configuration
+        false                     | "myFeatureApi"
+        true                      | "myFeatureApi"
+        false                     | "myFeatureImplementation"
+        true                      | "myFeatureImplementation"
     }
 
-    def "Java Library can depend on feature of component which uses its own source set"() {
+    @Unroll
+    def "Java Library can depend on feature of component which uses its own source set [compileClasspathPackaging=#compileClasspathPackaging]"() {
+        toggleCompileClasspathPackaging(compileClasspathPackaging)
         settingsFile << """
             include 'b', 'c', 'd'
         """
@@ -394,14 +433,110 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
 
         then:
         executedAndNotSkipped ':b:compileMyFeatureJava', ':c:compileJava', ':d:compileJava'
-        notExecuted ':b:processResources', ':b:classes', ':b:jar', ':c:processResources', ':c:classes', ':c:jar', ':d:processResources', ':d:classes', ':d:jar'
+        packagingTasks(compileClasspathPackaging, 'b', 'myFeature')
+        packagingTasks(compileClasspathPackaging, 'c')
+        packagingTasks(compileClasspathPackaging, 'd')
 
         when:
-        succeeds ':verifyClasspath'
+        succeeds 'clean', ':verifyClasspath'
 
         then:
         executedAndNotSkipped ':b:myFeatureJar', ':c:jar', ':d:jar'
         notExecuted ':b:jar' // main jar should NOT be built in this case
 
+        where:
+        compileClasspathPackaging | _
+        false                     | _
+        true                      | _
+    }
+
+    @Issue("gradle/gradle#10778")
+    def "dependencies of a feature that uses the main source set are available on test compile classpath"() {
+        buildFile << """
+            apply plugin: 'java-library'
+            
+            ${mavenCentralRepository()}
+            
+            java {
+                registerFeature('feat') {
+                   usingSourceSet(sourceSets.main)
+                }
+            }
+
+            dependencies {
+                testImplementation "junit:junit:4.12"
+                featApi "org.apache.commons:commons-math3:3.6.1"
+            }
+        """
+        file("src/test/java/com/acme/FeatureTest.java") << """package com.acme;
+            import org.apache.commons.math3.complex.Complex;
+            import org.junit.Test;
+            import static org.junit.Assert.*;
+
+            public class FeatureTest {
+                @Test
+                public void shouldCompileAndRun() {
+                    Complex complex = new Complex(2.0, 1);
+                    assertEquals(3, complex.pow(2.0).getReal(), 1e-5);
+                }
+            }
+        """
+
+        when:
+        run 'test'
+
+        then:
+        executedAndNotSkipped ':compileTestJava', ':test'
+    }
+
+    @Issue("gradle/gradle#10999")
+    def "registerFeature can be used when there is no main SourceSet"() {
+        given:
+        buildFile << """
+            apply plugin: 'java-base'
+
+            sourceSets {
+               main211 {}
+               main212 {}
+            }
+            java {
+               registerFeature('scala211') {
+                  usingSourceSet(sourceSets.main211)
+               }
+               registerFeature('scala212') {
+                  usingSourceSet(sourceSets.main212)
+               }
+            }
+        """
+        file("src/main211/java/com/foo/Foo.java") << """
+            package com.foo;
+            public class Foo {
+                public void foo() {
+                }
+            }
+        """
+        file("src/main212/java/com/bar/Bar.java") << """
+            package com.bar;
+
+            public class Bar {
+                public void bar() {
+                }
+            }
+        """
+
+        when:
+        succeeds ':compileMain211Java', ':compileMain212Java'
+
+        then:
+        executedAndNotSkipped ':compileMain211Java', ':compileMain212Java'
+    }
+
+    private void packagingTasks(boolean expectExecuted, String subproject, String feature = '') {
+        def tasks = [":$subproject:process${feature.capitalize()}Resources", ":$subproject:${feature.isEmpty()? 'classes' : feature + 'Classes'}", ":$subproject:${feature.isEmpty()? 'jar' : feature + 'Jar'}"]
+        if (expectExecuted) {
+            executed(*tasks)
+        } else {
+            notExecuted(*tasks)
+        }
     }
 }

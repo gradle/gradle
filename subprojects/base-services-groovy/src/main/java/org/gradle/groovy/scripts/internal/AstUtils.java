@@ -146,7 +146,7 @@ public abstract class AstUtils {
         }
 
         ClosureExpression closureExpression = getSingleClosureArg(methodCall);
-        return closureExpression == null ? null : new ScriptBlock(methodName, closureExpression);
+        return closureExpression == null ? null : new ScriptBlock(methodName, methodCall, closureExpression);
     }
 
     public static Pair<ClassExpression, ClosureExpression> getClassAndClosureArgs(MethodCall methodCall) {

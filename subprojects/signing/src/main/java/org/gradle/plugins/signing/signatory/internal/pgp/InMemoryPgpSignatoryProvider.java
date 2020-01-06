@@ -13,91 +13,49 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.plugins.signing.signatory.internal.pgp;
 
-import groovy.lang.Closure;
-import org.bouncycastle.openpgp.PGPSecretKey;
-import org.bouncycastle.openpgp.PGPUtil;
-import org.bouncycastle.openpgp.jcajce.JcaPGPSecretKeyRing;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
-import org.gradle.plugins.signing.SigningExtension;
-import org.gradle.plugins.signing.signatory.SignatoryProvider;
+import org.gradle.plugins.signing.signatory.internal.ConfigurableSignatoryProvider;
+import org.gradle.security.internal.pgp.BaseInMemoryPgpSignatoryProvider;
 import org.gradle.plugins.signing.signatory.pgp.PgpSignatory;
-import org.gradle.plugins.signing.signatory.pgp.PgpSignatoryFactory;
-import org.gradle.util.ConfigureUtil;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.codehaus.groovy.runtime.DefaultGroovyMethods.asType;
-
-/**
- * A {@link SignatoryProvider} of {@link PgpSignatory} instances read from
- * ascii-armored in-memory secret keys instead of a keyring.
- */
-public class InMemoryPgpSignatoryProvider implements SignatoryProvider<PgpSignatory> {
-
-    private final PgpSignatoryFactory factory = new PgpSignatoryFactory();
-    private final Map<String, PgpSignatory> signatories = new LinkedHashMap<>();
-    private final String defaultSecretKey;
-    private final String defaultPassword;
-
+public class InMemoryPgpSignatoryProvider extends BaseInMemoryPgpSignatoryProvider implements ConfigurableSignatoryProvider<PgpSignatory> {
     public InMemoryPgpSignatoryProvider(String defaultSecretKey, String defaultPassword) {
-        this.defaultSecretKey = defaultSecretKey;
-        this.defaultPassword = defaultPassword;
+        super(defaultSecretKey, defaultPassword);
+    }
+
+    public InMemoryPgpSignatoryProvider(String defaultKeyId, String defaultSecretKey, String defaultPassword) {
+        super(defaultKeyId, defaultSecretKey, defaultPassword);
     }
 
     @Override
-    public PgpSignatory getDefaultSignatory(Project project) {
-        if (defaultSecretKey != null && defaultPassword != null) {
-            return createSignatory("default", defaultSecretKey, defaultPassword);
+    public void createSignatoryFor(Project project, String name, Object[] args) {
+        String keyId = null;
+        String secretKey = null;
+        String password = null;
+
+        switch (args.length) {
+            case 2:
+                secretKey = args[0].toString();
+                password = args[1].toString();
+                break;
+            case 3:
+                keyId = args[0].toString();
+                secretKey = args[1].toString();
+                password = args[2].toString();
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid args (" + name + ": " + Arrays.toString(args) + ")");
         }
-        return null;
-    }
-
-    @Override
-    public PgpSignatory getSignatory(String name) {
-        return signatories.get(name);
+        addSignatory(name, keyId, secretKey, password);
     }
 
     @SuppressWarnings("unused") // invoked by Groovy
     public PgpSignatory propertyMissing(String signatoryName) {
         return getSignatory(signatoryName);
-    }
-
-    @Override
-    @SuppressWarnings("rawtypes")
-    public void configure(SigningExtension settings, Closure closure) {
-        ConfigureUtil.configure(closure, new Object() {
-            @SuppressWarnings("unused") // invoked by Groovy
-            public void methodMissing(String name, Object args) {
-                createSignatoryFor(name, asType(args, Object[].class));
-            }
-        });
-    }
-
-    private void createSignatoryFor(String name, Object[] args) {
-        if (args.length != 2) {
-            throw new IllegalArgumentException("Invalid args (" + name + ": " + Arrays.toString(args) + ")");
-        }
-        String secretKey = args[0].toString();
-        String password = args[1].toString();
-        signatories.put(name, createSignatory(name, secretKey, password));
-    }
-
-    private PgpSignatory createSignatory(String name, String secretKey, String password) {
-        try (InputStream in = PGPUtil.getDecoderStream(new ByteArrayInputStream(secretKey.getBytes(UTF_8)))) {
-            PGPSecretKey key = new JcaPGPSecretKeyRing(in).getSecretKey();
-            return factory.createSignatory(name, key, password);
-        } catch (Exception e) {
-            throw new InvalidUserDataException("Could not read PGP secret key", e);
-        }
     }
 
 }

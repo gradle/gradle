@@ -16,6 +16,7 @@
 package org.gradle.javadoc
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
@@ -139,6 +140,7 @@ Joe!""")
         file("build/javadoc/Foo.html").exists()
     }
 
+    @ToBeFixedForInstantExecution
     def "changing standard doclet options makes task out-of-date"() {
         buildFile << """
             task javadoc(type: Javadoc) {
@@ -155,12 +157,12 @@ Joe!""")
         when:
         run "javadoc"
         then:
-        nonSkippedTasks == [":javadoc"]
+        executedAndNotSkipped( ":javadoc")
 
         when:
         run "javadoc"
         then:
-        skippedTasks as List == [":javadoc"]
+        skipped(":javadoc")
 
         when:
         buildFile.text = """
@@ -175,7 +177,7 @@ Joe!""")
         run "javadoc"
 
         then:
-        nonSkippedTasks == [":javadoc"]
+        executedAndNotSkipped(":javadoc")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/1456")

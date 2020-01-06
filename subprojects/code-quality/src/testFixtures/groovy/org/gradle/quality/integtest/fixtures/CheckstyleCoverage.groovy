@@ -19,7 +19,7 @@ package org.gradle.quality.integtest.fixtures
 import org.gradle.api.plugins.quality.CheckstylePlugin
 
 class CheckstyleCoverage {
-    private final static List<String> ALL = ['7.0', '7.6', '8.0', '8.12', CheckstylePlugin.DEFAULT_CHECKSTYLE_VERSION].asImmutable()
+    private final static List<String> ALL = ['7.0', '7.6', '8.0', '8.12', '8.17', '8.24', CheckstylePlugin.DEFAULT_CHECKSTYLE_VERSION].asImmutable()
 
     static List<String> getSupportedVersionsByJdk() {
         ALL

@@ -24,7 +24,7 @@ import spock.lang.Unroll
 
 class PreferJavaRuntimeVariantTest extends Specification {
 
-    final PreferJavaRuntimeVariant schema = PreferJavaRuntimeVariant.schema()
+    final PreferJavaRuntimeVariant schema = new PreferJavaRuntimeVariant(TestUtil.objectInstantiator())
 
     @Unroll
     def "should prefer the runtime variant if the consumer doesn't express any preference and that runtime is in the candidates"() {
@@ -47,7 +47,7 @@ class PreferJavaRuntimeVariantTest extends Specification {
         null               | [Usage.JAVA_RUNTIME, Usage.JAVA_API]            | true
         null               | [Usage.JAVA_API, Usage.JAVA_RUNTIME]            | true
         null               | [Usage.JAVA_API, "unknown", Usage.JAVA_RUNTIME] | true
-        null               | [Usage.JAVA_API, Usage.JAVA_API_CLASSES]        | false
+        null               | [Usage.JAVA_API, "unknown"]                     | false
         Usage.JAVA_API     | [Usage.JAVA_API, "unknown", Usage.JAVA_RUNTIME] | false
         Usage.JAVA_RUNTIME | [Usage.JAVA_API, "unknown", Usage.JAVA_RUNTIME] | false
         "unknown"          | [Usage.JAVA_API, "unknown", Usage.JAVA_RUNTIME] | false

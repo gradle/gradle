@@ -1,0 +1,31 @@
+plugins {
+    id 'java'
+    id 'idea'
+    id 'ivy-publish'
+}
+
+group "org.sample"
+version "1.0"
+
+dependencies {
+    implementation "org.apache.commons:commons-lang3:3.4"
+}
+
+repositories {
+    ivy {
+        name 'localrepo'
+        url file("../../../local-repo")
+    }
+    jcenter()
+}
+
+publishing {
+    repositories {
+        ivy {
+            url file("../../../local-repo")
+        }
+    }
+    publications {
+        ivy(IvyPublication) { from components.java }
+    }
+}

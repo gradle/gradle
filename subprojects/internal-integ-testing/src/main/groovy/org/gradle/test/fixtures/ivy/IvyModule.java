@@ -57,7 +57,11 @@ public interface IvyModule extends Module {
 
     IvyModule extendsFrom(Map<String, ?> attributes);
 
-    IvyModule withGradleMetadataRedirection();
+    IvyModule withoutGradleMetadataRedirection();
+
+    IvyModule withoutExtraChecksums();
+
+    IvyModule withExtraChecksums();
 
     /**
      * Attributes:

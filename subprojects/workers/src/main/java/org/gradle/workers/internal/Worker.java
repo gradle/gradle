@@ -16,12 +16,9 @@
 
 package org.gradle.workers.internal;
 
-import org.gradle.internal.operations.BuildOperationRef;
-
 /**
- * A service that executes work in a (potentially) long-lived process or in-process.
+ * A service that executes work locally.
  */
 public interface Worker {
-    DefaultWorkResult execute(ActionExecutionSpec spec);
-    DefaultWorkResult execute(ActionExecutionSpec spec, final BuildOperationRef parentBuildOperation);
+    DefaultWorkResult execute(SimpleActionExecutionSpec<?> spec);
 }

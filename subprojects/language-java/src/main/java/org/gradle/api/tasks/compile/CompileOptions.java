@@ -19,7 +19,6 @@ package org.gradle.api.tasks.compile;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import org.gradle.api.Incubating;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.ProjectLayout;
@@ -317,7 +316,6 @@ public class CompileOptions extends AbstractOptions {
      *
      * @since 4.5
      */
-    @Incubating
     @Internal
     public List<String> getAllCompilerArgs() {
         ImmutableList.Builder<String> builder = ImmutableList.builder();
@@ -334,7 +332,6 @@ public class CompileOptions extends AbstractOptions {
      * @since 4.5
      */
     @Nested
-    @Incubating
     public List<CommandLineArgumentProvider> getCompilerArgumentProviders() {
         return compilerArgumentProviders;
     }
@@ -479,7 +476,6 @@ public class CompileOptions extends AbstractOptions {
      *
      * @since 4.3
      */
-    @Incubating
     @Nullable
     @Optional
     @OutputDirectory
@@ -492,7 +488,6 @@ public class CompileOptions extends AbstractOptions {
      *
      * @since 4.3
      */
-    @Incubating
     public void setAnnotationProcessorGeneratedSourcesDirectory(@Nullable File file) {
         this.annotationProcessorGeneratedSourcesDirectory.set(file);
     }
@@ -502,7 +497,6 @@ public class CompileOptions extends AbstractOptions {
      *
      * @since 4.3
      */
-    @Incubating
     public void setAnnotationProcessorGeneratedSourcesDirectory(Provider<File> file) {
         this.annotationProcessorGeneratedSourcesDirectory.set(file);
     }
@@ -512,7 +506,6 @@ public class CompileOptions extends AbstractOptions {
      *
      * @since 4.10
      */
-    @Incubating
     @Optional
     @OutputDirectory
     public DirectoryProperty getHeaderOutputDirectory() {

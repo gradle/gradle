@@ -7,7 +7,6 @@ We would like to thank the following community contributors to this release of G
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
 -->
-[Andrew K.](https://github.com/miokowpak)
 
 <!-- 
 ## 1
@@ -27,40 +26,28 @@ Switch your build to use Gradle @version@ by updating your wrapper:
 
 `./gradlew wrapper --gradle-version=@version@`
 
-See the [Gradle 5.x upgrade guide](userguide/upgrading_version_5.html#changes_@baseVersion@) to learn about deprecations, breaking changes and other considerations when upgrading to Gradle @version@.
+See the [Gradle 6.x upgrade guide](userguide/upgrading_version_6.html#changes_@baseVersion@) to learn about deprecations, breaking changes and other considerations when upgrading to Gradle @version@. 
+
+For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).
 
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. --> 
 
-## Improvements for plugin authors
+<a name="dependency-verification"></a>
+## Dependency verification
 
-### Task dependencies are honored for `@Input` properties of type `Property`
+Gradle 6.2 ships with [dependency verification](userguide/dependency_verification.html).
+Dependency verification is a major step towards a safer ecosystem by making it possible to verify both the checksums and the signatures of dependencies and plugins used during a build.
 
-TBD - honors dependencies on `@Input` properties.
+Please refer to the [userguide](userguide/dependency_verification.html) to figure out how to enable dependency verification.
 
-### Property methods
-
-TBD - added `getLocationOnly()`. 
-
-## Building native software with Gradle
-
-All new C++ documentations including new user manual chapters for [building](userguide/building_cpp_projects.html) and [testing](userguide/cpp_testing.html) C++ projects, [DSL reference for C++ components](dsl/index.html#N10808), [C++ plugins reference chapters](userguide/plugin_reference.html#native_languages) and [Visual Studio and Xcode IDE plugins reference chapters](userguide/plugin_reference.html#ide_integration).
-The [C++ guides](https://gradle.org/guides/?q=Native) were also improved to reflect all the new features available to C++ developers.
-See more information about the [Gradle native project](https://github.com/gradle/gradle-native/blob/master/docs/RELEASE-NOTES.md#changes-included-in-gradle-55).
+We would like to give special thanks to [Vladimir Sitnikov](https://github.com/vlsi) for his feedback and inspiration.
+A lot of the work on this feature is, in particular, available to previous versions of Gradle via his [Checksum Dependency Plugin](https://github.com/vlsi/vlsi-release-plugins/tree/master/plugins/checksum-dependency-plugin).
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 
 The following are the features that have been promoted in this Gradle release.
-
-## Improved handling of ZIP archives on classpaths
-
-Compile classpath and runtime classpath analysis will now detect the most common zip extension instead of only supporting `.jar`.
-It will inspect nested zip archives as well instead of treating them as blobs. This improves the likelihood of cache hits for tasks
-that take such nested zips as an input, e.g. when testing applications packaged as a fat jar.
-
-The ZIP analysis now also avoids unpacking entries that are irrelevant, e.g. resource files on a compile classpath. 
-This improves performance for projects with a large amount of resource files.
 
 <!--
 ### Example promoted

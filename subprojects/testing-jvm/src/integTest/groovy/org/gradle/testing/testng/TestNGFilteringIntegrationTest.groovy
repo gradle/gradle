@@ -18,6 +18,7 @@
 package org.gradle.testing.testng
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.fixture.AbstractTestFilteringIntegrationTest
 import org.gradle.testing.fixture.TestNGCoverage
@@ -30,14 +31,14 @@ public class TestNGFilteringIntegrationTest extends AbstractTestFilteringIntegra
 
     String imports = "org.testng.annotations.*"
     String framework = "TestNG"
-    String dependencies = "testCompile 'org.testng:testng:${dependencyVersion}'"
+    String dependencies = "testImplementation 'org.testng:testng:${dependencyVersion}'"
 
     void theUsualFiles() {
         buildFile << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
             dependencies {
-                testCompile 'org.testng:testng:$version'
+                testImplementation 'org.testng:testng:$version'
             }
             test {
               useTestNG {
@@ -74,6 +75,7 @@ public class TestNGFilteringIntegrationTest extends AbstractTestFilteringIntegra
     }
 
     @Issue("GRADLE-3112")
+    @ToBeFixedForInstantExecution
     def "suites can be filtered from the command-line"() {
         given:
         theUsualFiles()
@@ -92,6 +94,7 @@ public class TestNGFilteringIntegrationTest extends AbstractTestFilteringIntegra
     }
 
     @Issue("GRADLE-3112")
+    @ToBeFixedForInstantExecution
     def "suites can be filtered from the build file"() {
         given:
         theUsualFiles()

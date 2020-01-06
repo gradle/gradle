@@ -16,8 +16,9 @@
 
 package org.gradle.caching.internal.command;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.api.internal.cache.StringInterner;
+import com.google.common.collect.Interner;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.CacheableEntity;
 import org.gradle.caching.internal.controller.BuildCacheLoadCommand;
@@ -30,13 +31,10 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
 import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy;
 import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerprint;
-import org.gradle.internal.nativeintegration.filesystem.DefaultFileMetadata;
-import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
-import org.gradle.internal.snapshot.FileSystemMirror;
+import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.gradle.internal.vfs.VirtualFileSystem;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -47,17 +45,15 @@ import java.util.Map;
 
 public class BuildCacheCommandFactory {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(BuildCacheCommandFactory.class);
-
     private final BuildCacheEntryPacker packer;
     private final OriginMetadataFactory originMetadataFactory;
-    private final FileSystemMirror fileSystemMirror;
-    private final StringInterner stringInterner;
+    private final VirtualFileSystem virtualFileSystem;
+    private final Interner<String> stringInterner;
 
-    public BuildCacheCommandFactory(BuildCacheEntryPacker packer, OriginMetadataFactory originMetadataFactory, FileSystemMirror fileSystemMirror, StringInterner stringInterner) {
+    public BuildCacheCommandFactory(BuildCacheEntryPacker packer, OriginMetadataFactory originMetadataFactory, VirtualFileSystem virtualFileSystem, Interner<String> stringInterner) {
         this.packer = packer;
         this.originMetadataFactory = originMetadataFactory;
-        this.fileSystemMirror = fileSystemMirror;
+        this.virtualFileSystem = virtualFileSystem;
         this.stringInterner = stringInterner;
     }
 
@@ -91,9 +87,13 @@ public class BuildCacheCommandFactory {
 
         @Override
         public BuildCacheLoadCommand.Result<LoadMetadata> load(InputStream input) throws IOException {
+            ImmutableList.Builder<String> roots = ImmutableList.builder();
+            entity.visitOutputTrees((name, type, root) -> roots.add(root.getAbsolutePath()));
+            // TODO: Actually unpack the roots inside of the action
+            virtualFileSystem.update(roots.build(), () -> {});
             BuildCacheEntryPacker.UnpackResult unpackResult = packer.unpack(entity, input, originMetadataFactory.createReader(entity));
+            // TODO: Update the snapshots from the action
             ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshots = snapshotUnpackedData(unpackResult.getSnapshots());
-            LOGGER.info("Unpacked trees for {} from cache.", entity.getDisplayName());
             return new Result<LoadMetadata>() {
                 @Override
                 public long getArtifactEntryCount() {
@@ -117,17 +117,17 @@ public class BuildCacheCommandFactory {
             };
         }
 
-        private ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotUnpackedData(Map<String, ? extends FileSystemLocationSnapshot> treeSnapshots) {
+        private ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotUnpackedData(Map<String, ? extends CompleteFileSystemLocationSnapshot> treeSnapshots) {
             ImmutableSortedMap.Builder<String, CurrentFileCollectionFingerprint> builder = ImmutableSortedMap.naturalOrder();
             FingerprintingStrategy fingerprintingStrategy = AbsolutePathFingerprintingStrategy.IGNORE_MISSING;
             entity.visitOutputTrees((treeName, type, root) -> {
-                FileSystemLocationSnapshot treeSnapshot = treeSnapshots.get(treeName);
+                CompleteFileSystemLocationSnapshot treeSnapshot = treeSnapshots.get(treeName);
                 String internedAbsolutePath = stringInterner.intern(root.getAbsolutePath());
-                List<FileSystemSnapshot> roots = new ArrayList<FileSystemSnapshot>();
+                List<FileSystemSnapshot> roots = new ArrayList<>();
 
                 if (treeSnapshot == null) {
-                    fileSystemMirror.putMetadata(internedAbsolutePath, DefaultFileMetadata.missing());
-                    fileSystemMirror.putSnapshot(new MissingFileSnapshot(internedAbsolutePath, root.getName()));
+                    MissingFileSnapshot missingFileSnapshot = new MissingFileSnapshot(internedAbsolutePath);
+                    virtualFileSystem.updateWithKnownSnapshot(missingFileSnapshot);
                     builder.put(treeName, fingerprintingStrategy.getEmptyFingerprint());
                     return;
                 }
@@ -138,12 +138,11 @@ public class BuildCacheCommandFactory {
                             throw new IllegalStateException(String.format("Only a regular file should be produced by unpacking tree '%s', but saw a %s", treeName, treeSnapshot.getType()));
                         }
                         roots.add(treeSnapshot);
-                        fileSystemMirror.putSnapshot(treeSnapshot);
+                        virtualFileSystem.updateWithKnownSnapshot(treeSnapshot);
                         break;
                     case DIRECTORY:
                         roots.add(treeSnapshot);
-                        fileSystemMirror.putMetadata(internedAbsolutePath, DefaultFileMetadata.directory());
-                        fileSystemMirror.putSnapshot(treeSnapshot);
+                        virtualFileSystem.updateWithKnownSnapshot(treeSnapshot);
                         break;
                     default:
                         throw new AssertionError();
@@ -175,14 +174,8 @@ public class BuildCacheCommandFactory {
 
         @Override
         public BuildCacheStoreCommand.Result store(OutputStream output) throws IOException {
-            LOGGER.info("Packing {}", entity.getDisplayName());
             final BuildCacheEntryPacker.PackResult packResult = packer.pack(entity, fingerprints, output, originMetadataFactory.createWriter(entity, executionTime));
-            return new BuildCacheStoreCommand.Result() {
-                @Override
-                public long getArtifactEntryCount() {
-                    return packResult.getEntries();
-                }
-            };
+            return packResult::getEntries;
         }
     }
 }

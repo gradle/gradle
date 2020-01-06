@@ -15,10 +15,11 @@
  */
 package org.gradle.plugins.signing
 
-import org.gradle.api.tasks.bundling.Jar
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
-class SigningProjectSpec extends AbstractProjectBuilderSpec {
+import java.nio.file.Files
+
+abstract class SigningProjectSpec extends AbstractProjectBuilderSpec {
 
     static final DEFAULT_KEY_SET = "gradle"
 
@@ -84,12 +85,11 @@ class SigningProjectSpec extends AbstractProjectBuilderSpec {
     def getResourceFile(path) {
         def copiedFile = temporaryFolder.file(path)
         if (!copiedFile.exists()) {
-
-            def url = getClass().classLoader.getResource(path)
-            def file = new File(url.toURI())
-            if (file.exists()) {
-                copiedFile.copyFrom(file)
-            }
+            copiedFile.parentFile.mkdirs()
+            Files.copy(
+                getClass().classLoader.getResourceAsStream(path),
+                copiedFile.toPath()
+            )
         }
 
         copiedFile
@@ -97,15 +97,9 @@ class SigningProjectSpec extends AbstractProjectBuilderSpec {
 
     def useJavadocAndSourceJars() {
         apply plugin: "java"
-
-        task("sourcesJar", type: Jar, dependsOn: classes) {
-            classifier = 'sources'
-            from sourceSets.main.allSource
-        }
-
-        task("javadocJar", type: Jar, dependsOn: javadoc) {
-            classifier = 'javadoc'
-            from javadoc.destinationDir
+        java {
+            withJavadocJar()
+            withSourcesJar()
         }
     }
 }

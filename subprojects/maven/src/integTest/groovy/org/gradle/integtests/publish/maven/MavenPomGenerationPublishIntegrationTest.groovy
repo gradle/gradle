@@ -17,6 +17,7 @@
 package org.gradle.integtests.publish.maven
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Unroll
 
 import static org.gradle.util.TextUtil.normaliseLineSeparators
@@ -25,10 +26,13 @@ import static org.gradle.util.TextUtil.normaliseLineSeparators
 class MavenPomGenerationPublishIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
+        // the OLD publish plugins work with the OLD deprecated Java plugin configuration (compile/runtime)
+        executer.noDeprecationChecks()
         using m2 //uploadArchives leaks into local ~/.m2
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "how configuration of archive task affects generated POM"() {
         buildFile << """
 apply plugin: "java"
@@ -71,6 +75,7 @@ uploadArchives {
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "how configuration of mavenDeployer.pom object affects generated POM"() {
         buildFile << """
 apply plugin: "java"
@@ -115,6 +120,7 @@ uploadArchives {
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "configuration attributes have no influence on generated POM file"() {
         buildFile << """
 apply plugin: "java"
@@ -173,6 +179,7 @@ configurations {
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "attributes have no influence on transitive dependencies in POM file"() {
         file("settings.gradle") << 'include "b"'
         buildFile << """
@@ -267,6 +274,7 @@ configurations {
 
 
     @Unroll("'#gradleConfiguration' dependencies end up in '#mavenScope' scope with '#plugin' plugin")
+    @ToBeFixedForInstantExecution
     def "maps dependencies in the correct Maven scope"() {
         file("settings.gradle") << 'include "b"'
         buildFile << """

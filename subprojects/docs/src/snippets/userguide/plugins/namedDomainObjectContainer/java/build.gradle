@@ -1,0 +1,11 @@
+plugins {
+    id("org.gradle.sample.download")
+}
+
+download {
+    resources {
+        gradleHome {
+            uri = uri('https://gradle.org')
+        }
+    }
+}

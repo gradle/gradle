@@ -20,6 +20,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 
 import javax.inject.Inject
@@ -31,8 +32,8 @@ class PropertyGroovyInterOpIntegrationTest extends AbstractPropertyLanguageInter
                 id("groovy")
             }
             dependencies {
-                compile gradleApi()
-                compile localGroovy()
+                implementation gradleApi()
+                implementation localGroovy()
             }
         """
         pluginDir.file("src/main/groovy/SomeTask.groovy") << """
@@ -44,12 +45,18 @@ class PropertyGroovyInterOpIntegrationTest extends AbstractPropertyLanguageInter
             import ${ObjectFactory.name}
             import ${TaskAction.name}
             import ${Inject.name}
+            import ${Internal.name}
 
             public class SomeTask extends DefaultTask {
+                @Internal
                 final Property<Boolean> flag
+                @Internal
                 final Property<String> message
+                @Internal
                 final ListProperty<Integer> list
+                @Internal
                 final SetProperty<Integer> set
+                @Internal
                 final MapProperty<Integer, Boolean> map
                 
                 @Inject

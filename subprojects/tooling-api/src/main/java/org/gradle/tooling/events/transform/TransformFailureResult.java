@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.events.transform;
 
-import org.gradle.api.Incubating;
 import org.gradle.tooling.events.FailureResult;
 
 /**
@@ -24,6 +23,5 @@ import org.gradle.tooling.events.FailureResult;
  *
  * @since 5.1
  */
-@Incubating
 public interface TransformFailureResult extends TransformOperationResult, FailureResult {
 }

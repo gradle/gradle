@@ -16,8 +16,7 @@
 
 package org.gradle.api.provider;
 
-import org.gradle.api.Incubating;
-
+import javax.annotation.Nullable;
 import java.util.Set;
 
 /**
@@ -32,13 +31,24 @@ import java.util.Set;
  * @param <T> the type of elements.
  * @since 4.5
  */
-@Incubating
 public interface SetProperty<T> extends Provider<Set<T>>, HasMultipleValues<T> {
     /**
      * {@inheritDoc}
      */
     @Override
     SetProperty<T> empty();
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    SetProperty<T> value(@Nullable Iterable<? extends T> elements);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    SetProperty<T> value(Provider<? extends Iterable<? extends T>> provider);
 
     /**
      * {@inheritDoc}

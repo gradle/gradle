@@ -17,8 +17,8 @@
 package org.gradle.performance
 
 import groovy.transform.CompileStatic
-import groovy.transform.SelfType
 import org.apache.mina.util.AvailablePortFinder
+import org.gradle.performance.fixture.AbstractCrossVersionPerformanceTestRunner
 import org.gradle.performance.fixture.TestProjectLocator
 import org.mortbay.jetty.Server
 import org.mortbay.jetty.servlet.Context
@@ -26,7 +26,6 @@ import org.mortbay.jetty.webapp.WebAppContext
 import org.mortbay.resource.Resource
 
 @CompileStatic
-@SelfType(AbstractCrossVersionPerformanceTest)
 trait WithExternalRepository {
     Server server
     int serverPort
@@ -34,6 +33,8 @@ trait WithExternalRepository {
     File getRepoDir() {
         new File(new TestProjectLocator().findProjectDir(runner.testProject), 'repository')
     }
+
+    abstract AbstractCrossVersionPerformanceTestRunner getRunner()
 
     Context createContext() {
         def context = new WebAppContext()

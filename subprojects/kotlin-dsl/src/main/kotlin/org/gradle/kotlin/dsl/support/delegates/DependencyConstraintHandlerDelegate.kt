@@ -43,12 +43,6 @@ abstract class DependencyConstraintHandlerDelegate : DependencyConstraintHandler
     override fun create(dependencyConstraintNotation: Any, configureAction: Action<in DependencyConstraint>): DependencyConstraint =
         delegate.create(dependencyConstraintNotation, configureAction)
 
-    override fun platform(notation: Any): DependencyConstraint =
-        delegate.platform(notation)
-
-    override fun platform(notation: Any, configureAction: Action<in DependencyConstraint>): DependencyConstraint =
-        delegate.platform(notation, configureAction)
-
     override fun enforcedPlatform(notation: Any): DependencyConstraint =
         delegate.enforcedPlatform(notation)
 

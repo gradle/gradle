@@ -17,7 +17,6 @@ package org.gradle.api.execution;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 
 import java.util.List;
@@ -154,6 +153,5 @@ public interface TaskExecutionGraph {
      *
      * @since 4.6
      */
-    @Incubating
     Set<Task> getDependencies(Task task);
 }

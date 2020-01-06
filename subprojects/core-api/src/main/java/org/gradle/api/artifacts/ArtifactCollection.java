@@ -16,7 +16,6 @@
 
 package org.gradle.api.artifacts;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.file.FileCollection;
 
@@ -51,6 +50,5 @@ public interface ArtifactCollection extends Iterable<ResolvedArtifactResult> {
      *
      * @return A collection of exceptions, one for each failure in resolution.
      */
-    @Incubating
     Collection<Throwable> getFailures();
 }

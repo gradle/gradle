@@ -17,7 +17,6 @@
 package org.gradle.language;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
@@ -32,7 +31,6 @@ import java.util.Set;
  * @param <T> type of the elements in this container.
  * @since 4.5
  */
-@Incubating
 public interface BinaryCollection<T extends SoftwareComponent> {
     /**
      * Returns a {@link BinaryProvider} that contains the single binary matching the specified type and specification. The binary will be in the finalized state. The provider can be used to apply configuration to the element before it is finalized.

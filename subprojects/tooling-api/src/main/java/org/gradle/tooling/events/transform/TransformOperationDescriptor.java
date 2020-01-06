@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.events.transform;
 
-import org.gradle.api.Incubating;
 import org.gradle.tooling.events.OperationDescriptor;
 
 import java.util.Set;
@@ -26,7 +25,6 @@ import java.util.Set;
  *
  * @since 5.1
  */
-@Incubating
 public interface TransformOperationDescriptor extends OperationDescriptor {
 
     /**
@@ -49,7 +47,6 @@ public interface TransformOperationDescriptor extends OperationDescriptor {
      *
      * @since 5.1
      */
-    @Incubating
     interface TransformerDescriptor {
 
         /**
@@ -64,7 +61,6 @@ public interface TransformOperationDescriptor extends OperationDescriptor {
      *
      * @since 5.1
      */
-    @Incubating
     interface SubjectDescriptor {
 
         /**

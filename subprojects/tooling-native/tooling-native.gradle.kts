@@ -26,7 +26,7 @@ dependencies {
     implementation(project(":coreApi"))
     implementation(project(":modelCore"))
     implementation(project(":core"))
-    implementation(project(":files"))
+    implementation(project(":fileCollections"))
     implementation(project(":platformBase"))
     implementation(project(":platformNative"))
     implementation(project(":languageNative"))
@@ -35,12 +35,13 @@ dependencies {
     implementation(project(":ide")) // To pick up various builders (which should live somewhere else)
 
     implementation(library("guava"))
+
+    testImplementation(testFixtures(project(":platformNative")))
+
+    testRuntimeOnly(project(":runtimeApiInfo"))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
 }
 
-testFixtures {
-    from(":platformNative")
-}

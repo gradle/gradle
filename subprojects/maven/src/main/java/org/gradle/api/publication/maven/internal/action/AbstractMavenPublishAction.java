@@ -31,6 +31,8 @@ import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
+import org.gradle.internal.resource.UriTextResource;
+import org.sonatype.aether.ConfigurationProperties;
 import org.sonatype.aether.RepositoryException;
 import org.sonatype.aether.RepositorySystem;
 import org.sonatype.aether.RepositorySystemSession;
@@ -64,6 +66,7 @@ abstract class AbstractMavenPublishAction implements MavenPublishAction {
 
         CurrentBuildOperationRef currentBuildOperationRef = CurrentBuildOperationRef.instance();
         BuildOperationRef currentBuildOperation = currentBuildOperationRef.get();
+        session.getConfigProperties().put(ConfigurationProperties.USER_AGENT, UriTextResource.getUserAgentString());
         session.setTransferListener(new LoggingMavenTransferListener(currentBuildOperationRef, currentBuildOperation));
 
         pomArtifact = new DefaultArtifact(projectIdentity.getGroupId().get(), projectIdentity.getArtifactId().get(), "pom", projectIdentity.getVersion().get());
@@ -126,9 +129,7 @@ abstract class AbstractMavenPublishAction implements MavenPublishAction {
                 }
             }
             return new DefaultPlexusContainer(new DefaultContainerConfiguration().setRealm(classRealm));
-        } catch (PlexusContainerException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        } catch (MalformedURLException e) {
+        } catch (PlexusContainerException | MalformedURLException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
     }

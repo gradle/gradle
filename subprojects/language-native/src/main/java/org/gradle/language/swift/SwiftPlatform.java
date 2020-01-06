@@ -16,7 +16,6 @@
 
 package org.gradle.language.swift;
 
-import org.gradle.api.Incubating;
 import org.gradle.nativeplatform.TargetMachine;
 
 /**
@@ -24,7 +23,6 @@ import org.gradle.nativeplatform.TargetMachine;
  *
  * @since 5.2
  */
-@Incubating
 public interface SwiftPlatform {
     /**
      * Returns the target machine for this platform.

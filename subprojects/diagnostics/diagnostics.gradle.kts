@@ -23,7 +23,7 @@ plugins {
 dependencies {
     implementation(project(":baseServices"))
     implementation(project(":logging"))
-    implementation(project(":files"))
+    implementation(project(":fileCollections"))
     implementation(project(":coreApi"))
     implementation(project(":modelCore"))
     implementation(project(":core"))
@@ -41,22 +41,29 @@ dependencies {
     implementation(library("jatl"))
 
     testImplementation(project(":processServices"))
+    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":dependencyManagement")))
+    testImplementation(testFixtures(project(":logging")))
+
+    testRuntimeOnly(project(":runtimeApiInfo"))
+    testRuntimeOnly(project(":kotlinDsl"))
+    testRuntimeOnly(project(":kotlinDslProviderPlugins"))
 
     integTestImplementation(testLibrary("jsoup"))
     integTestImplementation(testLibrary("jetty"))
 
+    testFixturesApi(testFixtures(project(":platformNative")))
+    testFixturesImplementation(project(":baseServices"))
+    testFixturesImplementation(project(":internalTesting"))
     testFixturesImplementation(project(":internalIntegTesting"))
+    testFixturesImplementation(library("guava"))
 
+    // These are only here for 'DiagnosticsComponentReportIntegrationTest.shows details of multiple components'
     integTestRuntimeOnly(project(":plugins"))
     integTestRuntimeOnly(project(":platformNative"))
     integTestRuntimeOnly(project(":languageNative"))
-}
+    integTestRuntimeOnly(project(":kotlinDslToolingBuilders"))
 
-testFixtures {
-    from(":core")
-    from(":dependencyManagement")
-    from(":platformNative", "testFixtures")
-    from(":logging")
 }
 
 gradlebuildJava {

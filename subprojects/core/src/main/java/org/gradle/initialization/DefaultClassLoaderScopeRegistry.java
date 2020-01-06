@@ -16,18 +16,38 @@
 
 package org.gradle.initialization;
 
+import org.gradle.api.internal.initialization.AbstractClassLoaderScope;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.RootClassLoaderScope;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
+import org.gradle.internal.event.ListenerManager;
 
-public class DefaultClassLoaderScopeRegistry implements ClassLoaderScopeRegistry {
+import java.io.Closeable;
+import java.io.IOException;
 
-    private final ClassLoaderScope coreAndPluginsScope;
-    private final ClassLoaderScope coreScope;
+public class DefaultClassLoaderScopeRegistry implements ClassLoaderScopeRegistry, Closeable {
 
-    public DefaultClassLoaderScopeRegistry(ClassLoaderRegistry loaderRegistry, ClassLoaderCache classLoaderCache) {
-        this.coreScope = new RootClassLoaderScope(loaderRegistry.getRuntimeClassLoader(), loaderRegistry.getGradleCoreApiClassLoader(), classLoaderCache);
-        this.coreAndPluginsScope = new RootClassLoaderScope(loaderRegistry.getPluginsClassLoader(), loaderRegistry.getGradleApiClassLoader(), classLoaderCache);
+    public static final String CORE_NAME = "core";
+    public static final String CORE_AND_PLUGINS_NAME = "coreAndPlugins";
+
+    private final AbstractClassLoaderScope coreAndPluginsScope;
+    private final AbstractClassLoaderScope coreScope;
+    private final ClassLoaderScopeRegistryListener scopeBroadcaster;
+    private final ClassLoaderScopeListeners listeners;
+
+    public DefaultClassLoaderScopeRegistry(ClassLoaderRegistry loaderRegistry, ClassLoaderCache classLoaderCache, ListenerManager listenerManager, ClassLoaderScopeListeners listeners) {
+        scopeBroadcaster = listenerManager.getBroadcaster(ClassLoaderScopeRegistryListener.class);
+        this.listeners = listeners;
+        listeners.addListener(scopeBroadcaster);
+        ClassLoaderScopeRegistryListener globalBroadcast = listeners.getBroadcast();
+        this.coreScope = new RootClassLoaderScope(CORE_NAME, loaderRegistry.getRuntimeClassLoader(), loaderRegistry.getGradleCoreApiClassLoader(), classLoaderCache, globalBroadcast);
+        this.coreAndPluginsScope = new RootClassLoaderScope(CORE_AND_PLUGINS_NAME, loaderRegistry.getPluginsClassLoader(), loaderRegistry.getGradleApiClassLoader(), classLoaderCache, globalBroadcast);
+        rootScopesCreated(globalBroadcast);
+    }
+
+    @Override
+    public void close() throws IOException {
+        listeners.removeListener(scopeBroadcaster);
     }
 
     @Override
@@ -38,5 +58,10 @@ public class DefaultClassLoaderScopeRegistry implements ClassLoaderScopeRegistry
     @Override
     public ClassLoaderScope getCoreScope() {
         return coreScope;
+    }
+
+    private void rootScopesCreated(ClassLoaderScopeRegistryListener listener) {
+        listener.rootScopeCreated(coreScope.getId());
+        listener.rootScopeCreated(coreAndPluginsScope.getId());
     }
 }

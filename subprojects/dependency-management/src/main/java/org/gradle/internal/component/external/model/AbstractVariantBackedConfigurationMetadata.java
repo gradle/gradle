@@ -30,6 +30,7 @@ import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.internal.component.model.ModuleConfigurationMetadata;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 
 import java.util.ArrayList;
@@ -40,10 +41,10 @@ import java.util.Set;
 /**
  * An immutable {@link ConfigurationMetadata} wrapper around a {@link ComponentVariant}.
  */
-class AbstractVariantBackedConfigurationMetadata implements ConfigurationMetadata {
+class AbstractVariantBackedConfigurationMetadata implements ModuleConfigurationMetadata {
     private final ModuleComponentIdentifier componentId;
     private final ComponentVariant variant;
-    private final ImmutableList<GradleDependencyMetadata> dependencies;
+    private final List<? extends ModuleDependencyMetadata> dependencies;
 
     AbstractVariantBackedConfigurationMetadata(ModuleComponentIdentifier componentId, ComponentVariant variant) {
         this.componentId = componentId;
@@ -56,21 +57,24 @@ class AbstractVariantBackedConfigurationMetadata implements ConfigurationMetadat
         for (ComponentVariant.Dependency dependency : variant.getDependencies()) {
             ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(dependency.getGroup(), dependency.getModule()), dependency.getVersionConstraint(), dependency.getAttributes(), dependency.getRequestedCapabilities());
             List<ExcludeMetadata> excludes = dependency.getExcludes();
-            dependencies.add(new GradleDependencyMetadata(selector, excludes, false, dependency.getReason(), forcedDependencies));
+            IvyArtifactName dependencyArtifact = dependency.getDependencyArtifact();
+            dependencies.add(new GradleDependencyMetadata(selector, excludes, false, dependency.isEndorsingStrictVersions(), dependency.getReason(), forcedDependencies, dependencyArtifact));
         }
         for (ComponentVariant.DependencyConstraint dependencyConstraint : variant.getDependencyConstraints()) {
             dependencies.add(new GradleDependencyMetadata(
                 DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(dependencyConstraint.getGroup(), dependencyConstraint.getModule()), dependencyConstraint.getVersionConstraint(), dependencyConstraint.getAttributes(), ImmutableList.of()),
-                Collections.<ExcludeMetadata>emptyList(),
+                Collections.emptyList(),
                 true,
+                false,
                 dependencyConstraint.getReason(),
-                forcedDependencies
+                forcedDependencies,
+                null
             ));
         }
         this.dependencies = ImmutableList.copyOf(dependencies);
     }
 
-    AbstractVariantBackedConfigurationMetadata(ModuleComponentIdentifier componentId, ComponentVariant variant, ImmutableList<GradleDependencyMetadata> dependencies) {
+    AbstractVariantBackedConfigurationMetadata(ModuleComponentIdentifier componentId, ComponentVariant variant, List<? extends ModuleDependencyMetadata> dependencies) {
         this.componentId = componentId;
         this.variant = variant;
         this.dependencies = dependencies;
@@ -112,6 +116,11 @@ class AbstractVariantBackedConfigurationMetadata implements ConfigurationMetadat
     }
 
     @Override
+    public List<String> getConsumptionAlternatives() {
+        return null;
+    }
+
+    @Override
     public boolean isCanBeResolved() {
         return false;
     }
@@ -142,7 +151,12 @@ class AbstractVariantBackedConfigurationMetadata implements ConfigurationMetadat
     }
 
     @Override
-    public List<? extends ComponentArtifactMetadata> getArtifacts() {
+    public boolean requiresMavenArtifactDiscovery() {
+        return false;
+    }
+
+    @Override
+    public ImmutableList<? extends ComponentArtifactMetadata> getArtifacts() {
         return variant.getArtifacts();
     }
 

@@ -16,18 +16,25 @@
 
 package org.gradle.api.publish.maven
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 
 class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishIntegTest {
 
+    @ToBeFixedForInstantExecution
     def "can attach custom artifacts"() {
         given:
         createBuildScripts("""
+            file("customFile.foo") << 'some foo'
+            file("customFile.bar") << 'some bar'
+
             publications {
                 mavenCustom(MavenPublication) {
                     artifact "customFile.txt"
                     artifact customJar
                     artifact regularFileTask.outputFile
+                    artifact provider { file("customFile.foo") }
+                    artifact provider { "customFile.bar" }
                 }
             }
 """)
@@ -37,7 +44,8 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
         then:
         def module = mavenRepo.module("group", "projectText", "1.0")
         module.assertPublished()
-        module.assertArtifactsPublished("projectText-1.0.pom", "projectText-1.0.txt", "projectText-1.0-customjar.jar", "projectText-1.0.reg")
+        module.assertArtifactsPublished("projectText-1.0.pom", "projectText-1.0.txt", "projectText-1.0.foo", "projectText-1.0.bar", "projectText-1.0-customjar.jar", "projectText-1.0.reg")
+        result.assertTasksExecuted(":customJar", ":regularFileTask", ":generatePomFileForMavenCustomPublication", ":publishMavenCustomPublicationToMavenRepository", ":publish")
 
         and:
         resolveArtifacts(module) {
@@ -47,6 +55,24 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
             }
             withoutModuleMetadata {
                 expectFiles "projectText-1.0.txt"
+            }
+        }
+        resolveArtifacts(module) {
+            ext = 'foo'
+            withModuleMetadata {
+                noComponentPublished()
+            }
+            withoutModuleMetadata {
+                expectFiles "projectText-1.0.foo"
+            }
+        }
+        resolveArtifacts(module) {
+            ext = 'bar'
+            withModuleMetadata {
+                noComponentPublished()
+            }
+            withoutModuleMetadata {
+                expectFiles "projectText-1.0.bar"
             }
         }
         resolveArtifacts(module) {
@@ -71,12 +97,11 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
     }
 
     /**
-     * Not enabled with module metadata.
+     * Fails with module metadata.
      * @see org.gradle.api.publish.maven.internal.publication.DefaultMavenPublication#checkThatArtifactIsPublishedUnmodified
      */
+    @ToBeFixedForInstantExecution
     def "can modify artifacts added from component"() {
-        disableModuleMetadataPublishing()
-
         given:
         createBuildScripts("""
             publications {
@@ -89,7 +114,7 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
                     it.classifier = 'classified'
                 }
             }
-""")
+""", 'generateMetadataFileForMavenPublication.enabled = false')
 
         when:
         run "publish"
@@ -115,12 +140,11 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
     }
 
     /**
-     * Not enabled with module metadata.
+     * Fails with module metadata.
      * @see org.gradle.api.publish.maven.internal.publication.DefaultMavenPublication#checkThatArtifactIsPublishedUnmodified
      */
+    @ToBeFixedForInstantExecution
     def "can override artifacts added from component"() {
-        disableModuleMetadataPublishing()
-
         given:
         createBuildScripts("""
             publications {
@@ -129,8 +153,7 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
                     artifacts = ["customFile.txt", customJar]
                 }
             }
-
-""")
+""", 'generateMetadataFileForMavenCustomPublication.enabled = false')
         when:
         succeeds 'publish'
 
@@ -160,6 +183,7 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
      * Cannot publish module metadata for component when artifacts are modified.
      * @see org.gradle.api.publish.maven.internal.publication.DefaultMavenPublication#checkThatArtifactIsPublishedUnmodified
      */
+    @ToBeFixedForInstantExecution
     def "fails when publishing module metadata for component with modified artifacts"() {
         given:
         createBuildScripts("""
@@ -178,6 +202,7 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
         failure.assertHasCause("Cannot publish module metadata where component artifacts are modified.")
     }
 
+    @ToBeFixedForInstantExecution
     def "can configure custom artifacts when creating"() {
         given:
         createBuildScripts("""
@@ -196,8 +221,8 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
                         extension "txt"
                     }
                     artifact customJar {
-                        classifier null
-                        extension "war"
+                        archiveClassifier = null
+                        archiveExtension = "war"
                     }
                 }
             }
@@ -248,6 +273,7 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
         }
     }
 
+    @ToBeFixedForInstantExecution
     def "can attach custom file artifacts with map notation"() {
         given:
         createBuildScripts("""
@@ -306,6 +332,7 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
         }
     }
 
+    @ToBeFixedForInstantExecution
     def "can configure custom artifacts post creation"() {
         given:
         createBuildScripts("""
@@ -333,6 +360,7 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
         module.assertArtifactsPublished("projectText-1.0.pom", "projectText-1.0.txt", "projectText-1.0-docs.html", "projectText-1.0-customjar.jar")
     }
 
+    @ToBeFixedForInstantExecution
     def "can attach artifact with no extension"() {
         given:
         createBuildScripts("""
@@ -356,6 +384,7 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
 //        resolveArtifact(module, '', 'classified') == ["projectText-1.0-classifier"]
     }
 
+    @ToBeFixedForInstantExecution
     def "reports failure publishing when validation fails"() {
         given:
         file("a-directory.dir").createDir()
@@ -376,6 +405,7 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
         failure.assertHasCause("Invalid publication 'mavenCustom': artifact file is a directory")
     }
 
+    @ToBeFixedForInstantExecution
     def "artifact coordinates are evaluated lazily"() {
         given:
         createBuildScripts("""
@@ -421,7 +451,7 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
 
             task customJar(type: Jar) {
                 from file("customFile.txt")
-                classifier "customjar"
+                archiveClassifier = "customjar"
             }
 
             publishing {

@@ -152,13 +152,20 @@ class KotlinBuildScriptModelRepositoryTest {
     fun newModelResponse(): KotlinBuildScriptModel = StandardKotlinBuildScriptModel()
 
     data class StandardKotlinBuildScriptModel(
-        override val classPath: List<File> = emptyList(),
-        override val sourcePath: List<File> = emptyList(),
-        override val implicitImports: List<String> = emptyList(),
-        override val editorReports: List<EditorReport> = emptyList(),
-        override val exceptions: List<String> = emptyList(),
-        override val enclosingScriptProjectDir: File? = null
-    ) : KotlinBuildScriptModel
+        private val classPath: List<File> = emptyList(),
+        private val sourcePath: List<File> = emptyList(),
+        private val implicitImports: List<String> = emptyList(),
+        private val editorReports: List<EditorReport> = emptyList(),
+        private val exceptions: List<String> = emptyList(),
+        private val enclosingScriptProjectDir: File? = null
+    ) : KotlinBuildScriptModel {
+        override fun getClassPath() = classPath
+        override fun getSourcePath() = sourcePath
+        override fun getImplicitImports() = implicitImports
+        override fun getEditorReports() = editorReports
+        override fun getExceptions() = exceptions
+        override fun getEnclosingScriptProjectDir() = enclosingScriptProjectDir
+    }
 }
 
 

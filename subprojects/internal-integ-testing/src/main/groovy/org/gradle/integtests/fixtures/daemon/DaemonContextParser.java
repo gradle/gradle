@@ -24,7 +24,6 @@ import org.gradle.launcher.daemon.context.DefaultDaemonContext;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.List;
@@ -33,17 +32,15 @@ import java.util.regex.Pattern;
 
 public class DaemonContextParser {
     public static DaemonContext parseFromFile(File file) {
-        try {
-            BufferedReader reader = new BufferedReader(new FileReader(file));
+        try (FileReader in = new FileReader(file);
+            BufferedReader reader = new BufferedReader(in)) {
             for (String line = reader.readLine(); line != null; line = reader.readLine()) {
                 DaemonContext context = parseFrom(line);
                 if (context != null) {
                     return context;
                 }
             }
-        } catch(FileNotFoundException e) {
-            throw new IllegalStateException("unable to parse DefaultDaemonContext from source: [" + file.getAbsolutePath() + "].", e);
-        } catch (IOException e) {
+        } catch(IOException e) {
             throw new IllegalStateException("unable to parse DefaultDaemonContext from source: [" + file.getAbsolutePath() + "].", e);
         }
         throw new IllegalStateException("unable to parse DefaultDaemonContext from source: [" + file.getAbsolutePath() + "].");

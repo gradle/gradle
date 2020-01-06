@@ -20,11 +20,8 @@ package org.gradle.kotlin.dsl.accessors
 import kotlinx.metadata.KmVariance
 import kotlinx.metadata.jvm.JvmMethodSignature
 import kotlinx.metadata.jvm.KotlinClassMetadata
-
 import org.gradle.api.reflect.TypeOf
-
 import org.gradle.internal.hash.HashUtil
-
 import org.gradle.kotlin.dsl.support.bytecode.ALOAD
 import org.gradle.kotlin.dsl.support.bytecode.ARETURN
 import org.gradle.kotlin.dsl.support.bytecode.CHECKCAST
@@ -39,7 +36,9 @@ import org.gradle.kotlin.dsl.support.bytecode.actionTypeOf
 import org.gradle.kotlin.dsl.support.bytecode.genericTypeOf
 import org.gradle.kotlin.dsl.support.bytecode.internalName
 import org.gradle.kotlin.dsl.support.bytecode.jvmGetterSignatureFor
+import org.gradle.kotlin.dsl.support.bytecode.kotlinDeprecation
 import org.gradle.kotlin.dsl.support.bytecode.publicFunctionFlags
+import org.gradle.kotlin.dsl.support.bytecode.publicFunctionWithAnnotationsFlags
 import org.gradle.kotlin.dsl.support.bytecode.publicStaticMethod
 import org.gradle.kotlin.dsl.support.bytecode.publicStaticSyntheticMethod
 import org.gradle.kotlin.dsl.support.bytecode.visitOptionalParameter
@@ -48,7 +47,7 @@ import org.gradle.kotlin.dsl.support.bytecode.visitSignature
 import org.gradle.kotlin.dsl.support.bytecode.with
 import org.gradle.kotlin.dsl.support.bytecode.writeFunctionOf
 import org.gradle.kotlin.dsl.support.bytecode.writePropertyOf
-
+import org.gradle.util.SingleMessageLogger
 import org.jetbrains.org.objectweb.asm.MethodVisitor
 
 
@@ -65,8 +64,12 @@ fun fragmentsFor(accessor: Accessor): Fragments = when (accessor) {
 private
 fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = accessor.run {
 
+    val name = config.target
     val propertyName = name.original
     val className = "${propertyName.capitalize()}ConfigurationAccessorsKt"
+    val (functionFlags, deprecationBlock) =
+        if (config.hasDeclarationDeprecations()) publicFunctionWithAnnotationsFlags to config.getDeclarationDeprecationBlock()
+        else publicFunctionFlags to ""
 
     className to sequenceOf(
         AccessorFragment(
@@ -79,13 +82,13 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
                      * @return The dependency.
                      *
                      * @see [DependencyHandler.add]
-                     */
+                     */$deprecationBlock
                     fun DependencyHandler.`$kotlinIdentifier`(dependencyNotation: Any): Dependency? =
                         add("$stringLiteral", dependencyNotation)
                 """
             },
             bytecode = {
-                publicStaticMethod(signature) {
+                publicStaticMaybeDeprecatedMethod(signature, config) {
                     ALOAD(0)
                     LDC(name.original)
                     ALOAD(1)
@@ -95,6 +98,7 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
             },
             metadata = {
                 writer.writeFunctionOf(
+                    functionFlags = functionFlags,
                     receiverType = GradleType.dependencyHandler,
                     nullableReturnType = GradleType.dependency,
                     name = signature.name,
@@ -119,7 +123,7 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
                      * @return The dependency.
                      *
                      * @see [DependencyHandler.add]
-                     */
+                     */$deprecationBlock
                     fun DependencyHandler.`$kotlinIdentifier`(
                         dependencyNotation: String,
                         dependencyConfiguration: Action<ExternalModuleDependency>
@@ -129,7 +133,7 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
                 """
             },
             bytecode = {
-                publicStaticMethod(signature) {
+                publicStaticMaybeDeprecatedMethod(signature, config) {
                     ALOAD(0)
                     LDC(propertyName)
                     ALOAD(1)
@@ -144,6 +148,7 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
             },
             metadata = {
                 writer.writeFunctionOf(
+                    functionFlags = functionFlags,
                     receiverType = GradleType.dependencyHandler,
                     returnType = GradleType.externalModuleDependency,
                     name = propertyName,
@@ -176,7 +181,7 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
                      *
                      * @see [DependencyHandler.create]
                      * @see [DependencyHandler.add]
-                     */
+                     */$deprecationBlock
                     fun DependencyHandler.`$kotlinIdentifier`(
                         group: String,
                         name: String,
@@ -203,7 +208,7 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
                     ARETURN()
                 }
 
-                publicStaticMethod(signature) {
+                publicStaticMaybeDeprecatedMethod(signature, config) {
                     methodBody()
                 }
 
@@ -231,7 +236,7 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
             },
             metadata = {
                 writer.writeFunctionOf(
-                    functionFlags = publicFunctionFlags,
+                    functionFlags = functionFlags,
                     receiverType = GradleType.dependencyHandler,
                     returnType = GradleType.externalModuleDependency,
                     name = propertyName,
@@ -263,7 +268,7 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
                      * @return The dependency.
                      *
                      * @see [DependencyHandler.add]
-                     */
+                     */$deprecationBlock
                     fun <T : ModuleDependency> DependencyHandler.`$kotlinIdentifier`(
                         dependency: T,
                         dependencyConfiguration: T.() -> Unit
@@ -271,7 +276,7 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
                 """
             },
             bytecode = {
-                publicStaticMethod(signature) {
+                publicStaticMaybeDeprecatedMethod(signature, config) {
                     ALOAD(2)
                     ALOAD(1)
                     invokeAction()
@@ -283,7 +288,7 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
                 }
             },
             metadata = {
-                writer.visitFunction(publicFunctionFlags, propertyName)!!.run {
+                writer.visitFunction(functionFlags, propertyName)!!.run {
                     visitTypeParameter(0, "T", 0, KmVariance.INVARIANT)!!.run {
                         visitUpperBound(0).with(GradleType.dependency)
                         visitEnd()
@@ -316,14 +321,13 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
                      * @return the added dependency constraint
                      *
                      * @see [DependencyConstraintHandler.add]
-                     */
-                    @Incubating
+                     */$deprecationBlock
                     fun DependencyConstraintHandler.`$kotlinIdentifier`(constraintNotation: Any): DependencyConstraint? =
                         add("$stringLiteral", constraintNotation)
                 """
             },
             bytecode = {
-                publicStaticMethod(signature) {
+                publicStaticMaybeDeprecatedMethod(signature, config) {
                     ALOAD(0)
                     LDC(propertyName)
                     ALOAD(1)
@@ -333,6 +337,7 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
             },
             metadata = {
                 writer.writeFunctionOf(
+                    functionFlags = functionFlags,
                     receiverType = GradleType.dependencyConstraintHandler,
                     nullableReturnType = GradleType.dependencyConstraint,
                     name = propertyName,
@@ -358,14 +363,13 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
                      * @return the added dependency constraint
                      *
                      * @see [DependencyConstraintHandler.add]
-                     */
-                    @Incubating
+                     */$deprecationBlock
                     fun DependencyConstraintHandler.`$kotlinIdentifier`(constraintNotation: Any, block: DependencyConstraint.() -> Unit): DependencyConstraint? =
                         add("$stringLiteral", constraintNotation, block)
                 """
             },
             bytecode = {
-                publicStaticMethod(signature) {
+                publicStaticMaybeDeprecatedMethod(signature, config) {
                     ALOAD(0)
                     LDC(propertyName)
                     ALOAD(1)
@@ -376,6 +380,7 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
             },
             metadata = {
                 writer.writeFunctionOf(
+                    functionFlags = functionFlags,
                     receiverType = GradleType.dependencyConstraintHandler,
                     returnType = GradleType.dependencyConstraint,
                     name = propertyName,
@@ -758,7 +763,7 @@ val TypeOf<*>.builder: KmTypeBuilder
             classOf(parameterizedTypeDefinition.concreteClass),
             actualTypeArguments.map { it.builder }
         )
-        isWildcard -> upperBound?.builder ?: KotlinType.any
+        isWildcard -> (upperBound ?: lowerBound)?.builder ?: KotlinType.any
         else -> classOf(concreteClass)
     }
 
@@ -824,3 +829,41 @@ fun KotlinClassMetadata.FileFacade.Writer.writeElementAccessorMetadataFor(
 private
 fun accessorDescriptorFor(receiverType: InternalName, returnType: InternalName) =
     "(L$receiverType;)L$returnType;"
+
+
+private
+fun ConfigurationEntry<AccessorNameSpec>.getDeclarationDeprecationMessage() = if (hasDeclarationDeprecations()) {
+    val deprecationType = SingleMessageLogger.ConfigurationDeprecationType.DEPENDENCY_DECLARATION
+    val summary = "The ${target.original} configuration has been deprecated for ${deprecationType.displayName()}."
+    val suggestion = "Please ${deprecationType.usage} the ${dependencyDeclarationAlternatives.map(::quote).joinToString(" or ")} configuration instead."
+    "$summary $suggestion"
+} else {
+    ""
+}
+
+
+private
+fun ConfigurationEntry<AccessorNameSpec>.getDeclarationDeprecationBlock() =
+    "\n                    @Deprecated(message = \"${getDeclarationDeprecationMessage()}\")"
+
+
+private
+fun quote(str: String) = "'$str'"
+
+
+private
+fun BytecodeFragmentScope.publicStaticMaybeDeprecatedMethod(
+    jvmMethodSignature: JvmMethodSignature,
+    config: ConfigurationEntry<AccessorNameSpec>,
+    signature: String? = null,
+    exceptions: Array<String>? = null,
+    methodBody: MethodVisitor.() -> Unit
+) {
+    if (config.hasDeclarationDeprecations()) {
+        publicStaticMethod(jvmMethodSignature, signature, exceptions, true, {
+            kotlinDeprecation(config.getDeclarationDeprecationMessage())
+        }, methodBody)
+    } else {
+        publicStaticMethod(jvmMethodSignature, signature, exceptions, false, {}, methodBody)
+    }
+}

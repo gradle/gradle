@@ -45,6 +45,7 @@ public class TestNGXmlResultAndHtmlReportIntegrationTest extends
         setupTestCases()
     }
 
+    @ToBeFixedForInstantExecution
     def "produces JUnit xml results - #mode.name"() {
         when:
         runWithTestConfig("useTestNG(); $mode.config")
@@ -56,6 +57,7 @@ public class TestNGXmlResultAndHtmlReportIntegrationTest extends
         mode << modes
     }
 
+    @ToBeFixedForInstantExecution
     def "produces JUnit xml results when running tests in parallel - #mode.name"() {
         when:
         runWithTestConfig("useTestNG(); maxParallelForks 2; $mode.config")
@@ -67,6 +69,7 @@ public class TestNGXmlResultAndHtmlReportIntegrationTest extends
         mode << modes
     }
 
+    @ToBeFixedForInstantExecution
     def "produces JUnit xml results with aggressive forking - #mode.name"() {
         when:
         runWithTestConfig("useTestNG(); forkEvery 1; $mode.config")
@@ -88,7 +91,7 @@ public class TestNGXmlResultAndHtmlReportIntegrationTest extends
         buildFile.text = """
             apply plugin: 'java'
             ${mavenCentralRepository()}
-            dependencies { testCompile 'org.testng:testng:6.3.1' }
+            dependencies { testImplementation 'org.testng:testng:6.3.1' }
 
             test {
                 $testConfiguration

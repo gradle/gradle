@@ -15,8 +15,6 @@
  */
 package org.gradle.api.component;
 
-import org.gradle.api.Incubating;
-
 /**
  * A software component factory is responsible for providing to
  * plugins a way to create software components. Currently the
@@ -29,7 +27,6 @@ import org.gradle.api.Incubating;
  *
  * @since 5.3
  */
-@Incubating
 public interface SoftwareComponentFactory {
     /**
      * Creates an adhoc software component, which can be used by plugins to

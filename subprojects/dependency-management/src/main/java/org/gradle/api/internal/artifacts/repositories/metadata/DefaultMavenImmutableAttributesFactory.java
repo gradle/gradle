@@ -19,6 +19,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.Maps;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.Category;
+import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeMergingException;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -80,6 +81,7 @@ public class DefaultMavenImmutableAttributesFactory implements MavenImmutableAtt
         ImmutableAttributes result = concatCache.get(entry);
         if (result == null) {
             result = concat(original, USAGE_ATTRIBUTE, new CoercingStringValueSnapshot(usage, objectInstantiator));
+            result = concat(result, FORMAT_ATTRIBUTE, new CoercingStringValueSnapshot(LibraryElements.JAR, objectInstantiator));
             result = concat(result, CATEGORY_ATTRIBUTE, new CoercingStringValueSnapshot(Category.LIBRARY, objectInstantiator));
             concatCache.put(entry, result);
         }

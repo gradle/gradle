@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflic
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ComponentState;
 
 public interface ConflictResolutionResult {
 
@@ -28,8 +29,8 @@ public interface ConflictResolutionResult {
     void withParticipatingModules(Action<? super ModuleIdentifier> action);
 
     /**
-     * The actual selected version.
+     * The actual selected component.
      */
-    <T> T getSelected();
+    ComponentState getSelected();
 
 }

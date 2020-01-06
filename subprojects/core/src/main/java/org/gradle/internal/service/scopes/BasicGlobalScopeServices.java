@@ -22,6 +22,9 @@ import org.gradle.api.internal.file.DefaultFileLookup;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory;
+import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
+import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.PatternSets;
 import org.gradle.api.tasks.util.internal.PatternSpecFactory;
@@ -40,8 +43,10 @@ import org.gradle.internal.jvm.inspection.CachingJvmVersionDetector;
 import org.gradle.internal.jvm.inspection.DefaultJvmVersionDetector;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
+import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 import org.gradle.internal.remote.services.MessagingServices;
+import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.process.internal.DefaultExecActionFactory;
 import org.gradle.process.internal.ExecFactory;
 import org.gradle.process.internal.ExecHandleFactory;
@@ -52,6 +57,10 @@ import org.gradle.process.internal.ExecHandleFactory;
  * {@link GlobalScopeServices}.
  */
 public class BasicGlobalScopeServices {
+    void configure(ServiceRegistration serviceRegistration) {
+        serviceRegistration.addProvider(new MessagingServices());
+    }
+
     FileLockManager createFileLockManager(ProcessEnvironment processEnvironment, FileLockContentionHandler fileLockContentionHandler) {
         return new DefaultFileLockManager(
             new DefaultProcessMetaDataProvider(
@@ -68,14 +77,6 @@ public class BasicGlobalScopeServices {
 
     ExecutorFactory createExecutorFactory() {
         return new DefaultExecutorFactory();
-    }
-
-    InetAddressFactory createInetAddressFactory(MessagingServices messagingServices) {
-        return messagingServices.get(InetAddressFactory.class);
-    }
-
-    MessagingServices createMessagingServices() {
-        return new MessagingServices();
     }
 
     DocumentationRegistry createDocumentationRegistry() {
@@ -98,8 +99,12 @@ public class BasicGlobalScopeServices {
         return new DefaultFileLookup(patternSetFactory);
     }
 
-    FileCollectionFactory createFileCollectionFactory(PathToFileResolver fileResolver) {
-        return new DefaultFileCollectionFactory(fileResolver, null);
+    DirectoryFileTreeFactory createDirectoryFileTreeFactory(Factory<PatternSet> patternSetFactory, FileSystem fileSystem) {
+        return new DefaultDirectoryFileTreeFactory(patternSetFactory, fileSystem);
+    }
+
+    FileCollectionFactory createFileCollectionFactory(PathToFileResolver fileResolver, Factory<PatternSet> patternSetFactory, DirectoryFileTreeFactory directoryFileTreeFactory) {
+        return new DefaultFileCollectionFactory(fileResolver, DefaultTaskDependencyFactory.withNoAssociatedProject(), directoryFileTreeFactory, patternSetFactory);
     }
 
     PatternSpecFactory createPatternSpecFactory() {

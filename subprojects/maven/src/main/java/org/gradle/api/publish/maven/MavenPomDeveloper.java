@@ -16,7 +16,6 @@
 
 package org.gradle.api.publish.maven;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
@@ -28,7 +27,6 @@ import org.gradle.api.provider.SetProperty;
  * @see MavenPom
  * @see MavenPomDeveloperSpec
  */
-@Incubating
 public interface MavenPomDeveloper {
 
     /**

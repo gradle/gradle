@@ -297,6 +297,16 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
         inEar "META-INF/application.xml"
     }
 
+    def supportsSkippingDeploymentDescriptorCreation() {
+        when:
+        project.pluginManager.apply(EarPlugin)
+        project.convention.plugins.ear.generateDeploymentDescriptor = false
+        executeWithDependencies project.tasks[EarPlugin.EAR_TASK_NAME]
+
+        then:
+        notInEar "META-INF/application.xml"
+    }
+
     def avoidsOverwritingDeploymentDescriptor() {
         given:
         project.file("src/main/application/META-INF").mkdirs()

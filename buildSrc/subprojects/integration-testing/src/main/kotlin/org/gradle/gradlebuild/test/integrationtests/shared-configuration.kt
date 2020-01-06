@@ -1,23 +1,20 @@
 package org.gradle.gradlebuild.test.integrationtests
 
+import accessors.eclipse
+import accessors.groovy
+import accessors.java
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.TaskProvider
-
 import org.gradle.kotlin.dsl.*
-
-import accessors.eclipse
-import accessors.groovy
-import accessors.java
-
-import org.gradle.gradlebuild.java.AvailableJavaInstallations
 import org.gradle.plugins.ide.eclipse.EclipsePlugin
 import org.gradle.plugins.ide.idea.IdeaPlugin
+import java.io.File
 
 
 enum class TestType(val prefix: String, val executers: List<String>, val libRepoRequired: Boolean) {
-    INTEGRATION("integ", listOf("embedded", "forking", "noDaemon", "parallel"), false),
+    INTEGRATION("integ", listOf("embedded", "forking", "noDaemon", "parallel", "instant", "vfsRetention"), false),
     CROSSVERSION("crossVersion", listOf("embedded", "forking"), true)
 }
 
@@ -86,6 +83,7 @@ fun Project.createTasks(sourceSet: SourceSet, testType: TestType) {
 internal
 fun Project.createTestTask(name: String, executer: String, sourceSet: SourceSet, testType: TestType, extraConfig: Action<IntegrationTest>): TaskProvider<IntegrationTest> =
     tasks.register(name, IntegrationTest::class) {
+        configureTestSplitIfNecessary(name, sourceSet, testType)
         description = "Runs ${testType.prefix} with $executer executer"
         systemProperties["org.gradle.integtest.executer"] = executer
         addDebugProperties()
@@ -93,6 +91,44 @@ fun Project.createTestTask(name: String, executer: String, sourceSet: SourceSet,
         classpath = sourceSet.runtimeClasspath
         libsRepository.required = testType.libRepoRequired
         extraConfig.execute(this)
+    }
+
+
+private
+fun DistributionTest.configureTestSplitIfNecessary(name: String, sourceSet: SourceSet, testType: TestType) {
+    val testSplit = project.stringPropertyOrEmpty("testSplit")
+    if (testSplit.isBlank() || (testType == TestType.CROSSVERSION && name != "crossVersionTest")) {
+        // Cross version tests are splitted by tasks
+        // But if it's crossVersionTest in quickTest, we still split it
+        return
+    }
+
+    val currentSplit = testSplit.split("/")[0].toInt()
+    val numberOfSplits = testSplit.split("/")[1].toInt()
+    val sourceFiles = sourceSet.groovy.files.sortedBy { it.absolutePath }
+
+    if (sourceFiles.size < numberOfSplits || name == "integMultiVersionTest") {
+        // https://github.com/gradle/gradle-private/issues/2740
+        enabled = currentSplit == 1
+        return
+    }
+
+    val buckets = splitIntoBuckets(sourceFiles, numberOfSplits)
+    if (currentSplit == numberOfSplits) {
+        filter.excludePatterns.addAll(buckets.subList(0, buckets.size - 1).flatten().map { it.nameWithoutExtension })
+    } else {
+        filter.includePatterns.addAll(buckets[currentSplit - 1].map { it.nameWithoutExtension })
+    }
+
+    inputs.property("testSplit", testSplit)
+}
+
+
+fun splitIntoBuckets(sourceFiles: List<File>, numberOfSplits: Int): List<List<File>> =
+    if (sourceFiles.size % numberOfSplits == 0) {
+        sourceFiles.chunked(sourceFiles.size / numberOfSplits)
+    } else {
+        sourceFiles.chunked(sourceFiles.size / numberOfSplits + 1)
     }
 
 
@@ -145,8 +181,3 @@ fun Project.configureIde(testType: TestType) {
         }
     }
 }
-
-
-internal
-val Project.currentTestJavaVersion
-    get() = rootProject.the<AvailableJavaInstallations>().javaInstallationForTest.javaVersion

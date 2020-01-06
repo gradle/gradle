@@ -16,6 +16,7 @@
 package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.resolve.JvmLibraryArtifactResolveTestFixture
 import org.gradle.test.fixtures.ivy.IvyRepository
 import spock.lang.Unroll
@@ -42,6 +43,7 @@ repositories {
 """
     }
 
+    @ToBeFixedForInstantExecution
     def "resolve sources artifacts"() {
         fixture.requestingSource()
                 .expectSourceArtifact("my-sources")
@@ -55,6 +57,7 @@ repositories {
         checkArtifactsResolvedAndCached()
     }
 
+    @ToBeFixedForInstantExecution
     def "resolve javadoc artifacts"() {
         fixture.requestingJavadoc()
                 .expectJavadocArtifact("my-javadoc")
@@ -68,6 +71,7 @@ repositories {
         checkArtifactsResolvedAndCached()
     }
 
+    @ToBeFixedForInstantExecution
     def "resolve all artifacts"() {
         fixture.expectSourceArtifact("my-sources")
                 .expectJavadocArtifact("my-javadoc")
@@ -82,6 +86,7 @@ repositories {
         checkArtifactsResolvedAndCached()
     }
 
+    @ToBeFixedForInstantExecution
     def "resolves multiple artifacts of the same type"() {
         given:
         module.artifact(type: "source", classifier: "other-sources", ext: "jar", conf: "sources")
@@ -105,6 +110,7 @@ repositories {
         checkArtifactsResolvedAndCached()
     }
 
+    @ToBeFixedForInstantExecution
     def "resolves when configurations are present and empty"() {
         given:
         def module1 = httpRepo.module("some.group", "some-artifact", "1.1")
@@ -125,6 +131,7 @@ repositories {
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "fetches missing artifacts for module #condition"() {
         fixture.requestingSource()
                 .expectSourceArtifactNotFound("my-sources")
@@ -157,7 +164,7 @@ if (project.hasProperty('nocache')) {
 
         then:
         fails("verify")
-        failure.assertHasCause("""Could not find some-artifact-my-sources.jar (some.group:some-artifact:1.0).
+        failure.assertHasCause("""Could not find some-artifact-1.0-my-sources.jar (some.group:some-artifact:1.0).
 Searched in the following locations:
     ${sourceArtifact.uri}""")
 
@@ -166,7 +173,7 @@ Searched in the following locations:
 
         then:
         fails("verify")
-        failure.assertHasCause("""Could not find some-artifact-my-sources.jar (some.group:some-artifact:1.0).
+        failure.assertHasCause("""Could not find some-artifact-1.0-my-sources.jar (some.group:some-artifact:1.0).
 Searched in the following locations:
     ${sourceArtifact.uri}""")
 
@@ -194,6 +201,7 @@ Searched in the following locations:
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "updates artifacts for module #condition"() {
         buildFile << """
 class ChangingRule implements ComponentMetadataRule {
@@ -252,33 +260,31 @@ if (project.hasProperty('nocache')) {
         "when ivy descriptor changes" | "-Pnocache"
     }
 
+    @ToBeFixedForInstantExecution
     def "reports failure to resolve artifacts of non-existing component"() {
         fixture.expectComponentNotFound().prepare()
 
         when:
         module.ivy.expectGetMissing()
-        module.jar.expectHeadMissing()
 
         then:
         fails("verify")
         failure.assertHasCause("""Could not find some.group:some-artifact:1.0.
 Searched in the following locations:
-  - ${module.ivy.uri}
-  - ${module.jar.uri}""")
+  - ${module.ivy.uri}""")
 
         when:
         server.resetExpectations()
         module.ivy.expectGetMissing()
-        module.jar.expectHeadMissing()
 
         then:
         fails("verify")
         failure.assertHasCause("""Could not find some.group:some-artifact:1.0.
 Searched in the following locations:
-  - ${module.ivy.uri}
-  - ${module.jar.uri}""")
+  - ${module.ivy.uri}""")
     }
 
+    @ToBeFixedForInstantExecution
     def "reports failure to resolve missing artifacts"() {
         fixture.expectSourceArtifactNotFound("my-sources")
                 .expectJavadocArtifactNotFound("my-javadoc")
@@ -293,10 +299,10 @@ Searched in the following locations:
 
         then:
         fails("verify")
-        failure.assertHasCause("""Could not find some-artifact-my-sources.jar (some.group:some-artifact:1.0).
+        failure.assertHasCause("""Could not find some-artifact-1.0-my-sources.jar (some.group:some-artifact:1.0).
 Searched in the following locations:
     ${sourceArtifact.uri}""")
-        failure.assertHasCause("""Could not find some-artifact-my-javadoc.jar (some.group:some-artifact:1.0).
+        failure.assertHasCause("""Could not find some-artifact-1.0-my-javadoc.jar (some.group:some-artifact:1.0).
 Searched in the following locations:
     ${javadocArtifact.uri}""")
 
@@ -305,14 +311,15 @@ Searched in the following locations:
 
         then:
         fails("verify")
-        failure.assertHasCause("""Could not find some-artifact-my-sources.jar (some.group:some-artifact:1.0).
+        failure.assertHasCause("""Could not find some-artifact-1.0-my-sources.jar (some.group:some-artifact:1.0).
 Searched in the following locations:
     ${sourceArtifact.uri}""")
-        failure.assertHasCause("""Could not find some-artifact-my-javadoc.jar (some.group:some-artifact:1.0).
+        failure.assertHasCause("""Could not find some-artifact-1.0-my-javadoc.jar (some.group:some-artifact:1.0).
 Searched in the following locations:
     ${javadocArtifact.uri}""")
     }
 
+    @ToBeFixedForInstantExecution
     def "resolves when some artifacts are missing"() {
         fixture.expectSourceArtifact("my-sources")
                 .expectJavadocArtifactNotFound("my-javadoc")
@@ -326,7 +333,7 @@ Searched in the following locations:
 
         then:
         fails("verify")
-        failure.assertHasCause("""Could not find some-artifact-my-javadoc.jar (some.group:some-artifact:1.0).
+        failure.assertHasCause("""Could not find some-artifact-1.0-my-javadoc.jar (some.group:some-artifact:1.0).
 Searched in the following locations:
     ${javadocArtifact.uri}""")
 
@@ -335,7 +342,7 @@ Searched in the following locations:
 
         then:
         fails("verify")
-        failure.assertHasCause("""Could not find some-artifact-my-javadoc.jar (some.group:some-artifact:1.0).
+        failure.assertHasCause("""Could not find some-artifact-1.0-my-javadoc.jar (some.group:some-artifact:1.0).
 Searched in the following locations:
     ${javadocArtifact.uri}""")
     }
@@ -360,10 +367,10 @@ Searched in the following locations:
 
         then:
         fails("verify")
-        failure.assertHasCause("Could not download some-artifact-broken-sources.jar (some.group:some-artifact:1.0)")
+        failure.assertHasCause("Could not download some-artifact-1.0-broken-sources.jar (some.group:some-artifact:1.0)")
         failure.assertHasCause("Could not get resource '${brokenSources.uri}'.")
         failure.assertHasCause("Could not GET '${brokenSources.uri}'. Received status code 500 from server: broken")
-        failure.assertHasCause("Could not download some-artifact-my-javadoc.jar (some.group:some-artifact:1.0)")
+        failure.assertHasCause("Could not download some-artifact-1.0-my-javadoc.jar (some.group:some-artifact:1.0)")
         failure.assertHasCause("Could not get resource '${brokenJavadoc.uri}'.")
         failure.assertHasCause("Could not GET '${brokenJavadoc.uri}'. Received status code 500 from server: broken")
 
@@ -384,6 +391,7 @@ Searched in the following locations:
         succeeds("verifyFixed")
     }
 
+    @ToBeFixedForInstantExecution
     def "resolve and does not cache artifacts from local repository"() {
         initBuild(fileRepo)
 
@@ -405,6 +413,7 @@ Searched in the following locations:
         file("sources/some-artifact-1.0-my-sources.jar").assertHasChangedSince(snapshot)
     }
 
+    @ToBeFixedForInstantExecution
     def "can resolve artifacts with maven scheme from ivy repository"() {
         // Published with no configurations, and a source artifact only
         def moduleWithMavenScheme = httpRepo.module("some.group", "some-artifact", "1.1")

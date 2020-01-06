@@ -17,5 +17,4 @@
 /**
  * Plugins for XCTest testing.
  */
-@org.gradle.api.Incubating
 package org.gradle.nativeplatform.test.xctest.plugins;

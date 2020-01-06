@@ -104,7 +104,7 @@ fun parse(scriptPlugin: PrecompiledScriptPlugin): Program = ProgramParser.parse(
     ProgramSource(scriptPlugin.scriptFileName, scriptPlugin.scriptText),
     ProgramKind.TopLevel,
     ProgramTarget.Project
-)
+).document
 
 
 private

@@ -82,7 +82,7 @@
         <module name="RedundantImport"/>
         <module name="UnusedImports"/>
         <module name="IllegalImport">
-            <property name="illegalPkgs" value="com.beust,org.testng.collections"/>
+            <property name="illegalPkgs" value="jdk.internal,com.beust,org.testng.collections"/>
         </module>
 
         <!-- Naming -->

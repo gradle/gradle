@@ -16,14 +16,11 @@
 
 package org.gradle.tooling.model.cpp;
 
-import org.gradle.api.Incubating;
-
 /**
  * Represents a C++ binary.
  *
  * @since 4.10
  */
-@Incubating
 public interface CppBinary {
     /**
      * Returns the name of this binary. This is used to disambiguate the binaries of a project. Each binary has a unique name within its project. However, these names are not unique across multiple projects.

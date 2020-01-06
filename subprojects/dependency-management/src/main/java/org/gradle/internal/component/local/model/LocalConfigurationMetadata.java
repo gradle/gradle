@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.local.model;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 
@@ -32,7 +33,7 @@ public interface LocalConfigurationMetadata extends ConfigurationMetadata {
     List<? extends LocalOriginDependencyMetadata> getDependencies();
 
     @Override
-    List<? extends LocalComponentArtifactMetadata> getArtifacts();
+    ImmutableList<? extends LocalComponentArtifactMetadata> getArtifacts();
 
     /**
      * Returns the files attached to this configuration, if any. These should be represented as dependencies, but are currently represented as files as a migration step.

@@ -16,29 +16,29 @@
 
 package org.gradle.workers.internal;
 
-public class SimpleActionExecutionSpec implements ActionExecutionSpec {
-    private final Class<?> implementationClass;
-    private final String displayName;
-    private final Object[] params;
+import org.gradle.workers.WorkAction;
+import org.gradle.workers.WorkParameters;
 
-    public SimpleActionExecutionSpec(Class<?> implementationClass, String displayName, Object[] params) {
+public class SimpleActionExecutionSpec<T extends WorkParameters> {
+    private final Class<? extends WorkAction<T>> implementationClass;
+    private final T params;
+    private final boolean usesInternalServices;
+
+    public SimpleActionExecutionSpec(Class<? extends WorkAction<T>> implementationClass, T params, boolean usesInternalServices) {
         this.implementationClass = implementationClass;
-        this.displayName = displayName;
         this.params = params;
+        this.usesInternalServices = usesInternalServices;
     }
 
-    @Override
-    public Class<?> getImplementationClass() {
+    public boolean isInternalServicesRequired() {
+        return usesInternalServices;
+    }
+
+    public Class<? extends WorkAction<T>> getImplementationClass() {
         return implementationClass;
     }
 
-    @Override
-    public String getDisplayName() {
-        return displayName;
-    }
-
-    @Override
-    public Object[] getParams(ClassLoader classLoader) {
+    public T getParameters() {
         return params;
     }
 }

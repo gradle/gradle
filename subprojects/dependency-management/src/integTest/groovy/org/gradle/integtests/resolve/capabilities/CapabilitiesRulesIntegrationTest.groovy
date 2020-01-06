@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.RequiredFeatures
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
+import spock.lang.Unroll
 
 class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTest {
 
@@ -67,7 +68,7 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
 
         then:
         def variant = 'runtime'
-        if (!isGradleMetadataEnabled() && useIvy()) {
+        if (!isGradleMetadataPublished() && useIvy()) {
             variant = 'default'
         }
         failure.assertHasCause("""Module 'cglib:cglib-nodep' has been rejected:
@@ -76,7 +77,67 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
    Cannot select module with conflict on capability 'cglib:cglib:3.2.5' also provided by [cglib:cglib-nodep:3.2.5($variant)]""")
     }
 
-    def "can detect conflict with capability in different versions and upgrade automatically to latest version"() {
+    def "implicit capability conflict is detected if implicit capability is discovered late"() {
+        given:
+        repository {
+            'cglib:cglib:3.2.5'()
+            'cglib:cglib-nodep:3.2.5'()
+            'org:lib:1.0' {
+                dependsOn 'cglib:cglib:3.2.5'
+            }
+        }
+
+        buildFile << """
+            class CapabilityRule implements ComponentMetadataRule {
+
+                @Override
+                void execute(ComponentMetadataContext context) {
+                    def details = context.details
+                    details.allVariants {
+                         withCapabilities {
+                             addCapability('cglib', 'cglib', details.id.version)
+                         }
+                     }
+                }
+            }
+
+            dependencies {
+               conf "cglib:cglib-nodep:3.2.5"
+               conf "org:lib:1.0"
+
+               components {
+                  withModule('cglib:cglib-nodep', CapabilityRule)
+               }
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'cglib:cglib-nodep:3.2.5' {
+                expectGetMetadata()
+            }
+            'cglib:cglib:3.2.5' {
+                expectGetMetadata()
+            }
+            'org:lib:1.0' {
+                expectGetMetadata()
+            }
+        }
+        fails ':checkDeps'
+
+        then:
+        def variant = 'runtime'
+        if (!isGradleMetadataPublished() && useIvy()) {
+            variant = 'default'
+        }
+        failure.assertHasCause("""Module 'cglib:cglib-nodep' has been rejected:
+   Cannot select module with conflict on capability 'cglib:cglib:3.2.5' also provided by [cglib:cglib:3.2.5($variant)]""")
+        failure.assertHasCause("""Module 'cglib:cglib' has been rejected:
+   Cannot select module with conflict on capability 'cglib:cglib:3.2.5' also provided by [cglib:cglib-nodep:3.2.5($variant)]""")
+    }
+
+    @Unroll
+    def "can detect conflict with capability in different versions (#rule)"() {
         given:
         repository {
             'cglib:cglib:3.2.5'()
@@ -105,6 +166,10 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
                   withModule('cglib:cglib-nodep', CapabilityRule)
                }
             }
+            
+            configurations.conf.resolutionStrategy.capabilitiesResolution {
+                $rule
+            }
         """
 
         when:
@@ -122,10 +187,17 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
         resolve.expectGraph {
             root(":", ":test:") {
                 edge('cglib:cglib-nodep:3.2.4', 'cglib:cglib:3.2.5')
-                    .byConflictResolution('latest version of capability cglib:cglib')
+                    .byConflictResolution(reason)
                 module('cglib:cglib:3.2.5')
             }
         }
+
+        where:
+        rule                                                                                  | reason
+        'all { selectHighestVersion() }'                                                      | 'latest version of capability cglib:cglib'
+        'withCapability("cglib:cglib") { selectHighestVersion() }'                            | 'latest version of capability cglib:cglib'
+        'withCapability("cglib", "cglib") { selectHighestVersion() }'                         | 'latest version of capability cglib:cglib'
+        'all { select(candidates.find { it.id.module == "cglib" }) because "custom reason" }' | 'On capability cglib:cglib custom reason'
     }
 
     def "can detect conflict between local project and capability from external dependency"() {

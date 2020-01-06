@@ -18,9 +18,11 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 class CachedRelocationIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
 
+    @ToBeFixedForInstantExecution
     def "relocating the project doesn't invalidate custom tasks declared in build script"() {
         def originalLocation = file("original-location").createDir()
         def originalHome = file("original-home").createDir()
@@ -50,7 +52,7 @@ class CachedRelocationIntegrationTest extends AbstractIntegrationSpec implements
         withBuildCache().run "jar", "customTask"
 
         then:
-        nonSkippedTasks.containsAll ":compileJava", ":jar", ":customTask"
+        executedAndNotSkipped ":compileJava", ":jar", ":customTask"
 
         when:
         executer.usingProjectDirectory(originalLocation)
@@ -58,8 +60,8 @@ class CachedRelocationIntegrationTest extends AbstractIntegrationSpec implements
         withBuildCache().run "jar", "customTask"
 
         then:
-        skippedTasks.containsAll ":compileJava"
-        nonSkippedTasks.contains ":customTask"
+        skipped ":compileJava"
+        executedAndNotSkipped ":customTask"
 
         when:
         executer.usingProjectDirectory(originalLocation)
@@ -71,7 +73,7 @@ class CachedRelocationIntegrationTest extends AbstractIntegrationSpec implements
         withBuildCache().run "jar", "customTask"
 
         then:
-        skippedTasks.containsAll ":compileJava", ":customTask"
+        skipped ":compileJava", ":customTask"
 
         when:
         executer.usingProjectDirectory(originalLocation)
@@ -81,7 +83,7 @@ class CachedRelocationIntegrationTest extends AbstractIntegrationSpec implements
         withBuildCache().run "jar", "customTask"
 
         then:
-        skippedTasks.containsAll ":compileJava", ":customTask"
+        skipped ":compileJava", ":customTask"
 
         when:
         def movedLocation = temporaryFolder.file("moved-location")
@@ -94,9 +96,9 @@ class CachedRelocationIntegrationTest extends AbstractIntegrationSpec implements
 
         then:
         // Built-in tasks are loaded from cache
-        skippedTasks.containsAll ":compileJava"
+        skipped ":compileJava"
         // Custom tasks are also loaded from cache
-        skippedTasks.contains ":customTask"
+        skipped ":customTask"
     }
 
     static String externalTaskDef(String suffix = "") {

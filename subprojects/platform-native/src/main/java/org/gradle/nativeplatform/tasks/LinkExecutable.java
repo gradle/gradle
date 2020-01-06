@@ -15,14 +15,12 @@
  */
 package org.gradle.nativeplatform.tasks;
 
-import org.gradle.api.Incubating;
 import org.gradle.nativeplatform.internal.DefaultLinkerSpec;
 import org.gradle.nativeplatform.internal.LinkerSpec;
 
 /**
  * Links a binary executable from object files and libraries.
  */
-@Incubating
 public class LinkExecutable extends AbstractLinkTask {
     @Override
     protected LinkerSpec createLinkerSpec() {

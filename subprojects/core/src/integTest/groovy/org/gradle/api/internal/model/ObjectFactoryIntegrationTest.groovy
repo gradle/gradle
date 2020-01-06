@@ -47,6 +47,7 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
             }
             
             class CustomTask extends DefaultTask {
+                @Internal
                 Thing thing
                 
                 @javax.inject.Inject
@@ -93,9 +94,27 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
             }
             
             def t = objects.newInstance(Thing)
+            assert t.files.toString() == "file collection"
             assert t.files.files.empty
             t.files.from('a.txt')
             assert t.files as List == [file('a.txt')]
+"""
+
+        expect:
+        succeeds()
+    }
+
+    def "plugin can create instance of interface with read-only Property<T> property"() {
+        buildFile << """
+            interface Thing {
+                Property<String> getValue()
+            }
+            
+            def t = objects.newInstance(Thing)
+            assert t.value.toString() == "property 'value'"
+            assert !t.value.present
+            t.value = 'abc'
+            assert t.value.get() == 'abc'
 """
 
         expect:
@@ -134,7 +153,7 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
         expect:
         fails()
         failure.assertHasCause("Could not create an instance of type Thing.")
-        failure.assertHasCause("Could not generate a decorated class for interface Thing.")
+        failure.assertHasCause("Could not generate a decorated class for type Thing.")
         failure.assertHasCause("Cannot have abstract method Thing.getProp().")
     }
 
@@ -351,7 +370,7 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasCause('Could not create an instance of type Thing.')
-        failure.assertHasCause('Too many parameters provided for constructor for class Thing. Expected 0, received 1.')
+        failure.assertHasCause('Too many parameters provided for constructor for type Thing. Expected 0, received 1.')
     }
 
     def "object creation fails with ObjectInstantiationException when construction parameters provided for interface"() {
@@ -371,7 +390,7 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasCause('Could not create an instance of type Thing.')
-        failure.assertHasCause('Too many parameters provided for constructor for interface Thing. Expected 0, received 1.')
+        failure.assertHasCause('Too many parameters provided for constructor for type Thing. Expected 0, received 1.')
     }
 
     def "object creation fails with ObjectInstantiationException given non-static inner class"() {
@@ -394,7 +413,7 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasCause('Could not create an instance of type Things$Thing.')
-        failure.assertHasCause('Class Things$Thing is a non-static inner class.')
+        failure.assertHasCause('Class Things.Thing is a non-static inner class.')
     }
 
     def "object creation fails with ObjectInstantiationException given unknown service requested as constructor parameter"() {
@@ -419,7 +438,7 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasCause('Could not create an instance of type Thing.')
-        failure.assertHasCause('Unable to determine constructor argument #1: missing parameter of interface Unknown, or no service of type interface Unknown')
+        failure.assertHasCause('Unable to determine constructor argument #1: missing parameter of type Unknown, or no service of type Unknown')
     }
 
     def "object creation fails with ObjectInstantiationException when constructor throws an exception"() {
@@ -463,7 +482,7 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasCause('Could not create an instance of type Thing.')
-        failure.assertHasCause('The constructor for class Thing should be annotated with @Inject.')
+        failure.assertHasCause('The constructor for type Thing should be annotated with @Inject.')
     }
 
     def "object creation fails with ObjectInstantiationException when type has multiple constructors not annotated"() {
@@ -500,11 +519,12 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
         succeeds()
     }
 
-    def "plugin can create NamedDomainObjectContainer instances"() {
+    def "plugin can create a NamedDomainObjectContainer instance that creates decorated elements of type and uses name bean property"() {
         given:
         buildFile << """
-            class NamedThing implements Named {
+            abstract class NamedThing implements Named {
                 final String name
+                abstract Property<String> getProp()
                 NamedThing(String name) {
                     this.name = name
                 }
@@ -512,16 +532,22 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
 
             def container = project.objects.domainObjectContainer(NamedThing)
             assert container != null
-            def element = container.create('foo')
-            assert element.name == 'foo'
+            container.configure {
+                foo {
+                    prop = 'abc'
+                }
+            }
             assert container.size() == 1
+            def element = container.getByName('foo')
+            assert element.name == 'foo'
+            assert element.prop.get() == 'abc'
         """
 
         expect:
         succeeds()
     }
 
-    def "plugin can create NamedDomainObjectContainer instances with factory"() {
+    def "plugin can create NamedDomainObjectContainer instances that creates elements using user provided factory"() {
         given:
         buildFile << """
             class NamedThing implements Named {
@@ -551,6 +577,75 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
             assert domainObjectSet != null
             assert domainObjectSet.add('foo')
             assert domainObjectSet.size() == 1
+        """
+
+        expect:
+        succeeds()
+    }
+
+    def "plugin can create a NamedDomainObjectSet instance that uses name bean property"() {
+        given:
+        buildFile << """
+            class NamedThing implements Named {
+                final String name
+                NamedThing(String name) {
+                    this.name = name
+                }
+            }
+
+            def container = project.objects.namedDomainObjectSet(NamedThing)
+            assert container != null
+            container.add(new NamedThing('foo'))
+            container.add(new NamedThing('bar'))
+            assert container.size() == 2
+            def element = container.getByName('foo')
+            assert element.name == 'foo'
+        """
+
+        expect:
+        succeeds()
+    }
+
+    def "plugin can create a NamedDomainObjectList instance that uses name bean property"() {
+        given:
+        buildFile << """
+            class NamedThing implements Named {
+                final String name
+                NamedThing(String name) {
+                    this.name = name
+                }
+            }
+
+            def container = project.objects.namedDomainObjectList(NamedThing)
+            assert container != null
+            container.add(new NamedThing('foo'))
+            container.add(new NamedThing('bar'))
+            assert container.size() == 2
+            def element = container.getByName('foo')
+            assert element.name == 'foo'
+            assert element == container[0]
+        """
+
+        expect:
+        succeeds()
+    }
+
+    def "plugin can create ExtensiblePolymorphicDomainObjectContainer instances"() {
+        given:
+        buildFile << """
+            class NamedThing implements Named {
+                final String name
+                NamedThing(String name) {
+                    this.name = name
+                }
+            }
+
+            def container = project.objects.polymorphicDomainObjectContainer(Named)
+            container.registerBinding(Named, NamedThing)
+            container.register("a", Named) { }
+            container.register("b", Named) { }
+            assert container.size() == 2
+            assert container.every { it instanceof NamedThing }
         """
 
         expect:

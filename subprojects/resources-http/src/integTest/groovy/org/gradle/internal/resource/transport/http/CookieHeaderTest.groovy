@@ -20,7 +20,7 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.internal.logging.CollectingTestOutputEventListener
 import org.gradle.internal.logging.ConfigureLogging
 import org.gradle.test.fixtures.server.http.HttpServer
-import org.gradle.testing.internal.util.Specification
+import spock.lang.Specification
 import org.junit.Rule
 import spock.lang.Unroll
 
@@ -40,6 +40,7 @@ class CookieHeaderTest extends Specification {
     HttpSettings settings = DefaultHttpSettings.builder()
         .withAuthenticationSettings([])
         .withSslContextFactory(sslContextFactory)
+        .withRedirectVerifier({})
         .build()
     HttpClientHelper client = new HttpClientHelper(settings)
 

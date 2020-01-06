@@ -18,6 +18,7 @@ package org.gradle.caching.configuration;
 
 import org.gradle.api.Action;
 import org.gradle.caching.BuildCacheServiceFactory;
+import org.gradle.caching.local.DirectoryBuildCache;
 import org.gradle.internal.HasInternalProtocol;
 
 import javax.annotation.Nullable;
@@ -28,7 +29,8 @@ import javax.annotation.Nullable;
  * @since 3.5
  */
 @HasInternalProtocol
-public interface BuildCacheConfiguration {
+@SuppressWarnings("deprecation")
+public interface BuildCacheConfiguration extends CompatibilitySupportForBuildCacheConfiguration {
 
     /**
      * Registers a custom build cache type.
@@ -39,42 +41,41 @@ public interface BuildCacheConfiguration {
     <T extends BuildCache> void registerBuildCacheService(Class<T> configurationType, Class<? extends BuildCacheServiceFactory<? super T>> buildCacheServiceFactoryType);
 
     /**
-     * Returns the local cache configuration.
+     * Returns the local directory cache configuration.
      */
-    BuildCache getLocal();
+    DirectoryBuildCache getLocal();
 
     /**
      * Configures the local cache with the given type.
      *
-     * <p><strong>Note:</strong> using any type except {@link org.gradle.caching.local.DirectoryBuildCache} is deprecated.</p>
-     *
-     * <p>If a local build cache has already been configured with a different type, this method replaces it.</p>
-     * <p>Storing ("push") in the local build cache is enabled by default.</p>
+     * <p><strong>Note:</strong> using any type except {@link org.gradle.caching.local.DirectoryBuildCache} is invalid.</p>
      *
      * @param type the type of local cache to configure.
+     *
+     * @deprecated Use {@link #getLocal()} instead.
      */
-    <T extends BuildCache> T local(Class<T> type);
+    @Deprecated
+    <T extends DirectoryBuildCache> T local(Class<T> type);
 
     /**
      * Configures the local cache with the given type.
      *
-     * <p><strong>Note:</strong> using any type except {@link org.gradle.caching.local.DirectoryBuildCache} is deprecated.</p>
-     *
-     * <p>If a local build cache has already been configured with a different type, this method replaces it.</p>
-     * <p>If a local build cache has already been configured with the <b>same</b> type, this method configures it.</p>
-     * <p>Storing ("push") in the local build cache is enabled by default.</p>
+     * <p><strong>Note:</strong> using any type except {@link org.gradle.caching.local.DirectoryBuildCache} is invalid.</p>
      *
      * @param type the type of local cache to configure.
      * @param configuration the configuration to execute against the remote cache.
+     *
+     * @deprecated Use {@link #local(Action)} instead.
      */
-    <T extends BuildCache> T local(Class<T> type, Action<? super T> configuration);
+    @Deprecated
+    <T extends DirectoryBuildCache> T local(Class<T> type, Action<? super T> configuration);
 
     /**
      * Executes the given action against the local configuration.
      *
      * @param configuration the action to execute against the local cache configuration.
      */
-    void local(Action<? super BuildCache> configuration);
+    void local(Action<? super DirectoryBuildCache> configuration);
 
     /**
      * Returns the remote cache configuration.

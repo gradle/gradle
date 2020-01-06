@@ -119,10 +119,6 @@ task showBroken { doLast { println configurations.compile.files } }
         child.pom.expectGet()
         parent.pom.expectGetMissing()
 
-        // Will always check for a default artifact with a module with 'pom' packaging
-        // TODO - should not make this request
-        parent.artifact.expectHeadMissing()
-
         and:
         fails 'showBroken'
 
@@ -131,8 +127,7 @@ task showBroken { doLast { println configurations.compile.files } }
                 .assertHasCause("Could not parse POM ${child.pom.uri}")
                 .assertHasCause("""Could not find org:parent:1.0.
 Searched in the following locations:
-  - ${parent.pom.uri}
-  - ${parent.artifact.uri}""")
+  - ${parent.pom.uri}""")
     }
 
     def "reports parent POM that cannot be parsed"() {

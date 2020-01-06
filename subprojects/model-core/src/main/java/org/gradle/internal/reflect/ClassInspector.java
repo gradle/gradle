@@ -18,11 +18,11 @@ package org.gradle.internal.reflect;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
+import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 public class ClassInspector {
@@ -38,14 +38,14 @@ public class ClassInspector {
 
     private static void visitGraph(Class<?> type, MutableClassDetails classDetails) {
         Set<Class<?>> seen = new HashSet<Class<?>>();
-        List<Class<?>> queue = new ArrayList<Class<?>>();
+        Deque<Class<?>> queue = new ArrayDeque<Class<?>>();
 
         // fully visit the class hierarchy before any interfaces in order to meet the contract
         // of PropertyDetails.getGetters() etc.
         queue.add(type);
         superClasses(type, queue);
         while (!queue.isEmpty()) {
-            Class<?> current = queue.remove(0);
+            Class<?> current = queue.removeFirst();
             if (!seen.add(current)) {
                 continue;
             }

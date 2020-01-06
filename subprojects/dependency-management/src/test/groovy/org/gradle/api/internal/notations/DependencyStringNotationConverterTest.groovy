@@ -16,14 +16,17 @@
 
 package org.gradle.api.internal.notations
 
+import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencyArtifact
+import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.internal.artifacts.dependencies.DefaultClientModule
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.internal.typeconversion.NotationParserBuilder
 import org.gradle.util.TestUtil
 import org.gradle.util.internal.SimpleMapInterner
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class DependencyStringNotationConverterTest extends Specification {
     def parser = new DependencyStringNotationConverter(TestUtil.instantiatorFactory().decorateLenient(), DefaultExternalModuleDependency.class, SimpleMapInterner.notThreadSafe());
@@ -88,8 +91,10 @@ class DependencyStringNotationConverterTest extends Specification {
         !d.changing
 
         d.artifacts.size() == 1
-        d.artifacts.find { it.name == 'gradle-core' && it.classifier == 'jdk-1.4' &&
-                it.type == DependencyArtifact.DEFAULT_TYPE && it.extension == DependencyArtifact.DEFAULT_TYPE }
+        d.artifacts.find {
+            it.name == 'gradle-core' && it.classifier == 'jdk-1.4' &&
+                it.type == DependencyArtifact.DEFAULT_TYPE && it.extension == DependencyArtifact.DEFAULT_TYPE
+        }
     }
 
     def "with 3-element GString"() {
@@ -205,6 +210,39 @@ class DependencyStringNotationConverterTest extends Specification {
 
         !d.force
         d.artifacts.size() == 0
+    }
+
+    @Unroll
+    def "parses short hand-notation #notation for strict dependencies"() {
+        def parser = new DependencyStringNotationConverter(TestUtil.instantiatorFactory().decorateLenient(), DefaultClientModule, SimpleMapInterner.notThreadSafe());
+
+        when:
+        def d = parse(parser, "org.foo:bar:$notation")
+
+        then:
+        d instanceof ExternalModuleDependency
+        d.group == 'org.foo'
+        d.name == 'bar'
+        d.versionConstraint.requiredVersion == strict
+        d.versionConstraint.strictVersion == strict
+        d.versionConstraint.preferredVersion == preferred
+
+        where:
+        notation          | strict       | preferred
+        '1.0!!'           | '1.0'        | ""
+        '[1.0, 2.0]!!'    | '[1.0, 2.0]' | ""
+        '[1.0, 2.0]!!1.5' | '[1.0, 2.0]' | '1.5'
+    }
+
+    def "rejects short hand notation for strict if it starts with double-bang"() {
+        def parser = new DependencyStringNotationConverter(TestUtil.instantiatorFactory().decorateLenient(), DefaultClientModule, SimpleMapInterner.notThreadSafe());
+
+        when:
+        parse(parser, "org.foo:bar:!!1.0")
+
+        then:
+        def t = thrown(InvalidUserCodeException)
+        t.message == 'The strict version modifier (!!) must be appended to a valid version number'
     }
 
     def parse(def parser, def value) {

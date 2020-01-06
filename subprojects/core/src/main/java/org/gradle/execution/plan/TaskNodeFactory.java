@@ -17,6 +17,7 @@
 package org.gradle.execution.plan;
 
 
+import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -28,9 +29,13 @@ import org.gradle.composite.internal.IncludedBuildTaskGraph;
 import org.gradle.composite.internal.IncludedBuildTaskResource.State;
 import org.gradle.internal.Actions;
 import org.gradle.internal.build.BuildState;
+import org.gradle.internal.resources.ResourceLock;
 
 import javax.annotation.Nullable;
+import java.io.File;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -39,6 +44,7 @@ public class TaskNodeFactory {
     private final IncludedBuildTaskGraph taskGraph;
     private final GradleInternal thisBuild;
     private final BuildIdentifier currentBuildId;
+    private final Map<File, String> canonicalizedFileCache = Maps.newIdentityHashMap();
 
     public TaskNodeFactory(GradleInternal thisBuild, IncludedBuildTaskGraph taskGraph) {
         this.thisBuild = thisBuild;
@@ -54,7 +60,7 @@ public class TaskNodeFactory {
         TaskNode node = nodes.get(task);
         if (node == null) {
             if (task.getProject().getGradle() == thisBuild) {
-                node = new LocalTaskNode((TaskInternal) task);
+                node = new LocalTaskNode((TaskInternal) task, canonicalizedFileCache);
             } else {
                 node = new TaskInAnotherBuild((TaskInternal) task, currentBuildId, taskGraph);
             }
@@ -90,9 +96,22 @@ public class TaskNodeFactory {
 
         @Nullable
         @Override
-        public Project getProject() {
+        public Project getProjectToLock() {
             // Ignore, as the node in the other build's execution graph takes care of this
             return null;
+        }
+
+        @Nullable
+        @Override
+        public Project getOwningProject() {
+            // Ignore, as the node in the other build's execution graph takes care of this
+            return null;
+        }
+
+        @Override
+        public List<ResourceLock> getResourcesToLock() {
+            // Ignore, as the node in the other build's execution graph will take care of this
+            return Collections.emptyList();
         }
 
         @Override
@@ -164,6 +183,11 @@ public class TaskNodeFactory {
             }
             TaskInAnotherBuild taskNode = (TaskInAnotherBuild) other;
             return task.getIdentityPath().compareTo(taskNode.task.getIdentityPath());
+        }
+
+        @Override
+        public void resolveMutations() {
+            // Assume for now that no task in the consuming build will destroy the outputs of this task or overlaps with this task
         }
 
         @Override

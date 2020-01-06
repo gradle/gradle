@@ -16,8 +16,6 @@
 
 package org.gradle.api.initialization.definition;
 
-import org.gradle.api.Incubating;
-
 /**
  * Specification of a dependency on a plugin injected into an included build.
  *
@@ -25,7 +23,6 @@ import org.gradle.api.Incubating;
  *
  * @since 4.6
  */
-@Incubating
 public interface InjectedPluginDependency {
 
 }

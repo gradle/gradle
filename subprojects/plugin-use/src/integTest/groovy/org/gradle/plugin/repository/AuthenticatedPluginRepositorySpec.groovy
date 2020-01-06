@@ -17,6 +17,7 @@
 package org.gradle.plugin.repository
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.IvyHttpModule
@@ -75,6 +76,7 @@ class AuthenticatedPluginRepositorySpec extends AbstractHttpDependencyResolution
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "can resolve plugin from Ivy repo with #authSchemeName and #serverAuthScheme"() {
         given:
         def pluginResults = publishTestPlugin(IVY)
@@ -111,6 +113,7 @@ class AuthenticatedPluginRepositorySpec extends AbstractHttpDependencyResolution
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "can resolve plugin from Maven repo with #authSchemeName and #serverAuthScheme"() {
         given:
         def pluginResults = publishTestPlugin(MAVEN)

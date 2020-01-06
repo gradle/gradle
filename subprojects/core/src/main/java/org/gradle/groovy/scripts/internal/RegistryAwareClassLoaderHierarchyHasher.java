@@ -18,21 +18,21 @@ package org.gradle.groovy.scripts.internal;
 
 import com.google.common.collect.Maps;
 import org.gradle.initialization.ClassLoaderRegistry;
-import org.gradle.internal.classloader.ClassLoaderHasher;
 import org.gradle.internal.classloader.ConfigurableClassLoaderHierarchyHasher;
+import org.gradle.internal.classloader.HashingClassLoaderFactory;
 import org.gradle.util.GradleVersion;
 
 import java.util.Map;
 
 public class RegistryAwareClassLoaderHierarchyHasher extends ConfigurableClassLoaderHierarchyHasher {
-    public RegistryAwareClassLoaderHierarchyHasher(ClassLoaderRegistry registry, ClassLoaderHasher classLoaderHasher) {
-        super(collectKnownClassLoaders(registry), classLoaderHasher);
+    public RegistryAwareClassLoaderHierarchyHasher(ClassLoaderRegistry registry, HashingClassLoaderFactory classLoaderFactory) {
+        super(collectKnownClassLoaders(registry), classLoaderFactory);
     }
 
     private static Map<ClassLoader, String> collectKnownClassLoaders(ClassLoaderRegistry registry) {
         Map<ClassLoader, String> knownClassLoaders = Maps.newHashMap();
 
-        String javaVmVersion = String.format("%s|%s|%s", System.getProperty("java.vm.name"), System.getProperty("java.vm.vendor"), System.getProperty("java.vm.vendor"));
+        String javaVmVersion = String.format("%s|%s", System.getProperty("java.vm.name"), System.getProperty("java.vm.vendor"));
         ClassLoader systemClassLoader = ClassLoader.getSystemClassLoader();
         if (systemClassLoader != null) {
             addClassLoader(knownClassLoaders, systemClassLoader, "system-app" + javaVmVersion);

@@ -32,8 +32,8 @@ open class AbstractPrecompiledScriptPluginTest : AbstractPluginTest() {
     protected
     inline fun <reified T> instantiatePrecompiledScriptOf(target: T, className: String): Any =
         loadCompiledKotlinClass(className)
-            .getConstructor(T::class.java)
-            .newInstance(target)
+            .getConstructor(T::class.java, T::class.java)
+            .newInstance(target, target)
 
     protected
     fun loadCompiledKotlinClass(className: String): Class<*> =

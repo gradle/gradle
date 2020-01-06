@@ -20,6 +20,7 @@ import org.gradle.api.internal.artifacts.configurations.ResolveConfigurationDepe
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.BuildOperationNotificationsFixture
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.server.http.AuthScheme
 import org.gradle.test.fixtures.server.http.MavenHttpModule
@@ -34,6 +35,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
     @SuppressWarnings("GroovyUnusedDeclaration")
     def operationNotificationsFixture = new BuildOperationNotificationsFixture(executer, temporaryFolder)
 
+    @ToBeFixedForInstantExecution
     def "resolved configurations are exposed via build operation"() {
         setup:
         buildFile << """                
@@ -44,14 +46,14 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
                 }
             }
             dependencies {
-                compile 'org.foo:hiphop:1.0'
-                compile 'org.foo:unknown:1.0' //does not exist
-                compile project(":child")
-                compile 'org.foo:rock:1.0' //contains unresolved transitive dependency
+                implementation 'org.foo:hiphop:1.0'
+                implementation 'org.foo:unknown:1.0' //does not exist
+                implementation project(":child")
+                implementation 'org.foo:rock:1.0' //contains unresolved transitive dependency
             }
 
             task resolve(type: Copy) {
-                from configurations.compile
+                from configurations.compileClasspath
                 into "build/resolved"
             }
         """
@@ -71,11 +73,11 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
 
         then:
         def op = operations.first(ResolveConfigurationDependenciesBuildOperationType)
-        op.details.configurationName == "compile"
+        op.details.configurationName == "compileClasspath"
         op.details.projectPath == ":"
         op.details.buildPath == ":"
         op.details.scriptConfiguration == false
-        op.details.configurationDescription ==~ /Dependencies for source set 'main'.*/
+        op.details.configurationDescription ==~ /Compile classpath for source set 'main'.*/
         op.details.configurationVisible == false
         op.details.configurationTransitive == true
 
@@ -116,6 +118,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         op.result.resolvedDependenciesCount == 1
     }
 
+    @ToBeFixedForInstantExecution
     def "resolved configurations in composite builds are exposed via build operation"() {
         setup:
         def m1 = mavenHttpRepo.module('org.foo', 'app-dep').publish()
@@ -130,12 +133,12 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
                 }
             }
             dependencies {
-                compile 'org.foo:root-dep:1.0'
-                compile 'org.foo:my-composite-app:1.0'
+                implementation 'org.foo:root-dep:1.0'
+                implementation 'org.foo:my-composite-app:1.0'
             }
 
             task resolve(type: Copy) {
-                from configurations.compile
+                from configurations.compileClasspath
                 into "build/resolved"
             }
         """
@@ -150,11 +153,11 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         then: "configuration of composite are exposed"
         def resolveOperations = operations.all(ResolveConfigurationDependenciesBuildOperationType)
         resolveOperations.size() == 2
-        resolveOperations[0].details.configurationName == "compile"
+        resolveOperations[0].details.configurationName == "compileClasspath"
         resolveOperations[0].details.projectPath == ":"
         resolveOperations[0].details.buildPath == ":"
         resolveOperations[0].details.scriptConfiguration == false
-        resolveOperations[0].details.configurationDescription ==~ /Dependencies for source set 'main'.*/
+        resolveOperations[0].details.configurationDescription ==~ /Compile classpath for source set 'main'.*/
         resolveOperations[0].details.configurationVisible == false
         resolveOperations[0].details.configurationTransitive == true
         resolveOperations[0].result.resolvedDependenciesCount == 2
@@ -316,7 +319,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
 
         then:
         def op = operations.first(ResolveConfigurationDependenciesBuildOperationType) {
-            it.details.configurationName == 'classpath' && it.details.buildPath == ':project-b'
+            it.details.configurationName == 'classpath' && it.details.buildPath == ':projectB'
         }
         op.result.resolvedDependenciesCount == 1
     }
@@ -333,7 +336,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
             }
             
             dependencies {
-                compile 'org.foo:app-dep:1.0'
+                implementation 'org.foo:app-dep:1.0'
             }
             
             tasks.withType(JavaCompile) {
@@ -455,7 +458,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
             }
                         
             dependencies {
-               compile 'org:a:1.0'
+               implementation 'org:a:1.0'
             }
             
             task resolve {
@@ -463,7 +466,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
                   // this will shutdown the project scope services, which is going to trigger a
                   // fatal dependency resolution error
                   services.close()
-                  println(configurations.compile.files.name)
+                  println(configurations.compileClasspath.files.name)
               }
             }
             
@@ -474,11 +477,12 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
 
         and:
         def op = operations.first(ResolveConfigurationDependenciesBuildOperationType)
-        op.details.configurationName == "compile"
+        op.details.configurationName == "compileClasspath"
         op.failure == "org.gradle.api.artifacts.ResolveException: Could not resolve all dependencies for configuration ':compile'."
         op.result == null
     }
 
+    @ToBeFixedForInstantExecution
     def "resolved components contain their source repository name, even when taken from the cache"() {
         setup:
         def secondMavenHttpRepo = new MavenHttpRepository(server, '/repo-2', new MavenFileRepository(file('maven-repo-2')))
@@ -512,18 +516,18 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
                 }
             }
             dependencies {
-                compile 'org.foo:direct1:1.0'
-                compile 'org.foo:direct2:1.0'
-                compile project(':child')
+                implementation 'org.foo:direct1:1.0'
+                implementation 'org.foo:direct2:1.0'
+                implementation project(':child')
             }
 
-            task resolve { doLast { configurations.compile.resolve() } }
+            task resolve { doLast { configurations.runtimeClasspath.resolve() } }
             
             project(':child') {
                 apply plugin: "java"
                 dependencies {
-                    compile 'org.foo:child-transitive1:1.0'
-                    compile 'org.foo:child-transitive2:1.0'
+                    implementation 'org.foo:child-transitive1:1.0'
+                    implementation 'org.foo:child-transitive2:1.0'
                 }
             }
         """
@@ -577,17 +581,17 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
                 }
             }
             dependencies {
-                compile 'org.foo:direct1:1.0'
-                compile 'org.foo:missing-direct:1.0' // does not exist
-                compile project(':child')
+                implementation 'org.foo:direct1:1.0'
+                implementation 'org.foo:missing-direct:1.0' // does not exist
+                implementation project(':child')
             }
 
-            task resolve { doLast { configurations.compile.resolve() } }
+            task resolve { doLast { configurations.runtimeClasspath.resolve() } }
             
             project(':child') {
                 apply plugin: "java"
                 dependencies {
-                    compile 'org.foo:broken-transitive:1.0' // throws exception trying to resolve
+                    implementation 'org.foo:broken-transitive:1.0' // throws exception trying to resolve
                 }
             }
         """
@@ -610,6 +614,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         resolvedComponents.'org.foo:transitive1:1.0'.repoName == 'maven1'
     }
 
+    @ToBeFixedForInstantExecution
     def "resolved components contain their source repository id, even when they are structurally identical"() {
         setup:
         buildFile << """                
@@ -629,10 +634,10 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
                 }
             }
             dependencies {
-                compile 'org.foo:good:1.0'
+                implementation 'org.foo:good:1.0'
             }
 
-            task resolve { doLast { configurations.compile.resolve() } }
+            task resolve { doLast { configurations.compileClasspath.resolve() } }
         """
         def module = mavenHttpRepo.module('org.foo', 'good').publish()
         server.authenticationScheme = AuthScheme.BASIC
@@ -658,5 +663,49 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         def resolvedComponents2 = op2.result.components
         resolvedComponents2.size() == 2
         resolvedComponents2.'org.foo:good:1.0'.repoName == 'withoutCreds'
+    }
+
+    def "resolved component op includes configuration requested attributes"() {
+        setup:
+        mavenHttpRepo.module('org.foo', 'stuff').publish().allowAll()
+
+        settingsFile << "include 'fixtures'"
+        buildFile << """                
+            allprojects {
+                apply plugin: "java"
+                apply plugin: "java-test-fixtures"
+                repositories {
+                    maven { url '${mavenHttpRepo.uri}' }
+                }
+            }
+            dependencies {
+                testImplementation(testFixtures(project(':fixtures')))
+            }
+
+            project(':fixtures') {
+                dependencies {
+                    testFixturesApi('org.foo:stuff:1.0')
+                }
+            }
+        """
+        file("fixtures/src/testFixtures/java/SomeClass.java") << "class SomeClass {}"
+        file("src/test/java/SomeTest.java") << "class SomeClass {}"
+
+        when:
+        succeeds ':test'
+
+        then:
+        operations.all(ResolveConfigurationDependenciesBuildOperationType, { it.details.configurationName.endsWith('Classpath') }).result.every {
+            it.requestedAttributes.find { it.name == 'org.gradle.dependency.bundling' }.value == 'external'
+            it.requestedAttributes.find { it.name == 'org.gradle.jvm.version' }.value
+        }
+        operations.all(ResolveConfigurationDependenciesBuildOperationType, { it.details.configurationName.endsWith('CompileClasspath') }).result.every {
+            it.requestedAttributes.find { it.name == 'org.gradle.usage' }.value == 'java-api'
+            it.requestedAttributes.find { it.name == 'org.gradle.libraryelements' }.value == 'classes'
+        }
+        operations.all(ResolveConfigurationDependenciesBuildOperationType, { it.details.configurationName.endsWith('RuntimeClasspath') }).result.every {
+            it.requestedAttributes.find { it.name == 'org.gradle.usage' }.value == 'java-runtime'
+            it.requestedAttributes.find { it.name == 'org.gradle.libraryelements' }.value == 'jar'
+        }
     }
 }

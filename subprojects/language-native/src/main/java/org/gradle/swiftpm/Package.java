@@ -16,7 +16,6 @@
 
 package org.gradle.swiftpm;
 
-import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 
 import java.util.Set;
@@ -26,7 +25,7 @@ import java.util.Set;
  *
  * @since 4.6
  */
-@HasInternalProtocol @Incubating
+@HasInternalProtocol
 public interface Package {
     /**
      * Returns the products of this package.

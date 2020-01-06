@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.ClassPathProvider;
+import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.specs.Spec;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
@@ -68,12 +69,47 @@ import java.util.zip.ZipOutputStream;
 public class WorkerProcessClassPathProvider implements ClassPathProvider, Closeable {
     private static final Logger LOGGER = LoggerFactory.getLogger(WorkerProcessClassPathProvider.class);
     private final CacheRepository cacheRepository;
+    private final ModuleRegistry moduleRegistry;
     private final Object lock = new Object();
     private ClassPath workerClassPath;
     private PersistentCache workerClassPathCache;
 
-    public WorkerProcessClassPathProvider(CacheRepository cacheRepository) {
+    public static final String[] RUNTIME_MODULES = new String[] {
+            "gradle-core-api",
+            "gradle-core",
+            "gradle-logging",
+            "gradle-messaging",
+            "gradle-base-services",
+            "gradle-cli",
+            "gradle-native",
+            "gradle-dependency-management",
+            "gradle-workers",
+            "gradle-worker-processes",
+            "gradle-process-services",
+            "gradle-persistent-cache",
+            "gradle-model-core",
+            "gradle-jvm-services",
+            "gradle-files",
+            "gradle-file-collections",
+            "gradle-hashing",
+            "gradle-snapshots"
+    };
+
+    public static final String[] RUNTIME_EXTERNAL_MODULES = new String[] {
+            "slf4j-api",
+            "jul-to-slf4j",
+            "native-platform",
+            "kryo",
+            "commons-lang",
+            "guava",
+            "javax.inject",
+            "groovy-all",
+            "asm"
+    };
+
+    public WorkerProcessClassPathProvider(CacheRepository cacheRepository, ModuleRegistry moduleRegistry) {
         this.cacheRepository = cacheRepository;
+        this.moduleRegistry = moduleRegistry;
     }
 
     @Override
@@ -90,6 +126,27 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider, Closea
                 LOGGER.debug("Using worker process classpath: {}", workerClassPath);
                 return workerClassPath;
             }
+        }
+
+        // Gradle core plus worker implementation classes
+        if (name.equals("CORE_WORKER_RUNTIME")) {
+            ClassPath classpath = ClassPath.EMPTY;
+            classpath = classpath.plus(moduleRegistry.getModule("gradle-core").getAllRequiredModulesClasspath());
+            classpath = classpath.plus(moduleRegistry.getModule("gradle-dependency-management").getAllRequiredModulesClasspath());
+            classpath = classpath.plus(moduleRegistry.getModule("gradle-workers").getAllRequiredModulesClasspath());
+            return classpath;
+        }
+
+        // Just the minimal stuff necessary for the worker infrastructure
+        if (name.equals("MINIMUM_WORKER_RUNTIME")) {
+            ClassPath classpath = ClassPath.EMPTY;
+            for (String module : RUNTIME_MODULES) {
+                classpath = classpath.plus(moduleRegistry.getModule(module).getImplementationClasspath());
+            }
+            for (String externalModule : RUNTIME_EXTERNAL_MODULES) {
+                classpath = classpath.plus(moduleRegistry.getExternalModule(externalModule).getImplementationClasspath());
+            }
+            return classpath;
         }
 
         return null;

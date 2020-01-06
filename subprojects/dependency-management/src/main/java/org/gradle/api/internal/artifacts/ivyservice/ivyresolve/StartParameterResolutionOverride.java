@@ -16,17 +16,27 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.StartParameter;
+import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.verification.DependencyVerificationMode;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.ChecksumAndSignatureVerificationOverride;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.DependencyVerificationOverride;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.writer.WriteDependencyVerificationFile;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.ExternalResourceCachePolicy;
 import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost;
+import org.gradle.api.internal.artifacts.verification.signatures.SignatureVerificationServiceFactory;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
-import org.gradle.internal.component.model.ModuleSource;
+import org.gradle.internal.component.model.ConfigurationMetadata;
+import org.gradle.internal.component.model.ModuleSources;
+import org.gradle.internal.hash.ChecksumService;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.resolve.ArtifactResolveException;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
@@ -38,8 +48,10 @@ import org.gradle.internal.resource.ReadableContent;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.transfer.ExternalResourceConnector;
 import org.gradle.internal.resource.transfer.ExternalResourceReadResponse;
+import org.gradle.util.SingleMessageLogger;
 
 import javax.annotation.Nullable;
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.List;
@@ -64,6 +76,33 @@ public class StartParameterResolutionOverride {
             return new OfflineModuleComponentRepository(original);
         }
         return original;
+    }
+
+    public DependencyVerificationOverride dependencyVerificationOverride(BuildOperationExecutor buildOperationExecutor,
+                                                                         ChecksumService checksumService,
+                                                                         SignatureVerificationServiceFactory signatureVerificationServiceFactory,
+                                                                         DocumentationRegistry documentationRegistry) {
+        File currentDir = startParameter.getCurrentDir();
+        List<String> checksums = startParameter.getWriteDependencyVerifications();
+        if (!checksums.isEmpty()) {
+            SingleMessageLogger.incubatingFeatureUsed("Dependency verification");
+            return new WriteDependencyVerificationFile(currentDir, buildOperationExecutor, checksums, checksumService, signatureVerificationServiceFactory, startParameter.isDryRun(), startParameter.isExportKeys());
+        } else {
+            File verificationsFile = DependencyVerificationOverride.dependencyVerificationsFile(currentDir);
+            File keyringsFile = DependencyVerificationOverride.keyringsFile(currentDir);
+            if (verificationsFile.exists()) {
+                if (startParameter.getDependencyVerificationMode() == DependencyVerificationMode.OFF) {
+                    return DependencyVerificationOverride.NO_VERIFICATION;
+                }
+                SingleMessageLogger.incubatingFeatureUsed("Dependency verification");
+                try {
+                    return new ChecksumAndSignatureVerificationOverride(buildOperationExecutor, startParameter.getGradleUserHomeDir(), verificationsFile, keyringsFile, checksumService, signatureVerificationServiceFactory, startParameter.getDependencyVerificationMode(), documentationRegistry);
+                } catch (Exception e) {
+                    return new FailureVerificationOverride(e, verificationsFile);
+                }
+            }
+        }
+        return DependencyVerificationOverride.NO_VERIFICATION;
     }
 
     private static class OfflineModuleComponentRepository extends BaseModuleComponentRepository {
@@ -102,12 +141,12 @@ public class StartParameterResolutionOverride {
         }
 
         @Override
-        public void resolveArtifacts(ComponentResolveMetadata component, BuildableComponentArtifactsResolveResult result) {
+        public void resolveArtifacts(ComponentResolveMetadata component, ConfigurationMetadata variant, BuildableComponentArtifactsResolveResult result) {
             result.failed(new ArtifactResolveException(component.getId(), "No cached version available for offline mode"));
         }
 
         @Override
-        public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
+        public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSources moduleSources, BuildableArtifactResolveResult result) {
             result.failed(new ArtifactResolveException(artifact.getId(), "No cached version available for offline mode"));
         }
 
@@ -162,6 +201,21 @@ public class StartParameterResolutionOverride {
 
         private ResourceException offlineResource(URI source) {
             return new ResourceException(source, String.format("No cached resource '%s' available for offline mode.", source));
+        }
+    }
+
+    private static class FailureVerificationOverride implements DependencyVerificationOverride {
+        private final Exception error;
+        private final File verificationFile;
+
+        private FailureVerificationOverride(Exception error, File verificationFile) {
+            this.error = error;
+            this.verificationFile = verificationFile;
+        }
+
+        @Override
+        public ModuleComponentRepository overrideDependencyVerification(ModuleComponentRepository original) {
+            throw new GradleException("Dependency verification cannot be performed because the configuration couldn't be read: "+ verificationFile, error);
         }
     }
 }

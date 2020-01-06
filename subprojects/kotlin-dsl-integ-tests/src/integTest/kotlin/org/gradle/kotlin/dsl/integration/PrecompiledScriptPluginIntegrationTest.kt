@@ -1,5 +1,6 @@
 package org.gradle.kotlin.dsl.integration
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil.jcenterRepository
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
 import org.gradle.test.fixtures.dsl.GradleDsl
@@ -15,12 +16,13 @@ import org.junit.Test
 class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
 
     @Test
+    @ToBeFixedForInstantExecution
     fun `generated code follows kotlin-dsl coding conventions`() {
 
         withBuildScript("""
             plugins {
                 `kotlin-dsl`
-                id("org.gradle.kotlin-dsl.ktlint-convention") version "0.3.0"
+                id("org.gradle.kotlin-dsl.ktlint-convention") version "0.4.1"
             }
 
             $repositoriesBlock
@@ -41,11 +43,11 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
 
         build("generateScriptPluginAdapters")
 
-        executer.expectDeprecationWarning()
-        build("ktlintC")
+        build("ktlintCheck", "-x", "ktlintKotlinScriptCheck")
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     fun `precompiled script plugins tasks are cached and relocatable`() {
 
         requireGradleDistributionOnEmbeddedExecuter()
@@ -57,7 +59,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
         withDefaultSettingsIn(firstLocation).appendText("""
             rootProject.name = "test"
             buildCache {
-                local<DirectoryBuildCache> {
+                local {
                     directory = file("${cacheDir.normalisedPath}")
                 }
             }
@@ -107,6 +109,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     fun `precompiled script plugins adapters generation clean stale outputs`() {
 
         withBuildScript("""
@@ -147,6 +150,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     fun `accessors are available after script body change`() {
 
         requireGradleDistributionOnEmbeddedExecuter()

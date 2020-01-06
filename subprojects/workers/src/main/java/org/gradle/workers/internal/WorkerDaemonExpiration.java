@@ -71,7 +71,7 @@ public class WorkerDaemonExpiration implements MemoryHolder {
         @Override
         public List<WorkerDaemonClient> transform(List<WorkerDaemonClient> idleClients) {
             int notExpirable = 0;
-            List<WorkerDaemonClient> toExpire = new ArrayList<WorkerDaemonClient>();
+            List<WorkerDaemonClient> toExpire = new ArrayList<>();
             for (WorkerDaemonClient idleClient : idleClients) {
                 if (idleClient.isNotExpirable()) {
                     notExpirable++;

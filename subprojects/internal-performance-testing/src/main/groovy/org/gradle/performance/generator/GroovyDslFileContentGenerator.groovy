@@ -22,8 +22,28 @@ class GroovyDslFileContentGenerator extends FileContentGenerator {
     }
 
     @Override
+    protected String generateEnableFeaturePreviewCode() {
+        return """def enableFeaturePreviewSafe(String feature) {
+                     try {
+                        enableFeaturePreview(feature)
+                        println "Enabled feature preview " + feature
+                     } catch(Exception ignored) {
+                        println "Failed to enable feature preview " + feature
+                     }
+                }
+
+                ${config.featurePreviews.collect { "enableFeaturePreviewSafe(\"$it\")" }.join("\n")}
+            """
+    }
+
+    @Override
     protected String missingJavaLibrarySupportFlag() {
         "def missingJavaLibrarySupport = GradleVersion.current() < GradleVersion.version('3.4')"
+    }
+
+    @Override
+    protected String noJavaLibraryPluginFlag() {
+        "def noJavaLibraryPlugin = hasProperty('noJavaLibraryPlugin')"
     }
 
     @Override
@@ -34,12 +54,19 @@ class GroovyDslFileContentGenerator extends FileContentGenerator {
         int testForkEvery = getProperty('testForkEvery') as Integer
         List<String> javaCompileJvmArgs = findProperty('javaCompileJvmArgs')?.tokenize(';') ?: []
 
-        tasks.withType(JavaCompile) {
+        tasks.withType(AbstractCompile) {
             options.fork = true
             options.incremental = true
             options.forkOptions.memoryInitialSize = compilerMemory
             options.forkOptions.memoryMaximumSize = compilerMemory
             options.forkOptions.jvmArgs.addAll(javaCompileJvmArgs)
+        }
+
+        tasks.withType(GroovyCompile) {
+            groovyOptions.fork = true
+            groovyOptions.forkOptions.memoryInitialSize = compilerMemory
+            groovyOptions.forkOptions.memoryMaximumSize = compilerMemory
+            groovyOptions.forkOptions.jvmArgs.addAll(javaCompileJvmArgs)
         }
         
         tasks.withType(Test) {
@@ -88,13 +115,18 @@ class GroovyDslFileContentGenerator extends FileContentGenerator {
                 compile.extendsFrom implementation
                 testCompile.extendsFrom testImplementation
             }
+        } else if (noJavaLibraryPlugin) {
+            configurations {
+                ${hasParent ? 'api' : ''}
+                ${hasParent ? 'compile.extendsFrom api' : ''}
+            }
         }
         """
     }
 
     @Override
     protected String directDependencyDeclaration(String configuration, String notation) {
-        "$configuration '$notation'"
+        notation.endsWith('()') ? "$configuration $notation" : "$configuration '$notation'"
     }
 
     @Override

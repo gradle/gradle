@@ -83,6 +83,47 @@ public interface ResolutionStrategy {
     ResolutionStrategy failOnVersionConflict();
 
     /**
+     * If this method is called, Gradle will make sure that no dynamic version was used in the resulting dependency graph.
+     * In practice, it means that if the resolved dependency graph contains a module and that the versions participating
+     * in the selection of that module contain at least one dynamic version, then resolution will fail if the resolution
+     * result can change because of this version selector.
+     *
+     * This can be used in cases you want to make sure your build is reproducible, <i>without</i> relying on
+     * dependency locking.
+     *
+     * @return this resolution strategy
+     * @since 6.1
+     */
+    @Incubating
+    ResolutionStrategy failOnDynamicVersions();
+
+    /**
+     * If this method is called, Gradle will make sure that no changing version participates in resolution.
+     *
+     * This can be used in cases you want to make sure your build is reproducible, <i>without</i> relying on
+     * dependency locking.
+     *
+     * @return this resolution strategy
+     * @since 6.1
+     */
+    @Incubating
+    ResolutionStrategy failOnChangingVersions();
+
+    /**
+     * Configures Gradle to fail the build is the resolution result is expected to be unstable, that is to say that
+     * it includes dynamic versions or changing versions and therefore the result may change depending
+     * on when the build is executed.
+     *
+     * This method is equivalent to calling both {@link #failOnDynamicVersions()} and
+     * {@link #failOnChangingVersions()}.
+     *
+     * @return this resolution strategy
+     * @since 6.1
+     */
+    @Incubating
+    ResolutionStrategy failOnNonReproducibleResolution();
+
+    /**
      * Gradle can resolve conflicts purely by version number or prioritize project dependencies over binary.
      * The default is <b>by version number</b>.<p>
      * This applies to both first level and transitive dependencies. See example below:
@@ -107,8 +148,17 @@ public interface ResolutionStrategy {
      * @return this resolution strategy instance
      * @since 4.8
      */
-    @Incubating
     ResolutionStrategy activateDependencyLocking();
+
+    /**
+     * Deactivates dependency locking support in Gradle.
+     *
+     * @return this resolution strategy instance
+     * @since 6.0
+     */
+    @Incubating
+    ResolutionStrategy deactivateDependencyLocking();
+
 
     /**
      * Allows forcing certain versions of dependencies, including transitive dependencies.
@@ -294,8 +344,8 @@ public interface ResolutionStrategy {
      * Specifies the ordering for resolved artifacts. Options are:
      * <ul>
      * <li>{@link SortOrder#DEFAULT} : Don't specify the sort order. Gradle will provide artifacts in the default order.</li>
-     * <li>{@link SortOrder#CONSUMER_FIRST} : Artifacts for a consuming component should appear <em>before</em> artifacts for it's dependencies.</li>
-     * <li>{@link SortOrder#DEPENDENCY_FIRST} : Artifacts for a consuming component should appear <em>after</em> artifacts for it's dependencies.</li>
+     * <li>{@link SortOrder#CONSUMER_FIRST} : Artifacts for a consuming component should appear <em>before</em> artifacts for its dependencies.</li>
+     * <li>{@link SortOrder#DEPENDENCY_FIRST} : Artifacts for a consuming component should appear <em>after</em> artifacts for its dependencies.</li>
      * </ul>
      * A best attempt will be made to sort artifacts according the supplied {@link SortOrder}, but no guarantees will be made in the presence of dependency cycles.
      *
@@ -305,6 +355,26 @@ public interface ResolutionStrategy {
      * @since 3.5
      */
     void sortArtifacts(SortOrder sortOrder);
+
+    /**
+     * Configures the capabilities resolution strategy.
+     *
+     * @param action the configuration action.
+     *
+     * @return this resolution strategy
+     *
+     * @since 5.6
+     */
+    @Incubating
+    ResolutionStrategy capabilitiesResolution(Action<? super CapabilitiesResolution> action);
+
+    /**
+     * Returns the capabilities resolution strategy.
+     *
+     * @since 5.6
+     */
+    @Incubating
+    CapabilitiesResolution getCapabilitiesResolution();
 
     /**
      * Defines the sort order for components and artifacts produced by the configuration.

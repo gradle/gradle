@@ -490,13 +490,34 @@ public class TestFile extends File {
         return hashingStream.hash().toString();
     }
 
-    public void createLink(File target) {
-        createLink(target.getAbsolutePath());
+    public TestFile createLink(String target) {
+        return createLink(new File(target));
     }
 
-    public void createLink(String target) {
-        NativeServices.getInstance().get(FileSystem.class).createSymbolicLink(this, new File(target));
+    public TestFile createLink(File target) {
+        FileSystem fileSystem = NativeServices.getInstance().get(FileSystem.class);
+        if (fileSystem.isSymlink(this)) {
+            try {
+                Files.delete(toPath());
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        }
+        fileSystem.createSymbolicLink(this, target);
         clearCanonCaches();
+        return this;
+    }
+
+    public TestFile createNamedPipe() {
+        try {
+            Process mkfifo = new ProcessBuilder("mkfifo", getAbsolutePath())
+                .redirectErrorStream(true)
+                .start();
+            assert mkfifo.waitFor() == 0; // assert the exit value signals success
+            return this;
+        } catch (IOException | InterruptedException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     private void clearCanonCaches() {
@@ -709,6 +730,18 @@ public class TestFile extends File {
         return this;
     }
 
+    public TestFile makeUnreadable() {
+        setReadable(false, false);
+        assert !Files.isReadable(toPath());
+        return this;
+    }
+
+    public TestFile makeReadable() {
+        setReadable(true, false);
+        assert Files.isReadable(toPath());
+        return this;
+    }
+
     public TestFile createFile(Object path) {
         return file(path).createFile();
     }
@@ -835,7 +868,7 @@ public class TestFile extends File {
         return baseDir.toURI().relativize(toURI());
     }
 
-    public class Snapshot {
+    public static class Snapshot {
         private final long modTime;
         private final HashCode hash;
 

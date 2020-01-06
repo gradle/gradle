@@ -16,7 +16,6 @@
 
 package org.gradle.nativeplatform;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.tasks.Input;
@@ -27,7 +26,6 @@ import org.gradle.api.tasks.Input;
  *
  * @since 5.1
  */
-@Incubating
 public abstract class OperatingSystemFamily implements Named {
     public static final Attribute<OperatingSystemFamily> OPERATING_SYSTEM_ATTRIBUTE = Attribute.of("org.gradle.native.operatingSystem", OperatingSystemFamily.class);
 

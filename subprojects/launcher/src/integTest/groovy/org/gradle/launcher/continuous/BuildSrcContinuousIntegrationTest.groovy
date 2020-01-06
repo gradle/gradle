@@ -16,7 +16,10 @@
 
 package org.gradle.launcher.continuous
 
-class BuildSrcContinuousIntegrationTest extends Java7RequiringContinuousIntegrationTest {
+import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+
+class BuildSrcContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
 
     def setup() {
         file("buildSrc/src/main/groovy/Thing.groovy") << """
@@ -29,6 +32,7 @@ class BuildSrcContinuousIntegrationTest extends Java7RequiringContinuousIntegrat
         succeeds("help")
     }
 
+    @ToBeFixedForInstantExecution
     def "can build and reload a project with buildSrc when buildSrc changes"() {
         when:
         buildScript """

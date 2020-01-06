@@ -34,10 +34,4 @@ public interface ExcludeSpec {
      */
     boolean mayExcludeArtifacts();
 
-    /**
-     * This method is used to determine if 2 excludes are equivalent, only differing by the artifact they exclude.
-     * This is used by the resolution engine to figure out if it should invalidate a previous visit or not.
-     */
-    boolean equalsIgnoreArtifact(ExcludeSpec other);
-
 }

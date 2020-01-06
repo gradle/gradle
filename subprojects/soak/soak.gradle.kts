@@ -27,20 +27,19 @@ dependencies {
     testFixturesImplementation(project(":internalIntegTesting"))
 
     testImplementation(project(":kotlinDslTestFixtures"))
+    testImplementation(testFixtures(project(":core")))
 
     integTestImplementation(project(":logging"))
     integTestImplementation(project(":persistentCache"))
-    integTestImplementation(project(":launcherStartup"))
+    integTestImplementation(project(":launcher"))
     integTestImplementation(library("slf4j_api"))
     integTestImplementation(testLibrary("jetty"))
+
+    integTestRuntimeOnly(project(":runtimeApiInfo"))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.INTERNAL
-}
-
-testFixtures {
-    from(":core")
 }
 
 tasks.integTest {

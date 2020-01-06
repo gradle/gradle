@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.Configuration;
  * hashcode based on its values not on object identity.
  * @see org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer
  */
+@Deprecated
 public class Conf2ScopeMapping {
     private Integer priority;
     private Configuration configuration;
@@ -91,5 +92,10 @@ public class Conf2ScopeMapping {
         result = 31 * result + configuration.hashCode();
         result = 31 * result + (scope != null ? scope.hashCode() : 0);
         return result;
+    }
+
+    @Override
+    public String toString() {
+        return "Conf2ScopeMapping{scope='" + scope + "', configuration='" + configuration.getName() + "'}";
     }
 }

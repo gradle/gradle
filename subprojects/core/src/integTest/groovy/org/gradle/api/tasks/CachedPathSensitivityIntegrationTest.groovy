@@ -17,6 +17,7 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Unroll
 
 @Unroll
@@ -41,6 +42,12 @@ class CachedPathSensitivityIntegrationTest extends AbstractPathSensitivityIntegr
         run "clean"
     }
 
+    @Override
+    String getStatusForReusedOutput() {
+        return "FROM-CACHE"
+    }
+
+    @ToBeFixedForInstantExecution
     def "single #pathSensitivity input file loaded from cache can be used as input"() {
         file("src/data/input.txt").text = "data"
 
@@ -57,8 +64,11 @@ class CachedPathSensitivityIntegrationTest extends AbstractPathSensitivityIntegr
             task consumer {
                 dependsOn producer
                 outputs.cacheIf { true }
-                inputs.file("outputs/producer.txt").withPathSensitivity(PathSensitivity.$pathSensitivity)
+                inputs.file("outputs/producer.txt")
+                    .withPropertyName("producer")
+                    .withPathSensitivity(PathSensitivity.$pathSensitivity)
                 outputs.file("outputs/consumer.txt")
+                    .withPropertyName("consumer")
                 doLast {
                     file("outputs/consumer.txt").text = file("outputs/producer.txt").text
                 }

@@ -33,4 +33,9 @@ public class WindowsConsoleDetector implements ConsoleDetector {
             return null;
         }
     }
+
+    @Override
+    public boolean isConsoleInput() {
+        return System.console() != null;
+    }
 }

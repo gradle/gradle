@@ -16,14 +16,23 @@
 
 package org.gradle.instantexecution.serialization
 
-import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.instantexecution.extensions.uncheckedCast
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.serialize.BaseSerializerFactory
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.Serializer
+
 import java.io.File
+
+import java.util.ArrayDeque
+
+import kotlin.coroutines.Continuation
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.coroutineContext
+import kotlin.coroutines.startCoroutine
+import kotlin.coroutines.suspendCoroutine
 
 
 internal
@@ -32,79 +41,176 @@ fun <T> singleton(value: T): Codec<T> =
 
 
 internal
-inline fun <reified T> ownerProjectService() =
-    codec<T>({ }, { readProjectService() })
+inline fun <reified T> ownerService() =
+    codec<T>({ }, { readOwnerService() })
+
+
+internal
+inline fun <reified T : Any> unsupported(): Codec<T> = codec(
+    encode = { value ->
+        logUnsupported(T::class, value.javaClass)
+    },
+    decode = {
+        logUnsupported(T::class)
+        null
+    }
+)
 
 
 internal
 fun <T> codec(
-    encode: WriteContext.(T) -> Unit,
-    decode: ReadContext.() -> T?
+    encode: suspend WriteContext.(T) -> Unit,
+    decode: suspend ReadContext.() -> T?
 ): Codec<T> = object : Codec<T> {
-    override fun WriteContext.encode(value: T) = encode(value)
-    override fun ReadContext.decode(): T? = decode()
+    override suspend fun WriteContext.encode(value: T) = encode(value)
+    override suspend fun ReadContext.decode(): T? = decode()
 }
 
 
 private
-inline fun <reified T> ReadContext.readProjectService() =
-    ownerProject.services.get(T::class.java)
+inline fun <reified T> ReadContext.readOwnerService() =
+    isolate.owner.service<T>()
 
 
 internal
-val IsolateContext.ownerProject
-    get() = isolate.owner.project as ProjectInternal
+fun <T : Any> reentrant(codec: Codec<T>): Codec<T> = object : Codec<T> {
+
+    val encodeStack = ArrayDeque<EncodeFrame<T>>()
+
+    val decodeStack = ArrayDeque<DecodeFrame<T?>>()
+
+    override suspend fun WriteContext.encode(value: T) {
+        when {
+            encodeStack.isEmpty() -> {
+                encodeStack.push(EncodeFrame(value, null))
+                encodeLoop(coroutineContext)
+            }
+            else -> suspendCoroutine<Unit> { k ->
+                encodeStack.push(EncodeFrame(value, k))
+            }
+        }
+    }
+
+    override suspend fun ReadContext.decode(): T? =
+        when {
+            immediateMode -> {
+                codec.run { decode() }
+            }
+            decodeStack.isEmpty() -> {
+                decodeStack.push(DecodeFrame(null))
+                decodeLoop(coroutineContext)
+            }
+            else -> suspendCoroutine { k ->
+                decodeStack.push(DecodeFrame(k))
+            }
+        }
+
+    private
+    fun WriteContext.encodeLoop(coroutineContext: CoroutineContext) {
+        do {
+            suspend {
+                codec.run {
+                    encode(encodeStack.peek().value)
+                }
+            }.startCoroutine(
+                Continuation(coroutineContext) {
+                    when (val k = encodeStack.pop().k) {
+                        null -> it.getOrThrow()
+                        else -> k.resumeWith(it)
+                    }
+                }
+            )
+        } while (encodeStack.isNotEmpty())
+    }
+
+    private
+    fun ReadContext.decodeLoop(coroutineContext: CoroutineContext): T? {
+        var result: T? = null
+        do {
+            suspend {
+                codec.run { decode() }
+            }.startCoroutine(
+                Continuation(coroutineContext) {
+                    when (val k = decodeStack.pop().k) {
+                        null -> result = it.getOrThrow()
+                        else -> k.resumeWith(it)
+                    }
+                }
+            )
+        } while (decodeStack.isNotEmpty())
+        return result
+    }
+}
+
+
+@Suppress("experimental_feature_warning")
+private
+inline class DecodeFrame<T>(val k: Continuation<T>?)
+
+
+private
+data class EncodeFrame<T>(val value: T, val k: Continuation<Unit>?)
 
 
 private
 data class SingletonCodec<T>(
     private val singleton: T
 ) : Codec<T> {
-    override fun WriteContext.encode(value: T) = Unit
-    override fun ReadContext.decode(): T? = singleton
+    override suspend fun WriteContext.encode(value: T) = Unit
+    override suspend fun ReadContext.decode(): T? = singleton
 }
 
 
 internal
 data class SerializerCodec<T>(val serializer: Serializer<T>) : Codec<T> {
-    override fun WriteContext.encode(value: T) = serializer.write(this, value)
-    override fun ReadContext.decode(): T = serializer.read(this)
+    override suspend fun WriteContext.encode(value: T) = serializer.write(this, value)
+    override suspend fun ReadContext.decode(): T = serializer.read(this)
 }
 
 
 internal
-fun WriteContext.writeClass(value: Class<*>) {
-    writeString(value.name)
+fun WriteContext.writeClassArray(values: Array<Class<*>>) {
+    writeArray(values) { writeClass(it) }
 }
 
 
 internal
-fun ReadContext.readClass(): Class<*> =
-    taskClassLoader.loadClass(readString())
+fun ReadContext.readClassArray(): Array<Class<*>> =
+    readArray { readClass() }
 
 
 internal
-fun ReadContext.readList() = readCollectionInto { size -> ArrayList<Any?>(size) }
+suspend fun ReadContext.readList(): List<Any?> =
+    readList { read() }
 
 
 internal
-fun ReadContext.readSet() = readCollectionInto { size -> LinkedHashSet<Any?>(size) }
+inline fun <T : Any?> ReadContext.readList(readElement: () -> T): List<T> =
+    readCollectionInto({ size -> ArrayList<T>(size) }) {
+        readElement()
+    }
 
 
 internal
-fun WriteContext.writeCollection(value: Collection<*>) {
+suspend fun WriteContext.writeCollection(value: Collection<*>) {
     writeCollection(value) { write(it) }
 }
 
 
 internal
-fun <T : MutableCollection<Any?>> ReadContext.readCollectionInto(factory: (Int) -> T): T =
+suspend fun <T : MutableCollection<Any?>> ReadContext.readCollectionInto(factory: (Int) -> T): T =
     readCollectionInto(factory) { read() }
 
 
 internal
-fun WriteContext.writeMap(value: Map<*, *>) {
+suspend fun WriteContext.writeMap(value: Map<*, *>) {
     writeSmallInt(value.size)
+    writeMapEntries(value)
+}
+
+
+internal
+suspend fun WriteContext.writeMapEntries(value: Map<*, *>) {
     for (entry in value.entries) {
         write(entry.key)
         write(entry.value)
@@ -113,15 +219,22 @@ fun WriteContext.writeMap(value: Map<*, *>) {
 
 
 internal
-fun ReadContext.readMap(): Map<Any?, Any?> {
+suspend fun <T : MutableMap<Any?, Any?>> ReadContext.readMapInto(factory: (Int) -> T): T {
     val size = readSmallInt()
-    val items = LinkedHashMap<Any?, Any?>()
+    val items = factory(size)
+    readMapEntriesInto(items, size)
+    return items
+}
+
+
+internal
+suspend fun <K, V, T : MutableMap<K, V>> ReadContext.readMapEntriesInto(items: T, size: Int) {
+    @Suppress("unchecked_cast")
     for (i in 0 until size) {
-        val key = read()
-        val value = read()
+        val key = read() as K
+        val value = read() as V
         items[key] = value
     }
-    return items
 }
 
 
@@ -154,7 +267,7 @@ fun Decoder.readFile(): File =
 
 
 internal
-fun Encoder.writeStrings(strings: List<String>) {
+fun Encoder.writeStrings(strings: Collection<String>) {
     writeCollection(strings) {
         writeString(it)
     }
@@ -169,7 +282,7 @@ fun Decoder.readStrings(): List<String> =
 
 
 internal
-fun <T> Encoder.writeCollection(collection: Collection<T>, writeElement: (T) -> Unit) {
+inline fun <T> Encoder.writeCollection(collection: Collection<T>, writeElement: (T) -> Unit) {
     writeSmallInt(collection.size)
     for (element in collection) {
         writeElement(element)
@@ -178,7 +291,7 @@ fun <T> Encoder.writeCollection(collection: Collection<T>, writeElement: (T) -> 
 
 
 internal
-fun Decoder.readCollection(readElement: () -> Unit) {
+inline fun Decoder.readCollection(readElement: () -> Unit) {
     val size = readSmallInt()
     for (i in 0 until size) {
         readElement()
@@ -198,3 +311,61 @@ inline fun <T, C : MutableCollection<T>> Decoder.readCollectionInto(
     }
     return container
 }
+
+
+internal
+inline fun <T : Any?> WriteContext.writeArray(array: Array<T>, writeElement: (T) -> Unit) {
+    writeClass(array.javaClass.componentType)
+    writeSmallInt(array.size)
+    for (element in array) {
+        writeElement(element)
+    }
+}
+
+
+internal
+inline fun <T : Any?> ReadContext.readArray(readElement: () -> T): Array<T> {
+    val componentType = readClass()
+    val size = readSmallInt()
+    val array: Array<T> = java.lang.reflect.Array.newInstance(componentType, size).uncheckedCast()
+    for (i in 0 until size) {
+        array[i] = readElement()
+    }
+    return array
+}
+
+
+fun <E : Enum<E>> WriteContext.writeEnum(value: E) {
+    writeSmallInt(value.ordinal)
+}
+
+
+inline fun <reified E : Enum<E>> ReadContext.readEnum(): E =
+    readSmallInt().let { ordinal -> enumValues<E>()[ordinal] }
+
+
+fun WriteContext.writeShort(value: Short) {
+    BaseSerializerFactory.SHORT_SERIALIZER.write(this, value)
+}
+
+
+fun ReadContext.readShort(): Short =
+    BaseSerializerFactory.SHORT_SERIALIZER.read(this)
+
+
+fun WriteContext.writeFloat(value: Float) {
+    BaseSerializerFactory.FLOAT_SERIALIZER.write(this, value)
+}
+
+
+fun ReadContext.readFloat(): Float =
+    BaseSerializerFactory.FLOAT_SERIALIZER.read(this)
+
+
+fun WriteContext.writeDouble(value: Double) {
+    BaseSerializerFactory.DOUBLE_SERIALIZER.write(this, value)
+}
+
+
+fun ReadContext.readDouble(): Double =
+    BaseSerializerFactory.DOUBLE_SERIALIZER.read(this)

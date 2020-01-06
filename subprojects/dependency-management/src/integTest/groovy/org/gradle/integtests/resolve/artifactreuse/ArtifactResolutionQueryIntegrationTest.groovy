@@ -50,7 +50,7 @@ allprojects {
     }
     
     dependencies {
-        compile 'group:artifact:1.0'
+        implementation 'group:artifact:1.0'
     }
 }
 
@@ -69,7 +69,7 @@ project('query') {
 project('resolve') {
     task resolve {
         doLast {
-            configurations.compile.files.collect { it.file }
+            configurations.compileClasspath.files.collect { it.file }
         }
     }  
 }

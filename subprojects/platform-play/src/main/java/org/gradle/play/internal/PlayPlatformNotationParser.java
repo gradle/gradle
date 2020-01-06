@@ -16,7 +16,6 @@
 
 package org.gradle.play.internal;
 
-import org.gradle.api.tasks.Optional;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.typeconversion.MapKey;
 import org.gradle.internal.typeconversion.MapNotationConverter;
@@ -27,6 +26,8 @@ import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.internal.typeconversion.TypeConversionException;
 import org.gradle.platform.base.internal.DefaultPlatformRequirement;
 import org.gradle.platform.base.internal.PlatformRequirement;
+
+import javax.annotation.Nullable;
 
 public class PlayPlatformNotationParser {
 
@@ -51,8 +52,8 @@ public class PlayPlatformNotationParser {
         }
 
         protected PlatformRequirement parseMap(@MapKey("play") String playVersion,
-                                               @MapKey("scala") @Optional String scalaVersion,
-                                               @MapKey("java") @Optional String javaVersion) {
+                                               @MapKey("scala") @Nullable String scalaVersion,
+                                               @MapKey("java") @Nullable String javaVersion) {
             return new PlayPlatformRequirement(playVersion, scalaVersion, javaVersion);
         }
     }

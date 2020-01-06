@@ -16,6 +16,7 @@
 package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 class IvyResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -83,6 +84,7 @@ task check {
         succeeds "check"
     }
 
+    @ToBeFixedForInstantExecution
     def "dependency includes only the artifacts of the default configuration"() {
         given:
         server.start()
@@ -148,13 +150,21 @@ task check {
         succeeds "check"
     }
 
-    def "dependency that references a classifier can resolve module with no metadata"() {
+    def "dependency that references a classifier can resolve module with no metadata when artifact metadata source is configured"() {
         given:
         ivyRepo.module("org.gradle", "test", "1.45").withNoMetaData().artifact(classifier: "classifier").publish()
 
         and:
         buildFile << """
-repositories { ivy { url "${ivyRepo.uri}" } }
+repositories { 
+    ivy { 
+        url "${ivyRepo.uri}" 
+        metadataSources {
+            ivyDescriptor()
+            artifact()
+        }
+    }
+}
 configurations { compile }
 dependencies {
     compile "org.gradle:test:1.45:classifier"
@@ -219,9 +229,13 @@ task check {
 
         and:
         buildFile << """
-repositories {
-    ivy {
-        url "${ivyHttpRepo.uri}"
+repositories { 
+    ivy { 
+        url "${ivyHttpRepo.uri}" 
+        metadataSources {
+            ivyDescriptor()
+            artifact()
+        }
     }
 }
 configurations { compile }
@@ -345,6 +359,8 @@ task check {
                     configuration('alice')
                     byConstraint()
                     module('org:bar:1.0') {
+                        byAncestor()
+                        byConstraint()
                         configuration('extra')
                     }
                 }

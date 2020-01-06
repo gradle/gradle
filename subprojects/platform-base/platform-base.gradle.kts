@@ -9,6 +9,7 @@ dependencies {
     implementation(project(":baseServices"))
     implementation(project(":logging"))
     implementation(project(":coreApi"))
+    implementation(project(":files"))
     implementation(project(":modelCore"))
     implementation(project(":core"))
     implementation(project(":dependencyManagement"))
@@ -19,17 +20,22 @@ dependencies {
     implementation(library("guava"))
     implementation(library("commons_lang"))
 
-    testFixturesImplementation(project(":files"))
+    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":coreApi")))
+    testImplementation(project(":native"))
+    testImplementation(project(":snapshots"))
+    testImplementation(project(":processServices"))
+
+    testRuntimeOnly(project(":runtimeApiInfo"))
+
+    testFixturesApi(project(":core"))
+    testFixturesApi(project(":fileCollections"))
+    testFixturesApi(testFixtures(project(":modelCore")))
+    testFixturesImplementation(library("guava"))
+    testFixturesApi(testFixtures(project(":modelCore")))
+    testFixturesApi(testFixtures(project(":diagnostics")))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
-}
-
-testFixtures {
-    from(":core")
-    from(":coreApi")
-    from(":core", "testFixtures")
-    from(":modelCore", "testFixtures")
-    from(":diagnostics", "testFixtures")
 }

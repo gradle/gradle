@@ -17,6 +17,7 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
 
@@ -37,9 +38,10 @@ class ScalaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
         skipped(':compileJava')
         executedAndNotSkipped(':compileScala')
         result.assertHasErrorOutput('error: package org.gradle does not exist')
-        failure.assertHasCause('javac returned nonzero exit code')
+        failure.assertHasCause('javac returned non-zero exit code')
     }
 
+    @ToBeFixedForInstantExecution
     def "does not process annotation for Java class if annotation processor is only available on classpath"() {
         when:
         AnnotationProcessorPublisher annotationProcessorPublisher = new AnnotationProcessorPublisher()
@@ -63,6 +65,7 @@ class ScalaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
         new TestFile(testDirectory, 'generated.txt').assertDoesNotExist()
     }
 
+    @ToBeFixedForInstantExecution
     def "processes annotation for Java class if annotation processor is available on processor path"() {
         when:
         AnnotationProcessorPublisher annotationProcessorPublisher = new AnnotationProcessorPublisher()
@@ -127,7 +130,7 @@ class ScalaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
             ${mavenCentralRepository()}
             
             dependencies {
-                compile 'org.scala-lang:scala-library:2.11.12'
+                implementation 'org.scala-lang:scala-library:2.11.12'
             }
         """
     }

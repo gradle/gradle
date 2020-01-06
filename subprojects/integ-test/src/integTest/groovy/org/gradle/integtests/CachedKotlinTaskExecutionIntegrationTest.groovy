@@ -18,6 +18,7 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractPluginIntegrationTest
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.KotlinDslTestUtil
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.LeaksFileHandles
@@ -40,7 +41,7 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractPluginIntegration
 
         file("buildSrc/settings.gradle.kts") << """
             buildCache {
-                local(DirectoryBuildCache::class.java) {
+                local {
                     directory = "${cacheDir.absoluteFile.toURI()}"
                     isPush = true
                 }
@@ -50,6 +51,7 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractPluginIntegration
 
     @IgnoreIf({GradleContextualExecuter.parallel})
     @LeaksFileHandles
+    @ToBeFixedForInstantExecution
     def "tasks stay cached after buildSrc with custom Kotlin task is rebuilt"() {
         withKotlinBuildSrc()
         file("buildSrc/src/main/kotlin/CustomTask.kt") << customKotlinTask()
@@ -63,7 +65,7 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractPluginIntegration
         when:
         withBuildCache().run "customTask"
         then:
-        skippedTasks.empty
+        result.assertTaskNotSkipped(":customTask")
 
         when:
         file("buildSrc/build").deleteDir()
@@ -72,12 +74,13 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractPluginIntegration
 
         withBuildCache().run "customTask"
         then:
-        skippedTasks.contains ":customTask"
+        result.groupedOutput.task(":customTask").outcome == "FROM-CACHE"
     }
 
     @IgnoreIf({GradleContextualExecuter.parallel})
     @LeaksFileHandles
-    def "changing custom Kotlin task implementation in buildSrc doesn't invalidate built-in task"() {
+    @ToBeFixedForInstantExecution
+    def "changing custom Kotlin task implementation in buildSrc invalidates cached result"() {
         withKotlinBuildSrc()
         def taskSourceFile = file("buildSrc/src/main/kotlin/CustomTask.kt")
         taskSourceFile << customKotlinTask()
@@ -91,7 +94,7 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractPluginIntegration
         when:
         withBuildCache().run "customTask"
         then:
-        skippedTasks.empty
+        result.assertTaskNotSkipped(":customTask")
         file("build/output.txt").text == "input"
 
         when:
@@ -100,7 +103,7 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractPluginIntegration
         cleanBuildDir()
         withBuildCache().run "customTask"
         then:
-        nonSkippedTasks.contains ":customTask"
+        result.assertTaskNotSkipped(":customTask")
         file("build/output.txt").text == "input modified"
     }
 
@@ -116,7 +119,7 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractPluginIntegration
 
             @CacheableTask
             open class CustomTask() : DefaultTask() {
-                @get:InputFile var inputFile: File? = null
+                @get:InputFile @get:PathSensitive(PathSensitivity.NONE) var inputFile: File? = null
                 @get:OutputFile var outputFile: File? = null
                 @TaskAction fun doSomething() {
                     outputFile!!.apply {

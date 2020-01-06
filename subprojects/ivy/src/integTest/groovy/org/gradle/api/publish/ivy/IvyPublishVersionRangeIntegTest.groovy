@@ -17,17 +17,19 @@
 package org.gradle.api.publish.ivy
 
 import groovy.transform.NotYetImplemented
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Issue
 
 class IvyPublishVersionRangeIntegTest extends AbstractIvyPublishIntegTest {
     def ivyModule = javaLibrary(ivyRepo.module("org.gradle.test", "publishTest", "1.9"))
 
+    @ToBeFixedForInstantExecution
     void "version range is mapped to ivy syntax in published ivy descriptor file"() {
         given:
         settingsFile << "rootProject.name = 'publishTest' "
         buildFile << """
             apply plugin: 'ivy-publish'
-            apply plugin: 'java'
+            apply plugin: 'java-library'
 
             group = 'org.gradle.test'
             version = '1.9'
@@ -44,11 +46,11 @@ class IvyPublishVersionRangeIntegTest extends AbstractIvyPublishIntegTest {
             }
 
             dependencies {
-                compile "group:projectA:latest.release"
-                compile "group:projectB:latest.integration"
-                compile "group:projectC:1.+"
-                compile "group:projectD:[1.0,2.0)"
-                compile "group:projectE:[1.0]"
+                api "group:projectA:latest.release"
+                api "group:projectB:latest.integration"
+                api "group:projectC:1.+"
+                api "group:projectD:[1.0,2.0)"
+                api "group:projectE:[1.0]"
             }"""
 
         when:
@@ -71,7 +73,7 @@ class IvyPublishVersionRangeIntegTest extends AbstractIvyPublishIntegTest {
         settingsFile << "rootProject.name = 'publishTest' "
         buildFile << """
             apply plugin: 'ivy-publish'
-            apply plugin: 'java'
+            apply plugin: 'java-library'
 
             group = 'org.gradle.test'
             version = '1.9'
@@ -88,8 +90,8 @@ class IvyPublishVersionRangeIntegTest extends AbstractIvyPublishIntegTest {
             }
 
             dependencies {
-                compile "group:projectA"
-                compile group:"group", name:"projectB", version:null
+                api "group:projectA"
+                api group:"group", name:"projectB", version:null
             }
         """
 

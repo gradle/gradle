@@ -18,6 +18,7 @@ package org.gradle.api.plugins.quality;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
@@ -25,12 +26,15 @@ import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.quality.internal.PmdInvoker;
 import org.gradle.api.plugins.quality.internal.PmdReportsImpl;
+import org.gradle.api.provider.Property;
 import org.gradle.api.reporting.Reporting;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.LocalState;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
@@ -45,6 +49,7 @@ import org.gradle.util.ClosureBackedAction;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
+import java.io.File;
 import java.util.List;
 
 /**
@@ -66,9 +71,12 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
     private int rulePriority;
     private boolean consoleOutput;
     private FileCollection classpath;
+    private Property<Boolean> incrementalAnalysis;
 
     public Pmd() {
-        reports = getObjectFactory().newInstance(PmdReportsImpl.class, this);
+        ObjectFactory objects = getObjectFactory();
+        reports = objects.newInstance(PmdReportsImpl.class, this);
+        this.incrementalAnalysis = objects.property(Boolean.class);
     }
 
     @Inject
@@ -87,9 +95,13 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
     }
 
     public boolean stdOutIsAttachedToTerminal() {
-        ConsoleDetector consoleDetector = NativeServices.getInstance().get(ConsoleDetector.class);
-        ConsoleMetaData consoleMetaData = consoleDetector.getConsole();
-        return consoleMetaData != null && consoleMetaData.isStdOut();
+        try {
+            ConsoleDetector consoleDetector = NativeServices.getInstance().get(ConsoleDetector.class);
+            ConsoleMetaData consoleMetaData = consoleDetector.getConsole();
+            return consoleMetaData != null && consoleMetaData.isStdOut();
+        } catch (RuntimeException e) {
+            return false;
+        }
     }
 
     /**
@@ -147,7 +159,7 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
     }
 
     /**
-     * The built-in rule sets to be used. See the <a href="https://pmd.github.io/pmd-6.8.0/pmd_rules_java.html">official list</a> of built-in rule sets.
+     * The built-in rule sets to be used. See the <a href="https://pmd.github.io/pmd-6.20.0/pmd_rules_java.html">official list</a> of built-in rule sets.
      *
      * <pre>
      *     ruleSets = ["basic", "braces"]
@@ -159,7 +171,7 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
     }
 
     /**
-     * The built-in rule sets to be used. See the <a href="https://pmd.github.io/pmd-6.8.0/pmd_rules_java.html">official list</a> of built-in rule sets.
+     * The built-in rule sets to be used. See the <a href="https://pmd.github.io/pmd-6.20.0/pmd_rules_java.html">official list</a> of built-in rule sets.
      *
      * <pre>
      *     ruleSets = ["basic", "braces"]
@@ -187,7 +199,7 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
     /**
      * The custom rule set to be used (if any). Replaces {@code ruleSetFiles}, except that it does not currently support multiple rule sets.
      *
-     * See the <a href="http://pmd.sourceforge.net/howtomakearuleset.html">official documentation</a> for how to author a rule set.
+     * See the <a href="https://pmd.github.io/pmd-6.20.0/pmd_userdocs_making_rulesets.html">official documentation</a> for how to author a rule set.
      *
      * <pre>
      *     ruleSetConfig = resources.text.fromFile(resources.file("config/pmd/myRuleSets.xml"))
@@ -205,7 +217,7 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
     /**
      * The custom rule set to be used (if any). Replaces {@code ruleSetFiles}, except that it does not currently support multiple rule sets.
      *
-     * See the <a href="http://pmd.sourceforge.net/howtomakearuleset.html">official documentation</a> for how to author a rule set.
+     * See the <a href="https://pmd.github.io/pmd-6.20.0/pmd_userdocs_making_rulesets.html">official documentation</a> for how to author a rule set.
      *
      * <pre>
      *     ruleSetConfig = resources.text.fromFile(resources.file("config/pmd/myRuleSets.xml"))
@@ -218,7 +230,7 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
     }
 
     /**
-     * The custom rule set files to be used. See the <a href="http://pmd.sourceforge.net/howtomakearuleset.html">official documentation</a> for how to author a rule set file.
+     * The custom rule set files to be used. See the <a href="https://pmd.github.io/pmd-6.20.0/pmd_userdocs_making_rulesets.html">official documentation</a> for how to author a rule set file.
      * If you want to only use custom rule sets, you must clear {@code ruleSets}.
      *
      * <pre>
@@ -232,7 +244,7 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
     }
 
     /**
-     * The custom rule set files to be used. See the <a href="http://pmd.sourceforge.net/howtomakearuleset.html">official documentation</a> for how to author a rule set file.
+     * The custom rule set files to be used. See the <a href="https://pmd.github.io/pmd-6.20.0/pmd_userdocs_making_rulesets.html">official documentation</a> for how to author a rule set file.
      * This adds to the default rule sets defined by {@link #getRuleSets()}.
      *
      * <pre>
@@ -281,7 +293,7 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
      * Specifies the rule priority threshold.
      *
      * @since 2.8
-     * @see PmdExtension#rulePriority
+     * @see PmdExtension#getRulePriority()
      */
     @Input
     public int getRulePriority() {
@@ -345,5 +357,29 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
      */
     public void setClasspath(@Nullable FileCollection classpath) {
         this.classpath = classpath;
+    }
+
+    /**
+     * Controls whether to use incremental analysis or not.
+     *
+     * This is only supported for PMD 6.0.0 or better. See <a href="https://pmd.github.io/pmd-6.20.0/pmd_userdocs_incremental_analysis.html"></a> for more details.
+     *
+     * @since 5.6
+     */
+    @Incubating
+    @Internal
+    public Property<Boolean> getIncrementalAnalysis() {
+        return incrementalAnalysis;
+    }
+
+    /**
+     * Path to the incremental cache file, if incremental analysis is used.
+     *
+     * @since 5.6
+     */
+    @LocalState
+    @Incubating
+    public File getIncrementalCacheFile() {
+        return new File(getTemporaryDir(), "incremental.cache");
     }
 }

@@ -23,7 +23,7 @@ plugins {
 dependencies {
     implementation(project(":baseServices"))
     implementation(project(":logging"))
-    implementation(project(":files"))
+    implementation(project(":fileCollections"))
     implementation(project(":coreApi"))
     implementation(project(":modelCore"))
     implementation(project(":core"))
@@ -37,6 +37,11 @@ dependencies {
     implementation(library("gson"))
     implementation(library("inject"))
 
+    testImplementation(testFixtures(project(":core")))
+    
+    testRuntimeOnly(project(":runtimeApiInfo"))
+    testRuntimeOnly(project(":workers"))
+
     integTestRuntimeOnly(project(":ivy"))
     integTestRuntimeOnly(project(":maven"))
 }
@@ -45,6 +50,3 @@ gradlebuildJava {
     moduleType = ModuleType.CORE
 }
 
-testFixtures {
-    from(":core")
-}

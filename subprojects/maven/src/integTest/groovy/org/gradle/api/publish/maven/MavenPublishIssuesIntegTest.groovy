@@ -16,17 +16,20 @@
 
 package org.gradle.api.publish.maven
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.spockframework.util.TextUtil
 import spock.lang.Issue
 
 import static org.gradle.util.TextUtil.normaliseFileSeparators
+
 /**
  * Tests for bugfixes to maven publishing scenarios
  */
 class MavenPublishIssuesIntegTest extends AbstractMavenPublishIntegTest {
 
     @Issue("GRADLE-2456")
+    @ToBeFixedForInstantExecution
     def "generates SHA1 file with leading zeros"() {
         given:
         def module = mavenRepo.module("org.gradle", "publish", "2")
@@ -65,6 +68,7 @@ class MavenPublishIssuesIntegTest extends AbstractMavenPublishIntegTest {
     }
 
     @Issue("GRADLE-2681")
+    @ToBeFixedForInstantExecution
     def "gradle ignores maven mirror configuration for uploading archives"() {
         given:
         m2.globalSettingsFile << """
@@ -107,6 +111,7 @@ publishing {
     }
 
     @Issue("GRADLE-2837")
+    @ToBeFixedForInstantExecution
     def "project is properly configured when it is the target of a project dependency"() {
         given:
         mavenRepo.module("org.gradle", "dep", "1.1").publish()
@@ -116,7 +121,7 @@ publishing {
 
         buildFile << """
 subprojects {
-    apply plugin: 'java'
+    apply plugin: 'java-library'
     apply plugin: 'maven-publish'
     group = 'my.org'
     version = '1.0'
@@ -137,13 +142,13 @@ subprojects {
 """
         file("main", "build.gradle") << """
     dependencies {
-        compile project(':util')
+        api project(':util')
     }
 """
 
         file("util", "build.gradle") << """
     dependencies {
-        compile 'org.gradle:dep:1.1'
+        api 'org.gradle:dep:1.1'
     }
 """
 
@@ -159,6 +164,7 @@ subprojects {
     }
 
     @Issue("GRADLE-2945")
+    @ToBeFixedForInstantExecution
     def "maven-publish plugin adds excludes to pom"() {
 
         given:
@@ -167,7 +173,7 @@ subprojects {
         and:
         settingsFile << 'rootProject.name = "root"'
         buildFile << """
-    apply plugin: "java"
+    apply plugin: "java-library"
     apply plugin: "maven-publish"
 
     group = "org.gradle"
@@ -177,7 +183,7 @@ subprojects {
         maven { url "${mavenRepo.uri}" }
     }
     dependencies {
-        compile ("org.gradle:pom-excludes:0.1"){
+        api("org.gradle:pom-excludes:0.1"){
            exclude group: "org.opensource1", module: "dep1"
            exclude group: "org.opensource2"
            exclude module: "dep2"
@@ -213,6 +219,7 @@ subprojects {
     }
 
     @Issue("GRADLE-3318")
+    @ToBeFixedForInstantExecution
     def "can reference rule-source tasks from sub-projects"() {
         given:
         using m2

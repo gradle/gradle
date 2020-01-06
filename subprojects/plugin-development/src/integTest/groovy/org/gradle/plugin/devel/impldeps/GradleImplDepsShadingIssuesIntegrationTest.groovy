@@ -128,7 +128,7 @@ class GradleImplDepsShadingIssuesIntegrationTest extends BaseGradleImplDepsInteg
 
         buildFile << """
             dependencies {
-                testCompile "javax.servlet:javax.servlet-api:3.1.0"
+                testImplementation "javax.servlet:javax.servlet-api:3.1.0"
             }
         """
 
@@ -158,7 +158,7 @@ class GradleImplDepsShadingIssuesIntegrationTest extends BaseGradleImplDepsInteg
 
         buildFile << """
             dependencies {
-                testCompile 'org.eclipse.jgit:org.eclipse.jgit:4.9.1.201712030800-r'
+                testImplementation 'org.eclipse.jgit:org.eclipse.jgit:4.9.1.201712030800-r'
             }
         """
 

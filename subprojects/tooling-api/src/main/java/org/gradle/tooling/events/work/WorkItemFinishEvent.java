@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.events.work;
 
-import org.gradle.api.Incubating;
 import org.gradle.tooling.events.FinishEvent;
 
 /**
@@ -24,6 +23,5 @@ import org.gradle.tooling.events.FinishEvent;
  *
  * @since 5.1
  */
-@Incubating
 public interface WorkItemFinishEvent extends WorkItemProgressEvent, FinishEvent {
 }

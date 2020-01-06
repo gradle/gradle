@@ -34,7 +34,7 @@ class ClassSetAnalysisDataSerializerTest extends Specification {
 
     def "serializes"() {
         def data = new ClassSetAnalysisData(["A", "B", "C", "D"] as Set,
-            ["A": dependentClasses("B", "C"), "B": dependentClasses("C"), "C": dependentClasses(), "D": dependencyToAll(),],
+            ["A": dependentClasses(["B", "C"] as Set, [] as Set), "B": dependentClasses(["C"] as Set, [] as Set), "C": dependentClasses([] as Set, [] as Set), "D": dependencyToAll(),],
             [C: new IntOpenHashSet([1, 2]) as IntSet, D: IntSets.EMPTY_SET]
             ,"Because"
         )
@@ -49,7 +49,8 @@ class ClassSetAnalysisDataSerializerTest extends Specification {
         read.dependents.keySet() == data.dependents.keySet()
 
         ["A", "B", "C"].each {
-            assert read.dependents[it].dependentClasses == data.dependents[it].dependentClasses
+            assert read.dependents[it].privateDependentClasses == data.dependents[it].privateDependentClasses
+            assert read.dependents[it].accessibleDependentClasses == data.dependents[it].accessibleDependentClasses
             assert read.dependents[it].dependencyToAll == data.dependents[it].dependencyToAll
         }
 

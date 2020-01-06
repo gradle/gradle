@@ -50,7 +50,7 @@ data class ProjectSchema<out T>(
     val conventions: List<ProjectSchemaEntry<T>>,
     val tasks: List<ProjectSchemaEntry<T>>,
     val containerElements: List<ProjectSchemaEntry<T>>,
-    val configurations: List<String>
+    val configurations: List<ConfigurationEntry<String>>
 ) : Serializable {
 
     fun <U> map(f: (T) -> U) = ProjectSchema(
@@ -78,4 +78,16 @@ data class ProjectSchemaEntry<out T>(
 
     fun <U> map(f: (T) -> U) =
         ProjectSchemaEntry(f(target), name, f(type))
+}
+
+
+data class ConfigurationEntry<T>(
+    val target: T,
+    val dependencyDeclarationAlternatives: List<String> = listOf()
+) : Serializable {
+
+    fun hasDeclarationDeprecations() = dependencyDeclarationAlternatives.isNotEmpty()
+
+    fun <U> map(f: (T) -> U) =
+        ConfigurationEntry(f(target), dependencyDeclarationAlternatives)
 }

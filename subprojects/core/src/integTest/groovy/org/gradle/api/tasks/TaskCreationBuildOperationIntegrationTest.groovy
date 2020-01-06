@@ -22,6 +22,7 @@ import org.gradle.api.internal.tasks.RegisterTaskBuildOperationType
 import org.gradle.api.specs.Spec
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.build.BuildTestFixture
 import org.gradle.internal.logging.events.LogEvent
 import org.gradle.internal.operations.BuildOperationType
@@ -185,31 +186,7 @@ class TaskCreationBuildOperationIntegrationTest extends AbstractIntegrationSpec 
         buildOperations.none(RealizeTaskBuildOperationType, not(withPath(':', ':foo')))
     }
 
-    def "emits creation, replace build ops when tasks eagerly created and replaced realized"() {
-        given:
-        create('foo')
-        create('bar')
-        replace('bar')
-        register('baz')
-        replace('baz')
-
-        when:
-        executer.expectDeprecationWarning()
-        run 'foo'
-
-        then:
-        verifyTaskIds()
-        verifyTaskDetails(RealizeTaskBuildOperationType, withPath(':', ':foo'), eager: true).children.empty
-        verifyTaskDetails(RealizeTaskBuildOperationType, { it.details.taskPath == ':bar' && !it.details.replacement }, eager: true).children.empty
-        verifyTaskDetails(RealizeTaskBuildOperationType, { it.details.taskPath == ':bar' && it.details.replacement }, eager: true, replacement: true).children.empty
-        def bazOp = verifyTaskDetails(RegisterTaskBuildOperationType, withPath(':', ':baz'))
-        bazOp.children.empty
-        def firstBazId = bazOp.details.taskId
-        verifyTaskDetails(RealizeTaskBuildOperationType, { it.details.taskPath == ':baz' && it.details.replacement }, eager: true, replacement: true).children.empty
-        // original baz task never realized
-        buildOperations.none(RealizeTaskBuildOperationType, { it.details.taskId == firstBazId })
-    }
-
+    @ToBeFixedForInstantExecution
     def "registration and realization ops have correct paths"() {
         given:
         def createTasks = {

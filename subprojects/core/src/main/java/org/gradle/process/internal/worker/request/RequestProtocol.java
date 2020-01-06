@@ -16,10 +16,8 @@
 
 package org.gradle.process.internal.worker.request;
 
-import org.gradle.internal.operations.BuildOperationRef;
-
 public interface RequestProtocol {
-    void run(String methodName, Class<?>[] paramTypes, Object[] args, BuildOperationRef buildOperation);
-    void runThenStop(String methodName, Class<?>[] paramTypes, Object[] args, BuildOperationRef buildOperation);
+    void run(Request request);
+    void runThenStop(Request request);
     void stop();
 }

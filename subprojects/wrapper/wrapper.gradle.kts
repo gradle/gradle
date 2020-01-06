@@ -28,6 +28,7 @@ dependencies {
     testImplementation(project(":baseServices"))
     testImplementation(project(":native"))
     testImplementation(library("ant"))
+    testImplementation(testFixtures(project(":core")))
 
     integTestImplementation(project(":logging"))
     integTestImplementation(project(":coreApi"))
@@ -35,17 +36,16 @@ dependencies {
     integTestImplementation(testLibrary("littleproxy"))
     integTestImplementation(testLibrary("jetty"))
 
+    integTestRuntimeOnly(project(":runtimeApiInfo"))
+
     crossVersionTestImplementation(project(":logging"))
     crossVersionTestImplementation(project(":persistentCache"))
-    crossVersionTestImplementation(project(":launcherStartup"))
+    crossVersionTestImplementation(project(":launcher"))
+    crossVersionTestRuntimeOnly(project(":runtimeApiInfo"))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.WORKER
-}
-
-testFixtures {
-    from(":core")
 }
 
 tasks.register<Jar>("executableJar") {

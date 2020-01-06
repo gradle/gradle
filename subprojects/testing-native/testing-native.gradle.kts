@@ -43,7 +43,16 @@ dependencies {
     implementation(library("commons_io"))
     implementation(library("inject"))
 
-    testImplementation(project(":files"))
+    testImplementation(project(":fileCollections"))
+    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":platformNative")))
+    testImplementation(testFixtures(project(":diagnostics")))
+    testImplementation(testFixtures(project(":platformBase")))
+    testImplementation(testFixtures(project(":testingBase")))
+    testImplementation(testFixtures(project(":languageNative")))
+    testImplementation(testFixtures(project(":ide")))
+
+    testRuntimeOnly(project(":runtimeApiInfo"))
 
     integTestRuntimeOnly(project(":ideNative"))
 }
@@ -52,12 +61,3 @@ gradlebuildJava {
     moduleType = ModuleType.CORE
 }
 
-testFixtures {
-    from(":core")
-    from(":platformNative")
-    from(":diagnostics")
-    from(":platformBase")
-    from(":testingBase")
-    from(":languageNative")
-    from(":ide")
-}

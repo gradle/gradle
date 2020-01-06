@@ -17,7 +17,6 @@
 package org.gradle.api.artifacts;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.attributes.AttributeContainer;
 
 import java.util.List;
@@ -27,7 +26,6 @@ import java.util.List;
  *
  * @since 4.0
  */
-@Incubating
 public interface ComponentMetadataBuilder {
     /**
      * Sets the status of this component

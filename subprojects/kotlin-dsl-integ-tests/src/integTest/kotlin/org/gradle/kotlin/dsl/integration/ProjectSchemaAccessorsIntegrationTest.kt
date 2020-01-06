@@ -16,10 +16,12 @@
 
 package org.gradle.kotlin.dsl.integration
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil.jcenterRepository
 import org.gradle.kotlin.dsl.fixtures.FoldersDsl
 import org.gradle.kotlin.dsl.fixtures.FoldersDslExpression
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
+import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
 import org.gradle.test.fixtures.dsl.GradleDsl
 
 import org.gradle.test.fixtures.file.LeaksFileHandles
@@ -29,7 +31,6 @@ import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.not
 import org.hamcrest.MatcherAssert.assertThat
 
-import org.junit.Ignore
 import org.junit.Test
 
 import java.io.File
@@ -95,6 +96,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     fun `can access extension of internal type made public`() {
 
         requireGradleDistributionOnEmbeddedExecuter()
@@ -288,6 +290,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     fun `multiple generic extension targets`() {
 
         requireGradleDistributionOnEmbeddedExecuter()
@@ -342,6 +345,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     fun `conflicting extensions across build scripts with same body`() {
 
         requireGradleDistributionOnEmbeddedExecuter()
@@ -390,6 +394,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     fun `conflicting extensions across build runs`() {
 
         requireGradleDistributionOnEmbeddedExecuter()
@@ -439,6 +444,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     fun `can configure publishing extension`() {
 
         withBuildScript("""
@@ -472,6 +478,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     fun `can access NamedDomainObjectContainer extension via generated accessor`() {
 
         requireGradleDistributionOnEmbeddedExecuter()
@@ -534,6 +541,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     fun `can access extensions registered by declared plugins via jit accessor`() {
 
         withBuildScript("""
@@ -694,6 +702,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     fun `accessors tasks applied in a mixed Groovy-Kotlin multi-project build`() {
 
         withDefaultSettings().appendText("""
@@ -712,7 +721,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    @Ignore("TODO: change this test not to be dependent on an old version of the build-scan plugin")
     fun `given extension with inaccessible type, its accessor is typed Any`() {
 
         withFile("init.gradle", """
@@ -721,14 +729,13 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
                     gradlePluginPortal()
                 }
                 dependencies {
-                    classpath "com.gradle:build-scan-plugin:1.16"
+                    classpath "${AutoAppliedGradleEnterprisePlugin.GROUP}:${AutoAppliedGradleEnterprisePlugin.NAME}:${AutoAppliedGradleEnterprisePlugin.VERSION}"
                 }
             }
-            rootProject {
-                apply plugin: "base"
-                apply plugin: initscript.classLoader.loadClass("com.gradle.scan.plugin.BuildScanPlugin")
-                buildScan {
-                    publishAlways()
+            beforeSettings {
+                it.apply plugin: initscript.classLoader.loadClass("com.gradle.enterprise.gradleplugin.GradleEnterprisePlugin")
+                it.gradleEnterprise.buildScan {
+                    
                 }
             }
         """)
@@ -840,43 +847,30 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
 
             class MyPlugin : Plugin<Project> {
                 override fun apply(project: Project): Unit = project.run {
+                    val rootExtension = extensions.create("rootExtension", MyExtension::class.java, "root")
 
-                    val instantiator = serviceOf<Instantiator>()
-
-                    val rootExtension = MyExtension("root", instantiator)
-                    val rootExtensionNestedExtension = MyExtension("nested-in-extension", instantiator)
-                    val rootExtensionNestedConvention = MyConvention("nested-in-extension", instantiator)
-
-                    extensions.add("rootExtension", rootExtension)
-
-                    rootExtension.extensions.add("nestedExtension", rootExtensionNestedExtension)
+                    val rootExtensionNestedExtension = rootExtension.extensions.create("nestedExtension", MyExtension::class.java, "nested-in-extension")
                     rootExtensionNestedExtension.extensions.add("deepExtension", listOf("foo", "bar"))
 
+                    val rootExtensionNestedConvention = objects.newInstance(MyConvention::class.java, "nested-in-extension")
                     rootExtensionNestedConvention.extensions.add("deepExtension", mapOf("foo" to "bar"))
 
-                    val rootConvention = MyConvention("root", instantiator)
-                    val rootConventionNestedExtension = MyExtension("nested-in-convention", instantiator)
-                    val rootConventionNestedConvention = MyConvention("nested-in-convention", instantiator)
+                    val rootConvention = objects.newInstance(MyConvention::class.java, "root")
+                    val rootConventionNestedConvention = objects.newInstance(MyConvention::class.java, "nested-in-convention")
 
                     convention.plugins.put("rootConvention", rootConvention)
 
-                    rootConvention.extensions.add("nestedExtension", rootConventionNestedExtension)
+                    val rootConventionNestedExtension = rootConvention.extensions.create("nestedExtension", MyExtension::class.java, "nested-in-convention")
                     rootConventionNestedExtension.extensions.add("deepExtension", listOf("bazar", "cathedral"))
 
                     rootConventionNestedConvention.extensions.add("deepExtension", mapOf("bazar" to "cathedral"))
                 }
             }
 
-            class MyExtension(val value: String = "value", instantiator: Instantiator) : ExtensionAware, HasConvention {
-                private val convention: DefaultConvention = DefaultConvention(instantiator)
-                override fun getExtensions(): ExtensionContainer = convention
-                override fun getConvention(): Convention = convention
+            abstract class MyExtension(val value: String) : ExtensionAware {
             }
 
-            class MyConvention(val value: String = "value", instantiator: Instantiator) : ExtensionAware, HasConvention {
-                private val convention: DefaultConvention = DefaultConvention(instantiator)
-                override fun getExtensions(): ExtensionContainer = convention
-                override fun getConvention(): Convention = convention
+            abstract class MyConvention @javax.inject.Inject constructor(val value: String) : ExtensionAware {
             }
         """)
 
@@ -904,6 +898,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     fun `convention accessors honor HasPublicType`() {
 
         requireGradleDistributionOnEmbeddedExecuter()
@@ -1085,7 +1080,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
 
             distributions {
                 main {
-                    baseName = "the-distro"
+                    distributionBaseName.set("the-distro")
                 }
             }
         """)
@@ -1180,6 +1175,55 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
         assertThat(
             build("-q").output,
             containsString("build.Java11Plugin${'$'}Java11Extension")
+        )
+    }
+
+    @Test
+    fun `accessors to kotlin internal task types are typed with the first kotlin public parent type`() {
+
+        requireGradleDistributionOnEmbeddedExecuter()
+
+        withDefaultSettings()
+        withKotlinBuildSrc()
+        withFile("buildSrc/src/main/kotlin/my/CustomTasks.kt", """
+            package my
+
+            import org.gradle.api.*
+
+            abstract class MyCustomTask : DefaultTask()
+            internal open class MyCustomTaskImpl : MyCustomTask()
+            
+            internal open class MyOtherInternalTask : DefaultTask()
+        """)
+        withFile("buildSrc/src/main/kotlin/my/custom.gradle.kts", """
+            package my
+
+            tasks.register<MyCustomTaskImpl>("custom")
+            tasks.register<MyOtherInternalTask>("other")
+        """)
+
+        withBuildScript("""
+            plugins {
+                my.custom
+            }
+            
+            inline fun <reified T> typeOf(value: T) = typeOf<T>()
+
+            println("tasks.custom: " + typeOf(tasks.custom))
+            tasks.custom { println("tasks.custom{}: " + typeOf(this)) }
+
+            println("tasks.other: " + typeOf(tasks.other))
+            tasks.other { println("tasks.other{}: " + typeOf(this)) }
+        """)
+
+        assertThat(
+            build("custom", "other", "-q").output,
+            containsMultiLineString("""
+                tasks.custom: org.gradle.api.tasks.TaskProvider<my.MyCustomTask>
+                tasks.other: org.gradle.api.tasks.TaskProvider<org.gradle.api.DefaultTask>
+                tasks.custom{}: my.MyCustomTask
+                tasks.other{}: org.gradle.api.DefaultTask
+            """)
         )
     }
 

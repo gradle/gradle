@@ -16,8 +16,6 @@
 
 package org.gradle.tooling.events;
 
-import org.gradle.api.Incubating;
-
 /**
  * Identifies a Gradle plugin.
  *
@@ -25,7 +23,6 @@ import org.gradle.api.Incubating;
  * @see BinaryPluginIdentifier
  * @see ScriptPluginIdentifier
  */
-@Incubating
 public interface PluginIdentifier {
 
     /**

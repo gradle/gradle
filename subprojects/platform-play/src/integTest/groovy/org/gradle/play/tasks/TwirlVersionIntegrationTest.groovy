@@ -17,6 +17,7 @@
 package org.gradle.play.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.play.internal.DefaultPlayPlatform
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -42,6 +43,7 @@ class TwirlVersionIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << """ rootProject.name = 'twirl-play-app' """
     }
 
+    @ToBeFixedForInstantExecution
     def "changing between twirl-incompatible versions of play causes Twirl to recompile" () {
         withPlayVersion(DefaultPlayPlatform.DEFAULT_PLAY_VERSION)
         withTemplateSource(file("app", "views", "index.scala.html"))
@@ -67,6 +69,7 @@ class TwirlVersionIntegrationTest extends AbstractIntegrationSpec {
         file(twirlOutputDir + "/views/html/index.template.scala").exists()
     }
 
+    @ToBeFixedForInstantExecution
     def "changing between twirl-compatible versions of play does NOT cause Twirl to recompile" () {
         withPlayVersion("2.3.1")
         withTemplateSource(file("app", "views", "index.scala.html"))

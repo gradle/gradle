@@ -17,6 +17,7 @@
 package org.gradle.api.internal.project.taskfactory
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Issue
 
 class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
@@ -120,6 +121,7 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
         output.contains 'Output: outputFiles$2 [output2.txt]'
     }
 
+    @ToBeFixedForInstantExecution
     def "nested properties are discovered"() {
         buildFile << classesForNestedProperties()
         buildFile << """
@@ -151,6 +153,7 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
         output.contains "Output file property 'bean.outputDir'"
     }
 
+    @ToBeFixedForInstantExecution
     def "nested iterable properties have names"() {
         buildFile << printPropertiesTask()
         buildFile << """ 
@@ -185,6 +188,7 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
         output.contains "Input property 'beans.\$1.secondInput'"
     }
 
+    @ToBeFixedForInstantExecution
     def "nested destroyables are discovered"() {
         buildFile << classesForNestedProperties()
         buildFile << """
@@ -215,6 +219,7 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
         output =~ /Destroys: '.*destroyed'/
     }
 
+    @ToBeFixedForInstantExecution
     def "nested local state is discovered"() {
         buildFile << classesForNestedProperties()
         buildFile << """
@@ -245,6 +250,7 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
         output =~ /Local state: '.*localState'/
     }
 
+    @ToBeFixedForInstantExecution
     def "unnamed file properties are named"() {
         buildFile << """
             import org.gradle.api.internal.tasks.*
@@ -272,10 +278,11 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
             Output file property '\$2'
             Output file property '\$3'
             Output file property '\$4'
-        """.stripIndent()
+            """.stripIndent()
     }
 
     @Issue("https://github.com/gradle/gradle/issues/4085")
+    @ToBeFixedForInstantExecution
     def "can register more unnamed properties after properties have been queried"() {
         buildFile << """
             import org.gradle.api.internal.tasks.*
@@ -313,9 +320,10 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
             Input file property '\$2'
             Output file property '\$1'
             Output file property '\$2'
-        """.stripIndent()
+            """.stripIndent()
     }
 
+    @ToBeFixedForInstantExecution
     def "input properties can be overridden"() {
         buildFile << classesForNestedProperties()
         buildFile << """
@@ -388,6 +396,7 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.api.internal.tasks.properties.*
 
             class PrintInputsAndOutputs extends DefaultTask {
+                @Internal
                 Task task
                 @TaskAction
                 void printInputsAndOutputs() {

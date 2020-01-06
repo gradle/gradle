@@ -18,16 +18,16 @@ package org.gradle.execution.plan;
 
 import org.gradle.api.Action;
 import org.gradle.api.Project;
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.WorkNodeAction;
-import org.gradle.execution.ProjectExecutionServiceRegistry;
-import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.resources.ResourceLock;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
-class ActionNode extends Node {
+public class ActionNode extends Node implements SelfExecutingNode {
     private final WorkNodeAction action;
 
     public ActionNode(WorkNodeAction action) {
@@ -58,6 +58,15 @@ class ActionNode extends Node {
     }
 
     @Override
+    public void resolveMutations() {
+        // Assume has no outputs that can be destroyed or that overlap with another node
+    }
+
+    public WorkNodeAction getAction() {
+        return action;
+    }
+
+    @Override
     public boolean isPublicNode() {
         return false;
     }
@@ -79,13 +88,23 @@ class ActionNode extends Node {
 
     @Nullable
     @Override
-    public Project getProject() {
+    public Project getProjectToLock() {
         return action.getProject();
     }
 
-    public void run(ProjectExecutionServiceRegistry services) {
-        ProjectInternal project = (ProjectInternal) action.getProject();
-        ServiceRegistry registry = project == null ? ServiceRegistry.EMPTY : services.forProject(project);
-        action.run(registry);
+    @Nullable
+    @Override
+    public Project getOwningProject() {
+        return action.getProject();
+    }
+
+    @Override
+    public List<ResourceLock> getResourcesToLock() {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public void execute(NodeExecutionContext context) {
+        action.run(context);
     }
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.language.java
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.jvm.JvmSourceFile
 import org.gradle.integtests.fixtures.jvm.TestJvmComponent
 import org.gradle.integtests.language.AbstractJvmLanguageIntegrationTest
@@ -65,6 +66,7 @@ class JvmApiSpecIntegrationTest extends AbstractJvmLanguageIntegrationTest {
     }
 
     @Issue('GRADLE-3483')
+    @ToBeFixedForInstantExecution
     def "can scan Annotations for public API"() {
         when:
         buildFile << """
@@ -162,6 +164,7 @@ class JvmApiSpecIntegrationTest extends AbstractJvmLanguageIntegrationTest {
         failure.assertHasCause("Invalid public API specification: package 'com.example.p1' has already been exported")
     }
 
+    @ToBeFixedForInstantExecution
     def "api jar should contain only classes declared in packages exported in api spec"() {
         when:
         addNonApiClasses()
@@ -192,6 +195,7 @@ class JvmApiSpecIntegrationTest extends AbstractJvmLanguageIntegrationTest {
         jarFile("build/jars/myLib/jar/api/myLib.jar").hasDescendants(apiClassesOnly as String[])
     }
 
+    @ToBeFixedForInstantExecution
     def "api jar should not be rebuilt when resource class changes"() {
         when:
         addNonApiClasses()
@@ -218,12 +222,14 @@ class JvmApiSpecIntegrationTest extends AbstractJvmLanguageIntegrationTest {
         }
 
         then:
+        expectDeprecationWarnings()
         succeeds "assemble"
 
         and:
         skipped(':myLibApiJar')
     }
 
+    @ToBeFixedForInstantExecution
     def "api jar should be rebuilt if API spec adds a new exported package"() {
         when:
         addNonApiClasses()
@@ -268,6 +274,7 @@ class JvmApiSpecIntegrationTest extends AbstractJvmLanguageIntegrationTest {
             ["non_api/pkg/InternalPerson.class"])
 
         then:
+        expectDeprecationWarnings()
         succeeds 'assemble'
 
         and:
@@ -280,6 +287,7 @@ class JvmApiSpecIntegrationTest extends AbstractJvmLanguageIntegrationTest {
 
     }
 
+    @ToBeFixedForInstantExecution
     def "api jar should be rebuilt if API spec removes an exported package"() {
         when:
         addNonApiClasses()
@@ -315,6 +323,7 @@ class JvmApiSpecIntegrationTest extends AbstractJvmLanguageIntegrationTest {
             ["non_api/pkg/InternalPerson.class", "compile/test/internal/Util.class"])
 
         then:
+        expectDeprecationWarnings()
         succeeds 'assemble'
 
         and:
@@ -327,6 +336,7 @@ class JvmApiSpecIntegrationTest extends AbstractJvmLanguageIntegrationTest {
 
     }
 
+    @ToBeFixedForInstantExecution
     def "api jar should be empty if specification matches no package found in runtime jar"() {
         when:
         addNonApiClasses()
@@ -354,6 +364,7 @@ class JvmApiSpecIntegrationTest extends AbstractJvmLanguageIntegrationTest {
 
     }
 
+    @ToBeFixedForInstantExecution
     def "api jar should include all library packages when no api specification is declared"() {
         when:
         addNonApiClasses()
@@ -376,6 +387,7 @@ class JvmApiSpecIntegrationTest extends AbstractJvmLanguageIntegrationTest {
         jarFile("build/jars/myLib/jar/api/myLib.jar").hasDescendants(allClasses)
     }
 
+    @ToBeFixedForInstantExecution
     def "api jar should include all library packages api specification is declared empty"() {
         when:
         addNonApiClasses()
@@ -400,6 +412,7 @@ class JvmApiSpecIntegrationTest extends AbstractJvmLanguageIntegrationTest {
         jarFile("build/jars/myLib/jar/api/myLib.jar").hasDescendants(allClasses)
     }
 
+    @ToBeFixedForInstantExecution
     def "api jar should be built for each variant and contain only api classes"() {
         when:
         addNonApiClasses()
@@ -431,6 +444,7 @@ class JvmApiSpecIntegrationTest extends AbstractJvmLanguageIntegrationTest {
         jarFile("build/jars/myLib/java6Jar/api/myLib.jar").hasDescendants(apiClassesOnly)
     }
 
+    @ToBeFixedForInstantExecution
     def "building api jar should trigger compilation of classes"() {
         when:
         addNonApiClasses()
@@ -458,6 +472,7 @@ class JvmApiSpecIntegrationTest extends AbstractJvmLanguageIntegrationTest {
         jarFile("build/jars/myLib/jar/myLib.jar").hasDescendants(allClasses)
     }
 
+    @ToBeFixedForInstantExecution
     def "should support configuring exported packages from rule method"() {
         when:
         addNonApiClasses()
@@ -490,6 +505,7 @@ class JvmApiSpecIntegrationTest extends AbstractJvmLanguageIntegrationTest {
         jarFile("build/jars/myLib/jar/myLib.jar").hasDescendants(allClasses)
     }
 
+    @ToBeFixedForInstantExecution
     def "should support chained configuration of library api exports"() {
         when:
         addNonApiClasses()

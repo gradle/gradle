@@ -18,7 +18,7 @@ package org.gradle.internal.cleanup;
 
 import com.google.common.collect.Sets;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.FileCollectionFactory;
 
 import java.io.File;
 import java.util.LinkedHashSet;
@@ -26,12 +26,12 @@ import java.util.Set;
 
 public class DefaultBuildOutputCleanupRegistry implements BuildOutputCleanupRegistry {
 
-    private final FileResolver fileResolver;
+    private final FileCollectionFactory fileCollectionFactory;
     private final Set<FileCollection> outputs = Sets.newHashSet();
     private Set<String> resolvedPaths;
 
-    public DefaultBuildOutputCleanupRegistry(FileResolver fileResolver) {
-        this.fileResolver = fileResolver;
+    public DefaultBuildOutputCleanupRegistry(FileCollectionFactory fileCollectionFactory) {
+        this.fileCollectionFactory = fileCollectionFactory;
     }
 
     @Override
@@ -39,7 +39,7 @@ public class DefaultBuildOutputCleanupRegistry implements BuildOutputCleanupRegi
         if (resolvedPaths != null) {
             resolvedPaths = null;
         }
-        this.outputs.add(fileResolver.resolveFiles(files));
+        this.outputs.add(fileCollectionFactory.resolving(files));
     }
 
     @Override

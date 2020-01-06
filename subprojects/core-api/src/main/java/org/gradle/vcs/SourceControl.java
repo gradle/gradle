@@ -17,7 +17,6 @@
 package org.gradle.vcs;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 
 import java.net.URI;
 
@@ -30,7 +29,6 @@ import java.net.URI;
  *
  * @since 4.4
  */
-@Incubating
 public interface SourceControl {
     /**
      * Configures VCS mappings.

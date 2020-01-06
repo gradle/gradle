@@ -16,13 +16,13 @@
 
 package org.gradle.performance.regression.java
 
-import org.gradle.performance.AbstractCrossVersionPerformanceTest
-import org.gradle.performance.categories.PerformanceExperiment
+import org.apache.commons.io.FileUtils
+import org.gradle.performance.AbstractCrossVersionGradleInternalPerformanceTest
+import org.gradle.performance.categories.SlowPerformanceRegressionTest
 import org.gradle.performance.fixture.BuildExperimentInvocationInfo
 import org.gradle.performance.fixture.BuildExperimentListener
 import org.gradle.performance.fixture.BuildExperimentListenerAdapter
 import org.gradle.performance.measure.MeasuredOperation
-import org.gradle.util.GFileUtils
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
@@ -30,8 +30,8 @@ import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_
 import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT_KOTLIN_DSL
 import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
 
-@Category(PerformanceExperiment)
-class JavaFirstUsePerformanceTest extends AbstractCrossVersionPerformanceTest {
+@Category(SlowPerformanceRegressionTest)
+class JavaFirstUsePerformanceTest extends AbstractCrossVersionGradleInternalPerformanceTest {
 
     @Unroll
     def "first use of #testProject"() {
@@ -41,14 +41,14 @@ class JavaFirstUsePerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.tasksToRun = ['tasks']
         runner.runs = runs
         runner.useDaemon = false
-        runner.targetVersions = ["5.5-20190515115345+0000"]
+        runner.targetVersions = ["6.1-20191209153604+0000"]
         runner.addBuildExperimentListener(new BuildExperimentListenerAdapter() {
             @Override
             void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, BuildExperimentListener.MeasurementCallback measurementCallback) {
                 runner.workingDir.eachDir {
-                    GFileUtils.deleteDirectory(new File(it, '.gradle'))
-                    GFileUtils.deleteDirectory(new File(it, 'buildSrc/.gradle'))
-                    GFileUtils.deleteDirectory(new File(it, 'gradle-user-home'))
+                    FileUtils.deleteDirectory(new File(it, '.gradle'))
+                    FileUtils.deleteDirectory(new File(it, 'buildSrc/.gradle'))
+                    FileUtils.deleteDirectory(new File(it, 'gradle-user-home'))
                 }
             }
         })
@@ -73,13 +73,13 @@ class JavaFirstUsePerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
         runner.tasksToRun = ['tasks']
         runner.useDaemon = false
-        runner.targetVersions = ["5.5-20190515115345+0000"]
+        runner.targetVersions = ["6.1-20191209153604+0000"]
         runner.addBuildExperimentListener(new BuildExperimentListenerAdapter() {
             @Override
             void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, BuildExperimentListener.MeasurementCallback measurementCallback) {
                 runner.workingDir.eachDir {
-                    GFileUtils.deleteDirectory(new File(it, '.gradle'))
-                    GFileUtils.deleteDirectory(new File(it, 'buildSrc/.gradle'))
+                    FileUtils.deleteDirectory(new File(it, '.gradle'))
+                    FileUtils.deleteDirectory(new File(it, 'buildSrc/.gradle'))
                 }
             }
         })
@@ -104,7 +104,7 @@ class JavaFirstUsePerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
         runner.tasksToRun = ['tasks']
         runner.useDaemon = false
-        runner.targetVersions = ["5.5-20190515115345+0000"]
+        runner.targetVersions = ["6.1-20191209153604+0000"]
 
         when:
         def result = runner.run()

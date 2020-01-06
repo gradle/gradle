@@ -28,6 +28,7 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.util.ConfigureUtil
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DefaultScriptHandlerTest extends Specification {
@@ -44,7 +45,8 @@ class DefaultScriptHandlerTest extends Specification {
         getLocalClassLoader() >> baseClassLoader
     }
     def classpathResolver = Mock(ScriptClassPathResolver)
-    def handler = new DefaultScriptHandler(scriptSource, depMgmtServices, classLoaderScope, classpathResolver)
+    def instantiator = TestUtil.objectInstantiator()
+    def handler = new DefaultScriptHandler(scriptSource, depMgmtServices, classLoaderScope, classpathResolver, instantiator)
     def attributes = Mock(AttributeContainerInternal)
 
     def "adds classpath configuration when configuration container is queried"() {

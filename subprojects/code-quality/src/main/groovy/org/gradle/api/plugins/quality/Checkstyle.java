@@ -19,13 +19,13 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.quality.internal.CheckstyleInvoker;
 import org.gradle.api.plugins.quality.internal.CheckstyleReportsImpl;
-import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.Reporting;
 import org.gradle.api.resources.TextResource;
@@ -43,6 +43,7 @@ import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.VerificationTask;
 import org.gradle.util.ClosureBackedAction;
+import org.gradle.util.SingleMessageLogger;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -65,7 +66,7 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
     private int maxErrors;
     private int maxWarnings = Integer.MAX_VALUE;
     private boolean showViolations = true;
-    private Property<File> configDir;
+    private final DirectoryProperty configDirectory;
 
     /**
      * The Checkstyle configuration file to use.
@@ -83,7 +84,7 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
     }
 
     public Checkstyle() {
-        configDir = getObjectFactory().property(File.class);
+        configDirectory = getObjectFactory().directoryProperty();
         reports = getObjectFactory().newInstance(CheckstyleReportsImpl.class, this);
     }
 
@@ -239,15 +240,18 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
      * @return path to other Checkstyle configuration files
      * @since 4.0
      */
-    @Incubating
-    @Nullable
     @Optional
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputDirectory
+    @Nullable
+    @Deprecated
+    // @ReplacedBy("configDirectory")
     public File getConfigDir() {
-        File configDirectory = configDir.getOrNull();
-        if (configDirectory!=null && configDirectory.exists()) {
-            return configDirectory;
+        // TODO: The annotations need to be moved to the new property
+        SingleMessageLogger.nagUserOfReplacedMethod("Checkstyle.getConfigDir()", "Checkstyle.getConfigDirectory()");
+        File configDir = getConfigDirectory().getAsFile().getOrNull();
+        if (configDir != null && configDir.exists()) {
+            return configDir;
         }
         return null;
     }
@@ -259,9 +263,24 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
      * </p>
      * @since 4.0
      */
-    @Incubating
+    @Deprecated
     public void setConfigDir(Provider<File> configDir) {
-        this.configDir.set(configDir);
+        SingleMessageLogger.nagUserOfReplacedMethod("Checkstyle.setConfigDir()", "Checkstyle.getConfigDirectory().set()");
+        this.configDirectory.set(getProject().getLayout().dir(configDir));
+    }
+
+    /**
+     * Path to other Checkstyle configuration files.
+     * <p>
+     * This path will be exposed as the variable {@code config_loc} in Checkstyle's configuration files.
+     * </p>
+     * @return path to other Checkstyle configuration files
+     * @since 6.0
+     */
+    @Incubating
+    @Internal
+    public DirectoryProperty getConfigDirectory() {
+        return configDirectory;
     }
 
     /**

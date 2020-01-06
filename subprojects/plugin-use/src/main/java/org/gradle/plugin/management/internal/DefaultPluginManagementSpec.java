@@ -19,16 +19,22 @@ package org.gradle.plugin.management.internal;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.plugin.management.PluginResolutionStrategy;
+import org.gradle.plugin.use.PluginDependenciesSpec;
+import org.gradle.plugin.use.PluginDependencySpec;
+import org.gradle.plugin.use.PluginId;
+import org.gradle.plugin.use.internal.DefaultPluginId;
 import org.gradle.plugin.use.internal.PluginRepositoryHandlerProvider;
 
 public class DefaultPluginManagementSpec implements PluginManagementSpecInternal {
 
     private final PluginRepositoryHandlerProvider pluginRepositoryHandlerProvider;
     private final PluginResolutionStrategyInternal pluginResolutionStrategy;
+    private final PluginDependenciesSpec pluginDependenciesSpec;
 
     public DefaultPluginManagementSpec(PluginRepositoryHandlerProvider pluginRepositoryHandlerProvider, PluginResolutionStrategyInternal pluginResolutionStrategy) {
         this.pluginRepositoryHandlerProvider = pluginRepositoryHandlerProvider;
         this.pluginResolutionStrategy = pluginResolutionStrategy;
+        this.pluginDependenciesSpec = new PluginDependenciesSpecImpl();
     }
 
     @Override
@@ -49,6 +55,45 @@ public class DefaultPluginManagementSpec implements PluginManagementSpecInternal
     @Override
     public PluginResolutionStrategyInternal getResolutionStrategy() {
         return pluginResolutionStrategy;
+    }
+
+    @Override
+    public void plugins(Action<? super PluginDependenciesSpec> action) {
+        action.execute(pluginDependenciesSpec);
+    }
+
+    @Override
+    public PluginDependenciesSpec getPlugins() {
+        return pluginDependenciesSpec;
+    }
+
+    private class PluginDependenciesSpecImpl implements PluginDependenciesSpec {
+        @Override
+        public PluginDependencySpec id(String id) {
+            return new PluginDependencySpecImpl(DefaultPluginId.of(id));
+        }
+    }
+
+    private class PluginDependencySpecImpl implements PluginDependencySpec {
+        private final PluginId id;
+
+        private PluginDependencySpecImpl(PluginId id) {
+            this.id = id;
+        }
+
+        @Override
+        public PluginDependencySpec version(String version) {
+            pluginResolutionStrategy.setDefaultPluginVersion(id, version);
+            return this;
+        }
+
+        @Override
+        public PluginDependencySpec apply(boolean apply) {
+            if (apply) {
+                throw new IllegalArgumentException("Cannot apply a plugin from within a pluginManagement block.");
+            }
+            return this;
+        }
     }
 
 }

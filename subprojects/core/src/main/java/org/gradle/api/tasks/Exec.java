@@ -37,7 +37,7 @@ package org.gradle.api.tasks;
  * }
  * </pre>
  */
-public class Exec extends AbstractExecTask {
+public class Exec extends AbstractExecTask<Exec> {
     public Exec() {
         super(Exec.class);
     }

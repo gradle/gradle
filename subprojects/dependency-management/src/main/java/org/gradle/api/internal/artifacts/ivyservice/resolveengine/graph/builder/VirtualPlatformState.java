@@ -47,6 +47,7 @@ public class VirtualPlatformState {
     void participatingModule(ModuleResolveState state) {
         state.registerPlatformOwner(this);
         if (participatingModules.add(state)) {
+            resolveOptimizations.declareVirtualPlatformInUse();
             ComponentState selected = platformModule.getSelected();
             if (selected != null) {
                 // There is a possibility that a platform version was selected before a new member
@@ -63,7 +64,7 @@ public class VirtualPlatformState {
     private String getForcedVersion() {
         String version = null;
         for (SelectorState selector : platformModule.getSelectors()) {
-            if (selector.isForce()) {
+            if (selector.hasStrongOpinion()) {
                 ComponentSelector requested = selector.getRequested();
                 if (requested instanceof ModuleComponentSelector) {
                     String nv = ((ModuleComponentSelector) requested).getVersion();
@@ -112,7 +113,7 @@ public class VirtualPlatformState {
     }
 
     private boolean isSelectedPlatformForced() {
-        boolean forced = platformModule.getSelected().isForced();
+        boolean forced = platformModule.getSelected().hasStrongOpinion();
         if (forced) {
             resolveOptimizations.declareForcedPlatformInUse();
         }
@@ -121,7 +122,7 @@ public class VirtualPlatformState {
 
     private boolean isParticipatingModuleForced(ModuleResolveState participatingModule) {
         ComponentState selected = participatingModule.getSelected();
-        boolean forced = selected != null && selected.isForced();
+        boolean forced = selected != null && selected.hasStrongOpinion();
         if (forced) {
             resolveOptimizations.declareForcedPlatformInUse();
         }

@@ -27,7 +27,7 @@ dependencies {
     implementation(project(":coreApi"))
     implementation(project(":modelCore"))
     implementation(project(":core"))
-    implementation(project(":files"))
+    implementation(project(":fileCollections"))
     implementation(project(":resources"))
     implementation(project(":baseServicesGroovy"))
     implementation(project(":dependencyManagement"))
@@ -55,24 +55,30 @@ dependencies {
     testImplementation(project(":snapshots"))
     testImplementation(project(":resourcesHttp"))
     testImplementation(testLibrary("xmlunit"))
+    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":modelCore")))
+    testImplementation(testFixtures(project(":dependencyManagement")))
+
+    testRuntimeOnly(project(":runtimeApiInfo"))
 
     integTestImplementation(project(":ear"))
     integTestImplementation(testLibrary("jetty"))
     integTestRuntimeOnly(project(":resourcesS3"))
     integTestRuntimeOnly(project(":resourcesSftp"))
     integTestRuntimeOnly(project(":apiMetadata"))
+    integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
 
+    testFixturesApi(project(":baseServices")) {
+        because("Test fixtures export the Action class")
+    }
+    testFixturesImplementation(project(":coreApi"))
     testFixturesImplementation(project(":internalTesting"))
     testFixturesImplementation(project(":internalIntegTesting"))
+    testFixturesImplementation(project(":dependencyManagement"))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
-}
-
-testFixtures {
-    from(":core")
-    from(":modelCore")
 }
 
 testFilesCleanup {

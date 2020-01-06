@@ -22,7 +22,6 @@ import org.gradle.api.attributes.AttributeCompatibilityRule
 import org.gradle.api.attributes.AttributeDisambiguationRule
 import org.gradle.api.attributes.CompatibilityCheckDetails
 import org.gradle.api.attributes.MultipleCandidatesDetails
-import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.internal.component.model.ComponentAttributeMatcher
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.SnapshotTestUtil
@@ -351,7 +350,7 @@ class DefaultAttributesSchemaTest extends Specification {
     }
 
     static Flavor flavor(String name) {
-        NamedObjectInstantiator.INSTANCE.named(Flavor, name)
+        TestUtil.objectInstantiator().named(Flavor, name)
     }
 
     static class ConcreteNamed implements Named {

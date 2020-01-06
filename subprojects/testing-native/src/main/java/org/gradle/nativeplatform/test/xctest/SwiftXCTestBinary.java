@@ -16,7 +16,6 @@
 
 package org.gradle.nativeplatform.test.xctest;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.provider.Provider;
@@ -30,7 +29,6 @@ import org.gradle.nativeplatform.test.xctest.tasks.XCTest;
  *
  * @since 4.4
  */
-@Incubating
 public interface SwiftXCTestBinary extends SwiftBinary, TestComponent {
     /**
      * Returns the executable test file for this binary.
@@ -60,6 +58,9 @@ public interface SwiftXCTestBinary extends SwiftBinary, TestComponent {
      */
     Provider<? extends AbstractLinkTask> getLinkTask();
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     Provider<? extends XCTest> getRunTask();
 }

@@ -23,7 +23,6 @@ import org.gradle.api.Incubating;
  *
  * @since 4.8
  */
-@Incubating
 public interface DependencyLockingHandler {
 
     /**
@@ -35,4 +34,32 @@ public interface DependencyLockingHandler {
      *
      */
     void lockAllConfigurations();
+
+    /**
+     * Convenience method for doing:
+     *
+     * configurations.all {
+     *     resolutionStrategy.deactivateDependencyLocking()
+     * }
+     *
+     * @since 6.0
+     */
+    @Incubating
+    void unlockAllConfigurations();
+
+    /**
+     * Allows to query the lock mode currently configured
+     *
+     * @since 6.1
+     */
+    @Incubating
+    LockMode getLockMode();
+
+    /**
+     * Sets the lock mode
+     *
+     * @since 6.1
+     */
+    @Incubating
+    void setLockMode(LockMode mode);
 }

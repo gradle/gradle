@@ -17,7 +17,7 @@
 package org.gradle.internal.scan.config
 
 import org.gradle.integtests.fixtures.AbstractPluginIntegrationTest
-import org.gradle.plugin.management.internal.autoapply.AutoAppliedBuildScanPlugin
+import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Issue
@@ -38,7 +38,7 @@ class BuildScanFailureMessageHintIntegrationTest extends AbstractPluginIntegrati
     private static final List<String> DUMMY_TASK_AND_BUILD_SCAN = [DUMMY_TASK_NAME, "--$BuildScanOption.LONG_OPTION"]
     private static final String BUILD_SCAN_SUCCESSFUL_PUBLISHING = 'Publishing build scan'
 
-    def "does not render hint for successful build without applied build scan plugin"() {
+    def "does not render hint for successful build without applied plugin"() {
         given:
         buildFile << """
             task $DUMMY_TASK_NAME
@@ -52,7 +52,7 @@ class BuildScanFailureMessageHintIntegrationTest extends AbstractPluginIntegrati
     }
 
     @Unroll
-    def "renders hint for failing build without applied build scan plugin and #description"() {
+    def "renders hint for failing build without applied plugin and #description"() {
         given:
         buildFile << failingBuildFile()
 
@@ -74,9 +74,9 @@ class BuildScanFailureMessageHintIntegrationTest extends AbstractPluginIntegrati
         ["-$LogLevelOption.QUIET_SHORT_OPTION"]             | 'quiet'
     }
 
-    def "always renders hint for failing build if build scan plugin was applied in plugins DSL and not requested for generation"() {
+    def "always renders hint for failing build if plugin was applied in plugins DSL and not requested for generation"() {
         given:
-        buildFile << appliedBuildScanPluginInPluginsDsl()
+        settingsFile << appliedBuildScanPluginInPluginsDsl()
         buildFile << buildScanLicenseConfiguration()
         buildFile << failingBuildFile()
 
@@ -93,9 +93,9 @@ class BuildScanFailureMessageHintIntegrationTest extends AbstractPluginIntegrati
         DUMMY_TASK_AND_BUILD_SCAN | true
     }
 
-    def "always renders hint for failing build if build scan plugin was applied in buildscript and not requested for generation"() {
+    def "always renders hint for failing build if plugin was applied in buildscript and not requested for generation"() {
         given:
-        buildFile << appliedBuildScanPluginInBuildScript()
+        settingsFile << appliedBuildScanPluginInBuildScript()
         buildFile << buildScanLicenseConfiguration()
         buildFile << failingBuildFile()
 
@@ -112,7 +112,7 @@ class BuildScanFailureMessageHintIntegrationTest extends AbstractPluginIntegrati
         DUMMY_TASK_AND_BUILD_SCAN | true
     }
 
-    def "always renders hint for failing build if build scan plugin was applied in initscript and not requested for generation"() {
+    def "always renders hint for failing build if plugin was applied in initscript and not requested for generation"() {
         given:
         def initScriptFileName = 'init.gradle'
         file(initScriptFileName) << appliedBuildScanPluginInInitScript()
@@ -133,11 +133,11 @@ class BuildScanFailureMessageHintIntegrationTest extends AbstractPluginIntegrati
         DUMMY_TASK_AND_BUILD_SCAN | true
     }
 
-    def "always hint for failing build if build scan plugin was applied in script plugin and not requested for generation"() {
+    def "always hint for failing build if plugin was applied in script plugin and not requested for generation"() {
         given:
         def scriptPluginFileName = 'scan.gradle'
         file(scriptPluginFileName) << appliedBuildScanPluginInScriptPlugin()
-        buildFile << """
+        settingsFile << """
             apply from: '$scriptPluginFileName'
         """
         buildFile << buildScanLicenseConfiguration()
@@ -156,9 +156,9 @@ class BuildScanFailureMessageHintIntegrationTest extends AbstractPluginIntegrati
         DUMMY_TASK_AND_BUILD_SCAN | true
     }
 
-    def "renders hint for failing build if build scan plugin was applied in plugins DSL is configured to always publish"() {
+    def "renders hint for failing build if plugin was applied in plugins DSL is configured to always publish"() {
         given:
-        buildFile << appliedBuildScanPluginInPluginsDsl()
+        settingsFile << appliedBuildScanPluginInPluginsDsl()
         buildFile << buildScanLicenseConfiguration()
         buildFile << buildScanPublishAlwaysConfiguration()
         buildFile << failingBuildFile()
@@ -184,7 +184,7 @@ class BuildScanFailureMessageHintIntegrationTest extends AbstractPluginIntegrati
     static String appliedBuildScanPluginInPluginsDsl() {
         """
             plugins {
-                id 'com.gradle.build-scan' version '$AutoAppliedBuildScanPlugin.VERSION'
+                id 'com.gradle.enterprise' version '$AutoAppliedGradleEnterprisePlugin.VERSION'
             }
         """
     }
@@ -195,7 +195,7 @@ class BuildScanFailureMessageHintIntegrationTest extends AbstractPluginIntegrati
                 ${buildScanRepositoryAndDependency()}
             }
 
-            apply plugin: "com.gradle.build-scan"
+            apply plugin: "com.gradle.enterprise"
         """
     }
 
@@ -205,8 +205,8 @@ class BuildScanFailureMessageHintIntegrationTest extends AbstractPluginIntegrati
                 ${buildScanRepositoryAndDependency()}
             }
 
-            rootProject {
-                apply plugin: com.gradle.scan.plugin.BuildScanPlugin
+            beforeSettings {
+                it.apply plugin: com.gradle.enterprise.gradleplugin.GradleEnterprisePlugin
             }
         """
     }
@@ -217,7 +217,7 @@ class BuildScanFailureMessageHintIntegrationTest extends AbstractPluginIntegrati
                 ${buildScanRepositoryAndDependency()}
             }
 
-            apply plugin: com.gradle.scan.plugin.BuildScanPlugin
+            apply plugin: com.gradle.enterprise.gradleplugin.GradleEnterprisePlugin
         """
     }
 
@@ -228,7 +228,7 @@ class BuildScanFailureMessageHintIntegrationTest extends AbstractPluginIntegrati
             }
 
             dependencies {
-                classpath "com.gradle:build-scan-plugin:$AutoAppliedBuildScanPlugin.VERSION"
+                classpath "com.gradle:gradle-enterprise-gradle-plugin:$AutoAppliedGradleEnterprisePlugin.VERSION"
             }
         """
     }

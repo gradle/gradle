@@ -38,25 +38,25 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
     def "resolves strictly for dependency resolve failures when #expression is used"() {
         settingsFile << "include 'child'"
         def m1 = mavenHttpRepo.module('org.foo', 'hiphop').publish()
-        def m2 = mavenHttpRepo.module('org.foo', 'unknown');
-        def m3 = mavenHttpRepo.module('org.foo', 'broken');
+        def m2 = mavenHttpRepo.module('org.foo', 'unknown')
+        def m3 = mavenHttpRepo.module('org.foo', 'broken')
         def m4 = mavenHttpRepo.module('org.foo', 'rock').dependsOn(m3).publish()
 
         buildFile << """
             dependencies {
-                compile 'org.foo:hiphop:1.0'
-                compile 'org.foo:unknown:1.0' //does not exist
-                compile project(":child")
+                implementation 'org.foo:hiphop:1.0'
+                implementation 'org.foo:unknown:1.0' //does not exist
+                implementation project(":child")
 
-                compile 'org.foo:rock:1.0' //contains unresolved transitive dependency
+                implementation 'org.foo:rock:1.0' //contains unresolved transitive dependency
             }
 
             task validate {
                 doLast {
-                    def compile = configurations.compile.resolvedConfiguration
-                    assert compile.hasError()
+                    def compileClasspath = configurations.compileClasspath.resolvedConfiguration
+                    assert compileClasspath.hasError()
                     println "evaluating:"
-                    compile.${expression}
+                    compileClasspath.${expression}
                 }
             }
         """
@@ -85,22 +85,22 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
     def "resolves strictly for artifact resolve failures when #expression is used"() {
         settingsFile << "include 'child'"
         def m1 = mavenHttpRepo.module('org.foo', 'hiphop').publish()
-        def m2 = mavenHttpRepo.module('org.foo', 'unknown').publish();
-        def m3 = mavenHttpRepo.module('org.foo', 'broken').publish();
+        def m2 = mavenHttpRepo.module('org.foo', 'unknown').publish()
+        def m3 = mavenHttpRepo.module('org.foo', 'broken').publish()
         def m4 = mavenHttpRepo.module('org.foo', 'rock').dependsOn(m3).publish()
 
         buildFile << """
             dependencies {
-                compile 'org.foo:hiphop:1.0'
-                compile 'org.foo:unknown:1.0' //does not exist
-                compile project(":child")
+                implementation 'org.foo:hiphop:1.0'
+                implementation 'org.foo:unknown:1.0' //does not exist
+                implementation project(":child")
 
-                compile 'org.foo:rock:1.0' //contains unresolved transitive dependency
+                implementation 'org.foo:rock:1.0' //contains unresolved transitive dependency
             }
 
             task validate {
                 doLast {
-                    def compile = configurations.compile.resolvedConfiguration
+                    def compile = configurations.compileClasspath.resolvedConfiguration
 
                     assert !compile.hasError() // all dependencies resolved ok
                     assert compile.lenientConfiguration.unresolvedModuleDependencies.empty
@@ -122,8 +122,8 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         expect:
         fails "validate"
         outputContains("evaluating:") // ensure the failure happens when querying the resolved configuration
-        failure.assertHasCause("Could not find unknown.jar (org.foo:unknown:1.0).")
-        failure.assertHasCause("Could not download broken.jar (org.foo:broken:1.0)")
+        failure.assertHasCause("Could not find unknown-1.0.jar (org.foo:unknown:1.0).")
+        failure.assertHasCause("Could not download broken-1.0.jar (org.foo:broken:1.0)")
 
         where:
         expression                                 | _
@@ -134,22 +134,22 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
     def "resolves leniently for dependency resolve failures"() {
         settingsFile << "include 'child'"
         def m1 = mavenHttpRepo.module('org.foo', 'hiphop').publish()
-        def m2 = mavenHttpRepo.module('org.foo', 'unknown');
-        def m3 = mavenHttpRepo.module('org.foo', 'broken');
+        def m2 = mavenHttpRepo.module('org.foo', 'unknown')
+        def m3 = mavenHttpRepo.module('org.foo', 'broken')
         def m4 = mavenHttpRepo.module('org.foo', 'rock').dependsOn(m3).publish()
 
         buildFile << """
             dependencies {
-                compile 'org.foo:hiphop:1.0'
-                compile 'org.foo:unknown:1.0' //does not exist
-                compile project(":child")
+                implementation 'org.foo:hiphop:1.0'
+                implementation 'org.foo:unknown:1.0' //does not exist
+                implementation project(":child")
 
-                compile 'org.foo:rock:1.0' //contains unresolved transitive dependency
+                implementation 'org.foo:rock:1.0' //contains unresolved transitive dependency
             }
 
             task validate {
                 doLast {
-                    LenientConfiguration compile = configurations.compile.resolvedConfiguration.lenientConfiguration
+                    LenientConfiguration compile = configurations.compileClasspath.resolvedConfiguration.lenientConfiguration
 
                     def resolved = compile.firstLevelModuleDependencies
 
@@ -214,17 +214,17 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
 
         buildFile << """
             dependencies {
-                compile 'org.foo:a:1.0'
-                compile 'org.foo:b:1.0'
-                compile 'org.foo:d:1.0'
-                compile 'org.foo:e:1.0'
+                implementation 'org.foo:a:1.0'
+                implementation 'org.foo:b:1.0'
+                implementation 'org.foo:d:1.0'
+                implementation 'org.foo:e:1.0'
                 
                 modules.module('org.foo:c') { replacedBy('org.foo:f') }
             }
 
             task validate {
                 doLast {
-                    LenientConfiguration compile = configurations.compile.resolvedConfiguration.lenientConfiguration
+                    LenientConfiguration compile = configurations.compileClasspath.resolvedConfiguration.lenientConfiguration
 
                     def resolved = compile.firstLevelModuleDependencies
 
@@ -273,22 +273,22 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
     def "lenient for both dependency and artifact resolve and download failures"() {
         settingsFile << "include 'child'"
         def m1 = mavenHttpRepo.module('org.foo', 'hiphop').publish()
-        def m2 = mavenHttpRepo.module('org.foo', 'unknown');
-        def m3 = mavenHttpRepo.module('org.foo', 'broken');
+        def m2 = mavenHttpRepo.module('org.foo', 'unknown')
+        def m3 = mavenHttpRepo.module('org.foo', 'broken')
         def m4 = mavenHttpRepo.module('org.foo', 'rock').dependsOn(m3).publish()
 
         buildFile << """
             dependencies {
-                compile 'org.foo:hiphop:1.0'
-                compile 'org.foo:unknown:1.0' //does not exist
-                compile project(":child")
+                implementation 'org.foo:hiphop:1.0'
+                implementation 'org.foo:unknown:1.0' //does not exist
+                implementation project(":child")
 
-                compile 'org.foo:rock:1.0' //contains unresolved transitive dependency, plus missing jar
+                implementation 'org.foo:rock:1.0' //contains unresolved transitive dependency, plus missing jar
             }
 
             task validate {
                 doLast {
-                    LenientConfiguration compile = configurations.compile.resolvedConfiguration.lenientConfiguration
+                    LenientConfiguration compile = configurations.compileClasspath.resolvedConfiguration.lenientConfiguration
 
                     def resolved = compile.firstLevelModuleDependencies
 
@@ -336,7 +336,7 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
 
     def "resolves leniently from mixed confs"() {
         def m1 = mavenHttpRepo.module('org.foo', 'hiphop').publish()
-        def m2 = mavenHttpRepo.module('org.foo', 'unknown');
+        def m2 = mavenHttpRepo.module('org.foo', 'unknown')
 
         buildFile << """
             configurations {
@@ -344,13 +344,13 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
             }
 
             dependencies {
-                compile 'org.foo:hiphop:1.0'
+                implementation 'org.foo:hiphop:1.0'
                 someConf 'org.foo:unknown:1.0' //does not exist
             }
 
             task validate {
                 doLast {
-                    LenientConfiguration compile = configurations.compile.resolvedConfiguration.lenientConfiguration
+                    LenientConfiguration compile = configurations.compileClasspath.resolvedConfiguration.lenientConfiguration
 
                     def unresolved = compile.getUnresolvedModuleDependencies()
                     def resolved = compile.getFirstLevelModuleDependencies(Specs.SATISFIES_ALL)
@@ -388,13 +388,13 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
 
         buildFile << """
             dependencies {
-                compile 'org:foo:[1,3]'
-                compile 'org:bar:1'
+                implementation 'org:foo:[1,3]'
+                implementation 'org:bar:1'
             }
 
             task validate {
                 doLast {
-                    LenientConfiguration compile = configurations.compile.resolvedConfiguration.lenientConfiguration
+                    LenientConfiguration compile = configurations.compileClasspath.resolvedConfiguration.lenientConfiguration
 
                     def resolved = compile.firstLevelModuleDependencies
 

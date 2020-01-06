@@ -18,20 +18,22 @@ package org.gradle.internal.execution.steps
 
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSortedMap
-import org.gradle.caching.internal.origin.OriginMetadata
 import org.gradle.internal.Try
+import org.gradle.internal.execution.CurrentSnapshotResult
 import org.gradle.internal.execution.ExecutionOutcome
 import org.gradle.internal.execution.IncrementalChangesContext
-import org.gradle.internal.execution.SnapshotResult
 import org.gradle.internal.execution.history.AfterPreviousExecutionState
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges
 import org.gradle.internal.fingerprint.impl.EmptyCurrentFileCollectionFingerprint
 
-class SkipUpToDateStepTest extends StepSpec {
-    def step = new SkipUpToDateStep<IncrementalChangesContext>(delegate)
-    def context = Mock(IncrementalChangesContext)
-
+class SkipUpToDateStepTest extends StepSpec<IncrementalChangesContext> {
+    def step = new SkipUpToDateStep<>(delegate)
     def changes = Mock(ExecutionStateChanges)
+
+    @Override
+    protected IncrementalChangesContext createContext() {
+        Stub(IncrementalChangesContext)
+    }
 
     def "skips when outputs are up to date"() {
         when:
@@ -39,18 +41,17 @@ class SkipUpToDateStepTest extends StepSpec {
 
         then:
         result.outcome.get() == ExecutionOutcome.UP_TO_DATE
-        result.executionReasons.empty
+        !result.executionReasons.present
 
-        1 * context.changes >> Optional.of(changes)
+        _ * context.changes >> Optional.of(changes)
         1 * changes.allChangeMessages >> ImmutableList.of()
-        1 * context.afterPreviousExecutionState >> Optional.of(Mock(AfterPreviousExecutionState))
+        _ * context.afterPreviousExecutionState >> Optional.of(Mock(AfterPreviousExecutionState))
         0 * _
     }
 
     def "executes when outputs are not up to date"() {
-        def delegateResult = Mock(SnapshotResult)
+        def delegateResult = Mock(CurrentSnapshotResult)
         def delegateOutcome = Try.successful(ExecutionOutcome.EXECUTED_NON_INCREMENTALLY)
-        def delegateOriginMetadata = Mock(OriginMetadata)
         def delegateFinalOutputs = ImmutableSortedMap.copyOf([test: EmptyCurrentFileCollectionFingerprint.EMPTY])
 
         when:
@@ -58,9 +59,9 @@ class SkipUpToDateStepTest extends StepSpec {
 
         then:
         result.executionReasons == ["change"]
+        !result.reusedOutputOriginMetadata.present
 
-        1 * context.getWork() >> work
-        1 * context.changes >> Optional.of(changes)
+        _ * context.changes >> Optional.of(changes)
         1 * changes.allChangeMessages >> ImmutableList.of("change")
         1 * delegate.execute(context) >> delegateResult
         0 * _
@@ -72,15 +73,6 @@ class SkipUpToDateStepTest extends StepSpec {
         outcome == delegateOutcome
 
         1 * delegateResult.outcome >> delegateOutcome
-        0 * _
-
-        when:
-        def originMetadata = result.originMetadata
-
-        then:
-        originMetadata == delegateOriginMetadata
-
-        1 * delegateResult.originMetadata >> delegateOriginMetadata
         0 * _
 
         when:
@@ -100,8 +92,7 @@ class SkipUpToDateStepTest extends StepSpec {
         then:
         result.executionReasons == ["Change tracking is disabled."]
 
-        1 * context.getWork() >> work
-        1 * context.changes >> Optional.empty()
+        _ * context.changes >> Optional.empty()
         1 * delegate.execute(context)
         0 * _
     }

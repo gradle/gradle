@@ -17,7 +17,6 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
-import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
@@ -40,15 +39,19 @@ public class CachingFileHasher implements FileHasher {
     private final StringInterner stringInterner;
     private final FileTimeStampInspector timestampInspector;
 
-    public CachingFileHasher(FileHasher delegate, CrossBuildFileHashCache store, StringInterner stringInterner, FileTimeStampInspector timestampInspector, String cacheName, FileSystem fileSystem) {
+    public CachingFileHasher(FileHasher delegate, CrossBuildFileHashCache store, StringInterner stringInterner, FileTimeStampInspector timestampInspector, String cacheName, FileSystem fileSystem, int inMemorySize) {
         this.delegate = delegate;
         this.fileSystem = fileSystem;
         this.cache = store.createCache(
             PersistentIndexedCacheParameters.of(cacheName, new InterningStringSerializer(stringInterner), new FileInfoSerializer()),
-            400000,
+            inMemorySize,
             true);
         this.stringInterner = stringInterner;
         this.timestampInspector = timestampInspector;
+    }
+
+    public CachingFileHasher(FileHasher delegate, CrossBuildFileHashCache store, StringInterner stringInterner, FileTimeStampInspector timestampInspector, String cacheName, FileSystem fileSystem) {
+        this(delegate, store, stringInterner, timestampInspector, cacheName, fileSystem, 400000);
     }
 
     @Override
@@ -62,22 +65,13 @@ public class CachingFileHasher implements FileHasher {
     }
 
     @Override
-    public HashCode hash(FileTreeElement fileDetails) {
-        return snapshot(fileDetails).getHash();
-    }
-
-    @Override
-    public HashCode hash(File file, FileMetadataSnapshot fileDetails) {
-        return snapshot(file, fileDetails.getLength(), fileDetails.getLastModified()).getHash();
+    public HashCode hash(File file, long length, long lastModified) {
+        return snapshot(file, length, lastModified).getHash();
     }
 
     private FileInfo snapshot(File file) {
         FileMetadataSnapshot fileMetadata = fileSystem.stat(file);
         return snapshot(file, fileMetadata.getLength(), fileMetadata.getLastModified());
-    }
-
-    private FileInfo snapshot(FileTreeElement file) {
-        return snapshot(file.getFile(), file.getSize(), file.getLastModified());
     }
 
     private FileInfo snapshot(File file, long length, long timestamp) {

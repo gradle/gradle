@@ -17,10 +17,11 @@
 package org.gradle.api.artifacts.transform
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.scan.config.fixtures.BuildScanPluginFixture
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.internal.scan.config.fixtures.GradleEnterprisePluginFixture
 
 class ArtifactTransformBuildScanIntegrationTest extends AbstractIntegrationSpec {
-    def fixture = new BuildScanPluginFixture(testDirectory, mavenRepo, createExecuter())
+    def fixture = new GradleEnterprisePluginFixture(testDirectory, mavenRepo, createExecuter())
 
     def setup() {
         settingsFile << fixture.pluginManagement() << """
@@ -28,9 +29,10 @@ class ArtifactTransformBuildScanIntegrationTest extends AbstractIntegrationSpec 
             include 'util'
         """
         fixture.logConfig = true
-        fixture.publishDummyBuildScanPluginNow()
+        fixture.publishDummyPluginNow()
     }
 
+    @ToBeFixedForInstantExecution
     def "transform works with build scan"() {
         given:
         buildFile << """
@@ -49,30 +51,34 @@ class ArtifactTransformBuildScanIntegrationTest extends AbstractIntegrationSpec 
                     }
                 }
                 dependencies {
-                    registerTransform {
+                    registerTransform(FileSizer) {
                         from.attribute(artifactType, "jar")
                         to.attribute(artifactType, "size")
-                        artifactTransform(FileSizer)
                     }
                 }
             }
 
-            class FileSizer extends ArtifactTransform {
-                List<File> transform(File input) {
-                    File output = new File(outputDirectory, input.name + ".txt")
+            import org.gradle.api.artifacts.transform.TransformParameters
+
+            abstract class FileSizer implements TransformAction<TransformParameters.None> {
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
+                    File output = outputs.file(input.name + ".txt")
                     output.text = String.valueOf(input.length())
-                    println "Transformed \$input.name to \$output.name into \$outputDirectory"
-                    return [output]
+                    println "Transformed \$input.name to \$output.name into \${output.parentFile}"
                 }
             }
             
             project(':lib') {
                 apply plugin: 'base'
                 task jar1(type: Jar) {
-                    archiveName = 'lib1.jar'
+                    archiveFileName = 'lib1.jar'
                 }
                 task jar2(type: Jar) {
-                    archiveName = 'lib2.jar'
+                    archiveFileName = 'lib2.jar'
                 }
                 artifacts {
                     compile jar1

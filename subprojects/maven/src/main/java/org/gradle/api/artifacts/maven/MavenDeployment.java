@@ -15,7 +15,6 @@
  */
 package org.gradle.api.artifacts.maven;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.PublishArtifact;
 
 import java.util.Set;
@@ -24,6 +23,7 @@ import java.util.Set;
  * Represents the artifacts which will be deployed to a Maven repository. You can use this interface to modify the set
  * of artifacts.
  */
+@Deprecated
 public interface MavenDeployment {
 
     /**
@@ -32,7 +32,6 @@ public interface MavenDeployment {
      * @return The packaging. Never null.
      * @since 4.8
      */
-    @Incubating
     String getPackaging();
 
     /**
@@ -41,7 +40,6 @@ public interface MavenDeployment {
      * @return The group ID. Never null.
      * @since 4.8
      */
-    @Incubating
     String getGroupId();
 
     /**
@@ -50,7 +48,6 @@ public interface MavenDeployment {
      * @return The artifact ID. Never null.
      * @since 4.8
      */
-    @Incubating
     String getArtifactId();
 
     /**
@@ -59,7 +56,6 @@ public interface MavenDeployment {
      * @return The version. Never null.
      * @since 4.8
      */
-    @Incubating
     String getVersion();
 
     /**

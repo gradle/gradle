@@ -34,12 +34,13 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 
 class HttpClientConfigurerTest extends Specification {
+    public static final String REMOTE_HOST = "host"
+    public static final int SOME_PORT = 1234
+    public static final String PROXY_HOST = "proxy"
     HttpClientBuilder httpClientBuilder = HttpClientBuilder.create()
 
     PasswordCredentials credentials = Mock()
-    AllSchemesAuthentication basicAuthentication = Mock() {
-        getCredentials() >> credentials
-    }
+    AllSchemesAuthentication basicAuthentication = new AllSchemesAuthentication(credentials)
 
     HttpProxySettings proxySettings = Mock()
     HttpProxySettings secureProxySettings = Mock()
@@ -53,6 +54,10 @@ class HttpClientConfigurerTest extends Specification {
         createSslContext() >> SSLContexts.createDefault()
     }
     HttpClientConfigurer configurer = new HttpClientConfigurer(httpSettings)
+
+    def setup() {
+        basicAuthentication.addHost(REMOTE_HOST, SOME_PORT)
+    }
 
     def "forces java.home racecondition"() {
         final sslContextFactory = new DefaultSslContextFactory()
@@ -69,11 +74,11 @@ class HttpClientConfigurerTest extends Specification {
                 try {
                     // This is expected to fail because of the bad path set above. Does not block with synchronization because in same thread.
                     sslContextFactory.createSslContext()
-                } catch(UncheckedExecutionException e) {
+                } catch (UncheckedExecutionException e) {
                     exceptionRef.set(e)
                 }
                 // endBarrier must time out in a proper solution, because the main thread blocks in sslContextFactory.createSslContext() below.
-                endBarrierTimedOut.set( !endBarrier.await(100, TimeUnit.MILLISECONDS) )
+                endBarrierTimedOut.set(!endBarrier.await(100, TimeUnit.MILLISECONDS))
             })
         })
         thread.start()
@@ -108,18 +113,18 @@ class HttpClientConfigurerTest extends Specification {
     def "configures http client with proxy credentials"() {
         httpSettings.authenticationSettings >> []
         httpSettings.sslContextFactory >> sslContextFactory
-        proxySettings.proxy >> new HttpProxySettings.HttpProxy("host", 1111, "domain/proxyUser", "proxyPass")
+        proxySettings.proxy >> new HttpProxySettings.HttpProxy(PROXY_HOST, SOME_PORT, "domain/proxyUser", "proxyPass")
 
         when:
         configurer.configure(httpClientBuilder)
 
         then:
-        def proxyCredentials = httpClientBuilder.credentialsProvider.getCredentials(new AuthScope("host", 1111))
+        def proxyCredentials = httpClientBuilder.credentialsProvider.getCredentials(new AuthScope(PROXY_HOST, SOME_PORT))
         proxyCredentials.userPrincipal.name == "domain/proxyUser"
         proxyCredentials.password == "proxyPass"
 
         and:
-        def ntlmCredentials = httpClientBuilder.credentialsProvider.getCredentials(new AuthScope("host", 1111, AuthScope.ANY_REALM, "ntlm"))
+        def ntlmCredentials = httpClientBuilder.credentialsProvider.getCredentials(new AuthScope(PROXY_HOST, SOME_PORT, AuthScope.ANY_REALM, "ntlm"))
         ntlmCredentials.userPrincipal.name == 'DOMAIN\\proxyUser'
         ntlmCredentials.domain == 'DOMAIN'
         ntlmCredentials.userName == 'proxyUser'
@@ -137,12 +142,12 @@ class HttpClientConfigurerTest extends Specification {
         configurer.configure(httpClientBuilder)
 
         then:
-        def basicCredentials = httpClientBuilder.credentialsProvider.getCredentials(new AuthScope(AuthScope.ANY_HOST, AuthScope.ANY_PORT))
+        def basicCredentials = httpClientBuilder.credentialsProvider.getCredentials(new AuthScope(REMOTE_HOST, SOME_PORT))
         basicCredentials.userPrincipal.name == "domain/user"
         basicCredentials.password == "pass"
 
         and:
-        def ntlmCredentials = httpClientBuilder.credentialsProvider.getCredentials(new AuthScope(AuthScope.ANY_HOST, AuthScope.ANY_PORT, AuthScope.ANY_REALM, "ntlm"))
+        def ntlmCredentials = httpClientBuilder.credentialsProvider.getCredentials(new AuthScope(REMOTE_HOST, SOME_PORT, AuthScope.ANY_REALM, "ntlm"))
         ntlmCredentials.userPrincipal.name == 'DOMAIN\\user'
         ntlmCredentials.domain == 'DOMAIN'
         ntlmCredentials.userName == 'user'
@@ -157,16 +162,15 @@ class HttpClientConfigurerTest extends Specification {
         def httpHeaderCredentials = new DefaultHttpHeaderCredentials()
         httpHeaderCredentials.setName("TestHttpHeaderName")
         httpHeaderCredentials.setValue("TestHttpHeaderValue")
-        AllSchemesAuthentication httpHeaderAuthentication = Mock() {
-            getCredentials() >> httpHeaderCredentials
-        }
+        AllSchemesAuthentication httpHeaderAuthentication = new AllSchemesAuthentication(httpHeaderCredentials)
+        httpHeaderAuthentication.addHost(REMOTE_HOST, SOME_PORT)
 
         httpSettings.authenticationSettings >> [httpHeaderAuthentication]
         httpSettings.sslContextFactory >> sslContextFactory
 
         when:
         configurer.configure(httpClientBuilder)
-        HttpClientHttpHeaderCredentials actualHttpHeaderCredentials = httpClientBuilder.credentialsProvider.getCredentials(new AuthScope(AuthScope.ANY_HOST, AuthScope.ANY_PORT))
+        HttpClientHttpHeaderCredentials actualHttpHeaderCredentials = httpClientBuilder.credentialsProvider.getCredentials(new AuthScope(REMOTE_HOST, SOME_PORT))
 
         then:
         actualHttpHeaderCredentials.header.name == 'TestHttpHeaderName'

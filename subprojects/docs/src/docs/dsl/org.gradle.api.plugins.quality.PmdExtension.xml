@@ -10,7 +10,7 @@
             </thead>
             <tr>
                 <td>toolVersion</td>
-                <td><literal>6.8.0</literal></td>
+                <td><literal>6.15.0</literal></td>
             </tr>
             <tr>
                 <td>reportsDir</td>
@@ -42,6 +42,10 @@
             </tr>
             <tr>
                 <td>consoleOutput</td>
+                <td><literal>false</literal></td>
+            </tr>
+            <tr>
+                <td>incrementalAnalysis</td>
                 <td><literal>false</literal></td>
             </tr>
         </table>

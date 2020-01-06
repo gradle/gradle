@@ -167,7 +167,7 @@ class HttpBuildCacheConfigurationBuildOperationIntegrationTest extends AbstractI
         given:
         settingsFile << """
             buildCache {  
-                local(DirectoryBuildCache) {
+                local {
                     enabled = false 
                     directory = 'directory'
                     push = false 

@@ -58,7 +58,7 @@ public interface ConfigurationMetadata extends HasAttributes {
     /**
      * Returns the artifacts associated with this configuration, if known.
      */
-    List<? extends ComponentArtifactMetadata> getArtifacts();
+    ImmutableList<? extends ComponentArtifactMetadata> getArtifacts();
 
     /**
      * Returns the variants of this configuration. Should include at least one value. Exactly one variant must be selected and the artifacts of that variant used.
@@ -78,6 +78,8 @@ public interface ConfigurationMetadata extends HasAttributes {
 
     boolean isCanBeConsumed();
 
+    List<String> getConsumptionAlternatives();
+
     boolean isCanBeResolved();
 
     /**
@@ -90,4 +92,10 @@ public interface ConfigurationMetadata extends HasAttributes {
     ComponentArtifactMetadata artifact(IvyArtifactName artifact);
 
     CapabilitiesMetadata getCapabilities();
+
+    /**
+     * Was this variant derived from pom metadata and requires the maven mechanism of discovering artifacts
+     * that may not be directly defined in the metadata (e.g. the default 'jar' artifact).
+     */
+    boolean requiresMavenArtifactDiscovery();
 }

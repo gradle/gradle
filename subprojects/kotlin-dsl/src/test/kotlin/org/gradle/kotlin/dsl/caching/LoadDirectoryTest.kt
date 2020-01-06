@@ -16,8 +16,6 @@
 
 package org.gradle.kotlin.dsl.caching
 
-import org.gradle.internal.id.UniqueId
-
 import org.gradle.kotlin.dsl.cache.LoadDirectory
 import org.gradle.kotlin.dsl.cache.PackMetadata
 import org.gradle.kotlin.dsl.cache.ScriptBuildCacheKey
@@ -30,6 +28,7 @@ import org.junit.Assert.assertThat
 import org.junit.Test
 
 import java.io.InputStream
+import java.util.UUID
 
 
 class LoadDirectoryTest : TestWithTempFiles() {
@@ -38,8 +37,8 @@ class LoadDirectoryTest : TestWithTempFiles() {
     fun `returns correct OriginMetadata based on buildInvocationId`() {
 
         // given:
-        val previousBuildInvocation = UniqueId.generate()
-        val currentBuildInvocation = UniqueId.generate()
+        val previousBuildInvocation = UUID.randomUUID().toString()
+        val currentBuildInvocation = UUID.randomUUID().toString()
         val subject = LoadDirectory(
             newFolder(),
             ScriptBuildCacheKey("test-key", "test-key/42"),
@@ -48,18 +47,18 @@ class LoadDirectoryTest : TestWithTempFiles() {
 
         // then:
         assertThat(
-            subject.load(packProducedBy(currentBuildInvocation))!!.metadata.buildInvocationId,
+            subject.load(packProducedBy(currentBuildInvocation)).metadata.buildInvocationId,
             equalTo(currentBuildInvocation)
         )
 
         // and:
         assertThat(
-            subject.load(packProducedBy(previousBuildInvocation))!!.metadata.buildInvocationId,
+            subject.load(packProducedBy(previousBuildInvocation)).metadata.buildInvocationId,
             not(equalTo(currentBuildInvocation))
         )
     }
 
     private
-    fun packProducedBy(buildInvocationId: UniqueId): InputStream =
+    fun packProducedBy(buildInvocationId: String): InputStream =
         packToByteArray(newFolder(), PackMetadata(buildInvocationId, 1L)).second.inputStream()
 }

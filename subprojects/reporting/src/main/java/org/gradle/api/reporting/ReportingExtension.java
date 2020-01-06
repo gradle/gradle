@@ -15,7 +15,6 @@
  */
 package org.gradle.api.reporting;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
@@ -104,7 +103,6 @@ public class ReportingExtension {
      *
      * @since 4.4
      */
-    @Incubating
     public DirectoryProperty getBaseDirectory() {
         return baseDirectory;
     }

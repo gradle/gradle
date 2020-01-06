@@ -275,6 +275,74 @@ class DefaultPluginContainerTest extends Specification {
         e.message == "'$TestRuleSource.name' does not implement the Plugin interface."
     }
 
+    def "cannot add plugins directly to container"() {
+        def plugin = Mock(Plugin)
+
+        when:
+        container.add(plugin)
+
+        then:
+        thrown UnsupportedOperationException
+
+        when:
+        container.withType(plugin.class).add(plugin)
+
+        then:
+        thrown UnsupportedOperationException
+
+        when:
+        container.addAll([plugin])
+
+        then:
+        thrown UnsupportedOperationException
+
+        when:
+        container.withType(plugin.class).addAll([plugin])
+
+        then:
+        thrown UnsupportedOperationException
+    }
+
+    def "cannot remove plugins from container"() {
+        def plugin = Mock(Plugin)
+
+        when:
+        container.remove(plugin)
+
+        then:
+        thrown UnsupportedOperationException
+
+        when:
+        container.withType(plugin.class).remove(plugin)
+
+        then:
+        thrown UnsupportedOperationException
+
+        when:
+        container.removeAll([plugin])
+
+        then:
+        thrown UnsupportedOperationException
+
+        when:
+        container.withType(plugin.class).removeAll([plugin])
+
+        then:
+        thrown UnsupportedOperationException
+
+        when:
+        container.clear()
+
+        then:
+        thrown UnsupportedOperationException
+
+        when:
+        container.withType(plugin.class).clear()
+
+        then:
+        thrown UnsupportedOperationException
+    }
+
     def scope(ClassLoader classLoader) {
         return Stub(ClassLoaderScope) {
             getLocalClassLoader() >> classLoader

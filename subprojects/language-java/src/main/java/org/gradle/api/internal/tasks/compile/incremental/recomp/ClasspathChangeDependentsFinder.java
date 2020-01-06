@@ -70,11 +70,11 @@ public class ClasspathChangeDependentsFinder {
         if (allClasses.isDependencyToAll()) {
             return allClasses;
         }
-        DependentsSet affectedOnClasspath = collectDependentsFromClasspath(allClasses.getDependentClasses());
+        DependentsSet affectedOnClasspath = collectDependentsFromClasspath(allClasses.getAllDependentClasses());
         if (affectedOnClasspath.isDependencyToAll()) {
             return affectedOnClasspath;
         } else {
-            return previousCompilation.getDependents(affectedOnClasspath.getDependentClasses(), previous.getAllConstants(affectedOnClasspath));
+            return previousCompilation.getDependents(affectedOnClasspath.getAllDependentClasses(), previous.getAllConstants(affectedOnClasspath));
         }
     }
 
@@ -90,13 +90,15 @@ public class ClasspathChangeDependentsFinder {
         if (affectedOnClasspath.isDependencyToAll()) {
             return affectedOnClasspath;
         } else {
-            return previousCompilation.getDependents(affectedOnClasspath.getDependentClasses(), currentSnapshot.getRelevantConstants(previous, affectedOnClasspath.getDependentClasses()));
+            Set<String> joined = affectedOnClasspath.getAllDependentClasses();
+            return previousCompilation.getDependents(joined, currentSnapshot.getRelevantConstants(previous, joined));
         }
     }
 
     private DependentsSet collectDependentsFromClasspath(Set<String> modified) {
-        final Set<String> dependentClasses = Sets.newHashSet(modified);
-        final Deque<String> queue = Lists.newLinkedList(dependentClasses);
+        final Set<String> privateDependentClasses = Sets.newHashSet(modified);
+        final Set<String> accessibleDependentClasses = Sets.newHashSet(modified);
+        final Deque<String> queue = Lists.newLinkedList(modified);
         while (!queue.isEmpty()) {
             final String dependentClass = queue.poll();
             for (File entry : classpathSnapshot.getEntries()) {
@@ -104,15 +106,20 @@ public class ClasspathChangeDependentsFinder {
                 if (dependents.isDependencyToAll()) {
                     return dependents;
                 } else {
-                    for (String intermediate : dependents.getDependentClasses()) {
-                        if (dependentClasses.add(intermediate)) {
+                    for (String intermediate : dependents.getPrivateDependentClasses()) {
+                        if (privateDependentClasses.add(intermediate) && !accessibleDependentClasses.contains(intermediate)) {
+                            queue.add(intermediate);
+                        }
+                    }
+                    for (String intermediate : dependents.getAccessibleDependentClasses()) {
+                        if (accessibleDependentClasses.add(intermediate) && !privateDependentClasses.contains(intermediate)) {
                             queue.add(intermediate);
                         }
                     }
                 }
             }
         }
-        return DependentsSet.dependentClasses(dependentClasses);
+        return DependentsSet.dependentClasses(privateDependentClasses, accessibleDependentClasses);
     }
 
     private DependentsSet collectDependentsFromClasspathEntry(String dependentClass, File entry) {

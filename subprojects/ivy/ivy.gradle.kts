@@ -29,7 +29,7 @@ dependencies {
     implementation(project(":modelCore"))
     implementation(project(":core"))
     implementation(project(":baseServicesGroovy")) // for 'Specs'
-    implementation(project(":files"))
+    implementation(project(":fileCollections"))
     implementation(project(":resources"))
     implementation(project(":publish"))
     implementation(project(":plugins")) // for base plugin to get archives conf
@@ -44,28 +44,40 @@ dependencies {
 
     testImplementation(project(":native"))
     testImplementation(project(":processServices"))
+    testImplementation(project(":snapshots"))
+
+    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":modelCore")))
+    testImplementation(testFixtures(project(":platformBase")))
+    testImplementation(testFixtures(project(":dependencyManagement")))
+    testRuntimeOnly(project(":runtimeApiInfo"))
 
     integTestImplementation(project(":ear"))
+    integTestImplementation(library("slf4j_api"))
     integTestImplementation(testLibrary("jetty"))
 
     integTestRuntimeOnly(project(":resourcesS3"))
     integTestRuntimeOnly(project(":resourcesSftp"))
     integTestRuntimeOnly(project(":apiMetadata"))
 
+    testFixturesApi(project(":baseServices")) {
+        because("Test fixtures export the Action class")
+    }
+    testFixturesApi(project(":coreApi")) {
+        because("Test fixtures export the RepositoryHandler class")
+    }
+    testFixturesImplementation(project(":logging"))
+    testFixturesImplementation(project(":dependencyManagement"))
     testFixturesImplementation(project(":internalTesting"))
     testFixturesImplementation(project(":internalIntegTesting"))
     testFixturesImplementation(library("slf4j_api"))
     testLibraries("sshd").forEach { testFixturesImplementation(it) }
+
+    integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
-}
-
-testFixtures {
-    from(":core")
-    from(":modelCore")
-    from(":platformBase")
 }
 
 testFilesCleanup {

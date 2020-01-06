@@ -17,16 +17,16 @@
 package org.gradle.api.internal.tasks.properties;
 
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.internal.Factory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 public class GetInputPropertiesVisitor extends PropertyVisitor.Adapter {
     private final String beanName;
-    private List<InputPropertySpec> inputProperties = new ArrayList<InputPropertySpec>();
+    private final List<InputPropertySpec> inputProperties = new ArrayList<>();
 
     public GetInputPropertiesVisitor(String beanName) {
         this.beanName = beanName;
@@ -38,22 +38,19 @@ public class GetInputPropertiesVisitor extends PropertyVisitor.Adapter {
         inputProperties.add(spec);
     }
 
-    public Factory<Map<String, Object>> getPropertyValuesFactory() {
-        return new Factory<Map<String, Object>>() {
-            @Override
-            public Map<String, Object> create() {
-                Map<String, Object> result = new HashMap<String, Object>();
-                for (InputPropertySpec inputProperty : inputProperties) {
-                    String propertyName = inputProperty.getPropertyName();
-                    try {
-                        Object value = InputParameterUtils.prepareInputParameterValue(inputProperty.getValue());
-                        result.put(propertyName, value);
-                    } catch (Exception ex) {
-                        throw new InvalidUserDataException(String.format("Error while evaluating property '%s' of %s", propertyName, beanName), ex);
-                    }
+    public Supplier<Map<String, Object>> getPropertyValuesSupplier() {
+        return () -> {
+            Map<String, Object> result = new HashMap<>();
+            for (InputPropertySpec inputProperty : inputProperties) {
+                String propertyName = inputProperty.getPropertyName();
+                try {
+                    Object value = InputParameterUtils.prepareInputParameterValue(inputProperty.getValue());
+                    result.put(propertyName, value);
+                } catch (Exception ex) {
+                    throw new InvalidUserDataException(String.format("Error while evaluating property '%s' of %s", propertyName, beanName), ex);
                 }
-                return result;
             }
+            return result;
         };
     }
 }

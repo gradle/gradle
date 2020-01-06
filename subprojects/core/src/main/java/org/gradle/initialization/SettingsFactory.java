@@ -45,13 +45,13 @@ public class SettingsFactory {
 
     public SettingsInternal createSettings(GradleInternal gradle, File settingsDir, ScriptSource settingsScript,
                                            Map<String, String> gradleProperties, StartParameter startParameter,
-                                           ClassLoaderScope buildRootClassLoaderScope) {
+                                           ClassLoaderScope baseClassLoaderScope) {
 
-        ClassLoaderScope settingsClassLoaderScope = buildRootClassLoaderScope.createChild("settings");
-        ScriptHandlerInternal settingsScriptHandler = scriptHandlerFactory.create(settingsScript, settingsClassLoaderScope);
+        ClassLoaderScope classLoaderScope = baseClassLoaderScope.createChild("settings");
+        ScriptHandlerInternal settingsScriptHandler = scriptHandlerFactory.create(settingsScript, classLoaderScope);
         DefaultSettings settings = instantiator.newInstance(DefaultSettings.class,
             serviceRegistryFactory, gradle,
-            settingsClassLoaderScope, buildRootClassLoaderScope, settingsScriptHandler,
+            classLoaderScope, baseClassLoaderScope, settingsScriptHandler,
             settingsDir, settingsScript, startParameter
         );
 
@@ -59,4 +59,5 @@ public class SettingsFactory {
         ((ExtensibleDynamicObject) dynamicObject).addProperties(gradleProperties);
         return settings;
     }
+
 }

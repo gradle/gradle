@@ -16,8 +16,9 @@
 
 package org.gradle.language.swift
 
-import org.gradle.nativeplatform.fixtures.app.SourceElement
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.nativeplatform.fixtures.app.SwiftLib
+import org.gradle.nativeplatform.fixtures.app.SwiftSourceElement
 
 class SwiftStaticLibraryLinkageIntegrationTest extends AbstractSwiftIntegrationTest {
     @Override
@@ -26,7 +27,7 @@ class SwiftStaticLibraryLinkageIntegrationTest extends AbstractSwiftIntegrationT
     }
 
     @Override
-    protected SourceElement getComponentUnderTest() {
+    protected SwiftSourceElement getComponentUnderTest() {
         return new SwiftLib()
     }
 
@@ -44,10 +45,17 @@ class SwiftStaticLibraryLinkageIntegrationTest extends AbstractSwiftIntegrationT
     }
 
     @Override
+    void assertComponentUnderTestWasBuilt() {
+        file("build/modules/main/debug/${componentUnderTest.moduleName}.swiftmodule").assertIsFile()
+        staticLibrary("build/lib/main/debug/${componentUnderTest.moduleName}").assertExists()
+    }
+
+    @Override
     protected String getComponentUnderTestDsl() {
         return "library"
     }
 
+    @ToBeFixedForInstantExecution
     def "can create static only library"() {
         def library = new SwiftLib()
         buildFile << """
@@ -70,6 +78,7 @@ class SwiftStaticLibraryLinkageIntegrationTest extends AbstractSwiftIntegrationT
         staticLibrary('build/lib/main/debug/Foo').assertExists()
     }
 
+    @ToBeFixedForInstantExecution
     def "can create debug and release variants"() {
         def library = new SwiftLib()
         buildFile << """
@@ -99,6 +108,7 @@ class SwiftStaticLibraryLinkageIntegrationTest extends AbstractSwiftIntegrationT
         staticLibrary('build/lib/main/release/Foo').assertExists()
     }
 
+    @ToBeFixedForInstantExecution
     def "can use link file as task dependency"() {
         given:
         def lib = new SwiftLib()
@@ -124,6 +134,7 @@ class SwiftStaticLibraryLinkageIntegrationTest extends AbstractSwiftIntegrationT
         staticLibrary("build/lib/main/debug/Foo" ).assertExists()
     }
 
+    @ToBeFixedForInstantExecution
     def "can use objects as task dependency"() {
         given:
         def lib = new SwiftLib()

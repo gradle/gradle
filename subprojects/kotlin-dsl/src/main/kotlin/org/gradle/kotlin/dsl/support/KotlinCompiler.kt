@@ -60,8 +60,9 @@ import org.jetbrains.kotlin.name.NameUtils
 
 import org.jetbrains.kotlin.samWithReceiver.CliSamWithReceiverComponentContributor
 
-import org.jetbrains.kotlin.script.KotlinScriptDefinition
 import org.jetbrains.kotlin.scripting.compiler.plugin.ScriptingCompilerConfigurationComponentRegistrar
+import org.jetbrains.kotlin.scripting.configuration.ScriptingConfigurationKeys.SCRIPT_DEFINITIONS
+import org.jetbrains.kotlin.scripting.definitions.ScriptDefinition
 
 import org.jetbrains.kotlin.utils.PathUtil
 import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
@@ -73,12 +74,21 @@ import java.io.File
 import java.io.OutputStream
 import java.io.PrintStream
 
+import kotlin.reflect.KClass
+
+import kotlin.script.experimental.api.ScriptCompilationConfiguration
+import kotlin.script.experimental.api.baseClass
+import kotlin.script.experimental.api.defaultImports
+import kotlin.script.experimental.api.hostConfiguration
+import kotlin.script.experimental.api.implicitReceivers
+import kotlin.script.experimental.jvm.defaultJvmScriptingHostConfiguration
+
 
 fun compileKotlinScriptModuleTo(
     outputDirectory: File,
     moduleName: String,
     scriptFiles: Collection<String>,
-    scriptDef: KotlinScriptDefinition,
+    scriptDef: ScriptDefinition,
     classPath: Iterable<File>,
     logger: Logger,
     pathTranslation: (String) -> String
@@ -92,11 +102,32 @@ fun compileKotlinScriptModuleTo(
 )
 
 
+fun scriptDefinitionFromTemplate(
+    template: KClass<out Any>,
+    implicitImports: List<String>,
+    implicitReceiver: KClass<*>? = null
+): ScriptDefinition {
+    val hostConfiguration = defaultJvmScriptingHostConfiguration
+    return ScriptDefinition.FromConfigurations(
+        hostConfiguration = hostConfiguration,
+        compilationConfiguration = ScriptCompilationConfiguration {
+            baseClass(template)
+            defaultImports(implicitImports)
+            hostConfiguration(hostConfiguration)
+            implicitReceiver?.let {
+                implicitReceivers(it)
+            }
+        },
+        evaluationConfiguration = null
+    )
+}
+
+
 internal
 fun compileKotlinScriptToDirectory(
     outputDirectory: File,
     scriptFile: File,
-    scriptDef: KotlinScriptDefinition,
+    scriptDef: ScriptDefinition,
     classPath: List<File>,
     messageCollector: LoggingMessageCollector
 ): String {
@@ -119,7 +150,7 @@ fun compileKotlinScriptModuleTo(
     outputDirectory: File,
     moduleName: String,
     scriptFiles: Collection<String>,
-    scriptDef: KotlinScriptDefinition,
+    scriptDef: ScriptDefinition,
     classPath: Iterable<File>,
     messageCollector: LoggingMessageCollector
 ) {
@@ -128,7 +159,6 @@ fun compileKotlinScriptModuleTo(
         withCompilationExceptionHandler(messageCollector) {
 
             val configuration = compilerConfigurationFor(messageCollector).apply {
-                put(JVM_TARGET, JVM_1_8)
                 put(RETAIN_OUTPUT_IN_MEMORY, false)
                 put(OUTPUT_DIRECTORY, outputDirectory)
                 setModuleName(moduleName)
@@ -299,6 +329,7 @@ fun compilerConfigurationFor(messageCollector: MessageCollector): CompilerConfig
     CompilerConfiguration().apply {
         put(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, messageCollector)
         put(JVMConfigurationKeys.USE_FAST_CLASS_FILES_READING, true)
+        put(JVM_TARGET, JVM_1_8)
         put(CommonConfigurationKeys.LANGUAGE_VERSION_SETTINGS, gradleKotlinDslLanguageVersionSettings)
     }
 
@@ -309,7 +340,8 @@ val gradleKotlinDslLanguageVersionSettings = LanguageVersionSettingsImpl(
     apiVersion = ApiVersion.KOTLIN_1_3,
     specificFeatures = mapOf(
         LanguageFeature.NewInference to LanguageFeature.State.ENABLED,
-        LanguageFeature.SamConversionForKotlinFunctions to LanguageFeature.State.ENABLED
+        LanguageFeature.SamConversionForKotlinFunctions to LanguageFeature.State.ENABLED,
+        LanguageFeature.SamConversionPerArgument to LanguageFeature.State.ENABLED
     ),
     analysisFlags = mapOf(
         AnalysisFlags.skipMetadataVersionCheck to true
@@ -333,8 +365,8 @@ fun CompilerConfiguration.addScriptingCompilerComponents() {
 
 
 private
-fun CompilerConfiguration.addScriptDefinition(scriptDef: KotlinScriptDefinition) {
-    add(JVMConfigurationKeys.SCRIPT_DEFINITIONS, scriptDef)
+fun CompilerConfiguration.addScriptDefinition(scriptDef: ScriptDefinition) {
+    add(SCRIPT_DEFINITIONS, scriptDef)
 }
 
 

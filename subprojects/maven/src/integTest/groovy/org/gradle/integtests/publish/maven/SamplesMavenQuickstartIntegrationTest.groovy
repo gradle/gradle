@@ -20,6 +20,7 @@ import org.custommonkey.xmlunit.Diff
 import org.custommonkey.xmlunit.XMLAssert
 import org.custommonkey.xmlunit.examples.RecursiveElementNameAndTextQualifier
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.util.Resources
 import org.junit.Rule
@@ -39,16 +40,18 @@ class SamplesMavenQuickstartIntegrationTest extends AbstractSampleIntegrationTes
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "can publish to a local repository with #dsl dsl"() {
         given:
         def pomProjectDir = sample.dir.file(dsl)
 
         when:
+        executer.expectDeprecationWarnings(2)
         executer.inDirectory(pomProjectDir).withTasks('uploadArchives').run()
 
         then:
         def repo = maven(pomProjectDir.file('pomRepo'))
-        def module = repo.module('gradle', 'quickstart', '1.0')
+        def module = repo.module('gradle', 'quickstart', '1.0').withoutExtraChecksums()
         module.assertArtifactsPublished('quickstart-1.0.jar', 'quickstart-1.0.pom')
         compareXmlWithIgnoringOrder(expectedPom('1.0', "gradle"), module.pomFile.text)
         module.moduleDir.file("quickstart-1.0.jar").assertIsCopyOf(pomProjectDir.file('build/libs/quickstart-1.0.jar'))
@@ -58,6 +61,7 @@ class SamplesMavenQuickstartIntegrationTest extends AbstractSampleIntegrationTes
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "can install to local repository with #dsl dsl"() {
         given:
         def pomProjectDir = sample.dir.file(dsl)
@@ -67,6 +71,7 @@ class SamplesMavenQuickstartIntegrationTest extends AbstractSampleIntegrationTes
         module.moduleDir.deleteDir()
 
         when:
+        executer.expectDeprecationWarning()
         executer.inDirectory(pomProjectDir).withTasks('install').run()
 
         then:

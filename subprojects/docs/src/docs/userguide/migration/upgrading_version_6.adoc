@@ -1,0 +1,86 @@
+// Copyright 2019 the original author or authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[upgrading_version_6]]
+= Upgrading your build from Gradle 6.x to the latest
+
+This chapter provides the information you need to migrate your Gradle 6.x builds to the latest Gradle release. For migrating from Gradle 4.x or 5.x, see the <<upgrading_version_5.adoc#upgrading_version_5, older migration guide>> first.
+
+We recommend the following steps for all users:
+
+. Try running `gradle help --scan` and view the https://gradle.com/enterprise/releases/2018.4/#identify-usages-of-deprecated-gradle-functionality[deprecations view] of the generated build scan.
++
+image::deprecations.png[Deprecations View of a Gradle Build Scan]
++
+This is so that you can see any deprecation warnings that apply to your build.
++
+Alternatively, you could run `gradle help --warning-mode=all` to see the deprecations in the console, though it may not report as much detailed information.
+. Update your plugins.
++
+Some plugins will break with this new version of Gradle, for example because they use internal APIs that have been removed or changed. The previous step will help you identify potential problems by issuing deprecation warnings when a plugin does try to use a deprecated part of the API.
++
+. Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
+. Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
+
+[[changes_6.1]]
+== Upgrading from 6.0 and earlier
+
+=== Deprecations
+
+==== Querying a mapped output property of a task before the task has completed
+
+Querying the value of a mapped output property before the task has completed can cause strange build failures because it indicates stale or non-existent outputs may be used by mistake. This behavior is deprecated and will emit a deprecation warning. This will become an error in Gradle 7.0.
+
+The following example demonstrates this problem where the Producer's output file is parsed before the Producer executes:
+```
+class Consumer extends DefaultTask {
+    @Input
+    final Property<Integer> threadPoolSize = ...
+}
+
+class Producer extends DefaultTask {
+    @OutputFile
+    final RegularFileProperty outputFile = ...
+}
+
+// threadPoolSize is read from the producer's outputFile
+consumer.threadPoolSize = producer.outputFile.map { it.text.toInteger() }
+
+// Emits deprecation warning
+println("thread pool size = " + consumer.threadPoolSize.get())
+```
+
+Querying the value of `consumer.threadPoolSize` will produce a deprecation warning if done prior to `producer` completing, as the output file has not yet been generated.
+
+[[upgrading_jvm_plugins]]
+==== Alternative JVM plugins (a.k.a "Software Model")
+
+A set of alternative plugins for Java and Scala development were introduced in Gradle 2.x as an experiment based on the "software model".  These plugins are now deprecated and will eventually be removed.  If you are still using one of these old plugins (`java-lang`, `scala-lang`, `jvm-component`, `jvm-resources`, `junit-test-suite`) please consult the documentation on <<building_java_projects.adoc#,Building Java & JVM projects>> to determine which of the stable JVM plugins are appropriate for your project.
+
+=== Potential breaking changes
+
+==== `ProjectLayout` is no longer available to worker actions as a service
+
+In Gradle 6.0, the `ProjectLayout` service was made available to worker actions via service injection. This service allowed for mutable state to leak into a worker action and introduced a way for dependencies to go undeclared in the worker action.
+
+`ProjectLayout` has been removed from the available services.  Worker actions that were using `ProjectLayout` should switch to injecting the `projectDirectory` or `buildDirectory` as a parameter instead.
+
+==== Updates to bundled Gradle dependencies
+
+- Kotlin has been updated to https://blog.jetbrains.com/kotlin/2019/11/kotlin-1-3-60-released/[Kotlin 1.3.61].
+
+==== Updates to default tool integration versions
+
+- Checkstyle has been updated to https://checkstyle.org/releasenotes.html#Release_8.27[Checkstyle 8.27].
+- PMD has been updated to https://pmd.github.io/pmd-6.20.0/pmd_release_notes.html#29-november-2019---6200[PMD 6.20.0].

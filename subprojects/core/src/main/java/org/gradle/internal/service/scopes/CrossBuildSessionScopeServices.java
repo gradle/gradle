@@ -78,7 +78,7 @@ public class CrossBuildSessionScopeServices implements Closeable {
         this.buildOperationListenerManager = parent.get(BuildOperationListenerManager.class);
 
         ListenerManager generalListenerManager = parent.get(ListenerManager.class);
-        this.buildOperationTrace = new BuildOperationTrace(startParameter, buildOperationListenerManager, generalListenerManager);
+        this.buildOperationTrace = new BuildOperationTrace(startParameter, buildOperationListenerManager);
         this.buildOperationNotificationBridge = new BuildOperationNotificationBridge(buildOperationListenerManager, generalListenerManager);
         this.loggingBuildOperationProgressBroadcaster = new LoggingBuildOperationProgressBroadcaster(parent.get(OutputEventListenerManager.class), buildOperationListenerManager.getBroadcaster());
     }

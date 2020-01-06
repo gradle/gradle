@@ -20,12 +20,17 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
+import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 import javax.inject.Inject
+import java.nio.file.Files
+import java.nio.file.Paths
+import java.nio.file.StandardCopyOption
 
 @LeaksFileHandles
 @Requires(TestPrecondition.KOTLIN_SCRIPT)
@@ -41,14 +46,20 @@ class PropertyKotlinInterOpIntegrationTest extends AbstractPropertyLanguageInter
             import ${ObjectFactory.name}
             import ${TaskAction.name}
             import ${Inject.name}
+            import ${Internal.name}
 
             open class SomeTask @Inject constructor(objectFactory: ObjectFactory): DefaultTask() {
+                @Internal
                 val flag = objectFactory.property(Boolean::class.java)
+                @Internal
                 val message = objectFactory.property(String::class.java)
+                @Internal
                 val list = objectFactory.listProperty(Int::class.java)
+                @Internal
                 val set = objectFactory.setProperty(Int::class.java)
+                @Internal
                 val map = objectFactory.mapProperty(Int::class.java, Boolean::class.java)
-                
+
                 @TaskAction
                 fun run() {
                     println("flag = " + flag.get())
@@ -69,7 +80,7 @@ class PropertyKotlinInterOpIntegrationTest extends AbstractPropertyLanguageInter
 
             class SomePlugin: Plugin<Project> {
                 override fun apply(project: Project) {
-                    project.tasks.register("someTask", SomeTask::class.java) { 
+                    project.tasks.register("someTask", SomeTask::class.java) {
                         flag.set(true)
                         message.set("some value")
                         list.set(listOf(1, 2))
@@ -89,7 +100,7 @@ class PropertyKotlinInterOpIntegrationTest extends AbstractPropertyLanguageInter
 
             class SomePlugin: Plugin<Project> {
                 override fun apply(project: Project) {
-                    project.tasks.register("someTask", SomeTask::class.java) { 
+                    project.tasks.register("someTask", SomeTask::class.java) {
                         flag.set(project.provider { true })
                         message.set(project.provider { "some value" })
                         list.set(project.provider { listOf(1, 2) })
@@ -109,7 +120,7 @@ class PropertyKotlinInterOpIntegrationTest extends AbstractPropertyLanguageInter
 
             class SomePlugin: Plugin<Project> {
                 override fun apply(project: Project) {
-                    project.tasks.register("someTask", SomeTask::class.java) { 
+                    project.tasks.register("someTask", SomeTask::class.java) {
                         val provider = project.provider { "some value" }
                         flag.set(provider.map { s -> !s.isEmpty() })
                         message.set(provider.map { s -> s })
@@ -130,9 +141,22 @@ class PropertyKotlinInterOpIntegrationTest extends AbstractPropertyLanguageInter
 
             class SomePlugin: Plugin<Project> {
                 override fun apply(project: Project) {
-                    project.tasks.register("someTask", SomeTask::class.java) 
+                    project.tasks.register("someTask", SomeTask::class.java)
                 }
             }
         """
+    }
+
+    def cleanup() {
+        // Let's copy the Kotlin compiler logs in case of failure
+        if (result instanceof ExecutionFailure) {
+            def pattern = "kotlin-daemon.${new Date().format("yyyy-MM-dd")}.*.log"
+            def kotlinCompilerLogFiles = new FileNameFinder().getFileNames(System.getenv("TMPDIR"), pattern)
+            def target = buildContext.gradleUserHomeDir.createDir("kotlin-compiler-daemon").toPath()
+            kotlinCompilerLogFiles.each {
+                def source = Paths.get(it)
+                Files.copy(source, target.resolve(source.fileName), StandardCopyOption.REPLACE_EXISTING)
+            }
+        }
     }
 }

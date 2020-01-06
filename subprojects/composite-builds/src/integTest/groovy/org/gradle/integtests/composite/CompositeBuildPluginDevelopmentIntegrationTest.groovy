@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.composite
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -39,6 +40,7 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "can co-develop plugin and consumer with plugin as included build"() {
         given:
         applyPlugin(buildA, pluginsBlock, withVersion)
@@ -66,13 +68,14 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         false        | false
     }
 
+    @ToBeFixedForInstantExecution
     def "can co-develop plugin and consumer with both plugin and consumer as included builds"() {
         given:
         applyPlugin(pluginDependencyA, pluginsBlock)
 
         buildA.buildFile << """
             dependencies {
-                compile "org.test:pluginDependencyA:1.0"
+                implementation "org.test:pluginDependencyA:1.0"
             }
         """
         pluginDependencyA.buildFile << """
@@ -93,6 +96,7 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
     }
 
     @Issue("https://github.com/gradle/gradle/issues/5234")
+    @ToBeFixedForInstantExecution
     def "can co-develop plugin and multiple consumers as included builds with transitive plugin library dependency"() {
         given:
         def buildB = singleProjectBuild("buildB") {
@@ -119,6 +123,7 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         pluginsBlock << [true, false]
     }
 
+    @ToBeFixedForInstantExecution
     def "can co-develop plugin and consumer where plugin uses previous version of itself to build"() {
         given:
         // Ensure that 'plugin' is published with older version
@@ -151,6 +156,7 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         pluginsBlock << [true, false]
     }
 
+    @ToBeFixedForInstantExecution
     def "can develop a transitive plugin dependency as included build"() {
         given:
         applyPlugin(buildA, pluginsBlock)
@@ -169,6 +175,7 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         pluginsBlock << [true, false]
     }
 
+    @ToBeFixedForInstantExecution
     def "can develop a buildscript dependency that is also used by main build"() {
         given:
         buildA.buildFile << """
@@ -219,6 +226,7 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         executed ":pluginDependencyA:jar"
     }
 
+    @ToBeFixedForInstantExecution
     def "can use an included build that provides both a buildscript dependency and a compile dependency"() {
         given:
         def buildB = multiProjectBuild("buildB", ['b1', 'b2']) {
@@ -247,6 +255,7 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         executed ":buildB:b1:jar", ":buildB:b2:jar", ":jar"
     }
 
+    @ToBeFixedForInstantExecution
     def "can develop a transitive plugin dependency as included build when plugin itself is not included"() {
         given:
         publishPluginWithDependency()
@@ -326,6 +335,7 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         failure.assertHasDescription("Included build dependency cycle: build 'pluginDependencyA' -> build 'pluginDependencyB' -> build 'pluginDependencyA'")
     }
 
+    @ToBeFixedForInstantExecution
     def "can co-develop plugin applied via plugins block with resolution strategy applied"() {
         given:
         applyPluginFromRepo(buildA, """
@@ -353,6 +363,7 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         outputContains("taskFromPluginBuild")
     }
 
+    @ToBeFixedForInstantExecution
     def "can co-develop published plugin applied via plugins block"() {
         given:
         publishPlugin()

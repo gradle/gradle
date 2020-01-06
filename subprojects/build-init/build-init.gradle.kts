@@ -18,7 +18,7 @@ import java.util.*
  * limitations under the License.
  */
 plugins {
-    java
+    `java-library`
     gradlebuild.classycle
 }
 
@@ -28,7 +28,7 @@ dependencies {
     implementation(project(":coreApi"))
     implementation(project(":modelCore"))
     implementation(project(":core"))
-    implementation(project(":files"))
+    implementation(project(":fileCollections"))
     implementation(project(":dependencyManagement"))
     implementation(project(":platformBase"))
     implementation(project(":platformNative"))
@@ -46,25 +46,31 @@ dependencies {
 
     testImplementation(project(":cli"))
     testImplementation(project(":baseServicesGroovy"))
+    testImplementation(project(":native"))
+    testImplementation(project(":snapshots"))
+    testImplementation(project(":processServices"))
+    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":platformNative")))
 
+    testFixturesImplementation(project(":baseServices"))
+
+    integTestImplementation(project(":native"))
     integTestImplementation(testLibrary("jetty"))
 
     val allTestRuntimeDependencies: DependencySet by rootProject.extra
     allTestRuntimeDependencies.forEach {
         integTestRuntimeOnly(it)
     }
-    
+
     testFixturesImplementation(project(":internalTesting"))
+
+    testRuntimeOnly(project(":runtimeApiInfo"))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
 }
 
-testFixtures {
-    from(":core")
-    from(":platformNative")
-}
 
 tasks {
     register("updateInitPluginTemplateVersionFile") {
@@ -73,21 +79,24 @@ tasks {
 
             val versionProperties = Properties()
 
-            // Currently no scalatest for 2.13
-            findLatest("scala-library", "org.scala-lang:scala-library:2.12.+", versionProperties)
+            findLatest("scala-library", "org.scala-lang:scala-library:2.13.+", versionProperties)
             val scalaVersion = VersionNumber.parse(versionProperties["scala-library"] as String)
             versionProperties["scala"] = "${scalaVersion.major}.${scalaVersion.minor}"
 
-            findLatest("scalatest", "org.scalatest:scalatest_${versionProperties["scala"]}:(3.0,)", versionProperties)
-            findLatest("scala-xml", "org.scala-lang.modules:scala-xml_${versionProperties["scala"]}:latest.release", versionProperties)
+            // The latest released version is 2.0.0-M1, which is excluded by "don't use snapshot" strategy
+            findLatest("scala-xml", "org.scala-lang.modules:scala-xml_${versionProperties["scala"]}:1.2.0", versionProperties)
             findLatest("groovy", "org.codehaus.groovy:groovy:(2.5,)", versionProperties)
             findLatest("junit", "junit:junit:(4.0,)", versionProperties)
             findLatest("junit-jupiter", "org.junit.jupiter:junit-jupiter-api:(5,)", versionProperties)
             findLatest("testng", "org.testng:testng:(6.0,)", versionProperties)
             findLatest("slf4j", "org.slf4j:slf4j-api:(1.7,)", versionProperties)
 
+            // Starting with ScalaTest 3.1.0, the third party integration were moved out of the main JAR
+            findLatest("scalatest", "org.scalatest:scalatest_${versionProperties["scala"]}:(3.0,)", versionProperties)
+            findLatest("scalatestplus-junit", "org.scalatestplus:junit-4-12_${versionProperties["scala"]}:(3.1,)", versionProperties)
+
             val groovyVersion = VersionNumber.parse(versionProperties["groovy"] as String)
-            versionProperties["spock"] = "1.2-groovy-${groovyVersion.major}.${groovyVersion.minor}"
+            versionProperties["spock"] = "1.3-groovy-${groovyVersion.major}.${groovyVersion.minor}"
 
             findLatest("guava", "com.google.guava:guava:(20,)", versionProperties)
             findLatest("commons-math", "org.apache.commons:commons-math3:latest.release", versionProperties)

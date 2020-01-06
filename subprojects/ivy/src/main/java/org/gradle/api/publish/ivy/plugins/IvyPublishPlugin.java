@@ -21,18 +21,11 @@ import org.gradle.api.NamedDomainObjectList;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.internal.CollectionCallbackActionDecorator;
-import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
-import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.ExtensionContainer;
@@ -76,25 +69,13 @@ public class IvyPublishPlugin implements Plugin<Project> {
     private final ObjectFactory objectFactory;
     private final DependencyMetaDataProvider dependencyMetaDataProvider;
     private final FileResolver fileResolver;
-    private final ProjectDependencyPublicationResolver projectDependencyResolver;
-    private final FileCollectionFactory fileCollectionFactory;
-    private final ImmutableAttributesFactory immutableAttributesFactory;
-    private final FeaturePreviews featurePreviews;
-    private CollectionCallbackActionDecorator collectionCallbackActionDecorator;
 
     @Inject
-    public IvyPublishPlugin(Instantiator instantiator, ObjectFactory objectFactory, DependencyMetaDataProvider dependencyMetaDataProvider, FileResolver fileResolver,
-                            ProjectDependencyPublicationResolver projectDependencyResolver, FileCollectionFactory fileCollectionFactory,
-                            ImmutableAttributesFactory immutableAttributesFactory, FeaturePreviews featurePreviews, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
+    public IvyPublishPlugin(Instantiator instantiator, ObjectFactory objectFactory, DependencyMetaDataProvider dependencyMetaDataProvider, FileResolver fileResolver) {
         this.instantiator = instantiator;
         this.objectFactory = objectFactory;
         this.dependencyMetaDataProvider = dependencyMetaDataProvider;
         this.fileResolver = fileResolver;
-        this.projectDependencyResolver = projectDependencyResolver;
-        this.fileCollectionFactory = fileCollectionFactory;
-        this.immutableAttributesFactory = immutableAttributesFactory;
-        this.featurePreviews = featurePreviews;
-        this.collectionCallbackActionDecorator = collectionCallbackActionDecorator;
     }
 
     @Override
@@ -106,11 +87,8 @@ public class IvyPublishPlugin implements Plugin<Project> {
                 instantiator,
                 objectFactory,
                 fileResolver,
-                collectionCallbackActionDecorator,
-                project.getConfigurations(),
                 project.getPluginManager(),
-                project.getExtensions(),
-                (AttributesSchemaInternal) project.getDependencies().getAttributesSchema()));
+                project.getExtensions()));
             createTasksLater(project, extension, project.getLayout().getBuildDirectory());
         });
     }
@@ -182,30 +160,22 @@ public class IvyPublishPlugin implements Plugin<Project> {
         publication.setModuleDescriptorGenerator(generatorTask);
     }
 
-    private class IvyPublicationFactory implements NamedDomainObjectFactory<IvyPublication> {
+    private static class IvyPublicationFactory implements NamedDomainObjectFactory<IvyPublication> {
         private final Instantiator instantiator;
         private final DependencyMetaDataProvider dependencyMetaDataProvider;
         private final ObjectFactory objectFactory;
         private final FileResolver fileResolver;
-        private final CollectionCallbackActionDecorator collectionCallbackActionDecorator;
-        private final ConfigurationContainer configurations;
         private final PluginManager plugins;
         private final ExtensionContainer extensionContainer;
-        private final AttributesSchemaInternal attributesSchema;
 
         private IvyPublicationFactory(DependencyMetaDataProvider dependencyMetaDataProvider, Instantiator instantiator, ObjectFactory objectFactory, FileResolver fileResolver,
-                                      CollectionCallbackActionDecorator collectionCallbackActionDecorator, ConfigurationContainer configurations,
-                                      PluginManager plugins, ExtensionContainer extensionContainer,
-                                      AttributesSchemaInternal attributesSchema) {
+                                      PluginManager plugins, ExtensionContainer extensionContainer) {
             this.dependencyMetaDataProvider = dependencyMetaDataProvider;
             this.instantiator = instantiator;
             this.objectFactory = objectFactory;
             this.fileResolver = fileResolver;
-            this.collectionCallbackActionDecorator = collectionCallbackActionDecorator;
-            this.configurations = configurations;
             this.plugins = plugins;
             this.extensionContainer = extensionContainer;
-            this.attributesSchema = attributesSchema;
         }
 
         @Override
@@ -213,18 +183,10 @@ public class IvyPublishPlugin implements Plugin<Project> {
             Module module = dependencyMetaDataProvider.getModule();
             IvyPublicationIdentity publicationIdentity = new DefaultIvyPublicationIdentity(module);
             NotationParser<Object, IvyArtifact> notationParser = new IvyArtifactNotationParserFactory(instantiator, fileResolver, publicationIdentity).create();
-            VersionMappingStrategyInternal versionMappingStrategy = instantiator.newInstance(DefaultVersionMappingStrategy.class,
-                objectFactory,
-                configurations,
-                attributesSchema,
-                immutableAttributesFactory);
+            VersionMappingStrategyInternal versionMappingStrategy = objectFactory.newInstance(DefaultVersionMappingStrategy.class);
             configureDefaultConfigurationsUsedWhenMappingToResolvedVersions(versionMappingStrategy);
 
-            return instantiator.newInstance(
-                DefaultIvyPublication.class,
-                name, instantiator, objectFactory, publicationIdentity, notationParser, projectDependencyResolver, fileCollectionFactory, immutableAttributesFactory, featurePreviews,
-                collectionCallbackActionDecorator, versionMappingStrategy
-            );
+            return objectFactory.newInstance(DefaultIvyPublication.class, name, publicationIdentity, notationParser, versionMappingStrategy);
         }
 
         private void configureDefaultConfigurationsUsedWhenMappingToResolvedVersions(VersionMappingStrategyInternal versionMappingStrategy) {

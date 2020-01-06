@@ -16,7 +16,6 @@
 package org.gradle.api.artifacts.repositories;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 
 import java.net.URI;
 import java.util.Set;
@@ -26,7 +25,7 @@ import java.util.Set;
  * <p>
  * Repositories of this type are created by the {@link org.gradle.api.artifacts.dsl.RepositoryHandler#maven(org.gradle.api.Action)} group of methods.
  */
-public interface MavenArtifactRepository extends ArtifactRepository, AuthenticationSupported, MetadataSupplierAware {
+public interface MavenArtifactRepository extends ArtifactRepository, UrlArtifactRepository, AuthenticationSupported, MetadataSupplierAware {
 
     /**
      * The base URL of this repository. This URL is used to find both POMs and artifact files. You can add additional URLs to use to look for artifact files, such as jars, using {@link
@@ -34,6 +33,7 @@ public interface MavenArtifactRepository extends ArtifactRepository, Authenticat
      *
      * @return The URL.
      */
+    @Override
     URI getUrl();
 
     /**
@@ -43,6 +43,7 @@ public interface MavenArtifactRepository extends ArtifactRepository, Authenticat
      * @param url The base URL.
      * @since 4.0
      */
+    @Override
     void setUrl(URI url);
 
     /**
@@ -54,6 +55,7 @@ public interface MavenArtifactRepository extends ArtifactRepository, Authenticat
      *
      * @param url The base URL.
      */
+    @Override
     void setUrl(Object url);
 
     /**
@@ -99,7 +101,6 @@ public interface MavenArtifactRepository extends ArtifactRepository, Authenticat
      *
      * @since 4.5
      */
-    @Incubating
     void metadataSources(Action<? super MetadataSources> configureAction);
 
     /**
@@ -108,7 +109,6 @@ public interface MavenArtifactRepository extends ArtifactRepository, Authenticat
      * @since 4.5
      *
      */
-    @Incubating
     interface MetadataSources {
         /**
          * Indicates that this repository will contain Gradle metadata.
@@ -119,7 +119,7 @@ public interface MavenArtifactRepository extends ArtifactRepository, Authenticat
          * Indicates that this repository will contain Maven POM files.
          * If the POM file contains a marker telling that Gradle metadata exists
          * for this component, Gradle will <i>also</i> look for the Gradle metadata
-         * file.
+         * file. Gradle module metadata redirection will not happen if {@code ignoreGradleMetadataRedirection()} has been used.
          */
         void mavenPom();
 
@@ -128,6 +128,14 @@ public interface MavenArtifactRepository extends ArtifactRepository, Authenticat
          * but we can infer it from the presence of an artifact file.
          */
         void artifact();
+
+        /**
+         * Indicates that this repository will ignore Gradle module metadata redirection markers found in POM files.
+         *
+         * @since 5.6
+         *
+         */
+        void ignoreGradleMetadataRedirection();
     }
 
     /**
@@ -136,6 +144,5 @@ public interface MavenArtifactRepository extends ArtifactRepository, Authenticat
      *
      * @since 5.1
      */
-    @Incubating
     void mavenContent(Action<? super MavenRepositoryContentDescriptor> configureAction);
 }

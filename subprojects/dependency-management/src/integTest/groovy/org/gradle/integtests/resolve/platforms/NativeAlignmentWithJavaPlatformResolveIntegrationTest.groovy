@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.platforms
 
 import org.gradle.api.JavaVersion
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.RequiredFeatures
@@ -32,6 +33,7 @@ import static org.gradle.util.TextUtil.escapeString
     ]
 )
 class NativeAlignmentWithJavaPlatformResolveIntegrationTest extends AbstractModuleDependencyResolveTest {
+    @ToBeFixedForInstantExecution
     def "publishes a platform with native alignment"() {
         settingsFile << """
             rootProject.name = 'root'
@@ -152,7 +154,6 @@ class NativeAlignmentWithJavaPlatformResolveIntegrationTest extends AbstractModu
         when:
         settingsFile.text = """
             rootProject.name = 'consumer'
-            enableFeaturePreview('GRADLE_METADATA')
         """
 
         buildFile.text = """
@@ -207,7 +208,8 @@ class NativeAlignmentWithJavaPlatformResolveIntegrationTest extends AbstractModu
                         'org.gradle.dependency.bundling':'external',
                         'org.gradle.jvm.version': JavaVersion.current().majorVersion,
                         'org.gradle.status':'release',
-                        'org.gradle.usage': 'java-api-jars']
+                        'org.gradle.usage': 'java-api',
+                        'org.gradle.libraryelements': 'jar']
                     module('com.acme.foo:platform:1.1') {
                         variant "apiElements", [
                             'org.gradle.category':'platform',
@@ -223,7 +225,8 @@ class NativeAlignmentWithJavaPlatformResolveIntegrationTest extends AbstractModu
                             'org.gradle.dependency.bundling':'external',
                             'org.gradle.jvm.version': JavaVersion.current().majorVersion,
                             'org.gradle.status':'release',
-                            'org.gradle.usage': 'java-api-jars']
+                            'org.gradle.usage': 'java-api',
+                            'org.gradle.libraryelements': 'jar']
                         byConstraint("platform alignment")
                     }
                 }
@@ -233,7 +236,8 @@ class NativeAlignmentWithJavaPlatformResolveIntegrationTest extends AbstractModu
                         'org.gradle.dependency.bundling':'external',
                         'org.gradle.jvm.version': JavaVersion.current().majorVersion,
                         'org.gradle.status':'release',
-                        'org.gradle.usage': 'java-api-jars']
+                        'org.gradle.usage': 'java-api',
+                        'org.gradle.libraryelements': 'jar']
                     module('com.acme.foo:platform:1.1') {
                         variant "apiElements", [
                             'org.gradle.category':'platform',

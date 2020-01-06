@@ -25,6 +25,7 @@ import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
 import org.gradle.tooling.ProjectConnection
+import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
 import org.junit.Rule
 
@@ -37,11 +38,15 @@ class ProjectConfigurationChildrenProgressCrossVersionSpec extends ToolingApiSpe
     @Rule
     public final RepositoryHttpServer server = new RepositoryHttpServer(temporaryFolder, targetDist.version.version)
 
+    private static String expectedDisplayName(String name, String extension, String version) {
+        getTargetVersion() < GradleVersion.version("6.0") ? "$name.$extension" : "$name-$version.$extension"
+    }
+
     def "generates events for worker actions executed in-process and forked"() {
         given:
         settingsFile << "rootProject.name = 'single'"
         buildFile << """
-            import  org.gradle.workers.*
+            import org.gradle.workers.*
             import java.net.URLClassLoader
             import java.net.URL
             import org.gradle.internal.classloader.ClasspathUtil
@@ -241,12 +246,12 @@ class ProjectConfigurationChildrenProgressCrossVersionSpec extends ToolingApiSpe
             }
             
             dependencies {
-                compile project(':a')
-                compile "group:projectB:1.0"
-                compile "group:projectC:1.+"
-                compile "group:projectD:2.0-SNAPSHOT"
+                implementation project(':a')
+                implementation "group:projectB:1.0"
+                implementation "group:projectC:1.+"
+                implementation "group:projectD:2.0-SNAPSHOT"
             }
-            configurations.compile.each { println it }
+            configurations.compileClasspath.each { println it }
         """.stripIndent()
         when:
         projectB.pom.expectGet()
@@ -272,25 +277,25 @@ class ProjectConfigurationChildrenProgressCrossVersionSpec extends ToolingApiSpe
 
         def applyBuildScript = events.operation "Apply script build.gradle to root project 'root'"
 
-        applyBuildScript.child("Resolve dependencies of :compile").with {
+        applyBuildScript.child("Resolve dependencies of :compileClasspath").with {
             it.child "Configure project :a"
-            it.descendant "Download http://localhost:${server.port}${projectB.pomPath}"
-            it.descendant "Download http://localhost:${server.port}/repo/group/projectC/maven-metadata.xml"
-            it.descendant "Download http://localhost:${server.port}${projectC.pomPath}"
-            it.descendant "Download http://localhost:${server.port}${projectD.metaDataPath}"
-            it.descendant "Download http://localhost:${server.port}${projectD.pomPath}"
+            it.descendant "Download ${server.uri}${projectB.pomPath}"
+            it.descendant "Download ${server.uri}/repo/group/projectC/maven-metadata.xml"
+            it.descendant "Download ${server.uri}${projectC.pomPath}"
+            it.descendant "Download ${server.uri}${projectD.metaDataPath}"
+            it.descendant "Download ${server.uri}${projectD.pomPath}"
         }
 
-        def resolveArtifacts = applyBuildScript.child("Resolve files of :compile")
+        def resolveArtifacts = applyBuildScript.child("Resolve files of :compileClasspath")
 
-        resolveArtifacts.child("Resolve projectB.jar (group:projectB:1.0)")
-            .child "Download http://localhost:${server.port}${projectB.artifactPath}"
+        resolveArtifacts.child("Resolve ${expectedDisplayName('projectB', 'jar', '1.0')} (group:projectB:1.0)")
+            .child "Download ${server.uri}${projectB.artifactPath}"
 
-        resolveArtifacts.child("Resolve projectC.jar (group:projectC:1.5)")
-            .child "Download http://localhost:${server.port}${projectC.artifactPath}"
+        resolveArtifacts.child("Resolve ${expectedDisplayName('projectC', 'jar', '1.5')} (group:projectC:1.5)")
+            .child "Download ${server.uri}${projectC.artifactPath}"
 
-        resolveArtifacts.child("Resolve projectD.jar (group:projectD:2.0-SNAPSHOT)", "Resolve projectD.jar (group:projectD:2.0-SNAPSHOT:${projectD.uniqueSnapshotVersion})")
-            .child "Download http://localhost:${server.port}${projectD.artifactPath}"
+        resolveArtifacts.child("Resolve ${expectedDisplayName('projectD', 'jar', '2.0-SNAPSHOT')} (group:projectD:2.0-SNAPSHOT)", "Resolve ${expectedDisplayName('projectD', 'jar', '2.0-SNAPSHOT')} (group:projectD:2.0-SNAPSHOT:${projectD.uniqueSnapshotVersion})")
+            .child "Download ${server.uri}${projectD.artifactPath}"
     }
 
     def "generates events for interleaved project configuration and dependency resolution"() {
@@ -302,17 +307,17 @@ class ProjectConfigurationChildrenProgressCrossVersionSpec extends ToolingApiSpe
         buildFile << """
             allprojects { apply plugin: 'java' }
             dependencies {
-                compile project(':a')
+                implementation project(':a')
             }
             // Triggers configuration of a due to the dependency
-            configurations.compile.each { println it }
+            configurations.compileClasspath.each { println it }
 """
         file("a/build.gradle") << """
             dependencies {
-                compile project(':b')
+                implementation project(':b')
             }
             // Triggers configuration of a due to the dependency
-            configurations.compile.each { println it }
+            configurations.compileClasspath.each { println it }
 """
 
         when:
@@ -330,12 +335,12 @@ class ProjectConfigurationChildrenProgressCrossVersionSpec extends ToolingApiSpe
         def configureRoot = events.operation("Configure project :")
 
         def applyRootBuildScript = configureRoot.child("Apply script build.gradle to root project 'multi'")
-        def resolveCompile = applyRootBuildScript.child("Resolve dependencies of :compile")
-        applyRootBuildScript.child("Resolve files of :compile")
+        def resolveCompile = applyRootBuildScript.child("Resolve dependencies of :compileClasspath")
+        applyRootBuildScript.child("Resolve files of :compileClasspath")
 
         def applyProjectABuildScript = resolveCompile.child("Configure project :a").child("Apply script build.gradle to project ':a'")
-        def resolveCompileA = applyProjectABuildScript.child("Resolve dependencies of :a:compile")
-        applyProjectABuildScript.child("Resolve files of :a:compile")
+        def resolveCompileA = applyProjectABuildScript.child("Resolve dependencies of :a:compileClasspath")
+        applyProjectABuildScript.child("Resolve files of :a:compileClasspath")
 
         resolveCompileA.child("Configure project :b")
     }

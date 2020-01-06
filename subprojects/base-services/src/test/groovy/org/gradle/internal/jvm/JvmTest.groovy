@@ -83,7 +83,7 @@ class JvmTest extends Specification {
         7       | 5      | 6
     }
 
-    def "locates JDK and JRE installs when java.home points to a typical JRE installation embedded in a JDK installation"() {
+    def "locates JDK and JRE installs for a typical JRE installation embedded in a Java 8 JDK installation"() {
         given:
         TestFile software = tmpDir.createDir('software')
         software.create {
@@ -104,52 +104,24 @@ class JvmTest extends Specification {
         }
 
         when:
-        System.properties['java.home'] = software.file('jdk/jre').absolutePath
+        def jvm = new Jvm(os, software.file('jdk/jre'), "1.8.0.221", JavaVersion.VERSION_1_8)
 
         then:
         jvm.javaHome == software.file('jdk')
+        jvm.jdk
         jvm.toolsJar == software.file('jdk/lib/tools.jar')
         jvm.javaExecutable == software.file('jdk/bin/java.exe')
         jvm.javacExecutable == software.file('jdk/bin/javac.exe')
         jvm.javadocExecutable == software.file('jdk/bin/javadoc.exe')
-        assertJreHomeIfNotJava9(jvm, software, 'jdk/jre')
+        jvm.embeddedJre.homeDir == software.file('jdk/jre')
         jvm.standaloneJre == null
+        jvm.jre.homeDir == jvm.embeddedJre.homeDir
     }
 
-    def "locates JDK and JRE installs when user-specified java.home points to a typical JRE installation embedded in a JDK installation"() {
+    def "locates JDK and JRE installs for a typical Java 8 JDK installation"() {
         given:
-        TestFile software = tmpDir.createDir('software')
-        software.create {
-            jdk {
-                lib {
-                    file 'tools.jar'
-                }
-                bin {
-                    file 'java.exe'
-                    file 'javac.exe'
-                    file 'javadoc.exe'
-                }
-                jre {
-                    lib { file 'rt.jar' }
-                    bin { file 'java.exe' }
-                }
-            }
-        }
-
-        expect:
-        def jvm = new Jvm(os, software.file('jdk/jre'), JavaVersion.current());
-        jvm.javaHome == software.file('jdk')
-        jvm.toolsJar == software.file('jdk/lib/tools.jar')
-        jvm.javaExecutable == software.file('jdk/bin/java.exe')
-        jvm.javacExecutable == software.file('jdk/bin/javac.exe')
-        jvm.javadocExecutable == software.file('jdk/bin/javadoc.exe')
-        assertJreHomeIfNotJava9(jvm, software, 'jdk/jre')
-        jvm.standaloneJre == null
-    }
-
-    def "locates JDK and JRE installs when java.home points to a typical JDK installation"() {
-        given:
-        TestFile software = tmpDir.createDir('software')
+        def java8ImplementationVersion = "1.8.0.221"
+        def software = tmpDir.createDir('software')
         software.create {
             jdk {
                 lib {
@@ -168,19 +140,54 @@ class JvmTest extends Specification {
         }
 
         when:
-        System.properties['java.home'] = software.file('jdk').absolutePath
+        def jvm = new Jvm(os, software.file('jdk'), java8ImplementationVersion, JavaVersion.VERSION_1_8)
 
         then:
         jvm.javaHome == software.file('jdk')
+        jvm.jdk
         jvm.toolsJar == software.file('jdk/lib/tools.jar')
         jvm.javaExecutable == software.file('jdk/bin/java.exe')
         jvm.javacExecutable == software.file('jdk/bin/javac.exe')
         jvm.javadocExecutable == software.file('jdk/bin/javadoc.exe')
         jvm.jre.homeDir == software.file('jdk/jre')
+        jvm.embeddedJre.homeDir == software.file("jdk/jre")
         jvm.standaloneJre == null
+        jvm.jre.homeDir == jvm.embeddedJre.homeDir
     }
 
-    def "locates JDK and JRE installs when java.home points to a typical standalone JRE installation"() {
+    def "locates JDK install for a typical Java 9 JDK installation"() {
+        given:
+        def java9ImplementationVersion = "9.0.3"
+        def software = tmpDir.createDir('software')
+        software.create {
+            jdk {
+                lib {
+                    file 'tools.jar'
+                }
+                bin {
+                    file 'java.exe'
+                    file 'javac.exe'
+                    file 'javadoc.exe'
+                }
+            }
+        }
+
+        when:
+        def jvm = new Jvm(os, software.file('jdk'), java9ImplementationVersion, JavaVersion.VERSION_1_9)
+
+        then:
+        jvm.javaHome == software.file('jdk')
+        jvm.jdk
+        jvm.toolsJar == software.file('jdk/lib/tools.jar')
+        jvm.javaExecutable == software.file('jdk/bin/java.exe')
+        jvm.javacExecutable == software.file('jdk/bin/javac.exe')
+        jvm.javadocExecutable == software.file('jdk/bin/javadoc.exe')
+        jvm.embeddedJre == null
+        jvm.standaloneJre == null
+        jvm.jre == null
+    }
+
+    def "locates JRE install for a typical standalone Java 8 JRE installation"() {
         given:
         TestFile software = tmpDir.createDir('software')
         software.create {
@@ -191,18 +198,19 @@ class JvmTest extends Specification {
         }
 
         when:
-        System.properties['java.home'] = software.file('jre').absolutePath
+        def jvm = new Jvm(os, software.file('jre'), "1.8.0.221", JavaVersion.VERSION_1_8)
 
         then:
         jvm.javaHome == software.file('jre')
+        !jvm.jdk
         jvm.toolsJar == null
         jvm.javaExecutable == software.file('jre/bin/java.exe')
-        jvm.javacExecutable == new File('javac.exe')
-        jvm.javadocExecutable == new File('javadoc.exe')
-        assertJreHomeIfNotJava9(jvm, software, 'jre', true /* alsoStandaloneJreHome */)
+        jvm.embeddedJre == null
+        jvm.standaloneJre == null
+        jvm.jre == null
     }
 
-    def "locates JDK and JRE installs when java.home points to a typical standalone JRE installation on Windows"() {
+    def "locates JDK and JRE installs for a typical JRE installation alongside Java 8 JDK installation on Windows"() {
         given:
         TestFile software = tmpDir.createDir('software')
         software.create {
@@ -226,17 +234,18 @@ class JvmTest extends Specification {
         _ * os.windows >> true
 
         when:
-        System.properties['java.home'] = jreDir.absolutePath
-        System.properties['java.version'] = version
+        def jvm = new Jvm(os, jreDir, version, JavaVersion.toVersion(version))
 
         then:
         jvm.javaHome == jdkDir
+        jvm.jdk
         jvm.toolsJar == jdkDir.file("lib/tools.jar")
         jvm.javaExecutable == jdkDir.file('bin/java.exe')
         jvm.javacExecutable == jdkDir.file('bin/javac.exe')
         jvm.javadocExecutable == jdkDir.file('bin/javadoc.exe')
-        jvm.jre.homeDir == jreDir
+        jvm.embeddedJre == null
         jvm.standaloneJre.homeDir == jreDir
+        jvm.jre.homeDir == jvm.standaloneJre.homeDir
 
         where:
         version    | jreDirName    | jdkDirName
@@ -244,7 +253,7 @@ class JvmTest extends Specification {
         '1.5.0_22' | 'jre1.5.0_22' | 'jdk1.5.0_22'
     }
 
-    def "locates JDK and JRE installs when java.home points to a typical JDK installation on Windows"() {
+    def "locates JDK and JRE installs for a typical Java 8 JDK installation on Windows"() {
         given:
         TestFile software = tmpDir.createDir('software')
         software.create {
@@ -277,17 +286,18 @@ class JvmTest extends Specification {
         _ * os.windows >> true
 
         when:
-        System.properties['java.home'] = jdkDir.absolutePath
-        System.properties['java.version'] = version
+        def jvm = new Jvm(os, jdkDir, version, JavaVersion.toVersion(version))
 
         then:
         jvm.javaHome == jdkDir
+        jvm.jdk
         jvm.toolsJar == jdkDir.file("lib/tools.jar")
         jvm.javaExecutable == jdkDir.file('bin/java.exe')
         jvm.javacExecutable == jdkDir.file('bin/javac.exe')
         jvm.javadocExecutable == jdkDir.file('bin/javadoc.exe')
-        jvm.jre.homeDir == jdkDir.file('jre')
+        jvm.embeddedJre.homeDir == jdkDir.file('jre')
         jvm.standaloneJre.homeDir == jreDir
+        jvm.jre.homeDir == jreDir
 
         where:
         version    | jreDirName    | jdkDirName
@@ -308,8 +318,8 @@ class JvmTest extends Specification {
         }
 
         expect:
-        def jvm = new Jvm(os, installDir, JavaVersion.current())
-        def jvm2 = new Jvm(os, installDir, JavaVersion.current())
+        def jvm = new Jvm(os, installDir, "1.8.0", JavaVersion.VERSION_1_8)
+        def jvm2 = new Jvm(os, installDir, "1.8.0", JavaVersion.VERSION_1_8)
         Matchers.strictlyEquals(jvm, jvm2)
     }
 
@@ -332,7 +342,7 @@ class JvmTest extends Specification {
     def "uses system property to determine if Sun/Oracle JVM"() {
         when:
         System.properties['java.vm.vendor'] = 'Sun'
-        def jvm = Jvm.create()
+        def jvm = Jvm.createCurrent()
 
         then:
         jvm.getClass() == Jvm.JvmImplementation
@@ -341,14 +351,14 @@ class JvmTest extends Specification {
     def "uses system property to determine if Apple JVM"() {
         when:
         System.properties['java.vm.vendor'] = 'Apple Inc.'
-        def jvm = Jvm.create()
+        def jvm = Jvm.createCurrent()
 
         then:
         jvm.getClass() == Jvm.AppleJvm
 
         when:
         System.properties['java.vm.vendor'] = 'Sun'
-        jvm = Jvm.create()
+        jvm = Jvm.createCurrent()
 
         then:
         jvm.getClass() == Jvm.JvmImplementation
@@ -357,7 +367,7 @@ class JvmTest extends Specification {
     def "uses system property to determine if IBM JVM"() {
         when:
         System.properties['java.vm.vendor'] = 'IBM Corporation'
-        def jvm = Jvm.create()
+        def jvm = Jvm.createCurrent()
 
         then:
         jvm.getClass() == Jvm.IbmJvm
@@ -379,7 +389,7 @@ class JvmTest extends Specification {
 
         then:
         home.file(theOs.getExecutableName("jre/bin/javadoc")).absolutePath ==
-                Jvm.forHome(home.file("jre")).getExecutable("javadoc").absolutePath
+            Jvm.forHome(home.file("jre")).getExecutable("javadoc").absolutePath
     }
 
     def "finds tools.jar if java home supplied"() {
@@ -396,7 +406,7 @@ class JvmTest extends Specification {
 
         then:
         home.file("jdk/lib/tools.jar").absolutePath ==
-                Jvm.forHome(home.file("jdk")).toolsJar.absolutePath
+            Jvm.forHome(home.file("jdk")).toolsJar.absolutePath
     }
 
     def "provides decent feedback if executable not found"() {
@@ -463,8 +473,15 @@ class JvmTest extends Specification {
     }
 
     def "describes accurately when created for supplied java home"() {
+        def jdkDir = tmpDir.createDir('dummyFolder')
+        jdkDir.create {
+            bin {
+                file 'java'
+            }
+        }
+
         when:
-        def jvm = new Jvm(theOs, new File('dummyFolder'), JavaVersion.current())
+        def jvm = new Jvm(os, jdkDir, "1.8.0", JavaVersion.VERSION_1_8)
 
         then:
         jvm.toString().contains('dummyFolder')

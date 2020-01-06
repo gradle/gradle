@@ -15,6 +15,10 @@
  */
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
+plugins {
+    `java-library`
+}
+
 dependencies {
     implementation(project(":baseServices"))
     implementation(project(":logging"))
@@ -31,22 +35,17 @@ dependencies {
     implementation(library("guava"))
     implementation(library("inject"))
     implementation(library("ant"))
-    implementation(library("slf4j_api"))
 
-    // minimal dependencies to make our code compile
-    // we don't ship these dependencies because findbugs plugin will download them (and more) at runtime
-    compileOnly("com.google.code.findbugs:findbugs:2.0.1")
+    testImplementation(project(":fileCollections"))
+    testImplementation(testFixtures(project(":core")))
+    testRuntimeOnly(project(":runtimeApiInfo"))
 
-    testImplementation(project(":baseServicesGroovy"))
-    testImplementation(project(":files"))
-    testRuntimeOnly("com.google.code.findbugs:bcel:2.0.1")
-    testRuntimeOnly("jaxen:jaxen:1.1")
+    testFixturesImplementation(project(":core"))
+    testFixturesImplementation(project(":coreApi"))
+    testFixturesImplementation(project(":baseServices"))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
 }
 
-testFixtures {
-    from(":core")
-}

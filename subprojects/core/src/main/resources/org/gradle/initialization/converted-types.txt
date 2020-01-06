@@ -1,14 +1,9 @@
 org.gradle.api.distribution.plugins.DistributionPlugin
-org.gradle.api.plugins.announce.AnnouncePlugin
-org.gradle.api.plugins.announce.AnnouncePluginExtension
-org.gradle.api.plugins.announce.BuildAnnouncementsPlugin
 org.gradle.api.plugins.ApplicationPlugin
 org.gradle.api.plugins.ApplicationPluginConvention
 org.gradle.api.plugins.BasePluginConvention
-org.gradle.api.plugins.buildcomparison.gradle.CompareGradleBuildsPlugin
 org.gradle.api.plugins.JavaLibraryDistributionPlugin
 org.gradle.api.plugins.JavaPluginConvention
-org.gradle.api.plugins.osgi.OsgiPlugin
 org.gradle.api.plugins.ProjectReportsPluginConvention
 org.gradle.api.plugins.quality.Checkstyle
 org.gradle.api.plugins.quality.CheckstylePlugin
@@ -16,10 +11,6 @@ org.gradle.api.plugins.quality.CheckstyleExtension
 org.gradle.api.plugins.quality.CodeNarc
 org.gradle.api.plugins.quality.CodeNarcPlugin
 org.gradle.api.plugins.quality.CodeQualityExtension
-org.gradle.api.plugins.quality.FindBugs
-org.gradle.api.plugins.quality.FindBugsPlugin
-org.gradle.api.plugins.quality.JDepend
-org.gradle.api.plugins.quality.JDependPlugin
 org.gradle.api.plugins.quality.Pmd
 org.gradle.api.plugins.quality.PmdPlugin
 org.gradle.api.plugins.quality.PmdExtension

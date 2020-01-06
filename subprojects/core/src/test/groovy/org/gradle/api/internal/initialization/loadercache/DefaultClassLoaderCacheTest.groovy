@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.initialization.loadercache
 
+
 import org.gradle.internal.classloader.DefaultHashingClassLoaderFactory
 import org.gradle.internal.classloader.FilteringClassLoader
 import org.gradle.internal.classpath.ClassPath
@@ -25,6 +26,8 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
+
+import java.util.function.Function
 
 class DefaultClassLoaderCacheTest extends Specification {
 
@@ -181,13 +184,30 @@ class DefaultClassLoaderCacheTest extends Specification {
         cache.size() == 0
     }
 
-    def "can put loaders"() {
+    def "can add specialized loaders"() {
+        def parent = Stub(ClassLoader)
         def loader = Stub(ClassLoader)
+        def classPath = classPath("root")
 
         when:
-        cache.put(id1, loader)
+        def result = cache.createIfAbsent(id1, classPath, parent, { ClassLoader spec -> loader } as Function, null)
 
         then:
+        result == loader
+        cache.size() == 1
+
+        when:
+        def result2 = cache.createIfAbsent(id1, classPath, parent, { throw new RuntimeException() } as Function, null)
+
+        then:
+        result2 == loader
+        cache.size() == 1
+
+        when:
+        def result3 = cache.get(id1, classPath, parent, null)
+
+        then:
+        result3 == loader
         cache.size() == 1
 
         when:
@@ -195,37 +215,5 @@ class DefaultClassLoaderCacheTest extends Specification {
 
         then:
         cache.size() == 0
-    }
-
-    def "can replace specialized loader"() {
-        def parent = classLoader(classPath("root"))
-        def loader1 = Stub(ClassLoader)
-        def loader2 = Stub(ClassLoader)
-
-        when:
-        cache.put(id1, loader1)
-
-        then:
-        cache.size() == 1
-
-        when:
-        cache.put(id1, loader2)
-
-        then:
-        cache.size() == 1
-
-        when:
-        def cl = cache.get(id1, classPath("c1"), parent, null)
-
-        then:
-        cl != loader1
-        cl != loader2
-        cache.size() == 1
-
-        when:
-        cache.put(id1, loader1)
-
-        then:
-        cache.size() == 1
     }
 }

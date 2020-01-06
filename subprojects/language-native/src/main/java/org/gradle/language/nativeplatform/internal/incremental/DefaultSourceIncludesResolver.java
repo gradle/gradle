@@ -16,9 +16,10 @@
 package org.gradle.language.nativeplatform.internal.incremental;
 
 import com.google.common.base.Objects;
+import org.gradle.internal.FileUtils;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.snapshot.FileSystemSnapshotter;
+import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.language.nativeplatform.internal.Expression;
 import org.gradle.language.nativeplatform.internal.Include;
 import org.gradle.language.nativeplatform.internal.IncludeDirectives;
@@ -42,12 +43,12 @@ import java.util.Set;
 
 public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
     private static final MissingIncludeFile MISSING_INCLUDE_FILE = new MissingIncludeFile();
-    private final FileSystemSnapshotter fileSystemSnapshotter;
+    private final VirtualFileSystem virtualFileSystem;
     private final Map<File, DirectoryContents> includeRoots = new HashMap<File, DirectoryContents>();
     private final FixedIncludePath includePath;
 
-    public DefaultSourceIncludesResolver(List<File> includePaths, FileSystemSnapshotter fileSystemSnapshotter) {
-        this.fileSystemSnapshotter = fileSystemSnapshotter;
+    public DefaultSourceIncludesResolver(List<File> includePaths, VirtualFileSystem virtualFileSystem) {
+        this.virtualFileSystem = virtualFileSystem;
         List<DirectoryContents> includeDirs = new ArrayList<DirectoryContents>(includePaths.size());
         for (File includeDir : includePaths) {
             includeDirs.add(toDir(includeDir));
@@ -344,17 +345,32 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
         }
 
         CachedIncludeFile get(String includePath) {
-            CachedIncludeFile includeFile = contents.get(includePath);
-            if (includeFile != null) {
-                return includeFile;
-            }
-
-            File candidate = new File(searchDir, includePath);
-            HashCode contentHash = fileSystemSnapshotter.getRegularFileContentHash(candidate);
-            includeFile = contentHash != null ? new SystemIncludeFile(candidate, includePath, contentHash) : MISSING_INCLUDE_FILE;
-            contents.put(includePath, includeFile);
-            return includeFile;
+            return contents.computeIfAbsent(includePath,
+                key -> {
+                    File candidate = normalizeIncludePath(searchDir, includePath);
+                    return virtualFileSystem.readRegularFileContentHash(candidate.getAbsolutePath(),
+                            contentHash -> (CachedIncludeFile) new SystemIncludeFile(candidate, key, contentHash)
+                        ).orElse(MISSING_INCLUDE_FILE);
+                });
         }
+    }
+
+    private File normalizeIncludePath(File searchDir, String prefixPath) {
+        boolean onlyDotsSinceLastSeparator = true;
+        for (int i = 0; i < prefixPath.length(); i++) {
+            char currentChar = prefixPath.charAt(i);
+            if (currentChar == '/' || currentChar == '\\') {
+                if (onlyDotsSinceLastSeparator) {
+                    return FileUtils.normalize(new File(searchDir, prefixPath));
+                }
+                onlyDotsSinceLastSeparator = true;
+            } else {
+                if (currentChar != '.') {
+                    onlyDotsSinceLastSeparator = false;
+                }
+            }
+        }
+        return new File(searchDir, prefixPath);
     }
 
     private static abstract class CachedIncludeFile {

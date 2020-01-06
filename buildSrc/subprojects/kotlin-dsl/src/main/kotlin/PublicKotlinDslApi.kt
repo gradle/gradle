@@ -18,7 +18,8 @@
 object PublicKotlinDslApi {
 
     val includes = listOf(
-        "org/gradle/kotlin/dsl/*"
+        "org/gradle/kotlin/dsl/*",
+        "org/gradle/kotlin/dsl/precompile/*"
         // TODO:kotlin-dsl "org/gradle/kotlin/dsl/plugins/dsl/*"
     )
 

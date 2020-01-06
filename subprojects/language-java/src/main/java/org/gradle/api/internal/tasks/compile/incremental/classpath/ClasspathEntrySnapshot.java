@@ -24,6 +24,7 @@ import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysis;
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
 import org.gradle.internal.hash.HashCode;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -48,12 +49,12 @@ public class ClasspathEntrySnapshot {
             }
             result.add(className);
         }
-        return DependentsSet.dependentClasses(result);
+        return DependentsSet.dependentClasses(Collections.emptySet(), result);
     }
 
     public IntSet getAllConstants(DependentsSet dependents) {
         IntSet result = new IntOpenHashSet();
-        for (String cn : dependents.getDependentClasses()) {
+        for (String cn : dependents.getAllDependentClasses()) {
             result.addAll(data.getClassAnalysis().getConstants(cn));
         }
         return result;

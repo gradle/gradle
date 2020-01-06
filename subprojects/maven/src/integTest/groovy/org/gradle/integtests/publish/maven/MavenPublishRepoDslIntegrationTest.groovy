@@ -20,6 +20,8 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class MavenPublishRepoDslIntegrationTest extends AbstractIntegrationSpec {
     def "repository DSL closure uses owner first resolution rather than the usual delegate first"() {
+        executer.expectDeprecationWarning()
+
         buildFile << """
 apply plugin: 'maven'
 

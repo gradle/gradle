@@ -15,13 +15,11 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
 
-import groovy.transform.NotYetImplemented
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.internal.component.external.descriptor.MavenScope
 import org.gradle.internal.component.external.model.maven.MavenDependencyDescriptor
 import org.gradle.internal.component.external.model.maven.MutableMavenModuleResolveMetadata
 import org.gradle.internal.component.model.DefaultIvyArtifactName
-import org.gradle.internal.hash.HashUtil
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -59,8 +57,6 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         dependency.selector == moduleId('group-two', 'artifact-two', 'version-two')
         hasDefaultDependencyArtifact(dependency)
 
-        metaData.contentHash == HashUtil.createHash(pomFile, "MD5")
-
         parser.typeName == 'POM'
         parser.toString() == 'gradle pom parser'
     }
@@ -81,6 +77,51 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
 
         then:
         metadata.id == componentId('group-one', 'artifact-one', 'my-version-SNAPSHOT')
+    }
+
+    def "Retrieves variables from parent"() {
+        given:
+        def parent = tmpDir.file("parent.xlm") << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>test</groupId>
+    <artifactId>parent</artifactId>
+    <version>1.0.0</version>
+    <packaging>pom</packaging>
+    <properties>
+        <scala.version>2.12.1</scala.version>
+        <scala.binary.version>2.12</scala.binary.version>
+        <myversion>1.0.0</myversion>
+    </properties>
+</project>
+"""
+
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>test</groupId>
+        <artifactId>parent</artifactId>
+        <version>1.0.0</version>
+        <relativePath>..</relativePath>
+    </parent>
+
+    <artifactId>child_\${scala.binary.version}</artifactId>
+    <version>\${myversion}</version>
+    <packaging>pom</packaging>
+</project>
+"""
+        and:
+        parseContext.getMetaDataArtifact(_, _, MAVEN_POM) >> asResource(parent)
+
+        when:
+        parsePom()
+
+        then:
+        metadata.moduleVersionId.group == 'test'
+        metadata.moduleVersionId.name == 'child_2.12'
+        metadata.moduleVersionId.version == '1.0.0'
+
     }
 
     def "merges dependencies declared in pom with those declared in parent"() {
@@ -282,11 +323,11 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         <artifactId>parent</artifactId>
         <version>version-one</version>
     </parent>
-    
+
     <dependencies>
         <dependency>
             <groupId>group-two</groupId>
-            <artifactId>artifact-two</artifactId>   
+            <artifactId>artifact-two</artifactId>
         </dependency>
     </dependencies>
     <dependencyManagement>
@@ -2529,9 +2570,9 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         hasDefaultDependencyArtifact(depGroupOne)
     }
 
-    @NotYetImplemented
-    @Issue("GRADLE-3485")
-    def "throws appropriate exception if parent pom has the same GAV as resolved pom"() {
+    @Issue("gradle/gradle#1084")
+    def "ignores parent if it has the same GAV as resolved pom"() {
+        // Maven forbids to _create_ a project with a self referencing parent POM but parses a dependency built that way
         given:
         def pomWithParent = """
 <project>
@@ -2547,16 +2588,13 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
     </parent>
 </project>
 """
-        def parent = tmpDir.file("parent.xml") << pomWithParent
         pomFile << pomWithParent
-
-        and:
-        parseContext.getMetaDataArtifact(_, _, MAVEN_POM) >> asResource(parent)
 
         when:
         parsePom()
 
         then:
-        thrown(MetaDataParseException)
+        metadata.id == componentId('group-one', 'artifact-one', 'version-one')
+
     }
 }

@@ -16,8 +16,6 @@
 
 package org.gradle.tooling.model.cpp;
 
-import org.gradle.api.Incubating;
-
 import javax.annotation.Nullable;
 
 /**
@@ -25,7 +23,6 @@ import javax.annotation.Nullable;
  *
  * @since 4.10
  */
-@Incubating
 public interface MacroDirective {
     /**
      * Returns the name of the macro.

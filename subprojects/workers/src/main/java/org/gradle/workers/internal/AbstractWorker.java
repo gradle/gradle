@@ -22,7 +22,7 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.CallableBuildOperation;
 
-public abstract class AbstractWorker implements Worker {
+public abstract class AbstractWorker implements BuildOperationAwareWorker {
 
     public static final Result RESULT = new Result();
 
@@ -33,11 +33,11 @@ public abstract class AbstractWorker implements Worker {
     }
 
     @Override
-    public DefaultWorkResult execute(ActionExecutionSpec spec) {
+    public DefaultWorkResult execute(IsolatedParametersActionExecutionSpec<?> spec) {
         return execute(spec, buildOperationExecutor.getCurrentOperation());
     }
 
-    DefaultWorkResult executeWrappedInBuildOperation(final ActionExecutionSpec spec, final BuildOperationRef parentBuildOperation, final Work work) {
+    DefaultWorkResult executeWrappedInBuildOperation(final IsolatedParametersActionExecutionSpec<?> spec, final BuildOperationRef parentBuildOperation, final Work work) {
         return buildOperationExecutor.call(new CallableBuildOperation<DefaultWorkResult>() {
             @Override
             public DefaultWorkResult call(BuildOperationContext context) {
@@ -51,13 +51,13 @@ public abstract class AbstractWorker implements Worker {
             public BuildOperationDescriptor.Builder description() {
                 return BuildOperationDescriptor.displayName(spec.getDisplayName())
                     .parent(parentBuildOperation)
-                    .details(new Details(spec.getImplementationClass().getName(), spec.getDisplayName()));
+                    .details(new Details(spec.getActionImplementationClassName(), spec.getDisplayName()));
             }
         });
     }
 
     interface Work {
-        DefaultWorkResult execute(ActionExecutionSpec spec);
+        DefaultWorkResult execute(IsolatedParametersActionExecutionSpec<?> spec);
     }
 
     static class Details implements ExecuteWorkItemBuildOperationType.Details {

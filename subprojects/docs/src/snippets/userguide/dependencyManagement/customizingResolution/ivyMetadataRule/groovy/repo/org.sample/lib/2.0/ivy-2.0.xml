@@ -1,0 +1,11 @@
+<ivy-module version="2.0">
+    <info organisation="org.sample" module="lib" revision="2.0"/>
+    <configurations>
+        <conf name="compile" visibility="public"/>
+        <conf name="default" visibility="public" extends="compile,runtime"/>
+        <conf name="runtime" visibility="public"/>
+    </configurations>
+    <publications>
+        <artifact name='lib' type='jar' ext='jar' conf='compile' />
+    </publications>
+</ivy-module>

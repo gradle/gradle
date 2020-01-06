@@ -16,16 +16,16 @@
 
 package org.gradle.performance.regression.corefeature
 
-import org.gradle.performance.AbstractCrossVersionPerformanceTest
+import org.gradle.performance.AbstractCrossVersionGradleProfilerPerformanceTest
 import org.gradle.performance.WithExternalRepository
 
-class ExcludeRuleMergingPerformanceTest extends AbstractCrossVersionPerformanceTest implements WithExternalRepository {
+class ExcludeRuleMergingPerformanceTest extends AbstractCrossVersionGradleProfilerPerformanceTest implements WithExternalRepository {
 
     private final static TEST_PROJECT_NAME = 'excludeRuleMergingBuild'
 
     def setup() {
-        runner.minimumVersion = '4.0'
-        runner.targetVersions = ["5.5-20190515115345+0000"]
+        runner.minimumBaseVersion = '4.9'
+        runner.targetVersions = ["6.1-20191209153604+0000"]
     }
 
     def "merge exclude rules"() {

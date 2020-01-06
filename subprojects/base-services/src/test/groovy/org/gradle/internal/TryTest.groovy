@@ -51,6 +51,7 @@ class TryTest extends Specification {
         expect:
         Try.successful(10).flatMap { it -> Try.successful(it + 2) } == Try.successful(12)
         Try.successful(20).map { (it + 10).toString() } == Try.successful('30')
+        Try.successful(20).tryMap { (it + 10).toString() } == Try.successful('30')
     }
 
     def "flat map failure"() {
@@ -61,8 +62,11 @@ class TryTest extends Specification {
 
     def "failing flat map"() {
         def failure = new RuntimeException("failed")
-        expect:
-        Try.successful(10).flatMap { throw failure } == Try.failure(failure)
+        when:
+        Try.successful(10).flatMap { throw failure }
+        then:
+        def ex = thrown Exception
+        ex == failure
     }
 
     def "map a failure"() {
@@ -71,10 +75,19 @@ class TryTest extends Specification {
         failure.map { it + 1 } == failure
     }
 
-    def "fail during map"() {
+    def "fail during tryMap"() {
         def failure = new RuntimeException("failure")
         expect:
-        Try.successful(10).map { throw failure } == Try.failure(failure)
+        Try.successful(10).tryMap { throw failure } == Try.failure(failure)
+    }
+
+    def "fail during map"() {
+        def failure = new RuntimeException("failure")
+        when:
+        Try.successful(10).map { throw failure }
+        then:
+        def ex = thrown Exception
+        ex == failure
     }
 
     def "map failure"() {
@@ -86,14 +99,14 @@ class TryTest extends Specification {
 
     def "successful or else does not map failure"() {
         expect:
-        Try.successful(10).orElseMapFailure({ assert false })
+        Try.successful(10).getOrMapFailure({ assert false })
     }
 
     def "failed or else maps failure"() {
         def failure = new RuntimeException("failure")
         boolean failureInvoked = false
         when:
-        Try.failure(failure).orElseMapFailure({ failureInvoked = true; assert it == failure })
+        Try.failure(failure).getOrMapFailure({ failureInvoked = true; assert it == failure })
         then:
         failureInvoked
     }

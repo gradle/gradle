@@ -18,8 +18,10 @@ package org.gradle.internal.resource.local
 
 import org.gradle.api.internal.file.DefaultTemporaryFileProvider
 import org.gradle.api.internal.file.TemporaryFileProvider
+import org.gradle.internal.file.FileAccessTimeJournal
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Subject
@@ -42,7 +44,7 @@ class GroupedAndNamedUniqueFileStoreTest extends Specification {
         }
     }
 
-    @Subject GroupedAndNamedUniqueFileStore<String> fileStore = new GroupedAndNamedUniqueFileStore<String>(baseDir, temporaryFileProvider, fileAccessTimeJournal, grouper, { key -> key })
+    @Subject GroupedAndNamedUniqueFileStore<String> fileStore = new GroupedAndNamedUniqueFileStore<String>(baseDir, temporaryFileProvider, fileAccessTimeJournal, grouper, { key -> key }, TestUtil.checksumService)
 
     def "marks files accessed when they are added to store"() {
         when:

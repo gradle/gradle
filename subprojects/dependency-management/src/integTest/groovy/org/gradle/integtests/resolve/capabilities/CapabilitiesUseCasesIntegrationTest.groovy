@@ -108,7 +108,7 @@ class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolv
             }
         } else {
             def variant = 'runtime'
-            if (!isGradleMetadataEnabled() && useIvy()) {
+            if (!isGradleMetadataPublished() && useIvy()) {
                 variant = 'default'
             }
             failure.assertHasCause("""Module 'cglib:cglib-nodep' has been rejected:
@@ -223,7 +223,7 @@ class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolv
         } else {
             fails ':checkDeps'
             def variant = 'runtime'
-            if (!isGradleMetadataEnabled() && useIvy()) {
+            if (!isGradleMetadataPublished() && useIvy()) {
                 variant = 'default'
             }
             failure.assertHasCause("""Module 'org.apache:groovy' has been rejected:
@@ -345,7 +345,7 @@ class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolv
         } else {
             fails ':checkDeps'
             def variant = 'runtime'
-            if (!isGradleMetadataEnabled() && useIvy()) {
+            if (!isGradleMetadataPublished() && useIvy()) {
                 variant = 'default'
             }
             failure.assertHasCause("""Module 'org.apache:groovy' has been rejected:
@@ -396,6 +396,7 @@ class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolv
             if ($failOnVersionConflict) {
                configurations.conf.resolutionStrategy.failOnVersionConflict()
             }
+            configurations.conf.resolutionStrategy.capabilitiesResolution.all { selectHighestVersion() }
         """
 
         when:

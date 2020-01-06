@@ -16,7 +16,6 @@
 
 package org.gradle.vcs.git;
 
-import org.gradle.api.Incubating;
 import org.gradle.vcs.VersionControlSpec;
 
 import java.net.URI;
@@ -26,7 +25,6 @@ import java.net.URI;
  *
  * @since 4.4
  */
-@Incubating
 public interface GitVersionControlSpec extends VersionControlSpec {
     /**
      * The URL for the repository in the specification.

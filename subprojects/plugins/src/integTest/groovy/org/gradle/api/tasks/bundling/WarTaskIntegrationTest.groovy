@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.bundling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.test.fixtures.archive.JarTestFixture
 import spock.lang.Issue
@@ -64,8 +65,8 @@ class WarTaskIntegrationTest extends AbstractIntegrationSpec {
                 }
                 classpath 'classes'
                 classpath 'lib.jar'
-                destinationDir = buildDir
-                archiveName = 'test.war'
+                destinationDirectory = buildDir
+                archiveFileName = 'test.war'
             }
         """
 
@@ -102,8 +103,8 @@ class WarTaskIntegrationTest extends AbstractIntegrationSpec {
                     exclude '**/*.xml'
                 }
                 webXml = file('some.xml')
-                destinationDir = buildDir
-                archiveName = 'test.war'
+                destinationDirectory = buildDir
+                archiveFileName = 'test.war'
             }
         """
 
@@ -142,8 +143,8 @@ class WarTaskIntegrationTest extends AbstractIntegrationSpec {
                     into 'dir2'
                     include '**/file2*'
                 }
-                destinationDir = buildDir
-                archiveName = 'test.war'
+                destinationDirectory = buildDir
+                archiveFileName = 'test.war'
             }
         """
 
@@ -173,8 +174,8 @@ class WarTaskIntegrationTest extends AbstractIntegrationSpec {
                 from 'bad'
             }
             webXml = file('good.xml')
-            destinationDir = buildDir
-            archiveName = 'test.war'
+            destinationDirectory = buildDir
+            archiveFileName = 'test.war'
             duplicatesStrategy = 'exclude'
         }
         '''
@@ -207,8 +208,8 @@ class WarTaskIntegrationTest extends AbstractIntegrationSpec {
                 from 'bad'
             }
             classpath 'good/file.txt'
-            destinationDir = buildDir
-            archiveName = 'test.war'
+            destinationDirectory = buildDir
+            archiveFileName = 'test.war'
             duplicatesStrategy = 'exclude'
         }
         '''
@@ -241,8 +242,8 @@ class WarTaskIntegrationTest extends AbstractIntegrationSpec {
             webInf {
                 from 'good'
             }
-            destinationDir = buildDir
-            archiveName = 'test.war'
+            destinationDirectory = buildDir
+            archiveFileName = 'test.war'
             duplicatesStrategy = 'exclude'
         }
         '''
@@ -268,8 +269,8 @@ class WarTaskIntegrationTest extends AbstractIntegrationSpec {
                     into 'WEB-INF'
                 }
                 webXml = file('originalWebXml.xml')
-                destinationDir = buildDir
-                archiveName = 'test.war'
+                destinationDirectory = buildDir
+                archiveFileName = 'test.war'
             }
         """
 
@@ -283,6 +284,7 @@ class WarTaskIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("GRADLE-3522")
+    @ToBeFixedForInstantExecution
     def "war task doesn't trigger dependency resolution early"() {
         when:
         buildFile << """
@@ -299,7 +301,7 @@ task assertUnresolved {
 task war(type: War) {
     dependsOn assertUnresolved
     classpath = configurations.conf
-    destinationDir = buildDir
+    destinationDirectory = buildDir
 }
 """
 

@@ -71,6 +71,11 @@ public class DefaultProjectDependencyMetadata implements DependencyMetadata {
     }
 
     @Override
+    public boolean isEndorsingStrictVersions() {
+        return delegate.isEndorsingStrictVersions();
+    }
+
+    @Override
     public String getReason() {
         return delegate.getReason();
     }

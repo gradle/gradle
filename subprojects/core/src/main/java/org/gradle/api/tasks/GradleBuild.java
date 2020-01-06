@@ -16,6 +16,7 @@
 package org.gradle.api.tasks;
 
 import org.gradle.StartParameter;
+import org.gradle.api.Incubating;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.ConventionTask;
@@ -37,6 +38,8 @@ public class GradleBuild extends ConventionTask {
     private final BuildState currentBuild;
     private final BuildStateRegistry buildStateRegistry;
     private StartParameter startParameter;
+
+    private String buildName;
 
     public GradleBuild() {
         this.currentBuild = getServices().get(BuildState.class);
@@ -99,7 +102,8 @@ public class GradleBuild extends ConventionTask {
      *
      * @return The build file. May be null.
      */
-    @Nullable @Optional
+    @Nullable
+    @Optional
     @PathSensitive(PathSensitivity.NAME_ONLY)
     @InputFile
     public File getBuildFile() {
@@ -154,11 +158,43 @@ public class GradleBuild extends ConventionTask {
         getStartParameter().setTaskNames(tasks);
     }
 
+    /**
+     * The build name to use for the nested build.
+     * <p>
+     * If no value is specified, the name of the directory of the build will be used.
+     *
+     * @return the build name to use for the nested build (or null if the default is to be used)
+     * @since 6.0
+     */
+    @Incubating
+    @Internal
+    public String getBuildName() {
+        return buildName;
+    }
+
+    /**
+     * Sets build name to use for the nested build.
+     *
+     * @param buildName the build name to use for the nested build
+     * @since 6.0
+     */
+    @Incubating
+    public void setBuildName(String buildName) {
+        this.buildName = buildName;
+    }
+
     @TaskAction
     void build() {
         // TODO: Allow us to inject plugins into GradleBuild nested builds too.
         BuildDefinition buildDefinition = BuildDefinition.fromStartParameter(getStartParameter(), getServices().get(PublicBuildPath.class));
-        NestedRootBuild nestedBuild = buildStateRegistry.addNestedBuildTree(buildDefinition, currentBuild);
+
+        NestedRootBuild nestedBuild;
+
+        // buildStateRegistry is not threadsafe, but this is the only concurrent use currently
+        synchronized (buildStateRegistry) {
+            nestedBuild = buildStateRegistry.addNestedBuildTree(buildDefinition, currentBuild, buildName);
+        }
+
         nestedBuild.run(new Transformer<Void, BuildController>() {
             @Override
             public Void transform(BuildController buildController) {

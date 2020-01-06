@@ -19,6 +19,7 @@ package org.gradle.api.publish.maven.internal.artifact;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.internal.Factory;
@@ -105,7 +106,15 @@ public class MavenArtifactNotationParserFactory implements Factory<NotationParse
             File file = fileResolverNotationParser.parseNotation(notation);
             MavenArtifact mavenArtifact = instantiator.newInstance(FileBasedMavenArtifact.class, file);
             if (notation instanceof TaskDependencyContainer) {
-                mavenArtifact.builtBy(notation);
+                TaskDependencyContainer taskDependencyContainer;
+                if (notation instanceof Provider) {
+                    // wrap to disable special handling of providers by DefaultTaskDependency in this case
+                    // (workaround for https://github.com/gradle/gradle/issues/11054)
+                    taskDependencyContainer = context -> context.add(notation);
+                } else {
+                    taskDependencyContainer = (TaskDependencyContainer) notation;
+                }
+                mavenArtifact.builtBy(taskDependencyContainer);
             }
             result.converted(mavenArtifact);
         }
@@ -116,7 +125,7 @@ public class MavenArtifactNotationParserFactory implements Factory<NotationParse
         }
     }
 
-    private class MavenArtifactMapNotationConverter extends MapNotationConverter<MavenArtifact> {
+    private static class MavenArtifactMapNotationConverter extends MapNotationConverter<MavenArtifact> {
         private final NotationParser<Object, MavenArtifact> sourceNotationParser;
 
         private MavenArtifactMapNotationConverter(NotationParser<Object, MavenArtifact> sourceNotationParser) {

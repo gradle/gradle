@@ -16,14 +16,11 @@
 
 package org.gradle.internal.execution.steps
 
-import org.gradle.internal.execution.Context
-import org.gradle.internal.execution.IncrementalChangesContext
 import org.gradle.internal.execution.Result
 import spock.lang.Unroll
 
-class CatchExceptionStepTest extends StepSpec {
-    def step = new CatchExceptionStep<Context>(delegate)
-    def context = Mock(IncrementalChangesContext)
+class CatchExceptionStepTest extends ContextInsensitiveStepSpec {
+    def step = new CatchExceptionStep<>(delegate)
 
     def "successful result is preserved"() {
         def delegateResult = Mock(Result)

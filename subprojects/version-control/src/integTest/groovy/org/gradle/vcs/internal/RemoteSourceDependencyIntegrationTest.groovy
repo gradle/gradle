@@ -17,6 +17,7 @@
 package org.gradle.vcs.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.vcs.fixtures.GitHttpRepository
 import org.junit.Rule
@@ -68,9 +69,9 @@ class RemoteSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
                 version = '1.2'
                 def jar = tasks.create("jar", Jar) {
                     dependsOn c
-                    baseName = "test"
-                    destinationDir = buildDir
-                    version = project.version
+                    archiveBaseName = "test"
+                    destinationDirectory = buildDir
+                    archiveVersion = project.version
                 }
                 d.outgoing.artifact(jar)
             }
@@ -97,9 +98,9 @@ class RemoteSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
                 version = '1.2'
                 def jar = tasks.create("jar", Jar) {
                     dependsOn c
-                    baseName = "test"
-                    destinationDir = buildDir
-                    version = project.version
+                    archiveBaseName = "test"
+                    destinationDirectory = buildDir
+                    archiveVersion = project.version
                 }
                 d.outgoing.artifact(jar)
             }
@@ -119,9 +120,9 @@ class RemoteSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
                 group = 'test'
                 version = '1.2'
                 def jar = tasks.create("jar", Jar) {
-                    baseName = "test"
-                    destinationDir = buildDir
-                    version = project.version
+                    archiveBaseName = "test"
+                    destinationDirectory = buildDir
+                    archiveVersion = project.version
                 }
                 d.outgoing.artifact(jar)
             }
@@ -129,6 +130,7 @@ class RemoteSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
         repoC.commit('initial version')
     }
 
+    @ToBeFixedForInstantExecution
     def "git version lookup and checkout is performed once per version selector per build invocation"() {
         repoA.file("build.gradle") << """
             dependencies {
@@ -181,6 +183,7 @@ class RemoteSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
         result.assertTasksExecuted(':resolve', ':a:resolve', ':b:resolve', ':testA:jar', ':testB:jar', ':testC:jar')
     }
 
+    @ToBeFixedForInstantExecution
     def "git version lookup and checkout is performed once per branch selector per build invocation"() {
         repoA.file("build.gradle") << """
             dependencies {

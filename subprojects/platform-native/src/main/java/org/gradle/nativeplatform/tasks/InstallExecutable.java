@@ -16,14 +16,13 @@
 package org.gradle.nativeplatform.tasks;
 
 import org.gradle.api.DefaultTask;
-import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
-import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -54,7 +53,6 @@ import java.util.Collection;
 /**
  * Installs an executable with it's dependent libraries so it can be easily executed.
  */
-@Incubating
 public class InstallExecutable extends DefaultTask {
     private final Property<NativePlatform> targetPlatform;
     private final Property<NativeToolChain> toolChain;
@@ -191,12 +189,12 @@ public class InstallExecutable extends DefaultTask {
     }
 
     @Inject
-    protected FileOperations getFileOperations() {
+    protected FileSystemOperations getFileSystemOperations() {
         throw new UnsupportedOperationException();
     }
 
     @TaskAction
-    public void install() {
+    protected void install() {
         NativePlatform nativePlatform = targetPlatform.get();
         File executable = getExecutableFile().get().getAsFile();
         File libDirectory = getLibDirectory().get().getAsFile();
@@ -215,7 +213,7 @@ public class InstallExecutable extends DefaultTask {
     }
 
     private Provider<Directory> getLibDirectory() {
-        return getInstallDirectory().dir("lib");
+        return getInstallDirectory().getLocationOnly().map(dir -> dir.dir("lib"));
     }
 
     private void installWindows(File executable, File runScript) {
@@ -260,7 +258,7 @@ public class InstallExecutable extends DefaultTask {
     }
 
     private void installToDir(final File binaryDir, final File executableFile, final Collection<File> libs) {
-        getFileOperations().sync(copySpec -> {
+        getFileSystemOperations().sync(copySpec -> {
             copySpec.into(binaryDir);
             copySpec.from(executableFile);
             copySpec.from(libs);

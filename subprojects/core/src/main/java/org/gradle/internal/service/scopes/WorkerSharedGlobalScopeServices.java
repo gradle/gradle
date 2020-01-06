@@ -16,81 +16,56 @@
 
 package org.gradle.internal.service.scopes;
 
-import org.gradle.api.internal.ClassPathRegistry;
-import org.gradle.api.internal.DefaultClassPathProvider;
-import org.gradle.api.internal.DefaultClassPathRegistry;
-import org.gradle.api.internal.DynamicModulesClassPathProvider;
-import org.gradle.api.internal.classpath.DefaultModuleRegistry;
-import org.gradle.api.internal.classpath.DefaultPluginModuleRegistry;
-import org.gradle.api.internal.classpath.ModuleRegistry;
-import org.gradle.api.internal.classpath.PluginModuleRegistry;
+import org.gradle.api.internal.file.DefaultFilePropertyFactory;
+import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.TemporaryFileProvider;
+import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
+import org.gradle.api.internal.model.NamedObjectInstantiator;
+import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.internal.CacheFactory;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.cache.internal.DefaultCacheFactory;
 import org.gradle.cache.internal.DefaultCrossBuildInMemoryCacheFactory;
-import org.gradle.initialization.ClassLoaderRegistry;
-import org.gradle.initialization.DefaultClassLoaderRegistry;
 import org.gradle.initialization.DefaultLegacyTypesSupport;
-import org.gradle.initialization.FlatClassLoaderRegistry;
 import org.gradle.initialization.LegacyTypesSupport;
-import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.installation.CurrentGradleInstallation;
-import org.gradle.internal.installation.GradleRuntimeShadedJarDetector;
+import org.gradle.internal.file.Deleter;
+import org.gradle.internal.file.impl.DefaultDeleter;
+import org.gradle.internal.hash.DefaultStreamHasher;
+import org.gradle.internal.hash.StreamHasher;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.progress.DefaultProgressLoggerFactory;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.logging.services.ProgressLoggingBridge;
+import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.operations.DefaultBuildOperationIdFactory;
-import org.gradle.internal.reflect.DirectInstantiator;
+import org.gradle.internal.os.OperatingSystem;
+import org.gradle.internal.state.DefaultManagedFactoryRegistry;
+import org.gradle.internal.state.ManagedFactoryRegistry;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.time.Time;
 
+import static org.gradle.api.internal.file.ManagedFactories.DirectoryManagedFactory;
+import static org.gradle.api.internal.file.ManagedFactories.DirectoryPropertyManagedFactory;
+import static org.gradle.api.internal.file.ManagedFactories.RegularFileManagedFactory;
+import static org.gradle.api.internal.file.ManagedFactories.RegularFilePropertyManagedFactory;
+import static org.gradle.api.internal.file.collections.ManagedFactories.ConfigurableFileCollectionManagedFactory;
+import static org.gradle.api.internal.provider.ManagedFactories.ListPropertyManagedFactory;
+import static org.gradle.api.internal.provider.ManagedFactories.MapPropertyManagedFactory;
+import static org.gradle.api.internal.provider.ManagedFactories.PropertyManagedFactory;
+import static org.gradle.api.internal.provider.ManagedFactories.ProviderManagedFactory;
+import static org.gradle.api.internal.provider.ManagedFactories.SetPropertyManagedFactory;
+
 public class WorkerSharedGlobalScopeServices extends BasicGlobalScopeServices {
-
-    protected final ClassPath additionalModuleClassPath;
-
-    public WorkerSharedGlobalScopeServices() {
-        this(ClassPath.EMPTY);
-    }
-
-    public WorkerSharedGlobalScopeServices(ClassPath additionalModuleClassPath) {
-        this.additionalModuleClassPath = additionalModuleClassPath;
-    }
-
-    ClassPathRegistry createClassPathRegistry(ModuleRegistry moduleRegistry, PluginModuleRegistry pluginModuleRegistry) {
-        return new DefaultClassPathRegistry(
-            new DefaultClassPathProvider(moduleRegistry),
-            new DynamicModulesClassPathProvider(moduleRegistry,
-                pluginModuleRegistry));
-    }
-
-    DefaultModuleRegistry createModuleRegistry(CurrentGradleInstallation currentGradleInstallation) {
-        return new DefaultModuleRegistry(additionalModuleClassPath, currentGradleInstallation.getInstallation());
-    }
-
-    CurrentGradleInstallation createCurrentGradleInstallation() {
-        return CurrentGradleInstallation.locate();
-    }
-
-    PluginModuleRegistry createPluginModuleRegistry(ModuleRegistry moduleRegistry) {
-        return new DefaultPluginModuleRegistry(moduleRegistry);
-    }
 
     protected CacheFactory createCacheFactory(FileLockManager fileLockManager, ExecutorFactory executorFactory, ProgressLoggerFactory progressLoggerFactory) {
         return new DefaultCacheFactory(fileLockManager, executorFactory, progressLoggerFactory);
-    }
-
-    ClassLoaderRegistry createClassLoaderRegistry(ClassPathRegistry classPathRegistry, LegacyTypesSupport legacyTypesSupport) {
-        if (GradleRuntimeShadedJarDetector.isLoadedFrom(getClass())) {
-            return new FlatClassLoaderRegistry(getClass().getClassLoader());
-        }
-
-        // Use DirectInstantiator here to avoid setting up the instantiation infrastructure early
-        return new DefaultClassLoaderRegistry(classPathRegistry, legacyTypesSupport, DirectInstantiator.INSTANCE);
     }
 
     LegacyTypesSupport createLegacyTypesSupport() {
@@ -111,5 +86,46 @@ public class WorkerSharedGlobalScopeServices extends BasicGlobalScopeServices {
 
     CrossBuildInMemoryCacheFactory createCrossBuildInMemoryCacheFactory(ListenerManager listenerManager) {
         return new DefaultCrossBuildInMemoryCacheFactory(listenerManager);
+    }
+
+    NamedObjectInstantiator createNamedObjectInstantiator(CrossBuildInMemoryCacheFactory cacheFactory) {
+        return new NamedObjectInstantiator(cacheFactory);
+    }
+
+    TaskDependencyFactory createTaskDependencyFactory() {
+        return DefaultTaskDependencyFactory.withNoAssociatedProject();
+    }
+
+    DefaultFilePropertyFactory createFilePropertyFactory(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {
+        return new DefaultFilePropertyFactory(fileResolver, fileCollectionFactory);
+    }
+
+    StreamHasher createStreamHasher() {
+        return new DefaultStreamHasher();
+    }
+
+    TemporaryFileProvider createTemporaryFileProvider() {
+        return new TmpDirTemporaryFileProvider();
+    }
+
+    Deleter createDeleter(Clock clock, FileSystem fileSystem, OperatingSystem os) {
+        return new DefaultDeleter(clock::getCurrentTime, fileSystem::isSymlink, os.isWindows());
+    }
+
+    ManagedFactoryRegistry createManagedFactoryRegistry(NamedObjectInstantiator namedObjectInstantiator, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, InstantiatorFactory instantiatorFactory, TaskDependencyFactory taskDependencyFactory) {
+        return new DefaultManagedFactoryRegistry().withFactories(
+            instantiatorFactory.getManagedFactory(),
+            new ConfigurableFileCollectionManagedFactory(fileResolver, taskDependencyFactory),
+            new RegularFileManagedFactory(),
+            new RegularFilePropertyManagedFactory(fileResolver),
+            new DirectoryManagedFactory(fileResolver, fileCollectionFactory),
+            new DirectoryPropertyManagedFactory(fileResolver, fileCollectionFactory),
+            new SetPropertyManagedFactory(),
+            new ListPropertyManagedFactory(),
+            new MapPropertyManagedFactory(),
+            new PropertyManagedFactory(),
+            new ProviderManagedFactory(),
+            namedObjectInstantiator
+        );
     }
 }

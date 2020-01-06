@@ -23,6 +23,7 @@ import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskContainer
+import org.gradle.kotlin.dsl.accessors.ConfigurationEntry
 
 import org.gradle.kotlin.dsl.accessors.TypedProjectSchema
 import org.gradle.kotlin.dsl.accessors.entry
@@ -53,7 +54,8 @@ class PrintAccessorsTest {
                             entry<TaskContainer, Delete>("delete")
                         ),
                         configurations = listOf(
-                            "api"
+                            ConfigurationEntry("api"),
+                            ConfigurationEntry("compile", listOf("api", "implementation"))
                         ),
                         containerElements = listOf(
                             entry<SourceSetContainer, SourceSet>("main")

@@ -19,6 +19,7 @@ package org.gradle.api.provider
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -50,7 +51,7 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIn
         """
         file("buildSrc/build.gradle.kts") << """
             dependencies {
-                compile(project(":plugin"))
+                implementation(project(":plugin"))
             }
         """
     }
@@ -114,6 +115,7 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIn
         outputContains("map = {1=true, 2=false}")
     }
 
+    @ToBeFixedForInstantExecution
     def "can define property in language plugin and set value from Groovy DSL"() {
         pluginDefinesTask()
 
@@ -157,6 +159,7 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIn
         outputContains("map = {3=true}")
     }
 
+    @ToBeFixedForInstantExecution
     def "can define property in language plugin and set value from Kotlin DSL"() {
         pluginDefinesTask()
 
@@ -209,12 +212,12 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIn
         """
         file("buildSrc/build.gradle.kts") << """
             dependencies {
-                compile(project(":other"))
+                implementation(project(":other"))
             }
         """
         def otherDir = file("buildSrc/other")
         otherDir.file("build.gradle") << """
-            plugins { 
+            plugins {
                 id("java-library")
             }
             dependencies {
@@ -270,7 +273,7 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIn
         """
         file("buildSrc/build.gradle.kts") << """
             dependencies {
-                compile(project(":other"))
+                implementation(project(":other"))
             }
         """
 

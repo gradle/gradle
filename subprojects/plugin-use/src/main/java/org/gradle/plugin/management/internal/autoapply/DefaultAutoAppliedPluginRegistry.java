@@ -22,13 +22,13 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.BuildDefinition;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.plugin.management.internal.DefaultPluginRequest;
-import org.gradle.plugin.management.internal.DefaultPluginRequests;
+import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.management.internal.PluginRequests;
-
-import java.util.Collections;
 
 import static org.gradle.initialization.StartParameterBuildOptions.BuildScanOption;
 
@@ -36,7 +36,9 @@ import static org.gradle.initialization.StartParameterBuildOptions.BuildScanOpti
  * A hardcoded {@link AutoAppliedPluginRegistry} that only knows about the build-scan plugin for now.
  */
 public class DefaultAutoAppliedPluginRegistry implements AutoAppliedPluginRegistry {
-    private final static ModuleIdentifier AUTO_APPLIED_ID = DefaultModuleIdentifier.newId(AutoAppliedBuildScanPlugin.GROUP, AutoAppliedBuildScanPlugin.NAME);
+
+    private static final PluginRequests GRADLE_ENTERPRISE_PLUGIN_REQUEST = PluginRequests.of(createGradleEnterprisePluginRequest());
+
     private final BuildDefinition buildDefinition;
 
     public DefaultAutoAppliedPluginRegistry(BuildDefinition buildDefinition) {
@@ -45,25 +47,34 @@ public class DefaultAutoAppliedPluginRegistry implements AutoAppliedPluginRegist
 
     @Override
     public PluginRequests getAutoAppliedPlugins(Project target) {
-        if (shouldApplyScanPlugin(target)) {
-            return new DefaultPluginRequests(Collections.singletonList(createScanPluginRequest()));
-        }
-        return DefaultPluginRequests.EMPTY;
+        return PluginRequests.EMPTY;
     }
 
     @Override
     public PluginRequests getAutoAppliedPlugins(Settings target) {
-        return buildDefinition.getInjectedPluginRequests();
+        if (((StartParameterInternal) target.getStartParameter()).isUseEmptySettingsWithoutDeprecationWarning()) {
+            return PluginRequests.EMPTY;
+        }
+
+        PluginRequests injectedPluginRequests = buildDefinition.getInjectedPluginRequests();
+
+        if (shouldApplyGradleEnterprisePlugin(target)) {
+            return injectedPluginRequests.mergeWith(GRADLE_ENTERPRISE_PLUGIN_REQUEST);
+        } else {
+            return injectedPluginRequests;
+        }
     }
 
-    private boolean shouldApplyScanPlugin(Project target) {
-        StartParameter startParameter = buildDefinition.getStartParameter();
-        return startParameter.isBuildScan() && target.getParent() == null && target.getGradle().getParent() == null;
+    private boolean shouldApplyGradleEnterprisePlugin(Settings settings) {
+        Gradle gradle = settings.getGradle();
+        StartParameter startParameter = gradle.getStartParameter();
+        return startParameter.isBuildScan() && gradle.getParent() == null;
     }
 
-    private static DefaultPluginRequest createScanPluginRequest() {
-        ModuleVersionSelector artifact = DefaultModuleVersionSelector.newSelector(AUTO_APPLIED_ID, AutoAppliedBuildScanPlugin.VERSION);
-        return new DefaultPluginRequest(AutoAppliedBuildScanPlugin.ID, AutoAppliedBuildScanPlugin.VERSION, true, null, getScriptDisplayName(), artifact);
+    private static PluginRequestInternal createGradleEnterprisePluginRequest() {
+        ModuleIdentifier moduleIdentifier = DefaultModuleIdentifier.newId(AutoAppliedGradleEnterprisePlugin.GROUP, AutoAppliedGradleEnterprisePlugin.NAME);
+        ModuleVersionSelector artifact = DefaultModuleVersionSelector.newSelector(moduleIdentifier, AutoAppliedGradleEnterprisePlugin.VERSION);
+        return new DefaultPluginRequest(AutoAppliedGradleEnterprisePlugin.ID, AutoAppliedGradleEnterprisePlugin.VERSION, true, null, getScriptDisplayName(), artifact);
     }
 
     private static String getScriptDisplayName() {

@@ -22,6 +22,8 @@ import javax.annotation.Nullable;
 import java.io.Serializable;
 
 public class DefaultWorkResult implements WorkResult, Serializable {
+    public static final DefaultWorkResult SUCCESS = new DefaultWorkResult(true, null);
+
     private final boolean didWork;
     private final Throwable exception;
 

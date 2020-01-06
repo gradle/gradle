@@ -148,14 +148,13 @@ public class StringDeduplicatingKryoBackedDecoder extends AbstractDecoder implem
     @Override
     public String readNullableString() throws EOFException {
         try {
-            byte b = readByte();
-            if (b == 0) {
+            int idx = readInt();
+            if (idx == -1) {
                 return null;
             }
             if (strings == null) {
                 strings = new String[INITIAL_CAPACITY];
             }
-            int idx = readSmallInt();
             String string = null;
             if (idx >= strings.length) {
                 String[] grow = new String[strings.length * 3 / 2];

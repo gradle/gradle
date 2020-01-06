@@ -18,9 +18,9 @@ package org.gradle.performance.experiment.buildcache
 
 import org.gradle.performance.AbstractCrossBuildPerformanceTest
 import org.gradle.performance.categories.PerformanceExperiment
-import org.gradle.performance.fixture.BuildExperimentListenerAdapter
-import org.gradle.performance.fixture.BuildExperimentSpec
-import org.gradle.test.fixtures.file.TestFile
+import org.gradle.profiler.InvocationSettings
+import org.gradle.profiler.mutations.AbstractCleanupMutator
+import org.gradle.profiler.mutations.ClearBuildCacheMutator
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
@@ -43,60 +43,42 @@ class LocalTaskOutputCacheCrossBuildPerformanceTest extends AbstractCrossBuildPe
                 }
             }
         """.stripIndent()
-        def cacheDir = temporaryFolder.file("local-cache")
-        def deleteLocalCacheInitScript = temporaryFolder.file("delete-local-cache.gradle")
-        deleteLocalCacheInitScript << """
-            rootProject {
-                task cleanBuildCache(type: Delete) {
-                    delete(file("${escapeString(cacheDir.absolutePath)}"))
-                }
-            }
-        """.stripIndent()
 
         given:
-        runner.buildExperimentListener = new BuildExperimentListenerAdapter() {
-            @Override
-            void beforeExperiment(BuildExperimentSpec experimentSpec, File projectDir) {
-                cacheDir.deleteDir().mkdirs()
-                def settingsFile = new TestFile(projectDir).file('settings.gradle')
-                settingsFile << """
-                    buildCache {
-                        local {
-                            directory = '${cacheDir.absoluteFile.toURI()}'
-                        }
-                    }
-                """.stripIndent()
-            }
+        runner.addBuildMutator { invocationSettings ->
+            new ClearBuildCacheMutator(invocationSettings.gradleUserHome, AbstractCleanupMutator.CleanupSchedule.SCENARIO)
         }
         runner.testGroup = "task output cache"
         runner.buildSpec {
             projectName(testProject.projectName).displayName("always-miss pull-only cache").invocation {
-                tasksToRun(tasks.split(' ')).cleanTasks("clean").gradleOpts("-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}").useDaemon().args(
+                tasksToRun(tasks.split(' ')).cleanTasks("clean").gradleOpts("-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}").args(
                     "--build-cache",
                     "--init-script", escapeString(noPushInitScript.absolutePath))
             }
         }
         runner.buildSpec {
             projectName(testProject.projectName).displayName("fully cached").invocation {
-                tasksToRun(tasks.split(' ')).cleanTasks("clean").gradleOpts("-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}").useDaemon().args(
+                tasksToRun(tasks.split(' ')).cleanTasks("clean").gradleOpts("-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}").args(
                     "--build-cache")
             }
         }
         runner.buildSpec {
+            addBuildMutator { InvocationSettings invocationSettings ->
+                new ClearBuildCacheMutator(invocationSettings.gradleUserHome, AbstractCleanupMutator.CleanupSchedule.BUILD)
+            }
             projectName(testProject.projectName).displayName("push-only").invocation {
-                tasksToRun(tasks.split(' ')).cleanTasks("clean", "cleanBuildCache").gradleOpts("-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}").useDaemon().args(
-                    "--build-cache",
-                    "--init-script", escapeString(deleteLocalCacheInitScript.absolutePath))
+                tasksToRun(tasks.split(' ')).cleanTasks("clean").gradleOpts("-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}").args(
+                    "--build-cache")
             }
         }
         runner.baseline {
             projectName(testProject.projectName).displayName("fully up-to-date").invocation {
-                tasksToRun(tasks.split(' ')).gradleOpts("-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}").useDaemon()
+                tasksToRun(tasks.split(' ')).gradleOpts("-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}")
             }
         }
         runner.baseline {
             projectName(testProject.projectName).displayName("non-cached").invocation {
-                tasksToRun(tasks.split(' ')).cleanTasks('clean').gradleOpts("-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}").useDaemon()
+                tasksToRun(tasks.split(' ')).cleanTasks('clean').gradleOpts("-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}")
             }
         }
 

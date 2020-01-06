@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.model.gradle;
 
-import org.gradle.api.Incubating;
 import org.gradle.tooling.model.BuildIdentifier;
 import org.gradle.tooling.model.BuildModel;
 import org.gradle.tooling.model.DomainObjectSet;
@@ -64,6 +63,5 @@ public interface GradleBuild extends Model, BuildModel {
      *
      * @since 4.10
      */
-    @Incubating
     DomainObjectSet<? extends GradleBuild> getEditableBuilds();
 }

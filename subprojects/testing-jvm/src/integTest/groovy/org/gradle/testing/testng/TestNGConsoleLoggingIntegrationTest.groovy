@@ -17,6 +17,7 @@
 package org.gradle.testing.testng
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 // can make assumptions about order in which test methods of TestNGTest get executed
 // because the methods are chained with 'methodDependsOn'
@@ -31,8 +32,8 @@ class TestNGConsoleLoggingIntegrationTest extends AbstractIntegrationSpec {
             ${mavenCentralRepository()}
 
             dependencies {
-                compile "org.codehaus.groovy:groovy:2.4.10"
-                testCompile "org.testng:testng:6.3.1"
+                implementation "org.codehaus.groovy:groovy:2.4.10"
+                testImplementation "org.testng:testng:6.3.1"
             }
 
             test {
@@ -80,6 +81,7 @@ class TestNGConsoleLoggingIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
+    @ToBeFixedForInstantExecution
     def "defaultLifecycleLogging"() {
         when:
         fails "test"
@@ -91,6 +93,7 @@ Gradle test > org.gradle.TestNGTest.badTest FAILED
         """)
     }
 
+    @ToBeFixedForInstantExecution
     def customQuietLogging() {
         when:
         executer.withStackTraceChecksDisabled()
@@ -112,6 +115,7 @@ Gradle suite FAILED
         """)
     }
 
+    @ToBeFixedForInstantExecution
     def "standardOutputLogging"() {
         given:
         buildFile.text = """
@@ -120,8 +124,8 @@ Gradle suite FAILED
             ${mavenCentralRepository()}
 
             dependencies {
-                compile "org.codehaus.groovy:groovy:2.4.10"
-                testCompile "org.testng:testng:6.3.1"
+                implementation "org.codehaus.groovy:groovy:2.4.10"
+                testImplementation "org.testng:testng:6.3.1"
             }
 
             test {

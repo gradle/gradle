@@ -16,9 +16,16 @@
 package org.gradle.integtests.publish.maven
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 class MavenWarProjectPublishIntegrationTest extends AbstractIntegrationSpec {
 
+    def setup() {
+        // the OLD publish plugins work with the OLD deprecated Java plugin configuration (compile/runtime)
+        executer.noDeprecationChecks()
+    }
+
+    @ToBeFixedForInstantExecution
     public void "publishes WAR only for mixed java and WAR project"() {
         given:
         using m2
@@ -52,7 +59,7 @@ uploadArchives {
         run "uploadArchives"
 
         then:
-        def mavenModule = mavenRepo.module("org.gradle.test", "publishTest", "1.9")
+        def mavenModule = mavenRepo.module("org.gradle.test", "publishTest", "1.9").withoutExtraChecksums()
         mavenModule.assertArtifactsPublished("publishTest-1.9.pom", "publishTest-1.9.war")
     }
 }

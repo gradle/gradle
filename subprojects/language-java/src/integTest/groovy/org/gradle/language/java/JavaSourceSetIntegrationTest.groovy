@@ -16,6 +16,7 @@
 package org.gradle.language.java
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.test.fixtures.archive.JarTestFixture
 
@@ -24,9 +25,10 @@ import static org.gradle.language.java.JavaIntegrationTesting.applyJavaPlugin
 @TestReproducibleArchives
 class JavaSourceSetIntegrationTest extends AbstractIntegrationSpec {
 
+    @ToBeFixedForInstantExecution
     def "can define dependencies on Java source set"() {
         given:
-        applyJavaPlugin(buildFile)
+        applyJavaPlugin(buildFile, executer)
         buildFile << '''
 model {
     components {
@@ -65,9 +67,10 @@ model {
         noExceptionThrown()
     }
 
+    @ToBeFixedForInstantExecution
     def "dependencies returned by the container are immutable"() {
         given:
-        applyJavaPlugin(buildFile)
+        applyJavaPlugin(buildFile, executer)
         buildFile << '''
 model {
     components {
@@ -107,9 +110,10 @@ model {
         noExceptionThrown()
     }
 
+    @ToBeFixedForInstantExecution
     def "reports failure for invalid dependency notation"() {
         given:
-        applyJavaPlugin(buildFile)
+        applyJavaPlugin(buildFile, executer)
         buildFile << """
 model {
     components {
@@ -145,6 +149,7 @@ model {
         "group 'group-without-a-module'" | 'A module dependency must have at least a group and a module name specified.'
     }
 
+    @ToBeFixedForInstantExecution
     def "can build JAR from multiple source sets"() {
         given:
         file("src/main/java/Main.java") << "public class Main {}"
@@ -152,7 +157,7 @@ model {
         file("src/main/java8/Java8.java") << "public class Java8 {}"
         file("src/main/java8-resources/java8.properties") << "java=8"
 
-        applyJavaPlugin(buildFile)
+        applyJavaPlugin(buildFile, executer)
         buildFile << '''
 model {
     components {

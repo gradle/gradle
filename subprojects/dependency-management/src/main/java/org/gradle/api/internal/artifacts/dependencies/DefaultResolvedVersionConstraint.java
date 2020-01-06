@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.dependencies;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.UnionVersionSelector;
@@ -28,6 +29,7 @@ public class DefaultResolvedVersionConstraint implements ResolvedVersionConstrai
     private final VersionSelector preferredVersionSelector;
     private final VersionSelector requiredVersionSelector;
     private final VersionSelector rejectedVersionsSelector;
+    private final boolean isStrict;
     private final boolean rejectAll;
     private final boolean isDynamic;
 
@@ -39,16 +41,19 @@ public class DefaultResolvedVersionConstraint implements ResolvedVersionConstrai
     public DefaultResolvedVersionConstraint(String requiredVersion, String preferredVersion, String strictVersion, List<String> rejectedVersions, VersionSelectorScheme scheme) {
         // For now, required and preferred are treated the same
 
-        boolean strict = !strictVersion.isEmpty();
-        String version = strict ? strictVersion : requiredVersion;
+        isStrict = !strictVersion.isEmpty();
+        String version = isStrict ? strictVersion : requiredVersion;
         this.requiredVersionSelector = scheme.parseSelector(version);
         this.preferredVersionSelector = preferredVersion.isEmpty() ? null : scheme.parseSelector(preferredVersion);
 
-        if (strict) {
+        if (isStrict) {
+            VersionSelector rejectionForStrict = getRejectionForStrict(version, scheme);
             if (!rejectedVersions.isEmpty()) {
-                throw new IllegalArgumentException("Cannot combine 'strict' and 'reject' in a single version constraint.");
+                VersionSelector explicitRejected = toRejectSelector(scheme, rejectedVersions);
+                this.rejectedVersionsSelector = new UnionVersionSelector(ImmutableList.of(rejectionForStrict, explicitRejected));
+            } else {
+                this.rejectedVersionsSelector = rejectionForStrict;
             }
-            this.rejectedVersionsSelector = getRejectionForStrict(version, scheme);
             rejectAll = false;
         } else {
             this.rejectedVersionsSelector = toRejectSelector(scheme, rejectedVersions);
@@ -57,7 +62,7 @@ public class DefaultResolvedVersionConstraint implements ResolvedVersionConstrai
         this.isDynamic = doComputeIsDynamic();
     }
 
-    private VersionSelector getRejectionForStrict(String version, VersionSelectorScheme versionSelectorScheme) {
+    private static VersionSelector getRejectionForStrict(String version, VersionSelectorScheme versionSelectorScheme) {
         VersionSelector preferredSelector = versionSelectorScheme.parseSelector(version);
         return versionSelectorScheme.complementForRejection(preferredSelector);
     }
@@ -92,6 +97,39 @@ public class DefaultResolvedVersionConstraint implements ResolvedVersionConstrai
     @Override
     public boolean isDynamic() {
         return isDynamic;
+    }
+
+    @Override
+    public boolean isStrict() {
+        return isStrict;
+    }
+
+    @Override
+    public boolean accepts(String candidate) {
+        boolean accepted = true;
+        if (requiredVersionSelector != null) {
+            accepted = requiredVersionSelector.accept(candidate);
+        } else if (preferredVersionSelector != null) {
+            accepted = preferredVersionSelector.accept(candidate);
+        }
+        if (accepted && rejectedVersionsSelector != null) {
+            accepted = !rejectedVersionsSelector.accept(candidate);
+        }
+        return accepted;
+    }
+
+    @Override
+    public boolean canBeStable() {
+        return canBeStable(preferredVersionSelector)
+            && canBeStable(requiredVersionSelector)
+            && canBeStable(rejectedVersionsSelector);
+    }
+
+    private static boolean canBeStable(VersionSelector vs) {
+        if (vs == null) {
+            return true;
+        }
+        return vs.canShortCircuitWhenVersionAlreadyPreselected();
     }
 
     private boolean doComputeIsDynamic() {

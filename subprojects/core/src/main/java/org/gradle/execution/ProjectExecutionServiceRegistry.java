@@ -20,34 +20,60 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.NodeExecutionContext;
+import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.service.ServiceLookupException;
 import org.gradle.internal.service.ServiceRegistry;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.io.Closeable;
+import java.io.IOException;
 
 /**
- * Registry of services provided for already configured projects.
+ * Registry of services provided at execution time for already configured projects.
  */
 public class ProjectExecutionServiceRegistry implements AutoCloseable {
-    private final LoadingCache<ProjectInternal, ProjectExecutionServices> projectRegistries = CacheBuilder.newBuilder()
-        .build(new CacheLoader<ProjectInternal, ProjectExecutionServices>() {
+    private final NodeExecutionContext global;
+    private final LoadingCache<ProjectInternal, NodeExecutionContext> projectRegistries = CacheBuilder.newBuilder()
+        .build(new CacheLoader<ProjectInternal, NodeExecutionContext>() {
             @Override
-            public ProjectExecutionServices load(@Nonnull ProjectInternal project) {
-                return new ProjectExecutionServices(project);
+            public NodeExecutionContext load(@Nonnull ProjectInternal project) {
+                return new DefaultNodeExecutionContext(new ProjectExecutionServices(project));
             }
         });
 
-    public <T> T getProjectService(ProjectInternal project, Class<T> serviceType) {
-        return forProject(project).get(serviceType);
+    public ProjectExecutionServiceRegistry(ServiceRegistry globalServices) {
+        global = globalServices::get;
     }
 
-    public ServiceRegistry forProject(ProjectInternal project) {
+    public NodeExecutionContext forProject(@Nullable ProjectInternal project) {
+        if (project == null) {
+            return global;
+        }
         return projectRegistries.getUnchecked(project);
     }
 
     @Override
     public void close() {
-        for (ProjectExecutionServices registry : projectRegistries.asMap().values()) {
-            registry.close();
+        CompositeStoppable.stoppable(projectRegistries.asMap().values()).stop();
+    }
+
+    private static class DefaultNodeExecutionContext implements NodeExecutionContext, Closeable {
+        private final ProjectExecutionServices services;
+
+        public DefaultNodeExecutionContext(ProjectExecutionServices services) {
+            this.services = services;
+        }
+
+        @Override
+        public <T> T getService(Class<T> type) throws ServiceLookupException {
+            return services.get(type);
+        }
+
+        @Override
+        public void close() throws IOException {
+            services.close();
         }
     }
 }

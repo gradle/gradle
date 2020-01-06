@@ -73,7 +73,7 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
 
         // Make some assumptions about the console output
         if (buildOperationDescriptor.getOperationType().isTopLevelWorkItem()) {
-            logger.setLoggingHeader(buildOperationDescriptor.getProgressDisplayName());
+            logger.loggingHeader = buildOperationDescriptor.getProgressDisplayName();
         }
 
         return logger;
@@ -166,29 +166,6 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
         public ProgressLogger setDescription(String description) {
             assertCanConfigure();
             this.description = description;
-            return this;
-        }
-
-        @Override
-        public String getShortDescription() {
-            return null;
-        }
-
-        @Override
-        public ProgressLogger setShortDescription(String shortDescription) {
-            assertCanConfigure();
-            return this;
-        }
-
-        @Override
-        public String getLoggingHeader() {
-            return loggingHeader;
-        }
-
-        @Override
-        public ProgressLogger setLoggingHeader(String loggingHeader) {
-            assertCanConfigure();
-            this.loggingHeader = loggingHeader;
             return this;
         }
 

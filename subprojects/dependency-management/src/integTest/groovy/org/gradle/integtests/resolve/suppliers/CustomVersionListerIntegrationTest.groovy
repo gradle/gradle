@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.resolve.suppliers
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.RequiredFeatures
@@ -23,9 +24,7 @@ import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import spock.lang.Unroll
 
 @RequiredFeatures([
-    // we only need to check without experimental, it doesn't depend on this flag
-    @RequiredFeature(feature = GradleMetadataResolveRunner.EXPERIMENTAL_RESOLVE_BEHAVIOR, value = "false"),
-    // we only need to check without Gradle metadata, it doesn't matter either
+    // we only need to check without Gradle metadata, it doesn't matter
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false"),
 ])
 class CustomVersionListerIntegrationTest extends AbstractModuleDependencyResolveTest {
@@ -130,6 +129,7 @@ class CustomVersionListerIntegrationTest extends AbstractModuleDependencyResolve
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     void "caches version listing using #lister lister"() {
         ListerInteractions listerInteractions
         switch (lister) {
@@ -190,6 +190,7 @@ class CustomVersionListerIntegrationTest extends AbstractModuleDependencyResolve
         'file on repository' | [testA: [1, 2, 3]]
     }
 
+    @ToBeFixedForInstantExecution
     void "can recover from broken lister"() {
         withBrokenLister()
         given:
@@ -225,6 +226,7 @@ class CustomVersionListerIntegrationTest extends AbstractModuleDependencyResolve
         succeeds 'checkDeps'
     }
 
+    @ToBeFixedForInstantExecution
     def "can recover from --offline mode"() {
         withLister(['testA': [1, 2, 3]])
 

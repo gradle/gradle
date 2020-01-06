@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.ProgressLoggingFixture
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.server.RepositoryServer
@@ -170,6 +171,7 @@ abstract class AbstractIvyRemoteRepoResolveIntegrationTest extends AbstractInteg
         file('libs').assertHasDescendants '3rdParty-1.2.jar', 'original-1.1.jar'
     }
 
+    @ToBeFixedForInstantExecution
     public void "can resolve and cache dependencies from multiple remote Ivy repositories"() {
         given:
         def repo1 = server.getRemoteIvyRepo("/repo1")
@@ -213,7 +215,6 @@ abstract class AbstractIvyRemoteRepoResolveIntegrationTest extends AbstractInteg
 
         // Handles missing in repo1
         missingModuleB.ivy.expectDownloadMissing()
-        missingModuleB.jar.expectMetadataRetrieveMissing()
 
         moduleB.ivy.expectDownload()
         moduleB.jar.expectDownload()
@@ -229,6 +230,7 @@ abstract class AbstractIvyRemoteRepoResolveIntegrationTest extends AbstractInteg
         succeeds('listJars')
     }
 
+    @ToBeFixedForInstantExecution
     public void "can resolve and cache dependencies from a remote Ivy repository"() {
         given:
         def module = server.remoteIvyRepo.module('group', 'projectA', '1.2')
@@ -270,7 +272,8 @@ abstract class AbstractIvyRemoteRepoResolveIntegrationTest extends AbstractInteg
         succeeds 'listJars'
     }
 
-    public void "can resolve and cache artifact-only dependencies from a remote Ivy repository"() {
+    @ToBeFixedForInstantExecution
+    void "can resolve and cache artifact-only dependencies from a remote Ivy repository"() {
         given:
         def module = server.remoteIvyRepo.module('group', 'projectA', '1.2')
         module.publish()
@@ -312,6 +315,7 @@ abstract class AbstractIvyRemoteRepoResolveIntegrationTest extends AbstractInteg
         succeeds('listJars')
     }
 
+    @ToBeFixedForInstantExecution
     def "can resolve and cache artifact-only dependencies with no descriptor from a remote Ivy repository"() {
         given:
         def module = server.remoteIvyRepo.module('group', 'projectA', '1.2')
@@ -323,6 +327,7 @@ abstract class AbstractIvyRemoteRepoResolveIntegrationTest extends AbstractInteg
                 ivy {
                     url "${server.remoteIvyRepo.uri}"
                     $server.validCredentials
+                    metadataSources { artifact() }
                 }
             }
             configurations {
@@ -340,7 +345,6 @@ abstract class AbstractIvyRemoteRepoResolveIntegrationTest extends AbstractInteg
 
 
         when:
-        module.ivy.expectDownloadMissing()
         module.jar.expectMetadataRetrieve()
         module.jar.expectDownload()
 
@@ -355,6 +359,7 @@ abstract class AbstractIvyRemoteRepoResolveIntegrationTest extends AbstractInteg
         succeeds('listJars')
     }
 
+    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_TO_CLEANUP)
     def "reuses cached details when switching ivy resolve mode"() {
         given:
         buildFile << """

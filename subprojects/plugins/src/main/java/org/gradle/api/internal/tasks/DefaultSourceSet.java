@@ -113,8 +113,23 @@ public abstract class DefaultSourceSet implements SourceSet {
     }
 
     @Override
+    public String getJavadocTaskName() {
+        return getTaskName(null, JavaPlugin.JAVADOC_TASK_NAME);
+    }
+
+    @Override
     public String getJarTaskName() {
         return getTaskName(null, "jar");
+    }
+
+    @Override
+    public String getJavadocJarTaskName() {
+        return getTaskName(null, "javadocJar");
+    }
+
+    @Override
+    public String getSourcesJarTaskName() {
+        return getTaskName(null, "sourcesJar");
     }
 
     @Override
@@ -183,6 +198,16 @@ public abstract class DefaultSourceSet implements SourceSet {
     @Override
     public String getRuntimeElementsConfigurationName() {
         return configurationNameOf(JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME);
+    }
+
+    @Override
+    public String getJavadocElementsConfigurationName() {
+        return configurationNameOf(JavaPlugin.JAVADOC_ELEMENTS_CONFIGURATION_NAME);
+    }
+
+    @Override
+    public String getSourcesElementsConfigurationName() {
+        return configurationNameOf(JavaPlugin.SOURCES_ELEMENTS_CONFIGURATION_NAME);
     }
 
     @Override

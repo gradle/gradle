@@ -36,15 +36,15 @@ public class ProjectPageRenderer extends ReportRenderer<Project, HtmlPageBuilder
 
     @Override
     public void render(final Project project, final HtmlPageBuilder<Writer> builder) throws IOException {
-        final String baseCssLink = builder.requireResource(getClass().getResource("/org/gradle/reporting/base-style.css"));
-        final String cssLink = builder.requireResource(getClass().getResource(getReportResourcePath("style.css")));
-        final String jqueryLink = builder.requireResource(getClass().getResource("/org/gradle/reporting/jquery.min-1.11.0.js"));
-        final String jtreeLink = builder.requireResource(getClass().getResource(getReportResourcePath("jquery.jstree.js")));
-        final String scriptLink = builder.requireResource(getClass().getResource(getReportResourcePath("script.js")));
-        builder.requireResource(getClass().getResource(getReportResourcePath("tree.css")));
-        builder.requireResource(getClass().getResource(getReportResourcePath("d.gif")));
-        builder.requireResource(getClass().getResource(getReportResourcePath("d.png")));
-        builder.requireResource(getClass().getResource(getReportResourcePath("throbber.gif")));
+        final String baseCssLink = requireClassResource("/org/gradle/reporting/base-style.css", builder);
+        final String cssLink = requireReportResource("style.css", builder);
+        final String jqueryLink = requireClassResource("/org/gradle/reporting/jquery.min-1.11.0.js", builder);
+        final String jtreeLink = requireReportResource("jquery.jstree.js", builder);
+        final String scriptLink = requireReportResource("script.js", builder);
+        requireReportResource("tree.css", builder);
+        requireReportResource("d.gif", builder);
+        requireReportResource("d.png", builder);
+        requireReportResource("throbber.gif", builder);
 
         new Html(builder.getOutput()) {{
             html();
@@ -80,6 +80,14 @@ public class ProjectPageRenderer extends ReportRenderer<Project, HtmlPageBuilder
                 end();
             endAll();
         }};
+    }
+
+    private String requireReportResource(String path, HtmlPageBuilder<Writer> builder) {
+        return requireClassResource(getReportResourcePath(path), builder);
+    }
+
+    private String requireClassResource(String path, HtmlPageBuilder<Writer> builder) {
+        return builder.requireResource(getClass().getResource(path));
     }
 
     private String getReportResourcePath(String fileName) {

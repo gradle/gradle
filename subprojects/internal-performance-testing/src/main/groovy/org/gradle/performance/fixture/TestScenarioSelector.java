@@ -38,7 +38,7 @@ import java.util.Set;
  */
 public class TestScenarioSelector {
 
-    public boolean shouldRun(String testId, Set<String> templates, ResultsStore resultsStore) {
+    public static boolean shouldRun(String fullClassName, String testId, Set<String> templates, ResultsStore resultsStore) {
         if (testId.contains(";")) {
             throw new IllegalArgumentException("Test ID cannot contain ';', but was '" + testId + "'");
         }
@@ -47,17 +47,18 @@ public class TestScenarioSelector {
         boolean shouldRun = scenarios.isEmpty() || scenarios.contains(testId);
         String scenarioList = System.getProperty("org.gradle.performance.scenario.list");
         if (shouldRun && scenarioList != null) {
-            addToScenarioList(testId, templates, new File(scenarioList), resultsStore);
+            addToScenarioList(fullClassName, testId, templates, new File(scenarioList), resultsStore);
             return false;
         } else {
             return shouldRun;
         }
     }
 
-    private void addToScenarioList(String testId, Set<String> templates, File scenarioList, ResultsStore resultsStore) {
+    private static void addToScenarioList(String fullClassName, String testId, Set<String> templates, File scenarioList, ResultsStore resultsStore) {
         try {
             long estimatedRuntime = getEstimatedRuntime(testId, resultsStore);
             List<String> args = Lists.newArrayList();
+            args.add(fullClassName);
             args.add(testId);
             args.add(String.valueOf(estimatedRuntime));
             args.addAll(templates);
@@ -68,7 +69,7 @@ public class TestScenarioSelector {
         }
     }
 
-    private long getEstimatedRuntime(String testId, ResultsStore resultsStore) {
+    private static long getEstimatedRuntime(String testId, ResultsStore resultsStore) {
         String channel = ResultsStoreHelper.determineChannel();
         PerformanceTestHistory history = resultsStore.getTestResults(testId, 1, 365, channel);
         PerformanceTestExecution lastRun = Iterables.getFirst(history.getExecutions(), null);

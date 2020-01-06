@@ -11,10 +11,10 @@ It includes the following other software:
 
 Groovy (http://groovy-lang.org)
 SLF4J (http://www.slf4j.org)
-Junit (http://www.junit.org)
+JUnit (http://www.junit.org)
 JCIFS (http://jcifs.samba.org)
 
-For licenses see the LICENSE file.
+For licenses, see the LICENSE file.
 
 If any software distributed with Gradle does not have an Apache 2 License, its license is explicitly listed in the
 LICENSE file.

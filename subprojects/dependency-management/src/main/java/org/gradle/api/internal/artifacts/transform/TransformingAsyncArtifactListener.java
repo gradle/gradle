@@ -19,6 +19,8 @@ package org.gradle.api.internal.artifacts.transform;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
+import org.gradle.api.internal.file.FileCollectionInternal;
+import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
@@ -28,27 +30,21 @@ import java.util.Optional;
 
 class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArtifactListener {
     private final Map<ComponentArtifactIdentifier, TransformationResult> artifactResults;
-    private final Map<File, TransformationResult> fileResults;
     private final ExecutionGraphDependenciesResolver dependenciesResolver;
     private final TransformationNodeRegistry transformationNodeRegistry;
     private final BuildOperationQueue<RunnableBuildOperation> actions;
-    private final ResolvedArtifactSet.AsyncArtifactListener delegate;
     private final Transformation transformation;
 
     TransformingAsyncArtifactListener(
         Transformation transformation,
-        ResolvedArtifactSet.AsyncArtifactListener delegate,
         BuildOperationQueue<RunnableBuildOperation> actions,
         Map<ComponentArtifactIdentifier, TransformationResult> artifactResults,
-        Map<File, TransformationResult> fileResults,
         ExecutionGraphDependenciesResolver dependenciesResolver,
         TransformationNodeRegistry transformationNodeRegistry
     ) {
         this.artifactResults = artifactResults;
         this.actions = actions;
         this.transformation = transformation;
-        this.delegate = delegate;
-        this.fileResults = fileResults;
         this.dependenciesResolver = dependenciesResolver;
         this.transformationNodeRegistry = transformationNodeRegistry;
     }
@@ -68,21 +64,15 @@ class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArti
     }
 
     @Override
+    public FileCollectionStructureVisitor.VisitType prepareForVisit(FileCollectionInternal.Source source) {
+        // Visit everything
+        return FileCollectionStructureVisitor.VisitType.Visit;
+    }
+
+    @Override
     public boolean requireArtifactFiles() {
         // Always need the files, as we need to run the transform in order to calculate the output artifacts.
         return true;
-    }
-
-    @Override
-    public boolean includeFileDependencies() {
-        return delegate.includeFileDependencies();
-    }
-
-    @Override
-    public void fileAvailable(File file) {
-        TransformationSubject initialSubject = TransformationSubject.initial(file);
-        TransformationResult transformationResult = createTransformationResult(initialSubject);
-        fileResults.put(file, transformationResult);
     }
 
     private TransformationResult createTransformationResult(TransformationSubject initialSubject) {

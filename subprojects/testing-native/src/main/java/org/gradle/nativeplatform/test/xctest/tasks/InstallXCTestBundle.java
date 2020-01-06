@@ -20,12 +20,11 @@ import com.google.common.io.Files;
 import org.apache.commons.io.FilenameUtils;
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.Incubating;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
-import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.InputFile;
@@ -53,7 +52,6 @@ import java.util.concurrent.Callable;
  *
  * @since 4.4
  */
-@Incubating
 public class InstallXCTestBundle extends DefaultTask {
     private final DirectoryProperty installDirectory;
     private final RegularFileProperty bundleBinaryFile;
@@ -77,12 +75,12 @@ public class InstallXCTestBundle extends DefaultTask {
     }
 
     @Inject
-    protected FileOperations getFileOperations() {
+    protected FileSystemOperations getFileSystemOperations() {
         throw new UnsupportedOperationException();
     }
 
     @TaskAction
-    void install() throws IOException {
+    protected void install() throws IOException {
         File bundleFile = bundleBinaryFile.get().getAsFile();
         File bundleDir = installDirectory.get().file(bundleFile.getName() + ".xctest").getAsFile();
         installToDir(bundleDir, bundleFile);
@@ -100,7 +98,7 @@ public class InstallXCTestBundle extends DefaultTask {
     }
 
     private void installToDir(final File bundleDir, final File bundleFile) throws IOException {
-        getFileOperations().sync(new Action<CopySpec>() {
+        getFileSystemOperations().sync(new Action<CopySpec>() {
             @Override
             public void execute(CopySpec copySpec) {
                 copySpec.from(bundleFile, new Action<CopySpec>() {

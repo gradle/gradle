@@ -16,7 +16,6 @@
 
 package org.gradle.nativeplatform;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 
 /**
@@ -24,7 +23,6 @@ import org.gradle.api.Named;
  *
  * @since 4.5
  */
-@Incubating
 public enum Linkage implements Named {
     /**
      * Statically link binaries together.

@@ -18,6 +18,7 @@ package org.gradle.api.internal.attributes;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.attributes.Attribute;
+import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.isolation.IsolatableFactory;
@@ -31,6 +32,7 @@ public class DefaultImmutableAttributesFactory implements ImmutableAttributesFac
     private final ImmutableAttributes root;
     private final Map<ImmutableAttributes, List<DefaultImmutableAttributes>> children;
     private final IsolatableFactory isolatableFactory;
+    private final UsageCompatibilityHandler usageCompatibilityHandler;
     private NamedObjectInstantiator instantiator;
 
     public DefaultImmutableAttributesFactory(IsolatableFactory isolatableFactory, NamedObjectInstantiator instantiator) {
@@ -39,6 +41,7 @@ public class DefaultImmutableAttributesFactory implements ImmutableAttributesFac
         this.root = ImmutableAttributes.EMPTY;
         this.children = Maps.newHashMap();
         children.put(root, new ArrayList<DefaultImmutableAttributes>());
+        usageCompatibilityHandler = new UsageCompatibilityHandler(isolatableFactory, instantiator);
     }
 
     public int size() {
@@ -62,7 +65,7 @@ public class DefaultImmutableAttributesFactory implements ImmutableAttributesFac
 
     @Override
     public <T> ImmutableAttributes concat(ImmutableAttributes node, Attribute<T> key, T value) {
-        return doConcatIsolatable(node, key, isolate(value));
+        return concat(node, key, isolate(value));
     }
 
     private <T> Isolatable<T> isolate(T value) {
@@ -75,10 +78,14 @@ public class DefaultImmutableAttributesFactory implements ImmutableAttributesFac
 
     @Override
     public <T> ImmutableAttributes concat(ImmutableAttributes node, Attribute<T> key, Isolatable<T> value) {
-        return doConcatIsolatable(node, key, value);
+        if (key.equals(Usage.USAGE_ATTRIBUTE) || key.getName().equals(Usage.USAGE_ATTRIBUTE.getName())) {
+            return usageCompatibilityHandler.doConcat(this, node, key, value);
+        } else {
+            return doConcatIsolatable(node, key, value);
+        }
     }
 
-    private <T> ImmutableAttributes doConcatIsolatable(ImmutableAttributes node, Attribute<?> key, Isolatable<?> value) {
+    <T> ImmutableAttributes doConcatIsolatable(ImmutableAttributes node, Attribute<?> key, Isolatable<?> value) {
         synchronized (this) {
             List<DefaultImmutableAttributes> nodeChildren = children.get(node);
             if (nodeChildren == null) {

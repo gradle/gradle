@@ -21,4 +21,6 @@ package org.gradle.api.internal;
  */
 public interface GeneratedSubclass {
     Class<?> publicType();
+
+    boolean hasUsefulDisplayName();
 }

@@ -38,15 +38,21 @@ dependencies {
     implementation(library("commons_lang"))
     implementation(library("inject"))
 
-    testImplementation(project(":files"))
+    testFixturesImplementation(project(":baseServices"))
+    testFixturesImplementation(project(":coreApi"))
+    testFixturesImplementation(project(":core"))
+    testFixturesImplementation(project(":internalIntegTesting"))
+    testFixturesImplementation(testLibrary("jsoup"))
+
+    testImplementation(project(":fileCollections"))
     testImplementation(project(":internalIntegTesting"))
-    testImplementation(testLibrary("jsoup"))
+    testImplementation(testFixtures(project(":core")))
+
+    testRuntimeOnly(project(":runtimeApiInfo"))
+    integTestRuntimeOnly(project(":testingJunitPlatform"))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
 }
 
-testFixtures {
-    from(":core")
-}

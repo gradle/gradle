@@ -1,8 +1,8 @@
 apply plugin: 'war'
 
 dependencies {
-    runtime "commons-lang:commons-lang:2.5"
-    testCompile 'junit:junit:4.7'
+    runtimeOnly "commons-lang:commons-lang:2.5"
+    testImplementation 'junit:junit:4.7'
 }
 
 eclipse {

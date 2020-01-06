@@ -38,8 +38,8 @@ class ParallelTestExecutionIntegrationTest extends JUnitMultiVersionIntegrationS
             plugins { id "java" }
             ${jcenterRepository()}
             dependencies {
-                testCompile localGroovy()
-                testCompile "junit:junit:4.12"
+                testImplementation localGroovy()
+                testImplementation "junit:junit:4.12"
             }
         """.stripIndent()
 
@@ -116,8 +116,8 @@ class ParallelTestExecutionIntegrationTest extends JUnitMultiVersionIntegrationS
                 plugins { id "java" }
                 ${jcenterRepository()}
                 dependencies {
-                    testCompile localGroovy()
-                    testCompile "junit:junit:4.12"
+                    testImplementation localGroovy()
+                    testImplementation "junit:junit:4.12"
                 }
                 test.maxParallelForks = 2
             """

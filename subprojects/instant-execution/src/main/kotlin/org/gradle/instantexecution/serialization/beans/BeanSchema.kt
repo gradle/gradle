@@ -16,32 +16,33 @@
 
 package org.gradle.instantexecution.serialization.beans
 
-import groovy.lang.GroovyObject
-
 import org.gradle.api.DefaultTask
 import org.gradle.api.Task
 import org.gradle.api.internal.AbstractTask
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.internal.TaskInternal
 
+import org.gradle.instantexecution.serialization.Workarounds
+
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
 
 
 internal
-fun relevantStateOf(taskType: Class<*>): Sequence<Field> =
-    relevantTypeHierarchyOf(taskType).flatMap { type ->
-        type.declaredFields.asSequence().filterNot { field ->
-            Modifier.isStatic(field.modifiers) || Modifier.isTransient(field.modifiers)
-        }
-    }
+fun relevantStateOf(taskType: Class<*>): List<Field> =
+    relevantTypeHierarchyOf(taskType)
+        .toList()
+        .flatMap(Class<*>::relevantFields)
+        .onEach(Field::makeAccessible)
 
 
 private
-fun relevantTypeHierarchyOf(taskType: Class<*>): Sequence<Class<*>> = sequence {
-    var current = taskType
-    while (isRelevantDeclaringClass(current)) {
-        yield(current)
+fun relevantTypeHierarchyOf(taskType: Class<*>) = sequence<Class<*>> {
+    var current: Class<*>? = taskType
+    while (current != null) {
+        if (isRelevantDeclaringClass(current)) {
+            yield(current)
+        }
         current = current.superclass
     }
 }
@@ -55,10 +56,29 @@ fun isRelevantDeclaringClass(declaringClass: Class<*>): Boolean =
 private
 val irrelevantDeclaringClasses = setOf(
     Object::class.java,
-    GroovyObject::class.java,
     Task::class.java,
     TaskInternal::class.java,
     DefaultTask::class.java,
-    AbstractTask::class.java,
     ConventionTask::class.java
 )
+
+
+private
+val Class<*>.relevantFields: List<Field>
+    get() = declaredFields.toList()
+        .filterNot { field ->
+            Modifier.isStatic(field.modifiers)
+                || Modifier.isTransient(field.modifiers)
+                || Workarounds.isIgnoredBeanField(field)
+        }
+        .filter { field ->
+            field.declaringClass != AbstractTask::class.java || field.name == "actions"
+        }
+        .sortedBy { it.name }
+
+
+internal
+fun Field.makeAccessible() {
+    @Suppress("deprecation")
+    if (!isAccessible) isAccessible = true
+}

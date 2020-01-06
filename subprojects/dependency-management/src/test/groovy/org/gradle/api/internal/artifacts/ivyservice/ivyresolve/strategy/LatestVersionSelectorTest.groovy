@@ -33,13 +33,9 @@ class LatestVersionSelectorTest extends AbstractStringVersionSelectorTest {
         requiresMetadata("latest.123")
     }
 
-    def "only supports metadata-aware accept method"() {
-        when:
+    def "accepts any fixed version"() {
+        expect:
         accept("latest.integration", "1.0")
-
-        then:
-        UnsupportedOperationException e = thrown()
-        e.message.contains("accept")
     }
 
     def "accepts a candidate version if its status is equal to or higher than the selector's status"() {

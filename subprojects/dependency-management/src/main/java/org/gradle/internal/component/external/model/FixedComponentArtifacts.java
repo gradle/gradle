@@ -49,6 +49,6 @@ public class FixedComponentArtifacts implements ComponentArtifacts {
 
     @Override
     public ArtifactSet getArtifactsFor(ComponentResolveMetadata component, ConfigurationMetadata configuration, ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvableArtifact> allResolvedArtifacts, ArtifactTypeRegistry artifactTypeRegistry, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes) {
-        return DefaultArtifactSet.singleVariant(component.getId(), component.getModuleVersionId(), configuration.asDescribable(), artifacts, component.getSource(), exclusions, component.getAttributesSchema(), artifactResolver, allResolvedArtifacts, artifactTypeRegistry, overriddenAttributes);
+        return DefaultArtifactSet.singleVariant(component.getId(), component.getModuleVersionId(), configuration.asDescribable(), artifacts, component.getSources(), exclusions, component.getAttributesSchema(), artifactResolver, allResolvedArtifacts, artifactTypeRegistry, configuration.getAttributes(), overriddenAttributes);
     }
 }

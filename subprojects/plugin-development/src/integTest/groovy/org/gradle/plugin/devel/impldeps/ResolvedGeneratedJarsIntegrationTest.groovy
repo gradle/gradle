@@ -16,80 +16,82 @@
 
 package org.gradle.plugin.devel.impldeps
 
-import org.gradle.test.fixtures.file.TestFile
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import spock.lang.Issue
 
-class ResolvedGeneratedJarsIntegrationTest extends BaseGradleImplDepsIntegrationTest {
+import java.util.zip.ZipFile
+
+class ResolvedGeneratedJarsIntegrationTest extends BaseGradleImplDepsTestCodeIntegrationTest {
 
     def setup() {
         executer.requireOwnGradleUserHomeDir()
         buildFile << testablePluginProject(applyJavaPlugin())
     }
 
+    @ToBeFixedForInstantExecution
     def "gradle api jar is generated only when requested"() {
         setup:
         productionCode()
+
+        def version = distribution.version.version
+        def generatedJarsDirectory = "user-home/caches/$version/generated-gradle-jars"
 
         when:
         succeeds("tasks")
 
         then:
-        file("user-home/caches/${distribution.version.version}/generated-gradle-jars").assertIsEmptyDir()
+        file(generatedJarsDirectory).assertIsEmptyDir()
 
         when:
         succeeds("classes")
 
         then:
-        file("user-home/caches/${distribution.version.version}/generated-gradle-jars/gradle-api-${distribution.version.version}.jar").assertExists()
+        file("$generatedJarsDirectory/gradle-api-${version}.jar").assertExists()
 
     }
 
+    @ToBeFixedForInstantExecution
     def "gradle testkit jar is generated only when requested"() {
         setup:
         testCode()
 
+        def version = distribution.version.version
+        def generatedJarsDirectory = "user-home/caches/$version/generated-gradle-jars"
+
         when:
         succeeds("classes")
 
         then:
-        file("user-home/caches/${distribution.version.version}/generated-gradle-jars").assertIsEmptyDir()
+        file(generatedJarsDirectory).assertIsEmptyDir()
 
         when:
         succeeds("testClasses")
 
         then:
-        file("user-home/caches/${distribution.version.version}/generated-gradle-jars/gradle-test-kit-${distribution.version.version}.jar").assertExists()
+        file("$generatedJarsDirectory/gradle-test-kit-${version}.jar").assertExists()
     }
 
-    private TestFile productionCode() {
-        file("src/main/java/org/acme/TestPlugin.java") << """
-        package org.acme;
-        import org.gradle.api.Project;
-        import org.gradle.api.Plugin;
+    @Issue(['https://github.com/gradle/gradle/issues/9990', 'https://github.com/gradle/gradle/issues/10038'])
+    def "generated jars (api & test-kit) are valid archives"() {
+        setup:
+        productionCode()
+        testCode()
 
-        public class TestPlugin implements Plugin<Project> {
-            public void apply(Project p) {}
-        }
-        """
-    }
+        def version = distribution.version.version
+        def generatedJars = [
+            'gradle-api',
+            'gradle-test-kit'
+        ].collect { file("user-home/caches/$version/generated-gradle-jars/${it}-${version}.jar" )}
 
-    private TestFile testCode() {
-        file("src/test/java/org/acme/BaseTestPluginTest.java") << """
-        package org.acme;
-        import org.gradle.testkit.runner.GradleRunner;
-        import org.junit.Test;
-        import static org.junit.Assert.assertTrue;
-        
-        public abstract class BaseTestPluginTest {
-            GradleRunner runner() {
-                return GradleRunner.create();
+        when:
+        run "classes", "testClasses"
+
+        then:
+        generatedJars.findAll {
+            new ZipFile(it).withCloseable {
+                def names = it.entries()*.name
+                names.size() != names.toUnique().size()
             }
-
-            @Test 
-            void commonTest() {
-                assertTrue(true);
-            }         
-        }
-        """
+        } == []
     }
-
 }

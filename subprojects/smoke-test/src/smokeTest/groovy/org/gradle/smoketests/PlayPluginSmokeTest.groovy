@@ -17,10 +17,14 @@
 package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 class PlayPluginSmokeTest extends AbstractSmokeTest {
+
+    @Requires(TestPrecondition.JDK11_OR_EARLIER)
     def 'build basic Play project'() {
         given:
         useSample("play-example")
@@ -28,13 +32,13 @@ class PlayPluginSmokeTest extends AbstractSmokeTest {
             plugins {
                 id 'org.gradle.playframework' version '${TestedVersions.playframework}'
             }
-            
+
             repositories {
                 ${jcenterRepository()}
                 ${RepoScriptBlockUtil.lightbendMavenRepositoryDefinition()}
                 ${RepoScriptBlockUtil.lightbendIvyRepositoryDefinition()}
             }
-            
+
             dependencies {
                 implementation "com.typesafe.play:play-guice_2.12:2.6.15"
                 implementation 'commons-lang:commons-lang:2.6'

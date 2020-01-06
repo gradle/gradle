@@ -15,7 +15,7 @@
  */
 package org.gradle.process.internal
 
-import org.gradle.api.internal.file.DefaultFileCollectionFactory
+
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.initialization.DefaultBuildCancellationToken
@@ -30,9 +30,9 @@ import java.util.concurrent.Executor
 import static java.util.Arrays.asList
 
 class JavaExecHandleBuilderTest extends Specification {
-    JavaExecHandleBuilder builder = new JavaExecHandleBuilder(TestFiles.resolver(), TestFiles.fileCollectionFactory(), Mock(Executor), new DefaultBuildCancellationToken())
+    JavaExecHandleBuilder builder = new JavaExecHandleBuilder(TestFiles.resolver(), TestFiles.fileCollectionFactory(), Mock(Executor), new DefaultBuildCancellationToken(), TestFiles.execFactory().newJavaForkOptions())
 
-    FileCollectionFactory fileCollectionFactory = new DefaultFileCollectionFactory()
+    FileCollectionFactory fileCollectionFactory = TestFiles.fileCollectionFactory()
 
     def cannotSetAllJvmArgs() {
         when:
@@ -42,8 +42,8 @@ class JavaExecHandleBuilderTest extends Specification {
         thrown(UnsupportedOperationException)
     }
 
-    @Unroll("buildsCommandLineForJavaProcess - input encoding #inputEncoding")
-    def buildsCommandLineForJavaProcess() {
+    @Unroll
+    def "builds commandLine for Java process - input encoding #inputEncoding"() {
         File jar1 = new File("file1.jar").canonicalFile
         File jar2 = new File("file2.jar").canonicalFile
 
@@ -60,7 +60,7 @@ class JavaExecHandleBuilderTest extends Specification {
         List jvmArgs = builder.getAllJvmArgs()
 
         then:
-        jvmArgs == ['-Dprop=value', 'jvm1', 'jvm2', '-Xms64m', '-Xmx1g', fileEncodingProperty(expectedEncoding), *localeProperties(), '-cp', "$jar1$File.pathSeparator$jar2"]
+        jvmArgs == ['-Dprop=value', 'jvm1', 'jvm2', '-Xms64m', '-Xmx1g', fileEncodingProperty(expectedEncoding), *localeProperties(), '-cp', "$jar1$File.pathSeparator$jar2", "mainClass"]
 
         when:
         List commandLine = builder.getCommandLine()
@@ -111,6 +111,7 @@ class JavaExecHandleBuilderTest extends Specification {
         File jar1 = new File("file1.jar").canonicalFile
         File jar2 = new File("file2.jar").canonicalFile
 
+        builder.main = "main"
         builder.classpath(jar1)
 
         when:

@@ -18,7 +18,6 @@ package org.gradle.invocation
 
 import org.gradle.StartParameter
 import org.gradle.api.Action
-import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
@@ -36,7 +35,8 @@ import org.gradle.configuration.internal.TestListenerBuildOperationDecorator
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.ClassLoaderScopeRegistry
-import org.gradle.internal.build.MutablePublicBuildPath
+import org.gradle.internal.build.DefaultPublicBuildPath
+import org.gradle.internal.build.PublicBuildPath
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.installation.CurrentGradleInstallation
@@ -82,7 +82,7 @@ class DefaultGradleSpec extends Specification {
         _ * serviceRegistry.get(ListenerBuildOperationDecorator) >> listenerBuildOperationDecorator
         _ * serviceRegistry.get(CrossProjectConfigurator) >> crossProjectConfigurator
         _ * serviceRegistry.get(BuildScanConfigInit) >> Mock(BuildScanConfigInit)
-        _ * serviceRegistry.get(MutablePublicBuildPath) >> Mock(MutablePublicBuildPath)
+        _ * serviceRegistry.get(PublicBuildPath) >> new DefaultPublicBuildPath(Path.ROOT)
 
         gradle = TestUtil.instantiatorFactory().decorateLenient().newInstance(DefaultGradle.class, null, parameter, serviceRegistryFactory)
     }
@@ -270,6 +270,20 @@ class DefaultGradleSpec extends Specification {
         1 * action.execute(_)
     }
 
+    def "broadcasts before settings events to actions"() {
+        given:
+        def action = Mock(Action)
+
+        when:
+        gradle.beforeSettings(action)
+
+        and:
+        gradle.buildListenerBroadcaster.beforeSettings(null)
+
+        then:
+        1 * action.execute(_)
+    }
+
     def "broadcasts projects loaded events to actions"() {
         given:
         def action = Mock(Action)
@@ -403,37 +417,13 @@ class DefaultGradleSpec extends Specification {
         gradle.toString() == "build 'rootProject'"
     }
 
-    def "has identity path"() {
-        given:
-        def child1 = TestUtil.instantiatorFactory().decorateLenient().newInstance(DefaultGradle, gradle, Stub(StartParameter), serviceRegistryFactory)
-        child1.settings = settings('child1')
-
-        and:
-        def child2 = TestUtil.instantiatorFactory().decorateLenient().newInstance(DefaultGradle, child1, Stub(StartParameter), serviceRegistryFactory)
-        child2.settings = settings('child2')
-
-        expect:
-        gradle.identityPath == Path.ROOT
-        child1.identityPath == Path.path(":child1")
-        child2.identityPath == Path.path(":child1:child2")
-    }
-
     def projectRegistry = new DefaultProjectRegistry()
-
-    private SettingsInternal settings(String rootProjectName) {
-        def rootProject = Stub(ProjectDescriptor)
-        rootProject.name >> rootProjectName
-
-        def settings = Stub(SettingsInternal)
-        settings.rootProject >> rootProject
-        return settings
-    }
 
     private ProjectInternal project(String name) {
         def project = Spy(DefaultProject, constructorArgs: [
             name,
             null, null, null, Stub(ScriptSource),
-            gradle, serviceRegistryFactory,
+            gradle, Stub(ProjectState), serviceRegistryFactory,
             Stub(ClassLoaderScope), Stub(ClassLoaderScope)
         ])
         project.getProjectConfigurator() >> crossProjectConfigurator

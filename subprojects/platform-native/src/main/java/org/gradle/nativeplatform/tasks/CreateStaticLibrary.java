@@ -16,7 +16,6 @@
 package org.gradle.nativeplatform.tasks;
 
 import org.gradle.api.DefaultTask;
-import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFileProperty;
@@ -51,7 +50,6 @@ import javax.inject.Inject;
 /**
  * Assembles a static library from object files.
  */
-@Incubating
 public class CreateStaticLibrary extends DefaultTask implements ObjectFilesToBinary {
 
     private final ConfigurableFileCollection source;
@@ -95,7 +93,7 @@ public class CreateStaticLibrary extends DefaultTask implements ObjectFilesToBin
     // TODO: Need to track version/implementation of ar tool.
 
     @TaskAction
-    public void link() {
+    protected void link() {
 
         StaticLibraryArchiverSpec spec = new DefaultStaticLibraryArchiverSpec();
         spec.setTempDir(getTemporaryDir());

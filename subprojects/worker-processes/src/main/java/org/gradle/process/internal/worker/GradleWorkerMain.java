@@ -49,15 +49,21 @@ public class GradleWorkerMain {
             implementationClassPath[i] = new URL(url);
         }
 
-        // Set up worker ClassLoader
-        FilteringClassLoader.Spec filteringClassLoaderSpec = new FilteringClassLoader.Spec();
-        for (String sharedPackage : sharedPackages) {
-            filteringClassLoaderSpec.allowPackage(sharedPackage);
+        ClassLoader implementationClassLoader;
+        if (classPathLength > 0) {
+            // Set up worker ClassLoader
+            FilteringClassLoader.Spec filteringClassLoaderSpec = new FilteringClassLoader.Spec();
+            for (String sharedPackage : sharedPackages) {
+                filteringClassLoaderSpec.allowPackage(sharedPackage);
+            }
+            FilteringClassLoader filteringClassLoader = new FilteringClassLoader(getClass().getClassLoader(), filteringClassLoaderSpec);
+            implementationClassLoader = new URLClassLoader(implementationClassPath, filteringClassLoader);
+        } else {
+            // If no implementation classpath has been provided, just use the application classloader
+            implementationClassLoader = getClass().getClassLoader();
         }
-        FilteringClassLoader filteringClassLoader = new FilteringClassLoader(getClass().getClassLoader(), filteringClassLoaderSpec);
-        URLClassLoader classLoader = new URLClassLoader(implementationClassPath, filteringClassLoader);
 
-        Class<? extends Callable> workerClass = classLoader.loadClass("org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker").asSubclass(Callable.class);
+        Class<? extends Callable> workerClass = implementationClassLoader.loadClass("org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker").asSubclass(Callable.class);
         Callable<Void> main = workerClass.getConstructor(DataInputStream.class).newInstance(instr);
         main.call();
     }

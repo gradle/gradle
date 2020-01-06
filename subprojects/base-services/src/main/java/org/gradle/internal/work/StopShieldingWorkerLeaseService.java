@@ -81,6 +81,11 @@ public class StopShieldingWorkerLeaseService implements WorkerLeaseService {
     }
 
     @Override
+    public void releaseCurrentProjectLocks() {
+        delegate.releaseCurrentProjectLocks();
+    }
+
+    @Override
     public <T> T withoutProjectLock(Factory<T> factory) {
         return delegate.withoutProjectLock(factory);
     }

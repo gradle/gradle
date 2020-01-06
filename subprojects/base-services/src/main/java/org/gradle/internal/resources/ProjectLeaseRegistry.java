@@ -32,6 +32,16 @@ public interface ProjectLeaseRegistry {
     ResourceLock getProjectLock(Path buildIdentityPath, Path projectIdentityPath);
 
     /**
+     * Returns any projects locks currently held by this thread.
+     */
+    Collection<? extends ResourceLock> getCurrentProjectLocks();
+
+    /**
+     * Releases any project locks currently held by this thread.
+     */
+    void releaseCurrentProjectLocks();
+
+    /**
      * Releases all project locks held by the current thread and executes the {@link Factory}.  Upon completion of the
      * {@link Factory}, if a lock was held at the time the method was called, then it will be reacquired.  If no locks were held at the
      * time the method was called, then no attempt will be made to reacquire a lock on completion.  While blocking to reacquire the project
@@ -46,9 +56,4 @@ public interface ProjectLeaseRegistry {
      * lock, all worker leases held by the thread will be released and reacquired once the project lock is obtained.
      */
     void withoutProjectLock(Runnable action);
-
-    /**
-     * Returns any projects locks currently held by this thread.
-     */
-    Collection<? extends ResourceLock> getCurrentProjectLocks();
 }

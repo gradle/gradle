@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@NonNullApi
+@NonNullInternalApi
 package org.gradle.internal.isolation;
 
-import org.gradle.api.NonNullApi;
+import org.gradle.internal.NonNullInternalApi;

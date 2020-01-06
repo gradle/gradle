@@ -16,7 +16,10 @@
 
 package org.gradle.play.tasks
 
-import static org.gradle.play.integtest.fixtures.Repositories.*
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+
+import static org.gradle.play.integtest.fixtures.Repositories.GRADLE_JS_REPOSITORY
+import static org.gradle.play.integtest.fixtures.Repositories.PLAY_REPOSITORIES
 
 class CoffeeScriptCompileIntegrationTest extends AbstractCoffeeScriptCompileIntegrationTest {
 
@@ -118,6 +121,7 @@ class CoffeeScriptCompileIntegrationTest extends AbstractCoffeeScriptCompileInte
         )
     }
 
+    @ToBeFixedForInstantExecution
     def "does not recompile when inputs and outputs are unchanged" () {
         given:
         withCoffeeScriptSource(assets("test.coffee"))
@@ -135,6 +139,7 @@ class CoffeeScriptCompileIntegrationTest extends AbstractCoffeeScriptCompileInte
                 ":playBinary")
     }
 
+    @ToBeFixedForInstantExecution
     def "recompiles when inputs are changed" () {
         given:
         withCoffeeScriptSource(assets("test.coffee"))
@@ -153,6 +158,7 @@ class CoffeeScriptCompileIntegrationTest extends AbstractCoffeeScriptCompileInte
                 ":playBinary")
     }
 
+    @ToBeFixedForInstantExecution
     def "recompiles when outputs are removed" () {
         given:
         withCoffeeScriptSource(assets("test.coffee"))
@@ -177,6 +183,7 @@ class CoffeeScriptCompileIntegrationTest extends AbstractCoffeeScriptCompileInte
         hasProcessedCoffeeScript("test")
     }
 
+    @ToBeFixedForInstantExecution
     def "cleans removed source file on compile" () {
         given:
         withCoffeeScriptSource(assets("test1.coffee"))

@@ -34,9 +34,9 @@ class IncrementalNativeCompilerTest extends Specification {
     def delegateCompiler = Mock(Compiler)
     def outputs = Mock(TaskOutputsInternal)
     def compileStateCache = Mock(PersistentStateCache)
-    def headerDependenciesCollector = new DefaultHeaderDependenciesCollector(TestFiles.directoryFileTreeFactory())
     def incrementalCompilation = Mock(IncrementalCompilation)
-    def compiler = new IncrementalNativeCompiler(outputs, delegateCompiler, compileStateCache, incrementalCompilation)
+    def deleter = TestFiles.deleter()
+    def compiler = new IncrementalNativeCompiler(outputs, delegateCompiler, deleter, compileStateCache, incrementalCompilation)
 
     def "updates spec for incremental compilation"() {
         def spec = Mock(NativeCompileSpec)

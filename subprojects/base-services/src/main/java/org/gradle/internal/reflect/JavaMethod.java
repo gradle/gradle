@@ -19,6 +19,7 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.GradleException;
 import org.gradle.internal.UncheckedException;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -98,7 +99,7 @@ public class JavaMethod<T, R> {
         return invoke(null, args);
     }
 
-    public R invoke(T target, Object... args) {
+    public R invoke(@Nullable T target, Object... args) {
         try {
             Object result = method.invoke(target, args);
             return returnType.cast(result);
@@ -115,5 +116,10 @@ public class JavaMethod<T, R> {
 
     public Class<?>[] getParameterTypes(){
         return method.getParameterTypes();
+    }
+
+    @Override
+    public String toString() {
+        return method.toString();
     }
 }

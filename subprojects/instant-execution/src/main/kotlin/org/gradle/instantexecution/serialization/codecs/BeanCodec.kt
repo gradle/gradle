@@ -16,61 +16,57 @@
 
 package org.gradle.instantexecution.serialization.codecs
 
-import groovy.lang.GroovyObjectSupport
+import org.gradle.api.internal.GeneratedSubclass
 import org.gradle.api.internal.GeneratedSubclasses
-import org.gradle.api.internal.file.FilePropertyFactory
+
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
-import org.gradle.instantexecution.serialization.beans.BeanFieldDeserializer
-import org.gradle.instantexecution.serialization.beans.BeanFieldSerializer
-import org.gradle.instantexecution.serialization.readClass
-import sun.reflect.ReflectionFactory
-import java.lang.reflect.Constructor
+import org.gradle.instantexecution.serialization.decodePreservingIdentity
+import org.gradle.instantexecution.serialization.encodePreservingIdentityOf
+import org.gradle.instantexecution.serialization.withBeanTrace
 
 
 internal
-class BeanCodec(
-    private val filePropertyFactory: FilePropertyFactory
-) : Codec<Any> {
+class BeanCodec : Codec<Any> {
 
-    override fun WriteContext.encode(value: Any) {
-        val id = isolate.identities.getId(value)
-        if (id != null) {
-            writeSmallInt(id)
-        } else {
-            writeSmallInt(isolate.identities.putInstance(value))
+    override suspend fun WriteContext.encode(value: Any) {
+        encodePreservingIdentityOf(value) {
             val beanType = GeneratedSubclasses.unpackType(value)
-            writeString(beanType.name)
-            BeanFieldSerializer(beanType).run {
-                serialize(value)
+            withBeanTrace(beanType) {
+                writeBeanOf(beanType, value)
             }
         }
     }
 
-    override fun ReadContext.decode(): Any? {
-        val id = readSmallInt()
-        val previousValue = isolate.identities.getInstance(id)
-        if (previousValue != null) {
-            return previousValue
+    override suspend fun ReadContext.decode(): Any? =
+        decodePreservingIdentity { id ->
+            val beanType = readClass()
+            val generated = readBoolean()
+            withBeanTrace(beanType) {
+                readBeanOf(beanType, generated, id)
+            }
         }
-        val beanType = readClass()
-        val constructor = if (GroovyObjectSupport::class.java.isAssignableFrom(beanType)) {
-            // Run the `GroovyObjectSupport` constructor, to initialize the metadata field
-            newConstructorForSerialization(beanType, GroovyObjectSupport::class.java.getConstructor())
-        } else {
-            newConstructorForSerialization(beanType, Object::class.java.getConstructor())
+
+    private
+    suspend fun WriteContext.writeBeanOf(beanType: Class<*>, value: Any) {
+        writeClass(beanType)
+        // TODO - should collect the details of the decoration (eg enabled annotations, etc), and also carry this information with the serialized class reference
+        //  instead of separately for each bean
+        val generated = value is GeneratedSubclass
+        writeBoolean(generated)
+        beanStateWriterFor(value.javaClass).run {
+            writeStateOf(value)
         }
-        val bean = constructor.newInstance()
-        isolate.identities.putInstance(id, bean)
-        BeanFieldDeserializer(bean.javaClass, filePropertyFactory).run {
-            deserialize(bean)
+    }
+
+    private
+    suspend fun ReadContext.readBeanOf(beanType: Class<*>, generated: Boolean, id: Int): Any {
+        // TODO - do a single lookup of reader rather than 2
+        val bean = beanStateReaderFor(beanType).run { newBeanWithId(generated, id) }
+        beanStateReaderFor(bean.javaClass).run {
+            readStateOf(bean)
         }
         return bean
     }
-
-    // TODO: What about the runtime decorations a serialized bean might have had at configuration time?
-    private
-    fun newConstructorForSerialization(beanType: Class<*>, constructor: Constructor<*>): Constructor<out Any> =
-        ReflectionFactory.getReflectionFactory().newConstructorForSerialization(beanType, constructor)
 }

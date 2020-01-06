@@ -16,7 +16,10 @@
 
 package org.gradle.nativeplatform.test.xctest
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.language.swift.SwiftTaskNames
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.NativeBinaryFixture
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
@@ -39,7 +42,7 @@ import org.junit.Assume
 import spock.lang.Unroll
 
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
-class SwiftXCTestIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements XCTestExecutionResult {
+class SwiftXCTestIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements XCTestExecutionResult, SwiftTaskNames {
     def setup() {
         buildFile << """
 apply plugin: 'xctest'
@@ -48,6 +51,7 @@ apply plugin: 'xctest'
         Assume.assumeFalse(OperatingSystem.current().isMacOsX() && toolChain.version.major == 3)
     }
 
+    @ToBeFixedForInstantExecution
     def "fails when test cases fail"() {
         given:
         def testBundle = new SwiftFailingXCTestBundle()
@@ -60,10 +64,11 @@ apply plugin: 'xctest'
         fails("test")
 
         then:
-        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest")
+        result.assertTasksExecuted(tasks.debug.compile, tasks.test.allToInstall, ":xcTest")
         testBundle.assertTestCasesRan(testExecutionResult)
     }
 
+    @ToBeFixedForInstantExecution
     def "succeeds when test cases pass"() {
         given:
         def lib = new SwiftLibWithXCTest()
@@ -75,10 +80,11 @@ apply plugin: 'xctest'
         succeeds("test")
 
         then:
-        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
+        result.assertTasksExecuted(tasks.debug.compile, tasks.test.allToInstall, ":xcTest", ":test")
         lib.assertTestCasesRan(testExecutionResult)
     }
 
+    @ToBeFixedForInstantExecution
     def "does not execute removed test suite and case"() {
         given:
         def testBundle = new IncrementalSwiftXCTestRemoveDiscoveryBundle()
@@ -92,7 +98,7 @@ apply plugin: 'xctest'
         succeeds("test")
 
         then:
-        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
+        result.assertTasksExecuted(tasks.debug.compile, tasks.test.allToInstall, ":xcTest", ":test")
         testBundle.assertTestCasesRan(testExecutionResult)
 
         when:
@@ -100,11 +106,12 @@ apply plugin: 'xctest'
         succeeds("test")
 
         then:
-        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
+        result.assertTasksExecuted(tasks.debug.compile, tasks.test.allToInstall, ":xcTest", ":test")
         testBundle.assertAlternateTestCasesRan(testExecutionResult)
         testBundle.getFooTestSuite().getTestCount()
     }
 
+    @ToBeFixedForInstantExecution
     def "executes added test suite and case"() {
         given:
         def testBundle = new IncrementalSwiftXCTestAddDiscoveryBundle()
@@ -118,7 +125,7 @@ apply plugin: 'xctest'
         succeeds("test")
 
         then:
-        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
+        result.assertTasksExecuted(tasks.debug.compile, tasks.test.allToInstall, ":xcTest", ":test")
         testBundle.assertTestCasesRan(testExecutionResult)
 
         when:
@@ -126,10 +133,11 @@ apply plugin: 'xctest'
         succeeds("test")
 
         then:
-        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
+        result.assertTasksExecuted(tasks.debug.compile, tasks.test.allToInstall, ":xcTest", ":test")
         testBundle.assertAlternateTestCasesRan(testExecutionResult)
     }
 
+    @ToBeFixedForInstantExecution
     def "build logic can change source layout convention"() {
         given:
         def lib = new SwiftLibWithXCTest()
@@ -152,13 +160,14 @@ apply plugin: 'xctest'
 
         expect:
         succeeds "test"
-        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
+        result.assertTasksExecuted(tasks.debug.compile, tasks.test.allToInstall, ":xcTest", ":test")
 
         file("build/obj/test").assertIsDir()
         executable("build/exe/test/${lib.test.moduleName}").assertExists()
         lib.assertTestCasesRan(testExecutionResult)
     }
 
+    @ToBeFixedForInstantExecution
     def "can specify a test dependency on another library"() {
         def lib = new SwiftLib()
         def test = new SwiftLibTest(lib, lib.greeter, lib.sum, lib.multiply)
@@ -186,7 +195,7 @@ dependencies {
         succeeds("test")
 
         then:
-        result.assertTasksExecuted(":greeter:compileDebugSwift", ":greeter:linkDebug", ":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
+        result.assertTasksExecuted(tasks(':greeter').debug.allToLink, tasks.debug.compile, tasks.test.allToInstall, ":xcTest", ":test")
     }
 
     def "does not build or run any of the tests when assemble task executes"() {
@@ -203,6 +212,7 @@ dependencies {
         result.assertTasksSkipped(":assemble")
     }
 
+    @ToBeFixedForInstantExecution
     def "skips test tasks when no source is available for Swift library"() {
         given:
         buildFile << "apply plugin: 'swift-library'"
@@ -211,10 +221,11 @@ dependencies {
         succeeds("test")
 
         then:
-        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
-        result.assertTasksSkipped(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
+        result.assertTasksExecuted(tasks.debug.compile, tasks.test.allToInstall, ":xcTest", ":test")
+        result.assertTasksSkipped(tasks.debug.compile, tasks.test.allToInstall, ":xcTest", ":test")
     }
 
+    @ToBeFixedForInstantExecution
     def "skips test tasks when no source is available for Swift application"() {
         given:
         buildFile << """
@@ -225,10 +236,11 @@ apply plugin: 'swift-application'
         succeeds("test")
 
         then:
-        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":relocateMainForTest", ":linkTest", ":installTest", ":xcTest", ":test")
-        result.assertTasksSkipped(":compileDebugSwift", ":compileTestSwift", ":relocateMainForTest", ":linkTest", ":installTest", ":xcTest", ":test")
+        result.assertTasksExecuted(tasks.debug.compile, tasks.test.relocate, tasks.test.allToInstall, ":xcTest", ":test")
+        result.assertTasksSkipped(tasks.debug.compile, tasks.test.relocate, tasks.test.allToInstall, ":xcTest", ":test")
     }
 
+    @ToBeFixedForInstantExecution
     def "can test public and internal features of a Swift application with a single source file"() {
         given:
         def main = new SwiftSingleFileApp()
@@ -244,11 +256,12 @@ apply plugin: 'swift-application'
         succeeds("test")
 
         then:
-        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":relocateMainForTest", ":linkTest", ":installTest", ":xcTest", ":test")
-        assertMainSymbolIsAbsent(objectFiles(test, "build/obj/test"))
+        result.assertTasksExecuted(tasks.debug.compile, tasks.test.relocate, tasks.test.allToInstall, ":xcTest", ":test")
+        assertMainSymbolIsAbsent(objectFiles(maybeWithLinuxMain(test), "build/obj/test"))
         test.assertTestCasesRan(testExecutionResult)
     }
 
+    @ToBeFixedForInstantExecution
     def "can test features of a Swift application using a single test source file"() {
         given:
         def app = new SwiftAppWithSingleXCTestSuite()
@@ -262,11 +275,12 @@ apply plugin: 'swift-application'
         succeeds("test")
 
         then:
-        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":relocateMainForTest", ":linkTest", ":installTest", ":xcTest", ":test")
-        assertMainSymbolIsAbsent(objectFiles(app.test, "build/obj/test"))
+        result.assertTasksExecuted(tasks.debug.compile, tasks.test.relocate, tasks.test.allToInstall, ":xcTest", ":test")
+        assertMainSymbolIsAbsent(objectFiles(maybeWithLinuxMain(app.test), "build/obj/test"))
         app.assertTestCasesRan(testExecutionResult)
     }
 
+    @ToBeFixedForInstantExecution
     def "can test features of a single file Swift library using a single test source file"() {
         given:
         def lib = new SwiftSingleFileLibWithSingleXCTestSuite()
@@ -281,12 +295,13 @@ apply plugin: 'swift-library'
         succeeds("test")
 
         then:
-        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
-        assertMainSymbolIsAbsent(objectFiles(lib.test, "build/obj/test"))
+        result.assertTasksExecuted(tasks.debug.compile, tasks.test.allToInstall, ":xcTest", ":test")
+        assertMainSymbolIsAbsent(objectFiles(maybeWithLinuxMain(lib.test), "build/obj/test"))
         assertMainSymbolIsAbsent(machOBundle("build/exe/test/${lib.test.moduleName}"))
         lib.assertTestCasesRan(testExecutionResult)
     }
 
+    @ToBeFixedForInstantExecution
     def "relinks when main sources change in ABI compatible way"() {
         given:
         def lib = new SwiftSingleFileLibWithSingleXCTestSuite()
@@ -300,17 +315,18 @@ apply plugin: 'swift-library'
         when:
         succeeds("test")
         then:
-        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
+        result.assertTasksExecuted(tasks.debug.compile, tasks.test.allToInstall, ":xcTest", ":test")
 
         when:
         file("src/main/swift/combined.swift").replace("Hello,", "Goodbye,")
         then:
         succeeds("test")
-        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
-        result.assertTasksSkipped(":compileTestSwift")
-        result.assertTasksNotSkipped(":compileDebugSwift", ":linkTest", ":installTest", ":xcTest", ":test")
+        result.assertTasksExecuted(tasks.debug.compile, tasks.test.allToInstall, ":xcTest", ":test")
+        result.assertTasksSkipped(renameLinuxMainTasks(), tasks.test.compile)
+        result.assertTasksNotSkipped(tasks.debug.compile, tasks.test.link, tasks.test.install, ":xcTest", ":test")
     }
 
+    @ToBeFixedForInstantExecution
     def "recompiles when main sources change in non-ABI compatible way"() {
         given:
         def lib = new SwiftSingleFileLibWithSingleXCTestSuite()
@@ -324,7 +340,7 @@ apply plugin: 'swift-library'
         when:
         succeeds("test")
         then:
-        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
+        result.assertTasksExecuted(tasks.debug.compile, tasks.test.allToInstall, ":xcTest", ":test")
 
         when:
         file("src/main/swift/combined.swift").replace("sayHello", "sayAloha")
@@ -336,10 +352,11 @@ apply plugin: 'swift-library'
         file("src/test/swift/CombinedTests.swift").replace("sayHello", "sayAloha")
         then:
         succeeds("test")
-        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
-        result.assertTasksNotSkipped(":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
+        result.assertTasksExecuted(tasks.debug.compile, tasks.test.allToInstall, ":xcTest", ":test")
+        result.assertTasksNotSkipped(tasks.test.compile, tasks.test.link, tasks.test.install, ":xcTest", ":test")
     }
 
+    @ToBeFixedForInstantExecution
     def "build passes when tests have unicode characters"() {
         given:
         def test = new XCTestSourceElement("app") {
@@ -373,10 +390,11 @@ apply plugin: 'swift-library'
         succeeds("test")
 
         then:
-        result.assertTasksExecuted(":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
+        result.assertTasksExecuted(tasks.test.allToInstall, ":xcTest", ":test")
         test.assertTestCasesRan(testExecutionResult)
     }
 
+    @ToBeFixedForInstantExecution
     def "build still fails when tests have unicode characters"() {
         given:
         def test = new XCTestSourceElement("app") {
@@ -410,10 +428,11 @@ apply plugin: 'swift-library'
         fails("test")
 
         then:
-        result.assertTasksExecuted(":compileTestSwift", ":linkTest", ":installTest", ":xcTest")
+        result.assertTasksExecuted(tasks.test.allToInstall, ":xcTest")
         test.assertTestCasesRan(testExecutionResult)
     }
 
+    @ToBeFixedForInstantExecution
     def 'can build xctest bundle which transitively dependencies on other Swift libraries'() {
         given:
         def app = new SwiftAppWithLibraries()
@@ -455,11 +474,12 @@ apply plugin: 'swift-library'
         succeeds 'test'
 
         then:
-        result.assertTasksExecuted(':log:compileDebugSwift', ':log:linkDebug',
-            ':hello:compileDebugSwift', ':hello:linkDebug',
-            ':compileDebugSwift', ':compileTestSwift', ":relocateMainForTest", ':linkTest', ':installTest', ':xcTest', ':test')
+        result.assertTasksExecuted(tasks(':log').debug.allToLink,
+                tasks(':hello').debug.allToLink,
+                tasks.debug.compile, tasks.test.relocate, tasks.test.allToInstall, ':xcTest', ':test')
     }
 
+    @ToBeFixedForInstantExecution
     def 'can run xctest in swift package manager layout'() {
         given:
         def app = new SwiftAppWithLibraries()
@@ -514,12 +534,13 @@ apply plugin: 'swift-library'
         succeeds 'test'
 
         then:
-        result.assertTasksExecuted(':log:compileDebugSwift', ':log:linkDebug',
-            ':hello:compileDebugSwift', ':hello:linkDebug',
-            ':compileDebugSwift', ':compileTestSwift', ":relocateMainForTest", ':linkTest', ':installTest', ':xcTest', ':test')
+        result.assertTasksExecuted(tasks(':log').debug.allToLink,
+                tasks(':hello').debug.allToLink,
+            tasks.debug.compile, tasks.test.relocate, tasks.test.allToInstall, ':xcTest', ':test')
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "can use broken test filter [#testFilter]"() {
         given:
         def lib = new SwiftLibWithXCTest()
@@ -531,8 +552,8 @@ apply plugin: 'swift-library'
         runAndFail('xcTest', '--tests', testFilter)
 
         then:
-        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest")
-        result.assertTasksNotSkipped(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest")
+        result.assertTasksExecuted(tasks.debug.compile, tasks.test.allToInstall, ":xcTest")
+        result.assertTasksNotSkipped(tasks.debug.compile, tasks.test.allToInstall, ":xcTest")
         failure.assertHasCause("No tests found for given includes: [$testFilter](--tests filter)")
 
         where:
@@ -547,5 +568,30 @@ apply plugin: 'swift-library'
 
     private static void assertMainSymbolIsAbsent(NativeBinaryFixture binary) {
         assert binary.binaryInfo.listSymbols().every { it.name != '_main' }
+    }
+
+    private static def maybeWithLinuxMain(XCTestSourceElement sourceElement) {
+        return new XCTestSourceElement(sourceElement.projectName) {
+            @Override
+            List<XCTestSourceFileElement> getTestSuites() {
+                return sourceElement.testSuites
+            }
+
+            @Override
+            List<SourceFile> getFiles() {
+                if (OperatingSystem.current().linux) {
+                    sourceElement.files.collect { isLinuxMain(it) ? toMain(it) : it }
+                }
+                return sourceElement.files.findAll { !isLinuxMain(it) }
+            }
+
+            private static boolean isLinuxMain(SourceFile sourceFile) {
+                return sourceFile.name == 'LinuxMain.swift'
+            }
+
+            private static SourceFile toMain(SourceFile sourceFile) {
+                return new SourceFile(sourceFile.path, sourceFile.name, sourceFile.content)
+            }
+        }
     }
 }

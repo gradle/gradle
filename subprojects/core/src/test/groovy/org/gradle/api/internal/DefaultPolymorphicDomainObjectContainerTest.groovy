@@ -44,6 +44,8 @@ class DefaultPolymorphicDomainObjectContainerTest extends AbstractPolymorphicDom
     Person c = new DefaultPerson(name: "c")
     Person d = new DefaultCtorNamedPerson("d")
     boolean externalProviderAllowed = true
+    boolean directElementAdditionAllowed = true
+    boolean elementRemovalAllowed = true
 
     @Override
     void setupContainerDefaults() {

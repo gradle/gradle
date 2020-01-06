@@ -19,28 +19,13 @@ package org.gradle.test.fixtures
 import groovy.transform.CompileStatic
 import groovy.transform.SelfType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.test.fixtures.ivy.IvyModule
 import org.gradle.test.fixtures.maven.MavenModule
 
 @CompileStatic
 @SelfType(AbstractIntegrationSpec)
 trait GradleMetadataAwarePublishingSpec {
-    boolean publishModuleMetadata = true
     boolean requiresExternalDependencies
-
-    // cannot use "setup" because of a bug with Spock
-    void prepare() {
-        executer.beforeExecute {
-            if (publishModuleMetadata) {
-                FeaturePreviewsFixture.enableGradleMetadata(settingsFile)
-            }
-        }
-    }
-
-    void disableModuleMetadataPublishing() {
-        publishModuleMetadata = false
-    }
 
     static String sq(String input) {
         return escapeForSingleQuoting(input)

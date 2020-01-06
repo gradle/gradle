@@ -17,7 +17,6 @@
 package org.gradle.vcs;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.initialization.definition.InjectedPluginDependencies;
 
 /**
@@ -27,7 +26,6 @@ import org.gradle.api.initialization.definition.InjectedPluginDependencies;
  *
  * @since 4.10
  */
-@Incubating
 public interface VersionControlRepository {
     /**
      * Declares that this repository produces (or may produce) component with the given group and module names.

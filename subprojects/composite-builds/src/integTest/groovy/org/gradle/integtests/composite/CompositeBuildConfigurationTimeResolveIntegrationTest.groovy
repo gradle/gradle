@@ -16,9 +16,11 @@
 
 package org.gradle.integtests.composite
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenModule
+
 /**
  * Tests for resolving dependencies at configuration-time in a composite build.
  * These tests demonstrate actual behaviour, not necessarily desired behaviour.
@@ -37,7 +39,7 @@ class CompositeBuildConfigurationTimeResolveIntegrationTest extends AbstractComp
         buildA.buildFile << """
             println "Configured buildA"
             task resolve(type: Copy) {
-                from configurations.compile
+                from configurations.compileClasspath
                 into 'libs'
             }
 """
@@ -81,6 +83,7 @@ class CompositeBuildConfigurationTimeResolveIntegrationTest extends AbstractComp
         configured("buildB") == 1
     }
 
+    @ToBeFixedForInstantExecution
     def "uses substituted dependency when same root build dependency is resolved at both configuration and execution time"() {
         configurationTimeDependency 'org.test:buildB:1.0'
         dependency 'org.test:buildB:1.0'
@@ -95,6 +98,7 @@ class CompositeBuildConfigurationTimeResolveIntegrationTest extends AbstractComp
         configured("buildB") == 1
     }
 
+    @ToBeFixedForInstantExecution
     def "references substituted dependencies when root build dependencies are resolved at both configuration and execution time"() {
         configurationTimeDependency 'org.test:buildB:1.0'
         dependency 'org.test:b1:1.0'
@@ -171,15 +175,6 @@ class CompositeBuildConfigurationTimeResolveIntegrationTest extends AbstractComp
     }
 
     private void executedInOrder(String... tasks) {
-        def executedTasks = result.executedTasks
-        def beforeTask
-        for (String task : tasks) {
-            result.assertTaskExecuted(task)
-
-            if (beforeTask != null) {
-                assert executedTasks.indexOf(beforeTask) < executedTasks.indexOf(task) : "task ${beforeTask} must be executed before ${task}"
-            }
-            beforeTask = task
-        }
+        result.assertTaskOrder(tasks)
     }
 }

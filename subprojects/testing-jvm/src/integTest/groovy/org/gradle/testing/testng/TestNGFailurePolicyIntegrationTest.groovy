@@ -17,6 +17,7 @@
 package org.gradle.testing.testng
 
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.TestClassExecutionResult
 import org.gradle.integtests.fixtures.TestNGExecutionResult
 import org.gradle.integtests.fixtures.TestResources
@@ -34,10 +35,11 @@ class TestNGFailurePolicyIntegrationTest extends AbstractSampleIntegrationTest {
 
     void usingTestNG(String version) {
         buildFile << """
-            dependencies { testCompile "org.testng:testng:${version}" }
+            dependencies { testImplementation "org.testng:testng:${version}" }
         """
     }
 
+    @ToBeFixedForInstantExecution
     def "skips tests after a config method failure by default"() {
         when:
         usingTestNG(NEWEST)
@@ -50,6 +52,7 @@ class TestNGFailurePolicyIntegrationTest extends AbstractSampleIntegrationTest {
         testResults.assertTestSkipped("someTest")
     }
 
+    @ToBeFixedForInstantExecution
     def "can be configured to continue executing tests after a config method failure"() {
         when:
         usingTestNG(NEWEST)
@@ -67,6 +70,7 @@ class TestNGFailurePolicyIntegrationTest extends AbstractSampleIntegrationTest {
         testResults.assertTestPassed("someTest")
     }
 
+    @ToBeFixedForInstantExecution
     def "informative error is shown when trying to use config failure policy and a version that does not support it"() {
         when:
         usingTestNG("5.12.1")

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.provider
 
 import org.gradle.api.provider.Provider
+import org.gradle.internal.state.ManagedFactory
 
 class DefaultProviderTest extends ProviderSpec<String> {
     @Override
@@ -37,6 +38,11 @@ class DefaultProviderTest extends ProviderSpec<String> {
     @Override
     String someOtherValue() {
         return "s2"
+    }
+
+    @Override
+    ManagedFactory managedFactory() {
+        return new ManagedFactories.ProviderManagedFactory()
     }
 
     def "toString() does not realize value"() {

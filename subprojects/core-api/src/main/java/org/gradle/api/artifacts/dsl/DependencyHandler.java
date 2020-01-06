@@ -86,7 +86,7 @@ import java.util.Map;
  * <li>Avoiding transitive dependencies for certain dependency.</li>
  * </ul>
  *
- * <pre class='autoTested'>
+ * <pre class='autoTestedWithDeprecations'>
  * apply plugin: 'java' //so that I can declare 'implementation' dependencies
  *
  * dependencies {
@@ -348,7 +348,6 @@ public interface DependencyHandler extends ExtensionAware {
      * @return the dependency constraint handler for this project
      * @since 4.5
      */
-    @Incubating
     DependencyConstraintHandler getConstraints();
 
     /**
@@ -359,7 +358,6 @@ public interface DependencyHandler extends ExtensionAware {
      * @param configureAction the action to use to configure module metadata
      * @since 4.5
      */
-    @Incubating
     void constraints(Action<? super DependencyConstraintHandler> configureAction);
 
     /**
@@ -428,14 +426,12 @@ public interface DependencyHandler extends ExtensionAware {
      * Returns the artifact type definitions for this handler.
      * @since 4.0
      */
-    @Incubating
     ArtifactTypeContainer getArtifactTypes();
 
     /**
      * Configures the artifact type definitions for this handler.
      * @since 4.0
      */
-    @Incubating
     void artifactTypes(Action<? super ArtifactTypeContainer> configureAction);
 
     /**
@@ -449,7 +445,7 @@ public interface DependencyHandler extends ExtensionAware {
     void registerTransform(Action<? super VariantTransform> registrationAction);
 
     /**
-     * Registers an <a href="https://docs.gradle.org/current/userguide/dependency_management_attribute_based_matching.html#sec:abm_artifact_transforms">artifact transform</a>.
+     * Registers an <a href="https://docs.gradle.org/current/userguide/artifact_transforms.html">artifact transform</a>.
      *
      * <p>
      *     The registration action needs to specify the {@code from} and {@code to} attributes.
@@ -491,7 +487,6 @@ public interface DependencyHandler extends ExtensionAware {
      * @see TransformAction
      * @since 5.3
      */
-    @Incubating
     <T extends TransformParameters> void registerTransform(Class<? extends TransformAction<T>> actionType, Action<? super TransformSpec<T>> registrationAction);
 
     /**
@@ -502,7 +497,6 @@ public interface DependencyHandler extends ExtensionAware {
      *
      * @since 5.0
      */
-    @Incubating
     Dependency platform(Object notation);
 
     /**
@@ -514,7 +508,6 @@ public interface DependencyHandler extends ExtensionAware {
      *
      * @since 5.0
      */
-    @Incubating
     Dependency platform(Object notation, Action<? super Dependency> configureAction);
 
     /**
@@ -543,4 +536,23 @@ public interface DependencyHandler extends ExtensionAware {
      */
     @Incubating
     Dependency enforcedPlatform(Object notation, Action<? super Dependency> configureAction);
+
+    /**
+     * Declares a dependency on the test fixtures of a component.
+     * @param notation the coordinates of the component to use test fixtures for
+     *
+     * @since 5.6
+     */
+    @Incubating
+    Dependency testFixtures(Object notation);
+
+    /**
+     * Declares a dependency on the test fixtures of a component and allows configuring
+     * the resulting dependency.
+     * @param notation the coordinates of the component to use test fixtures for
+     *
+     * @since 5.6
+     */
+    @Incubating
+    Dependency testFixtures(Object notation, Action<? super Dependency> configureAction);
 }

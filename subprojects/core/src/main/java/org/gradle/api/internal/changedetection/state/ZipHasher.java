@@ -24,8 +24,8 @@ import org.gradle.internal.FileUtils;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
+import org.gradle.internal.fingerprint.FingerprintHashingStrategy;
 import org.gradle.internal.fingerprint.impl.DefaultFileSystemLocationFingerprint;
-import org.gradle.internal.fingerprint.impl.NormalizedPathFingerprintCompareStrategy;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
@@ -82,7 +82,7 @@ public class ZipHasher implements RegularFileHasher, ConfigurableNormalizer {
                 return null;
             }
             Hasher hasher = Hashing.newHasher();
-            NormalizedPathFingerprintCompareStrategy.appendSortedToHasher(hasher, fingerprints);
+            FingerprintHashingStrategy.SORT.appendToHasher(hasher, fingerprints);
             return hasher.hash();
         } catch (Exception e) {
             return hashMalformedZip(zipFileSnapshot, e);
@@ -92,7 +92,7 @@ public class ZipHasher implements RegularFileHasher, ConfigurableNormalizer {
     private List<FileSystemLocationFingerprint> fingerprintZipEntries(String zipFile) throws IOException {
         ZipInput input = null;
         try {
-            input = new FileZipInput(new File(zipFile));
+            input = FileZipInput.create(new File(zipFile));
             List<FileSystemLocationFingerprint> fingerprints = Lists.newArrayList();
             fingerprintZipEntries("", fingerprints, input);
             return fingerprints;

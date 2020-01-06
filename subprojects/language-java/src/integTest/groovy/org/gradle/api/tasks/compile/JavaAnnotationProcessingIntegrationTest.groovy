@@ -20,6 +20,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.internal.tasks.compile.CompileJavaBuildOperationType.Result.AnnotationProcessorDetails
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.language.fixtures.CompileJavaBuildOperationsFixture
 import org.gradle.language.fixtures.HelperProcessorFixture
 import org.gradle.util.TextUtil
@@ -55,7 +56,7 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
         processorProjectDir.file("build.gradle") << """
             apply plugin: "java"
             dependencies {
-                compile project(':annotation')
+                implementation project(':annotation')
             }
         """
 
@@ -91,6 +92,7 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
         file("build/generated-sources/TestAppHelper.java").text == 'class TestAppHelper {    String getValue() { return "greetings"; }}'
     }
 
+    @ToBeFixedForInstantExecution
     def "generated sources are cleaned up on full compilations"() {
         given:
         buildFile << """
@@ -124,7 +126,7 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds "sourcesJar"
-        ":compileJava" in executedTasks
+        executed(":compileJava")
     }
 
     def "can model annotation processor arguments"() {
@@ -162,7 +164,8 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
 
         buildFile << """
             dependencies {
-                compile project(":processor")
+                implementation project(":annotation")
+                implementation project(":processor")
             }
         """
 
@@ -178,7 +181,8 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
     def "empty processor path overrides processors in the compile classpath, and no deprecation warning is emitted"() {
         buildFile << """
             dependencies {
-                compile project(":processor")
+                implementation project(":annotation")
+                implementation project(":processor")
             }
             
             compileJava {
@@ -207,7 +211,8 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
             }
             
             dependencies {
-                compile project(":processor")
+                implementation project(":annotation")
+                implementation project(":processor")
             }
             
             compileJava {
@@ -232,7 +237,8 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
     def "processors in the compile classpath don't emit deprecation warning if processing is disabled"() {
         buildFile << """
             dependencies {
-                compile project(":processor")
+                implementation project(":annotation")
+                implementation project(":processor")
             }
             compileJava {
                 options.compilerArgs << "-proc:none"
@@ -283,6 +289,7 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/5448")
+    @ToBeFixedForInstantExecution
     def "can add generated sources directory as source"() {
         // This is sometimes done for IDE support.
         // We should deprecate this behaviour, since output directories are added as inputs.

@@ -16,7 +16,6 @@
 
 package org.gradle.api.publish.maven;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.provider.Property;
 
 /**
@@ -26,7 +25,6 @@ import org.gradle.api.provider.Property;
  * @see MavenPom
  * @see MavenPomLicenseSpec
  */
-@Incubating
 public interface MavenPomLicense {
 
     /**

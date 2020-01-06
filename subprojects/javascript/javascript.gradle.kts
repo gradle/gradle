@@ -38,12 +38,13 @@ dependencies {
     implementation(library("rhino"))
     implementation(library("gson")) // used by JsHint.coordinates
     implementation(library("simple")) // used by http package in envjs.coordinates
+    
+    testImplementation(testFixtures(project(":core")))
+
+    testRuntimeOnly(project(":runtimeApiInfo"))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
 }
 
-testFixtures {
-    from(":core")
-}

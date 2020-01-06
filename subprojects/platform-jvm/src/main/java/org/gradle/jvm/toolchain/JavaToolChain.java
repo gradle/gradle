@@ -35,6 +35,7 @@ import org.gradle.platform.base.ToolChain;
  * </ul>
  */
 @HasInternalProtocol
+@Deprecated
 public interface JavaToolChain extends ToolChain {
     /**
      * The version of the toolchain.

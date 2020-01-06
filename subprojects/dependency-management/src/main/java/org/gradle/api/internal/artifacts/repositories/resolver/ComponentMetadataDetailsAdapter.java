@@ -15,14 +15,19 @@
  */
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
+import org.apache.groovy.util.Maps;
 import org.gradle.api.Action;
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.ComponentMetadataDetails;
 import org.gradle.api.artifacts.DependencyConstraintMetadata;
 import org.gradle.api.artifacts.DirectDependencyMetadata;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.VariantMetadata;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.attributes.Category;
+import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
@@ -39,16 +44,19 @@ public class ComponentMetadataDetailsAdapter implements ComponentMetadataDetails
     private final NotationParser<Object, DirectDependencyMetadata> dependencyMetadataNotationParser;
     private final NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintMetadataNotationParser;
     private final NotationParser<Object, ComponentIdentifier> componentIdentifierParser;
+    private final PlatformSupport platformSupport;
 
     public ComponentMetadataDetailsAdapter(MutableModuleComponentResolveMetadata metadata, Instantiator instantiator,
                                            NotationParser<Object, DirectDependencyMetadata> dependencyMetadataNotationParser,
                                            NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintMetadataNotationParser,
-                                           NotationParser<Object, ComponentIdentifier> dependencyNotationParser) {
+                                           NotationParser<Object, ComponentIdentifier> dependencyNotationParser,
+                                           PlatformSupport platformSupport) {
         this.metadata = metadata;
         this.instantiator = instantiator;
         this.dependencyMetadataNotationParser = dependencyMetadataNotationParser;
         this.dependencyConstraintMetadataNotationParser = dependencyConstraintMetadataNotationParser;
         this.componentIdentifierParser = dependencyNotationParser;
+        this.platformSupport = platformSupport;
     }
 
     @Override
@@ -97,6 +105,24 @@ public class ComponentMetadataDetailsAdapter implements ComponentMetadataDetails
     }
 
     @Override
+    public void addVariant(String name, Action<? super VariantMetadata> action) {
+        metadata.getVariantMetadataRules().addVariant(name);
+        withVariant(name, action);
+    }
+
+    @Override
+    public void addVariant(String name, String base, Action<? super VariantMetadata> action) {
+        metadata.getVariantMetadataRules().addVariant(name, base, false);
+        withVariant(name, action);
+    }
+
+    @Override
+    public void maybeAddVariant(String name, String base, Action<? super VariantMetadata> action) {
+        metadata.getVariantMetadataRules().addVariant(name, base, true);
+        withVariant(name, action);
+    }
+
+    @Override
     public void belongsTo(Object notation) {
         belongsTo(notation, true);
     }
@@ -105,9 +131,19 @@ public class ComponentMetadataDetailsAdapter implements ComponentMetadataDetails
     public void belongsTo(Object notation, boolean virtual) {
         ComponentIdentifier id = componentIdentifierParser.parseNotation(notation);
         if (virtual) {
-            id = VirtualComponentHelper.makeVirtual(id);
+            metadata.belongsTo(VirtualComponentHelper.makeVirtual(id));
+        } else if (id instanceof ModuleComponentIdentifier) {
+            addPlatformDependencyToAllVariants((ModuleComponentIdentifier) id);
+        } else {
+            throw new InvalidUserCodeException(notation + " is not a valid platform identifier");
         }
-        metadata.belongsTo(id);
+    }
+
+    private void addPlatformDependencyToAllVariants(ModuleComponentIdentifier platformId) {
+        allVariants(v -> v.withDependencies(dependencies -> {
+            dependencies.add(Maps.of("group", platformId.getGroup(), "name", platformId.getModule(), "version", platformId.getVersion()),
+                platformDependency -> platformDependency.attributes(attributes -> attributes.attribute(Category.CATEGORY_ATTRIBUTE, platformSupport.getRegularPlatformCategory())));
+        }));
     }
 
     @Override

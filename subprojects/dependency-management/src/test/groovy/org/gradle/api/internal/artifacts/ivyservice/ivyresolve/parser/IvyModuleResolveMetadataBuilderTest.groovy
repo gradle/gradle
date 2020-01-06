@@ -20,10 +20,9 @@ import org.apache.ivy.core.module.descriptor.Configuration
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
-import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory
+import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.component.model.IvyArtifactName
-import org.gradle.util.AttributeTestUtil
 import spock.lang.Specification
 
 import static com.google.common.collect.Sets.newHashSet
@@ -32,7 +31,7 @@ class IvyModuleResolveMetadataBuilderTest extends Specification {
 
     def md = new DefaultModuleDescriptor(ModuleRevisionId.newInstance("org", "foo", "1.0"), "release", null)
     def moduleIdentifierFactory = new DefaultImmutableModuleIdentifierFactory()
-    def ivyMetadataFactory = new IvyMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), AttributeTestUtil.attributesFactory())
+    def ivyMetadataFactory = DependencyManagementTestUtil.ivyMetadataFactory()
     def meta = new IvyModuleResolveMetaDataBuilder(md, new IvyModuleDescriptorConverter(new DefaultImmutableModuleIdentifierFactory()), ivyMetadataFactory)
 
     def "adds correct artifact to meta-data"() {
@@ -81,8 +80,8 @@ class IvyModuleResolveMetadataBuilderTest extends Specification {
         def runtimeArtifacts = resolveMetaData.getConfiguration("runtime").artifacts
         def testArtifacts = resolveMetaData.getConfiguration("testUtil").artifacts
 
-        runtimeArtifacts*.toString() as Set == ["foo.jar (org:foo:1.0)"] as Set
-        testArtifacts*.toString() as Set == ["foo-all.zip (org:foo:1.0)"] as Set
+        runtimeArtifacts*.toString() as Set == ["foo-1.0.jar (org:foo:1.0)"] as Set
+        testArtifacts*.toString() as Set == ["foo-all-1.0.zip (org:foo:1.0)"] as Set
     }
 
     def "can be added to metadata that already contains the same artifact in different configuration"() {
@@ -102,7 +101,7 @@ class IvyModuleResolveMetadataBuilderTest extends Specification {
         def runtimeArtifacts = resolveMetaData.getConfiguration("runtime").artifacts
         def archivesArtifacts = resolveMetaData.getConfiguration("archives").artifacts
 
-        runtimeArtifacts*.toString() as Set == ["foo.jar (org:foo:1.0)"] as Set
-        archivesArtifacts*.toString() as Set == ["foo.jar (org:foo:1.0)"] as Set
+        runtimeArtifacts*.toString() as Set == ["foo-1.0.jar (org:foo:1.0)"] as Set
+        archivesArtifacts*.toString() as Set == ["foo-1.0.jar (org:foo:1.0)"] as Set
     }
 }

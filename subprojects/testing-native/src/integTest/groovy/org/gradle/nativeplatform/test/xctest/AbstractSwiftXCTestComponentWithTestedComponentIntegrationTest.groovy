@@ -16,9 +16,12 @@
 
 package org.gradle.nativeplatform.test.xctest
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.language.swift.SwiftVersion
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
+import org.gradle.nativeplatform.fixtures.app.MainWithXCTestSourceElement
 import org.gradle.nativeplatform.fixtures.app.Swift3WithSwift4XCTest
 import org.gradle.nativeplatform.fixtures.app.Swift4WithSwift3XCTest
 import org.gradle.nativeplatform.fixtures.app.Swift5WithSwift4XCTest
@@ -58,6 +61,7 @@ abstract class AbstractSwiftXCTestComponentWithTestedComponentIntegrationTest ex
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "honors Swift source compatibility difference on both tested component (#componentSourceCompatibility) and XCTest component (#xctestSourceCompatibility)"() {
         given:
         assumeSwiftCompilerSupportsLanguageVersion(componentSourceCompatibility)
@@ -109,16 +113,26 @@ abstract class AbstractSwiftXCTestComponentWithTestedComponentIntegrationTest ex
     }
 
     @Override
-    List<String> getTasksToAssembleDevelopmentBinaryOfComponentUnderTest() {
-        return [":compileTestSwift", ":linkTest", ":installTest", ":xcTest"]
-    }
-
-    @Override
     protected configureTargetMachines(String... targetMachines) {
         return """
             ${testedComponentDsl} {
                 targetMachines = [${targetMachines.join(",")}]
             }
         """ + super.configureTargetMachines(targetMachines)
+    }
+
+    @Override
+    protected abstract MainWithXCTestSourceElement getComponentUnderTest()
+
+    @Override
+    void assertComponentUnderTestWasBuilt() {
+        if (OperatingSystem.current().linux) {
+            executable("build/exe/test/${componentUnderTest.test.moduleName}").assertExists()
+            installation("build/install/test").assertInstalled()
+        } else {
+            machOBundle("build/exe/test/${componentUnderTest.test.moduleName}").assertExists()
+            file("build/install/test/${componentUnderTest.test.moduleName}").assertIsFile()
+            file("build/install/test/${componentUnderTest.test.moduleName}.xctest").assertIsDir()
+        }
     }
 }

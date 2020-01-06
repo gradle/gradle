@@ -18,12 +18,12 @@ package org.gradle.integtests.language
 
 import org.apache.commons.lang.StringUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.jvm.JvmSourceFile
 import org.gradle.integtests.fixtures.jvm.TestJvmComponent
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.file.TestFile
-import spock.lang.IgnoreIf
+import org.gradle.util.GradleVersion
 
 abstract class AbstractJvmLanguageIncrementalBuildIntegrationTest extends AbstractIntegrationSpec {
     abstract TestJvmComponent getTestComponent();
@@ -54,8 +54,16 @@ abstract class AbstractJvmLanguageIncrementalBuildIntegrationTest extends Abstra
 """
     }
 
+    def expectDeprecationWarnings() {
+        executer.expectDeprecationWarning("The ${testComponent.languageName}-lang plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
+        executer.expectDeprecationWarning("The jvm-component plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
+        executer.expectDeprecationWarning("The jvm-resources plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
+    }
+
+    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
     def "builds jar"() {
         when:
+        expectDeprecationWarnings()
         run "mainJar"
 
         then:
@@ -65,24 +73,29 @@ abstract class AbstractJvmLanguageIncrementalBuildIntegrationTest extends Abstra
         jarFile("build/jars/main/jar/main.jar").hasDescendants(testComponent.expectedOutputs*.fullPath as String[])
     }
 
-    @IgnoreIf({GradleContextualExecuter.parallel})
+    @ToBeFixedForInstantExecution
     def "does not re-execute build with no change"() {
         given:
+        expectDeprecationWarnings()
         run "mainJar"
 
         when:
+        expectDeprecationWarnings()
         run "mainJar"
 
         then:
-        nonSkippedTasks.empty
+        allSkipped()
     }
 
+    @ToBeFixedForInstantExecution
     def "rebuilds jar and classfile is removed when source file removed"() {
         given:
+        expectDeprecationWarnings()
         run "mainJar"
 
         when:
         sourceFiles[1].delete()
+        expectDeprecationWarnings()
         run "mainJar"
 
         then:
@@ -93,12 +106,15 @@ abstract class AbstractJvmLanguageIncrementalBuildIntegrationTest extends Abstra
         assertOutputs([testComponent.sources[0].classFile], [testComponent.resources[0], testComponent.resources[1]])
     }
 
+    @ToBeFixedForInstantExecution
     def "rebuilds jar without resource when resource removed"() {
         given:
+        expectDeprecationWarnings()
         run "mainJar"
 
         when:
         resourceFiles[1].delete()
+        expectDeprecationWarnings()
         run "mainJar"
 
         then:
@@ -108,37 +124,46 @@ abstract class AbstractJvmLanguageIncrementalBuildIntegrationTest extends Abstra
         assertOutputs([testComponent.sources[0].classFile, testComponent.sources[1].classFile], [testComponent.resources[0]])
     }
 
+    @ToBeFixedForInstantExecution
     def "rebuilds jar when source file changed"() {
         given:
+        expectDeprecationWarnings()
         run "mainJar"
 
         when:
         testComponent.changeSources(sourceFiles)
+        expectDeprecationWarnings()
         run "mainJar"
 
         then:
         executedAndNotSkipped mainCompileTaskName, ":createMainJar", ":mainJar"
     }
 
+    @ToBeFixedForInstantExecution
     def "rebuilds jar when resource file changed"() {
         given:
+        expectDeprecationWarnings()
         run "mainJar"
 
         when:
         resourceFiles[0].text = "Some different text"
+        expectDeprecationWarnings()
         run "mainJar"
 
         then:
         executedAndNotSkipped ":processMainJarMainResources", ":createMainJar", ":mainJar"
     }
 
+    @ToBeFixedForInstantExecution
     def "rebuilds jar when source file added"() {
         given:
+        expectDeprecationWarnings()
         run "mainJar"
 
         when:
         testComponent.writeAdditionalSources(file("src/main"))
 
+        expectDeprecationWarnings()
         run "mainJar"
 
         then:
@@ -149,12 +174,15 @@ abstract class AbstractJvmLanguageIncrementalBuildIntegrationTest extends Abstra
         jarFile("build/jars/main/jar/main.jar").assertContainsFile("Extra.class")
     }
 
+    @ToBeFixedForInstantExecution
     def "rebuilds jar when resource file added"() {
         given:
+        expectDeprecationWarnings()
         run "mainJar"
 
         when:
         file("src/main/resources/Extra.txt") << "an extra resource"
+        expectDeprecationWarnings()
         run "mainJar"
 
         then:
@@ -165,12 +193,15 @@ abstract class AbstractJvmLanguageIncrementalBuildIntegrationTest extends Abstra
         jarFile("build/jars/main/jar/main.jar").assertContainsFile("Extra.txt")
     }
 
+    @ToBeFixedForInstantExecution
     def "recompiles but does not rebuild jar when source file changed such that bytecode is the same"() {
         given:
+        expectDeprecationWarnings()
         run "mainJar"
 
         when:
         sourceFiles[0].text = sourceFiles[0].text + "// Line trailing comment"
+        expectDeprecationWarnings()
         run "mainJar"
 
         then:

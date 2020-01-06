@@ -27,6 +27,7 @@ import org.gradle.internal.resolve.ModuleVersionResolveException;
 
 import java.util.List;
 
+import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.BY_ANCESTOR;
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.CONSTRAINT;
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.FORCED;
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.REQUESTED;
@@ -128,7 +129,12 @@ class DependencyState {
     }
 
     private void addMainReason(List<ComponentSelectionDescriptorInternal> reasons) {
-        ComponentSelectionDescriptorInternal dependencyDescriptor = dependency.isConstraint() ? CONSTRAINT : REQUESTED;
+        ComponentSelectionDescriptorInternal dependencyDescriptor;
+        if (reasons != null && reasons.contains(BY_ANCESTOR)) {
+            dependencyDescriptor = BY_ANCESTOR;
+        } else {
+            dependencyDescriptor = dependency.isConstraint() ? CONSTRAINT : REQUESTED;
+        }
         String reason = dependency.getReason();
         if (reason != null) {
             dependencyDescriptor = dependencyDescriptor.withDescription(Describables.of(reason));

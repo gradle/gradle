@@ -3,7 +3,7 @@ package org.gradle.kotlin.dsl
 import org.gradle.groovy.scripts.StringScriptSource
 
 import org.gradle.plugin.management.internal.PluginRequestInternal
-import org.gradle.plugin.management.internal.autoapply.AutoAppliedBuildScanPlugin
+import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.internal.PluginRequestCollector
 
@@ -47,16 +47,16 @@ class PluginDependenciesSpecScopeTest {
     }
 
     @Test
-    fun `given build-scan plugin accessor, it should create a single request matching the auto-applied plugin version`() {
-        expecting(plugin(id = "com.gradle.build-scan", version = AutoAppliedBuildScanPlugin.VERSION)) {
-            `build-scan`
+    fun `given gradle-enterprise plugin accessor, it should create a single request matching the auto-applied plugin version`() {
+        expecting(plugin(id = "com.gradle.enterprise", version = AutoAppliedGradleEnterprisePlugin.VERSION)) {
+            `gradle-enterprise`
         }
     }
 
     @Test
-    fun `given build-scan plugin accessor with version, it should create a single request with given version`() {
-        expecting(plugin(id = "com.gradle.build-scan", version = "1.7.1")) {
-            `build-scan` version "1.7.1"
+    fun `given gradle-enterprise plugin accessor with version, it should create a single request with given version`() {
+        expecting(plugin(id = "com.gradle.enterprise", version = "1.7.1")) {
+            `gradle-enterprise` version "1.7.1"
         }
     }
 
@@ -84,7 +84,9 @@ fun expecting(vararg expected: Plugin, block: PluginDependenciesSpec.() -> Unit)
 
 
 fun plugins(block: PluginDependenciesSpecScope.() -> Unit): List<PluginRequestInternal> =
-    PluginRequestCollector(StringScriptSource("script", "")).run {
+    PluginRequestCollector(
+        StringScriptSource("script", "")
+    ).run {
         PluginDependenciesSpecScope(createSpec(1)).block()
         pluginRequests.toList()
     }

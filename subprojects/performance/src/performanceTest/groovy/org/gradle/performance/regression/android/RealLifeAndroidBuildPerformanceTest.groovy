@@ -16,26 +16,38 @@
 
 package org.gradle.performance.regression.android
 
-import org.gradle.performance.categories.PerformanceExperiment
-import org.gradle.performance.fixture.BuildExperimentInvocationInfo
-import org.gradle.performance.fixture.BuildExperimentListenerAdapter
-import org.gradle.util.GFileUtils
+import org.gradle.internal.scan.config.fixtures.GradleEnterprisePluginSettingsFixture
+import org.gradle.performance.AbstractCrossVersionGradleProfilerPerformanceTest
+import org.gradle.performance.categories.SlowPerformanceRegressionTest
+import org.gradle.profiler.BuildMutator
+import org.gradle.profiler.mutations.AbstractCleanupMutator
+import org.gradle.profiler.mutations.ClearArtifactTransformCacheMutator
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
-class RealLifeAndroidBuildPerformanceTest extends AbstractAndroidPerformanceTest {
+import static org.gradle.performance.regression.android.AndroidTestProject.K9_ANDROID
+import static org.gradle.performance.regression.android.AndroidTestProject.LARGE_ANDROID_BUILD
+import static org.gradle.performance.regression.android.IncrementalAndroidTestProject.SANTA_TRACKER_KOTLIN
+
+class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProfilerPerformanceTest {
+
+    def setup() {
+        runner.args = ['-Dcom.android.build.gradle.overrideVersionCheck=true']
+        runner.targetVersions = ["6.2-20191231230044+0000"]
+        // AGP 3.6 requires 5.6.1+
+        // The enterprise plugin requires Gradle 6.0
+        runner.minimumBaseVersion = "6.0"
+    }
 
     @Unroll
     def "#tasks on #testProject"() {
         given:
-        runner.testProject = testProject
+        testProject.configure(runner)
         runner.tasksToRun = tasks.split(' ')
-        runner.gradleOpts = ["-Xms$memory", "-Xmx$memory"]
         runner.args = parallel ? ['-Dorg.gradle.parallel=true'] : []
         runner.warmUpRuns = warmUpRuns
         runner.runs = runs
-        runner.minimumVersion = "5.1.1"
-        runner.targetVersions = ["5.5-20190515115345+0000"]
+        applyEnterprisePlugin()
 
         when:
         def result = runner.run()
@@ -44,30 +56,30 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractAndroidPerformanceTest
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject         | memory | parallel | warmUpRuns | runs | tasks
-        'k9AndroidBuild'           | '1g' | false | null | null | 'help'
-        'k9AndroidBuild'           | '1g' | false | null | null | 'assembleDebug'
-//        'k9AndroidBuild'    | '1g'   | false    | null       | null | 'clean k9mail:assembleDebug'
-        'largeAndroidBuild'        | '5g' | true  | null | null | 'help'
-        'largeAndroidBuild'        | '5g' | true  | null | null | 'assembleDebug'
-        'largeAndroidBuild'        | '5g' | true  | 2    | 8    | 'clean phthalic:assembleDebug'
-        'santaTrackerAndroidBuild' | '1g' | true  | null | null | 'assembleDebug'
+        testProject          | parallel | warmUpRuns | runs | tasks
+        K9_ANDROID           | false    | null       | null | 'help'
+        K9_ANDROID           | false    | null       | null | 'assembleDebug'
+//        K9_ANDROID    | false    | null       | null | 'clean k9mail:assembleDebug'
+        LARGE_ANDROID_BUILD  | true     | null       | null | 'help'
+        LARGE_ANDROID_BUILD  | true     | null       | null | 'assembleDebug'
+        LARGE_ANDROID_BUILD  | true     | 2          | 8    | 'clean phthalic:assembleDebug'
+        SANTA_TRACKER_KOTLIN | true     | null       | null | 'assembleDebug'
     }
 
-    @Category(PerformanceExperiment)
+    @Category(SlowPerformanceRegressionTest)
     @Unroll
     def "clean #tasks on #testProject with clean transforms cache"() {
         given:
-        runner.testProject = testProject
+        testProject.configure(runner)
         runner.tasksToRun = tasks.split(' ')
-        runner.gradleOpts = ["-Xms$memory", "-Xmx$memory"]
         runner.args = ['-Dorg.gradle.parallel=true']
         runner.warmUpRuns = warmUpRuns
         runner.cleanTasks = ["clean"]
         runner.runs = runs
-        runner.minimumVersion = "5.4"
-        runner.targetVersions = ["5.5-20190524010357+0000"]
-        runner.addBuildExperimentListener(cleanTransformsCacheBeforeInvocation())
+        runner.addBuildMutator { invocationSettings ->
+            new ClearArtifactTransformCacheMutator(invocationSettings.getGradleUserHome(), AbstractCleanupMutator.CleanupSchedule.BUILD)
+        }
+        applyEnterprisePlugin()
 
         when:
         def result = runner.run()
@@ -76,26 +88,52 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractAndroidPerformanceTest
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject                | memory | warmUpRuns | runs | tasks
-        'largeAndroidBuild'        | '5g'   | 2          | 8    | 'phthalic:assembleDebug'
-        'largeAndroidBuild'        | '5g'   | 2          | 8    | 'assembleDebug'
-        'santaTrackerAndroidBuild' | '1g'   | null       | null | 'assembleDebug'
+        testProject          | warmUpRuns | runs | tasks
+        LARGE_ANDROID_BUILD  | 2          | 8    | 'phthalic:assembleDebug'
+        LARGE_ANDROID_BUILD  | 2          | 8    | 'assembleDebug'
+        SANTA_TRACKER_KOTLIN | null       | null | 'assembleDebug'
     }
 
-    private static BuildExperimentListenerAdapter cleanTransformsCacheBeforeInvocation() {
-        new BuildExperimentListenerAdapter() {
-            @Override
-            void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
-                def transformsCaches = new File(invocationInfo.gradleUserHome, "caches").listFiles(new FilenameFilter() {
-                    @Override
-                    boolean accept(File dir, String name) {
-                        return name.startsWith("transforms-")
-                    }
-                })
-                if (transformsCaches != null) {
-                    for (transformsCache in transformsCaches) {
-                        GFileUtils.deleteDirectory(transformsCache)
-                    }
+    @Unroll
+    def "abi change on #testProject"() {
+        given:
+        testProject.configureForAbiChange(runner)
+        runner.args = ['-Dorg.gradle.parallel=true']
+        applyEnterprisePlugin()
+
+        when:
+        def result = runner.run()
+
+        then:
+        result.assertCurrentVersionHasNotRegressed()
+
+        where:
+        testProject << [SANTA_TRACKER_KOTLIN]
+    }
+
+    @Unroll
+    def "non-abi change on #testProject"() {
+        given:
+        testProject.configureForNonAbiChange(runner)
+        runner.args = ['-Dorg.gradle.parallel=true']
+        applyEnterprisePlugin()
+
+        when:
+        def result = runner.run()
+
+        then:
+        result.assertCurrentVersionHasNotRegressed()
+
+        where:
+        testProject << [SANTA_TRACKER_KOTLIN]
+    }
+
+    void applyEnterprisePlugin() {
+        runner.addBuildMutator { invocationSettings ->
+            new BuildMutator() {
+                @Override
+                void beforeScenario() {
+                    GradleEnterprisePluginSettingsFixture.applyEnterprisePlugin(new File(invocationSettings.projectDir, "settings.gradle"))
                 }
             }
         }

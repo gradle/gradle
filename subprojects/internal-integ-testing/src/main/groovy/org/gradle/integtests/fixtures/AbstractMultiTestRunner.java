@@ -207,9 +207,7 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
                                 });
                             }
                         }
-                    } catch (IllegalAccessException e) {
-                        // no luck
-                    } catch (InvocationTargetException e) {
+                    } catch (IllegalAccessException | InvocationTargetException e) {
                         // no luck
                     }
                 }

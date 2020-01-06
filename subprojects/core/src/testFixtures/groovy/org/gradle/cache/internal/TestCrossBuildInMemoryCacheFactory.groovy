@@ -20,7 +20,7 @@ import org.gradle.api.Transformer
 
 import java.util.concurrent.ConcurrentHashMap
 
-class TestCrossBuildInMemoryCacheFactory extends CrossBuildInMemoryCacheFactory {
+class TestCrossBuildInMemoryCacheFactory implements CrossBuildInMemoryCacheFactory {
     @Override
     <K, V> CrossBuildInMemoryCache<K, V> newCache() {
         return new TestCache<K, V>()
@@ -28,6 +28,11 @@ class TestCrossBuildInMemoryCacheFactory extends CrossBuildInMemoryCacheFactory 
 
     @Override
     <V> CrossBuildInMemoryCache<Class<?>, V> newClassCache() {
+        return new TestCache<Class<?>, V>()
+    }
+
+    @Override
+    <V> CrossBuildInMemoryCache<Class<?>, V> newClassMap() {
         return new TestCache<Class<?>, V>()
     }
 

@@ -17,12 +17,17 @@
 package org.gradle.api.internal.provider;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import org.gradle.api.Action;
+import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.DisplayName;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
+import java.util.List;
 
 public class Collectors {
     public interface ProvidedCollector<T> extends Collector<T> {
@@ -41,12 +46,25 @@ public class Collectors {
         }
 
         @Override
-        public void collectInto(ValueCollector<Object> collector, Collection<Object> collection) {
+        public void collectInto(DisplayName owner, ValueCollector<Object> collector, Collection<Object> dest) {
+        }
+
+        @Override
+        public void visit(List<ProviderInternal<? extends Iterable<?>>> sources) {
         }
 
         @Override
         public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
             return true;
+        }
+
+        @Override
+        public void visitProducerTasks(Action<? super Task> visitor) {
+        }
+
+        @Override
+        public boolean isValueProducedByTask() {
+            return false;
         }
 
         @Override
@@ -68,7 +86,7 @@ public class Collectors {
         }
 
         @Override
-        public void collectInto(ValueCollector<T> collector, Collection<T> collection) {
+        public void collectInto(DisplayName owner, ValueCollector<T> collector, Collection<T> collection) {
             collector.add(element, collection);
         }
 
@@ -79,7 +97,21 @@ public class Collectors {
         }
 
         @Override
+        public void visit(List<ProviderInternal<? extends Iterable<? extends T>>> sources) {
+            sources.add(Providers.of(ImmutableList.of(element)));
+        }
+
+        @Override
         public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
+            return false;
+        }
+
+        @Override
+        public void visitProducerTasks(Action<? super Task> visitor) {
+        }
+
+        @Override
+        public boolean isValueProducedByTask() {
             return false;
         }
 
@@ -119,7 +151,7 @@ public class Collectors {
         }
 
         @Override
-        public void collectInto(ValueCollector<T> collector, Collection<T> collection) {
+        public void collectInto(DisplayName owner, ValueCollector<T> collector, Collection<T> collection) {
             T value = providerOfElement.get();
             collector.add(value, collection);
         }
@@ -140,8 +172,23 @@ public class Collectors {
         }
 
         @Override
+        public void visit(List<ProviderInternal<? extends Iterable<? extends T>>> sources) {
+            sources.add(providerOfElement.map(e -> ImmutableList.of(e)));
+        }
+
+        @Override
         public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
             return providerOfElement.maybeVisitBuildDependencies(context);
+        }
+
+        @Override
+        public void visitProducerTasks(Action<? super Task> visitor) {
+            providerOfElement.visitProducerTasks(visitor);
+        }
+
+        @Override
+        public boolean isValueProducedByTask() {
+            return providerOfElement.isValueProducedByTask();
         }
 
         @Override
@@ -180,7 +227,7 @@ public class Collectors {
         }
 
         @Override
-        public void collectInto(ValueCollector<T> collector, Collection<T> collection) {
+        public void collectInto(DisplayName owner, ValueCollector<T> collector, Collection<T> collection) {
             collector.addAll(value, collection);
         }
 
@@ -191,7 +238,21 @@ public class Collectors {
         }
 
         @Override
+        public void visit(List<ProviderInternal<? extends Iterable<? extends T>>> sources) {
+            sources.add(Providers.of(value));
+        }
+
+        @Override
         public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
+            return false;
+        }
+
+        @Override
+        public void visitProducerTasks(Action<? super Task> visitor) {
+        }
+
+        @Override
+        public boolean isValueProducedByTask() {
             return false;
         }
 
@@ -231,7 +292,7 @@ public class Collectors {
         }
 
         @Override
-        public void collectInto(ValueCollector<T> collector, Collection<T> collection) {
+        public void collectInto(DisplayName owner, ValueCollector<T> collector, Collection<T> collection) {
             Iterable<? extends T> value = provider.get();
             collector.addAll(value, collection);
         }
@@ -247,8 +308,23 @@ public class Collectors {
         }
 
         @Override
+        public void visit(List<ProviderInternal<? extends Iterable<? extends T>>> sources) {
+            sources.add(provider);
+        }
+
+        @Override
         public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
             return provider.maybeVisitBuildDependencies(context);
+        }
+
+        @Override
+        public void visitProducerTasks(Action<? super Task> visitor) {
+            provider.visitProducerTasks(visitor);
+        }
+
+        @Override
+        public boolean isValueProducedByTask() {
+            return provider.isValueProducedByTask();
         }
 
         @Override
@@ -276,7 +352,7 @@ public class Collectors {
         @Override
         public int size() {
             if (provider instanceof CollectionProviderInternal) {
-                return ((CollectionProviderInternal)provider).size();
+                return ((CollectionProviderInternal) provider).size();
             } else {
                 throw new UnsupportedOperationException();
             }
@@ -290,8 +366,8 @@ public class Collectors {
         }
 
         @Override
-        public void collectInto(ValueCollector<Object> collector, Collection<Object> collection) {
-            throw new IllegalStateException(Providers.NULL_VALUE);
+        public void collectInto(DisplayName owner, ValueCollector<Object> collector, Collection<Object> dest) {
+            throw Providers.nullValue(owner);
         }
 
         @Override
@@ -300,8 +376,21 @@ public class Collectors {
         }
 
         @Override
+        public void visit(List<ProviderInternal<? extends Iterable<?>>> sources) {
+        }
+
+        @Override
         public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
             return true;
+        }
+
+        @Override
+        public void visitProducerTasks(Action<? super Task> visitor) {
+        }
+
+        @Override
+        public boolean isValueProducedByTask() {
+            return false;
         }
 
         @Override
@@ -323,7 +412,7 @@ public class Collectors {
         }
 
         @Override
-        public void collectInto(ValueCollector<T> collector, Collection<T> dest) {
+        public void collectInto(DisplayName owner, ValueCollector<T> collector, Collection<T> dest) {
             for (T t : value) {
                 collector.add(t, dest);
             }
@@ -331,12 +420,26 @@ public class Collectors {
 
         @Override
         public boolean maybeCollectInto(ValueCollector<T> collector, Collection<T> dest) {
-            collectInto(collector, dest);
+            collectInto(null, collector, dest);
             return true;
         }
 
         @Override
+        public void visit(List<ProviderInternal<? extends Iterable<? extends T>>> sources) {
+            sources.add(Providers.of(ImmutableList.copyOf(value)));
+        }
+
+        @Override
         public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
+            return false;
+        }
+
+        @Override
+        public void visitProducerTasks(Action<? super Task> visitor) {
+        }
+
+        @Override
+        public boolean isValueProducedByTask() {
             return false;
         }
 
@@ -368,12 +471,12 @@ public class Collectors {
         }
 
         public void collectInto(Collection<T> collection) {
-            delegate.collectInto(valueCollector, collection);
+            delegate.collectInto(null, valueCollector, collection);
         }
 
         @Override
-        public void collectInto(ValueCollector<T> collector, Collection<T> dest) {
-            delegate.collectInto(collector, dest);
+        public void collectInto(DisplayName owner, ValueCollector<T> collector, Collection<T> dest) {
+            delegate.collectInto(owner, collector, dest);
         }
 
         @Override
@@ -383,12 +486,27 @@ public class Collectors {
 
         @Override
         public boolean isProvidedBy(Provider<?> provider) {
-            return delegate instanceof ProvidedCollector && ((ProvidedCollector<T>)delegate).isProvidedBy(provider);
+            return delegate instanceof ProvidedCollector && ((ProvidedCollector<T>) delegate).isProvidedBy(provider);
+        }
+
+        @Override
+        public void visit(List<ProviderInternal<? extends Iterable<? extends T>>> sources) {
+            delegate.visit(sources);
         }
 
         @Override
         public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
             return delegate.maybeVisitBuildDependencies(context);
+        }
+
+        @Override
+        public void visitProducerTasks(Action<? super Task> visitor) {
+            delegate.visitProducerTasks(visitor);
+        }
+
+        @Override
+        public boolean isValueProducedByTask() {
+            return delegate.isValueProducedByTask();
         }
 
         @Override

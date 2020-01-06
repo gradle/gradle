@@ -85,7 +85,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         if (layout.getProjectDir() != null) {
             startParameter.setProjectDir(layout.getProjectDir());
         }
-        startParameter.setSearchUpwards(layout.getSearchUpwards());
+        startParameter.setSearchUpwardsWithoutDeprecationWarning(layout.getSearchUpwards());
 
         if (!options.getExtraArguments().isEmpty()) {
             startParameter.setTaskNames(options.getExtraArguments());

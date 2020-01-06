@@ -22,6 +22,11 @@ import org.gradle.internal.Factory;
 public class PatternSets {
     private static final Factory<PatternSet> PATTERN_SET_FACTORY = new PatternSetFactory(PatternSpecFactory.INSTANCE);
 
+    /**
+     * Should use as an injected service instead.
+     * @deprecated
+     */
+    @Deprecated
     public static Factory<PatternSet> getNonCachingPatternSetFactory() {
         return PATTERN_SET_FACTORY;
     }

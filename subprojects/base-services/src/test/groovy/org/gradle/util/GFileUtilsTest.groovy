@@ -18,7 +18,7 @@ package org.gradle.util
 
 import org.gradle.api.UncheckedIOException
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.testing.internal.util.Specification
+import spock.lang.Specification
 import org.junit.Rule
 
 import java.nio.file.FileSystem

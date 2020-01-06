@@ -16,6 +16,8 @@
 
 package org.gradle.ide.visualstudio.internal;
 
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
 import org.gradle.ide.visualstudio.VisualStudioProject;
 import org.gradle.plugins.ide.internal.IdeProjectMetadata;
 
@@ -23,6 +25,7 @@ public interface VisualStudioProjectInternal extends VisualStudioProject {
     /**
      * Returns the name of the component associated with this project
      */
+    @Input
     String getComponentName();
 
     /**
@@ -33,5 +36,6 @@ public interface VisualStudioProjectInternal extends VisualStudioProject {
     /**
      * Returns a {@link IdeProjectMetadata} view of this project
      */
+    @Internal
     IdeProjectMetadata getPublishArtifact();
 }

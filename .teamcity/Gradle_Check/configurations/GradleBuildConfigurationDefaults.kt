@@ -8,7 +8,6 @@ import common.checkCleanM2
 import common.compileAllDependency
 import common.gradleWrapper
 import common.verifyTestFilesCleanup
-import jetbrains.buildServer.configs.kotlin.v2018_2.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.v2018_2.BuildFeatures
 import jetbrains.buildServer.configs.kotlin.v2018_2.BuildStep
 import jetbrains.buildServer.configs.kotlin.v2018_2.BuildSteps
@@ -17,16 +16,15 @@ import jetbrains.buildServer.configs.kotlin.v2018_2.FailureAction
 import jetbrains.buildServer.configs.kotlin.v2018_2.ProjectFeatures
 import jetbrains.buildServer.configs.kotlin.v2018_2.buildFeatures.commitStatusPublisher
 import model.CIBuildModel
-import model.GradleSubproject
-import model.TestCoverage
+import model.StageNames
 
-
-fun shouldBeSkipped(subProject: GradleSubproject, testConfig: TestCoverage): Boolean {
-    // TODO: Hacky. We should really be running all the subprojects on macOS
-    // But we're restricting this to just a subset of projects for now
-    // since we only have a small pool of macOS agents
-    return testConfig.os.ignoredSubprojects.contains(subProject.name)
-}
+val killAllGradleProcesses = """
+    free -m
+    ps aux | egrep 'Gradle(Daemon|Worker)'
+    ps aux | egrep 'Gradle(Daemon|Worker)' | awk '{print ${'$'}2}' | xargs kill -9
+    free -m
+    ps aux | egrep 'Gradle(Daemon|Worker)' | awk '{print ${'$'}2}'
+""".trimIndent()
 
 val m2CleanScriptUnixLike = """
     REPO=%teamcity.agent.jvm.user.home%/.m2/repository
@@ -47,6 +45,12 @@ val m2CleanScriptWindows = """
         EXIT 1
     )
 """.trimIndent()
+
+fun BuildFeatures.publishBuildStatusToGithub(model: CIBuildModel) {
+    if (model.publishStatusToGitHub) {
+        publishBuildStatusToGithub()
+    }
+}
 
 fun BuildFeatures.publishBuildStatusToGithub() {
     commitStatusPublisher {
@@ -76,7 +80,7 @@ fun BuildSteps.tagBuild(tagBuild: Boolean = true, daemon: Boolean = true) {
             name = "TAG_BUILD"
             executionMode = BuildStep.ExecutionMode.ALWAYS
             tasks = "tagBuild"
-            gradleParams = "${buildToolParametersString(daemon)} -PteamCityUsername=%teamcity.username.restbot% -PteamCityPassword=%teamcity.password.restbot% -PteamCityBuildId=%teamcity.build.id% -PgithubToken=%github.ci.oauth.token%"
+            gradleParams = "${buildToolParametersString(daemon)} -PteamCityToken=%teamcity.user.bot-gradle.token% -PteamCityBuildId=%teamcity.build.id% -PgithubToken=%github.ci.oauth.token%"
         }
     }
 }
@@ -94,13 +98,12 @@ fun BaseGradleBuildType.gradleRunnerStep(model: CIBuildModel, gradleTasks: Strin
             name = "GRADLE_RUNNER"
             tasks = "clean $gradleTasks"
             gradleParams = (
-                buildToolGradleParameters(daemon) +
+                buildToolGradleParameters(daemon, os = os) +
                     this@gradleRunnerStep.buildCache.gradleParameters(os) +
                     listOf(extraParameters) +
-                    "-PteamCityUsername=%teamcity.username.restbot%" +
-                    "-PteamCityPassword=%teamcity.password.restbot%" +
+                    "-PteamCityToken=%teamcity.user.bot-gradle.token%" +
                     "-PteamCityBuildId=%teamcity.build.id%" +
-                    buildScanTags.map { configurations.buildScanTag(it) }
+                    buildScanTags.map { buildScanTag(it) }
                 ).joinToString(separator = " ")
         }
     }
@@ -116,13 +119,12 @@ fun BaseGradleBuildType.gradleRerunnerStep(model: CIBuildModel, gradleTasks: Str
             tasks = "$gradleTasks tagBuild"
             executionMode = BuildStep.ExecutionMode.RUN_ON_FAILURE
             gradleParams = (
-                buildToolGradleParameters(daemon) +
+                buildToolGradleParameters(daemon, os = os) +
                     this@gradleRerunnerStep.buildCache.gradleParameters(os) +
                     listOf(extraParameters) +
-                    "-PteamCityUsername=%teamcity.username.restbot%" +
-                    "-PteamCityPassword=%teamcity.password.restbot%" +
+                    "-PteamCityToken=%teamcity.user.bot-gradle.token%" +
                     "-PteamCityBuildId=%teamcity.build.id%" +
-                    buildScanTags.map { configurations.buildScanTag(it) } +
+                    buildScanTags.map { buildScanTag(it) } +
                     "-PonlyPreviousFailedTestClasses=true" +
                     "-Dscan.tag.RERUN_TESTS" +
                     "-PgithubToken=%github.ci.oauth.token%"
@@ -160,6 +162,10 @@ fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTas
 }
 
 fun applyTestDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTasks: String, notQuick: Boolean = false, os: Os = Os.linux, extraParameters: String = "", timeout: Int = 90, extraSteps: BuildSteps.() -> Unit = {}, daemon: Boolean = true) {
+    if (os == Os.macos) {
+        buildType.params.param("env.REPO_MIRROR_URLS", "")
+    }
+
     buildType.applyDefaultSettings(os, timeout)
 
     buildType.gradleRunnerStep(model, gradleTasks, os, extraParameters, daemon)
@@ -183,13 +189,12 @@ fun applyDefaultDependencies(model: CIBuildModel, buildType: BuildType, notQuick
     if (notQuick) {
         // wait for quick feedback phase to finish successfully
         buildType.dependencies {
-            dependency(AbsoluteId("${model.projectPrefix}Stage_QuickFeedback_Trigger")) {
+            dependency(stageTriggerId(model, StageNames.QUICK_FEEDBACK_LINUX_ONLY)) {
                 snapshot {
                     onDependencyFailure = FailureAction.CANCEL
                     onDependencyCancel = FailureAction.CANCEL
                 }
             }
-
         }
     }
 

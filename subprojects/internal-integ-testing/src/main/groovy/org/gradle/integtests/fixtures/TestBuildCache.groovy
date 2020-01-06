@@ -18,6 +18,7 @@ package org.gradle.integtests.fixtures
 
 import org.gradle.caching.local.internal.BuildCacheTempFileStore
 import org.gradle.caching.local.internal.DirectoryBuildCacheServiceFactory
+import org.gradle.internal.hash.Hashing
 import org.gradle.test.fixtures.file.TestFile
 
 class TestBuildCache {
@@ -30,7 +31,7 @@ class TestBuildCache {
     def localCacheConfiguration(boolean push = true) {
         """
             buildCache {
-                local(DirectoryBuildCache) {
+                local {
                     directory = '${cacheDir.absoluteFile.toURI()}'
                     push = $push
                 }
@@ -66,7 +67,7 @@ class TestBuildCache {
     }
 
     List<TestFile> listCacheFiles() {
-        cacheDir.listFiles().findAll { it.name ==~ /\p{XDigit}{32}/ }.sort()
+        cacheDir.listFiles().findAll { it.name ==~ /\p{XDigit}{${Hashing.defaultFunction().hexDigits}}/ }.sort()
     }
 
     boolean isEmpty() {

@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.resolve.attributes
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.RequiredFeatures
@@ -32,9 +33,9 @@ class ClasspathDependenciesAttributesIntegrationTest extends AbstractModuleDepen
 
     @RequiredFeatures([
         @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false"),
-        @RequiredFeature(feature = GradleMetadataResolveRunner.EXPERIMENTAL_RESOLVE_BEHAVIOR, value = "false"),
         @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     ])
+    @ToBeFixedForInstantExecution
     def 'module metadata fetched through a settings useModule properly derives variants and subsequent project use of the dependency has access to derived variants'() {
         given:
         def module = mavenRepo.module('test', 'dep', '1.0').publish()
@@ -102,9 +103,9 @@ task printDeps {
 
     @RequiredFeatures([
         @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true"),
-        @RequiredFeature(feature = GradleMetadataResolveRunner.EXPERIMENTAL_RESOLVE_BEHAVIOR, value = "true"),
         @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     ])
+    @ToBeFixedForInstantExecution
     def 'module metadata fetched through a settings useModule properly uses Java ecosystem'() {
         given:
 
@@ -112,7 +113,6 @@ task printDeps {
         mavenRepo.module('test', 'dep', '1.0')
             .variant("runtime", ["org.gradle.usage" : "java-runtime", 'org.gradle.dependency.bundling' : 'embedded'])
             .variant("conflictingRuntime", ["org.gradle.usage" : "java-runtime", 'org.gradle.dependency.bundling' : 'shadowed'])
-            .withGradleMetadataRedirection()
             .withModuleMetadata()
             .publish()
 
@@ -219,12 +219,11 @@ buildscript {
         mavenRepo.module('org', 'bar').dependsOn(['scope': 'runtime'], foo).publish()
 
         settingsFile << """
-import org.gradle.api.internal.model.NamedObjectInstantiator
 buildscript {
     $repositoryDeclaration
 
     configurations.classpath {
-        attributes.attribute(Usage.USAGE_ATTRIBUTE, NamedObjectInstantiator.INSTANCE.named(Usage, Usage.JAVA_API))
+        attributes.attribute(Usage.USAGE_ATTRIBUTE, services.get(ObjectFactory).named(Usage, Usage.JAVA_API))
     }
     
     dependencies {

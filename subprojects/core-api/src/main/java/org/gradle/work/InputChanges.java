@@ -16,7 +16,6 @@
 
 package org.gradle.work;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.provider.Provider;
@@ -68,7 +67,6 @@ import org.gradle.api.provider.Provider;
  *
  * @since 5.4
  */
-@Incubating
 public interface InputChanges {
     /**
      * Indicates if it was possible for Gradle to determine which input files were out of date compared to a previous execution.

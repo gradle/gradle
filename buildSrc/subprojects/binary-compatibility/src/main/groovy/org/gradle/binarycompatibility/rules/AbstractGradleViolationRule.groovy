@@ -77,65 +77,36 @@ abstract class AbstractGradleViolationRule extends AbstractContextAwareViolation
         return isAnnotatedWithInject(member)
     }
 
-    boolean isIncubatingOrDeprecated(JApiHasAnnotations member) {
+    protected boolean isIncubating(JApiHasAnnotations member) {
         if (member instanceof JApiClass) {
-            return isIncubatingOrDeprecated((JApiClass) member)
-        } else if (member instanceof JApiMethod) {
-            return isIncubatingOrDeprecatedOrOverride((JApiMethod) member)
-        } else if (member instanceof JApiField) {
-            return isIncubatingOrDeprecated((JApiField) member)
-        } else if (member instanceof JApiConstructor) {
-            return isIncubatingOrDeprecated((JApiConstructor) member)
+            return isIncubatingClass((JApiClass) member)
+        }
+        if (member instanceof JApiMethod) {
+            return isIncubatingOrOverrideMethod((JApiMethod) member)
+        }
+        if (member instanceof JApiField) {
+            return isIncubatingField((JApiField) member)
+        }
+        if (member instanceof JApiConstructor) {
+            return isIncubatingConstructor((JApiConstructor) member)
         }
         return isAnnotatedWithIncubating(member)
     }
 
-    boolean isIncubatingOrDeprecated(JApiClass clazz) {
-        return isAnnotatedWithIncubating(clazz) || isAnnotatedWithDeprecated(clazz)
+    private static boolean isIncubatingClass(JApiClass clazz) {
+        return isAnnotatedWithIncubating(clazz)
     }
 
-    boolean isIncubatingOrDeprecated(JApiField field) {
-        return isAnnotatedWithIncubating(field) || isAnnotatedWithIncubating(field.jApiClass) || isAnnotatedWithDeprecated(field) || isAnnotatedWithDeprecated(field.jApiClass)
+    private boolean isIncubatingOrOverrideMethod(JApiMethod method) {
+        return isAnnotatedWithIncubating(method) || isAnnotatedWithIncubating(method.jApiClass) || isOverride(method)
     }
 
-    boolean isIncubatingOrDeprecated(JApiConstructor constructor) {
-        return isAnnotatedWithIncubating(constructor) || isAnnotatedWithIncubating(constructor.jApiClass) || isAnnotatedWithDeprecated(constructor) || isAnnotatedWithDeprecated(constructor.jApiClass)
+    private static boolean isIncubatingField(JApiField field) {
+        return isAnnotatedWithIncubating(field) || isAnnotatedWithIncubating(field.jApiClass)
     }
 
-    boolean isIncubatingOrDeprecatedOrOverride(JApiMethod method) {
-        return isAnnotatedWithIncubating(method) || isAnnotatedWithIncubating(method.jApiClass) || isOverride(method) || isAnnotatedWithDeprecated(method) || isAnnotatedWithDeprecated(method.jApiClass)
-    }
-
-    boolean isDeprecated(JApiClass clazz) {
-        return isAnnotatedWithDeprecated(clazz)
-    }
-
-    boolean isDeprecated(JApiConstructor constructor) {
-        return isAnnotatedWithDeprecated(constructor) || isAnnotatedWithDeprecated(constructor.jApiClass)
-    }
-
-    boolean isDeprecated(JApiField field) {
-        return isAnnotatedWithDeprecated(field) || isAnnotatedWithDeprecated(field.jApiClass)
-    }
-
-    boolean isDeprecated(JApiMethod method) {
-        return isAnnotatedWithDeprecated(method) || isAnnotatedWithDeprecated(method.jApiClass)
-    }
-
-    boolean isDeprecated(JApiCompatibility member) {
-        if (member instanceof JApiClass) {
-            return isDeprecated(member as JApiClass)
-        }
-        if (member instanceof JApiConstructor) {
-            return isDeprecated(member as JApiConstructor)
-        }
-        if (member instanceof JApiField) {
-            return isDeprecated(member as JApiField)
-        }
-        if (member instanceof JApiMethod) {
-            return isDeprecated(member as JApiMethod)
-        }
-        return false
+    private static boolean isIncubatingConstructor(JApiConstructor constructor) {
+        return isAnnotatedWithIncubating(constructor) || isAnnotatedWithIncubating(constructor.jApiClass)
     }
 
     protected boolean isOverride(JApiMethod method) {

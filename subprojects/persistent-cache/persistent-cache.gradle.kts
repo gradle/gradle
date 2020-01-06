@@ -25,6 +25,7 @@ dependencies {
     implementation(project(":baseServices"))
     implementation(project(":messaging"))
     implementation(project(":native"))
+    implementation(project(":files"))
     implementation(project(":resources"))
     implementation(project(":logging"))
 
@@ -34,12 +35,14 @@ dependencies {
     implementation(library("commons_lang"))
 
     testImplementation(project(":coreApi"))
+    testImplementation(testFixtures(project(":core")))
+
+    testRuntimeOnly(project(":runtimeApiInfo"))
+    testRuntimeOnly(project(":workers"))
+    testRuntimeOnly(project(":dependencyManagement"))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
 }
 
-testFixtures {
-    from(":core")
-}

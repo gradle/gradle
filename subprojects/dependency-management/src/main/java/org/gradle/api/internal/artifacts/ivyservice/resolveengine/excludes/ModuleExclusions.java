@@ -19,6 +19,7 @@ import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories.CachingExcludeFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories.ExcludeFactory;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories.LoggingExcludeFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories.NormalizingExcludeFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories.OptimizingExcludeFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.simple.DefaultExcludeFactory;
@@ -36,12 +37,12 @@ public class ModuleExclusions {
     // please keep the formatting below as it helps enabling or disabling stages
     private final ExcludeFactory factory = new OptimizingExcludeFactory(// optimizes for nulls, 2-params, ... mandatory
         new CachingExcludeFactory(// caches the result of TL operations
-            new NormalizingExcludeFactory(// performs algebra
+            LoggingExcludeFactory.maybeLog(new NormalizingExcludeFactory(// performs algebra
                 new CachingExcludeFactory(// caches the result of optimization operations
                     new DefaultExcludeFactory(), // the end of the chain, mandatory
                     mergeCaches // shares the same caches as the top level one as after reducing we can find already cached merge operations
                 )
-            ),
+            )),
             mergeCaches
         )
     );

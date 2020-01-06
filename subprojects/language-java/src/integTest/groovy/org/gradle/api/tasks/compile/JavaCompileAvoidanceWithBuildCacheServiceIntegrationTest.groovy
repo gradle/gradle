@@ -91,7 +91,7 @@ class JavaCompileAvoidanceWithBuildCacheServiceIntegrationTest extends AbstractI
         '''
         file('a/build.gradle') << '''
             dependencies {
-                compile project(':b')
+                implementation project(':b')
             }
         '''
 

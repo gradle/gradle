@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[troubleshooting]]
-= Troubleshooting
+= Troubleshooting builds
 
 The following is a collection of common issues and suggestions for addressing them. You can get other tips and search the link:https://discuss.gradle.org/c/help-discuss[Gradle forums] and link:https://stackoverflow.com/questions/tagged/gradle[StackOverflow #gradle] answers, as well as Gradle documentation from link:https://help.gradle.org/[help.gradle.org].
 
@@ -75,7 +75,7 @@ If not, then the problem exists within the execution of one or more of the reque
 [[sec:troubleshooting_dependency_resolution]]
 == Debugging dependency resolution
 
-Common dependency resolution issues such as resolving version conflicts are covered in <<troubleshooting_dependency_resolution.adoc#troubleshooting_dependency_resolution,Troubleshooting Dependency Resolution>>.
+Common dependency resolution issues such as resolving version conflicts are covered in <<viewing_debugging_dependencies.adoc#,Troubleshooting Dependency Resolution>>.
 
 You can see a dependency tree and see which resolved dependency versions differed from what was requested by clicking the _Dependencies_ view and using the search functionality, specifying the resolution reason.
 

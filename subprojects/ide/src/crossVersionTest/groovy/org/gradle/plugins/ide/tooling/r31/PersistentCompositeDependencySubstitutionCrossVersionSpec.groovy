@@ -95,7 +95,7 @@ class PersistentCompositeDependencySubstitutionCrossVersionSpec extends ToolingA
         def eclipseProject = loadToolingModel(EclipseProject)
 
         then:
-        eclipseProject.projectDependencies.collect {it.path}  == ['b1-renamed', 'b2-renamed']
+        eclipseProject.projectDependencies.collect {it.path}.sort()  == ['b1-renamed', 'b2-renamed']
     }
 
     @ToolingApiVersion(">=3.2")
@@ -227,7 +227,7 @@ class PersistentCompositeDependencySubstitutionCrossVersionSpec extends ToolingA
 
         then:
         modelType.isInstance modelInstance
-        modelOperation.result.executedTasks.empty
+        modelOperation.result.assertTasksExecuted()
 
         where:
         modelType << [EclipseProject, IdeaProject]

@@ -18,12 +18,19 @@ package org.gradle.integtests.resolve.transform
 
 import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.integtests.fixtures.console.AbstractConsoleGroupedTaskFunctionalTest
+import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.junit.Rule
 import spock.lang.Unroll
+
+import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
 class TransformationLoggingIntegrationTest extends AbstractConsoleGroupedTaskFunctionalTest {
     ConsoleOutput consoleType
 
     private static final List<ConsoleOutput> TESTED_CONSOLE_TYPES = [ConsoleOutput.Plain, ConsoleOutput.Verbose, ConsoleOutput.Rich, ConsoleOutput.Auto]
+
+    @Rule
+    BlockingHttpServer server
 
     def setup() {
         settingsFile << """
@@ -33,27 +40,25 @@ class TransformationLoggingIntegrationTest extends AbstractConsoleGroupedTaskFun
             include 'app'
         """
 
-        buildFile << """ 
+        buildFile << """
             import java.nio.file.Files
 
             def usage = Attribute.of('usage', String)
             def artifactType = Attribute.of('artifactType', String)
-                
+
             allprojects {
                 dependencies {
                     attributesSchema {
                         attribute(usage)
                     }
-                    registerTransform {
+                    registerTransform(GreenMultiplier) {
                         from.attribute(artifactType, "jar")
                         to.attribute(artifactType, "green")
-                        artifactTransform(GreenMultiplier)
-                    }                    
-                    registerTransform {
+                    }
+                    registerTransform(BlueMultiplier) {
                         from.attribute(artifactType, "green")
                         to.attribute(artifactType, "blue")
-                        artifactTransform(BlueMultiplier)
-                    }                    
+                    }
                 }
                 configurations {
                     compile {
@@ -65,75 +70,79 @@ class TransformationLoggingIntegrationTest extends AbstractConsoleGroupedTaskFun
                         def artifacts = configurations.compile.incoming.artifactView {
                             attributes { it.attribute(artifactType, type) }
                         }.artifacts
-    
+
                         inputs.files artifacts.artifactFiles
-                        
+
                         doLast {
                             println "files: " + artifacts.collect { it.file.name }
                         }
                     }
                 }
             }
-            
+
             project(':lib') {
                 task jar1(type: Jar) {
-                    archiveName = 'lib1.jar'
+                    archiveFileName = 'lib1.jar'
                 }
                 task jar2(type: Jar) {
-                    archiveName = 'lib2.jar'
+                    archiveFileName = 'lib2.jar'
                 }
                 tasks.withType(Jar) {
-                    destinationDir = buildDir
+                    destinationDirectory = buildDir
                 }
                 artifacts {
                     compile jar1
                     compile jar2
                 }
-            }            
-    
+            }
+
             project(':util') {
                 dependencies {
                     compile project(':lib')
                 }
             }
-    
+
             project(':app') {
                 dependencies {
                     compile project(':util')
                 }
             }
 
-            class Multiplier extends ArtifactTransform {
-                private final String target
+            import org.gradle.api.artifacts.transform.TransformParameters
+
+            abstract class Multiplier implements TransformAction<TransformParameters.None> {
                 private final boolean showOutput = System.getProperty("showOutput") != null
-        
-                @javax.inject.Inject
+                private final String target
+
                 Multiplier(String target) {
                     if (showOutput) {
                         println("Creating multiplier")
                     }
                     this.target = target
                 }
-        
+
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
                 @Override
-                List<File> transform(File input) {
-                    def output1 = new File(outputDirectory, input.name + ".1." + target)
-                    def output2 = new File(outputDirectory, input.name + ".2." + target)
+                void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
+                    def output1 = outputs.file(input.name + ".1." + target)
+                    def output2 = outputs.file(input.name + ".2." + target)
                     if (showOutput) {
                         println("Transforming \${input.name} to \${input.name}.\${target}")
                     }
                     Files.copy(input.toPath(), output1.toPath())
                     Files.copy(input.toPath(), output2.toPath())
-                    return [output1, output2]
                 }
             }
-            
-            class GreenMultiplier extends Multiplier {
+
+            abstract class GreenMultiplier extends Multiplier {
                 GreenMultiplier() {
                     super("green")
                 }
             }
-            class BlueMultiplier extends Multiplier {
+            abstract class BlueMultiplier extends Multiplier {
                 BlueMultiplier() {
                     super("blue")
                 }
@@ -165,6 +174,61 @@ class TransformationLoggingIntegrationTest extends AbstractConsoleGroupedTaskFun
 
         where:
         type << TESTED_CONSOLE_TYPES
+    }
+
+    def "progress display name is 'Transforming' for top level transforms"() {
+        // Build scan plugin filters artifact transform logging by the name of the progress display name
+        // since that is the only way it currently can distinguish transforms.
+        // When it has a better way, then this test can be removed.
+        consoleType = ConsoleOutput.Rich
+        server.start()
+        buildFile << """
+            allprojects {
+                dependencies {
+                    registerTransform(Red) {
+                        from.attribute(artifactType, "jar")
+                        to.attribute(artifactType, "red")
+                    }
+                }
+                tasks.register("resolveRed") {
+                    def artifacts = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'red') }
+                    }.artifacts
+
+                    inputs.files artifacts.artifactFiles
+
+                    doLast {
+                        println "files: " + artifacts.collect { it.file.name }
+                    }
+                }
+            }
+
+            // NOTE: This is named "Red" so that the status message fits on one line
+            abstract class Red extends Multiplier {
+                Red() {
+                    super("red")
+                }
+
+                @Override
+                void transform(TransformOutputs outputs) {
+                    ${server.callFromBuildUsingExpression("inputArtifact.get().asFile.name")}
+                    super.transform(outputs)
+                }
+            }
+        """
+
+        when:
+        def block = server.expectConcurrentAndBlock("lib1.jar", "lib2.jar")
+        def build = executer.withTasks(":util:resolveRed").start()
+        then:
+        block.waitForAllPendingCalls()
+        poll {
+            assertHasWorkInProgress(build, "> Transforming artifact lib1.jar (project :lib) with Red > Red lib1.jar")
+            assertHasWorkInProgress(build, "> Transforming artifact lib2.jar (project :lib) with Red > Red lib2.jar")
+        }
+
+        block.releaseAll()
+        build.waitForFinish()
     }
 
     def "each step is logged separately"() {

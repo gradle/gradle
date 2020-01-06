@@ -16,11 +16,11 @@
 
 package org.gradle.api.publish.maven
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.maven.MavenLocalRepository
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
-import spock.lang.Ignore
 
 /**
  * Tests “simple” maven publishing scenarios
@@ -58,6 +58,7 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
         mavenRepo.module('group', 'root', '1.0').assertNotPublished()
     }
 
+    @ToBeFixedForInstantExecution
     def "publishes empty pom when publication has no added component"() {
         given:
         settingsFile << "rootProject.name = 'empty-project'"
@@ -95,6 +96,7 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
         }
     }
 
+    @ToBeFixedForInstantExecution
     def "can publish simple component"() {
         given:
         using m2
@@ -163,6 +165,7 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
         }
     }
 
+    @ToBeFixedForInstantExecution
     def "can republish simple component"() {
         given:
         using m2
@@ -215,6 +218,7 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
         localModule.rootMetaData.latestVersion == "2.0"
     }
 
+    @ToBeFixedForInstantExecution
     def "can publish to custom maven local repo defined in settings.xml"() {
         given:
         def customLocalRepo = new MavenLocalRepository(file("custom-maven-local"))
@@ -276,13 +280,14 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
         failure.assertHasCause("Maven publication 'maven' cannot include multiple components")
     }
 
-    @Ignore("Not yet implemented - currently the second publication will overwrite")
-    def "cannot publish multiple maven publications with the same identity"() {
+    @ToBeFixedForInstantExecution
+    def "publishes to all defined repositories"() {
         given:
-        settingsFile << "rootProject.name = 'bad-project'"
+        def mavenRepo2 = maven("maven-repo-2")
+
+        settingsFile << "rootProject.name = 'root'"
         buildFile << """
             apply plugin: 'maven-publish'
-            apply plugin: 'war'
 
             group = 'org.gradle.test'
             version = '1.0'
@@ -290,22 +295,57 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
             publishing {
                 repositories {
                     maven { url "${mavenRepo.uri}" }
+                    maven { url "${mavenRepo2.uri}" }
                 }
                 publications {
-                    mavenJava(MavenPublication) {
-                        from components.java
-                    }
-                    mavenWeb(MavenPublication) {
-                        from components.web
-                    }
+                    maven(MavenPublication)
                 }
             }
         """
         when:
-        fails 'publish'
+        succeeds 'publish'
 
         then:
-        failure.assertHasDescription("A problem occurred configuring root project 'bad-project'.")
-        failure.assertHasCause("Publication with name 'mavenJava' already exists")
+        def module = mavenRepo.module('org.gradle.test', 'root', '1.0')
+        module.assertPublished()
+        def module2 = mavenRepo2.module('org.gradle.test', 'root', '1.0')
+        module2.assertPublished()
+    }
+
+    @ToBeFixedForInstantExecution
+    def "warns when trying to publish a transitive = false variant"() {
+        given:
+        settingsFile << "rootProject.name = 'root'"
+        buildFile << """
+            apply plugin: 'maven-publish'
+            apply plugin: 'java'
+
+            group = 'group'
+            version = '1.0'
+
+            configurations {
+                apiElements {
+                    transitive = false
+                }
+            }
+
+            publishing {
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                    }
+                }
+            }
+        """
+
+        when:
+        executer.withStackTraceChecksDisabled()
+        succeeds 'publish'
+
+        then: "build warned about transitive = true variant"
+        outputContains("Publication ignores 'transitive = false' at configuration level.")
     }
 }

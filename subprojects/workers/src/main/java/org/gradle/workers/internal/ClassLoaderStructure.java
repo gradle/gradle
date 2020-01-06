@@ -16,51 +16,10 @@
 
 package org.gradle.workers.internal;
 
-import com.google.common.base.Objects;
 import org.gradle.internal.classloader.ClassLoaderSpec;
 
-public class ClassLoaderStructure {
-    private final ClassLoaderSpec self;
-    private final ClassLoaderStructure parent;
+public interface ClassLoaderStructure {
+    ClassLoaderSpec getSpec();
 
-    public ClassLoaderStructure(ClassLoaderSpec self) {
-        this.self = self;
-        this.parent = null;
-    }
-
-    public ClassLoaderStructure(ClassLoaderSpec self, ClassLoaderStructure parent) {
-        this.self = self;
-        this.parent = parent;
-    }
-
-    public ClassLoaderStructure withChild(ClassLoaderSpec spec) {
-        ClassLoaderStructure childNode = new ClassLoaderStructure(spec, this);
-        return childNode;
-    }
-
-    public ClassLoaderSpec getSpec() {
-        return self;
-    }
-
-    public ClassLoaderStructure getParent() {
-        return parent;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        ClassLoaderStructure that = (ClassLoaderStructure) o;
-        return Objects.equal(self, that.self) &&
-                Objects.equal(parent, that.parent);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(self, parent);
-    }
+    ClassLoaderStructure getParent();
 }

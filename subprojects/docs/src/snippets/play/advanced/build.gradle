@@ -1,0 +1,46 @@
+// tag::play-coffeescript[]
+plugins {
+    id 'play'
+    id 'play-coffeescript'
+}
+// end::play-coffeescript[]
+
+// tag::play-platform[]
+model {
+    components {
+        play {
+            platform play: '2.6.15', scala: '2.12', java: '1.8'
+            injectedRoutesGenerator = true
+        }
+    }
+}
+// end::play-platform[]
+
+// tag::play-dependencies[]
+dependencies {
+    play "commons-lang:commons-lang:2.6"
+    play "com.typesafe.play:play-guice_2.12:2.6.15"
+    play "ch.qos.logback:logback-classic:1.2.3"
+}
+// end::play-dependencies[]
+
+repositories {
+    jcenter()
+    maven {
+        name "lightbend-maven-release"
+        url "https://repo.lightbend.com/lightbend/maven-releases"
+    }
+    ivy {
+        name "lightbend-ivy-release"
+        url "https://repo.lightbend.com/lightbend/ivy-releases"
+        layout "ivy"
+    }
+
+    maven {
+        name "gradle-js"
+        url "https://repo.gradle.org/gradle/javascript-public"
+        metadataSources {
+            artifact()
+        }
+    }
+}

@@ -1,0 +1,14 @@
+configurations {
+    'default' { extendsFrom implementation }
+}
+dependencies {
+    implementation group: 'commons-collections', name: 'commons-collections', version: '3.2.2'
+}
+
+task jar(type: Jar) {
+    from sourceSets.main.output
+}
+
+artifacts {
+    implementation jar
+}

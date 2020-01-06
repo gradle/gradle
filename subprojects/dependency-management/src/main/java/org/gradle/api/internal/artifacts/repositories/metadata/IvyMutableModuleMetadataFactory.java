@@ -24,6 +24,7 @@ import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
+import org.gradle.internal.component.external.model.PreferJavaRuntimeVariant;
 import org.gradle.internal.component.external.model.ivy.DefaultMutableIvyModuleResolveMetadata;
 import org.gradle.internal.component.external.model.ivy.IvyDependencyDescriptor;
 import org.gradle.internal.component.external.model.ivy.MutableIvyModuleResolveMetadata;
@@ -40,15 +41,12 @@ public class IvyMutableModuleMetadataFactory implements MutableModuleMetadataFac
 
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final ImmutableAttributesFactory attributesFactory;
+    private final PreferJavaRuntimeVariant schema;
 
-    public IvyMutableModuleMetadataFactory(ImmutableModuleIdentifierFactory moduleIdentifierFactory, ImmutableAttributesFactory attributesFactory) {
+    public IvyMutableModuleMetadataFactory(ImmutableModuleIdentifierFactory moduleIdentifierFactory, ImmutableAttributesFactory attributesFactory, PreferJavaRuntimeVariant schema) {
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.attributesFactory = attributesFactory;
-    }
-
-    @Override
-    public MutableIvyModuleResolveMetadata create(ModuleComponentIdentifier from) {
-        return create(from, ImmutableList.<IvyDependencyDescriptor>of());
+        this.schema = schema;
     }
 
     public MutableIvyModuleResolveMetadata create(ModuleComponentIdentifier from, List<IvyDependencyDescriptor> dependencies) {
@@ -57,7 +55,7 @@ public class IvyMutableModuleMetadataFactory implements MutableModuleMetadataFac
             dependencies,
             DEFAULT_CONFIGURATION_LIST,
             createDefaultArtifact(from),
-            ImmutableList.<Exclude>of());
+            ImmutableList.of());
     }
 
     public MutableIvyModuleResolveMetadata create(ModuleComponentIdentifier from,
@@ -73,7 +71,13 @@ public class IvyMutableModuleMetadataFactory implements MutableModuleMetadataFac
             dependencies,
             configurationDefinitions,
             artifactDefinitions,
-            excludes);
+            excludes,
+            schema);
+    }
+
+    @Override
+    public MutableIvyModuleResolveMetadata createForGradleModuleMetadata(ModuleComponentIdentifier from) {
+        return create(from, ImmutableList.of(), ImmutableList.of(), createDefaultArtifact(from), ImmutableList.of());
     }
 
     private ImmutableList<? extends Artifact> createDefaultArtifact(ModuleComponentIdentifier from) {
@@ -86,7 +90,7 @@ public class IvyMutableModuleMetadataFactory implements MutableModuleMetadataFac
 
     @Override
     public MutableIvyModuleResolveMetadata missing(ModuleComponentIdentifier from) {
-        MutableIvyModuleResolveMetadata metadata = create(from);
+        MutableIvyModuleResolveMetadata metadata = create(from, ImmutableList.of());
         metadata.setMissing(true);
         return metadata;
     }

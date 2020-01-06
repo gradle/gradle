@@ -16,13 +16,15 @@
 
 package org.gradle.integtests.composite
 
-import org.gradle.launcher.continuous.Java7RequiringContinuousIntegrationTest
+import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
-class CompositeContinuousBuildIntegrationTest extends Java7RequiringContinuousIntegrationTest {
+class CompositeContinuousBuildIntegrationTest extends AbstractContinuousIntegrationTest {
     def setup() {
         buildTestFixture.withBuildInSubDir()
     }
 
+    @ToBeFixedForInstantExecution
     def "will rebuild on input change for included build task dependency"() {
         def outputFile = file("included/build/output.txt")
         def inputFile = file("included/inputs/input.txt")
@@ -65,6 +67,7 @@ class CompositeContinuousBuildIntegrationTest extends Java7RequiringContinuousIn
         outputFile.text == "second"
     }
 
+    @ToBeFixedForInstantExecution
     def "will rebuild on change for included build library dependency"() {
         def includedLibrary = singleProjectBuild("library") {
             buildFile << """
@@ -91,7 +94,7 @@ class CompositeContinuousBuildIntegrationTest extends Java7RequiringContinuousIn
             group = 'com.example'
             mainClassName = 'com.example.Main'
             dependencies {
-                compile 'org.test:library:0.1'
+                implementation 'org.test:library:0.1'
             }
         """
         def mainSource = file("src/main/java/com/example/Main.java")
@@ -122,6 +125,7 @@ class CompositeContinuousBuildIntegrationTest extends Java7RequiringContinuousIn
         outputContains("Goodbye Friend")
     }
 
+    @ToBeFixedForInstantExecution
     def "will rebuild on change for plugin supplied by included build"() {
         // to reduce contention with concurrently executing tests
         requireOwnGradleUserHomeDir()
@@ -180,6 +184,7 @@ class CompositeContinuousBuildIntegrationTest extends Java7RequiringContinuousIn
         stopGradle()
     }
 
+    @ToBeFixedForInstantExecution
     def "will rebuild on change for build included into a multi-project build"() {
         def includedLibrary = singleProjectBuild("library") {
             buildFile << """
@@ -209,7 +214,7 @@ class CompositeContinuousBuildIntegrationTest extends Java7RequiringContinuousIn
                 group = 'com.example'
                 mainClassName = 'com.example.' + name + '.Main'
                 dependencies {
-                    compile 'org.test:library:0.1'
+                    implementation 'org.test:library:0.1'
                 }
             }
             project(":sub2") {

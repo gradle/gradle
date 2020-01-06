@@ -26,25 +26,26 @@ dependencies {
     implementation(project(":coreApi"))
     implementation(project(":modelCore"))
     implementation(project(":core"))
-    implementation(project(":files"))
+    implementation(project(":fileCollections"))
     implementation(project(":plugins"))
     implementation(project(":dependencyManagement"))
     implementation(project(":publish"))
     implementation(project(":maven"))
+    implementation(project(":security"))
 
     implementation(library("groovy"))
     implementation(library("slf4j_api"))
     implementation(library("guava"))
     implementation(library("inject"))
-    implementation(library("bouncycastle_pgp"))
 
     testImplementation(project(":ivy"))
+    testImplementation(testFixtures(project(":core")))
+
+    testRuntimeOnly(project(":runtimeApiInfo"))
+    testRuntimeOnly(testFixtures(project(":security")))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
 }
 
-testFixtures {
-    from(":core")
-}

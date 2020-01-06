@@ -17,13 +17,12 @@
 package org.gradle.plugins.signing
 
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.util.Requires
 import org.junit.Rule
-import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
 import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
@@ -40,16 +39,19 @@ class SigningSamplesSpec extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample('signing/maven')
+    @ToBeFixedForInstantExecution
     def "upload attaches signatures with dsl #dsl"() {
         given:
         inDirectory(sample.dir.file(dsl))
 
         when:
+        executer.expectDeprecationWarnings(2)
         run "uploadArchives"
 
         then:
         repoFor(dsl)
             .module('gradle', 'maven', '1.0')
+            .withoutExtraChecksums()
             .assertArtifactsPublished('maven-1.0.pom', 'maven-1.0.pom.asc', 'maven-1.0.jar', 'maven-1.0.jar.asc')
 
         where:
@@ -58,20 +60,20 @@ class SigningSamplesSpec extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample('signing/conditional')
-    @IgnoreIf({ GradleContextualExecuter.parallel })
+    @ToBeFixedForInstantExecution
     def "conditional signing with dsl #dsl"() {
         given:
         inDirectory(sample.dir.file(dsl))
 
         when:
-        run "uploadArchives"
+        run "publish"
 
         then:
-        ":signArchives" in skippedTasks
+        skipped(":signMainPublication")
 
         and:
         def module = repoFor(dsl).module('gradle', 'conditional', '1.0-SNAPSHOT')
-        module.assertArtifactsPublished("maven-metadata.xml", "conditional-${module.publishArtifactVersion}.pom", "conditional-${module.publishArtifactVersion}.jar")
+        module.assertArtifactsPublished("maven-metadata.xml", "conditional-${module.publishArtifactVersion}.pom", "conditional-${module.publishArtifactVersion}.module", "conditional-${module.publishArtifactVersion}.jar")
 
         where:
         dsl << ['groovy', 'kotlin']
@@ -80,6 +82,7 @@ class SigningSamplesSpec extends AbstractSampleIntegrationTest {
     @Unroll
     @UsesSample('signing/gnupg-signatory')
     @Requires(adhoc = { GpgCmdFixture.getAvailableGpg() != null })
+    @ToBeFixedForInstantExecution
     def "use gnupg signatory with dsl #dsl"() {
         setup:
         def projectDir = sample.dir.file(dsl)
@@ -103,6 +106,7 @@ class SigningSamplesSpec extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample('signing/maven-publish')
+    @ToBeFixedForInstantExecution
     def "publish attaches signatures with dsl #dsl"() {
         given:
         inDirectory(sample.dir.file(dsl))
@@ -118,7 +122,7 @@ class SigningSamplesSpec extends AbstractSampleIntegrationTest {
 
         then:
         module.assertPublished()
-        def expectedFileNames = ["${artifactId}-${version}.jar", "${artifactId}-${version}-sources.jar", "${artifactId}-${version}-javadoc.jar", "${artifactId}-${version}.pom"]
+        def expectedFileNames = ["${artifactId}-${version}.jar", "${artifactId}-${version}-sources.jar", "${artifactId}-${version}-javadoc.jar", "${artifactId}-${version}.pom", "${artifactId}-${version}.module"]
         module.assertArtifactsPublished(expectedFileNames.collect { [it, "${it}.asc"] }.flatten())
 
         and:
@@ -140,6 +144,7 @@ class SigningSamplesSpec extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample('signing/in-memory')
+    @ToBeFixedForInstantExecution
     def "uses in-memory PGP keys with dsl #dsl"() {
         given:
         def projectDir = sample.dir.file(dsl)
@@ -157,6 +162,29 @@ class SigningSamplesSpec extends AbstractSampleIntegrationTest {
 
         where:
         dsl << ['groovy', 'kotlin']
+    }
+
+    @Unroll
+    @UsesSample('signing/in-memory')
+    @ToBeFixedForInstantExecution
+    def "uses in-memory PGP subkeys with dsl #dsl"() {
+        given:
+        def projectDir = sample.dir.file(dsl)
+        inDirectory(projectDir)
+
+        when:
+        executer.withEnvironmentVars([
+            ORG_GRADLE_PROJECT_signingKeyId: secretSubkeyId,
+            ORG_GRADLE_PROJECT_signingKey: secretSubkey,
+            ORG_GRADLE_PROJECT_signingPassword: subkeyPassword
+        ])
+        succeeds("signStuffZip")
+
+        then:
+        projectDir.file('build/distributions/stuff.zip.asc').exists()
+
+        where:
+        dsl << ['groovy-subkey', 'kotlin-subkey']
     }
 
     MavenFileRepository repoFor(String dsl) {
@@ -225,4 +253,36 @@ ZZ8X/eH+PzjPrhshJR+f4lP7gh1k34mWtw9vlnvhQEdUQw8=
 -----END PGP PRIVATE KEY BLOCK-----'''
     final password = 'foo'
 
+    final secretSubkey = '''\
+-----BEGIN PGP PRIVATE KEY BLOCK-----
+
+lQCVBF1jpksBBADcYrxfdWFLpzL6M1uilFT6De3jp7cxrD84Z1lCEdJnZ1SSLlxh
+qJnFuptzw2SJLgbe11rkZi9B58i32KGfQeFo4esLC/I2JnfWEP6SFfWNxojrEGL7
+hcVfMZcb7+Umxg7RTvP4eH+P4o4tDPsWzSThQWyfqupngvknDcjEstHnYwARAQAB
+/gNlAkdOVQG0GUdyYWRsZSA8Z3JhZGxlQGxvY2FsaG9zdD6IuAQTAQIAIgUCXWOm
+SwIbAwYLCQgHAwIGFQgCCQoLBBYCAwECHgECF4AACgkQXuXfa+0uJE5gPwP/cFcJ
+3DcU6VVHa1FjQrCYNO9DglmG0AelqhcRNbnaX54nJcean9y2+Y5V6JyAsAwNPFUL
+4/mFQjvYeHrzm5cWExcYwaRukJo3jLve2JKsBtecSnbNWObbrDVZhuOv0mN/zrDd
++uxxBB9/rr+yyTCKLMIzp3RRQvco+b6TTmZICyidAf0EXWOnNAEEAMQSptDgnV5R
+Xh2XYg3jOfKVXIUm1+ocnTZXaPX8oQK8ztYPHYcxNnvxEL4yWqX9OifNF5bQdDNN
+O2218a8/NQWx5anZXHkv6boXhxuydgQlEz+aUVf6O5+k2Xi+fVoOpfC03lYQi0Tm
+wcLxFNP65FZ7pa/TTZH1WcJ7E9IV4kLBABEBAAH+AwMC0D/sjL6p9z9gLcdnJfu9
+LwdhzgvcxeaTiQ45fMwJgtqlllPwdc6S9C7g5l3AO4A5SuqwSATz7CyriPLuJpyC
+6RBea9AqC0Hic3/8Vrl4TH45jApOb7SYGI1EHQD28qbVafC+MPVAeLy7Y7EPeVN9
+kkXKWB6xOm5kclknNKNVfR0U7Ps+ZXdK1+uEomRt6IN8EUWeW+o0VVS2J4YkY9wj
+8/el2CZvWIU881fOBY5rjkISDeunSA2GlyTjv0rhNgYZ87GrqoD2Zk1mLQ+kXktg
+HNLAtzXssDgO+ga3S1nAo1X9LhNzIE1WX0etAkeKkOHIetqWMHkXWU9KHPn7sppT
+lT7kX2oYQ99mNHDKwvru1sCnGKWv3gAReEeymAf9V3GUDhyBJ2pVv8lwderUtZlh
+LJtQOA6vuIvqrN2LoNCILT1CkAeDcnm6wXkJXhMt3HPYjzs0NdvvJs4IoT6/HXb3
+ThU/Dz/AoiKtySv8fIkBPQQYAQIACQUCXWOnNAIbAgCoCRBe5d9r7S4kTp0gBBkB
+AgAGBQJdY6c0AAoJEG5Ev8mCjFTQGMYEALuOyLu87cWW+vJUJptQIdwBn68ZmJnh
+1ruFgn8SOs99mkOOfgO2pvmfAF3rJgDNUVW6Ly29mmwEWZUNYMcp6EZ+ItFglNmv
+FT79DcECUSLdYZNxDy6lj3RMKdhMFx+74JB7A2DX3U0z1tXTqgtr82VDmVuBKXSs
+pNdW+809T5mRJgIEAJ7xapChOfM0z5wXoNVTpDFRoL3Te0PMufMPH9111LXFSPNz
+Uzw93D1R02l5c4l0yPKu6FmGhIg+NhTtxImdkTcN9t52Gc8ZdDfHgOk4qpysZriF
+X7jZiv0UhMlU6Bkj0BAw0hDeB9tTf7FMXt1M/D700sBeMohxug/OF68hMtu2
+=IMnM
+-----END PGP PRIVATE KEY BLOCK-----'''
+    final secretSubkeyId = '828C54D0'
+    final subkeyPassword = 'foo'
 }

@@ -94,7 +94,7 @@ class JavaLibraryDistributionIntegrationTest extends WellBehavedPluginTest {
 
         distributions {
             main {
-                baseName 'SuperApp'
+                distributionBaseName = 'SuperApp'
                 contents {
                     from 'others/dist'
                 }
@@ -103,7 +103,7 @@ class JavaLibraryDistributionIntegrationTest extends WellBehavedPluginTest {
 
         ${mavenCentralRepository()}
         dependencies {
-            runtime 'commons-lang:commons-lang:2.6'
+            runtimeOnly 'commons-lang:commons-lang:2.6'
         }
         """
 
@@ -129,7 +129,7 @@ class JavaLibraryDistributionIntegrationTest extends WellBehavedPluginTest {
         buildFile << """
             apply plugin:'java-library-distribution'
 
-            distributions{
+            distributions {
                 main{
                     baseName = null
                 }
@@ -137,8 +137,9 @@ class JavaLibraryDistributionIntegrationTest extends WellBehavedPluginTest {
             """
 
         expect:
+        executer.noDeprecationChecks()
         runAndFail 'distZip'
-        failure.assertHasCause "Distribution baseName must not be null or empty! Check your configuration of the distribution plugin."
+        failure.assertHasCause "No value has been specified for property 'distributionBaseName'."
     }
 
     def "compile only dependencies are not included in distribution"() {
@@ -150,9 +151,9 @@ class JavaLibraryDistributionIntegrationTest extends WellBehavedPluginTest {
         buildFile << """
 apply plugin:'java-library-distribution'
 
-distributions{
-    main{
-        baseName = 'sample'
+distributions {
+    main {
+        distributionBaseName = 'sample'
     }
 }
 
@@ -161,7 +162,7 @@ repositories {
 }
 
 dependencies {
-    compile 'org.gradle.test:compile:1.0'
+    implementation 'org.gradle.test:compile:1.0'
     compileOnly 'org.gradle.test:compileOnly:1.0'
 }
 """

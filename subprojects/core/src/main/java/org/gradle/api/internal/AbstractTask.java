@@ -18,6 +18,7 @@ package org.gradle.api.internal;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
@@ -51,6 +52,9 @@ import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.services.BuildService;
+import org.gradle.api.services.internal.BuildServiceRegistryInternal;
 import org.gradle.api.specs.AndSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
@@ -59,13 +63,15 @@ import org.gradle.api.tasks.TaskDestroyables;
 import org.gradle.api.tasks.TaskInstantiationException;
 import org.gradle.api.tasks.TaskLocalState;
 import org.gradle.internal.Factory;
-import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.extensibility.ExtensibleDynamicObject;
+import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
+import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.logging.compatbridge.LoggingManagerInternalCompatibilityBridge;
 import org.gradle.internal.logging.slf4j.DefaultContextAwareTaskLogger;
 import org.gradle.internal.metaobject.DynamicObject;
-import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.resources.ResourceLock;
+import org.gradle.internal.resources.SharedResource;
 import org.gradle.internal.scripts.ScriptOrigin;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
@@ -82,6 +88,8 @@ import java.io.File;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -137,6 +145,8 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private String toStringValue;
 
+    private Set<Provider<? extends BuildService<?>>> requiredServices;
+
     protected AbstractTask() {
         this(taskInfo());
     }
@@ -176,7 +186,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private void assertDynamicObject() {
         if (extensibleDynamicObject == null) {
-            extensibleDynamicObject = new ExtensibleDynamicObject(this, identity.type, services.get(Instantiator.class));
+            extensibleDynamicObject = new ExtensibleDynamicObject(this, identity.type, services.get(InstanceGenerator.class));
         }
     }
 
@@ -885,6 +895,14 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         }
 
         @Override
+        public Object set(int index, Object action) {
+            if (action == null) {
+                throw new InvalidUserDataException("Action must not be null!");
+            }
+            return super.set(index, wrap((Action<? super Task>) action));
+        }
+
+        @Override
         public boolean removeAll(Collection actions) {
             return super.removeAll(transformToContextAwareTaskActions(actions));
         }
@@ -928,5 +946,38 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Override
     public Property<Duration> getTimeout() {
         return timeout;
+    }
+
+    @Override
+    public void usesService(Provider<? extends BuildService<?>> service) {
+        taskMutator.mutate("Task.usesService(Provider)", () -> {
+            if (requiredServices == null) {
+                requiredServices = new HashSet<>();
+            }
+            requiredServices.add(service);
+        });
+    }
+
+    public Set<Provider<? extends BuildService<?>>> getRequiredServices() {
+        if (requiredServices == null) {
+            return Collections.emptySet();
+        }
+        return requiredServices;
+    }
+
+    @Override
+    public List<ResourceLock> getSharedResources() {
+        if (requiredServices == null) {
+            return Collections.emptyList();
+        }
+        ImmutableList.Builder<ResourceLock> locks = ImmutableList.builder();
+        BuildServiceRegistryInternal serviceRegistry = getServices().get(BuildServiceRegistryInternal.class);
+        for (Provider<? extends BuildService<?>> service : requiredServices) {
+            SharedResource resource = serviceRegistry.forService(service);
+            if (resource.getMaxUsages() > 0) {
+                locks.add(resource.getResourceLock(1));
+            }
+        }
+        return locks.build();
     }
 }

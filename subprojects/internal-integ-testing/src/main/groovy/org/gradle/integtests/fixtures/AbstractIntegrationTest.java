@@ -37,8 +37,14 @@ public abstract class AbstractIntegrationTest {
     @Rule
     public final TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider();
 
+    @Rule
+    public final UnsupportedWithInstantExecutionRule unsupportedWithInstantExecution = new UnsupportedWithInstantExecutionRule();
+
+    @Rule
+    public final ToBeFixedForInstantExecutionRule toBeFixedForInstantExecution = new ToBeFixedForInstantExecutionRule();
+
     public final GradleDistribution distribution = new UnderDevelopmentGradleDistribution(getBuildContext());
-    public final GradleContextualExecuter executer = new GradleContextualExecuter(distribution, testDirectoryProvider, getBuildContext());
+    public final GradleContextualExecuter executer = createExecuter();
 
     public IntegrationTestBuildContext getBuildContext() {
         return IntegrationTestBuildContext.INSTANCE;
@@ -53,6 +59,10 @@ public abstract class AbstractIntegrationTest {
     @After
     public void cleanup() {
         executer.cleanup();
+    }
+
+    protected GradleContextualExecuter createExecuter() {
+        return new GradleContextualExecuter(distribution, testDirectoryProvider, getBuildContext());
     }
 
     protected GradleDistribution getDistribution() {

@@ -17,46 +17,17 @@
 package org.gradle.kotlin.dsl.precompile
 
 import org.gradle.api.Project
-
-import org.gradle.kotlin.dsl.GradleDsl
-import org.gradle.kotlin.dsl.KotlinScriptTemplate
-import org.gradle.kotlin.dsl.ScriptHandlerScope
+import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.support.delegates.ProjectDelegate
-
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependencySpec
 
-import kotlin.script.extensions.SamWithReceiverAnnotations
-import kotlin.script.templates.ScriptTemplateDefinition
-
 
 /**
- * Script template definition for precompiled Kotlin scripts targeting [Project] instances.
- *
- * A precompiled script is a script compiled as part of a regular Kotlin source-set and distributed
- * in the usual way, java class files packaged in some library, meant to be consumed as a binary
- * Gradle plugin.
- *
- * The Gradle plugin id by which the precompiled script can be referenced is derived from its name
- * and package declaration - if any - in the following fashion:
- *
- * ```kotlin
- *     fun pluginIdFor(script: File, packageName: String?) =
- *         (packageName?.let { "$it." } ?: "") + script.nameWithoutExtension
- * ```
- *
- * Thus, the script `src/main/kotlin/code-quality.gradle.kts` would be exposed as the `code-quality`
- * plugin (assuming it has no package declaration) whereas the script
- * `src/main/kotlin/gradlebuild/code-quality.gradle.kts` would be exposed as the `gradlebuild.code-quality`
- * plugin, again assuming it has the matching package declaration.
+ * Legacy script template definition for precompiled Kotlin scripts targeting [Project] instances.
  */
-@KotlinScriptTemplate
-@ScriptTemplateDefinition(
-    resolver = PrecompiledScriptDependenciesResolver::class,
-    scriptFilePattern = "^.*\\.gradle\\.kts$")
-@SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
-@GradleDsl
-abstract class PrecompiledProjectScript(
+@Deprecated("Kept for compatibility with precompiled script plugins published with Gradle versions prior to 6.0")
+open class PrecompiledProjectScript(
     override val delegate: Project
 ) : ProjectDelegate() {
 

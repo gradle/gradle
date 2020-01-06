@@ -15,6 +15,8 @@
  */
 package org.gradle.integtests
 
+import groovy.io.FileType
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
@@ -22,6 +24,7 @@ import org.gradle.util.TestPrecondition
 
 class WrapperIntegrationTest extends AbstractWrapperIntegrationSpec {
     @Requires(TestPrecondition.MAC_OS_X)
+    @ToBeFixedForInstantExecution
     def "can execute from Finder"() {
         given:
         file("build.gradle") << """
@@ -45,5 +48,35 @@ defaultTasks 'hello'
         ConcurrentTestUtil.poll(60, 1) {
             assert file("hello.txt").exists()
         }
+    }
+
+    def "can recover from a broken distribution"() {
+        buildFile << "task hello"
+        prepareWrapper()
+        def gradleUserHome = testDirectory.file('some-custom-user-home')
+        when:
+        def executer = wrapperExecuter.withGradleUserHomeDir(null)
+        // We can't use a daemon since on Windows the distribution jars will be kept open by the daemon
+        executer.withArguments("-Dgradle.user.home=$gradleUserHome.absolutePath", "--no-daemon")
+        result = executer.withTasks("hello").run()
+        then:
+        result.assertTaskExecuted(":hello")
+
+        when:
+        // Delete important file in distribution
+        boolean deletedSomething = false
+        gradleUserHome.eachFileRecurse(FileType.FILES) { file ->
+            if (file.name.startsWith("gradle-launcher")) {
+                deletedSomething |= file.delete()
+                println("Deleting " + file)
+            }
+        }
+        and:
+        executer.withArguments("-Dgradle.user.home=$gradleUserHome.absolutePath", "--no-daemon")
+        result = executer.withTasks("hello").run()
+        then:
+        deletedSomething
+        result.assertHasErrorOutput("does not appear to contain a Gradle distribution.")
+        result.assertTaskExecuted(":hello")
     }
 }

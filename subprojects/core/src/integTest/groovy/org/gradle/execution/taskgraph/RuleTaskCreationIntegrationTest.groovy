@@ -18,6 +18,7 @@ package org.gradle.execution.taskgraph
 
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.model.internal.core.ModelPath
 
 class RuleTaskCreationIntegrationTest extends AbstractIntegrationSpec implements WithRuleBasedTasks {
@@ -25,6 +26,7 @@ class RuleTaskCreationIntegrationTest extends AbstractIntegrationSpec implements
         buildFile << ruleBasedTasks()
     }
 
+    @ToBeFixedForInstantExecution
     def "can use rule method to create tasks from model"() {
         given:
         buildFile << """
@@ -65,6 +67,7 @@ class RuleTaskCreationIntegrationTest extends AbstractIntegrationSpec implements
         output.contains "b - task b"
     }
 
+    @ToBeFixedForInstantExecution
     def "can use rule DSL to create tasks"() {
         given:
         buildFile << """
@@ -374,7 +377,7 @@ class RuleTaskCreationIntegrationTest extends AbstractIntegrationSpec implements
         succeeds "bar"
 
         then:
-        executedTasks == [":foo", ":bar"]
+        result.assertTasksExecuted(":foo", ":bar")
     }
 
     def "task instantiation and configuration is deferred until required"() {
@@ -466,6 +469,7 @@ foo configured
         failure.assertHasCause("Cannot create 'tasks.a' using creation rule 'MyPlugin#addTasks2(ModelMap<Task>, MyModel) > create(a)' as the rule 'MyPlugin#addTasks1(ModelMap<Task>, MyModel) > create(a)' is already registered to create this model element.")
     }
 
+    @ToBeFixedForInstantExecution
     def "cannot create tasks during config of task"() {
         given:
         buildFile << """
@@ -489,6 +493,7 @@ foo configured
         failure.assertHasCause("Attempt to modify a closed view of model element 'tasks' of type 'ModelMap<Task>' given to rule MyPlugin#addTasks(ModelMap<Task>)")
     }
 
+    @ToBeFixedForInstantExecution
     def "failure during task instantiation is reasonably reported"() {
         given:
         buildFile << """
@@ -516,6 +521,7 @@ foo configured
         failure.assertHasCause("Could not create task of type 'Faulty'")
     }
 
+    @ToBeFixedForInstantExecution
     def "failure during task initial configuration is reasonably reported"() {
         given:
         buildFile << """
@@ -539,6 +545,7 @@ foo configured
         failure.assertHasCause("config failure")
     }
 
+    @ToBeFixedForInstantExecution
     def "failure during task configuration is reasonably reported"() {
         given:
         buildFile << """
@@ -562,9 +569,9 @@ foo configured
         fails "tasks"
 
         then:
-        failure.assertHasCause("Exception thrown while executing model rule: tasks.foo { ... } @ build.gradle line 40, column 17")
+        failure.assertHasCause("Exception thrown while executing model rule: tasks.foo { ... } @ build.gradle line 43, column 17")
         failure.assertHasCause("config failure")
-        failure.assertHasLineNumber(41)
+        failure.assertHasLineNumber(44)
     }
 
     def "can create task with invalid model space name"() {

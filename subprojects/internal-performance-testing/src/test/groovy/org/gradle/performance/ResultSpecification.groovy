@@ -27,7 +27,6 @@ import org.gradle.performance.results.CrossVersionPerformanceTestHistory
 import org.gradle.performance.results.GradleVsMavenBuildPerformanceResults
 import org.gradle.performance.results.MeasuredOperationList
 import org.gradle.performance.results.PerformanceTestHistory
-import org.joda.time.DateTime
 import spock.lang.Specification
 
 abstract class ResultSpecification extends Specification {
@@ -50,6 +49,7 @@ abstract class ResultSpecification extends Specification {
         results.vcsBranch = "master"
         results.vcsCommits = ['123456']
         results.channel = channel
+        results.startTime = new Date().time
         options.each { key, value -> results."$key" = value }
         return results
     }
@@ -62,10 +62,10 @@ abstract class ResultSpecification extends Specification {
                 versionUnderTest: "Gradle 1.0",
                 operatingSystem: "windows",
                 host: "me",
-                startTime: 100,
                 vcsBranch: "master",
                 vcsCommits: ["abcdef"],
-                channel: channel
+                channel: channel,
+                startTime: new Date().time
         )
         options.each { key, value -> results."$key" = value }
         return results
@@ -90,8 +90,6 @@ abstract class ResultSpecification extends Specification {
     MeasuredOperation operation(Map<String, Object> args = [:]) {
         def operation = new MeasuredOperation()
         operation.totalTime = args.totalTime instanceof Amount ? args.totalTime : Duration.millis(args?.totalTime ?: 120)
-        operation.start = args.start instanceof DateTime ? args.start : new DateTime(args?.start ?: 0)
-        operation.end = args.end instanceof DateTime ? args.end : new DateTime(args?.end ?: 0)
         operation.exception = args?.failure
         return operation
     }

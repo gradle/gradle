@@ -22,6 +22,7 @@ plugins {
 dependencies {
     implementation(project(":baseServices"))
     implementation(project(":messaging"))
+    implementation(project(":native"))
     implementation(project(":logging"))
     implementation(project(":processServices"))
     implementation(project(":workerProcesses"))
@@ -41,22 +42,26 @@ dependencies {
     implementation(library("inject"))
     implementation(library("ant")) // only used for DateUtils
 
-    testImplementation(project(":files"))
-    
+    testImplementation(project(":fileCollections"))
+    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":messaging")))
+    testImplementation(testFixtures(project(":platformBase")))
+    testImplementation(testFixtures(project(":logging")))
+    testImplementation(testFixtures(project(":baseServices")))
+
+    testRuntimeOnly(project(":runtimeApiInfo"))
+
+    testFixturesImplementation(project(":baseServices"))
+    testFixturesImplementation(project(":modelCore"))
     testFixturesImplementation(project(":internalTesting"))
     testFixturesImplementation(project(":internalIntegTesting"))
+    testFixturesImplementation(library("guava"))
     testFixturesImplementation(testLibrary("jsoup"))
+
+    integTestRuntimeOnly(project(":testingJunitPlatform"))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.WORKER
 }
 
-testFixtures {
-    from(":core")
-    from(":messaging")
-    from(":platformBase")
-    from(":logging")
-    from(":baseServices")
-    from(":launcher")
-}

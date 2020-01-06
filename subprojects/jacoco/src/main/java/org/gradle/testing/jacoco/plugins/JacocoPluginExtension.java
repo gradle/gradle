@@ -17,15 +17,20 @@ package org.gradle.testing.jacoco.plugins;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
+import org.gradle.api.GradleException;
 import org.gradle.api.Named;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskCollection;
@@ -47,6 +52,9 @@ public class JacocoPluginExtension {
 
     private static final Logger LOGGER = Logging.getLogger(JacocoPluginExtension.class);
     protected final Project project;
+    private final ProviderFactory providerFactory;
+    private final ProjectLayout projectLayout;
+    private final FileOperations fileOperations;
     private final JacocoAgentJar agent;
 
     private String toolVersion;
@@ -61,6 +69,9 @@ public class JacocoPluginExtension {
     public JacocoPluginExtension(Project project, JacocoAgentJar agent) {
         this.project = project;
         this.agent = agent;
+        this.providerFactory = project.getProviders();
+        this.projectLayout = project.getLayout();
+        this.fileOperations = ((ProjectInternal) project).getServices().get(FileOperations.class);
         reportsDir = project.getObjects().property(File.class);
     }
 
@@ -88,7 +99,6 @@ public class JacocoPluginExtension {
      * @param reportsDir Reports directory provider
      * @since 4.0
      */
-    @Incubating
     public void setReportsDir(Provider<File> reportsDir) {
         this.reportsDir.set(reportsDir);
     }
@@ -109,10 +119,10 @@ public class JacocoPluginExtension {
         final String taskName = task.getName();
         LOGGER.debug("Applying Jacoco to " + taskName);
         final JacocoTaskExtension extension = task.getExtensions().create(TASK_EXTENSION_NAME, JacocoTaskExtension.class, project, agent, task);
-        extension.setDestinationFile(project.provider(new Callable<File>() {
+        extension.setDestinationFile(providerFactory.provider(new Callable<File>() {
             @Override
             public File call() {
-                return project.file(String.valueOf(project.getBuildDir()) + "/jacoco/" + taskName + ".exec");
+                return fileOperations.file(projectLayout.getBuildDirectory().get().getAsFile() + "/jacoco/" + taskName + ".exec");
             }
         }));
 
@@ -125,7 +135,10 @@ public class JacocoPluginExtension {
                     // This makes the task cacheable even if multiple JVMs write to same destination file, e.g. when executing tests in parallel.
                     // The JaCoCo agent supports writing in parallel to the same file, see https://github.com/jacoco/jacoco/pull/52.
                     File coverageFile = extension.getDestinationFile();
-                    project.delete(coverageFile);
+                    if (coverageFile == null) {
+                        throw new GradleException("JaCoCo destination file must not be null if output type is FILE");
+                    }
+                    fileOperations.delete(coverageFile);
                 }
             }
         });
@@ -160,6 +173,7 @@ public class JacocoPluginExtension {
             return jacoco.isEnabled() ? ImmutableList.of(jacoco.getAsJvmArg()) : Collections.<String>emptyList();
         }
 
+        @Internal
         @Override
         public String getName() {
             return "jacocoAgent";

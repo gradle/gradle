@@ -1,0 +1,26 @@
+plugins {
+    id 'java'
+    id 'idea'
+    id 'ivy-publish'
+}
+
+group "org.sample"
+version "1.0"
+
+repositories {
+    ivy {
+        name 'localrepo'
+        url file("../../../local-repo")
+    }
+}
+
+publishing {
+    repositories {
+        ivy {
+            url file("../../../local-repo")
+        }
+    }
+    publications {
+        ivy(IvyPublication) { from components.java }
+    }
+}

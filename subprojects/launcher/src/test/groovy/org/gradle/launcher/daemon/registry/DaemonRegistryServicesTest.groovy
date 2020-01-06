@@ -19,7 +19,7 @@ import org.gradle.cache.FileLockManager
 import org.gradle.cache.internal.DefaultFileLockManager
 import org.gradle.cache.internal.ProcessMetaDataProvider
 import org.gradle.cache.internal.locklistener.FileLockContentionHandler
-import org.gradle.internal.nativeintegration.filesystem.Chmod
+import org.gradle.internal.file.Chmod
 import org.gradle.internal.remote.internal.inet.SocketInetAddress
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.launcher.daemon.configuration.DaemonParameters

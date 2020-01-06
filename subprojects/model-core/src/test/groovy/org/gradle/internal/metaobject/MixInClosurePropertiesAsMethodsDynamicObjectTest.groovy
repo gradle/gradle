@@ -16,6 +16,7 @@
 
 package org.gradle.internal.metaobject
 
+import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.internal.extensibility.MixInClosurePropertiesAsMethodsDynamicObject
 import spock.lang.Specification
 
@@ -116,5 +117,62 @@ class MixInClosurePropertiesAsMethodsDynamicObjectTest extends Specification {
         then:
         MissingMethodException e = thrown()
         e.method == "doCall"
+    }
+
+    def "invokes configure method on property whose value is a NamedDomainObjectContainer"() {
+        def container = Mock(NamedDomainObjectContainer)
+        def cl = {}
+
+        def obj1 = Mock(DynamicObject)
+        def obj2 = Mock(DynamicObject)
+        obj.setObjects(obj1, obj2)
+
+        given:
+        obj1.tryInvokeMethod(_, _) >> DynamicInvokeResult.notFound()
+        obj2.tryInvokeMethod(_, _) >> DynamicInvokeResult.notFound()
+        obj1.tryGetProperty("things") >> DynamicInvokeResult.notFound()
+        obj2.tryGetProperty("things") >> DynamicInvokeResult.found(container)
+
+        when:
+        obj.invokeMethod("things", [cl] as Object[])
+
+        then:
+        1 * container.configure(cl)
+    }
+
+    def "fails when parameter is not a single closure"() {
+        def container = Mock(NamedDomainObjectContainer)
+        def cl = {}
+
+        def obj1 = Mock(DynamicObject)
+        obj.setObjects(obj1)
+
+        given:
+        obj1.tryInvokeMethod(_, _) >> DynamicInvokeResult.notFound()
+        obj1.tryGetProperty("things") >> DynamicInvokeResult.found(container)
+
+        when:
+        def result = obj.tryInvokeMethod("things", [cl, 12] as Object[])
+
+        then:
+        !result.isFound()
+    }
+
+    def "fails when property is some other type"() {
+        def value = "not a container"
+        def cl = {}
+
+        def obj1 = Mock(DynamicObject)
+        obj.setObjects(obj1)
+
+        given:
+        obj1.tryInvokeMethod(_, _) >> DynamicInvokeResult.notFound()
+        obj1.tryGetProperty("things") >> DynamicInvokeResult.found(value)
+
+        when:
+        def result = obj.tryInvokeMethod("things", [cl] as Object[])
+
+        then:
+        !result.isFound()
     }
 }

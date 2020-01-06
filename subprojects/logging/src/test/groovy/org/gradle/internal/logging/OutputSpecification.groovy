@@ -16,6 +16,7 @@
 package org.gradle.internal.logging
 
 import org.gradle.api.logging.LogLevel
+import org.gradle.internal.logging.console.StyledTextOutputBackedRenderer
 import org.gradle.internal.logging.events.LogEvent
 import org.gradle.internal.logging.events.ProgressCompleteEvent
 import org.gradle.internal.logging.events.ProgressEvent
@@ -25,8 +26,6 @@ import org.gradle.internal.operations.BuildOperationCategory
 import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.util.TextUtil
 import spock.lang.Specification
-
-import java.text.SimpleDateFormat
 
 abstract class OutputSpecification extends Specification {
 
@@ -41,12 +40,15 @@ abstract class OutputSpecification extends Specification {
      * Returns timestamp representing 10AM today in local time.
      */
     long getTenAm() {
-        return getTime('10:00:00.000')
+        return getTenAmAsDate().getTimeInMillis()
     }
 
-    long getTime(String time) {
-        String today = new SimpleDateFormat("yyyyMMdd").format(new Date())
-        return new SimpleDateFormat('yyyyMMdd HH:mm:ss.SSS').parse(today + ' ' + time).getTime()
+    String getTenAmFormatted() {
+        return getTenAmAsDate().format(StyledTextOutputBackedRenderer.ISO_8601_DATE_TIME_FORMAT)
+    }
+
+    private GregorianCalendar getTenAmAsDate() {
+        new GregorianCalendar(2012, Calendar.JUNE, 11, 10, 0, 0)
     }
 
     LogEvent event(String text) {

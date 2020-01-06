@@ -35,7 +35,7 @@ import java.util.List;
  * operation manages one or more {@link Signature} objects. The {@code sign} methods are used to register things to generate signatures for. The {@link #execute()} method generates the signatures for
  * all of the registered items at that time.
  */
-public class SignOperation implements SignatureSpec {
+abstract public class SignOperation implements SignatureSpec {
 
     /**
      * The file representation of the signature(s).

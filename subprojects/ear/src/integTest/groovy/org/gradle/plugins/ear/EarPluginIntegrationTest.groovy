@@ -29,7 +29,7 @@ import static org.gradle.util.TextUtil.toPlatformLineSeparators
 @TestReproducibleArchives
 class EarPluginIntegrationTest extends AbstractIntegrationSpec {
 
-    void "setup"() {
+    def "setup"() {
         file("rootLib.jar").createNewFile()
         file("earLib.jar").createNewFile()
 
@@ -143,6 +143,22 @@ ear {
         location                      | metaInfFolder   | appConfig
         "in root folder"              | "META-INF"      | ""
         "in specified metaInf folder" | "customMetaInf" | "metaInf { from 'customMetaInf' }"
+    }
+
+    void "skips creating application xml"() {
+        buildFile << """
+apply plugin: 'ear'
+ear {
+    generateDeploymentDescriptor = false
+}
+"""
+
+        when:
+        run 'assemble'
+
+        then:
+        def ear = new JarTestFixture(file('build/libs/root.ear'))
+        ear.assertNotContainsFile("META-INF/application.xml")
     }
 
     @Unroll
@@ -411,8 +427,8 @@ ear {
                 lib {
                     from("rootLib.jar")
                 }
-                archiveName = "test.ear"
-                destinationDir = temporaryDir
+                archiveFileName = "test.ear"
+                destinationDirectory = temporaryDir
             }
         """
         when:
@@ -438,9 +454,9 @@ ear {
                 }
             }
             project(":b") {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
                 dependencies {
-                    compile project(':c')
+                    api project(':c')
                 }
             }
             project(":c") {
@@ -515,7 +531,7 @@ ear {
         ear.assertNotContainsFile("lib/e.jar")
     }
 
-    def "using nested descriptor file name is deprecated"() {
+    def "using nested descriptor file name is not allowed"() {
         buildScript '''
             apply plugin: 'ear'
             
@@ -529,17 +545,11 @@ ear {
             
         '''.stripIndent()
 
-        def deprecationMessage = "File paths in deployment descriptor file name has been deprecated. This is scheduled to be removed in Gradle 6.0. Use simple file name instead."
-
         when:
-        executer.expectDeprecationWarning()
-        run 'assemble'
+        fails 'assemble'
 
         then:
-
-        output.contains(deprecationMessage)
-        def ear = new JarTestFixture(file('build/libs/root.ear'))
-        ear.assertContainsFile("META-INF/nested/blubb.xml")
+        failure.assertHasCause("Deployment descriptor file name must be a simple name but was nested/blubb.xml")
     }
 
 }

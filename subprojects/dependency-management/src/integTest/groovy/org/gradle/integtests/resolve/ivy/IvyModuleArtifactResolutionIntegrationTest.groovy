@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.resolve.MetadataArtifactResolveTestFixture
 import org.gradle.internal.resolve.ArtifactResolveException
 import org.gradle.test.fixtures.ivy.IvyRepository
@@ -41,6 +42,7 @@ repositories {
 """
     }
 
+    @ToBeFixedForInstantExecution
     def "successfully resolve existing Ivy module artifact"() {
         given:
         IvyHttpModule module = publishModule()
@@ -57,6 +59,7 @@ repositories {
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "invalid component type and artifact type (#reason)"() {
         given:
         IvyHttpModule module = publishModule()
@@ -77,6 +80,7 @@ repositories {
         'MavenModule' | 'MavenPomArtifact' | 'cannot retrieve Maven component and metadata artifact for Ivy module'    | new ArtifactResolveException("Could not determine artifacts for some.group:some-artifact:1.0: Cannot locate 'maven pom' artifacts for 'some.group:some-artifact:1.0' in repository 'ivy'")
     }
 
+    @ToBeFixedForInstantExecution
     def "requesting IvyModule for a project component"() {
         given:
         IvyHttpModule module = publishModule()
@@ -93,15 +97,24 @@ repositories {
         checkArtifactsResolvedAndCached()
     }
 
-    def "request an ivy descriptor for an ivy module with no descriptor"() {
+    @ToBeFixedForInstantExecution
+    def "request an ivy descriptor for an ivy module with no descriptor when artifact metadata source are configured"() {
         given:
         IvyHttpModule module = publishModuleWithoutMetadata()
+        buildFile << """
+            repositories.all {
+                metadataSources {
+                    ivyDescriptor()
+                    artifact()
+                }
+            }
+        """
 
         when:
         fixture.requestComponent('IvyModule').requestArtifact('IvyDescriptorArtifact')
                .expectResolvedComponentResult()
                .expectNoMetadataFiles()
-               .expectUnresolvedArtifactResult(ArtifactResolveException, "Could not find ivy.xml (some.group:some-artifact:1.0).")
+               .expectUnresolvedArtifactResult(ArtifactResolveException, "Could not find ivy-1.0.xml (some.group:some-artifact:1.0).")
                .createVerifyTaskModuleComponentIdentifier()
 
         // TODO - should do single request
@@ -113,6 +126,7 @@ repositories {
         checkArtifactsResolvedAndCached()
     }
 
+    @ToBeFixedForInstantExecution
     def "request an ivy descriptor for an ivy module with a custom ivy pattern"() {
         given:
         httpRepo = server.getRemoteIvyRepo(true, "[module]/[revision]", "alternate-ivy.xml", "[artifact](.[ext])")
@@ -144,6 +158,7 @@ repositories {
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "updates artifacts for module #condition"() {
         given:
         IvyHttpModule module = publishModule()

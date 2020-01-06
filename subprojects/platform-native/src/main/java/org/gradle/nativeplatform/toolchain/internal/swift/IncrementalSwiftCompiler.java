@@ -19,23 +19,32 @@ package org.gradle.nativeplatform.toolchain.internal.swift;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
+import org.gradle.internal.file.Deleter;
 import org.gradle.language.base.internal.compile.Compiler;
-import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner;
+import org.gradle.language.base.internal.tasks.StaleOutputCleaner;
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.SwiftCompileSpec;
-import org.gradle.util.GFileUtils;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 
 public class IncrementalSwiftCompiler implements Compiler<SwiftCompileSpec> {
     private final Compiler<SwiftCompileSpec> compiler;
     private final TaskOutputsInternal outputs;
     private final CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory;
+    private final Deleter deleter;
 
-    public IncrementalSwiftCompiler(Compiler<SwiftCompileSpec> compiler, TaskOutputsInternal outputs, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory) {
+    public IncrementalSwiftCompiler(
+        Compiler<SwiftCompileSpec> compiler,
+        TaskOutputsInternal outputs,
+        CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory,
+        Deleter deleter
+    ) {
         this.compiler = compiler;
         this.outputs = outputs;
         this.compilerOutputFileNamingSchemeFactory = compilerOutputFileNamingSchemeFactory;
+        this.deleter = deleter;
     }
 
     @Override
@@ -60,9 +69,12 @@ public class IncrementalSwiftCompiler implements Compiler<SwiftCompileSpec> {
         for (File removedSource : spec.getRemovedSourceFiles()) {
             File objectFile = getObjectFile(spec.getObjectFileDir(), removedSource);
 
-            if (objectFile.delete()) {
-                didRemove = true;
-                GFileUtils.deleteDirectory(objectFile.getParentFile());
+            try {
+                if (deleter.deleteRecursively(objectFile.getParentFile())) {
+                    didRemove = true;
+                }
+            } catch (IOException ex) {
+                throw new UncheckedIOException(ex);
             }
         }
         return didRemove;
@@ -76,9 +88,6 @@ public class IncrementalSwiftCompiler implements Compiler<SwiftCompileSpec> {
     }
 
     private boolean cleanPreviousOutputs(SwiftCompileSpec spec) {
-        SimpleStaleClassCleaner cleaner = new SimpleStaleClassCleaner(outputs);
-        cleaner.addDirToClean(spec.getObjectFileDir());
-        cleaner.execute();
-        return cleaner.getDidWork();
+        return StaleOutputCleaner.cleanOutputs(deleter, outputs.getPreviousOutputFiles(), spec.getObjectFileDir());
     }
 }

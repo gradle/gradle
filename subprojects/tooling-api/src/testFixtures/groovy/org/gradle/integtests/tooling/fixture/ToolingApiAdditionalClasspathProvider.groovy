@@ -25,7 +25,7 @@ import org.gradle.integtests.fixtures.executer.GradleDistribution
 interface ToolingApiAdditionalClasspathProvider {
 
     /**
-     * Additional classpath for given target Gradle distribution to be added to the loader of the test class.
+     * Additional classpath for given TAPI and target Gradle distribution to be added to the loader of the test class.
      */
-    List<File> additionalClasspathFor(GradleDistribution distribution)
+    List<File> additionalClasspathFor(ToolingApiDistribution toolingApi, GradleDistribution distribution)
 }

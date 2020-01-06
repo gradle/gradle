@@ -20,6 +20,7 @@ import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.initialization.StartParameterBuildOptions.BuildCacheDebugLoggingOption
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -36,12 +37,13 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
             
             class NestedBeanWithInput {
                 @Input${kind}
+                @PathSensitive(PathSensitivity.NONE)
                 ${type.name} input
             }
             
             class GeneratorTask extends DefaultTask {
                 @Output${kind}
-                ${type.name} output = project.objects.${factory}()
+                final ${type.name} output = project.objects.${factory}()
                 
                 @TaskAction
                 void doStuff() {
@@ -84,7 +86,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
             
             class GeneratorTask extends DefaultTask {
                 @OutputFile
-                RegularFileProperty outputFile = project.objects.fileProperty()
+                final RegularFileProperty outputFile = project.objects.fileProperty()
                 
                 @TaskAction
                 void doStuff() {
@@ -122,7 +124,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
             
             class GeneratorTask extends DefaultTask {
                 @OutputFile
-                RegularFileProperty outputFile = project.objects.fileProperty()
+                final RegularFileProperty outputFile = project.objects.fileProperty()
                 
                 @TaskAction
                 void doStuff() {
@@ -147,6 +149,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "re-configuring #change in nested bean during execution time is detected"() {
         def fixture = new NestedBeanTestFixture()
 
@@ -185,6 +188,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "re-configuring a nested bean from #from to #to during execution time is detected"() {
         def fixture = new NestedBeanTestFixture()
 
@@ -225,6 +229,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "re-configuring #change in nested bean after the task started executing has no effect"() {
         def fixture = new NestedBeanTestFixture()
         fixture.prepareInputFiles()
@@ -257,6 +262,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "re-configuring a nested bean from #from to #to after the task started executing has no effect"() {
         def fixture = new NestedBeanTestFixture()
         fixture.prepareInputFiles()
@@ -348,7 +354,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
                 Object bean
     
                 @OutputFile
-                RegularFileProperty outputFile = project.objects.fileProperty()
+                final RegularFileProperty outputFile = project.objects.fileProperty()
     
                 @TaskAction
                 void writeInputToFile() {
@@ -467,7 +473,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails "myTask"
-        failure.assertHasDescription("A problem was found with the configuration of task ':myTask'.")
+        failure.assertHasDescription("A problem was found with the configuration of task ':myTask' (type 'TaskWithAbsentNestedInput').")
         failure.assertHasCause("No value has been specified for property 'nested'.")
     }
 
@@ -499,6 +505,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
         succeeds "myTask"
     }
 
+    @ToBeFixedForInstantExecution
     def "changes to nested bean implementation are detected"() {
         buildFile << """
             class TaskWithNestedInput extends DefaultTask {
@@ -573,6 +580,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause('Null is not allowed as nested property \'beans.$1\'')
     }
 
+    @ToBeFixedForInstantExecution
     def "nested iterable beans can be iterables themselves"() {
         buildFile << nestedBeanWithStringInput()
         buildFile << """
@@ -661,6 +669,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
         succeeds "myTask"
     }
 
+    @ToBeFixedForInstantExecution
     def "nested Provider is unpacked"() {
         buildFile << taskWithNestedInput()
         buildFile << nestedBeanWithStringInput()
@@ -686,6 +695,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
         output.contains "Value of input property 'nested.input' has changed for task ':myTask'"
     }
 
+    @ToBeFixedForInstantExecution
     def "input changes for task with named nested beans"() {
         buildFile << taskWithNestedInput()
         buildFile << namedBeanClass()
@@ -712,6 +722,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
         output.contains("Input property 'nested.name1\$0' has been removed for task ':myTask'")
     }
 
+    @ToBeFixedForInstantExecution
     def "input changes for task with nested map"() {
         buildFile << taskWithNestedInput()
         buildFile << nestedBeanWithStringInput()
@@ -764,6 +775,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
             "  Non-cacheable inputs: property 'bean' was loaded with an unknown classloader (class 'NestedBean')."
     }
 
+    @ToBeFixedForInstantExecution
     def "task with nested bean loaded with custom classloader is never up-to-date"() {
         file("input.txt").text = "data"
         buildFile << taskWithNestedBeanFromCustomClassLoader()
@@ -778,6 +790,46 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
         then:
         executedAndNotSkipped ":customTask"
         output.contains "Implementation of input property 'bean' has changed for task ':customTask'"
+    }
+
+    @ToBeFixedForInstantExecution
+    def "changes to nested domain object container are tracked"() {
+        buildFile << taskWithNestedInput()
+        buildFile << """
+            abstract class Bean {
+                @Internal
+                final String name
+                @Input
+                abstract Property<String> getProp()
+
+                Bean(String name) {
+                    this.name = name
+                }
+            }
+        """
+        buildFile << """
+            def domainObjectCollection = objects.domainObjectContainer(Bean)
+            myTask.nested = domainObjectCollection
+            
+            domainObjectCollection.create('first') { prop = project.property('value') }
+            domainObjectCollection.create('second') { prop = '2' }
+        """
+
+        when:
+        run "myTask", "-Pvalue=1"
+        then:
+        executedAndNotSkipped(":myTask")
+
+        when:
+        run "myTask", "-Pvalue=1"
+        then:
+        skipped(":myTask")
+
+        when:
+        run "myTask", "-Pvalue=2", "--info"
+        then:
+        executedAndNotSkipped(":myTask")
+        outputContains("Value of input property 'nested.\$0.prop' has changed for task ':myTask'")
     }
 
     private static String taskWithNestedBeanFromCustomClassLoader() {
@@ -795,7 +847,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
                 import org.gradle.api.tasks.*
 
                 class NestedBean {
-                    @InputFile File input
+                    @InputFile @PathSensitive(PathSensitivity.NONE) File input
                     @OutputFile File output
                 }
             '''
@@ -844,6 +896,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
+    @ToBeFixedForInstantExecution
     def "implementation of nested closure in decorated bean is tracked"() {
         taskWithNestedBeanWithAction()
         buildFile << """
@@ -884,7 +937,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
             import java.io.File;
             
             public class NestedBeanWithAction {
-                Action<File> action;
+                private Action<File> action;
                 
                 public void withAction(Action<File> action) {
                     this.action = action;

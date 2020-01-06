@@ -11,7 +11,7 @@ digraph configurations {
 
    "compileClasspath" [shape="box", label=<<B>compileClasspath</B>(R)>, color="lightblue", bgcolor="lightblue", style="filled"]
    "compileClasspath" -> "compileOnly"
-   "compileOnly" [shape="box", label=<<B>compileOnly</B>(C, R)>, ]
+   "compileOnly" [shape="box", label=<<B>compileOnly</B>>, color="chartreuse3", bgcolor="chartreuse3", style="filled"]
    "compileClasspath" -> "implementation"
    "implementation" [shape="box", label=<<B>implementation</B>>, color="chartreuse3", bgcolor="chartreuse3", style="filled"]
    "implementation" -> "api"

@@ -16,18 +16,24 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.file.FileCollectionInternal;
+import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.internal.DisplayName;
 
-import java.io.File;
-
 /**
- * A visitor over the contents of a {@link ResolvedArtifactSet}.
+ * A visitor over the contents of a {@link ResolvedArtifactSet}. A {@link ResolvedArtifactSet} may contain zero or more sets of files, each set containing zero or more artifacts.
  */
 public interface ArtifactVisitor {
     /**
-     * Visits an artifact. Artifacts are resolved but not necessarily downloaded unless {@link #requireArtifactFiles()} returns true.
+     * Called prior to scheduling resolution of a set of artifacts.
+     */
+    default FileCollectionStructureVisitor.VisitType prepareForVisit(FileCollectionInternal.Source source) {
+        return FileCollectionStructureVisitor.VisitType.Visit;
+    }
+
+    /**
+     * Visits an artifact. Artifacts are resolved but not necessarily available unless {@link #requireArtifactFiles()} returns true.
      */
     void visitArtifact(DisplayName variantName, AttributeContainer variantAttributes, ResolvableArtifact artifact);
 
@@ -39,17 +45,19 @@ public interface ArtifactVisitor {
     boolean requireArtifactFiles();
 
     /**
-     * Should {@link #visitFile(ComponentArtifactIdentifier, DisplayName, AttributeContainer, File)} be called?
-     */
-    boolean includeFiles();
-
-    /**
-     * Visits a file. Should be considered an artifact but is separate as a migration step.
-     */
-    void visitFile(ComponentArtifactIdentifier artifactIdentifier, DisplayName variantName, AttributeContainer variantAttributes, File file);
-
-    /**
      * Called when some problem occurs visiting some element of the set. Visiting may continue.
      */
     void visitFailure(Throwable failure);
+
+    /**
+     * Called for a set that may be backed by a file collection, when {@link #prepareForVisit(FileCollectionInternal.Source)} return {@link FileCollectionStructureVisitor.VisitType#Spec}.
+     */
+    default void visitSpec(FileCollectionInternal spec) {
+    }
+
+    /**
+     * Called after a set of artifacts has been visited.
+     */
+    default void endVisitCollection(FileCollectionInternal.Source source) {
+    }
 }

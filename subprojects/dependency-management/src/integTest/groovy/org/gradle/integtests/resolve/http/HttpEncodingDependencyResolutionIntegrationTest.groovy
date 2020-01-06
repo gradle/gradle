@@ -27,7 +27,7 @@ public class HttpEncodingDependencyResolutionIntegrationTest extends AbstractHtt
         and:
         buildFile << """
 repositories {
-    ivy { url "http://localhost:${server.port}/repo" }
+    ivy { url "${server.uri}/repo" }
 }
 configurations { compile }
 dependencies { compile 'group:projectA:1.2' }

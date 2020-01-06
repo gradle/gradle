@@ -16,8 +16,6 @@
 
 package org.gradle.tooling.model.cpp;
 
-import org.gradle.api.Incubating;
-
 import java.io.File;
 
 /**
@@ -25,7 +23,6 @@ import java.io.File;
  *
  * @since 4.10
  */
-@Incubating
 public interface SourceFile {
     /**
      * Returns the source file.

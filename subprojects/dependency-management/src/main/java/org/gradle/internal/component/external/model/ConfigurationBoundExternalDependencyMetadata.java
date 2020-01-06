@@ -48,10 +48,11 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
     private final String reason;
     private final boolean isTransitive;
     private final boolean isConstraint;
+    private final boolean isEndorsing;
 
     private boolean alwaysUseAttributeMatching;
 
-    private ConfigurationBoundExternalDependencyMetadata(ConfigurationMetadata configuration, ModuleComponentIdentifier componentId, ExternalDependencyDescriptor dependencyDescriptor, boolean alwaysUseAttributeMatching, String reason) {
+    private ConfigurationBoundExternalDependencyMetadata(ConfigurationMetadata configuration, ModuleComponentIdentifier componentId, ExternalDependencyDescriptor dependencyDescriptor, boolean alwaysUseAttributeMatching, String reason, boolean endorsing) {
         this.configuration = configuration;
         this.componentId = componentId;
         this.dependencyDescriptor = dependencyDescriptor;
@@ -59,6 +60,11 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
         this.reason = reason;
         this.isTransitive = dependencyDescriptor.isTransitive();
         this.isConstraint = dependencyDescriptor.isConstraint();
+        this.isEndorsing = endorsing;
+    }
+
+    private ConfigurationBoundExternalDependencyMetadata(ConfigurationMetadata configuration, ModuleComponentIdentifier componentId, ExternalDependencyDescriptor dependencyDescriptor, boolean alwaysUseAttributeMatching, String reason) {
+        this(configuration, componentId, dependencyDescriptor, alwaysUseAttributeMatching, reason, false);
     }
 
     private ConfigurationBoundExternalDependencyMetadata(ConfigurationMetadata configuration, ModuleComponentIdentifier componentId, ExternalDependencyDescriptor dependencyDescriptor, boolean alwaysUseAttributeMatching) {
@@ -142,6 +148,14 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
         return new ConfigurationBoundExternalDependencyMetadata(configuration, componentId, dependencyDescriptor, alwaysUseAttributeMatching, reason);
     }
 
+    @Override
+    public ModuleDependencyMetadata withEndorseStrictVersions(boolean endorse) {
+        if (this.isEndorsing == endorse) {
+            return this;
+        }
+        return new ConfigurationBoundExternalDependencyMetadata(configuration, componentId, dependencyDescriptor, alwaysUseAttributeMatching, reason, endorse);
+    }
+
     public ConfigurationBoundExternalDependencyMetadata withDescriptor(ExternalDependencyDescriptor descriptor) {
         return new ConfigurationBoundExternalDependencyMetadata(configuration, componentId, descriptor, alwaysUseAttributeMatching);
     }
@@ -169,6 +183,11 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
     @Override
     public boolean isConstraint() {
         return isConstraint;
+    }
+
+    @Override
+    public boolean isEndorsingStrictVersions() {
+        return isEndorsing;
     }
 
     @Override

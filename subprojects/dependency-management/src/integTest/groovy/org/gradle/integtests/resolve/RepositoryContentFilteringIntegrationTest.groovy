@@ -202,7 +202,6 @@ class RepositoryContentFilteringIntegrationTest extends AbstractHttpDependencyRe
         mod1.artifact.expectGet()
 
         mod2Maven.pom.expectGetMissing()
-        mod2Maven.artifact.expectHeadMissing()
 
         mod2Ivy.ivy.expectGet()
         mod2Ivy.artifact.expectGet()
@@ -247,7 +246,6 @@ class RepositoryContentFilteringIntegrationTest extends AbstractHttpDependencyRe
         mod1.artifact.expectGet()
 
         mod2Maven.pom.expectGetMissing()
-        mod2Maven.artifact.expectHeadMissing()
 
         mod2Ivy.ivy.expectGet()
         mod2Ivy.artifact.expectGet()

@@ -19,6 +19,7 @@ import org.gradle.api.GradleException
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection
 import org.gradle.api.plugins.scala.ScalaBasePlugin
+import org.gradle.language.scala.internal.toolchain.DefaultScalaToolProvider
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 class ScalaRuntimeTest extends AbstractProjectBuilderSpec {
@@ -27,7 +28,7 @@ class ScalaRuntimeTest extends AbstractProjectBuilderSpec {
         project.pluginManager.apply(ScalaBasePlugin)
     }
 
-    def "inferred Scala class path contains 'scala-compiler' repository dependency matching 'scala-library' Jar found on class path"() {
+    def "inferred Scala class path contains 'scala-compiler' repository dependency and 'compiler-bridge' matching 'scala-library' Jar found on class path"() {
         project.repositories {
             mavenCentral()
         }
@@ -41,11 +42,21 @@ class ScalaRuntimeTest extends AbstractProjectBuilderSpec {
         with(classpath.sourceCollections[0]) {
             it instanceof Configuration
             it.state == Configuration.State.UNRESOLVED
-            it.dependencies.size() == 1
-            with(it.dependencies.iterator().next()) {
-                group == "org.scala-lang"
-                name == "scala-compiler"
-                version == "2.10.1"
+            it.dependencies.size() == 3
+            it.dependencies.any { d ->
+                d.group == "org.scala-lang" &&
+                d.name == "scala-compiler" &&
+                d.version == "2.10.1"
+            }
+            it.dependencies.any { d ->
+                d.group == "org.scala-sbt" &&
+                d.name == "compiler-bridge_2.10" &&
+                d.version == DefaultScalaToolProvider.DEFAULT_ZINC_VERSION
+            }
+            it.dependencies.any { d ->
+                d.group == "org.scala-sbt" &&
+                d.name == "compiler-interface" &&
+                d.version == DefaultScalaToolProvider.DEFAULT_ZINC_VERSION
             }
         }
     }

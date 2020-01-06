@@ -20,7 +20,6 @@ import com.google.common.base.Preconditions
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.rules.ExternalResource
-import org.mortbay.jetty.Handler
 import org.mortbay.jetty.servlet.FilterHolder
 import org.mortbay.jetty.webapp.WebAppContext
 import org.mortbay.servlet.RestFilter
@@ -42,7 +41,7 @@ class HttpBuildCacheServer extends ExternalResource implements HttpServerFixture
     }
 
     @Override
-    Handler getCustomHandler() {
+    WebAppContext getCustomHandler() {
         return webapp
     }
 

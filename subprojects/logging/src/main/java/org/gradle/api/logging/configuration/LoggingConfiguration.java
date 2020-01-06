@@ -16,7 +16,6 @@
 
 package org.gradle.api.logging.configuration;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.logging.LogLevel;
 
 /**
@@ -49,14 +48,12 @@ public interface LoggingConfiguration {
      * Specifies which type of warnings should be written to the console.
      * @since 4.5
      */
-    @Incubating
     WarningMode getWarningMode();
 
     /**
      * Specifies which type of warnings should be written to the console.
      * @since 4.5
      */
-    @Incubating
     void setWarningMode(WarningMode warningMode);
 
     /**

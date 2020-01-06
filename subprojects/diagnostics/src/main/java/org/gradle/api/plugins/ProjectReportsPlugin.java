@@ -18,7 +18,6 @@ package org.gradle.api.plugins;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.plugins.internal.DefaultProjectReportsPluginConvention;
 import org.gradle.api.reporting.dependencies.HtmlDependencyReportTask;
 import org.gradle.api.tasks.diagnostics.DependencyReportTask;
@@ -93,12 +92,7 @@ public class ProjectReportsPlugin implements Plugin<Project> {
         HtmlDependencyReportTask htmlDependencyReportTask = project.getTasks().create(HTML_DEPENDENCY_REPORT,
                 HtmlDependencyReportTask.class);
         htmlDependencyReportTask.setDescription("Generates an HTML report about your library dependencies.");
-        new DslObject(htmlDependencyReportTask.getReports().getHtml()).getConventionMapping().map("destination", new Callable<Object>() {
-            @Override
-            public Object call() throws Exception {
-                return new File(convention.getProjectReportDir(), "dependencies");
-            }
-        });
+        htmlDependencyReportTask.getReports().getHtml().getOutputLocation().convention(project.getLayout().getProjectDirectory().dir(project.provider(() -> new File(convention.getProjectReportDir(), "dependencies").getAbsolutePath())));
         htmlDependencyReportTask.conventionMapping("projects", new Callable<Object>() {
             @Override
             public Object call() throws Exception {

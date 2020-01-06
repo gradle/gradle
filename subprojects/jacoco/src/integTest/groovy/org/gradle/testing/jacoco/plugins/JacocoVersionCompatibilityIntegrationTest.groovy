@@ -17,6 +17,7 @@ package org.gradle.testing.jacoco.plugins
 
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.jacoco.plugins.fixtures.JacocoCoverage
+import org.gradle.testing.jacoco.plugins.fixtures.JacocoReportFixture
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 

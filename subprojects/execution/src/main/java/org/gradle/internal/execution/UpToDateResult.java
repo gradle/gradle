@@ -17,6 +17,9 @@
 package org.gradle.internal.execution;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.caching.internal.origin.OriginMetadata;
+
+import java.util.Optional;
 
 public interface UpToDateResult extends SnapshotResult {
     /**
@@ -24,4 +27,9 @@ public interface UpToDateResult extends SnapshotResult {
      * An empty list means the work was up-to-date and hasn't been executed.
      */
     ImmutableList<String> getExecutionReasons();
+
+    /**
+     * If a previously produced output was reused in some way, the reused output's origin metadata is returned.
+     */
+    Optional<OriginMetadata> getReusedOutputOriginMetadata();
 }

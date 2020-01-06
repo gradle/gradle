@@ -16,8 +16,10 @@
 
 package org.gradle.smoketests
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.android.AndroidHome
 import org.gradle.testkit.runner.TaskOutcome
+import org.gradle.util.VersionNumber
 import spock.lang.Unroll
 
 /**
@@ -30,15 +32,19 @@ import spock.lang.Unroll
  */
 class AndroidPluginsSmokeTest extends AbstractSmokeTest {
 
+
+    public static final String JAVA_COMPILE_DEPRECATION_MESSAGE = "Extending the JavaCompile task has been deprecated. This is scheduled to be removed in Gradle 7.0. Configure the task instead."
+
     def setup() {
         AndroidHome.assertIsSet()
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "android application plugin #pluginVersion"(String pluginVersion) {
         given:
 
-        def basedir='.'
+        def basedir = '.'
 
         def packageName = 'org.gradle.android.example'
         def activity = 'MyActivity'
@@ -77,17 +83,33 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
         """.stripIndent() << androidPluginConfiguration() << activityDependency()
 
         when:
-        def result = runner('androidDependencies', 'build', 'connectedAndroidTest', '-x', 'lint').build()
+        def result = runner(
+            'androidDependencies',
+            'build',
+            'connectedAndroidTest',
+            '-x', 'lint').build()
 
         then:
+        def pluginBaseVersion = VersionNumber.parse(pluginVersion).baseVersion
+        def threeDotSixBaseVersion = VersionNumber.parse("3.6.0").baseVersion
+        if (pluginBaseVersion < threeDotSixBaseVersion) {
+            assert result.output.contains(JAVA_COMPILE_DEPRECATION_MESSAGE)
+        } else {
+            assert !result.output.contains(JAVA_COMPILE_DEPRECATION_MESSAGE)
+        }
         result.task(':assemble').outcome == TaskOutcome.SUCCESS
         result.task(':compileReleaseJavaWithJavac').outcome == TaskOutcome.SUCCESS
+
+        if (pluginBaseVersion >= threeDotSixBaseVersion) {
+            expectNoDeprecationWarnings(result)
+        }
 
         where:
         pluginVersion << TestedVersions.androidGradle
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "android library plugin #pluginVersion"(String pluginVersion) {
         given:
 
@@ -106,6 +128,12 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
             </manifest>""".stripIndent()
 
         writeActivity(app, appPackage, appActivity)
+        file("${app}/src/main/java/UsesLibraryActivity.java") << """
+            public class UsesLibraryActivity {
+                public void consume(${libPackage}.${libraryActivity} activity) {
+                }
+            }
+        """
         file("${app}/src/main/AndroidManifest.xml") << """<?xml version="1.0" encoding="utf-8"?>
             <manifest xmlns:android="http://schemas.android.com/apk/res/android"
                 package="${appPackage}">
@@ -171,11 +199,23 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
         result.task(':library:assemble').outcome == TaskOutcome.SUCCESS
         result.task(':app:compileReleaseJavaWithJavac').outcome == TaskOutcome.SUCCESS
 
+        if (pluginVersion == TestedVersions.androidGradle.latest()) {
+            expectNoDeprecationWarnings(result)
+        }
+
+        when: 'abi change on library'
+        writeActivity(library, libPackage, libraryActivity, true)
+        result = runner('build', '-x', 'lint').build()
+
+        then: 'dependent sources are recompiled'
+        result.task(':library:compileReleaseJavaWithJavac').outcome == TaskOutcome.SUCCESS
+        result.task(':app:compileReleaseJavaWithJavac').outcome == TaskOutcome.SUCCESS
+
         where:
         pluginVersion << TestedVersions.androidGradle
     }
 
-    private String activityDependency() {
+    private static String activityDependency() {
         """
             dependencies {
                 compile 'joda-time:joda-time:2.7'
@@ -183,7 +223,7 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
         """
     }
 
-    private String buildscript(String pluginVersion) {
+    private static String buildscript(String pluginVersion) {
         """
             buildscript {
                 ${jcenterRepository()}
@@ -198,10 +238,10 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
         """.stripIndent()
     }
 
-    private writeActivity(String basedir, String packageName, String className) {
+    private writeActivity(String basedir, String packageName, String className, changed = false) {
         String resourceName = className.toLowerCase()
 
-        file("${basedir}/src/main/java/${packageName.replaceAll('\\.', '/')}/HelloActivity.java") << """
+        file("${basedir}/src/main/java/${packageName.replaceAll('\\.', '/')}/${className}.java").text = """
             package ${packageName};
 
             import org.joda.time.LocalTime;
@@ -210,7 +250,7 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
             import android.os.Bundle;
             import android.widget.TextView;
 
-            public class HelloActivity extends Activity {
+            public class ${className} extends Activity {
 
                 @Override
                 public void onCreate(Bundle savedInstanceState) {
@@ -226,9 +266,10 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
                     textView.setText("The current local time is: " + currentTime);
                 }
 
+                ${changed ? "public void doStuff() {}" : ""}
             }""".stripIndent()
 
-        file("${basedir}/src/main/res/layout/${resourceName}_layout.xml") << '''<?xml version="1.0" encoding="utf-8"?>
+        file("${basedir}/src/main/res/layout/${resourceName}_layout.xml").text = '''<?xml version="1.0" encoding="utf-8"?>
             <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
                 android:orientation="vertical"
                 android:layout_width="fill_parent"

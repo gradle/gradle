@@ -15,7 +15,6 @@
  */
 package org.gradle.tooling;
 
-import org.gradle.api.Incubating;
 import org.gradle.tooling.events.OperationType;
 
 import javax.annotation.Nullable;
@@ -119,7 +118,6 @@ public interface LongRunningOperation {
      * @return this
      * @since 5.0
      */
-    @Incubating
     LongRunningOperation addJvmArguments(String... jvmArguments);
 
     /**
@@ -129,7 +127,6 @@ public interface LongRunningOperation {
      * @return this
      * @since 5.0
      */
-    @Incubating
     LongRunningOperation addJvmArguments(Iterable<String> jvmArguments);
 
     /**
@@ -201,7 +198,6 @@ public interface LongRunningOperation {
      * @return this
      * @since 5.0
      */
-    @Incubating
     LongRunningOperation addArguments(String... arguments);
 
     /**
@@ -211,7 +207,6 @@ public interface LongRunningOperation {
      * @return this
      * @since 5.0
      */
-    @Incubating
     LongRunningOperation addArguments(Iterable<String> arguments);
 
     /**

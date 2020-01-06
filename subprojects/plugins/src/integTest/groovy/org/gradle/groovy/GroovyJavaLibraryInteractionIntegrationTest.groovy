@@ -24,20 +24,29 @@ import spock.lang.Unroll
 
 class GroovyJavaLibraryInteractionIntegrationTest extends AbstractDependencyResolutionTest {
 
-    ResolveTestFixture resolve = new ResolveTestFixture(buildFile, "compileClasspath")
+    ResolveTestFixture resolve
 
     def setup() {
         settingsFile << """
             rootProject.name = 'test'
         """
-        resolve.prepare()
     }
 
     @Issue("https://github.com/gradle/gradle/issues/7398")
     @Unroll
-    def "selects #expected output when #consumerPlugin plugin adds a project dependency to #consumerConf and producer has java-library=#groovyWithJavaLib"(
-            String consumerPlugin, String consumerConf, boolean groovyWithJavaLib, String expected) {
+    def "selects #expected output when #consumerPlugin plugin adds a project dependency to #consumerConf and producer has java-library=#groovyWithJavaLib (compileClasspath)"() {
+        if (deprecatedConfiguration) {
+            executer.expectDeprecationWarning()
+        }
+
         given:
+        resolve = new ResolveTestFixture(buildFile, "compileClasspath")
+        resolve.prepare()
+        if (compileClasspathPackaging) {
+            propertiesFile << """
+                systemProp.org.gradle.java.compile-classpath-packaging=true
+            """.trim()
+        }
         multiProjectBuild('issue7398', ['groovyLib', 'javaLib']) {
             file('groovyLib').with {
                 file('src/main/groovy/GroovyClass.groovy') << "public class GroovyClass {}"
@@ -76,10 +85,11 @@ class GroovyJavaLibraryInteractionIntegrationTest extends AbstractDependencyReso
             root(":javaLib", "org.test:javaLib:1.0") {
                 project(":groovyLib", "org.test:groovyLib:1.0") {
                     variant("apiElements", [
-                            'org.gradle.category': 'library',
-                            'org.gradle.dependency.bundling': 'external',
-                            'org.gradle.jvm.version': JavaVersion.current().majorVersion,
-                            'org.gradle.usage': "java-api-jars"]) // this is a bit curious, it's an artifact of how selection is done
+                        'org.gradle.category': 'library',
+                        'org.gradle.dependency.bundling': 'external',
+                        'org.gradle.jvm.version': JavaVersion.current().majorVersion,
+                        'org.gradle.usage': 'java-api',
+                        'org.gradle.libraryelements': 'jar'])
                     switch (expected) {
                         case "jar":
                             artifact(name: "groovyLib")
@@ -96,17 +106,116 @@ class GroovyJavaLibraryInteractionIntegrationTest extends AbstractDependencyReso
         }
 
         where:
-        consumerPlugin | consumerConf     | groovyWithJavaLib | expected
-        'java-library' | 'api'            | true              | "classes"
-        'java-library' | 'api'            | false             | "jar"
-        'java-library' | 'compile'        | true              | "classes"
-        'java-library' | 'compile'        | false             | "jar"
-        'java-library' | 'implementation' | true              | "classes"
-        'java-library' | 'implementation' | false             | "jar"
+        consumerPlugin | consumerConf     | groovyWithJavaLib | compileClasspathPackaging | expected  | deprecatedConfiguration
+        'java-library' | 'api'            | true              | false                     | "classes" | false
+        'java-library' | 'api'            | false             | false                     | "jar"     | false
+        'java-library' | 'compile'        | true              | false                     | "classes" | true
+        'java-library' | 'compile'        | false             | false                     | "jar"     | true
+        'java-library' | 'implementation' | true              | false                     | "classes" | false
+        'java-library' | 'implementation' | false             | false                     | "jar"     | false
 
-        'java'         | 'compile'        | true              | "classes"
-        'java'         | 'compile'        | false             | "jar"
-        'java'         | 'implementation' | true              | "classes"
-        'java'         | 'implementation' | false             | "jar"
+        'java'         | 'compile'        | true              | false                     | "classes" | true
+        'java'         | 'compile'        | false             | false                     | "jar"     | true
+        'java'         | 'implementation' | true              | false                     | "classes" | false
+        'java'         | 'implementation' | false             | false                     | "jar"     | false
+
+        'java-library' | 'api'            | true              | true                      | "jar"     | false
+        'java-library' | 'api'            | false             | true                      | "jar"     | false
+        'java-library' | 'compile'        | true              | true                      | "jar"     | true
+        'java-library' | 'compile'        | false             | true                      | "jar"     | true
+        'java-library' | 'implementation' | true              | true                      | "jar"     | false
+        'java-library' | 'implementation' | false             | true                      | "jar"     | false
+
+        'java'         | 'compile'        | true              | true                      | "jar"     | true
+        'java'         | 'compile'        | false             | true                      | "jar"     | true
+        'java'         | 'implementation' | true              | true                      | "jar"     | false
+        'java'         | 'implementation' | false             | true                      | "jar"     | false
+    }
+
+    @Unroll
+    def "selects classes when #consumerPlugin plugin adds a project dependency to #consumerConf and producer has java-library=#groovyWithJavaLib (runtime classes variant)"() {
+        if (deprecatedConfiguration) {
+            executer.expectDeprecationWarning()
+        }
+
+        given:
+        resolve = new ResolveTestFixture(buildFile, "runtimeClasspath")
+        resolve.prepare()
+
+        multiProjectBuild('issue7398', ['groovyLib', 'javaLib']) {
+            file('groovyLib').with {
+                file('src/main/groovy/GroovyClass.groovy') << "public class GroovyClass {}"
+                file('build.gradle') << """
+                        ${groovyWithJavaLib ? "apply plugin: 'java-library'" : ''}
+                        apply plugin: 'groovy'
+                        dependencies {
+                            implementation 'org.codehaus.groovy:groovy:2.5.4'
+                        }
+                """
+            }
+            file('javaLib').with {
+                file('src/main/java/JavaClass.java') << "public class JavaClass { GroovyClass reference; }"
+                file('build.gradle') << """
+                        apply plugin: '$consumerPlugin'
+                        dependencies {
+                          $consumerConf project(':groovyLib')
+                        }
+                """
+            }
+        }
+
+        buildFile << """
+            subprojects {
+                
+                ${mavenCentralRepository()}
+                
+                afterEvaluate {
+                    configurations.runtimeClasspath.attributes {
+                        // make sure we explicitly require the "classes" variant
+                        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.CLASSES))
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds 'javaLib:checkDeps'
+
+        executedAndNotSkipped(":groovyLib:compileJava", ":groovyLib:compileGroovy")
+        notExecuted(":groovyLib:classes", ":groovyLib:jar")
+
+        then:
+        resolve.expectGraph {
+            root(":javaLib", "org.test:javaLib:1.0") {
+                project(":groovyLib", "org.test:groovyLib:1.0") {
+                    variant("runtimeElements", [
+                        'org.gradle.category': 'library',
+                        'org.gradle.dependency.bundling': 'external',
+                        'org.gradle.jvm.version': JavaVersion.current().majorVersion,
+                        'org.gradle.usage': 'java-runtime',
+                        'org.gradle.libraryelements': 'jar'])
+
+                    module('org.codehaus.groovy:groovy:2.5.4')
+                    // first one is "main" from Java sources
+                    artifact(name: 'main', noType: true)
+                    // second one is "main" from Groovy sources
+                    artifact(name: 'main', noType: true)
+                }
+            }
+        }
+
+        where:
+        consumerPlugin | consumerConf     | groovyWithJavaLib | deprecatedConfiguration
+        'java-library' | 'api'            | true              | false
+        'java-library' | 'api'            | false             | false
+        'java-library' | 'compile'        | true              | true
+        'java-library' | 'compile'        | false             | true
+        'java-library' | 'implementation' | true              | false
+        'java-library' | 'implementation' | false             | false
+
+        'java'         | 'compile'        | true              | true
+        'java'         | 'compile'        | false             | true
+        'java'         | 'implementation' | true              | false
+        'java'         | 'implementation' | false             | false
     }
 }

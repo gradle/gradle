@@ -15,12 +15,23 @@
  */
 package org.gradle.util
 
-import com.google.common.base.Charsets
 import spock.lang.Specification
 
 import java.nio.CharBuffer
 
-import static org.gradle.util.GUtil.*
+import static org.gradle.util.GUtil.addToCollection
+import static org.gradle.util.GUtil.asPath
+import static org.gradle.util.GUtil.collectionize
+import static org.gradle.util.GUtil.endsWith
+import static org.gradle.util.GUtil.flatten
+import static org.gradle.util.GUtil.flattenElements
+import static org.gradle.util.GUtil.isSecureUrl
+import static org.gradle.util.GUtil.toCamelCase
+import static org.gradle.util.GUtil.toConstant
+import static org.gradle.util.GUtil.toEnum
+import static org.gradle.util.GUtil.toEnumSet
+import static org.gradle.util.GUtil.toLowerCamelCase
+import static org.gradle.util.GUtil.toWords
 
 class GUtilTest extends Specification {
     static sep = File.pathSeparator
@@ -194,54 +205,6 @@ class GUtilTest extends Specification {
         ex.message.contains([null, 3].toString())
     }
 
-    def "write properties file without date comment"() {
-        def out = new ByteArrayOutputStream()
-        def props = new Properties()
-        props.setProperty("foo", "bar")
-
-        when:
-        saveProperties(props, out)
-
-        then:
-        out.toString(Charsets.ISO_8859_1.name()).startsWith("#")
-
-        when:
-        out.reset()
-        savePropertiesNoDateComment(props, out)
-
-        then:
-        out.toString(Charsets.ISO_8859_1.name()).trim() == "foo=bar"
-    }
-
-    def "properties file without comment is encoding correctly and is round trippable"() {
-        def out = new ByteArrayOutputStream()
-        def props = new Properties()
-        props.setProperty("foo\u03A9=FOO", "bar\u2202")
-
-        when:
-        savePropertiesNoDateComment(props, out)
-
-        then:
-        out.toString(Charsets.ISO_8859_1.name()).trim() == "foo\\u03A9\\=FOO=bar\\u2202"
-
-        when:
-        def properties = loadProperties(new ByteArrayInputStream(out.toByteArray()))
-
-        then:
-        properties.getProperty("fooΩ=FOO") == "bar∂"
-    }
-
-    def "can write empty properties with no date comment"() {
-        def out = new ByteArrayOutputStream()
-        def props = new Properties()
-
-        when:
-        savePropertiesNoDateComment(props, out)
-
-        then:
-        out.size() == 0
-    }
-
     def "can convert strings to enums using the enum value names"() {
         expect:
         TestEnum.ENUM1 == toEnum(TestEnum, "ENUM1")
@@ -316,4 +279,18 @@ class GUtilTest extends Specification {
         STANDARD_OUT
     }
 
+
+    def "identifies insecure urls"() {
+        expect:
+        // HTTP is insecure
+        !isSecureUrl(new URI("http://example.com"))
+        !isSecureUrl(new URI("http://localhost"))
+        // Except, we allow 127.0.0.1 to be seen as secure
+        isSecureUrl(new URI("http://127.0.0.1"))
+
+        // HTTPS is secure
+        isSecureUrl(new URI("https://example.com"))
+        isSecureUrl(new URI("https://localhost"))
+        isSecureUrl(new URI("https://127.0.0.1"))
+    }
 }

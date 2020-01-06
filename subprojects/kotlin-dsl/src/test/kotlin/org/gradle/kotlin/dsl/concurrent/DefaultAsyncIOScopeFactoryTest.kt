@@ -32,7 +32,6 @@ import org.junit.Test
 import java.io.IOException
 
 import java.util.concurrent.CompletableFuture
-import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
@@ -69,7 +68,7 @@ class DefaultAsyncIOScopeFactoryTest {
             }
 
             assertThat(
-                await atMost ONE_SECOND untilNotNull { exceptionOrNullFrom { scope.io { } } },
+                awaitExceptionFrom(scope),
                 sameInstance<Throwable>(expectedFailure)
             )
         }
@@ -81,11 +80,10 @@ class DefaultAsyncIOScopeFactoryTest {
         withAsyncIOScopeFactory {
 
             // given: a failure in one scope
-            val failureLatch = CountDownLatch(1)
-            newScope().apply {
+            val failedScope = newScope().apply {
                 io { throw IllegalStateException() }
             }
-            failureLatch.await(1, TimeUnit.SECONDS)
+            awaitExceptionFrom(failedScope)
 
             // then: actions can still be scheduled in separate scope
             val isolatedScopeAction = CompletableFuture<Unit>()
@@ -93,11 +91,15 @@ class DefaultAsyncIOScopeFactoryTest {
                 io { isolatedScopeAction.complete(Unit) }
             }
             assertThat(
-                isolatedScopeAction.get(50, TimeUnit.MILLISECONDS),
+                isolatedScopeAction.get(1, TimeUnit.SECONDS),
                 equalTo(Unit)
             )
         }
     }
+
+    private
+    fun awaitExceptionFrom(scope: IOScope) =
+        await atMost ONE_SECOND untilNotNull { exceptionOrNullFrom { scope.io { } } }
 
     private
     fun exceptionOrNullFrom(action: () -> Unit) = runCatching(action).exceptionOrNull()

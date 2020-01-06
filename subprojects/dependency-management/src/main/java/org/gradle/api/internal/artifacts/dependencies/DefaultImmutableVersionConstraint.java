@@ -40,13 +40,6 @@ public class DefaultImmutableVersionConstraint extends AbstractVersionConstraint
     public DefaultImmutableVersionConstraint(String preferredVersion,
                                              String requiredVersion,
                                              String strictVersion,
-                                             List<String> rejectedVersions) {
-        this(preferredVersion, requiredVersion, strictVersion, rejectedVersions, null);
-    }
-
-    public DefaultImmutableVersionConstraint(String preferredVersion,
-                                             String requiredVersion,
-                                             String strictVersion,
                                              List<String> rejectedVersions,
                                              @Nullable String requiredBranch) {
         if (preferredVersion == null) {
@@ -121,7 +114,7 @@ public class DefaultImmutableVersionConstraint extends AbstractVersionConstraint
         if (versionConstraint instanceof ImmutableVersionConstraint) {
             return (ImmutableVersionConstraint) versionConstraint;
         }
-        return new DefaultImmutableVersionConstraint(versionConstraint.getPreferredVersion(), versionConstraint.getRequiredVersion(), versionConstraint.getStrictVersion(), versionConstraint.getRejectedVersions());
+        return new DefaultImmutableVersionConstraint(versionConstraint.getPreferredVersion(), versionConstraint.getRequiredVersion(), versionConstraint.getStrictVersion(), versionConstraint.getRejectedVersions(), versionConstraint.getBranch());
     }
 
     public static ImmutableVersionConstraint of(String version) {
@@ -132,7 +125,7 @@ public class DefaultImmutableVersionConstraint extends AbstractVersionConstraint
     }
 
     public static ImmutableVersionConstraint of(String preferredVersion, String requiredVersion, String strictVersion, List<String> rejects) {
-        return new DefaultImmutableVersionConstraint(preferredVersion, requiredVersion, strictVersion, rejects);
+        return new DefaultImmutableVersionConstraint(preferredVersion, requiredVersion, strictVersion, rejects, null);
     }
 
     public static ImmutableVersionConstraint of() {

@@ -16,7 +16,6 @@
 package org.gradle.language.nativeplatform.tasks;
 
 import org.gradle.api.DefaultTask;
-import org.gradle.api.Incubating;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
@@ -60,7 +59,6 @@ import java.util.Map;
 /**
  * Compiles native source files into object files.
  */
-@Incubating
 public abstract class AbstractNativeCompileTask extends DefaultTask {
     private final Property<NativePlatform> targetPlatform;
     private final Property<NativeToolChain> toolChain;
@@ -116,7 +114,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     }
 
     @TaskAction
-    public void compile(InputChanges inputs) {
+    protected void compile(InputChanges inputs) {
         BuildOperationLogger operationLogger = getOperationLoggerFactory().newOperationLogger(getName(), getTemporaryDir());
         NativeCompileSpec spec = createCompileSpec();
         spec.setTargetPlatform(targetPlatform.get());

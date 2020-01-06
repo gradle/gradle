@@ -15,37 +15,43 @@
  */
 package org.gradle.api.internal.file
 
+import org.gradle.api.Action
 import org.gradle.api.Buildable
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Task
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
+import org.gradle.api.internal.provider.ProviderInternal
+import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.tasks.TaskProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
-import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
+
+import java.util.function.Function
 
 import static org.apache.commons.io.FileUtils.touch
 import static org.gradle.api.tasks.AntBuilderAwareUtil.assertSetContainsForAllTypes
 import static org.hamcrest.CoreMatchers.equalTo
 
-@UsesNativeServices
 class DefaultSourceDirectorySetTest extends Specification {
     @Rule public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     private final TestFile testDir = tmpDir.testDirectory
     private FileResolver resolver = TestFiles.resolver(testDir)
+    private FileCollectionFactory fileCollectionFactory = TestFiles.fileCollectionFactory(testDir)
     private DirectoryFileTreeFactory directoryFileTreeFactory = TestFiles.directoryFileTreeFactory()
     private ObjectFactory objectFactory = TestUtil.objectFactory()
     private DefaultSourceDirectorySet set
 
     void setup() {
-        set = new DefaultSourceDirectorySet('files', '<display-name>', resolver, directoryFileTreeFactory, objectFactory)
+        set = new DefaultSourceDirectorySet('files', '<display-name>', resolver.patternSetFactory, fileCollectionFactory, directoryFileTreeFactory, objectFactory)
     }
 
     void hasUsefulToString() {
@@ -87,7 +93,7 @@ class DefaultSourceDirectorySetTest extends Specification {
     }
 
     void addsContentsOfAnotherSourceDirectorySet() {
-        SourceDirectorySet nested = new DefaultSourceDirectorySet('nested', '<nested>', resolver, directoryFileTreeFactory, objectFactory)
+        SourceDirectorySet nested = new DefaultSourceDirectorySet('nested', '<nested>', resolver.patternSetFactory, fileCollectionFactory, directoryFileTreeFactory, objectFactory)
         nested.srcDir 'dir1'
 
         when:
@@ -104,7 +110,7 @@ class DefaultSourceDirectorySetTest extends Specification {
     }
 
     void addsSourceDirectoriesOfAnotherSourceDirectorySet() {
-        SourceDirectorySet nested = new DefaultSourceDirectorySet('nested', '<nested>', resolver, directoryFileTreeFactory, objectFactory)
+        SourceDirectorySet nested = new DefaultSourceDirectorySet('nested', '<nested>', resolver.patternSetFactory, fileCollectionFactory, directoryFileTreeFactory, objectFactory)
         nested.srcDir 'dir1'
 
         when:
@@ -121,7 +127,7 @@ class DefaultSourceDirectorySetTest extends Specification {
     }
 
     void settingSourceDirsReplacesExistingContent() {
-        SourceDirectorySet nested = new DefaultSourceDirectorySet('nested', '<nested>', resolver, directoryFileTreeFactory, objectFactory)
+        SourceDirectorySet nested = new DefaultSourceDirectorySet('nested', '<nested>', resolver.patternSetFactory, fileCollectionFactory, directoryFileTreeFactory, objectFactory)
         nested.srcDir 'ignore me'
         set.srcDir 'ignore me as well'
         set.source nested
@@ -188,7 +194,7 @@ class DefaultSourceDirectorySetTest extends Specification {
     }
 
     void convertsNestedDirectorySetsToDirectoryTrees() {
-        SourceDirectorySet nested = new DefaultSourceDirectorySet('nested', '<nested>', resolver, directoryFileTreeFactory, objectFactory)
+        SourceDirectorySet nested = new DefaultSourceDirectorySet('nested', '<nested>', resolver.patternSetFactory, fileCollectionFactory, directoryFileTreeFactory, objectFactory)
         nested.srcDirs 'dir1', 'dir2'
 
         when:
@@ -202,7 +208,7 @@ class DefaultSourceDirectorySetTest extends Specification {
     }
 
     void removesDuplicateDirectoryTrees() {
-        SourceDirectorySet nested = new DefaultSourceDirectorySet('nested', '<nested>', resolver, directoryFileTreeFactory, objectFactory)
+        SourceDirectorySet nested = new DefaultSourceDirectorySet('nested', '<nested>', resolver.patternSetFactory, fileCollectionFactory, directoryFileTreeFactory, objectFactory)
         nested.srcDirs 'dir1', 'dir2'
 
         when:
@@ -309,8 +315,8 @@ class DefaultSourceDirectorySetTest extends Specification {
 
     void setAndItsViewsHaveDependenciesOfAllSourceDirectorySets() {
         given:
-        def nested1 = new DefaultSourceDirectorySet('nested-1', '<nested-1>', resolver, directoryFileTreeFactory, objectFactory)
-        def nested2 = new DefaultSourceDirectorySet('nested-2', '<nested-2>', resolver, directoryFileTreeFactory, objectFactory)
+        def nested1 = new DefaultSourceDirectorySet('nested-1', '<nested-1>', resolver.patternSetFactory, fileCollectionFactory, directoryFileTreeFactory, objectFactory)
+        def nested2 = new DefaultSourceDirectorySet('nested-2', '<nested-2>', resolver.patternSetFactory, fileCollectionFactory, directoryFileTreeFactory, objectFactory)
         def task1 = Stub(Task)
         def task2 = Stub(Task)
         nested1.srcDir dir("dir1", task1)
@@ -385,12 +391,37 @@ class DefaultSourceDirectorySetTest extends Specification {
         assertSetContainsForAllTypes(filteredSet, 'subdir/file1.txt', 'subdir2/file1.txt')
     }
 
+    void "compileBy can be called multiple times and only applies the last mapping"() {
+        given:
+        TaskProvider taskProvider1 = Mock()
+        TaskProvider taskProvider2 = Mock()
+        Function mapping1 = Mock()
+        Function mapping2 = Mock()
+        Action taskAction1
+        Action taskAction2
+        taskProvider1.configure(_) >> { Action action -> taskAction1 = action }
+        taskProvider2.configure(_) >> { Action action -> taskAction2 = action }
+        taskProvider1.flatMap(_) >> Mock(ProviderInternal)
+        taskProvider2.flatMap(_) >> Mock(ProviderInternal)
+
+        when:
+        set.compiledBy(taskProvider1, mapping1)
+        set.compiledBy(taskProvider2, mapping2)
+
+        taskAction1.execute(null)
+        taskAction2.execute(null)
+
+        then:
+        0 * mapping1.apply(_)
+        1 * mapping2.apply(_) >> Mock(DirectoryProperty)
+    }
+
     Set<Task> dependencies(Buildable buildable) {
         return buildable.buildDependencies.getDependencies(null)
     }
 
     FileCollection dir(String dirPath, Task builtBy) {
-        def collection = new DefaultConfigurableFileCollection(dirPath, resolver, null, [dirPath])
+        def collection = new DefaultConfigurableFileCollection(dirPath, resolver, DefaultTaskDependencyFactory.withNoAssociatedProject(), [dirPath])
         collection.builtBy(builtBy)
         return collection
     }

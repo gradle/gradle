@@ -30,6 +30,8 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.security.CodeSource;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -54,13 +56,18 @@ public class ClasspathUtil {
 
     public static ClassPath getClasspath(ClassLoader classLoader) {
         final List<File> implementationClassPath = new ArrayList<File>();
+        collectClasspathOf(classLoader, implementationClassPath);
+        return DefaultClassPath.of(implementationClassPath);
+    }
+
+    public static void collectClasspathOf(ClassLoader classLoader, final Collection<File> classpathFiles) {
         new ClassLoaderVisitor() {
             @Override
             public void visitClassPath(URL[] classPath) {
                 for (URL url : classPath) {
                     if (url.getProtocol() != null && url.getProtocol().equals("file")) {
                         try {
-                            implementationClassPath.add(new File(toURI(url)));
+                            classpathFiles.add(new File(toURI(url)));
                         } catch (URISyntaxException e) {
                             throw UncheckedException.throwAsUncheckedException(e);
                         }
@@ -68,7 +75,6 @@ public class ClasspathUtil {
                 }
             }
         }.visit(classLoader);
-        return DefaultClassPath.of(implementationClassPath);
     }
 
     public static File getClasspathForClass(String targetClassName) {
@@ -153,5 +159,19 @@ public class ClasspathUtil {
                 throw UncheckedException.throwAsUncheckedException(e1);
             }
         }
+    }
+
+    /**
+     * Collects all URLs from {@code startingClassloader} (inclusive) until {@code stopAt} (exclusive) into {@code classpath}.
+     *
+     * If {@code stopAt} is not a parent of {@code startingClassloader}, this effectively collects all URLs from the classloader hierarchy.
+     */
+    public static void collectClasspathUntil(ClassLoader startingClassloader, ClassLoader stopAt, final Set<URL> classpath) {
+        new ClassLoaderVisitor(stopAt) {
+            @Override
+            public void visitClassPath(URL[] classPath) {
+                classpath.addAll(Arrays.asList(classPath));
+            }
+        }.visit(startingClassloader);
     }
 }

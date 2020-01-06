@@ -30,6 +30,8 @@ class DefaultDomainObjectCollectionTest extends AbstractDomainObjectCollectionSp
     StringBuffer c = new StringBuffer("c")
     StringBuilder d = new StringBuilder("d")
     boolean externalProviderAllowed = true
+    boolean directElementAdditionAllowed = true
+    boolean elementRemovalAllowed = true
     boolean supportsBuildOperations = true
     def canGetAllMatchingDomainObjectsOrderedByOrderAdded() {
         def spec = new Spec<CharSequence>() {

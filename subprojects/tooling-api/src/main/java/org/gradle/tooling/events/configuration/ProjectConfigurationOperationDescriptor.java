@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.events.configuration;
 
-import org.gradle.api.Incubating;
 import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.model.ProjectIdentifier;
 
@@ -25,7 +24,6 @@ import org.gradle.tooling.model.ProjectIdentifier;
  *
  * @since 5.1
  */
-@Incubating
 public interface ProjectConfigurationOperationDescriptor extends OperationDescriptor {
     /**
      * Returns the project that is configured by the described operation.

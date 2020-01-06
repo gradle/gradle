@@ -16,7 +16,7 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * limitations under the License.
  */
 plugins {
-    java
+    `java-library`
 }
 // This lib should not have any dependencies.
 gradlebuildJava {

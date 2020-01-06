@@ -46,12 +46,12 @@ open class CheckKotlinCompilerEmbeddableDependencies : DefaultTask() {
     @Suppress("unused")
     fun check() {
         receiptFile.delete()
-        val currentFiles = current.files.sorted()
-        val expectedFiles = expected.files.filterNot { it.name.startsWith("kotlin-compiler-embeddable-") }.sorted()
+        val currentFiles = current.files.map { it.name }.sorted()
+        val expectedFiles = expected.files.map { it.name }.filterNot { it.startsWith("kotlin-compiler-embeddable-") }.sorted()
         require(currentFiles == expectedFiles) {
             var message = "$path dependencies to kotlin-compiler-embeddable dependencies are wrong\n\nexpected:\n\n"
-            message += expected.joinToString(separator = "\n", postfix = "\n\ngot:\n\n") { "  ${it.name}" }
-            message += current.joinToString(separator = "\n", postfix = "\n\n") { "  ${it.name}" }
+            message += expectedFiles.joinToString(separator = "\n", postfix = "\n\ngot:\n\n") { "  $it" }
+            message += currentFiles.joinToString(separator = "\n", postfix = "\n\n") { "  $it" }
             message += "Please fix dependency declarations in ${project.buildFile.relativeTo(project.rootDir)}"
             message
         }

@@ -21,11 +21,17 @@ import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.DefaultFileCollectionFactory;
+import org.gradle.api.internal.file.DefaultFileLookup;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.IdentityFileResolver;
+import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory;
+import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.api.tasks.util.internal.PatternSets;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.DefaultBuildCancellationToken;
+import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
@@ -34,6 +40,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
+import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaExecSpec;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.ProcessForkOptions;
@@ -57,9 +64,11 @@ public class DefaultExecActionFactory implements ExecFactory {
     }
 
     // Do not use this. It's here because some of the services this type needs are not easily accessed in certain cases and will be removed ay some point. Use one of the other methods instead
+    @Deprecated
     public static DefaultExecActionFactory root() {
-        IdentityFileResolver resolver = new IdentityFileResolver();
-        return of(resolver, new DefaultFileCollectionFactory(resolver, null), new DefaultExecutorFactory(), new DefaultBuildCancellationToken());
+        Factory<PatternSet> patternSetFactory = PatternSets.getNonCachingPatternSetFactory();
+        FileResolver resolver = new DefaultFileLookup(patternSetFactory).getFileResolver();
+        return of(resolver, new DefaultFileCollectionFactory(resolver, DefaultTaskDependencyFactory.withNoAssociatedProject(), new DefaultDirectoryFileTreeFactory(), patternSetFactory), new DefaultExecutorFactory(), new DefaultBuildCancellationToken());
     }
 
     public static DefaultExecActionFactory of(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, ExecutorFactory executorFactory) {
@@ -71,13 +80,13 @@ public class DefaultExecActionFactory implements ExecFactory {
     }
 
     @Override
-    public ExecFactory forContext(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator) {
-        return new DecoratingExecActionFactory(fileResolver, fileCollectionFactory, instantiator, executor, buildCancellationToken);
+    public ExecFactory forContext(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, ObjectFactory objectFactory) {
+        return new DecoratingExecActionFactory(fileResolver, fileCollectionFactory, instantiator, executor, buildCancellationToken, objectFactory);
     }
 
     @Override
-    public ExecFactory forContext(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, BuildCancellationToken buildCancellationToken) {
-        return new DecoratingExecActionFactory(fileResolver, fileCollectionFactory, instantiator, executor, buildCancellationToken);
+    public ExecFactory forContext(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, BuildCancellationToken buildCancellationToken, ObjectFactory objectFactory) {
+        return new DecoratingExecActionFactory(fileResolver, fileCollectionFactory, instantiator, executor, buildCancellationToken, objectFactory);
     }
 
     @Override
@@ -91,13 +100,20 @@ public class DefaultExecActionFactory implements ExecFactory {
     }
 
     @Override
+    public JavaForkOptionsInternal newDecoratedJavaForkOptions() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public JavaForkOptionsInternal newJavaForkOptions() {
-        return new DefaultJavaForkOptions(fileResolver, fileCollectionFactory);
+        return new DefaultJavaForkOptions(fileResolver, fileCollectionFactory, new DefaultJavaDebugOptions());
     }
 
     @Override
     public JavaForkOptionsInternal immutableCopy(JavaForkOptionsInternal options) {
-        JavaForkOptionsInternal copy = newJavaForkOptions();
+        // NOTE: We do not want/need a decorated version of JavaForkOptions or JavaDebugOptions because
+        // these immutable instances are held across builds and will retain classloaders/services in the decorated object
+        JavaForkOptionsInternal copy = new DefaultJavaForkOptions(fileResolver, new DefaultFileCollectionFactory(fileResolver, DefaultTaskDependencyFactory.withNoAssociatedProject(), new DefaultDirectoryFileTreeFactory(), PatternSets.getNonCachingPatternSetFactory()), new DefaultJavaDebugOptions());
         options.copyTo(copy);
         return new ImmutableJavaForkOptions(copy);
     }
@@ -109,7 +125,7 @@ public class DefaultExecActionFactory implements ExecFactory {
 
     @Override
     public JavaExecAction newJavaExecAction() {
-        return new DefaultJavaExecAction(fileResolver, fileCollectionFactory, executor, buildCancellationToken);
+        return new DefaultJavaExecAction(fileResolver, fileCollectionFactory, executor, buildCancellationToken, newJavaForkOptions());
     }
 
     @Override
@@ -119,7 +135,7 @@ public class DefaultExecActionFactory implements ExecFactory {
 
     @Override
     public JavaExecHandleBuilder newJavaExec() {
-        return new JavaExecHandleBuilder(fileResolver, fileCollectionFactory, executor, buildCancellationToken);
+        return new JavaExecHandleBuilder(fileResolver, fileCollectionFactory, executor, buildCancellationToken, newJavaForkOptions());
     }
 
     @Override
@@ -149,10 +165,12 @@ public class DefaultExecActionFactory implements ExecFactory {
 
     private static class DecoratingExecActionFactory extends DefaultExecActionFactory {
         private final Instantiator instantiator;
+        private final ObjectFactory objectFactory;
 
-        DecoratingExecActionFactory(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, Executor executor, BuildCancellationToken buildCancellationToken) {
+        DecoratingExecActionFactory(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, Executor executor, BuildCancellationToken buildCancellationToken, ObjectFactory objectFactory) {
             super(fileResolver, fileCollectionFactory, executor, buildCancellationToken);
             this.instantiator = instantiator;
+            this.objectFactory = objectFactory;
         }
 
         @Override
@@ -162,7 +180,13 @@ public class DefaultExecActionFactory implements ExecFactory {
 
         @Override
         public JavaExecAction newDecoratedJavaExecAction() {
-            return instantiator.newInstance(DefaultJavaExecAction.class, fileResolver, fileCollectionFactory, executor, buildCancellationToken);
+            return instantiator.newInstance(DefaultJavaExecAction.class, fileResolver, fileCollectionFactory, executor, buildCancellationToken, newDecoratedJavaForkOptions());
+        }
+
+        @Override
+        public JavaForkOptionsInternal newDecoratedJavaForkOptions() {
+            JavaDebugOptions javaDebugOptions = objectFactory.newInstance(DefaultJavaDebugOptions.class, objectFactory);
+            return instantiator.newInstance(DefaultJavaForkOptions.class, fileResolver, fileCollectionFactory, javaDebugOptions);
         }
     }
 
@@ -354,6 +378,16 @@ public class DefaultExecActionFactory implements ExecFactory {
         }
 
         @Override
+        public JavaDebugOptions getDebugOptions() {
+            return delegate.getDebugOptions();
+        }
+
+        @Override
+        public void debugOptions(Action<JavaDebugOptions> action) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
         public List<String> getAllJvmArgs() {
             return ImmutableList.copyOf(delegate.getAllJvmArgs());
         }
@@ -371,11 +405,6 @@ public class DefaultExecActionFactory implements ExecFactory {
         @Override
         public JavaForkOptions copyTo(JavaForkOptions options) {
             return delegate.copyTo(options);
-        }
-
-        @Override
-        public JavaForkOptionsInternal mergeWith(JavaForkOptions options) {
-            return new ImmutableJavaForkOptions(delegate.mergeWith(options));
         }
 
         @Override

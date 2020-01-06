@@ -20,6 +20,7 @@ import org.custommonkey.xmlunit.Diff
 import org.custommonkey.xmlunit.XMLAssert
 import org.custommonkey.xmlunit.examples.RecursiveElementNameAndTextQualifier
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Resources
@@ -31,17 +32,20 @@ import spock.lang.Unroll
 class SamplesMavenPomGenerationIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Rule
-    public Resources resources = new Resources();
+    public Resources resources = new Resources()
 
     @Rule
     public final Sample sample = new Sample(testDirectoryProvider, 'maven/pomGeneration')
 
     def setup() {
+        // the OLD publish plugins work with the OLD deprecated Java plugin configuration (compile/runtime)
+        executer.noDeprecationChecks()
         executer.requireGradleDistribution()
         using m2 //uploadArchives leaks into local ~/.m2
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "can deploy to local repository with #dsl dsl"() {
         given:
         def pomProjectDir = sample.dir.file(dsl)
@@ -66,6 +70,7 @@ class SamplesMavenPomGenerationIntegrationTest extends AbstractSampleIntegration
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "can install to local repository with #dsl dsl"() {
         given:
         def pomProjectDir = sample.dir.file(dsl)
@@ -100,6 +105,7 @@ class SamplesMavenPomGenerationIntegrationTest extends AbstractSampleIntegration
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "write new pom with #dsl dsl"() {
         given:
         def pomProjectDir = sample.dir.file(dsl)
@@ -115,6 +121,7 @@ class SamplesMavenPomGenerationIntegrationTest extends AbstractSampleIntegration
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "write deployer pom with #dsl dsl"() {
         given:
         def pomProjectDir = sample.dir.file(dsl)

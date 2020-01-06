@@ -24,7 +24,7 @@ plugins {
 dependencies {
     implementation(project(":baseServices"))
     implementation(project(":coreApi"))
-    implementation(project(":messaging"))
+    implementation(project(":files"))
     implementation(project(":native"))
     implementation(project(":persistentCache"))
     implementation(project(":resources"))
@@ -35,31 +35,32 @@ dependencies {
     implementation(library("commons_io"))
     implementation(library("inject"))
 
-    jmh(library("ant")) {
+    jmhImplementation(library("ant")) {
         version {
             prefer(libraryVersion("ant"))
         }
     }
 
-    jmh(library("commons_compress")) {
+    jmhImplementation(library("commons_compress")) {
         version {
             prefer(libraryVersion("commons_compress"))
         }
     }
 
-    jmh("io.airlift:aircompressor:0.8")
-    jmh("org.iq80.snappy:snappy:0.4")
-    jmh("org.kamranzafar:jtar:2.3")
+    jmhImplementation("io.airlift:aircompressor:0.8")
+    jmhImplementation("org.iq80.snappy:snappy:0.4")
+    jmhImplementation("org.kamranzafar:jtar:2.3")
 
     testImplementation(project(":modelCore"))
-    testImplementation(project(":files"))
+    testImplementation(project(":fileCollections"))
+    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":baseServices")))
+    testRuntimeOnly(project(":workers"))
+    testRuntimeOnly(project(":dependencyManagement"))
+    testRuntimeOnly(project(":runtimeApiInfo"))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
 }
 
-testFixtures {
-    from(":core")
-    from(":baseServices")
-}

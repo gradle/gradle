@@ -17,8 +17,10 @@
 package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 class CrashingBuildsArtifactTransformIntegrationTest extends AbstractDependencyResolutionTest {
+    @ToBeFixedForInstantExecution
     def "cleans up cached output after build process crashes during transform"() {
         given:
         buildFile << """
@@ -26,32 +28,39 @@ class CrashingBuildsArtifactTransformIntegrationTest extends AbstractDependencyR
 enum Color { Red, Green, Blue }
 def type = Attribute.of("artifactType", String)
 
-class ToColor extends ArtifactTransform {
-    Color color
+abstract class ToColor implements TransformAction<Parameters> {
+    interface Parameters extends TransformParameters {
+        @Input
+        Property<Color> getColor()
+    }
 
-    @javax.inject.Inject
-    ToColor(Color color) { this.color = color }
+    @InputArtifact
+    abstract Provider<FileSystemLocation> getInputArtifact()
 
-    List<File> transform(File input) {
+    void transform(TransformOutputs outputs) {
+        def input = inputArtifact.get().asFile
+        def color = parameters.color.get()
+        def one = outputs.file("one")
+        def outputDirectory = one.parentFile
         assert outputDirectory.directory && outputDirectory.list().length == 0
         println "Transforming \$input.name to \$color"
-        def one = new File(outputDirectory, "one")
         one.text = "one"
         // maybe killed here
         if (System.getProperty("crash")) {
             Runtime.runtime.halt(1)
         }
-        def two = new File(outputDirectory, "two")
+        def two = outputs.file("two")
         two.text = "two"
-        [one, two]
     }
 }
 
 dependencies {
-    registerTransform {
+    registerTransform(ToColor) {
         from.attribute(type, "jar")
         to.attribute(type, "red")
-        artifactTransform(ToColor) { params(Color.Red) }
+        parameters {
+            color = Color.Red
+        }
     }
 }
 

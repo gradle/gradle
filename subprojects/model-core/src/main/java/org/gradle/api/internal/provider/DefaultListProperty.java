@@ -35,19 +35,8 @@ public class DefaultListProperty<T> extends AbstractCollectionProperty<T, List<T
     }
 
     @Override
-    public Factory managedFactory() {
-        return new Factory() {
-            @Nullable
-            @Override
-            public <S> S fromState(Class<S> type, Object state) {
-                if (!type.isAssignableFrom(ListProperty.class)) {
-                    return null;
-                }
-                DefaultListProperty<T> property = new DefaultListProperty<>(DefaultListProperty.this.getElementType());
-                property.set((List<T>) state);
-                return type.cast(property);
-            }
-        };
+    public int getFactoryId() {
+        return ManagedFactories.ListPropertyManagedFactory.FACTORY_ID;
     }
 
     @Override
@@ -58,6 +47,18 @@ public class DefaultListProperty<T> extends AbstractCollectionProperty<T, List<T
     @Override
     public ListProperty<T> empty() {
         super.empty();
+        return this;
+    }
+
+    @Override
+    public ListProperty<T> value(@Nullable Iterable<? extends T> elements) {
+        super.value(elements);
+        return this;
+    }
+
+    @Override
+    public ListProperty<T> value(Provider<? extends Iterable<? extends T>> provider) {
+        super.value(provider);
         return this;
     }
 

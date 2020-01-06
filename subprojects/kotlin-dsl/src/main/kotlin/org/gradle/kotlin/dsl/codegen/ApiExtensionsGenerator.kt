@@ -19,10 +19,9 @@
 package org.gradle.kotlin.dsl.codegen
 
 import org.gradle.api.file.RelativePath
-import org.gradle.api.specs.Spec
+import org.gradle.api.internal.file.pattern.PatternMatcher
 import org.gradle.kotlin.dsl.support.appendReproducibleNewLine
 import org.gradle.kotlin.dsl.support.useToRun
-
 import java.io.File
 
 
@@ -34,7 +33,7 @@ import java.io.File
  * @param sourceFilesBaseName the base name for generated source files
  * @param classPath the api classpath elements
  * @param classPathDependencies the api classpath dependencies
- * @param sec the api include/exclude spec
+ * @param apiSpec the api include/exclude spec
  * @param parameterNamesSupplier the api function parameter names
  *
  * @return the list of generated source files
@@ -46,7 +45,7 @@ fun generateKotlinDslApiExtensionsSourceTo(
     sourceFilesBaseName: String,
     classPath: List<File>,
     classPathDependencies: List<File>,
-    apiSpec: Spec<RelativePath>,
+    apiSpec: PatternMatcher,
     parameterNamesSupplier: ParameterNamesSupplier
 ): List<File> =
 
@@ -97,11 +96,14 @@ fun writeExtensionsTo(outputFile: File, packageName: String, extensions: List<Ko
 private
 fun kotlinDslApiExtensionsDeclarationsFor(
     api: ApiTypeProvider,
-    apiSpec: Spec<RelativePath>
+    apiSpec: PatternMatcher
 ): Sequence<KotlinExtensionFunction> =
 
     api.allTypes()
-        .filter { type -> type.isPublic && apiSpec.isSatisfiedBy(relativeSourcePathOf(type)) }
+        .filter { type ->
+            val relativeSourcePath = relativeSourcePathOf(type)
+            type.isPublic && apiSpec.test(relativeSourcePath.segments, relativeSourcePath.isFile)
+        }
         .flatMap { type -> kotlinExtensionFunctionsFor(type) }
         .distinctBy(::signatureKey)
 

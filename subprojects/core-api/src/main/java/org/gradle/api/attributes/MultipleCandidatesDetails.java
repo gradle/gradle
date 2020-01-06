@@ -15,8 +15,6 @@
  */
 package org.gradle.api.attributes;
 
-import org.gradle.api.Incubating;
-
 import javax.annotation.Nullable;
 import java.util.Set;
 
@@ -34,7 +32,6 @@ public interface MultipleCandidatesDetails<T> {
      * @return The value or {@code null} if the consumer did not specify a value.
      * @since 4.1
      */
-    @Incubating
     @Nullable
     T getConsumerValue();
 

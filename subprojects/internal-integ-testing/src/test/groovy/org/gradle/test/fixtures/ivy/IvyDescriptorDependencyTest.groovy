@@ -20,9 +20,9 @@ import spock.lang.Specification
 
 class IvyDescriptorDependencyTest extends Specification {
 
-    def "can check if given conf attribute is set"() {
+    def "can check if given confs attribute is set"() {
         given:
-        IvyDescriptorDependency ivyDescriptorDependency = new IvyDescriptorDependency(conf: givenConf)
+        IvyDescriptorDependency ivyDescriptorDependency = new IvyDescriptorDependency(confs: [givenConf])
 
         when:
         boolean matchingConf = ivyDescriptorDependency.hasConf(expectedConf)

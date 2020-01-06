@@ -20,16 +20,22 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
+import org.gradle.internal.resources.ResourceLock;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
+import java.util.List;
 import java.util.NavigableSet;
 import java.util.Set;
+import java.util.function.Consumer;
 
 /**
  * A node in the execution graph that represents some executable code with potential dependencies on other nodes.
  */
 public abstract class Node implements Comparable<Node> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(Node.class);
 
     @VisibleForTesting
     enum ExecutionState {
@@ -42,6 +48,7 @@ public abstract class Node implements Comparable<Node> {
     private Throwable executionFailure;
     private final NavigableSet<Node> dependencySuccessors = Sets.newTreeSet();
     private final NavigableSet<Node> dependencyPredecessors = Sets.newTreeSet();
+    private MutationInfo mutationInfo = new MutationInfo(this);
 
     public Node() {
         this.state = ExecutionState.UNKNOWN;
@@ -103,24 +110,28 @@ public abstract class Node implements Comparable<Node> {
 
     public abstract void rethrowNodeFailure();
 
-    public void startExecution() {
+    public void startExecution(Consumer<Node> nodeStartAction) {
         assert isReady();
         state = ExecutionState.EXECUTING;
+        nodeStartAction.accept(this);
     }
 
-    public void finishExecution() {
+    public void finishExecution(Consumer<Node> completionAction) {
         assert state == ExecutionState.EXECUTING;
         state = ExecutionState.EXECUTED;
+        completionAction.accept(this);
     }
 
-    public void skipExecution() {
+    public void skipExecution(Consumer<Node> completionAction) {
         assert state == ExecutionState.SHOULD_RUN;
         state = ExecutionState.SKIPPED;
+        completionAction.accept(this);
     }
 
-    public void abortExecution() {
+    public void abortExecution(Consumer<Node> completionAction) {
         assert isReady();
         state = ExecutionState.SKIPPED;
+        completionAction.accept(this);
     }
 
     public void require() {
@@ -167,19 +178,22 @@ public abstract class Node implements Comparable<Node> {
         return dependencySuccessors;
     }
 
-    protected void addDependencySuccessor(Node toNode) {
+    public void addDependencySuccessor(Node toNode) {
         dependencySuccessors.add(toNode);
-        toNode.dependencyPredecessors.add(this);
+        toNode.getDependencyPredecessors().add(this);
     }
 
     @OverridingMethodsMustInvokeSuper
     protected boolean doCheckDependenciesComplete() {
+        LOGGER.debug("Checking if all dependencies are complete for {}", this);
         for (Node dependency : dependencySuccessors) {
             if (!dependency.isComplete()) {
+                LOGGER.debug("Dependency {} for {} not yet completed", dependency, this);
                 return false;
             }
         }
 
+        LOGGER.debug("All dependencies are complete for {}", this);
         return true;
     }
 
@@ -248,6 +262,12 @@ public abstract class Node implements Comparable<Node> {
 
     public abstract Set<Node> getFinalizers();
 
+    public MutationInfo getMutationInfo() {
+        return mutationInfo;
+    }
+
+    public abstract void resolveMutations();
+
     public abstract boolean isPublicNode();
 
     /**
@@ -258,12 +278,26 @@ public abstract class Node implements Comparable<Node> {
     public abstract boolean requiresMonitoring();
 
     /**
-     * Returns the project which the node requires access to, if any.
+     * Returns the project which this node requires mutable access to, if any.
      *
-     * This should return an identifier or the {@link org.gradle.api.internal.project.ProjectState} container, or some abstract resource, rather than the mutable project state itself.
+     * TODO - this should return an identifier or the {@link org.gradle.api.internal.project.ProjectState} container, or some abstract resource, rather than the mutable project state itself.
      */
     @Nullable
-    public abstract Project getProject();
+    public abstract Project getProjectToLock();
+
+    /**
+     * Returns the project which this node belongs to, and requires access to the execution services of.
+     * Returning non-null does not imply that the project must be locked when this node executes. Use {@link #getProjectToLock()} instead for that.
+     *
+     * TODO - this should return some kind of abstract 'action context' instead of a mutable project.
+     */
+    @Nullable
+    public abstract Project getOwningProject();
+
+    /**
+     * Returns the resources which should be locked before starting this node.
+     */
+    public abstract List<? extends ResourceLock> getResourcesToLock();
 
     @Override
     public abstract String toString();

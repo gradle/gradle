@@ -16,7 +16,6 @@
 
 package org.gradle.api.artifacts.result;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 
@@ -38,7 +37,6 @@ public interface ResolvedVariantResult {
      *
      * @since 4.6
      */
-    @Incubating
     String getDisplayName();
 
     /**
@@ -46,6 +44,5 @@ public interface ResolvedVariantResult {
      *
      * @since 5.3
      */
-    @Incubating
     List<Capability> getCapabilities();
 }

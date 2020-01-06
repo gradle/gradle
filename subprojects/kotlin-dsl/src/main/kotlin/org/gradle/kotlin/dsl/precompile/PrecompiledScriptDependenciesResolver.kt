@@ -33,7 +33,27 @@ class PrecompiledScriptDependenciesResolver : ScriptDependenciesResolver {
 
     companion object {
 
-        fun hashOf(charSequence: CharSequence?) = Hashing.hashString(charSequence).toString()
+        fun hashOf(charSequence: CharSequence) = Hashing.hashString(charSequence).toString()
+
+        fun implicitImportsForScript(scriptText: CharSequence, environment: Environment?) =
+            implicitImportsFrom(environment) + precompiledScriptPluginImportsFrom(environment, scriptText)
+
+        private
+        fun implicitImportsFrom(environment: Environment?) =
+            environment.stringList(EnvironmentProperties.kotlinDslImplicitImports)
+
+        private
+        fun precompiledScriptPluginImportsFrom(environment: Environment?, scriptText: CharSequence): List<String> =
+            environment.stringList(hashOf(scriptText))
+
+        private
+        fun Environment?.stringList(key: String) =
+            string(key)?.split(':')
+                ?: emptyList()
+
+        private
+        fun Environment?.string(key: String) =
+            this?.get(key) as? String
     }
 
     object EnvironmentProperties {
@@ -49,26 +69,11 @@ class PrecompiledScriptDependenciesResolver : ScriptDependenciesResolver {
 
         PseudoFuture(
             KotlinBuildScriptDependencies(
-                imports = implicitImportsFrom(environment) + precompiledScriptPluginImportsFrom(environment, script),
                 classpath = emptyList(),
-                sources = emptyList()
+                sources = emptyList(),
+                imports = implicitImportsForScript(script.text!!, environment),
+                javaHome = null,
+                classPathBlocksHash = null
             )
         )
-
-    private
-    fun implicitImportsFrom(environment: Environment?) =
-        environment.stringList(EnvironmentProperties.kotlinDslImplicitImports)
-
-    private
-    fun precompiledScriptPluginImportsFrom(environment: Environment?, script: ScriptContents): List<String> =
-        environment.stringList(hashOf(script.text))
-
-    private
-    fun Environment?.stringList(key: String) =
-        string(key)?.split(':')
-            ?: emptyList()
-
-    private
-    fun Environment?.string(key: String) =
-        this?.get(key) as? String
 }

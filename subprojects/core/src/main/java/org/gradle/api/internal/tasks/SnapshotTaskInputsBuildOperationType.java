@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks;
 
+import org.gradle.internal.fingerprint.FingerprintingStrategy;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
@@ -36,7 +37,7 @@ public final class SnapshotTaskInputsBuildOperationType implements BuildOperatio
 
     @UsedByScanPlugin
     public interface Details {
-
+        SnapshotTaskInputsBuildOperationType.Details INSTANCE = new SnapshotTaskInputsBuildOperationType.Details() {};
     }
 
     /**
@@ -155,6 +156,9 @@ public final class SnapshotTaskInputsBuildOperationType implements BuildOperatio
 
             byte[] getPropertyHashBytes();
 
+            /**
+             * These come from {@link FingerprintingStrategy#getIdentifier()} and must not be changed.
+             */
             String getPropertyNormalizationStrategyName();
 
             String getPath();

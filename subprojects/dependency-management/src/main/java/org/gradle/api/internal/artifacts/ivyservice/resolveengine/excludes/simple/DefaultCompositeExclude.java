@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.CompositeExclude;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 
-import java.util.Iterator;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -32,8 +31,10 @@ abstract class DefaultCompositeExclude implements CompositeExclude {
     DefaultCompositeExclude(ImmutableSet<ExcludeSpec> components) {
         this.components = components;
         this.size = components.size();
-        this.hashCode = 31 * components.hashCode() + this.size ^ this.getClass().hashCode();
+        this.hashCode = (31 * components.hashCode() + this.size) ^ mask();
     }
+
+    abstract int mask();
 
     @Override
     public boolean equals(Object o) {
@@ -45,53 +46,6 @@ abstract class DefaultCompositeExclude implements CompositeExclude {
         }
         DefaultCompositeExclude that = (DefaultCompositeExclude) o;
         return hashCode == that.hashCode && Objects.equal(components, that.components);
-    }
-
-    @Override
-    public boolean equalsIgnoreArtifact(ExcludeSpec o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        DefaultCompositeExclude that = (DefaultCompositeExclude) o;
-        return equalsIgnoreArtifact(components, that.components);
-    }
-
-    private boolean equalsIgnoreArtifact(ImmutableSet<ExcludeSpec> components, ImmutableSet<ExcludeSpec> other) {
-        if (components == other) {
-            return true;
-        }
-        if (components.size() != other.size()) {
-            return false;
-        }
-        return compareExcludingArtifacts(components, other);
-    }
-
-    private boolean compareExcludingArtifacts(ImmutableSet<ExcludeSpec> components, ImmutableSet<ExcludeSpec> other) {
-        // The fast check iterator is there assuming that we have 2 collections with identical contents
-        // in which case we can perform a faster check for sets, as if they were lists
-        Iterator<ExcludeSpec> fastCheckIterator = other.iterator();
-        for (ExcludeSpec component : components) {
-            boolean found = false;
-            if (fastCheckIterator != null && fastCheckIterator.next().equalsIgnoreArtifact(component)) {
-                break;
-            }
-            // we're unlucky, sets are either different, or in a different order
-            fastCheckIterator = null;
-            for (ExcludeSpec o : other) {
-                if (component.equalsIgnoreArtifact(o)) {
-                    found = true;
-                    break;
-                }
-            }
-            if (!found) {
-                // fast exit, when sets are actually different
-                return false;
-            }
-        }
-        return true;
     }
 
     @Override
@@ -116,7 +70,7 @@ abstract class DefaultCompositeExclude implements CompositeExclude {
 
     @Override
     public String toString() {
-        return "{" + getDisplayName() +
+        return "{\"" + getDisplayName() + "\": " +
             " " + components +
             '}';
     }

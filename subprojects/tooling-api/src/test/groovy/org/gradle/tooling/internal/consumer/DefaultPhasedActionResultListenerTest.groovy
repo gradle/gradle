@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.internal.consumer
 
-import org.gradle.testing.internal.util.Specification
+import spock.lang.Specification
 import org.gradle.tooling.IntermediateResultHandler
 import org.gradle.tooling.internal.protocol.PhasedActionResult
 

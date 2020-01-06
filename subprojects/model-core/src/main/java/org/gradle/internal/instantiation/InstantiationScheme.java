@@ -16,7 +16,6 @@
 
 package org.gradle.internal.instantiation;
 
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceLookup;
 
 import java.lang.annotation.Annotation;
@@ -46,7 +45,7 @@ public interface InstantiationScheme {
     /**
      * Returns the instantiator which creates instances using a default set of services, based on the configuration of this scheme.
      */
-    Instantiator instantiator();
+    InstanceGenerator instantiator();
 
     /**
      * Returns an instantiator that creates instances to be deserialized, based on the configuration of this scheme.

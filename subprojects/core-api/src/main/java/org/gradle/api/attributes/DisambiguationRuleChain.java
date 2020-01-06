@@ -18,7 +18,6 @@ package org.gradle.api.attributes;
 
 import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
-import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 
 import java.util.Comparator;
@@ -50,7 +49,6 @@ public interface DisambiguationRuleChain<T> {
      * @param rule the rule to add
      * @since 4.0
      */
-    @Incubating
     void add(Class<? extends AttributeDisambiguationRule<T>> rule);
 
     /**
@@ -60,7 +58,6 @@ public interface DisambiguationRuleChain<T> {
      * @param configureAction the action to use to configure the rule
      * @since 4.0
      */
-    @Incubating
     void add(Class<? extends AttributeDisambiguationRule<T>> rule, Action<? super ActionConfiguration> configureAction);
 
     /**

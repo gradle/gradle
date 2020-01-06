@@ -18,12 +18,15 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact
 
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.attributes.Attribute
-import org.gradle.api.file.FileCollection
+import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.internal.artifacts.transform.VariantSelector
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry
+import org.gradle.api.internal.file.FileCollectionInternal
+import org.gradle.api.internal.file.FileCollectionStructureVisitor
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
+import org.gradle.internal.DisplayName
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata
 import org.gradle.internal.component.local.model.OpaqueComponentArtifactIdentifier
@@ -41,7 +44,7 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
 
     def "has build dependencies"() {
         def fileBuildDependencies = Stub(TaskDependency)
-        def files = Stub(FileCollection)
+        def files = Stub(FileCollectionInternal)
         def visitor = Mock(TaskDependencyResolveContext)
 
         given:
@@ -64,7 +67,7 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
         set.startVisit(Stub(BuildOperationQueue), listener).visit(visitor)
 
         then:
-        1 * listener.includeFileDependencies() >> false
+        1 * listener.prepareForVisit(_) >> FileCollectionStructureVisitor.VisitType.NoContents
         0 * _
     }
 
@@ -79,7 +82,7 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
 
         then:
         _ * dep.componentId >> id
-        _ * listener.includeFileDependencies() >> true
+        _ * listener.prepareForVisit(_) >> FileCollectionStructureVisitor.VisitType.Visit
         1 * filter.isSatisfiedBy(id) >> false
         0 * _
 
@@ -95,7 +98,7 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
         def f2 = new File("a.dll")
         def listener = Mock(ResolvedArtifactSet.AsyncArtifactListener)
         def visitor = Mock(ArtifactVisitor)
-        def files = Mock(FileCollection)
+        def files = Mock(FileCollectionInternal)
 
         when:
         set.startVisit(Stub(BuildOperationQueue), listener).visit(visitor)
@@ -115,7 +118,7 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
         def id = Stub(ComponentIdentifier)
         def listener = Mock(ResolvedArtifactSet.AsyncArtifactListener)
         def visitor = Mock(ArtifactVisitor)
-        def files = Mock(FileCollection)
+        def files = Mock(FileCollectionInternal)
         def attrs1 = attributesFactory.of(Attribute.of('attr', String), 'value1')
         def attrs2 = attributesFactory.of(Attribute.of('attr', String), 'value2')
 
@@ -125,12 +128,12 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
         then:
         _ * dep.componentId >> id
         _ * dep.files >> files
-        _ * listener.includeFileDependencies() >> true
+        _ * listener.prepareForVisit(_) >> FileCollectionStructureVisitor.VisitType.Visit
         _ * filter.isSatisfiedBy(_) >> true
         1 * files.files >> ([f1, f2] as Set)
         2 * selector.select(_) >> { ResolvedVariantSet variants -> variants.variants.first() }
-        1 * listener.fileAvailable(f1)
-        1 * listener.fileAvailable(f2)
+        1 * listener.artifactAvailable({ it.file == f1 })
+        1 * listener.artifactAvailable({ it.file == f2 })
         1 * artifactTypeRegistry.mapAttributesFor(f1) >> attrs1
         1 * artifactTypeRegistry.mapAttributesFor(f2) >> attrs2
         0 * _
@@ -139,16 +142,30 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
         result.visit(visitor)
 
         then:
-        1 * visitor.visitFile(new ComponentFileArtifactIdentifier(id, f1.name), { it.displayName == 'local file' }, attrs1, f1)
-        1 * visitor.visitFile(new ComponentFileArtifactIdentifier(id, f2.name), { it.displayName == 'local file' }, attrs2, f2)
+        1 * visitor.visitArtifact(_, attrs1, { it.file == f1 }) >> { DisplayName displayName, AttributeContainer attrs, ResolvableArtifact artifact ->
+            assert displayName.displayName == 'local file'
+            assert artifact.id == new ComponentFileArtifactIdentifier(id, f1.name)
+        }
+        1 * visitor.visitArtifact(_, attrs2, { it.file == f2 }) >> { DisplayName displayName, AttributeContainer attrs, ResolvableArtifact artifact ->
+            assert displayName.displayName == 'local file'
+            assert artifact.id == new ComponentFileArtifactIdentifier(id, f2.name)
+        }
+        2 * visitor.endVisitCollection(FileCollectionInternal.OTHER) // each file is treated as a separate collection, could potentially be treated as a single collection
         0 * _
 
         when:
         result.visit(visitor)
 
         then:
-        1 * visitor.visitFile(new ComponentFileArtifactIdentifier(id, f1.name), { it.displayName == 'local file' }, attrs1, f1)
-        1 * visitor.visitFile(new ComponentFileArtifactIdentifier(id, f2.name), { it.displayName == 'local file' }, attrs2, f2)
+        1 * visitor.visitArtifact(_, attrs1, { it.file == f1 }) >> { DisplayName displayName, AttributeContainer attrs, ResolvableArtifact artifact ->
+            assert displayName.displayName == 'local file'
+            assert artifact.id == new ComponentFileArtifactIdentifier(id, f1.name)
+        }
+        1 * visitor.visitArtifact(_, attrs2, { it.file == f2 }) >> { DisplayName displayName, AttributeContainer attrs, ResolvableArtifact artifact ->
+            assert displayName.displayName == 'local file'
+            assert artifact.id == new ComponentFileArtifactIdentifier(id, f2.name)
+        }
+        2 * visitor.endVisitCollection(FileCollectionInternal.OTHER)
         0 * _
     }
 
@@ -157,7 +174,7 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
         def f2 = new File("a.dll")
         def listener = Mock(ResolvedArtifactSet.AsyncArtifactListener)
         def visitor = Mock(ArtifactVisitor)
-        def files = Mock(FileCollection)
+        def files = Mock(FileCollectionInternal)
         def attrs1 = attributesFactory.of(Attribute.of('attr', String), 'value1')
         def attrs2 = attributesFactory.of(Attribute.of('attr', String), 'value2')
 
@@ -173,15 +190,22 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
         1 * artifactTypeRegistry.mapAttributesFor(f2) >> attrs2
         1 * files.files >> ([f1, f2] as Set)
         2 * selector.select(_) >> { ResolvedVariantSet variants -> variants.variants.first() }
-        1 * visitor.visitFile(new OpaqueComponentArtifactIdentifier(f1), { it.displayName == 'local file' }, attrs1, f1)
-        1 * visitor.visitFile(new OpaqueComponentArtifactIdentifier(f2), { it.displayName == 'local file' }, attrs2, f2)
+        1 * visitor.visitArtifact(_, attrs1, {it.file == f1 }) >> { DisplayName displayName, AttributeContainer attrs, ResolvableArtifact artifact ->
+            assert displayName.displayName == 'local file'
+            assert artifact.id == new OpaqueComponentArtifactIdentifier(f1)
+        }
+        1 * visitor.visitArtifact(_, attrs2, {it.file == f2 }) >> { DisplayName displayName, AttributeContainer attrs, ResolvableArtifact artifact ->
+            assert displayName.displayName == 'local file'
+            assert artifact.id == new OpaqueComponentArtifactIdentifier(f2)
+        }
+        2 * visitor.endVisitCollection(FileCollectionInternal.OTHER) // each file is treated as a separate collection, could potentially be treated as a single collection
         0 * visitor._
     }
 
     def "reports failure to list files"() {
         def listener = Mock(ResolvedArtifactSet.AsyncArtifactListener)
         def visitor = Mock(ArtifactVisitor)
-        def files = Mock(FileCollection)
+        def files = Mock(FileCollectionInternal)
         def failure = new RuntimeException()
 
         when:
@@ -190,7 +214,7 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
 
         then:
         _ * dep.files >> files
-        _ * listener.includeFileDependencies() >> true
+        _ * listener.prepareForVisit(_) >> FileCollectionStructureVisitor.VisitType.Visit
         1 * files.files >> { throw failure }
         1 * visitor.visitFailure(failure)
         0 * visitor._

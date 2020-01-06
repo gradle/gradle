@@ -1,40 +1,70 @@
 package org.gradle.kotlin.dsl.integration
 
-import org.gradle.api.Plugin
-import org.gradle.api.initialization.Settings
-
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.DeepThought
+import org.gradle.test.fixtures.plugin.PluginBuilder
+import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
+import org.junit.Rule
 
 import org.junit.Test
 
 
 class KotlinSettingsScriptIntegrationTest : AbstractKotlinIntegrationTest() {
 
+    @Rule
+    @JvmField
+    val pluginPortal: MavenHttpPluginRepository = MavenHttpPluginRepository.asGradlePluginPortal(executer, mavenRepo)
+
     @Test
+    @ToBeFixedForInstantExecution
     fun `can apply plugin using ObjectConfigurationAction syntax`() {
 
-        withFile("buildSrc/src/main/java/MySettingsPlugin.java", """
-            import ${Plugin::class.qualifiedName};
-            import ${Settings::class.qualifiedName};
+        val pluginJar = file("plugin.jar")
 
-            public class MySettingsPlugin implements Plugin<Settings> {
-                public void apply(Settings settings) {}
-            }
-        """)
+        PluginBuilder(file("plugin")).run {
+            packageName = null
+            addSettingsPlugin("", "test.MySettingsPlugin", "MySettingsPlugin")
+            publishTo(executer, pluginJar)
+        }
 
         withSettings("""
+            buildscript {
+                dependencies {
+                    classpath(files("${pluginJar.name}"))
+                }
+            }
             apply {
                 plugin<MySettingsPlugin>()
             }
         """)
 
         withBuildScript("")
-
         build("help", "-q")
+    }
+
+    @Test
+    @ToBeFixedForInstantExecution
+    fun `can apply plugin using plugins block`() {
+
+        PluginBuilder(file("plugin")).run {
+            addSettingsPlugin("println '*42*'", "test.MySettingsPlugin", "MySettingsPlugin")
+            publishAs("g", "m", "1.0", pluginPortal, createExecuter()).allowAll()
+        }
+
+        withSettings("""
+            plugins {
+                id("test.MySettingsPlugin").version("1.0")
+            }
+        """)
+
+        assertThat(
+            build().output,
+            containsString("*42*")
+        )
     }
 
     @Test

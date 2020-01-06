@@ -35,6 +35,11 @@ import java.util.Set;
  * <pre class='autoTested'>
  *     apply plugin: "java-gradle-plugin"
  *
+ *     sourceSets {
+ *         customMain
+ *         functionalTest
+ *     }
+ *
  *     gradlePlugin {
  *         pluginSourceSet project.sourceSets.customMain
  *         testSourceSets project.sourceSets.functionalTest
@@ -62,7 +67,7 @@ public class GradlePluginDevelopmentExtension {
     }
 
     public GradlePluginDevelopmentExtension(Project project, SourceSet pluginSourceSet, SourceSet[] testSourceSets) {
-        this.plugins = project.getObjects().domainObjectContainer(PluginDeclaration.class);
+        this.plugins = project.container(PluginDeclaration.class);
         this.pluginSourceSet = pluginSourceSet;
         testSourceSets(testSourceSets);
     }

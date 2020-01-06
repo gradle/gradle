@@ -18,6 +18,7 @@
 package org.gradle.integtests.resolve.attributes
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.junit.runner.RunWith
@@ -101,6 +102,7 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
         result.assertTasksExecuted(':b:barJar', ':a:checkRelease')
     }
 
+    @ToBeFixedForInstantExecution
     def "selects configuration in target project which matches the configuration attributes when dependency is set on a parent configuration"() {
         def resolveRelease = new ResolveTestFixture(buildFile, '_compileFreeRelease')
         def resolveDebug = new ResolveTestFixture(buildFile, '_compileFreeDebug')
@@ -278,12 +280,12 @@ include 'a', 'b'
                     }
                 }
                 task fooJar(type: Jar) {
-                   baseName = 'b-foo'
+                   archiveBaseName = 'b-foo'
                 }
                 task barJar(type: Jar) {
-                   baseName = 'b-bar'
+                   archiveBaseName = 'b-bar'
                 }
-                tasks.withType(Jar) { destinationDir = buildDir }
+                tasks.withType(Jar) { destinationDirectory = buildDir }
                 artifacts {
                     freeDebug fooJar
                     freeRelease fooJar
@@ -477,8 +479,8 @@ Variant 'bar' capability test:b:unspecified:
                     create 'default'
                 }
                 task barJar(type: Jar) {
-                   baseName = 'b-bar'
-                   destinationDir = buildDir
+                   archiveBaseName = 'b-bar'
+                   destinationDirectory = buildDir
                 }
                 artifacts {
                     'default' barJar
@@ -769,15 +771,15 @@ All of them match the consumer attributes:
                     }
                 }
                 task defaultJar(type: Jar) {
-                   baseName = 'b-default'
+                   archiveBaseName = 'b-default'
                 }
                 task fooJar(type: Jar) {
-                   baseName = 'b-foo'
+                   archiveBaseName = 'b-foo'
                 }
                 task barJar(type: Jar) {
-                   baseName = 'b-bar'
+                   archiveBaseName = 'b-bar'
                 }
-                tasks.withType(Jar) { destinationDir = buildDir }
+                tasks.withType(Jar) { destinationDirectory = buildDir }
                 artifacts {
                     'default' defaultJar
                     foo fooJar
@@ -828,15 +830,15 @@ All of them match the consumer attributes:
                     }
                 }
                 task defaultJar(type: Jar) {
-                   baseName = 'b-default'
+                   archiveBaseName = 'b-default'
                 }
                 task fooJar(type: Jar) {
-                   baseName = 'b-foo'
+                   archiveBaseName = 'b-foo'
                 }
                 task barJar(type: Jar) {
-                   baseName = 'b-bar'
+                   archiveBaseName = 'b-bar'
                 }
-                tasks.withType(Jar) { destinationDir = buildDir }
+                tasks.withType(Jar) { destinationDirectory = buildDir }
                 artifacts {
                     'default' defaultJar
                     foo fooJar
@@ -1063,12 +1065,12 @@ All of them match the consumer attributes:
                     compile.attributes { $free }
                 }
                 task fooJar(type: Jar) {
-                   baseName = 'b-foo'
+                   archiveBaseName = 'b-foo'
                 }
                 task barJar(type: Jar) {
-                   baseName = 'b-bar'
+                   archiveBaseName = 'b-bar'
                 }
-                tasks.withType(Jar) { destinationDir = buildDir }
+                tasks.withType(Jar) { destinationDirectory = buildDir }
                 artifacts {
                     debug fooJar
                     compile barJar
@@ -1226,12 +1228,12 @@ All of them match the consumer attributes:
                     bar.attributes { $freeRelease }
                 }
                 task fooJar(type: Jar) {
-                   baseName = 'c-foo'
+                   archiveBaseName = 'c-foo'
                 }
                 task barJar(type: Jar) {
-                   baseName = 'c-bar'
+                   archiveBaseName = 'c-bar'
                 }
-                tasks.withType(Jar) { destinationDir = buildDir }
+                tasks.withType(Jar) { destinationDirectory = buildDir }
                 artifacts {
                     foo fooJar
                     bar barJar
@@ -1310,12 +1312,12 @@ All of them match the consumer attributes:
                     bar.attributes { $freeRelease }
                 }
                 task fooJar(type: Jar) {
-                   baseName = 'c-foo'
+                   archiveBaseName = 'c-foo'
                 }
                 task barJar(type: Jar) {
-                   baseName = 'c-bar'
+                   archiveBaseName = 'c-bar'
                 }
-                tasks.withType(Jar) { destinationDir = buildDir }
+                tasks.withType(Jar) { destinationDirectory = buildDir }
                 artifacts {
                     foo fooJar
                     bar barJar
@@ -1388,18 +1390,18 @@ All of them match the consumer attributes:
                     bar2.attributes { $freeRelease; attribute(extra, 'extra 2') }
                 }
                 task fooJar(type: Jar) {
-                   baseName = 'c-foo'
+                   archiveBaseName = 'c-foo'
                 }
                 task barJar(type: Jar) {
-                   baseName = 'c-bar'
+                   archiveBaseName = 'c-bar'
                 }
                 task foo2Jar(type: Jar) {
-                   baseName = 'c-foo2'
+                   archiveBaseName = 'c-foo2'
                 }
                 task bar2Jar(type: Jar) {
-                   baseName = 'c-bar2'
+                   archiveBaseName = 'c-bar2'
                 }
-                tasks.withType(Jar) { destinationDir = buildDir }
+                tasks.withType(Jar) { destinationDirectory = buildDir }
                 artifacts {
                     foo fooJar, foo2Jar
                     bar barJar, bar2Jar
@@ -1509,12 +1511,12 @@ All of them match the consumer attributes:
                     bar 'org.apache.commons:commons-lang3:3.4'
                 }
                 task fooJar(type: Jar) {
-                   baseName = 'c-foo'
+                   archiveBaseName = 'c-foo'
                 }
                 task barJar(type: Jar) {
-                   baseName = 'c-bar'
+                   archiveBaseName = 'c-bar'
                 }
-                tasks.withType(Jar) { destinationDir = buildDir }
+                tasks.withType(Jar) { destinationDirectory = buildDir }
                 artifacts {
                     foo fooJar
                     bar barJar
@@ -1544,23 +1546,39 @@ All of them match the consumer attributes:
 
             project(':a') {
                 configurations {
-                    compileFreeDebug.attributes { $freeDebug }
-                    compileFreeRelease.attributes { $freeRelease }
-                    compileFreeDebug.canBeConsumed = false
-                    compileFreeRelease.canBeConsumed = false
+                    compileFreeDebug {
+                        canBeConsumed = false
+                        canBeResolved = false
+                    }
+                    compileFreeRelease {
+                        canBeConsumed = false
+                        canBeResolved = false
+                    }
+                    compileFreeDebugPath {
+                        extendsFrom(compileFreeDebug)
+                        attributes { $freeDebug }
+                        canBeConsumed = false
+                        canBeResolved = true
+                    }
+                    compileFreeReleasePath {
+                        extendsFrom(compileFreeRelease)
+                        attributes { $freeRelease }
+                        canBeConsumed = false
+                        canBeResolved = true
+                    }
                 }
                 dependencies {
                     compileFreeDebug project(':b')
                     compileFreeRelease project(':b')
                 }
-                task checkDebug(dependsOn: configurations.compileFreeDebug) {
+                task checkDebug(dependsOn: configurations.compileFreeDebugPath) {
                     doLast {
-                       assert configurations.compileFreeDebug.collect { it.name } == ['b-foo.jar']
+                       assert configurations.compileFreeDebugPath.collect { it.name } == ['b-foo.jar']
                     }
                 }
-                task checkRelease(dependsOn: configurations.compileFreeRelease) {
+                task checkRelease(dependsOn: configurations.compileFreeReleasePath) {
                     doLast {
-                       assert configurations.compileFreeRelease.collect { it.name } == ['b-bar.jar']
+                       assert configurations.compileFreeReleasePath.collect { it.name } == ['b-bar.jar']
                     }
                 }
             }
@@ -1580,12 +1598,12 @@ All of them match the consumer attributes:
                     }
                 }
                 task fooJar(type: Jar) {
-                   baseName = 'b-foo'
+                   archiveBaseName = 'b-foo'
                 }
                 task barJar(type: Jar) {
-                   baseName = 'b-bar'
+                   archiveBaseName = 'b-bar'
                 }
-                tasks.withType(Jar) { destinationDir = buildDir }
+                tasks.withType(Jar) { destinationDirectory = buildDir }
                 artifacts {
                     _compileFreeDebug fooJar
                     _compileFreeRelease barJar
@@ -1745,12 +1763,12 @@ All of them match the consumer attributes:
                     }
                 }
                 task fooJar(type: Jar) {
-                   baseName = 'c-foo'
+                   archiveBaseName = 'c-foo'
                 }
                 task barJar(type: Jar) {
-                   baseName = 'c-bar'
+                   archiveBaseName = 'c-bar'
                 }
-                tasks.withType(Jar) { destinationDir = buildDir }
+                tasks.withType(Jar) { destinationDirectory = buildDir }
                 artifacts {
                     foo fooJar
                     bar barJar
@@ -1800,15 +1818,15 @@ All of them match the consumer attributes:
                     }
                 }
                 task defaultJar(type: Jar) {
-                   baseName = 'b-default'
+                   archiveBaseName = 'b-default'
                 }
                 task fooJar(type: Jar) {
-                   baseName = 'b-foo'
+                   archiveBaseName = 'b-foo'
                 }
                 task barJar(type: Jar) {
-                   baseName = 'b-bar'
+                   archiveBaseName = 'b-bar'
                 }
-                tasks.withType(Jar) { destinationDir = buildDir }
+                tasks.withType(Jar) { destinationDirectory = buildDir }
                 artifacts {
                     'default' defaultJar
                     foo fooJar
@@ -1828,12 +1846,12 @@ All of them match the consumer attributes:
     private String fooAndBarJars() {
         '''
                 task fooJar(type: Jar) {
-                   baseName = 'b-foo'
+                   archiveBaseName = 'b-foo'
                 }
                 task barJar(type: Jar) {
-                   baseName = 'b-bar'
+                   archiveBaseName = 'b-bar'
                 }
-                tasks.withType(Jar) { destinationDir = buildDir }
+                tasks.withType(Jar) { destinationDirectory = buildDir }
                 artifacts {
                     foo fooJar
                     bar barJar

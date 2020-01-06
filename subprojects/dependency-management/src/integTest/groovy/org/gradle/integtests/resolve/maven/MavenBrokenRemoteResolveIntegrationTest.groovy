@@ -17,9 +17,11 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Unroll
 
 class MavenBrokenRemoteResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
+    @ToBeFixedForInstantExecution
     public void "reports and recovers from missing module"() {
         given:
         def repo = mavenHttpRepo("repo1")
@@ -38,7 +40,6 @@ task showMissing { doLast { println configurations.missing.files } }
 
         when:
         module.pom.expectGetMissing()
-        module.artifact.expectHeadMissing()
 
         then:
         fails("showMissing")
@@ -47,13 +48,12 @@ task showMissing { doLast { println configurations.missing.files } }
             .assertHasCause("""Could not find group:projectA:1.2.
 Searched in the following locations:
   - ${module.pom.uri}
-  - ${module.artifact.uri}
+If the artifact you are trying to retrieve can be found in the repository but without metadata in 'Maven POM' format, you need to adjust the 'metadataSources { ... }' of the repository declaration.
 Required by:
     project :""")
 
         when:
         module.pom.expectGetMissing()
-        module.artifact.expectHeadMissing()
 
         then:
         fails("showMissing")
@@ -62,7 +62,7 @@ Required by:
             .assertHasCause("""Could not find group:projectA:1.2.
 Searched in the following locations:
   - ${module.pom.uri}
-  - ${module.artifact.uri}
+If the artifact you are trying to retrieve can be found in the repository but without metadata in 'Maven POM' format, you need to adjust the 'metadataSources { ... }' of the repository declaration.
 Required by:
     project :""")
 
@@ -81,6 +81,7 @@ Required by:
         succeeds('showMissing')
     }
 
+    @ToBeFixedForInstantExecution
     public void "reports and recovers from multiple missing modules"() {
         given:
         def repo = mavenHttpRepo("repo1")
@@ -101,9 +102,7 @@ task showMissing { doLast { println configurations.missing.files } }
 
         when:
         moduleA.pom.expectGetMissing()
-        moduleA.artifact.expectHeadMissing()
         moduleB.pom.expectGetMissing()
-        moduleB.artifact.expectHeadMissing()
 
         then:
         fails("showMissing")
@@ -112,13 +111,13 @@ task showMissing { doLast { println configurations.missing.files } }
                 .assertHasCause("""Could not find group:projectA:1.2.
 Searched in the following locations:
   - ${moduleA.pom.uri}
-  - ${moduleA.artifact.uri}
+If the artifact you are trying to retrieve can be found in the repository but without metadata in 'Maven POM' format, you need to adjust the 'metadataSources { ... }' of the repository declaration.
 Required by:
     project :""")
                 .assertHasCause("""Could not find group:projectB:1.0-milestone-9.
 Searched in the following locations:
   - ${moduleB.pom.uri}
-  - ${moduleB.artifact.uri}
+If the artifact you are trying to retrieve can be found in the repository but without metadata in 'Maven POM' format, you need to adjust the 'metadataSources { ... }' of the repository declaration.
 Required by:
     project :""")
 
@@ -139,6 +138,7 @@ Required by:
         succeeds('showMissing')
     }
 
+    @ToBeFixedForInstantExecution
     public void "reports and recovers from multiple missing transitive modules"() {
         settingsFile << "include 'child1'"
 
@@ -180,9 +180,7 @@ task showMissing { doLast { println configurations.compile.files } }
 
         when:
         moduleA.pom.expectGetMissing()
-        moduleA.artifact.expectHeadMissing()
         moduleB.pom.expectGetMissing()
-        moduleB.artifact.expectHeadMissing()
         moduleC.pom.expectGet()
         moduleD.pom.expectGet()
 
@@ -193,14 +191,14 @@ task showMissing { doLast { println configurations.compile.files } }
                 .assertHasCause("""Could not find group:projectA:1.2.
 Searched in the following locations:
   - ${moduleA.pom.uri}
-  - ${moduleA.artifact.uri}
+If the artifact you are trying to retrieve can be found in the repository but without metadata in 'Maven POM' format, you need to adjust the 'metadataSources { ... }' of the repository declaration.
 Required by:
     project : > group:projectC:0.99
     project : > project :child1 > group:projectD:1.0GA""")
                 .assertHasCause("""Could not find group:projectB:1.0-milestone-9.
 Searched in the following locations:
   - ${moduleB.pom.uri}
-  - ${moduleB.artifact.uri}
+If the artifact you are trying to retrieve can be found in the repository but without metadata in 'Maven POM' format, you need to adjust the 'metadataSources { ... }' of the repository declaration.
 Required by:
     project : > project :child1 > group:projectD:1.0GA""")
 
@@ -223,6 +221,7 @@ Required by:
         succeeds('showMissing')
     }
 
+    @ToBeFixedForInstantExecution
     void "reports and recovers from failed POM download"() {
         given:
         def module = mavenHttpRepo.module('group', 'projectA', '1.3').publish()
@@ -356,7 +355,6 @@ task showBroken { doLast { println configurations.broken.files } }
 
         when:
         module.pom.expectGetMissing()
-        module.artifact.expectHeadMissing()
 
         then:
         fails("showBroken")
@@ -403,12 +401,13 @@ task showBroken { doLast { println configurations.broken.files } }
             .assertHasDescription('Execution failed for task \':showBroken\'.')
             .assertResolutionFailure(':broken')
             .assertHasCause("Could not resolve all files for configuration ':broken'.")
-            .assertHasCause('Could not find projectA.jar (group:projectA:1.3).')
+            .assertHasCause('Could not find projectA-1.3.jar (group:projectA:1.3).')
 
         where:
         retries << (1..3)
     }
 
+    @ToBeFixedForInstantExecution
     public void "reports and recovers from failed artifact download"() {
         given:
         buildFile << """
@@ -436,7 +435,7 @@ task retrieve(type: Sync) {
 
         then:
         fails "retrieve"
-        failure.assertHasCause("Could not download projectA.jar (group:projectA:1.2)")
+        failure.assertHasCause("Could not download projectA-1.2.jar (group:projectA:1.2)")
         failure.assertHasCause("Could not GET '${module.artifact.uri}'. Received status code 500 from server: broken")
 
         when:

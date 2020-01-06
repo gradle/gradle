@@ -70,32 +70,40 @@ interface CanBeSatisfied {
 }
 
 
+private
+abstract class SatisfiableClassVisitor : KmClassVisitor(), CanBeSatisfied
+
+
+private
+abstract class SatisfiablePackageVisitor : KmPackageVisitor(), CanBeSatisfied
+
+
 @Suppress("unchecked_cast")
 private
-fun <T> classVisitorFor(memberType: MemberType, jvmSignature: String, predicate: FlagsPredicate): T where T : KmClassVisitor, T : CanBeSatisfied =
+fun classVisitorFor(memberType: MemberType, jvmSignature: String, predicate: FlagsPredicate): SatisfiableClassVisitor =
     when (memberType) {
         MemberType.TYPE -> TypeFlagsKmClassVisitor(jvmSignature, predicate)
         MemberType.FIELD -> FieldFlagsKmClassVisitor(jvmSignature, predicate)
         MemberType.CONSTRUCTOR -> ConstructorFlagsKmClassVisitor(jvmSignature, predicate)
         MemberType.METHOD -> MethodFlagsKmClassVisitor(jvmSignature, predicate)
-    } as T
+    }
 
 
 @Suppress("unchecked_cast")
 private
-fun <T> packageVisitorFor(memberType: MemberType, jvmSignature: String, predicate: FlagsPredicate): T where T : KmPackageVisitor, T : CanBeSatisfied =
+fun packageVisitorFor(memberType: MemberType, jvmSignature: String, predicate: FlagsPredicate): SatisfiablePackageVisitor =
     when (memberType) {
         MemberType.FIELD -> FieldFlagsKmPackageVisitor(jvmSignature, predicate)
         MemberType.METHOD -> MethodFlagsKmPackageVisitor(jvmSignature, predicate)
         else -> NoopFlagsKmPackageVisitor
-    } as T
+    }
 
 
 private
 class TypeFlagsKmClassVisitor(
     private val jvmSignature: String,
     private val predicate: FlagsPredicate
-) : KmClassVisitor(), CanBeSatisfied {
+) : SatisfiableClassVisitor() {
 
     override var isSatisfied = false
 
@@ -115,7 +123,7 @@ private
 class FieldFlagsKmClassVisitor(
     private val jvmSignature: String,
     private val predicate: FlagsPredicate
-) : KmClassVisitor(), CanBeSatisfied {
+) : SatisfiableClassVisitor() {
 
     override var isSatisfied = false
 
@@ -145,7 +153,7 @@ private
 class ConstructorFlagsKmClassVisitor(
     private val jvmSignature: String,
     private val predicate: FlagsPredicate
-) : KmClassVisitor(), CanBeSatisfied {
+) : SatisfiableClassVisitor() {
 
     override var isSatisfied = false
 
@@ -157,8 +165,8 @@ class ConstructorFlagsKmClassVisitor(
         else object : KmConstructorVisitor() {
             override fun visitExtensions(type: KmExtensionType): KmConstructorExtensionVisitor =
                 object : JvmConstructorExtensionVisitor() {
-                    override fun visit(desc: JvmMethodSignature?) {
-                        if (jvmSignature == desc?.asString()) {
+                    override fun visit(signature: JvmMethodSignature?) {
+                        if (jvmSignature == signature?.asString()) {
                             isSatisfied = predicate(flags)
                             isDoneVisiting = true
                         }
@@ -172,7 +180,7 @@ private
 class MethodFlagsKmClassVisitor(
     private val jvmSignature: String,
     private val predicate: FlagsPredicate
-) : KmClassVisitor(), CanBeSatisfied {
+) : SatisfiableClassVisitor() {
 
     override var isSatisfied = false
 
@@ -206,7 +214,7 @@ private
 class FieldFlagsKmPackageVisitor(
     private val jvmSignature: String,
     private val predicate: FlagsPredicate
-) : KmPackageVisitor(), CanBeSatisfied {
+) : SatisfiablePackageVisitor() {
 
     override var isSatisfied = false
 
@@ -236,7 +244,7 @@ private
 class MethodFlagsKmPackageVisitor(
     private val jvmSignature: String,
     private val predicate: FlagsPredicate
-) : KmPackageVisitor(), CanBeSatisfied {
+) : SatisfiablePackageVisitor() {
 
     override var isSatisfied = false
 
@@ -267,7 +275,7 @@ class MethodFlagsKmPackageVisitor(
 
 
 private
-object NoopFlagsKmPackageVisitor : KmPackageVisitor(), CanBeSatisfied {
+object NoopFlagsKmPackageVisitor : SatisfiablePackageVisitor() {
     override var isSatisfied = false
 }
 
@@ -284,11 +292,11 @@ class MemberFlagsKmPropertyExtensionVisitor(
 
     private
     val kmPropertyExtensionVisitor = object : JvmPropertyExtensionVisitor() {
-        override fun visit(fieldDesc: JvmFieldSignature?, getterDesc: JvmMethodSignature?, setterDesc: JvmMethodSignature?) {
+        override fun visit(fieldSignature: JvmFieldSignature?, getterSignature: JvmMethodSignature?, setterSignature: JvmMethodSignature?) {
             when (jvmSignature) {
-                fieldDesc?.asString() -> onMatch(predicate(fieldFlags))
-                getterDesc?.asString() -> onMatch(predicate(getterFlags))
-                setterDesc?.asString() -> onMatch(predicate(setterFlags))
+                fieldSignature?.asString() -> onMatch(predicate(fieldFlags))
+                getterSignature?.asString() -> onMatch(predicate(getterFlags))
+                setterSignature?.asString() -> onMatch(predicate(setterFlags))
             }
         }
     }
@@ -308,8 +316,8 @@ class MethodFlagsKmFunctionVisitor(
 
     private
     val kmFunctionExtensionVisitor = object : JvmFunctionExtensionVisitor() {
-        override fun visit(desc: JvmMethodSignature?) {
-            if (jvmSignature == desc?.asString()) {
+        override fun visit(signature: JvmMethodSignature?) {
+            if (jvmSignature == signature?.asString()) {
                 onMatch(predicate(functionFlags))
             }
         }

@@ -17,6 +17,7 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -47,6 +48,7 @@ task work {
 """
     }
 
+    @ToBeFixedForInstantExecution
     def "uses the target of symlink for input file content"() {
         file("in-dir").createDir()
         def inFile = file("other").createFile()
@@ -72,6 +74,7 @@ task work {
         result.assertTasksSkipped(":work")
     }
 
+    @ToBeFixedForInstantExecution
     def "uses the target of symlink for input directory content"() {
         file('in.txt').touch()
         def inDir = file("other").createDir()
@@ -97,6 +100,7 @@ task work {
         result.assertTasksSkipped(":work")
     }
 
+    @ToBeFixedForInstantExecution
     def "follows symlinks in input directories"() {
         file('in.txt').touch()
         def inFile = file("other").createFile()
@@ -130,10 +134,11 @@ task work {
 
         expect:
         fails("work")
-        failure.assertHasDescription("A problem was found with the configuration of task ':work'.")
+        failure.assertHasDescription("A problem was found with the configuration of task ':work' (type 'DefaultTask').")
         failure.assertHasCause("File '$link' specified for property '\$1' does not exist.")
     }
 
+    @ToBeFixedForInstantExecution
     def "can replace input file with symlink to file with same content"() {
         file("in-dir").createDir()
         def inFile = file("in.txt").createFile()
@@ -168,6 +173,7 @@ task work {
         result.assertTasksNotSkipped(":work")
     }
 
+    @ToBeFixedForInstantExecution
     def "can replace input directory with symlink to directory with same content"() {
         file('in.txt').touch()
         def inDir = file("in-dir").createDir()
@@ -204,6 +210,7 @@ task work {
         result.assertTasksNotSkipped(":work")
     }
 
+    @ToBeFixedForInstantExecution
     def "can replace output file with symlink to file with same content"() {
         file('in.txt').touch()
         file("in-dir").createDir()
@@ -240,6 +247,7 @@ task work {
         result.assertTasksNotSkipped(":work")
     }
 
+    @ToBeFixedForInstantExecution
     def "can replace output directory with symlink to directory with same content"() {
         file('in.txt').touch()
         file("in-dir").createDir()

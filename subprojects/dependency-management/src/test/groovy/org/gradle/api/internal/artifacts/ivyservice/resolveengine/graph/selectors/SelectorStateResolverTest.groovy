@@ -80,7 +80,7 @@ class SelectorStateResolverTest extends Specification {
     def "resolve selector #permutation"() {
         given:
         def candidates = permutation.candidates
-        def expected = permutation.expected
+        def expected = permutation.expectedSingle
 
         expect:
         resolver(permutation.conflicts).resolve(candidates) == expected
@@ -93,7 +93,7 @@ class SelectorStateResolverTest extends Specification {
     def "resolve pair #permutation"() {
         given:
         def candidates = permutation.candidates
-        def expected = permutation.expected
+        def expected = permutation.expectedSingle
 
         expect:
         resolver(permutation.conflicts).resolve(candidates) == expected
@@ -106,7 +106,7 @@ class SelectorStateResolverTest extends Specification {
     def "resolve empty pair #permutation"() {
         given:
         def candidates = permutation.candidates
-        def expected = permutation.expected
+        def expected = permutation.expectedSingle
 
         expect:
         resolver(permutation.conflicts).resolve(candidates) == expected
@@ -119,7 +119,7 @@ class SelectorStateResolverTest extends Specification {
     def "resolve prefer pair #permutation"() {
         given:
         def candidates = permutation.candidates
-        def expected = permutation.expected
+        def expected = permutation.expectedSingle
 
         expect:
         resolver(permutation.conflicts).resolve(candidates) == expected
@@ -132,7 +132,7 @@ class SelectorStateResolverTest extends Specification {
     def "resolve reject pair #permutation"() {
         given:
         def candidates = permutation.candidates
-        def expected = permutation.expected
+        def expected = permutation.expectedSingle
 
         expect:
         resolver(permutation.conflicts).resolve(candidates) == expected
@@ -145,7 +145,7 @@ class SelectorStateResolverTest extends Specification {
     def "resolve three #permutation"() {
         given:
         def candidates = permutation.candidates
-        def expected = permutation.expected
+        def expected = permutation.expectedSingle
 
         expect:
         resolver(permutation.conflicts).resolve(candidates) == expected
@@ -158,7 +158,7 @@ class SelectorStateResolverTest extends Specification {
     def "resolve deps with reject #permutation"() {
         given:
         def candidates = permutation.candidates
-        def expected = permutation.expected
+        def expected = permutation.expectedSingle
 
         expect:
         resolver(true).resolve(candidates) == expected
@@ -171,7 +171,7 @@ class SelectorStateResolverTest extends Specification {
     def "resolve four #permutation"() {
         given:
         def candidates = permutation.candidates
-        def expected = permutation.expected
+        def expected = permutation.expectedSingle
 
         expect:
         resolver(true).resolve(candidates) == expected

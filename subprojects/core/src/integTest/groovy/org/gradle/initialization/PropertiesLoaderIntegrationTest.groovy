@@ -17,6 +17,7 @@
 package org.gradle.initialization
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 
@@ -142,6 +143,7 @@ task printSystemProp {
         succeeds ':help'
     }
 
+    @ToBeFixedForInstantExecution
     def "Gradle properties can be derived from environment variables"() {
         given:
         buildFile << """

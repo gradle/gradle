@@ -16,7 +16,6 @@
 
 package org.gradle.nativeplatform.tasks;
 
-import org.gradle.api.Incubating;
 import org.gradle.nativeplatform.internal.BundleLinkerSpec;
 import org.gradle.nativeplatform.internal.DefaultLinkerSpec;
 import org.gradle.nativeplatform.internal.LinkerSpec;
@@ -26,7 +25,6 @@ import org.gradle.nativeplatform.internal.LinkerSpec;
  *
  * @since 4.3
  */
-@Incubating
 public class LinkMachOBundle extends AbstractLinkTask {
     @Override
     protected LinkerSpec createLinkerSpec() {

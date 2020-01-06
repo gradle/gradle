@@ -15,8 +15,8 @@
  */
 package org.gradle.language.nativeplatform
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.test.fixtures.file.TestDirectoryProvider
@@ -24,7 +24,6 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
-import spock.lang.IgnoreIf
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.GCC_COMPATIBLE
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.SUPPORTS_32_AND_64
@@ -49,7 +48,7 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
     }
 
     @RequiresInstalledToolChain(SUPPORTS_32_AND_64)
-    @IgnoreIf({GradleContextualExecuter.parallel})
+    @ToBeFixedForInstantExecution
     def "assembler"() {
         given:
         sample assembler
@@ -58,13 +57,13 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
         run "installMainExecutable"
 
         then:
-        nonSkippedTasks.count { it.startsWith(":assembleMainExecutable") } == 1
         executedAndNotSkipped ":compileMainExecutableMainC", ":linkMainExecutable", ":mainExecutable"
 
         and:
         installation(assembler.dir.file("build/install/main")).exec().out == "5 + 7 = 12\n"
     }
 
+    @ToBeFixedForInstantExecution
     def "c"() {
         given:
         sample c
@@ -80,6 +79,7 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
         installation(c.dir.file("build/install/main")).exec().out == "Hello world!"
     }
 
+    @ToBeFixedForInstantExecution
     def "cpp"() {
         given:
         sample cpp
@@ -97,6 +97,7 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
 
     @RequiresInstalledToolChain(GCC_COMPATIBLE)
     @Requires(TestPrecondition.NOT_WINDOWS)
+    @ToBeFixedForInstantExecution
     def "objectiveC"() {
         given:
         sample objectiveC
@@ -113,6 +114,7 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
 
     @RequiresInstalledToolChain(GCC_COMPATIBLE)
     @Requires(TestPrecondition.NOT_WINDOWS)
+    @ToBeFixedForInstantExecution
     def "objectiveCpp"() {
         given:
         sample objectiveCpp
@@ -128,6 +130,7 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
     }
 
     @RequiresInstalledToolChain(VISUALCPP)
+    @ToBeFixedForInstantExecution
     def "win rc"() {
         given:
         sample windowsResources
@@ -151,6 +154,7 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
         file(windowsResources.dir.file("build/libs/helloRes/shared/helloRes.dll")).assertExists()
     }
 
+    @ToBeFixedForInstantExecution
     def "custom layout"() {
         given:
         sample customLayout
@@ -166,6 +170,7 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
         installation(customLayout.dir.file("build/install/main")).exec().out == "Hello world!"
     }
 
+    @ToBeFixedForInstantExecution
     def "idl"() {
         given:
         sample idl
@@ -181,6 +186,7 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
         installation(idl.dir.file("build/install/main")).exec().out == "Hello from generated source!!\n"
     }
 
+    @ToBeFixedForInstantExecution
     def "pch"() {
         given:
         sample pch

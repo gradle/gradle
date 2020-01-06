@@ -19,7 +19,7 @@ package org.gradle.vcs.internal
 import org.gradle.api.Action
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.internal.GradleInternal
-import org.gradle.testing.internal.util.Specification
+import spock.lang.Specification
 import org.gradle.vcs.VersionControlSpec
 
 class DefaultVcsMappingStoreTest extends Specification {

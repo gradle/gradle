@@ -108,8 +108,8 @@ class BuildSourceBuilderIntegrationTest extends AbstractIntegrationSpec {
         def blockingResult = runBlockingHandle.waitForFinish()
 
         then:
-        blockingResult.assertTasksExecuted(":build1")
-        releaseResult.assertTasksExecuted(":build2")
+        blockingResult.ignoreBuildSrc.assertTasksExecuted(":build1")
+        releaseResult.ignoreBuildSrc.assertTasksExecuted(":build2")
 
         cleanup:
         runReleaseHandle?.abort()

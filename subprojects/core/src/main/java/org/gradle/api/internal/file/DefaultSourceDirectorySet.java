@@ -18,6 +18,9 @@ package org.gradle.api.internal.file;
 import groovy.lang.Closure;
 import org.gradle.api.Buildable;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Task;
+import org.gradle.api.file.Directory;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.DirectoryTree;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTreeElement;
@@ -27,17 +30,15 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.FileCollectionAdapter;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
-import org.gradle.api.internal.model.InstantiatorBackedObjectFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.internal.reflect.DirectInstantiator;
-import org.gradle.util.DeprecationLogger;
+import org.gradle.internal.Factory;
 import org.gradle.util.GUtil;
 
 import java.io.File;
@@ -47,42 +48,32 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 public class DefaultSourceDirectorySet extends CompositeFileTree implements SourceDirectorySet {
     private final List<Object> source = new ArrayList<Object>();
     private final String name;
     private final String displayName;
-    private final FileResolver fileResolver;
+    private final FileCollectionFactory fileCollectionFactory;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
     private final PatternSet patterns;
     private final PatternSet filter;
     private final FileCollection dirs;
-    private final Property<File> outputDir;
+    private final DirectoryProperty destinationDirectory; // the user configurable output directory
+    private final DirectoryProperty classesDirectory;     // bound to the compile task output
 
-    // Note: don't actually remove this in 6.0, the deprecation is here to encourage people to use ObjectFactory instead. Just remove the overload and the nag and leave the method here
-    @Deprecated
-    public DefaultSourceDirectorySet(String name, String displayName, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory, ObjectFactory objectFactory) {
-        DeprecationLogger.nagUserOfDeprecated("The DefaultSourceDirectorySet constructor", "Please use the ObjectFactory service to create instances of SourceDirectorySet instead.");
+    private TaskProvider<?> compileTaskProvider;
+
+    public DefaultSourceDirectorySet(String name, String displayName, Factory<PatternSet> patternSetFactory, FileCollectionFactory fileCollectionFactory, DirectoryFileTreeFactory directoryFileTreeFactory, ObjectFactory objectFactory) {
         this.name = name;
         this.displayName = displayName;
-        this.fileResolver = fileResolver;
+        this.fileCollectionFactory = fileCollectionFactory;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
-        this.patterns = fileResolver.getPatternSetFactory().create();
-        this.filter = fileResolver.getPatternSetFactory().create();
+        this.patterns = patternSetFactory.create();
+        this.filter = patternSetFactory.create();
         this.dirs = new FileCollectionAdapter(new SourceDirectories());
-        this.outputDir = objectFactory.property(File.class);
-    }
-
-    // Used by the JavaScript plugins
-    @Deprecated
-    public DefaultSourceDirectorySet(String name, String displayName, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory) {
-        this(name, displayName, fileResolver, directoryFileTreeFactory, new InstantiatorBackedObjectFactory(DirectInstantiator.INSTANCE));
-    }
-
-    // Used by the Kotlin plugin
-    @Deprecated
-    public DefaultSourceDirectorySet(String name, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory) {
-        this(name, name, fileResolver, directoryFileTreeFactory);
+        this.destinationDirectory = objectFactory.directoryProperty();
+        this.classesDirectory = objectFactory.directoryProperty();
     }
 
     @Override
@@ -181,17 +172,38 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
 
     @Override
     public File getOutputDir() {
-        return outputDir.get();
+        return destinationDirectory.getAsFile().get();
     }
 
     @Override
     public void setOutputDir(Provider<File> provider) {
-        this.outputDir.set(provider);
+        destinationDirectory.set(classesDirectory.fileProvider(provider));
     }
 
     @Override
     public void setOutputDir(File outputDir) {
-        this.outputDir.set(outputDir);
+        destinationDirectory.set(outputDir);
+    }
+
+    @Override
+    public DirectoryProperty getDestinationDirectory() {
+        return destinationDirectory;
+    }
+
+    @Override
+    public Provider<Directory> getClassesDirectory() {
+        return classesDirectory;
+    }
+
+    @Override
+    public <T extends Task> void compiledBy(TaskProvider<T> taskProvider, Function<T, DirectoryProperty> mapping) {
+        this.compileTaskProvider = taskProvider;
+        taskProvider.configure(task -> {
+            if (taskProvider == this.compileTaskProvider) {
+                mapping.apply(task).set(destinationDirectory);
+            }
+        });
+        classesDirectory.set(taskProvider.flatMap(mapping::apply));
     }
 
     @Override
@@ -213,7 +225,7 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
                 SourceDirectorySet nested = (SourceDirectorySet) path;
                 result.addAll(nested.getSrcDirTrees());
             } else {
-                for (File srcDir : fileResolver.resolveFiles(path)) {
+                for (File srcDir : fileCollectionFactory.resolving(path)) {
                     if (srcDir.exists() && !srcDir.isDirectory()) {
                         throw new InvalidUserDataException(String.format("Source directory '%s' is not a directory.", srcDir));
                     }
@@ -230,7 +242,7 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
             if (path instanceof SourceDirectorySet) {
                 context.add(((SourceDirectorySet) path).getBuildDependencies());
             } else {
-                context.add(fileResolver.resolveFiles(path));
+                context.add(fileCollectionFactory.resolving(path));
             }
         }
     }

@@ -22,13 +22,13 @@ import org.gradle.internal.operations.OperationFinishEvent;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationProgressEvent;
 import org.gradle.internal.operations.OperationStartEvent;
-import org.gradle.tooling.internal.provider.events.AbstractOperationResult;
-import org.gradle.tooling.internal.provider.events.DefaultFailure;
-import org.gradle.tooling.internal.provider.events.DefaultFailureResult;
-import org.gradle.tooling.internal.provider.events.DefaultOperationDescriptor;
-import org.gradle.tooling.internal.provider.events.DefaultOperationFinishedProgressEvent;
-import org.gradle.tooling.internal.provider.events.DefaultOperationStartedProgressEvent;
-import org.gradle.tooling.internal.provider.events.DefaultSuccessResult;
+import org.gradle.internal.build.event.types.AbstractOperationResult;
+import org.gradle.internal.build.event.types.DefaultFailure;
+import org.gradle.internal.build.event.types.DefaultFailureResult;
+import org.gradle.internal.build.event.types.DefaultOperationDescriptor;
+import org.gradle.internal.build.event.types.DefaultOperationFinishedProgressEvent;
+import org.gradle.internal.build.event.types.DefaultOperationStartedProgressEvent;
+import org.gradle.internal.build.event.types.DefaultSuccessResult;
 
 import java.util.Collections;
 

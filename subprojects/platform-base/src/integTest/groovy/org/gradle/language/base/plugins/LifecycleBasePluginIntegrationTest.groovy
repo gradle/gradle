@@ -56,9 +56,26 @@ class LifecycleBasePluginIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         succeeds(taskName)
-        ":myTask" in executedTasks
+        executed(":myTask")
 
         where:
         taskName << ["check", "build"]
+    }
+
+    def "clean task honors changes to build dir location"() {
+        buildFile << """
+            buildDir = 'target'
+        """
+        def buildDir = file("build")
+        buildDir.mkdirs()
+        def targetDir = file("target")
+        targetDir.mkdirs()
+
+        when:
+        succeeds("clean")
+
+        then:
+        buildDir.directory
+        !targetDir.exists()
     }
 }

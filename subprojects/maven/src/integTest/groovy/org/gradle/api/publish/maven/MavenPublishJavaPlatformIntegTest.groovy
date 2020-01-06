@@ -16,13 +16,14 @@
 
 package org.gradle.api.publish.maven
 
-
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.maven.MavenJavaPlatformModule
 
 class MavenPublishJavaPlatformIntegTest extends AbstractMavenPublishIntegTest {
     MavenJavaPlatformModule javaPlatform = javaPlatform(mavenRepo.module("org.gradle.test", "publishTest", "1.9"))
 
+    @ToBeFixedForInstantExecution
     def "can publish java-platform with no dependencies"() {
         createBuildScripts("""
             publishing {
@@ -47,6 +48,7 @@ class MavenPublishJavaPlatformIntegTest extends AbstractMavenPublishIntegTest {
         resolveRuntimeArtifacts(javaPlatform) { noFiles() }
     }
 
+    @ToBeFixedForInstantExecution
     def "can publish java-platform with constraints"() {
         given:
         javaLibrary(mavenRepo.module("org.test", "foo", "1.0")).withModuleMetadata().publish()
@@ -82,16 +84,14 @@ class MavenPublishJavaPlatformIntegTest extends AbstractMavenPublishIntegTest {
             constraint("org.test:bar:1.0")
             noMoreDependencies()
         }
-        javaPlatform.parsedPom.scope('compile') {
+        javaPlatform.parsedPom.scopes.keySet() == ['no_scope'] as Set
+        javaPlatform.parsedPom.scope('no_scope') {
             assertNoDependencies()
-            assertDependencyManagement("org.test:foo:1.0")
-        }
-        javaPlatform.parsedPom.scope('runtime') {
-            assertNoDependencies()
-            assertDependencyManagement("org.test:bar:1.0")
+            assertDependencyManagement("org.test:bar:1.0", "org.test:foo:1.0")
         }
     }
 
+    @ToBeFixedForInstantExecution
     def "can define a platform with local projects"() {
         given:
 
@@ -130,16 +130,75 @@ class MavenPublishJavaPlatformIntegTest extends AbstractMavenPublishIntegTest {
             constraint("org.gradle.test:utils:1.9")
             noMoreDependencies()
         }
-        javaPlatform.parsedPom.scope('compile') {
+        javaPlatform.parsedPom.scopes.keySet() == ['no_scope'] as Set
+        javaPlatform.parsedPom.scope('no_scope') {
             assertNoDependencies()
-            assertDependencyManagement("org.gradle.test:core:1.9")
-        }
-        javaPlatform.parsedPom.scope('runtime') {
-            assertNoDependencies()
-            assertDependencyManagement("org.gradle.test:utils:1.9")
+            assertDependencyManagement("org.gradle.test:core:1.9", "org.gradle.test:utils:1.9")
         }
     }
 
+    @ToBeFixedForInstantExecution
+    def "can define a platform with local projects with customized artifacts"() {
+        given:
+
+        settingsFile << """
+            include "core"
+            include "utils"
+        """
+
+        createBuildScripts("""
+            dependencies {
+                constraints {
+                    api project(":core")
+                    runtime project(":utils")
+                }
+            }
+            subprojects {
+                version = null
+                apply(plugin: 'java-library')
+                apply(plugin: 'maven-publish')
+                publishing {
+                    publications {
+                        maven(MavenPublication) {
+                            group = "custom-group"
+                            artifactId = project.name + "-custom"
+                            version = "1.9"
+                            from components.java
+                        }
+                    }
+                }
+            }
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        from components.javaPlatform
+                    }
+                }
+            }
+""")
+
+        when:
+        run "publish"
+
+        then:
+        javaPlatform.assertPublished()
+        javaPlatform.parsedModuleMetadata.variant("apiElements") {
+            constraint("custom-group:core-custom:1.9")
+            noMoreDependencies()
+        }
+        javaPlatform.parsedModuleMetadata.variant("runtimeElements") {
+            constraint("custom-group:core-custom:1.9")
+            constraint("custom-group:utils-custom:1.9")
+            noMoreDependencies()
+        }
+        javaPlatform.parsedPom.scopes.keySet() == ['no_scope'] as Set
+        javaPlatform.parsedPom.scope('no_scope') {
+            assertNoDependencies()
+            assertDependencyManagement("custom-group:core-custom:1.9", "custom-group:utils-custom:1.9")
+        }
+    }
+
+    @ToBeFixedForInstantExecution
     def "can publish java-platform with resolved versions"() {
         given:
         javaLibrary(mavenRepo.module("org.test", "foo", "1.0")).withModuleMetadata().publish()
@@ -153,9 +212,9 @@ class MavenPublishJavaPlatformIntegTest extends AbstractMavenPublishIntegTest {
                 }
                 api "org.test:foo"
             }
-            
+
             javaPlatform { allowDependencies() }
-            
+
             publishing {
                 publications {
                     maven(MavenPublication) {
@@ -185,8 +244,13 @@ class MavenPublishJavaPlatformIntegTest extends AbstractMavenPublishIntegTest {
             dependency("org.test:foo:1.1")
             noMoreDependencies()
         }
+        javaPlatform.parsedPom.scopes.keySet() == ['compile', 'no_scope'] as Set
         javaPlatform.parsedPom.scope('compile') {
             assertDependsOn("org.test:foo:1.1")
+            assertNoDependencyManagement()
+        }
+        javaPlatform.parsedPom.scope('no_scope') {
+            assertNoDependencies()
             assertDependencyManagement("org.test:foo:1.1")
         }
         javaPlatform.parsedPom.hasNoScope('runtime')

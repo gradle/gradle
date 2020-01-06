@@ -18,6 +18,7 @@ package org.gradle.internal.remote.internal.inet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
@@ -32,22 +33,9 @@ public class InetAddressFactory {
     private final Object lock = new Object();
     private List<InetAddress> communicationAddresses;
     private InetAddress localBindingAddress;
+    private InetAddress wildcardBindingAddress;
     private InetAddresses inetAddresses;
     private boolean initialized;
-    private String hostName;
-
-    public String getHostname() {
-        synchronized (lock) {
-            if (hostName == null) {
-                try {
-                    hostName = InetAddress.getLocalHost().getHostName();
-                } catch (UnknownHostException e) {
-                    hostName = getCommunicationAddresses().get(0).toString();
-                }
-            }
-            return hostName;
-        }
-    }
 
     /**
      * Determines if the IP address can be used for communication with this machine
@@ -90,6 +78,17 @@ public class InetAddressFactory {
         }
     }
 
+    public InetAddress getWildcardBindingAddress() {
+        try {
+            synchronized (lock) {
+                init();
+                return wildcardBindingAddress;
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Could not determine a usable wildcard IP for this machine.", e);
+        }
+    }
+
     private void init() throws Exception {
         if (initialized) {
             return;
@@ -99,11 +98,26 @@ public class InetAddressFactory {
         if (inetAddresses == null) { // For testing
             inetAddresses = new InetAddresses();
         }
-        localBindingAddress = new InetSocketAddress(0).getAddress();
+
+        wildcardBindingAddress = new InetSocketAddress(0).getAddress();
+
+        findLocalBindingAddress();
 
         findCommunicationAddresses();
 
         handleOpenshift();
+    }
+
+    /**
+     * Prefer first loopback address if available, otherwise use the wildcard address.
+     */
+    private void findLocalBindingAddress() {
+        if (inetAddresses.getLoopback().isEmpty()) {
+            logger.debug("No loopback address for local binding, using fallback {}", wildcardBindingAddress);
+            localBindingAddress = wildcardBindingAddress;
+        } else {
+            localBindingAddress = InetAddress.getLoopbackAddress();
+        }
     }
 
     private void handleOpenshift() {
@@ -114,7 +128,7 @@ public class InetAddressFactory {
         }
     }
 
-
+    @Nullable
     private InetAddress findOpenshiftAddresses() {
         for (String key : System.getenv().keySet()) {
             if (key.startsWith("OPENSHIFT_") && key.endsWith("_IP")) {
@@ -135,10 +149,10 @@ public class InetAddressFactory {
         if (inetAddresses.getLoopback().isEmpty()) {
             if (inetAddresses.getRemote().isEmpty()) {
                 InetAddress fallback = InetAddress.getByName(null);
-                logger.debug("No loopback addresses, using fallback {}", fallback);
+                logger.debug("No loopback addresses for communication, using fallback {}", fallback);
                 communicationAddresses.add(fallback);
             } else {
-                logger.debug("No loopback addresses, using remote addresses instead.");
+                logger.debug("No loopback addresses for communication, using remote addresses instead.");
                 communicationAddresses.addAll(inetAddresses.getRemote());
             }
         } else {

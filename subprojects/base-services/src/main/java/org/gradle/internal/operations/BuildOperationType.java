@@ -39,14 +39,14 @@ package org.gradle.internal.operations;
  *
  * These details and result types need to maintain backwards binary compatibility.
  * They should be interfaces with minimal dependencies, and should avoid internal Gradle types.
- * The convention for these types is to make them inner types of the BuildOperationCategory token type,
+ * The convention for these types is to make them inner types of the BuildOperationType token type,
  * named {@code Details} and {@code Result}.
  * However, this is not required – the types can go anywhere.
  *
  * The information exposed by details and results objects ultimately needs to be serialized.
  * As such, these objects should be designed for serialization to non Java formats (e.g. JSON).
  *
- * - Should be be practically immutable
+ * - Should be practically immutable
  * - Should only expose primitive(ish) JDK types, or other structured types only exposing JDK types
  * - Collection like structures should have deterministic order - either sorted, or meaningful
  * - Should expose either java.util.List or java.util.Map over specialised collection types
@@ -67,6 +67,5 @@ package org.gradle.internal.operations;
  * @param <R> the type of result object for the operation
  * @since 4.0
  */
-@SuppressWarnings("unused")
 public interface BuildOperationType<D, R> {
 }

@@ -16,14 +16,14 @@
 
 package org.gradle.performance.regression.nativeplatform
 
-import org.gradle.performance.AbstractCrossVersionPerformanceTest
-import org.gradle.performance.mutator.ApplyChangeToNativeSourceFileMutator
+import org.gradle.performance.AbstractCrossVersionGradleProfilerPerformanceTest
+import org.gradle.profiler.mutations.ApplyChangeToNativeSourceFileMutator
 import spock.lang.Unroll
 
-class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
+class NativeBuildPerformanceTest extends AbstractCrossVersionGradleProfilerPerformanceTest {
     def setup() {
-        runner.minimumVersion = '4.1' // minimum version that contains new C++ plugins
-        runner.targetVersions = ["5.5-20190515115345+0000"]
+        runner.minimumBaseVersion = '4.1' // minimum version that contains new C++ plugins
+        runner.targetVersions = ["6.2-20200102230022+0000"]
     }
 
     @Unroll
@@ -51,7 +51,9 @@ class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.testProject = testProject
         runner.tasksToRun = ["assemble"]
         runner.gradleOpts = ["-Xms$maxMemory", "-Xmx$maxMemory"]
-        runner.addBuildExperimentListener(new ApplyChangeToNativeSourceFileMutator(fileToChange))
+        runner.addBuildMutator { settings ->
+            new ApplyChangeToNativeSourceFileMutator(new File(settings.getProjectDir(), fileToChange))
+        }
 
         when:
         def result = runner.run()

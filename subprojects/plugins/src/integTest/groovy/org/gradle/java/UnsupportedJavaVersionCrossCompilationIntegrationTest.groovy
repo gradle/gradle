@@ -68,7 +68,7 @@ public class Thing { }
     def "test execution fails using target Java version"() {
         given:
         buildFile << """
-dependencies { testCompile 'junit:junit:4.12' }
+dependencies { testImplementation 'junit:junit:4.12' }
 """
 
         file("src/test/java/ThingTest.java") << """

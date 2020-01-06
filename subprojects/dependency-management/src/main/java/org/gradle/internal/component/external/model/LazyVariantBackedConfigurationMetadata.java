@@ -37,7 +37,7 @@ class LazyVariantBackedConfigurationMetadata extends AbstractVariantBackedConfig
     private List<? extends ModuleDependencyMetadata> calculatedDependencies;
 
     LazyVariantBackedConfigurationMetadata(ModuleComponentIdentifier componentId, ComponentVariant variant, ImmutableAttributes componentLevelAttributes, ImmutableAttributesFactory attributesFactory, VariantMetadataRules variantMetadataRules) {
-        super(componentId, new RuleAwareVariant(variant, attributesFactory, componentLevelAttributes, variantMetadataRules));
+        super(componentId, new RuleAwareVariant(componentId, variant, attributesFactory, componentLevelAttributes, variantMetadataRules));
         this.variantMetadataRules = variantMetadataRules;
     }
 
@@ -55,6 +55,7 @@ class LazyVariantBackedConfigurationMetadata extends AbstractVariantBackedConfig
      * that the attributes are the same whenever we resolve the graph for dependencies and artifacts.
      */
     private static class RuleAwareVariant implements ComponentVariant {
+        private final ModuleComponentIdentifier componentId;
         private final ImmutableAttributesFactory attributesFactory;
         private final ComponentVariant delegate;
         private final ImmutableAttributes componentLevelAttributes;
@@ -62,8 +63,10 @@ class LazyVariantBackedConfigurationMetadata extends AbstractVariantBackedConfig
 
         private ImmutableAttributes computedAttributes;
         private CapabilitiesMetadata computedCapabilities;
+        private ImmutableList<? extends ComponentArtifactMetadata> computedArtifacts;
 
-        RuleAwareVariant(ComponentVariant delegate, ImmutableAttributesFactory attributesFactory, ImmutableAttributes componentLevelAttributes, VariantMetadataRules variantMetadataRules) {
+        RuleAwareVariant(ModuleComponentIdentifier componentId, ComponentVariant delegate, ImmutableAttributesFactory attributesFactory, ImmutableAttributes componentLevelAttributes, VariantMetadataRules variantMetadataRules) {
+            this.componentId = componentId;
             this.attributesFactory = attributesFactory;
             this.delegate = delegate;
             this.componentLevelAttributes = componentLevelAttributes;
@@ -96,8 +99,11 @@ class LazyVariantBackedConfigurationMetadata extends AbstractVariantBackedConfig
         }
 
         @Override
-        public List<? extends ComponentArtifactMetadata> getArtifacts() {
-            return delegate.getArtifacts();
+        public ImmutableList<? extends ComponentArtifactMetadata> getArtifacts() {
+            if (computedArtifacts == null) {
+                computedArtifacts = variantMetadataRules.applyVariantFilesMetadataRulesToArtifacts(delegate, delegate.getArtifacts(), componentId);
+            }
+            return computedArtifacts;
         }
 
         @Override

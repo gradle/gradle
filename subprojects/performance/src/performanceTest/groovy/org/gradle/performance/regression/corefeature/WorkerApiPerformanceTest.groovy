@@ -16,13 +16,13 @@
 
 package org.gradle.performance.regression.corefeature
 
-import org.gradle.performance.AbstractCrossVersionPerformanceTest
+import org.gradle.performance.AbstractCrossVersionGradleProfilerPerformanceTest
 import spock.lang.Unroll
 
-class WorkerApiPerformanceTest extends AbstractCrossVersionPerformanceTest {
+class WorkerApiPerformanceTest extends AbstractCrossVersionGradleProfilerPerformanceTest {
     def setup() {
-        runner.minimumVersion = '5.0'
-        runner.targetVersions = ["5.5-20190515115345+0000"]
+        runner.minimumBaseVersion = '5.0'
+        runner.targetVersions = ["6.2-20200102230022+0000"]
         runner.testProject = "workerApiProject"
     }
 

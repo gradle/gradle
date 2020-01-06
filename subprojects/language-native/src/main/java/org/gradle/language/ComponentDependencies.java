@@ -17,7 +17,6 @@
 package org.gradle.language;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 
 /**
@@ -25,7 +24,6 @@ import org.gradle.api.artifacts.ExternalModuleDependency;
  *
  * @since 4.6
  */
-@Incubating
 public interface ComponentDependencies {
     /**
      * Adds an implementation dependency to this component. An implementation dependency is not visible to consumers that are compiled against this component.

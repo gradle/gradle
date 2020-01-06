@@ -190,7 +190,7 @@ class DirectoryOutputArtifactIntegrationTest extends AbstractIntegrationSpec {
         apply plugin: 'java'
 
         dependencies {
-            compile project(path: ':b', configuration: 'compile_output')
+            implementation project(path: ':b', configuration: 'compile_output')
         }
 
         '''
@@ -228,7 +228,7 @@ class DirectoryOutputArtifactIntegrationTest extends AbstractIntegrationSpec {
         apply plugin: 'java'
 
         dependencies {
-            compile project(path: ':b', configuration: 'compile_output')
+            implementation project(path: ':b', configuration: 'compile_output')
         }
 
         """
@@ -250,12 +250,12 @@ class DirectoryOutputArtifactIntegrationTest extends AbstractIntegrationSpec {
 
         configurations {
             compile_output {
-               extendsFrom compile
+               extendsFrom implementation
             }
         }
 
         dependencies {
-            compile 'org.apache.commons:commons-lang3:3.5'
+            implementation 'org.apache.commons:commons-lang3:3.5'
         }
 
         artifacts {

@@ -42,7 +42,7 @@ class TestKitDependencyClassVisibilityIntegrationTest extends AbstractIntegratio
         when:
         buildScript """
             plugins { id "org.gradle.java" }
-            dependencies { testCompile gradleTestKit() }
+            dependencies { testImplementation gradleTestKit() }
         """
 
         file("src/test/java/Test.java") << """
@@ -61,8 +61,8 @@ class TestKitDependencyClassVisibilityIntegrationTest extends AbstractIntegratio
             plugins { id "org.gradle.java" }
             ${jcenterRepository()}
             dependencies {
-                testCompile gradleTestKit()
-                testCompile 'com.google.guava:guava-jdk5:13.0'
+                testImplementation gradleTestKit()
+                testImplementation 'com.google.guava:guava-jdk5:13.0'
             }
         """
 

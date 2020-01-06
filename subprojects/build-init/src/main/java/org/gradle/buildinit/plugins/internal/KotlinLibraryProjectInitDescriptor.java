@@ -59,13 +59,11 @@ public class KotlinLibraryProjectInitDescriptor extends JvmProjectInitDescriptor
     public void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder, TemplateFactory templateFactory) {
         super.generate(settings, buildScriptBuilder, templateFactory);
 
-        String kotlinVersion = libraryVersionProvider.getVersion("kotlin");
+        new KotlinProjectInitDescriptor(libraryVersionProvider).generate(buildScriptBuilder);
+
         buildScriptBuilder
             .fileComment("This generated file contains a sample Kotlin library project to get you started.")
-            .plugin("Apply the Kotlin JVM plugin to add support for Kotlin on the JVM.", "org.jetbrains.kotlin.jvm", kotlinVersion)
-            .implementationDependency("Use the Kotlin JDK 8 standard library.", "org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-            .testImplementationDependency("Use the Kotlin test library.", "org.jetbrains.kotlin:kotlin-test")
-            .testImplementationDependency("Use the Kotlin JUnit integration.", "org.jetbrains.kotlin:kotlin-test-junit");
+            .plugin("Apply the java-library plugin for API and implementation separation.", "java-library");
 
         TemplateOperation kotlinSourceTemplate = templateFactory.fromSourceTemplate("kotlinlibrary/Library.kt.template", "main");
         TemplateOperation kotlinTestTemplate = templateFactory.fromSourceTemplate("kotlinlibrary/LibraryTest.kt.template", "test");

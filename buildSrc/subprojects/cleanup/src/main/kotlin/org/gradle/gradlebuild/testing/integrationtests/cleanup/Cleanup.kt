@@ -19,11 +19,11 @@
 
 package org.gradle.gradlebuild.testing.integrationtests.cleanup
 
-import org.gradle.api.Project
+import org.gradle.api.file.Directory
+import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.specs.Spec
-import org.gradle.kotlin.dsl.invoke
+import org.gradle.kotlin.dsl.*
 import org.gradle.util.GradleVersion
-
 import java.io.File
 
 
@@ -34,11 +34,9 @@ val dirVersionPattern = "\\d+\\.\\d+(\\.\\d+)?(-\\w+)*(-\\d{14}[+-]\\d{4})?".toR
 /**
  * Removes state for versions that we're unlikely to ever need again, such as old snapshot versions.
  */
-fun Project.removeOldVersionsFromDir(dir: File, shouldDelete: Spec<GradleVersion>, dirPrefix: String = "", dirSuffix: String = "") {
-
-    if (dir.isDirectory) {
-
-        for (cacheDir in dir.listFiles()) {
+fun FileSystemOperations.removeOldVersionsFromDir(dir: Directory, shouldDelete: Spec<GradleVersion>, dirPrefix: String = "", dirSuffix: String = "") {
+    if (dir.asFile.isDirectory) {
+        for (cacheDir in dir.asFile.listFiles()) {
             val cacheDirName = cacheDir.name
             if (!cacheDirName.startsWith(dirPrefix) || !cacheDirName.endsWith(dirSuffix)) {
                 continue
@@ -58,33 +56,35 @@ fun Project.removeOldVersionsFromDir(dir: File, shouldDelete: Spec<GradleVersion
 
             if (shouldDelete(cacheVersion)) {
                 println("Removing old cache directory : $cacheDir")
-                delete(cacheDir)
+                delete {
+                    delete(cacheDir)
+                }
             }
         }
     }
 }
 
 
-fun Project.removeCachedScripts(cachesDir: File) {
+fun FileSystemOperations.removeCachedScripts(cachesDir: File) {
     if (cachesDir.isDirectory) {
         cachesDir.listFiles()
             .filter { it.isDirectory }
             .flatMap { scriptsCacheDirsUnder(it) }
             .forEach { scriptsCacheDir ->
                 println("Removing scripts cache directory : $scriptsCacheDir")
-                delete(scriptsCacheDir)
+                delete { delete(scriptsCacheDir) }
             }
     }
 }
 
 
-fun Project.removeTransformDir(cachesDir: File) {
+fun FileSystemOperations.removeTransformDir(cachesDir: File) {
     if (cachesDir.isDirectory) {
         cachesDir.listFiles()
             .filter { it.isDirectory && it.name.startsWith("transforms-") }
             .forEach { transformDir ->
                 println("Removing transforms directory : $transformDir")
-                delete(transformDir)
+                delete { delete(transformDir) }
             }
     }
 }
@@ -105,11 +105,9 @@ fun scriptsCacheDirsUnder(cacheDir: File) =
 /**
  * Clean up cache files for older versions that aren't multi-process safe.
  */
-fun Project.removeDodgyCacheFiles(dir: File) {
-
-    if (dir.isDirectory) {
-
-        for (cacheDir in dir.listFiles()) {
+fun FileSystemOperations.removeDodgyCacheFiles(dir: Directory) {
+    if (dir.asFile.isDirectory) {
+        for (cacheDir in dir.asFile.listFiles()) {
             if (!cacheDir.name.matches(dirVersionPattern)) {
                 continue
             }
@@ -117,7 +115,7 @@ fun Project.removeDodgyCacheFiles(dir: File) {
                 val stateDir = File(cacheDir, name)
                 if (stateDir.isDirectory) {
                     println("Removing old cache directory : $stateDir")
-                    delete(stateDir)
+                    delete { delete(stateDir) }
                 }
             }
         }
@@ -128,11 +126,11 @@ fun Project.removeDodgyCacheFiles(dir: File) {
 /**
  * Clean up daemon log files produced in integration tests.
  */
-fun Project.removeDaemonLogFiles(dir: File) {
-    if (dir.isDirectory) {
-        val daemonLogFiles = fileTree(dir) {
+fun FileSystemOperations.removeDaemonLogFiles(dir: Directory) {
+    if (dir.asFile.isDirectory) {
+        val daemonLogFiles = dir.asFileTree.matching {
             include("**/*.log")
         }
-        delete(daemonLogFiles)
+        delete { delete(daemonLogFiles) }
     }
 }

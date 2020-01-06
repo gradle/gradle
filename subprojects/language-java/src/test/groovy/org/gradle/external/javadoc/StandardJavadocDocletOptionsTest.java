@@ -89,7 +89,7 @@ public class StandardJavadocDocletOptionsTest {
         assertFalse(options.isDocFilesSubDirs());
         assertEmpty(options.getExcludeDocFilesSubDir());
         assertEmpty(options.getNoQualifiers());
-        assertFalse(options.isNoTimestamp());
+        assertTrue(options.isNoTimestamp());
         assertFalse(options.isNoComment());
     }
 

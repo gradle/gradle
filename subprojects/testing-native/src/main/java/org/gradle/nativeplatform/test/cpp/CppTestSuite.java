@@ -16,7 +16,6 @@
 
 package org.gradle.nativeplatform.test.cpp;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.provider.Provider;
 import org.gradle.language.cpp.CppComponent;
 import org.gradle.nativeplatform.test.TestSuiteComponent;
@@ -26,7 +25,6 @@ import org.gradle.nativeplatform.test.TestSuiteComponent;
  *
  * @since 4.4
  */
-@Incubating
 public interface CppTestSuite extends CppComponent, TestSuiteComponent {
     /**
      * {@inheritDoc}

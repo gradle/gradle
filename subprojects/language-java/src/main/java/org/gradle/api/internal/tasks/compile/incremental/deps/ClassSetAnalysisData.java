@@ -29,6 +29,7 @@ import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.IntSetSerializer;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -68,7 +69,7 @@ public class ClassSetAnalysisData {
                 typesInPackage.add(type);
             }
         }
-        return DependentsSet.dependentClasses(typesInPackage);
+        return DependentsSet.dependentClasses(Collections.emptySet(), typesInPackage);
     }
 
     public IntSet getConstants(String className) {
@@ -145,12 +146,20 @@ public class ClassSetAnalysisData {
             if (b == 1) {
                 return DependentsSet.dependencyToAll(decoder.readNullableString());
             }
+
+            ImmutableSet.Builder<String> privateBuilder = ImmutableSet.builder();
             int count = decoder.readSmallInt();
-            ImmutableSet.Builder<String> builder = ImmutableSet.builder();
             for (int i = 0; i < count; i++) {
-                builder.add(readClassName(decoder, classNameMap));
+                privateBuilder.add(readClassName(decoder, classNameMap));
             }
-            return DependentsSet.dependentClasses(builder.build());
+
+            ImmutableSet.Builder<String> accessibleBuilder = ImmutableSet.builder();
+            count = decoder.readSmallInt();
+            for (int i = 0; i < count; i++) {
+                accessibleBuilder.add(readClassName(decoder, classNameMap));
+            }
+
+            return DependentsSet.dependentClasses(privateBuilder.build(), accessibleBuilder.build());
         }
 
         private void writeDependentSet(DependentsSet dependentsSet, Map<String, Integer> classNameMap, Encoder encoder) throws IOException {
@@ -159,8 +168,12 @@ public class ClassSetAnalysisData {
                 encoder.writeNullableString(dependentsSet.getDescription());
             } else {
                 encoder.writeByte((byte) 2);
-                encoder.writeSmallInt(dependentsSet.getDependentClasses().size());
-                for (String className : dependentsSet.getDependentClasses()) {
+                encoder.writeSmallInt(dependentsSet.getPrivateDependentClasses().size());
+                for (String className : dependentsSet.getPrivateDependentClasses()) {
+                    writeClassName(className, classNameMap, encoder);
+                }
+                encoder.writeSmallInt(dependentsSet.getAccessibleDependentClasses().size());
+                for (String className : dependentsSet.getAccessibleDependentClasses()) {
                     writeClassName(className, classNameMap, encoder);
                 }
             }

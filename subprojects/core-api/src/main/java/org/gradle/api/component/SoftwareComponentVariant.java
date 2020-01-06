@@ -15,7 +15,6 @@
  */
 package org.gradle.api.component;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExcludeRule;
@@ -33,7 +32,6 @@ import java.util.Set;
  *
  * @since 5.3
  */
-@Incubating
 public interface SoftwareComponentVariant extends HasAttributes, Named {
     Set<? extends PublishArtifact> getArtifacts();
     Set<? extends ModuleDependency> getDependencies();

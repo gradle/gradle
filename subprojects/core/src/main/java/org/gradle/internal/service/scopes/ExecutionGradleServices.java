@@ -32,13 +32,8 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ParallelismConfigurationManager;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.CachingResult;
-import org.gradle.internal.execution.CurrentSnapshotResult;
-import org.gradle.internal.execution.IncrementalChangesContext;
-import org.gradle.internal.execution.IncrementalContext;
-import org.gradle.internal.execution.InputChangesContext;
+import org.gradle.internal.execution.ExecutionRequestContext;
 import org.gradle.internal.execution.OutputChangeListener;
-import org.gradle.internal.execution.Result;
-import org.gradle.internal.execution.UpToDateResult;
 import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.history.ExecutionHistoryCacheAccess;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
@@ -50,23 +45,34 @@ import org.gradle.internal.execution.impl.DefaultWorkExecutor;
 import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep;
 import org.gradle.internal.execution.steps.CacheStep;
 import org.gradle.internal.execution.steps.CancelExecutionStep;
+import org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep;
 import org.gradle.internal.execution.steps.CatchExceptionStep;
 import org.gradle.internal.execution.steps.CleanupOutputsStep;
 import org.gradle.internal.execution.steps.CreateOutputsStep;
 import org.gradle.internal.execution.steps.ExecuteStep;
+import org.gradle.internal.execution.steps.LoadExecutionStateStep;
 import org.gradle.internal.execution.steps.RecordOutputsStep;
 import org.gradle.internal.execution.steps.ResolveCachingStateStep;
 import org.gradle.internal.execution.steps.ResolveChangesStep;
 import org.gradle.internal.execution.steps.ResolveInputChangesStep;
+import org.gradle.internal.execution.steps.SkipEmptyWorkStep;
 import org.gradle.internal.execution.steps.SkipUpToDateStep;
 import org.gradle.internal.execution.steps.SnapshotOutputsStep;
-import org.gradle.internal.execution.steps.StoreSnapshotsStep;
+import org.gradle.internal.execution.steps.StoreExecutionStateStep;
 import org.gradle.internal.execution.steps.TimeoutStep;
+import org.gradle.internal.execution.steps.ValidateStep;
 import org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsFinishedStep;
+import org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsStartedStep;
 import org.gradle.internal.execution.timeout.TimeoutHandler;
+import org.gradle.internal.file.Deleter;
+import org.gradle.internal.fingerprint.overlap.OverlappingOutputDetector;
+import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
+import org.gradle.internal.resources.SharedResourceLeaseRegistry;
 import org.gradle.internal.scan.config.BuildScanPluginApplied;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
+import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.util.GradleVersion;
 
@@ -119,49 +125,51 @@ public class ExecutionGradleServices {
         return listenerManager.getBroadcaster(OutputChangeListener.class);
     }
 
-    public WorkExecutor<IncrementalContext, CachingResult> createWorkExecutor(
+    public WorkExecutor<ExecutionRequestContext, CachingResult> createWorkExecutor(
         BuildCacheCommandFactory buildCacheCommandFactory,
         BuildCacheController buildCacheController,
-        BuildScanPluginApplied buildScanPlugin,
         BuildCancellationToken cancellationToken,
         BuildInvocationScopeId buildInvocationScopeId,
+        BuildOperationExecutor buildOperationExecutor,
+        BuildScanPluginApplied buildScanPlugin,
+        ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
+        Deleter deleter,
         ExecutionStateChangeDetector changeDetector,
         OutputChangeListener outputChangeListener,
         OutputFilesRepository outputFilesRepository,
-        TimeoutHandler timeoutHandler
+        OverlappingOutputDetector overlappingOutputDetector,
+        TimeoutHandler timeoutHandler,
+        ValidateStep.ValidationWarningReporter validationWarningReporter,
+        ValueSnapshotter valueSnapshotter
     ) {
-        return new DefaultWorkExecutor<IncrementalContext, CachingResult>(
+        // @formatter:off
+        return new DefaultWorkExecutor<>(
+            new LoadExecutionStateStep<>(
+            new MarkSnapshottingInputsStartedStep<>(
+            new SkipEmptyWorkStep<>(
+            new ValidateStep<>(validationWarningReporter,
+            new CaptureStateBeforeExecutionStep(buildOperationExecutor, classLoaderHierarchyHasher, valueSnapshotter, overlappingOutputDetector,
             new ResolveCachingStateStep(buildCacheController, buildScanPlugin.isBuildScanPluginApplied(),
-                new MarkSnapshottingInputsFinishedStep<UpToDateResult>(
-                    new ResolveChangesStep<UpToDateResult>(changeDetector,
-                        new SkipUpToDateStep<IncrementalChangesContext>(
-                            new RecordOutputsStep<IncrementalChangesContext>(outputFilesRepository,
-                                new StoreSnapshotsStep<IncrementalChangesContext>(
-                                    new BroadcastChangingOutputsStep<IncrementalChangesContext, CurrentSnapshotResult>(outputChangeListener,
-                                        new CacheStep(buildCacheController, buildCacheCommandFactory,
-                                            new SnapshotOutputsStep<IncrementalChangesContext>(buildInvocationScopeId.getId(),
-                                                new CreateOutputsStep<IncrementalChangesContext, Result>(
-                                                    new CatchExceptionStep<IncrementalChangesContext>(
-                                                        new TimeoutStep<IncrementalChangesContext>(timeoutHandler,
-                                                            new CancelExecutionStep<IncrementalChangesContext>(cancellationToken,
-                                                                new ResolveInputChangesStep<IncrementalChangesContext>(
-                                                                    new CleanupOutputsStep<InputChangesContext, Result>(
-                                                                        new ExecuteStep<InputChangesContext>()
-                                                                    )
-                                                                )
-                                                            )
-                                                        )
-                                                    )
-                                                )
-                                            )
-                                        )
-                                    )
-                                )
-                            )
-                        )
-                    )
-                )
-            )
-        );
+            new MarkSnapshottingInputsFinishedStep<>(
+            new ResolveChangesStep<>(changeDetector,
+            new SkipUpToDateStep<>(
+            new RecordOutputsStep<>(outputFilesRepository,
+            new StoreExecutionStateStep<>(
+            new CacheStep(buildCacheController, buildCacheCommandFactory, deleter,
+            new BroadcastChangingOutputsStep<>(outputChangeListener,
+            new SnapshotOutputsStep<>(buildOperationExecutor, buildInvocationScopeId.getId(),
+            new CreateOutputsStep<>(
+            new CatchExceptionStep<>(
+            new TimeoutStep<>(timeoutHandler,
+            new CancelExecutionStep<>(cancellationToken,
+            new ResolveInputChangesStep<>(
+            new CleanupOutputsStep<>(deleter, outputChangeListener,
+            new ExecuteStep<>(
+        ))))))))))))))))))))));
+        // @formatter:on
+    }
+
+    SharedResourceLeaseRegistry createSharedResourceLeaseRegistry(ResourceLockCoordinationService coordinationService) {
+        return new SharedResourceLeaseRegistry(coordinationService);
     }
 }

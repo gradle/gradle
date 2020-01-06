@@ -44,4 +44,8 @@ public interface JavaCompileSpec extends JvmLanguageCompileSpec {
     Set<String> getClasses();
 
     List<File> getModulePath();
+
+    default boolean annotationProcessingConfigured() {
+        return !getAnnotationProcessorPath().isEmpty() && !getCompileOptions().getCompilerArgs().contains("-proc:none");
+    }
 }

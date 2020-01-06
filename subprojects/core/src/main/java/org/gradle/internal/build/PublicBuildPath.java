@@ -20,13 +20,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.util.Path;
 
 /**
- * A reference to the, eventually available, public path for a build.
- *
- * The state complexity of this object is due to https://github.com/gradle/gradle/issues/4241.
- * The user facing “identity path” of domain objects (e.g. tasks, configurations) is based on this value.
- * This ends up being derived from {@link GradleInternal#getIdentityPath()}.
- * As such, {@link GradleInternal} is injected into a lot of places just to get this path.
- * Moreover, this is required to be wired in to some places that do not have access to the {@link GradleInternal} object.
+ * A reference to public path for a build, available via the service registry.
  *
  * Usages of {@link GradleInternal#getIdentityPath()} should be migrated to this type, to avoid unnecessary penetration of GradleInternal.
  */
@@ -38,6 +32,6 @@ public interface PublicBuildPath {
      * Throws IllegalStateException if the path is not yet known for the build.
      * This can happen for nested builds as the path is influenced by the root project name.
      */
-    Path getBuildPath() throws IllegalStateException;
+    Path getBuildPath();
 
 }

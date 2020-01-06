@@ -16,14 +16,11 @@
 
 package org.gradle.api.component;
 
-import org.gradle.api.Incubating;
-
 /**
  * Represents a component that can be built.
  *
  * @since 4.7
  */
-@Incubating
 public interface BuildableComponent extends SoftwareComponent {
 
 }

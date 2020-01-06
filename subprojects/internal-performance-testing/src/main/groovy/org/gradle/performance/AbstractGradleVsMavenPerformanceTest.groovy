@@ -25,8 +25,6 @@ import org.gradle.performance.fixture.GradleVsMavenBuildExperimentRunner
 import org.gradle.performance.fixture.GradleVsMavenPerformanceTestRunner
 import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
 import org.gradle.performance.fixture.PerformanceTestIdProvider
-import org.gradle.performance.results.DataReporter
-import org.gradle.performance.results.GradleVsMavenBuildPerformanceResults
 import org.gradle.performance.results.GradleVsMavenBuildResultsStore
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -38,7 +36,7 @@ import spock.lang.Specification
 @CompileStatic
 @CleanupTestDirectory
 class AbstractGradleVsMavenPerformanceTest extends Specification {
-    private static final DataReporter<GradleVsMavenBuildPerformanceResults> RESULT_STORE = new GradleVsMavenBuildResultsStore()
+    private static final GradleVsMavenBuildResultsStore RESULT_STORE = new GradleVsMavenBuildResultsStore()
 
     @Rule
     TestNameTestDirectoryProvider temporaryFolder = new PerformanceTestDirectoryProvider()
@@ -46,7 +44,7 @@ class AbstractGradleVsMavenPerformanceTest extends Specification {
     final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
 
     GradleVsMavenPerformanceTestRunner runner = new GradleVsMavenPerformanceTestRunner(
-        temporaryFolder, new GradleVsMavenBuildExperimentRunner(new GradleSessionProvider(buildContext), TestFiles.execActionFactory()), RESULT_STORE, buildContext) {
+        temporaryFolder, new GradleVsMavenBuildExperimentRunner(new GradleSessionProvider(buildContext), TestFiles.execActionFactory()), RESULT_STORE, RESULT_STORE, buildContext) {
         @Override
         protected void defaultSpec(BuildExperimentSpec.Builder builder) {
             super.defaultSpec(builder)

@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.ide.eclipse
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 import org.junit.Test
@@ -29,6 +30,7 @@ class EclipseWtpModelIntegrationTest extends AbstractEclipseIntegrationTest {
     String component
 
     @Test
+    @ToBeFixedForInstantExecution
     void allowsConfiguringEclipseWtp() {
         //given
         file('someExtraSourceDir').mkdirs()
@@ -104,6 +106,7 @@ eclipse {
 
     @Issue("GRADLE-2653")
     @Test
+    @ToBeFixedForInstantExecution
     void "wtp component respects configuration modifications"() {
         //given
         mavenRepo.module("gradle", "foo").publish()
@@ -122,7 +125,7 @@ repositories {
 }
 
 dependencies {
-  compile 'gradle:foo:1.0', 'gradle:bar:1.0', 'gradle:baz:1.0'
+  implementation 'gradle:foo:1.0', 'gradle:bar:1.0', 'gradle:baz:1.0'
 }
 
 configurations.all {
@@ -136,6 +139,7 @@ configurations.all {
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     void allowsConfiguringHooksForComponent() {
         //given
         def componentFile = file('.settings/org.eclipse.wst.common.component')
@@ -190,6 +194,7 @@ eclipseWtpComponent.doLast() {
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     void allowsConfiguringHooksForFacet() {
         //given
         def componentFile = file('.settings/org.eclipse.wst.common.project.facet.core.xml')
@@ -242,6 +247,7 @@ eclipse {
 
     @Issue("GRADLE-2661")
     @Test
+    @ToBeFixedForInstantExecution
     void "file dependencies respect plus minus configurations"() {
         //when
         runEclipseTask """
@@ -278,6 +284,7 @@ eclipse {
 
     @Test
     @Issue("GRADLE-1881")
+    @ToBeFixedForInstantExecution
     void "uses eclipse project name for wtp module dependencies"() {
         //given
         def settings = file('settings.gradle')
@@ -290,7 +297,7 @@ project(':impl') {
   apply plugin: 'war'
   apply plugin: 'eclipse-wtp'
 
-  dependencies { compile project(':contrib') }
+  dependencies { implementation project(':contrib') }
 
   eclipse.project.name = 'cool-impl'
 }
@@ -317,6 +324,7 @@ project(':contrib') {
 
     @Test
     @Issue("GRADLE-1881")
+    @ToBeFixedForInstantExecution
     void "does not explode if dependent project does not have eclipse plugin"() {
         //given
         def settings = file('settings.gradle')
@@ -329,7 +337,7 @@ project(':impl') {
   apply plugin: 'war'
   apply plugin: 'eclipse-wtp'
 
-  dependencies { compile project(':contrib') }
+  dependencies { implementation project(':contrib') }
 
   eclipse.project.name = 'cool-impl'
 }
@@ -346,6 +354,7 @@ project(':contrib') {
 
     @Test
     @Issue("GRADLE-2030")
+    @ToBeFixedForInstantExecution
     void "component for war plugin does not contain non-existing source and resource dirs"() {
         //given
         file('xxxSource').createDir()
@@ -376,6 +385,7 @@ project(':contrib') {
 
     @Test
     @Issue("GRADLE-2030")
+    @ToBeFixedForInstantExecution
     void "component for ear plugin does not contain non-existing source and resource dirs"() {
         //given
         file('xxxSource').createDir()
@@ -409,6 +419,7 @@ project(':contrib') {
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     void "component for ear plugin contains the app dir"() {
         //given
         file('coolAppDir').createDir()
@@ -429,6 +440,7 @@ project(':contrib') {
 
     @Test
     @Issue("GRADLE-1974")
+    @ToBeFixedForInstantExecution
     void "may use web libraries container"() {
         //given
         //adding a little bit more stress with a subproject and some web resources:
@@ -447,8 +459,8 @@ project(':contrib') {
             ${mavenCentralRepository()}
 
             dependencies {
-              compile 'commons-io:commons-io:1.4'
-              compile project(':someCoolLib')
+              implementation 'commons-io:commons-io:1.4'
+              implementation project(':someCoolLib')
             }
         """
 
@@ -461,6 +473,7 @@ project(':contrib') {
 
     @Test
     @Issue("GRADLE-1974")
+    @ToBeFixedForInstantExecution
     void "the web container is not present without war+wtp combo"() {
         //given
         file("build.gradle") << """
@@ -477,6 +490,7 @@ project(':contrib') {
 
     @Test
     @Issue("GRADLE-1707")
+    @ToBeFixedForInstantExecution
     void "classpath entries are protected from conflicting component dependency attributes"() {
         //given
         file("build.gradle") << """
@@ -486,7 +500,7 @@ project(':contrib') {
             ${mavenCentralRepository()}
 
             dependencies {
-              compile 'commons-io:commons-io:1.4'
+              implementation 'commons-io:commons-io:1.4'
             }
 
             import org.gradle.plugins.ide.eclipse.model.AbstractClasspathEntry
@@ -512,6 +526,7 @@ project(':contrib') {
 
     @Test
     @Issue("GRADLE-1412")
+    @ToBeFixedForInstantExecution
     void "utility project's library and variable classpath entries contain necessary dependency attribute"() {
         //given
         file('libs/myFoo.jar').touch()
@@ -524,8 +539,8 @@ project(':contrib') {
            ${mavenCentralRepository()}
 
            dependencies {
-               runtime 'commons-io:commons-io:1.4'
-               runtime files('libs/myFoo.jar')
+               runtimeOnly 'commons-io:commons-io:1.4'
+               runtimeOnly files('libs/myFoo.jar')
            }
 
            eclipse.pathVariables MY_LIBS: file('libs')
@@ -543,6 +558,7 @@ project(':contrib') {
 
     @Test
     @Issue("GRADLE-1412")
+    @ToBeFixedForInstantExecution
     void "web project's library and variable classpath entries contain necessary dependency attribute"() {
         //given
         file('libs/myFoo.jar').touch()
@@ -555,8 +571,8 @@ project(':contrib') {
            ${mavenCentralRepository()}
 
            dependencies {
-               runtime 'commons-io:commons-io:1.4'
-               runtime files('libs/myFoo.jar')
+               runtimeOnly 'commons-io:commons-io:1.4'
+               runtimeOnly files('libs/myFoo.jar')
            }
 
            eclipse.pathVariables MY_LIBS: file('libs')

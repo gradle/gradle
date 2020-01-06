@@ -18,9 +18,10 @@ package org.gradle.language.base
 
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Unroll
 
-public class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
+class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
 
     def "setup"() {
         buildFile << """
@@ -96,6 +97,7 @@ public class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
         tasksNode.sampleLibBinaryOneTask.@type[0] == 'org.gradle.api.DefaultTask'
     }
 
+    @ToBeFixedForInstantExecution
     def "can reference rule-added tasks in model"() {
         given:
         buildFile << '''
@@ -123,10 +125,12 @@ public class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
         succeeds "checkModel"
     }
 
+    @ToBeFixedForInstantExecution
     def "rule can declare task with type"() {
         given:
         buildFile << """
         class BinaryCreationTask extends DefaultTask {
+            @Internal
             BinarySpec binary
             @TaskAction void create(){
                 println "Building \${binary.projectScopedName} via \${name} of type BinaryCreationTask"
@@ -176,13 +180,13 @@ public class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
         succeeds "sampleLibBinaryOne"
 
         then:
-        executedTasks == [":sampleLibBinaryOne"]
+        result.assertTasksExecuted(":sampleLibBinaryOne")
 
         when:
         succeeds "sampleLibOtherBinary"
 
         then:
-        executedTasks == [":sampleLibOtherBinaryOtherTask", ":sampleLibOtherBinary"]
+        result.assertTasksExecuted(":sampleLibOtherBinaryOtherTask", ":sampleLibOtherBinary")
     }
 
     def "can use additional parameters as rule inputs"() {

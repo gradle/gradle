@@ -17,24 +17,19 @@
 package org.gradle.workers.internal
 
 import org.gradle.api.logging.LogLevel
-import org.gradle.internal.operations.BuildOperationExecutor
-import org.gradle.internal.operations.BuildOperationRef
+import org.gradle.workers.WorkAction
+import org.gradle.workers.WorkParameters
 import spock.lang.Specification
 
 class WorkerDaemonClientTest extends Specification {
-    BuildOperationExecutor buildOperationExecutor = Mock(BuildOperationExecutor)
-    BuildOperationRef buildOperation = Mock(BuildOperationRef)
-
-    WorkerDaemonClient client
-
     def "underlying worker is executed when client is executed"() {
         def workerDaemonProcess = Mock(WorkerDaemonProcess)
 
         given:
-        client = client(workerDaemonProcess)
+        def client = client(workerDaemonProcess)
 
         when:
-        client.execute(Stub(ActionExecutionSpec), buildOperation)
+        client.execute(spec())
 
         then:
         1 * workerDaemonProcess.execute(_)
@@ -42,11 +37,11 @@ class WorkerDaemonClientTest extends Specification {
 
     def "use count is incremented when client is executed"() {
         given:
-        client = client()
+        def client = client()
         assert client.uses == 0
 
         when:
-        5.times { client.execute(Stub(ActionExecutionSpec), buildOperation) }
+        5.times { client.execute(spec()) }
 
         then:
         client.uses == 5
@@ -58,7 +53,19 @@ class WorkerDaemonClientTest extends Specification {
 
     WorkerDaemonClient client(WorkerDaemonProcess workerDaemonProcess) {
         def daemonForkOptions = Mock(DaemonForkOptions)
+        def actionExecutionSpecFactory = Stub(ActionExecutionSpecFactory) {
+            newTransportableSpec(_) >> { Mock(TransportableActionExecutionSpec) }
+        }
         def workerProcess = workerDaemonProcess.start()
-        return new WorkerDaemonClient(daemonForkOptions, workerDaemonProcess, workerProcess, LogLevel.INFO)
+        return new WorkerDaemonClient(daemonForkOptions, workerDaemonProcess, workerProcess, LogLevel.INFO, actionExecutionSpecFactory)
+    }
+
+    def spec() {
+        return new IsolatedParametersActionExecutionSpec(TestWorkAction, "action", "impl", null, null, null, false)
+    }
+
+    static abstract class TestWorkAction implements WorkAction<WorkParameters.None> {
+        @Override
+        void execute() {}
     }
 }

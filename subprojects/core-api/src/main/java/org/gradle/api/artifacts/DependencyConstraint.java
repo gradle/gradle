@@ -16,7 +16,6 @@
 package org.gradle.api.artifacts;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.HasConfigurableAttributes;
 
@@ -27,7 +26,6 @@ import javax.annotation.Nullable;
  *
  * @since 4.5
  */
-@Incubating
 public interface DependencyConstraint extends ModuleVersionSelector, HasConfigurableAttributes<DependencyConstraint> {
 
     /**
@@ -63,7 +61,6 @@ public interface DependencyConstraint extends ModuleVersionSelector, HasConfigur
      * @since 4.8
      */
     @Override
-    @Incubating
     AttributeContainer getAttributes();
 
     /**
@@ -75,7 +72,6 @@ public interface DependencyConstraint extends ModuleVersionSelector, HasConfigur
      * @since 4.8
      */
     @Override
-    @Incubating
     DependencyConstraint attributes(Action<? super AttributeContainer> configureAction);
 
     /**

@@ -276,17 +276,36 @@ public interface GradleExecuter extends Stoppable {
     TestDirectoryProvider getTestDirectoryProvider();
 
     /**
+     * Default is enabled = true.
+     *
+     * All our tests should work with partial VFS invalidation.
+     * As soon as partial invalidation is enabled by default, we can remove this method and the field again.
+     */
+    GradleExecuter withPartialVfsInvalidation(boolean enabled);
+
+    /**
      * Expects exactly one deprecation warning in the build output. If more than one warning is produced,
      * or no warning is produced at all, the assertion fails.
      *
      * @see #expectDeprecationWarnings(int)
+     *
+     * @deprecated Use {@link #expectDeprecationWarning(String)} instead.
      */
+    @Deprecated
     GradleExecuter expectDeprecationWarning();
+
+    /**
+     * Expects exactly the given deprecation warning.
+     */
+    GradleExecuter expectDeprecationWarning(String warning);
 
     /**
      * Expects exactly the given number of deprecation warnings. If fewer or more warnings are produced during
      * the execution, the assertion fails.
+     *
+     * @deprecated Use {@link #expectDeprecationWarning(String)} instead.
      */
+    @Deprecated
     GradleExecuter expectDeprecationWarnings(int count);
 
     /**
@@ -423,7 +442,7 @@ public interface GradleExecuter extends Stoppable {
     GradleExecuter withConsole(ConsoleOutput consoleOutput);
 
     /**
-     * Executes the build with {@code "--warning-mode=none, summary, all"} argument.
+     * Executes the build with {@code "--warning-mode=none, summary, fail, all"} argument.
      *
      * @see WarningMode
      */

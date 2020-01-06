@@ -31,7 +31,7 @@ project(":a") {
 project(":b") {
     apply plugin: 'war'
     dependencies {
-        compile project(":a")
+        implementation project(":a")
     }
     compileJava.doFirst {
         assert classpath.collect { it.name } == ['a.jar']

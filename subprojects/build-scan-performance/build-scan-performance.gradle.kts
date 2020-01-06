@@ -18,7 +18,7 @@ import org.gradle.testing.performance.generator.tasks.JvmProjectGeneratorTask
  * limitations under the License.
  */
 plugins {
-    java
+    `java-library`
     gradlebuild.classycle
 }
 
@@ -29,11 +29,13 @@ dependencies {
         performanceTestRuntimeOnly(it)
     }
 
-    testFixturesImplementation(project(":baseServices"))
+    testFixturesApi(project(":internalPerformanceTesting"))
+    testFixturesApi(library("commons_io"))
+    testFixturesApi(project(":baseServices"))
     testFixturesImplementation(project(":internalTesting"))
     testFixturesImplementation(project(":internalIntegTesting"))
-    testFixturesImplementation(project(":internalPerformanceTesting"))
-    testFixturesImplementation(library("commons_io"))
+
+    performanceTestImplementation(project(":internalIntegTesting"))
 }
 
 gradlebuildJava {
@@ -68,4 +70,7 @@ val generateTemplate = tasks.register<JvmProjectGeneratorTask>("javaProject") {
 tasks.withType<PerformanceTest>().configureEach {
     dependsOn(generateTemplate)
     systemProperties["incomingArtifactDir"] = "$rootDir/incoming/"
+
+    environment("ARTIFACTORY_USERNAME", System.getenv("ARTIFACTORY_USERNAME"))
+    environment("ARTIFACTORY_PASSWORD", System.getenv("ARTIFACTORY_PASSWORD"))
 }

@@ -20,6 +20,9 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.internal.Factory;
 import org.gradle.internal.build.BuildState;
+import org.gradle.internal.model.ModelContainer;
+import org.gradle.internal.resources.ResourceLock;
+import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -28,7 +31,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Encapsulates the identity and state of a particular project in a build tree.
  */
 @ThreadSafe
-public interface ProjectState {
+public interface ProjectState extends ModelContainer {
     /**
      * Returns the containing build of this project.
      */
@@ -46,22 +49,32 @@ public interface ProjectState {
     String getName();
 
     /**
+     * Returns an identifying path for this project in the build tree.
+     */
+    Path getIdentityPath();
+
+    /**
+     * Returns a path for this project within its containing build. These are not unique within a build tree.
+     */
+    Path getProjectPath();
+
+    /**
      * Returns the identifier of the default component produced by this project.
      */
     ProjectComponentIdentifier getComponentIdentifier();
 
-    /**
-     * Runs the given action against the public mutable state of the project. Applies best effort synchronization to prevent concurrent access to a particular project from multiple threads. However, it is currently easy for state to leak from one project to another so this is not a strong guarantee.
-     */
-    <T> T withMutableState(Factory<? extends T> factory);
+    void attachMutableModel(ProjectInternal project);
 
     /**
-     * Runs the given action against the public mutable state of the project. Applies best effort synchronization to prevent concurrent access to a particular project from multiple threads. However, it is currently easy for state to leak from one project to another so this is not a strong guarantee.
+     * Returns the mutable model for this project. This should not be used directly. This property is here to help with migration away from direct usage.
      */
-    <T> void withMutableState(Runnable runnable);
+    ProjectInternal getMutableModel();
 
     /**
-     * Returns whether or not the current thread holds the mutable state for this project.
+     * Returns the lock that will be acquired when accessing the mutable state of this project via {@link #withMutableState(Runnable)} and {@link #withMutableState(Factory)}.
+     * A caller can optionally acquire this lock before calling one of these accessor methods, in order to avoid those methods blocking.
+     *
+     * <p>Note that the lock may be shared between projects.
      */
-    boolean hasMutableState();
+    ResourceLock getAccessLock();
 }

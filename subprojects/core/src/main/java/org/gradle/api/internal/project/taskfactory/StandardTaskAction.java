@@ -19,7 +19,7 @@ package org.gradle.api.internal.project.taskfactory;
 import org.gradle.api.Describable;
 import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.ImplementationAwareTaskAction;
-import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
+import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 

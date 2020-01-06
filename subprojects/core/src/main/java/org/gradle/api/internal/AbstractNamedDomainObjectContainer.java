@@ -29,7 +29,6 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.metaobject.ConfigureDelegate;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ConfigureUtil;
-import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
 
@@ -44,25 +43,6 @@ public abstract class AbstractNamedDomainObjectContainer<T> extends DefaultNamed
 
     protected AbstractNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, CollectionCallbackActionDecorator callbackActionDecorator) {
         super(type, instantiator, Named.Namer.forType(type), callbackActionDecorator);
-    }
-
-    /**
-     * This internal constructor is used by 'nebula.plugin-plugin' which we test as part of our ci pipeline.
-     * */
-    @Deprecated
-    protected AbstractNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, Namer<? super T> namer) {
-        this(type, instantiator, namer, CollectionCallbackActionDecorator.NOOP);
-        DeprecationLogger.nagUserOfDeprecated("Internal API constructor AbstractNamedDomainObjectContainer(Class<T>, Instantiator, Namer<? extends T>)", "Don't use internal API");
-    }
-
-
-    /**
-     * This internal constructor is used by the 'com.eriwen.gradle.css' and 'com.eriwen.gradle.js' plugin which we test as part of our ci pipeline.
-     * */
-    @Deprecated
-    protected AbstractNamedDomainObjectContainer(Class<T> type, Instantiator instantiator) {
-        this(type, instantiator, CollectionCallbackActionDecorator.NOOP);
-        DeprecationLogger.nagUserOfDeprecated("Internal API constructor FactoryNamedDomainObjectContainerConstructor AbstractNamedDomainObjectContainer(Class<T>, Instantiator)", "Don't use internal API");
     }
 
     /**

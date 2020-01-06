@@ -23,7 +23,7 @@ import org.junit.runner.RunWith
 
 @RunWith(FluidDependenciesResolveRunner)
 class FileDependencyResolveIntegrationTest extends AbstractDependencyResolutionTest {
-    def resolve = new ResolveTestFixture(buildFile)
+    def resolve = new ResolveTestFixture(buildFile, "compile")
 
     def setup() {
         resolve.prepare()

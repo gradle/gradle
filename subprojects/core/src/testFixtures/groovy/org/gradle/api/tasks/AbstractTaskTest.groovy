@@ -24,6 +24,7 @@ import org.gradle.api.Task
 import org.gradle.api.internal.AbstractTask
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.taskfactory.TaskInstantiator
+import org.gradle.api.internal.tasks.InputChangesAwareTaskAction
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.specs.Spec
 import org.gradle.internal.Actions
@@ -114,6 +115,25 @@ abstract class AbstractTaskTest extends AbstractProjectBuilderSpec {
 
         then:
         getTask().getActions().size() == 1
+    }
+
+    def "can replace an action"() {
+        given:
+        getTask().setActions([])
+
+        when:
+        getTask().getActions().add(Actions.doNothing())
+        getTask().getActions().set(0, { task -> throw new RuntimeException()} as Action)
+
+        then:
+        getTask().getActions().size() == 1
+        getTask().getActions()[0] instanceof InputChangesAwareTaskAction
+
+        when:
+        getTask().getActions()[0].execute(getTask())
+
+        then:
+        thrown(RuntimeException)
     }
 
     def "addAction with null throws"() {

@@ -69,9 +69,7 @@ abstract class AbstractBasicGroupedTaskLoggingFunctionalTest extends AbstractCon
             assert result.groupedOutput.task(':2:log').output == "Output from 2\nDone with 2"
             assert result.groupedOutput.task(':3:log').output == "Output from 3\nDone with 3"
 
-            result.assertHasErrorOutput("Error from 1\nDone with 1")
-            result.assertHasErrorOutput("Error from 2\nDone with 2")
-            result.assertHasErrorOutput("Error from 3\nDone with 3")
+            ['Error from 1', 'Done with 1', 'Error from 2', 'Done with 2', 'Error from 3', 'Done with 3'].each(result.&assertHasErrorOutput)
         }
     }
 
@@ -231,7 +229,7 @@ abstract class AbstractBasicGroupedTaskLoggingFunctionalTest extends AbstractCon
     }
 
     protected static void assertOutputContains(GradleHandle gradle, String str) {
-        ConcurrentTestUtil.poll(sleepTimeout/1000 as double) {
+        ConcurrentTestUtil.poll(sleepTimeout / 1000 as double) {
             assert gradle.standardOutput =~ /(?ms)$str/
         }
     }

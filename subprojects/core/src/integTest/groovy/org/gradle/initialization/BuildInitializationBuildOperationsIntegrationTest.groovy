@@ -19,6 +19,7 @@ package org.gradle.initialization
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationNotificationsFixture
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 class BuildInitializationBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
 
@@ -59,6 +60,7 @@ class BuildInitializationBuildOperationsIntegrationTest extends AbstractIntegrat
         buildOperations.first('Configure build').id == loadProjectsBuildOperation.parentId
     }
 
+    @ToBeFixedForInstantExecution
     def "operations are fired for complex nest of builds"() {
         settingsFile << """
             rootProject.name = "root-changed"
@@ -67,7 +69,7 @@ class BuildInitializationBuildOperationsIntegrationTest extends AbstractIntegrat
         buildFile << """
             apply plugin:'java'
             dependencies {
-                compile 'org.acme:nested-changed:+'
+                implementation 'org.acme:nested-changed:+'
             }
         """
 
@@ -86,7 +88,7 @@ class BuildInitializationBuildOperationsIntegrationTest extends AbstractIntegrat
                 includeBuild "nested-nested"
             """
             file("build.gradle") << """
-                apply plugin: 'java'
+                apply plugin: 'java-library'
                 group = 'org.acme'
             """
             dir("buildSrc") {
@@ -144,41 +146,76 @@ class BuildInitializationBuildOperationsIntegrationTest extends AbstractIntegrat
         then:
         def loadBuildBuildOperations = buildOperations.all(LoadBuildBuildOperationType)
         loadBuildBuildOperations*.details.buildPath == [
-            ":", ":buildSrc", ":buildSrc:buildSrc",
-            ":nested-changed", ":nested:buildSrc", ":nested:buildSrc:buildSrc",
-            ":nested-cli-changed", ":nested-cli:buildSrc", ":nested-cli:buildSrc:buildSrc",
-            ":nested-nested-changed", ":nested-nested:buildSrc", ":nested-nested:buildSrc:buildSrc",
-            ":nested-cli-nested-changed", ":nested-cli-nested:buildSrc", ":nested-cli-nested:buildSrc:buildSrc"
+            ":",
+            ":nested",
+            ":nested-cli",
+            ":nested-nested",
+            ":nested-cli-nested",
+            ":buildSrc",
+            ":buildSrc:buildSrc",
+            ":nested:buildSrc",
+            ":nested:buildSrc:buildSrc",
+            ":nested-cli:buildSrc",
+            ":nested-cli:buildSrc:buildSrc",
+            ":nested-nested:buildSrc",
+            ":nested-nested:buildSrc:buildSrc",
+            ":nested-cli-nested:buildSrc",
+            ":nested-cli-nested:buildSrc:buildSrc",
         ]
 
         loadBuildBuildOperations*.details.includedBy == [
-            null, ":", ":buildSrc",
-            ":", ":nested-changed", ":nested:buildSrc",
-            ":", ":nested-cli-changed", ":nested-cli:buildSrc",
-            ":nested-changed", ":nested-nested-changed", ":nested-nested:buildSrc",
-            ":nested-cli-changed", ":nested-cli-nested-changed", ":nested-cli-nested:buildSrc"
+            null,
+            ":",
+            ":",
+            ":nested",
+            ":nested-cli",
+            ":",
+            ":buildSrc",
+            ":nested",
+            ":nested:buildSrc",
+            ":nested-cli",
+            ":nested-cli:buildSrc",
+            ":nested-nested",
+            ":nested-nested:buildSrc",
+            ":nested-cli-nested",
+            ":nested-cli-nested:buildSrc",
         ]
 
         def evaluateSettingsBuildOperations = buildOperations.all(EvaluateSettingsBuildOperationType)
         evaluateSettingsBuildOperations*.details.buildPath == [
-            ":buildSrc:buildSrc", ":buildSrc", ":",
-            ":nested:buildSrc:buildSrc", ":nested:buildSrc", ":nested-changed",
-            ":nested-cli:buildSrc:buildSrc", ":nested-cli:buildSrc", ":nested-cli-changed",
-            ":nested-nested:buildSrc:buildSrc", ":nested-nested:buildSrc", ":nested-nested-changed",
-            ":nested-cli-nested:buildSrc:buildSrc", ":nested-cli-nested:buildSrc", ":nested-cli-nested-changed",
+            ":",
+            ":nested",
+            ":nested-cli",
+            ":nested-nested",
+            ":nested-cli-nested",
+            ":buildSrc",
+            ":buildSrc:buildSrc",
+            ":nested:buildSrc",
+            ":nested:buildSrc:buildSrc",
+            ":nested-cli:buildSrc",
+            ":nested-cli:buildSrc:buildSrc",
+            ":nested-nested:buildSrc",
+            ":nested-nested:buildSrc:buildSrc",
+            ":nested-cli-nested:buildSrc",
+            ":nested-cli-nested:buildSrc:buildSrc",
         ]
 
         def configureOrder = [
-            ":buildSrc:buildSrc", ":buildSrc",
-            ":nested:buildSrc:buildSrc", ":nested:buildSrc",
-            ":nested-cli:buildSrc:buildSrc", ":nested-cli:buildSrc",
-            ":nested-nested:buildSrc:buildSrc", ":nested-nested:buildSrc",
-            ":nested-cli-nested:buildSrc:buildSrc", ":nested-cli-nested:buildSrc",
+            ":buildSrc:buildSrc",
+            ":buildSrc",
             ":",
-            ":nested-changed",
-            ":nested-cli-changed",
-            ":nested-nested-changed",
-            ":nested-cli-nested-changed"
+            ":nested:buildSrc:buildSrc",
+            ":nested:buildSrc",
+            ":nested",
+            ":nested-cli:buildSrc:buildSrc",
+            ":nested-cli:buildSrc",
+            ":nested-cli",
+            ":nested-nested:buildSrc:buildSrc",
+            ":nested-nested:buildSrc",
+            ":nested-nested",
+            ":nested-cli-nested:buildSrc:buildSrc",
+            ":nested-cli-nested:buildSrc",
+            ":nested-cli-nested",
         ]
 
         def configureBuildBuildOperations = buildOperations.all(ConfigureBuildBuildOperationType)
@@ -189,7 +226,6 @@ class BuildInitializationBuildOperationsIntegrationTest extends AbstractIntegrat
         def dirs = configureOrder
             .collect { it.substring(1) } // strip leading :
             .collect { it.replaceAll(":", "/") }
-            .collect { it.replaceAll("-changed", "") }
             .collect { it.replaceAll("nested-nested", "nested/nested-nested") }
             .collect { it.replaceAll("nested-cli-nested", "nested-cli/nested-cli-nested") }
             .collect { it ? file(it) : testDirectory }

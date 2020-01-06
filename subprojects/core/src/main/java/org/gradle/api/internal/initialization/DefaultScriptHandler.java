@@ -20,9 +20,11 @@ import org.gradle.api.JavaVersion;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.artifacts.dsl.DependencyLockingHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
-import org.gradle.api.attributes.Bundling;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.attributes.Bundling;
+import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.initialization.dsl.ScriptHandler;
@@ -49,6 +51,8 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
     private final ClassLoaderScope classLoaderScope;
     private final ScriptClassPathResolver scriptClassPathResolver;
     private final DependencyResolutionServices dependencyResolutionServices;
+    private final NamedObjectInstantiator instantiator;
+    private final DependencyLockingHandler dependencyLockingHandler;
     // The following values are relatively expensive to create, so defer creation until required
     private RepositoryHandler repositoryHandler;
     private DependencyHandler dependencyHandler;
@@ -57,11 +61,13 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
     private DynamicObject dynamicObject;
 
     public DefaultScriptHandler(ScriptSource scriptSource, DependencyResolutionServices dependencyResolutionServices, ClassLoaderScope classLoaderScope,
-                                ScriptClassPathResolver scriptClassPathResolver) {
+                                ScriptClassPathResolver scriptClassPathResolver, NamedObjectInstantiator instantiator) {
         this.dependencyResolutionServices = dependencyResolutionServices;
         this.scriptResource = scriptSource.getResource().getLocation();
         this.classLoaderScope = classLoaderScope;
         this.scriptClassPathResolver = scriptClassPathResolver;
+        this.instantiator = instantiator;
+        this.dependencyLockingHandler = dependencyResolutionServices.getDependencyLockingHandler();
         JavaEcosystemSupport.configureSchema(dependencyResolutionServices.getAttributesSchema(), dependencyResolutionServices.getObjectFactory());
     }
 
@@ -74,6 +80,7 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
     public void addScriptClassPathDependency(Object notation) {
         getDependencies().add(ScriptHandler.CLASSPATH_CONFIGURATION, notation);
     }
+
 
     @Override
     public ClassPath getScriptClassPath() {
@@ -116,10 +123,21 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
         if (classpathConfiguration == null) {
             classpathConfiguration = configContainer.create(CLASSPATH_CONFIGURATION);
             AttributeContainer attributes = classpathConfiguration.getAttributes();
-            attributes.attribute(Usage.USAGE_ATTRIBUTE, NamedObjectInstantiator.INSTANCE.named(Usage.class, Usage.JAVA_RUNTIME));
-            attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, NamedObjectInstantiator.INSTANCE.named(Bundling.class, Bundling.EXTERNAL));
+            attributes.attribute(Usage.USAGE_ATTRIBUTE, instantiator.named(Usage.class, Usage.JAVA_RUNTIME));
+            attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, instantiator.named(LibraryElements.class, LibraryElements.JAR));
+            attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, instantiator.named(Bundling.class, Bundling.EXTERNAL));
             attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, Integer.valueOf(JavaVersion.current().getMajorVersion()));
         }
+    }
+
+    @Override
+    public void dependencyLocking(Closure configureClosure) {
+        ConfigureUtil.configure(configureClosure, getDependencyLocking());
+    }
+
+    @Override
+    public DependencyLockingHandler getDependencyLocking() {
+        return dependencyLockingHandler;
     }
 
     @Override

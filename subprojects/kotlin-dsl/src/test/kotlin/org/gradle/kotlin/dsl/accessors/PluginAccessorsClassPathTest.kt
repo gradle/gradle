@@ -21,8 +21,10 @@ import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
+import org.gradle.kotlin.dsl.codegen.pluginEntriesFrom
 
 import org.gradle.kotlin.dsl.concurrent.withSynchronousIO
+import org.gradle.kotlin.dsl.fixtures.assertFailsWith
 
 import org.gradle.kotlin.dsl.fixtures.classLoaderFor
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
@@ -38,15 +40,40 @@ import org.gradle.plugin.use.PluginDependencySpec
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.hasItems
+import org.hamcrest.CoreMatchers.instanceOf
 import org.hamcrest.CoreMatchers.sameInstance
 import org.hamcrest.MatcherAssert.assertThat
 
 import org.junit.Test
 
 import java.io.File
+import java.util.zip.ZipException
 
 
 class PluginAccessorsClassPathTest : TestWithClassPath() {
+
+    @Test
+    fun `exception caused by empty jar carries file information`() {
+        // given:
+        val emptyJar = file("plugins.jar").apply {
+            createNewFile()
+        }
+
+        // when:
+        val exception = assertFailsWith(IllegalArgumentException::class) {
+            pluginEntriesFrom(emptyJar)
+        }
+
+        // then:
+        assertThat(
+            exception.localizedMessage,
+            containsString(emptyJar.name)
+        )
+        assertThat(
+            exception.cause,
+            instanceOf(ZipException::class.java)
+        )
+    }
 
     @Test
     fun `#buildPluginAccessorsFor`() {

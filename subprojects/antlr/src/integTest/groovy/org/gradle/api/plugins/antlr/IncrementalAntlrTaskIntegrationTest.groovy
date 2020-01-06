@@ -16,6 +16,8 @@
 
 package org.gradle.api.plugins.antlr
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+
 class IncrementalAntlrTaskIntegrationTest extends AbstractAntlrIntegrationTest {
     String antlrDependency = "org.antlr:antlr:3.5.2"
 
@@ -39,6 +41,7 @@ class IncrementalAntlrTaskIntegrationTest extends AbstractAntlrIntegrationTest {
         """
     }
 
+    @ToBeFixedForInstantExecution
     def "changed task inputs handled incrementally"() {
         when:
         grammar("Test1", "Test2")
@@ -58,15 +61,16 @@ class IncrementalAntlrTaskIntegrationTest extends AbstractAntlrIntegrationTest {
 
         then:
         succeeds("generateGrammarSource")
-        test1TokenFile.assertHasNotChangedSince(test1TokensFileSnapshot);
-        test1LexerFile.assertHasNotChangedSince(test1LexerFileSnapshot);
-        test1ParserFile.assertHasNotChangedSince(test1ParserFileSnapshot);
+        test1TokenFile.assertHasNotChangedSince(test1TokensFileSnapshot)
+        test1LexerFile.assertHasNotChangedSince(test1LexerFileSnapshot)
+        test1ParserFile.assertHasNotChangedSince(test1ParserFileSnapshot)
 
-        test2TokenFile.assertHasChangedSince(test2TokensFileSnapshot);
-        test2LexerFile.assertHasChangedSince(test2LexerFileSnapshot);
-        test2ParserFile.assertHasChangedSince(test2ParserFileSnapshot);
+        test2TokenFile.assertHasChangedSince(test2TokensFileSnapshot)
+        test2LexerFile.assertHasChangedSince(test2LexerFileSnapshot)
+        test2ParserFile.assertHasChangedSince(test2ParserFileSnapshot)
     }
 
+    @ToBeFixedForInstantExecution
     def "added grammar is handled incrementally"() {
         when:
         grammar("Test1")
@@ -86,9 +90,9 @@ class IncrementalAntlrTaskIntegrationTest extends AbstractAntlrIntegrationTest {
 
         then:
         succeeds("generateGrammarSource")
-        test1TokenFile.assertHasNotChangedSince(test1TokensFileSnapshot);
-        test1LexerFile.assertHasNotChangedSince(test1LexerFileSnapshot);
-        test1ParserFile.assertHasNotChangedSince(test1ParserFileSnapshot);
+        test1TokenFile.assertHasNotChangedSince(test1TokensFileSnapshot)
+        test1LexerFile.assertHasNotChangedSince(test1LexerFileSnapshot)
+        test1ParserFile.assertHasNotChangedSince(test1ParserFileSnapshot)
 
         test2TokenFile.exists()
         test2LexerFile.exists()
@@ -96,6 +100,7 @@ class IncrementalAntlrTaskIntegrationTest extends AbstractAntlrIntegrationTest {
 
     }
 
+    @ToBeFixedForInstantExecution
     def "rerun when arguments changed"() {
         when:
         grammar("Test1")
@@ -117,12 +122,13 @@ class IncrementalAntlrTaskIntegrationTest extends AbstractAntlrIntegrationTest {
 
         then:
         succeeds("generateGrammarSource")
-        test1TokenFile.assertHasChangedSince(test1TokensFileSnapshot);
-        test1LexerFile.assertHasChangedSince(test1LexerFileSnapshot);
-        test1ParserFile.assertHasChangedSince(test1ParserFileSnapshot);
+        test1TokenFile.assertHasChangedSince(test1TokensFileSnapshot)
+        test1LexerFile.assertHasChangedSince(test1LexerFileSnapshot)
+        test1ParserFile.assertHasChangedSince(test1ParserFileSnapshot)
     }
 
-    def "output for removed grammar file is not handled correctly"() {
+    @ToBeFixedForInstantExecution
+    def "output for removed grammar file is handled correctly"() {
         when:
         grammar("Test1", "Test2")
         then:
@@ -141,9 +147,9 @@ class IncrementalAntlrTaskIntegrationTest extends AbstractAntlrIntegrationTest {
 
         then:
         succeeds("generateGrammarSource")
-        !test1TokenFile.exists();
-        !test1LexerFile.exists();
-        !test1ParserFile.exists();
+        !test1TokenFile.exists()
+        !test1LexerFile.exists()
+        !test1ParserFile.exists()
     }
 
     def grammar(String... ids) {

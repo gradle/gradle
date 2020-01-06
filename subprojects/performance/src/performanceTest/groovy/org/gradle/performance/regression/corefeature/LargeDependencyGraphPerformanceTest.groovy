@@ -16,19 +16,20 @@
 
 package org.gradle.performance.regression.corefeature
 
-import org.gradle.performance.AbstractCrossVersionPerformanceTest
+import org.gradle.performance.AbstractCrossVersionGradleProfilerPerformanceTest
 import org.gradle.performance.WithExternalRepository
+import spock.lang.Ignore
 import spock.lang.Unroll
 
-class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionPerformanceTest implements WithExternalRepository {
+class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionGradleProfilerPerformanceTest implements WithExternalRepository {
 
     private final static TEST_PROJECT_NAME = 'excludeRuleMergingBuild'
     public static final String MIN_MEMORY = "-Xms800m"
     public static final String MAX_MEMORY = "-Xmx800m"
 
     def setup() {
-        runner.minimumVersion = '4.8'
-        runner.targetVersions = ["5.5-20190515115345+0000"]
+        runner.minimumBaseVersion = '4.8'
+        runner.targetVersions = ["6.1-20191217025822+0000"]
     }
 
     def "resolve large dependency graph from file repo"() {
@@ -54,6 +55,7 @@ class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionPerformanc
         given:
         runner.tasksToRun = ['resolveDependencies']
         runner.gradleOpts = [MIN_MEMORY, MAX_MEMORY]
+        runner.targetVersions = ["6.1-20191217025822+0000"]
         runner.args = ['-PuseHttp', "-PhttpPort=${serverPort}", '-PnoExcludes']
         if (parallel) {
             runner.args += '--parallel'
@@ -74,6 +76,27 @@ class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionPerformanc
         where:
         parallel << [false, true, false, true]
         locking << [false, false, true, true]
+    }
+
+    @Ignore
+    def "resolve large dependency graph with strict versions"() {
+        runner.minimumBaseVersion = '6.0'
+        runner.testProject = TEST_PROJECT_NAME
+        startServer()
+
+        given:
+        runner.tasksToRun = ['resolveDependencies']
+        runner.gradleOpts = [MIN_MEMORY, MAX_MEMORY]
+        runner.args = ['-PuseHttp', "-PhttpPort=${serverPort}", '-PnoExcludes', '-PuseSubgraphConstraints']
+
+        when:
+        def result = runner.run()
+
+        then:
+        result.assertCurrentVersionHasNotRegressed()
+
+        cleanup:
+        stopServer()
     }
 
 }

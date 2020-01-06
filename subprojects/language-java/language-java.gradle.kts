@@ -1,9 +1,8 @@
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
     `java-library`
-    gradlebuild.`strict-compile`
     gradlebuild.classycle
 }
 
@@ -14,6 +13,7 @@ dependencies {
     implementation(project(":processServices"))
     implementation(project(":workerProcesses"))
     implementation(project(":files"))
+    implementation(project(":fileCollections"))
     implementation(project(":persistentCache"))
     implementation(project(":jvmServices"))
     implementation(project(":coreApi"))
@@ -21,14 +21,13 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":workers"))
     implementation(project(":snapshots"))
+    implementation(project(":execution"))
     implementation(project(":dependencyManagement"))
     implementation(project(":platformBase"))
     implementation(project(":platformJvm"))
     implementation(project(":languageJvm"))
+    implementation(project(":buildEvents"))
     implementation(project(":toolingApi"))
-
-    compileOnly(project(":launcherStartup"))
-    runtimeOnly(project(":launcher"))
 
     implementation(library("groovy"))
     implementation(library("slf4j_api"))
@@ -42,8 +41,23 @@ dependencies {
 
     testImplementation(project(":baseServicesGroovy"))
     testImplementation(library("commons_io"))
+    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":platformBase")))
 
+    testRuntimeOnly(project(":runtimeApiInfo"))
+
+    testFixturesApi(testFixtures(project(":languageJvm")))
+    testFixturesImplementation(project(":baseServices"))
+    testFixturesImplementation(project(":core"))
+    testFixturesImplementation(project(":coreApi"))
+    testFixturesImplementation(project(":modelCore"))
+    testFixturesImplementation(project(":internalTesting"))
     testFixturesImplementation(project(":internalIntegTesting"))
+    testFixturesImplementation(project(":platformBase"))
+    testFixturesImplementation(project(":persistentCache"))
+    testFixturesImplementation(library("slf4j_api"))
+
+    integTestRuntimeOnly(project(":testingJunitPlatform"))
 
     // TODO - get rid of this cycle
     integTestRuntimeOnly(project(":plugins"))
@@ -51,13 +65,6 @@ dependencies {
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
-}
-
-testFixtures {
-    from(":core")
-    from(":languageJvm", "testFixtures")
-    from(":platformBase")
-    from(":launcher")
 }
 
 classycle {

@@ -17,6 +17,7 @@
 package org.gradle.ide.visualstudio
 
 import org.gradle.ide.visualstudio.fixtures.AbstractVisualStudioIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 
@@ -35,6 +36,7 @@ class VisualStudioIncrementalIntegrationTest extends AbstractVisualStudioIntegra
         """
     }
 
+    @ToBeFixedForInstantExecution
     def "visual studio tasks re-execute when source files are added"() {
         app.writeSources(file("src/main"))
 
@@ -65,6 +67,7 @@ class VisualStudioIncrementalIntegrationTest extends AbstractVisualStudioIntegra
         skipped getComponentTasks("app")
     }
 
+    @ToBeFixedForInstantExecution
     def "visual studio tasks re-execute when header files are added"() {
         app.writeSources(file("src/main"))
 
@@ -95,6 +98,7 @@ class VisualStudioIncrementalIntegrationTest extends AbstractVisualStudioIntegra
         skipped getComponentTasks("app")
     }
 
+    @ToBeFixedForInstantExecution
     def "visual studio tasks re-execute when output file locations change"() {
         app.writeSources(file("src/main"))
 
@@ -163,6 +167,7 @@ class VisualStudioIncrementalIntegrationTest extends AbstractVisualStudioIntegra
         skipped getComponentTasks("app")
     }
 
+    @ToBeFixedForInstantExecution
     def "visual studio tasks re-execute when compiler macros change"() {
         app.writeSources(file("src/main"))
 
@@ -201,6 +206,7 @@ class VisualStudioIncrementalIntegrationTest extends AbstractVisualStudioIntegra
         skipped getComponentTasks("app")
     }
 
+    @ToBeFixedForInstantExecution
     def "visual studio tasks re-execute when binary output location changes"() {
         app.writeSources(file("src/main"))
 
@@ -239,6 +245,7 @@ class VisualStudioIncrementalIntegrationTest extends AbstractVisualStudioIntegra
         skipped getComponentTasks("app")
     }
 
+    @ToBeFixedForInstantExecution
     def "visual studio tasks re-execute when new component is added"() {
         app.writeSources(file("src/main"))
 
@@ -276,6 +283,7 @@ class VisualStudioIncrementalIntegrationTest extends AbstractVisualStudioIntegra
         skipped getComponentTasks("app")
     }
 
+    @ToBeFixedForInstantExecution
     def "visual studio tasks re-execute when metadata files are removed"() {
         app.writeSources(file("src/main"))
 
@@ -318,6 +326,7 @@ class VisualStudioIncrementalIntegrationTest extends AbstractVisualStudioIntegra
         skipped getComponentTasks("app")
     }
 
+    @ToBeFixedForInstantExecution
     def "visual studio tasks re-execute when new project xml actions are added"() {
         app.writeSources(file("src/main"))
 
@@ -364,6 +373,7 @@ class VisualStudioIncrementalIntegrationTest extends AbstractVisualStudioIntegra
         skipped getComponentTasks("app")
     }
 
+    @ToBeFixedForInstantExecution
     def "visual studio tasks re-execute when new filter file xml actions are added"() {
         app.writeSources(file("src/main"))
 
@@ -408,6 +418,7 @@ class VisualStudioIncrementalIntegrationTest extends AbstractVisualStudioIntegra
         skipped getComponentTasks("app")
     }
 
+    @ToBeFixedForInstantExecution
     def "visual studio tasks re-execute when new solution content actions are added"() {
         app.writeSources(file("src/main"))
 

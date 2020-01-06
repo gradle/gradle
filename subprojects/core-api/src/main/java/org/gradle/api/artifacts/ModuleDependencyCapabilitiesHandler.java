@@ -15,7 +15,6 @@
  */
 package org.gradle.api.artifacts;
 
-import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
@@ -28,7 +27,6 @@ import org.gradle.internal.HasInternalProtocol;
  * @since 5.3
  */
 @HasInternalProtocol
-@Incubating
 public interface ModuleDependencyCapabilitiesHandler {
     /**
      * Requires a single capability.

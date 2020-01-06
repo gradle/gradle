@@ -15,7 +15,7 @@
  */
 package org.gradle.internal.nativeintegration.services;
 
-import org.gradle.internal.nativeplatform.filesystem.FileSystem;
+import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 
 public abstract class FileSystems {
     public static FileSystem getDefault() {

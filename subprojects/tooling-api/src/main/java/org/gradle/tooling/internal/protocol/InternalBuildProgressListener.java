@@ -53,6 +53,11 @@ public interface InternalBuildProgressListener {
     String TRANSFORM_EXECUTION = "TRANSFORM_EXECUTION";
 
     /**
+     * The constant for the test output of the task execution operations.
+     */
+    String TEST_OUTPUT = "TEST_OUTPUT";
+
+    /**
      * Invoked when a progress event happens in the build being run, and one or more listeners for the given event type have been registered.
      *
      * The event types implemented in Gradle 2.4 are:

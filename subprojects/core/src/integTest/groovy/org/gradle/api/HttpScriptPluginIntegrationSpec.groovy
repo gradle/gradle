@@ -16,11 +16,15 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.matchers.UserAgentMatcher
+import org.gradle.util.GUtil
 import org.gradle.util.GradleVersion
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -35,15 +39,14 @@ class HttpScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
         executer.requireOwnGradleUserHomeDir()
     }
 
-    @Unroll
-    def "can apply script via #scheme"() {
-        when:
-        if (useKeystore) {
-            def keyStore = TestKeyStore.init(resources.dir)
-            keyStore.enableSslWithServerCert(server)
-            keyStore.configureServerCert(executer)
-        }
+    private void applyTrustStore() {
+        def keyStore = TestKeyStore.init(resources.dir)
+        keyStore.enableSslWithServerCert(server)
+        keyStore.configureServerCert(executer)
+    }
 
+    def "can apply script via http"() {
+        when:
         def script = file('external.gradle')
         server.expectGet('/external.gradle', script)
 
@@ -60,12 +63,75 @@ class HttpScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
 
         then:
         succeeds()
-
-        where:
-        scheme  | useKeystore
-        "http"  | false
-        "https" | true
     }
+
+    def "emits useful warning when applying script via http"() {
+        when:
+        server.useHostname()
+        def script = file('external.gradle')
+        server.expectGet('/external.gradle', script)
+
+        script << """
+            task doStuff
+            assert buildscript.sourceFile == null
+            assert "${server.uri}/external.gradle" == buildscript.sourceURI as String
+"""
+
+        buildFile << """
+            apply from: '$server.uri/external.gradle'
+            defaultTasks 'doStuff'
+"""
+
+        then:
+        executer.expectDeprecationWarning("Applying script plugins from insecure URIs has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+                "The provided URI '${server.uri("/external.gradle")}' uses an insecure protocol (HTTP). " +
+                "Use '${GUtil.toSecureUrl(server.uri("/external.gradle"))}' instead or try 'apply from: resources.text.fromInsecureUri(\"${server.uri("/external.gradle")}\")' to silence the warning.")
+        succeeds()
+    }
+
+    def "does not complain when applying script plugin via http using text resource"() {
+        when:
+        server.useHostname()
+        def script = file('external.gradle')
+        server.expectGet('/external.gradle', script)
+
+        script << """
+            task doStuff
+        """
+
+        buildFile << """
+            apply from: resources.text.fromInsecureUri("$server.uri/external.gradle")
+            defaultTasks 'doStuff'
+        """
+
+        then:
+        succeeds()
+    }
+
+    // Remove when https://bugs.openjdk.java.net/browse/JDK-8219658 is fixed in JDK 12
+    @Requires(TestPrecondition.JDK11_OR_EARLIER)
+    def "can apply script via https"() {
+        applyTrustStore()
+
+        when:
+        def script = file('external.gradle')
+        server.expectGet('/external.gradle', script)
+
+        script << """
+            task doStuff
+            assert buildscript.sourceFile == null
+            assert "${server.uri}/external.gradle" == buildscript.sourceURI as String
+"""
+
+        buildFile << """
+            apply from: '$server.uri/external.gradle'
+            defaultTasks 'doStuff'
+"""
+
+        then:
+        succeeds()
+    }
+
 
     @Issue("https://github.com/gradle/gradle/issues/2891")
     def "can apply script with URI containing a query string"() {
@@ -114,6 +180,7 @@ class HttpScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
         succeeds()
     }
 
+    @ToBeFixedForInstantExecution
     def "does not cache URIs with query parts"() {
         when:
         def queryString = 'p=foo;a=blob_plain;f=bar;hb=foo/bar/foo'
@@ -184,6 +251,7 @@ task check {
 
     def "assumes utf-8 encoding when none specified by http server"() {
         given:
+        applyTrustStore()
         executer.withDefaultCharacterEncoding("ISO-8859-15")
 
         and:
@@ -247,6 +315,7 @@ task check {
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "can recover from failure to download cached #source resource by running with --offline"() {
         given:
         def scriptFile = file("script.gradle")
@@ -291,6 +360,7 @@ task check {
         "initscript"  | "init.gradle"     | "init-script-plugin.gradle"
     }
 
+    @ToBeFixedForInstantExecution
     def "will only request resource once for build invocation"() {
         given:
         def scriptName = "script-once.gradle"
@@ -326,6 +396,7 @@ task check {
         output.count('loaded external script') == 4
     }
 
+    @ToBeFixedForInstantExecution
     def "will refresh cached value on subsequent build invocation"() {
         given:
         def scriptName = "script-cached.gradle"

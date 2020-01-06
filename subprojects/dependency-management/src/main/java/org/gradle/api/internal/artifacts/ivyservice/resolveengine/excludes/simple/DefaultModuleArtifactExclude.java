@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.simp
 
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ArtifactExclude;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 final class DefaultModuleArtifactExclude implements ArtifactExclude {
@@ -46,18 +45,6 @@ final class DefaultModuleArtifactExclude implements ArtifactExclude {
     }
 
     @Override
-    public boolean equalsIgnoreArtifact(ExcludeSpec other) {
-        if (this == other) {
-            return true;
-        }
-        if (other == null || getClass() != other.getClass()) {
-            return false;
-        }
-        DefaultModuleArtifactExclude exc = (DefaultModuleArtifactExclude) other;
-        return moduleId.equals(exc.moduleId);
-    }
-
-    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -81,5 +68,10 @@ final class DefaultModuleArtifactExclude implements ArtifactExclude {
     @Override
     public int hashCode() {
         return hashCode;
+    }
+
+    @Override
+    public String toString() {
+        return "{ \"artifact\": { \"name\": \"" + artifactName + "\", \"module\" : \"" + moduleId + "\"} }";
     }
 }

@@ -15,9 +15,11 @@
  */
 package org.gradle.api.publish.maven
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 
 class MavenPublishEarIntegTest extends AbstractMavenPublishIntegTest {
+    @ToBeFixedForInstantExecution
     void "can publish ear module"() {
         def earModule = mavenRepo.module("org.gradle.test", "publishEar", "1.9")
 
@@ -36,8 +38,8 @@ version = '1.9'
 ${mavenCentralRepository()}
 
 dependencies {
-    compile "commons-collections:commons-collections:3.2.2"
-    runtime "commons-io:commons-io:1.4"
+    implementation "commons-collections:commons-collections:3.2.2"
+    runtimeOnly "commons-io:commons-io:1.4"
 }
 
 publishing {

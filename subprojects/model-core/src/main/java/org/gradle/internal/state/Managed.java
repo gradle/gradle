@@ -23,11 +23,12 @@ import javax.annotation.Nullable;
  */
 public interface Managed {
     /**
-     * Returns a snapshot of the current state of this object. This can be passed to the {@link Factory#fromState(Class, Object)} method to recreate this object from the snapshot.
+     * Returns a snapshot of the current state of this object. This can be passed to the {@link ManagedFactory#fromState(Class, Object)} method to recreate this object from the snapshot.
      * Note that the state may not be immutable, so should be made isolated to reuse in another context. The state can also be fingerprinted to generate a fingerprint of this object.
      *
      * <p><em>Note that currently the state should reference only JVM and core Gradle types when {@link #immutable()} returns true.</em></p>
      */
+    @Nullable
     Object unpackState();
 
     /**
@@ -41,17 +42,7 @@ public interface Managed {
     Class<?> publicType();
 
     /**
-     * Returns the factory that can be used to create new instances of this type.
+     * Returns the id of a factory that can be used to create new instances of this type.
      */
-    Factory managedFactory();
-
-    interface Factory {
-        /**
-         * Creates an instance of the given type from the given state, if possible.
-         *
-         * @return null when the given type is not supported.
-         */
-        @Nullable
-        <T> T fromState(Class<T> type, Object state);
-    }
+    int getFactoryId();
 }

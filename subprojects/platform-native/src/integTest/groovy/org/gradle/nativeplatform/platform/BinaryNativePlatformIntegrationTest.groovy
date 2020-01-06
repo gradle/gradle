@@ -17,6 +17,7 @@
 package org.gradle.nativeplatform.platform
 import net.rubygrapefruit.platform.Native
 import net.rubygrapefruit.platform.SystemInfo
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
@@ -64,6 +65,7 @@ model {
         return [name: "x86-64", altName: "amd64"]
     }
 
+    @ToBeFixedForInstantExecution
     def "build binary for a default target platform"() {
         given:
         def arch = currentArch()
@@ -79,6 +81,7 @@ model {
     }
 
     @RequiresInstalledToolChain(SUPPORTS_32)
+    @ToBeFixedForInstantExecution
     def "configure component for a single target platform"() {
         when:
         buildFile << """
@@ -110,6 +113,7 @@ model {
         executable("build/exe/main/main").exec().out == "i386 ${os.familyName}" * 2
     }
 
+    @ToBeFixedForInstantExecution
     def "defaults to current platform when platforms are defined but not targeted"() {
         def arch = currentArch()
         when:
@@ -137,6 +141,7 @@ model {
     }
 
     @RequiresInstalledToolChain(SUPPORTS_32)
+    @ToBeFixedForInstantExecution
     def "library with matching platform is enforced by dependency resolution"() {
         given:
         testApp.executable.writeSources(file("src/exe"))
@@ -179,6 +184,7 @@ model {
         executable("build/exe/exe/exe").exec().out == "i386 ${os.familyName}" * 2
     }
 
+    @ToBeFixedForInstantExecution
     def "library with no platform defined is correctly chosen by dependency resolution"() {
         def arch = currentArch()
 
@@ -209,6 +215,7 @@ model {
     }
 
     @RequiresInstalledToolChain(SUPPORTS_32_AND_64)
+    @ToBeFixedForInstantExecution
     def "build binary for multiple target architectures"() {
         when:
         buildFile << """
@@ -257,6 +264,7 @@ model {
     }
 
     @RequiresInstalledToolChain(SUPPORTS_32)
+    @ToBeFixedForInstantExecution
     def "can configure binary for multiple target operating systems"() {
         String currentOs
         if (os.windows) {
@@ -314,6 +322,7 @@ model {
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "fails with reasonable error message when trying to build for an #type"() {
         when:
         buildFile << """
@@ -424,7 +433,7 @@ model {
             return DumpbinBinaryInfo.findVisualStudio() ? new DumpbinBinaryInfo(file) : new FileArchOnlyBinaryInfo(file)
         }
         if (ReadelfBinaryInfo.canUseReadelf()) {
-            return new ReadelfBinaryInfo(file)
+            return new ReadelfBinaryInfo(file, toolchainUnderTest.runtimeEnv)
         } else {
             return new FileArchOnlyBinaryInfo(file)
         }

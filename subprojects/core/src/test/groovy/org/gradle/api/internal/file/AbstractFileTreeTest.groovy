@@ -20,13 +20,12 @@ import org.gradle.api.file.FileTree
 import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.FileVisitor
 import org.gradle.api.file.RelativePath
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.util.PatternFilterable
-import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 
-@UsesNativeServices
-public class AbstractFileTreeTest extends Specification {
+class AbstractFileTreeTest extends Specification {
     def isEmptyWhenVisitsNoFiles() {
         def tree = new TestFileTree([])
 
@@ -91,13 +90,15 @@ public class AbstractFileTreeTest extends Specification {
 
     def filteredTreeHasSameDependenciesAsThis() {
         TaskDependency buildDependencies = Mock()
+        TaskDependencyResolveContext context = Mock()
         def tree = new TestFileTree([], buildDependencies)
 
         when:
         def filtered = tree.matching { include '*.txt' }
+        filtered.visitDependencies(context)
 
         then:
-        filtered.buildDependencies == buildDependencies
+        1 * context.add(tree)
     }
 
     def "can add file trees together"() {
@@ -130,15 +131,28 @@ public class AbstractFileTreeTest extends Specification {
         sum.files.sort() == [file1, file2]
     }
 
-    public void "can visit root elements"() {
+    void "visits self as leaf collection"() {
         def tree = new TestFileTree([])
-        def visitor = Mock(FileCollectionLeafVisitor)
+        def visitor = Mock(FileCollectionStructureVisitor)
 
         when:
-        tree.visitLeafCollections(visitor)
+        tree.visitStructure(visitor)
 
         then:
+        1 * visitor.prepareForVisit(FileCollectionInternal.OTHER) >> FileCollectionStructureVisitor.VisitType.Visit
         1 * visitor.visitGenericFileTree(tree)
+        0 * visitor._
+    }
+
+    void "does not visit self when visitor is not interested"() {
+        def tree = new TestFileTree([])
+        def visitor = Mock(FileCollectionStructureVisitor)
+
+        when:
+        tree.visitStructure(visitor)
+
+        then:
+        1 * visitor.prepareForVisit(FileCollectionInternal.OTHER) >> FileCollectionStructureVisitor.VisitType.NoContents
         0 * visitor._
     }
 
@@ -150,15 +164,20 @@ public class AbstractFileTreeTest extends Specification {
 
     class TestFileTree extends AbstractFileTree {
         List contents
-        TaskDependency buildDependencies
+        TaskDependency builtBy
 
         def TestFileTree(List files, TaskDependency dependencies = null) {
             this.contents = files
-            this.buildDependencies = dependencies
+            this.builtBy = dependencies
         }
 
         String getDisplayName() {
             throw new UnsupportedOperationException();
+        }
+
+        @Override
+        void visitDependencies(TaskDependencyResolveContext context) {
+            context.add(builtBy)
         }
 
         FileTree visit(FileVisitor visitor) {

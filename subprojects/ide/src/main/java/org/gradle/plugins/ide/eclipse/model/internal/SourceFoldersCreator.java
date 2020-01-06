@@ -47,7 +47,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-
 public class SourceFoldersCreator {
 
     public List<SourceFolder> createSourceFolders(final EclipseClasspath classpath) {
@@ -127,6 +126,7 @@ public class SourceFoldersCreator {
                     folder.setExcludes(getExcludesForTree(sourceSet, tree));
                     folder.setOutput(sourceSetOutputPaths.get(sourceSet));
                     addScopeAttributes(folder, sourceSet, sourceSetUsages);
+                    addSourceSetAttribute(sourceSet, folder);
                     entries.add(folder);
                 }
             }
@@ -215,6 +215,16 @@ public class SourceFoldersCreator {
             }
         }
         return true;
+    }
+
+    private void addSourceSetAttribute(SourceSet sourceSet, SourceFolder folder) {
+        // Using the test sources feature introduced in Eclipse Photon
+        String name = sourceSet.getName();
+        if (!SourceSet.MAIN_SOURCE_SET_NAME.equals(name)) {
+            if (SourceSet.TEST_SOURCE_SET_NAME.equals(name) || folder.getPath().toLowerCase().contains("test")) {
+                folder.getEntryAttributes().put(EclipsePluginConstants.TEST_SOURCES_ATTRIBUTE_KEY, EclipsePluginConstants.TEST_SOURCES_ATTRIBUTE_VALUE);
+            }
+        }
     }
 
     private Map<SourceSet, String> collectSourceSetOutputPaths(Iterable<SourceSet> sourceSets, String defaultOutputPath) {

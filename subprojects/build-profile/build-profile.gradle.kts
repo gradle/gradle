@@ -35,6 +35,8 @@ dependencies {
 
     integTestImplementation(project(":buildOption"))
     integTestImplementation(testLibrary("jsoup"))
+
+    integTestRuntimeOnly(project(":runtimeApiInfo"))
 }
 
 java {

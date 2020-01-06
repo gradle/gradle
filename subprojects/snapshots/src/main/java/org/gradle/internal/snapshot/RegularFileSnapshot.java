@@ -19,17 +19,21 @@ package org.gradle.internal.snapshot;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 
-/**
- * A snapshot of a regular file.
- */
-public class RegularFileSnapshot extends AbstractFileSystemLocationSnapshot {
-    private final HashCode contentHash;
-    private final long lastModified;
+import java.util.Optional;
 
-    public RegularFileSnapshot(String absolutePath, String name, HashCode contentHash, long lastModified) {
+/**
+ * A complete snapshot of a regular file.
+ *
+ * The snapshot includes the content hash of the file.
+ */
+public class RegularFileSnapshot extends AbstractCompleteFileSystemLocationSnapshot {
+    private final HashCode contentHash;
+    private final FileMetadata metadata;
+
+    public RegularFileSnapshot(String absolutePath, String name, HashCode contentHash, FileMetadata metadata) {
         super(absolutePath, name);
         this.contentHash = contentHash;
-        this.lastModified = lastModified;
+        this.metadata = metadata;
     }
 
     @Override
@@ -42,17 +46,32 @@ public class RegularFileSnapshot extends AbstractFileSystemLocationSnapshot {
         return contentHash;
     }
 
+    // Used by the Maven caching client. Do not remove
+    public FileMetadata getMetadata() {
+        return metadata;
+    }
+
     @Override
-    public boolean isContentAndMetadataUpToDate(FileSystemLocationSnapshot other) {
+    public boolean isContentAndMetadataUpToDate(CompleteFileSystemLocationSnapshot other) {
         if (!(other instanceof RegularFileSnapshot)) {
             return false;
         }
         RegularFileSnapshot otherSnapshot = (RegularFileSnapshot) other;
-        return lastModified == otherSnapshot.lastModified && contentHash.equals(otherSnapshot.contentHash);
+        return metadata.equals(otherSnapshot.metadata) && contentHash.equals(otherSnapshot.contentHash);
     }
 
     @Override
     public void accept(FileSystemSnapshotVisitor visitor) {
-        visitor.visit(this);
+        visitor.visitFile(this);
+    }
+
+    @Override
+    public void accept(NodeVisitor visitor) {
+        visitor.visitNode(this);
+    }
+
+    @Override
+    public Optional<FileSystemNode> invalidate(VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
+        return Optional.empty();
     }
 }

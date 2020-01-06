@@ -36,8 +36,8 @@ class IvyGradleMetadataRedirectionIntegrationTest extends AbstractHttpDependency
                 ivy { url "${ivyHttpRepo.uri}" }
             }
         """
-        resolve = new ResolveTestFixture(buildFile, "compileClasspath")
-        resolve.prepare()
+        prepareResolution()
+
     }
 
     def "doesn't try to fetch Gradle metadata if published and marker is not present"() {
@@ -86,7 +86,7 @@ class IvyGradleMetadataRedirectionIntegrationTest extends AbstractHttpDependency
         resolve.expectGraph {
             root(":", ":test:") {
                 module('org:main:1.0') {
-                    variant('api', ['org.gradle.status': 'integration', 'org.gradle.usage': 'java-api-jars'])
+                    variant('api', ['org.gradle.status': 'integration', 'org.gradle.usage': 'java-api', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library'])
                     edge('org:foo:{prefer 1.9}', 'org:foo:1.9')
                 }
             }
@@ -119,9 +119,48 @@ class IvyGradleMetadataRedirectionIntegrationTest extends AbstractHttpDependency
         }
     }
 
+    def "doesn't try to fetch Gradle metadata if published has marker present and ignoreGradleMetadataRedirection is set"() {
+        setup:
+        buildFile.text = """
+            apply plugin: 'java-library'
+            
+            repositories {
+                ivy { 
+                    url "${ivyHttpRepo.uri}"
+                    metadataSources {
+                        ivyDescriptor()
+                        artifact()
+                        ignoreGradleMetadataRedirection()
+                    }
+                }
+            }
+            
+             dependencies {
+                api "org:main:1.0"
+            }
+        """
+
+        prepareResolution()
+
+        createIvyFile(true)
+
+        when:
+        mainModule.ivy.expectGet()
+        mainModule.artifact.expectGet()
+
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org:main:1.0')
+            }
+        }
+    }
+
     private void createIvyFile(boolean marker) {
-        if (marker) {
-            mainModule.withGradleMetadataRedirection()
+        if (!marker) {
+            mainModule.withoutGradleMetadataRedirection()
         }
         mainModule.publish()
         // and now we manually patch the Gradle metadata so that its dependencies
@@ -132,4 +171,10 @@ class IvyGradleMetadataRedirectionIntegrationTest extends AbstractHttpDependency
             { "group": "org", "module": "foo", "version": { "prefers": "1.9" } }
         ]''')
     }
+
+    private void prepareResolution() {
+        resolve = new ResolveTestFixture(buildFile, "compileClasspath")
+        resolve.prepare()
+    }
+
 }

@@ -16,11 +16,9 @@
 
 package org.gradle.kotlin.dsl
 
-import org.gradle.api.Incubating
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.DependencyConstraint
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
-
 import org.gradle.kotlin.dsl.support.delegates.DependencyConstraintHandlerDelegate
 
 
@@ -30,7 +28,6 @@ import org.gradle.kotlin.dsl.support.delegates.DependencyConstraintHandlerDelega
  * @see [DependencyConstraintHandler]
  * @since 5.0
  */
-@Incubating
 class DependencyConstraintHandlerScope
 private constructor(
     val constraints: DependencyConstraintHandler
@@ -91,5 +88,5 @@ private constructor(
      * Configures the dependency constraints.
      */
     inline operator fun invoke(configuration: DependencyConstraintHandlerScope.() -> Unit) =
-        configuration()
+        this.configuration()
 }

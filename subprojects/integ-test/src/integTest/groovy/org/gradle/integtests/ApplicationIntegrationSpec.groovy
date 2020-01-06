@@ -16,6 +16,7 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.ScriptExecuter
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
@@ -38,6 +39,7 @@ class ApplicationIntegrationSpec extends AbstractIntegrationSpec{
         """
     }
 
+    @ToBeFixedForInstantExecution
     def canUseEnvironmentVariableToPassMultipleOptionsToJvmWhenRunningScript() {
         file('src/main/java/org/gradle/test/Main.java') << '''
 package org.gradle.test;
@@ -75,6 +77,7 @@ class Main {
         result.assertNormalExitValue()
     }
 
+    @ToBeFixedForInstantExecution
     def canUseDefaultJvmArgsToPassMultipleOptionsToJvmWhenRunningScript() {
         file("build.gradle") << '''
 applicationDefaultJvmArgs = ['-DtestValue=value', '-DtestValue2=some value', '-DtestValue3=some value']
@@ -110,6 +113,7 @@ class Main {
         result.assertNormalExitValue()
     }
 
+    @ToBeFixedForInstantExecution
     def canUseBothDefaultJvmArgsAndEnvironmentVariableToPassOptionsToJvmWhenRunningScript() {
         file("build.gradle") << '''
 applicationDefaultJvmArgs = ['-Dvar1=value1', '-Dvar2=some value2']
@@ -146,6 +150,7 @@ class Main {
         result.assertNormalExitValue()
     }
 
+    @ToBeFixedForInstantExecution
     def canUseDefaultJvmArgsToPassMultipleOptionsWithShellMetacharactersToJvmWhenRunningScript() {
         //even in single-quoted multi-line strings, backslashes must still be quoted
         file("build.gradle") << '''
@@ -185,6 +190,7 @@ class Main {
         result.assertNormalExitValue()
     }
 
+    @ToBeFixedForInstantExecution
     def canUseDefaultJvmArgsInRunTask() {
             file("build.gradle") << '''
     applicationDefaultJvmArgs = ['-Dvar1=value1', '-Dvar2=value2']
@@ -209,6 +215,7 @@ class Main {
         }
 
 
+    @ToBeFixedForInstantExecution
     def "can customize application name"() {
         file('build.gradle') << '''
 applicationName = 'mega-app'
@@ -245,6 +252,7 @@ class Main {
         checkApplicationImage('mega-app', distTarDir.file('mega-app'))
     }
 
+    @ToBeFixedForInstantExecution
     def "check distribution contents when all defaults used"() {
         file('src/main/java/org/gradle/test/Main.java') << '''
 package org.gradle.test;
@@ -283,6 +291,7 @@ class Main {
         checkApplicationImage('application', distTarDir.file('application'))
     }
 
+    @ToBeFixedForInstantExecution
     def "install task complains if install directory exists and doesn't look like previous install"() {
         file('build.gradle') << """
 installDist.destinationDir = buildDir
@@ -309,7 +318,7 @@ installDist.destinationDir = buildDir
 
         File generatedLinuxStartScript = file("build/scripts/application")
         generatedLinuxStartScript.exists()
-        assertLineSeparators(generatedLinuxStartScript, TextUtil.unixLineSeparator, 188)
+        assertLineSeparators(generatedLinuxStartScript, TextUtil.unixLineSeparator, 183)
         assertLineSeparators(generatedLinuxStartScript, TextUtil.windowsLineSeparator, 1)
 
         file("build/scripts/application").exists()
@@ -347,6 +356,7 @@ class Main {
         checkApplicationImage('application', distTarDir.file('application'))
     }
 
+    @ToBeFixedForInstantExecution
     def "conventional resources are including in dist"() {
         when:
         file("src/dist/dir").with {
@@ -364,6 +374,7 @@ class Main {
         distBase.file("dir/r2.txt").text == "r2"
     }
 
+    @ToBeFixedForInstantExecution
     def "configure the distribution spec to source from a different dir"() {
         when:
         file("src/somewhere-else/dir").with {
@@ -389,6 +400,7 @@ class Main {
     }
 
     @IgnoreIf({GradleContextualExecuter.parallel})
+    @ToBeFixedForInstantExecution
     def "distribution file producing tasks are run automatically"() {
         when:
         buildFile << """
@@ -413,7 +425,7 @@ class Main {
         succeeds "installDist"
 
         and:
-        ":createDocs" in nonSkippedTasks
+        executedAndNotSkipped(":createDocs")
 
         and:
         def distBase = file("build/install/application")
@@ -442,6 +454,7 @@ class Main {
         true
     }
 
+    @ToBeFixedForInstantExecution
     def checkClasspathOrderInStartScript() {
         def resourceFileName = "resource.properties"
         file('src/main/java/org/gradle/test/Main.java') << """
@@ -471,8 +484,8 @@ class Main {
         testResources.zipTo(file("libs/foo.jar"))
         buildFile << """
             dependencies {
-                compile files("libs/bar.jar")
-                compile files("libs/foo.jar")
+                implementation files("libs/bar.jar")
+                implementation files("libs/foo.jar")
             }
         """
 

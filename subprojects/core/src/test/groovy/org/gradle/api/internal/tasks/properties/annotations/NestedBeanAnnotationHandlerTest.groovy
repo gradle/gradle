@@ -26,6 +26,7 @@ import org.gradle.api.internal.tasks.properties.PropertyVisitor
 import org.gradle.api.internal.tasks.properties.ValidationActions
 import org.gradle.api.tasks.Optional
 import org.gradle.internal.reflect.PropertyMetadata
+import org.gradle.internal.reflect.TypeValidationContext
 import spock.lang.Specification
 
 class NestedBeanAnnotationHandlerTest extends Specification {
@@ -58,7 +59,7 @@ class NestedBeanAnnotationHandlerTest extends Specification {
         validatingSpec.validate(validationContext)
 
         then:
-        1 * validationContext.visitError("No value has been specified for property 'name'.")
+        1 * validationContext.visitPropertyProblem(TypeValidationContext.Severity.ERROR, "No value has been specified for property 'name'")
         0 * _
     }
 

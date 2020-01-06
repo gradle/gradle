@@ -28,6 +28,7 @@ public class DefaultJvmLanguageCompileSpec implements JvmLanguageCompileSpec, Se
     private Iterable<File> sourceFiles;
     private String sourceCompatibility;
     private String targetCompatibility;
+    private List<File> sourceRoots;
 
     @Override
     public File getWorkingDir() {
@@ -96,5 +97,15 @@ public class DefaultJvmLanguageCompileSpec implements JvmLanguageCompileSpec, Se
     @Override
     public void setTargetCompatibility(String targetCompatibility) {
         this.targetCompatibility = targetCompatibility;
+    }
+
+    @Override
+    public List<File> getSourceRoots() {
+        return sourceRoots;
+    }
+
+    @Override
+    public void setSourcesRoots(List<File> sourceRoots) {
+        this.sourceRoots = sourceRoots;
     }
 }

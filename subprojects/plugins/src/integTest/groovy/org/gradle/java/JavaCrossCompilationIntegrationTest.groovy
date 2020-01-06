@@ -18,6 +18,7 @@ package org.gradle.java
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.internal.FileUtils
@@ -55,6 +56,7 @@ tasks.withType(JavaCompile) {
 }
 tasks.withType(Javadoc) {
     executable = "$javadoc"
+    options.noTimestamp = false
 }
 tasks.withType(Test) {
     executable = "$java"
@@ -74,7 +76,7 @@ public class Thing { }
     def "can compile source and run JUnit tests using target Java version"() {
         given:
         buildFile << """
-dependencies { testCompile 'junit:junit:4.12' }
+dependencies { testImplementation 'junit:junit:4.12' }
 """
 
         file("src/test/java/ThingTest.java") << """
@@ -98,7 +100,7 @@ public class ThingTest {
     def "can compile source and run TestNG tests using target Java version"() {
         given:
         buildFile << """
-dependencies { testCompile 'org.testng:testng:6.8.8' }
+dependencies { testImplementation 'org.testng:testng:6.8.8' }
 """
 
         file("src/test/java/ThingTest.java") << """
@@ -116,6 +118,7 @@ public class ThingTest {
         succeeds 'test'
     }
 
+    @ToBeFixedForInstantExecution
     def "can build and run application using target Java version"() {
         given:
         buildFile << """

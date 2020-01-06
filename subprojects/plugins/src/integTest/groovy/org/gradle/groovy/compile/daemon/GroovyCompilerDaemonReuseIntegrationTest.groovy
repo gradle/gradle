@@ -33,7 +33,7 @@ class GroovyCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReu
             apply plugin: "groovy"
             
             dependencies {
-                compile localGroovy()
+                implementation localGroovy()
             }
         """
     }

@@ -36,6 +36,8 @@ import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 public class FileLockCommunicator {
     private static final Logger LOGGER = LoggerFactory.getLogger(FileLockCommunicator.class);
     private static final String SOCKET_OPERATION_NOT_PERMITTED_ERROR_MESSAGE = "Operation not permitted";
+    private static final String SOCKET_NETWORK_UNREACHABLE_ERROR_MESSAGE = "Network is unreachable";
+    private static final String SOCKET_CANNOT_ASSIGN_ADDRESS_ERROR_MESSAGE = "Cannot assign requested address";
 
     private final DatagramSocket socket;
     private final InetAddressFactory addressFactory;
@@ -44,23 +46,28 @@ public class FileLockCommunicator {
     public FileLockCommunicator(InetAddressFactory addressFactory) {
         this.addressFactory = addressFactory;
         try {
-            socket = new DatagramSocket(0, addressFactory.getLocalBindingAddress());
+            socket = new DatagramSocket(0, addressFactory.getWildcardBindingAddress());
         } catch (SocketException e) {
             throw throwAsUncheckedException(e);
         }
     }
 
     public boolean pingOwner(int ownerPort, long lockId, String displayName) {
+        boolean pingSentSuccessfully = false;
         try {
             byte[] bytesToSend = FileLockPacketPayload.encode(lockId, UNLOCK_REQUEST);
-            // Ping the owner via all available local addresses
             for (InetAddress address : addressFactory.getCommunicationAddresses()) {
                 try {
                     socket.send(new DatagramPacket(bytesToSend, bytesToSend.length, address, ownerPort));
+                    pingSentSuccessfully = true;
                 } catch (IOException e) {
-                    if (e.getMessage() != null && e.getMessage().startsWith(SOCKET_OPERATION_NOT_PERMITTED_ERROR_MESSAGE)) {
+                    String message = e.getMessage();
+                    if (message != null && (
+                        message.startsWith(SOCKET_OPERATION_NOT_PERMITTED_ERROR_MESSAGE)
+                            || message.startsWith(SOCKET_NETWORK_UNREACHABLE_ERROR_MESSAGE)
+                            || message.startsWith(SOCKET_CANNOT_ASSIGN_ADDRESS_ERROR_MESSAGE)
+                    )) {
                         LOGGER.debug("Failed attempt to ping owner of lock for {} (lock id: {}, port: {}, address: {})", displayName, lockId, ownerPort, address);
-                        return false;
                     } else {
                         throw e;
                     }
@@ -69,7 +76,7 @@ public class FileLockCommunicator {
         } catch (IOException e) {
             throw new RuntimeException(String.format("Failed to ping owner of lock for %s (lock id: %s, port: %s)", displayName, lockId, ownerPort), e);
         }
-        return true;
+        return pingSentSuccessfully;
     }
 
     public DatagramPacket receive() throws GracefullyStoppedException {

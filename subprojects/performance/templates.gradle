@@ -16,24 +16,24 @@
 
 import org.gradle.testing.performance.generator.tasks.*
 
+
 // === Gradle Build ===
 tasks.register("gradleBuildCurrent", RemoteProject) {
-    dependsOn rootProject.determineCommitId
     remoteUri = rootDir.absolutePath
-    ref = provider { rootProject.determineCommitId.commitId }
+    ref = rootProject.tasks.named("determineCommitId").flatMap { it.determinedCommitId }
 }
 
 tasks.register("gradleBuildBaseline", RemoteProject) {
     remoteUri = rootDir.absolutePath
     // Remember to update accordingly when rebasing/squashing
     // Do not use the "Rebase and merge" nor "Squash and merge" Github buttons when merging a PR that change the baseline
-    ref = '25ed84ebe71581b7be37664a33f8670d11c8c711'
+    ref = 'bc8ca568299c9b28b8a574502ecfb9de1fbc3eed'
 }
 
 // === Java ===
-['largeMonolithicJavaProject', 'largeJavaMultiProject', 'largeJavaMultiProjectKotlinDsl',
+['largeMonolithicJavaProject', 'largeJavaMultiProject', 'largeMonolithicGroovyProject', 'largeGroovyMultiProject', 'largeJavaMultiProjectNoBuildSrc', 'largeJavaMultiProjectKotlinDsl',
  'mediumMonolithicJavaProject', 'mediumJavaMultiProject', 'mediumJavaMultiProjectWithTestNG', 'mediumJavaCompositeBuild', 'mediumJavaPredefinedCompositeBuild',
- 'smallJavaMultiProject'].each { template ->
+ 'smallJavaMultiProject', 'smallJavaMultiProjectNoBuildSrc'].each { template ->
     tasks.register(template, JavaExecProjectGeneratorTask) {
         outputs.dir new File(buildDir, template)
         outputs.cacheIf { true }
@@ -41,7 +41,7 @@ tasks.register("gradleBuildBaseline", RemoteProject) {
         inputs.property('args') { // Arguments are covered by the testProjectName and the outputs. We don't want them to contain the absolute path
             return []
         }
-        classpath = sourceSets.performanceTest.runtimeClasspath
+        classpath = sourceSets.performanceTest.runtimeClasspath.filter { it.name.contains('groovy') || it.name.contains('guava')  || it.name.contains('gradle-') }
         main = 'org.gradle.performance.generator.TestProjectGenerator'
         args name, buildDir.absolutePath
     }
@@ -304,6 +304,7 @@ tasks.register("bigCppMulti", CppMultiProjectGeneratorTask) {
 // Build-builder projects
 tasks.register("buildBuilder", RemoteProject) {
     remoteUri = 'https://github.com/adammurdoch/build-builder.git'
+    // From master branch
     ref = 'ef909790b6d4311609af0cb53373b1c8a9180718'
 }
 
@@ -346,19 +347,38 @@ tasks.register("bigSwiftApp", BuildBuilderGenerator) {
 // === Android ===
 tasks.register("k9AndroidBuild", RemoteProject) {
     remoteUri = 'https://github.com/gradle/perf-android-k-9.git'
-    branch = 'android-31'
+    // From android-31 branch
+    ref = "d9776762e7da63cd9b2925efa2b7d8bcdc373600"
 }
 
 tasks.register("largeAndroidBuild", RemoteProject) {
     remoteUri = 'https://github.com/gradle/perf-android-large.git'
-    branch = 'android-35'
+    // From android-35 branch
+    ref = "36143205842725fb1bd33f5ffc4667ccd0336641"
 }
 
 tasks.register("santaTrackerAndroidBuild", RemoteProject) {
     remoteUri = 'https://github.com/gradle/santa-tracker-android.git'
-    branch = 'agp-3.5.0'
+    // branch agp-3.6.0
+    // with AGP 3.6.0-beta-04
+    // without licenses plugin
+    ref = '3bbbd895de38efafd0dd1789454d4e4cb72d46d5'
     doLast {
-        new File(outputDirectory, 'santa-tracker/google-services.json').text = """
+        addGoogleServicesJson(outputDirectory)
+    }
+}
+
+tasks.register("santaTrackerAndroidJavaBuild", RemoteProject) {
+    remoteUri = 'https://github.com/gradle/santa-tracker-android.git'
+    // Pinned from branch agp-3.6.0-java
+    ref = '174705275e434adc843e8e9b28106a5e3ffd6733'
+    doLast {
+        addGoogleServicesJson(outputDirectory)
+    }
+}
+
+private void addGoogleServicesJson(File outputDirectory) {
+    new File(outputDirectory, 'santa-tracker/google-services.json').text = """
 {
   "project_info": {
     "project_number": "012345678912",
@@ -433,24 +453,26 @@ tasks.register("santaTrackerAndroidBuild", RemoteProject) {
   "configuration_version": "1"
 }
 """
-    }
 }
 
 tasks.register("excludeRuleMergingBuild", RemoteProject) {
     remoteUri = 'https://github.com/gradle/performance-comparisons.git'
-    branch = 'master'
+    // From master branch
+    ref = "13739fa299e485c079335b0cd5b30da1cff92234"
     subdirectory = 'exclude-merging'
 }
 
 tasks.register("springBootApp", RemoteProject) {
     remoteUri = 'https://github.com/gradle/performance-comparisons.git'
-    branch = 'master'
+    // From master branch
+    ref = "13739fa299e485c079335b0cd5b30da1cff92234"
     subdirectory = 'parallel-downloads'
 }
 
 tasks.register("largeNativeBuild", RemoteProject) {
     remoteUri = 'https://github.com/gradle/perf-native-large'
-    branch = 'master'
+    // From master branch
+    ref = "71c9ea2616677a09515aef34365993dd368ca19e"
     finalizedBy 'largeNativeBuildPrebuilt'
 }
 
@@ -481,8 +503,10 @@ tasks.withType(JvmProjectGeneratorTask).configureEach {
 // a dedicated project in order for the classpath to be setup properly
 def androidRemoteProjects = tasks.withType(RemoteProject).matching { it.name =~ /Android/ }
 androidRemoteProjects.configureEach {
-    dependsOn tasks.findByPath(':internalAndroidPerformanceTesting:buildClassPath')
+    // TODO: This should use a proper dependency
+    def buildClassPath = tasks.findByPath(':internalAndroidPerformanceTesting:buildClassPath')
+    dependsOn buildClassPath
     doLast {
-        file("$outputDirectory/tapi-classpath.txt") << project(':internalAndroidPerformanceTesting').buildClassPath.outputFile.text
+        file("$outputDirectory/tapi-classpath.txt") << buildClassPath.outputFile.get().getAsFile().text
     }
 }

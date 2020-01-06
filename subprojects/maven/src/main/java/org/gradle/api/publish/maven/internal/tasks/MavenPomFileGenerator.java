@@ -38,6 +38,7 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.provider.Provider;
@@ -80,7 +81,7 @@ public class MavenPomFileGenerator {
             int idx = builder.indexOf("<modelVersion");
             builder.insert(idx, xmlComments(MetaDataParser.GRADLE_METADATA_MARKER_COMMENT_LINES)
                     + "  "
-                    + xmlComment(MetaDataParser.GRADLE_METADATA_MARKER)
+                    + xmlComment(MetaDataParser.GRADLE_6_METADATA_MARKER)
                     + "  ");
         }
     };
@@ -304,10 +305,10 @@ public class MavenPomFileGenerator {
         String groupId = dependency.getGroupId();
         String dependencyVersion = dependency.getVersion();
         ImmutableAttributes attributes = attributesForScope(scope);
-        String resolvedVersion = versionMappingStrategy.findStrategyForVariant(attributes).maybeResolveVersion(groupId, artifactId);
-        mavenDependency.setGroupId(groupId);
-        mavenDependency.setArtifactId(artifactId);
-        mavenDependency.setVersion(resolvedVersion != null ? resolvedVersion : mapToMavenSyntax(dependencyVersion));
+        ModuleVersionIdentifier resolvedVersion = versionMappingStrategy.findStrategyForVariant(attributes).maybeResolveVersion(groupId, artifactId);
+        mavenDependency.setGroupId(resolvedVersion != null ? resolvedVersion.getGroup() : groupId);
+        mavenDependency.setArtifactId(resolvedVersion != null ? resolvedVersion.getName() : artifactId);
+        mavenDependency.setVersion(resolvedVersion != null ? resolvedVersion.getVersion() : mapToMavenSyntax(dependencyVersion));
         mavenDependency.setType(type);
         mavenDependency.setScope(scope);
         mavenDependency.setClassifier(classifier);
@@ -338,17 +339,20 @@ public class MavenPomFileGenerator {
     private void addDependencyManagement(MavenDependency dependency, String scope) {
         Dependency mavenDependency = new Dependency();
         String groupId = dependency.getGroupId();
-        mavenDependency.setGroupId(groupId);
         String artifactId = dependency.getArtifactId();
-        mavenDependency.setArtifactId(artifactId);
         ImmutableAttributes attributes = attributesForScope(scope);
-        String resolvedVersion = versionMappingStrategy.findStrategyForVariant(attributes).maybeResolveVersion(groupId, artifactId);
-        mavenDependency.setVersion(resolvedVersion == null ? mapToMavenSyntax(dependency.getVersion()) : resolvedVersion);
+        ModuleVersionIdentifier resolvedVersion = versionMappingStrategy.findStrategyForVariant(attributes).maybeResolveVersion(groupId, artifactId);
+        mavenDependency.setGroupId(resolvedVersion != null ? resolvedVersion.getGroup() : groupId);
+        mavenDependency.setArtifactId(resolvedVersion != null ? resolvedVersion.getName() : artifactId);
+        mavenDependency.setVersion(resolvedVersion == null ? mapToMavenSyntax(dependency.getVersion()) : resolvedVersion.getVersion());
         String type = dependency.getType();
         if (type != null) {
             mavenDependency.setType(type);
         }
-        mavenDependency.setScope(scope);
+        // Only publish the import scope, others have too different meanings than what Gradle expresses
+        if ("import".equals(scope)) {
+            mavenDependency.setScope(scope);
+        }
 
         DependencyManagement dependencyManagement = model.getDependencyManagement();
         if (dependencyManagement == null) {

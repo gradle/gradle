@@ -17,7 +17,7 @@
 package org.gradle.internal.reflect
 
 import org.gradle.internal.UncheckedException
-import org.gradle.testing.internal.util.Specification
+import spock.lang.Specification
 
 class JavaMethodTest extends Specification {
 

@@ -20,8 +20,9 @@ dependencies {
     api(futureKotlin("stdlib"))
     api(futureKotlin("reflect"))
     api(futureKotlin("script-runtime"))
+    api(futureKotlin("daemon-embeddable"))
 
-    runtimeOnly("org.jetbrains.intellij.deps:trove4j:1.0.20181211")
+    runtimeOnly(library("trove4j"))
 }
 
 val kotlinCompilerEmbeddable by configurations.creating

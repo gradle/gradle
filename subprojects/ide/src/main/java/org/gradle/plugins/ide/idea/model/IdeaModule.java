@@ -22,7 +22,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
@@ -31,6 +30,7 @@ import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.language.scala.ScalaPlatform;
 import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
+import org.gradle.plugins.ide.internal.resolver.DefaultGradleApiSourcesResolver;
 
 import java.io.File;
 import java.util.Collection;
@@ -328,7 +328,6 @@ public class IdeaModule {
      * The directories containing resources. <p> For example see docs for {@link IdeaModule}
      * @since 4.7
      */
-    @Incubating
     public Set<File> getResourceDirs() {
         return resourceDirs;
     }
@@ -337,7 +336,6 @@ public class IdeaModule {
      * Sets the directories containing resources. <p> For example see docs for {@link IdeaModule}
      * @since 4.7
      */
-    @Incubating
     public void setResourceDirs(Set<File> resourceDirs) {
         this.resourceDirs = resourceDirs;
     }
@@ -346,7 +344,6 @@ public class IdeaModule {
      * The directories containing the test resources. <p> For example see docs for {@link IdeaModule}
      * @since 4.7
      */
-    @Incubating
     public Set<File> getTestResourceDirs() {
         return testResourceDirs;
     }
@@ -355,7 +352,6 @@ public class IdeaModule {
      * Sets the directories containing the test resources. <p> For example see docs for {@link IdeaModule}
      * @since 4.7
      */
-    @Incubating
     public void setTestResourceDirs(Set<File> testResourceDirs) {
         this.testResourceDirs = testResourceDirs;
     }
@@ -571,7 +567,7 @@ public class IdeaModule {
         ProjectInternal projectInternal = (ProjectInternal) project;
         IdeArtifactRegistry ideArtifactRegistry = projectInternal.getServices().get(IdeArtifactRegistry.class);
         ProjectStateRegistry projectRegistry = projectInternal.getServices().get(ProjectStateRegistry.class);
-        IdeaDependenciesProvider ideaDependenciesProvider = new IdeaDependenciesProvider(projectInternal, ideArtifactRegistry, projectRegistry);
+        IdeaDependenciesProvider ideaDependenciesProvider = new IdeaDependenciesProvider(projectInternal, ideArtifactRegistry, projectRegistry, new DefaultGradleApiSourcesResolver());
         return ideaDependenciesProvider.provide(this);
     }
 

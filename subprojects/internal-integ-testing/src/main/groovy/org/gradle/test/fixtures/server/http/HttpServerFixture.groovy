@@ -47,6 +47,7 @@ trait HttpServerFixture {
     private SecurityHandler securityHandler
     private AuthScheme authenticationScheme = AuthScheme.BASIC
     private boolean logRequests = true
+    private boolean useHostnameForUrl = false
     private final Set<String> authenticationAttempts = Sets.newLinkedHashSet()
     private final Set<Map<String, String>> allHeaders = Sets.newLinkedHashSet()
     private boolean configured
@@ -65,7 +66,20 @@ trait HttpServerFixture {
 
     URI getUri() {
         assert server.started
-        return sslConnector ? URI.create("https://localhost:${sslConnector.localPort}") : URI.create("http://localhost:${connector.localPort}")
+        if (sslConnector) {
+            return URI.create("https://localhost:${sslConnector.localPort}")
+        } else if (useHostnameForUrl) {
+            // If used in a code-path that interacts with the HttpClientHelper, this will fail validation.
+            return URI.create("http://localhost:${connector.localPort}")
+        } else {
+            // The HttpClientHelper will not do HTTPS validation if the host matches 127.0.0.1
+            // This allows us to run integration tests without needing to use the TestKeyStore in every single test.
+            return URI.create("http://127.0.0.1:${connector.localPort}")
+        }
+    }
+
+    URI uri(String path) {
+        return getUri().resolve(path)
     }
 
     boolean isRunning() {
@@ -92,6 +106,13 @@ trait HttpServerFixture {
 
     void setLogRequests(boolean logRequests) {
         this.logRequests = logRequests
+    }
+
+    /**
+     * Use the hostname for the server's URL instead of the IP.
+     */
+    void useHostname() {
+        this.useHostnameForUrl = true
     }
 
     AuthScheme getAuthenticationScheme() {
@@ -151,7 +172,7 @@ trait HttpServerFixture {
         return false
     }
 
-    private static class LoggingHandler extends AbstractHandler {
+    static class LoggingHandler extends AbstractHandler {
         private final Set<String> authenticationAttempts
         private final Set<Map<String, String>> allHeaders
         private final boolean logRequests
@@ -163,7 +184,7 @@ trait HttpServerFixture {
         }
 
         void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
-            allHeaders << request.getHeaderNames().toList().collectEntries { headerName -> [headerName, request.getHeader(headerName as String)] }
+            allHeaders.add(request.getHeaderNames().toList().collectEntries { headerName -> [headerName, request.getHeader(headerName as String)] })
             String authorization = getAuthorizationHeader(request)
             if (authorization != null) {
                 synchronized (authenticationAttempts) {
@@ -175,7 +196,7 @@ trait HttpServerFixture {
                 }
             }
             if (logRequests) {
-                println("handling http request: $request.method $target")
+                println("handling http request: $request.method $target${request.queryString ? "?" + request.queryString : ''}")
             }
         }
 

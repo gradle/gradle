@@ -22,12 +22,27 @@ public class SomeClass {
 
     List<Integer> field = new LinkedList<Integer>();
 
+    private AccessedFromPrivateField accessedFromPrivateField;
+
+    AccessedFromPackagePrivateField someField;
+
+    private AccessedFromPrivateMethod accessedFromPrivateMethod() {
+        return null;
+    }
+
+    public String accessedFromPrivateMethodBody() {
+        return new AccessedFromPrivateMethodBody().toString();
+    }
+
     private Set<String> stuff(HashMap<String, String> map) {
         System.out.println(new Foo());
         return new HashSet<String>();
     }
 
     private class Foo {
+        // Hint: this field won't appear in the ClassAnalysis for SomeClass
+        public AccessedFromPrivateClassPublicField anotherField;
+
         public String toString() {
             return "" + new AccessedFromPrivateClass();
         }

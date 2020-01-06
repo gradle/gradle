@@ -26,20 +26,22 @@ class GradleFileModuleAdapter {
     private final String group
     private final String module
     private final String version
+    private final String publishArtifactVersion
     private final List<VariantMetadataSpec> variants
     private final Map<String, String> attributes
 
-    GradleFileModuleAdapter(String group, String module, String version, List<VariantMetadataSpec> variants, Map<String, String> attributes = [:]) {
+    GradleFileModuleAdapter(String group, String module, String version, String publishArtifactVersion, List<VariantMetadataSpec> variants, Map<String, String> attributes = [:]) {
         this.group = group
         this.module = module
         this.version = version
+        this.publishArtifactVersion = publishArtifactVersion
         this.variants = variants
         this.attributes = attributes
     }
 
     void publishTo(TestFile moduleDir) {
         moduleDir.createDir()
-        def file = moduleDir.file("$module-${version}.module")
+        def file = moduleDir.file("$module-${publishArtifactVersion}.module")
         def jsonBuilder = new JsonBuilder()
         jsonBuilder {
             formatVersion GradleModuleMetadataParser.FORMAT_VERSION
@@ -86,6 +88,9 @@ class GradleFileModuleAdapter {
                                 }
                                 rejects d.rejects
                             }
+                            if (d.endorseStrictVersions) {
+                                endorseStrictVersions d.endorseStrictVersions
+                            }
                             if (d.reason) {
                                 reason d.reason
                             }
@@ -112,6 +117,16 @@ class GradleFileModuleAdapter {
                                         if (c.version) { version c.version }
                                     }
                                 })
+                            }
+                            if (d.artifactSelector) {
+                                thirdPartyCompatibility {
+                                    artifactSelector {
+                                        name d.artifactSelector.name
+                                        type d.artifactSelector.type
+                                        if (d.artifactSelector.extension) { extension d.artifactSelector.extension }
+                                        if (d.artifactSelector.classifier) { classifier d.artifactSelector.classifier }
+                                    }
+                                }
                             }
                         }
                     })

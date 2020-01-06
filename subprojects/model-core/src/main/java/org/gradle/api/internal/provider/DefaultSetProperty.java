@@ -40,24 +40,25 @@ public class DefaultSetProperty<T> extends AbstractCollectionProperty<T, Set<T>>
     }
 
     @Override
-    public Factory managedFactory() {
-        return new Factory() {
-            @Nullable
-            @Override
-            public <S> S fromState(Class<S> type, Object state) {
-                if (!type.isAssignableFrom(SetProperty.class)) {
-                    return null;
-                }
-                DefaultSetProperty<T> property = new DefaultSetProperty<>(DefaultSetProperty.this.getElementType());
-                property.set((Set<T>) state);
-                return type.cast(property);
-            }
-        };
+    public int getFactoryId() {
+        return ManagedFactories.SetPropertyManagedFactory.FACTORY_ID;
     }
 
     @Override
     public SetProperty<T> empty() {
         super.empty();
+        return this;
+    }
+
+    @Override
+    public SetProperty<T> value(@Nullable Iterable<? extends T> elements) {
+        super.value(elements);
+        return this;
+    }
+
+    @Override
+    public SetProperty<T> value(Provider<? extends Iterable<? extends T>> provider) {
+        super.value(provider);
         return this;
     }
 

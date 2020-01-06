@@ -27,7 +27,7 @@ import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.operations.OperationProgressEvent
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.time.Clock
-import org.gradle.testing.internal.util.Specification
+import spock.lang.Specification
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.TextUtil
 import org.junit.Rule
@@ -81,7 +81,8 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         event.logLevel == LogLevel.WARN
     }
 
-    def "no warnings should be displayed in #mode"() {
+    @Unroll
+    def "no warnings should be displayed in #type"() {
         when:
         handler.init(locationReporter, type, progressBroadcaster)
         handler.featureUsed(deprecatedFeatureUsage('feature1'))
@@ -90,7 +91,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         outputEventListener.events.empty
 
         where:
-        type << [WarningMode.None, null]
+        type << WarningMode.values().findAll { !it.shouldDisplayMessages() }
     }
 
     @Unroll

@@ -19,6 +19,9 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 import com.google.common.collect.Lists
 import org.gradle.api.artifacts.ComponentMetadataListerDetails
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails
+import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.DependencyVerificationOverride
+import org.gradle.api.internal.artifacts.verification.signatures.SignatureVerificationServiceFactory
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessorFactory
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal
@@ -40,6 +43,7 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.action.InstantiatingAction
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
+import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor
 import org.gradle.internal.resource.ExternalResourceRepository
@@ -48,6 +52,7 @@ import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
 import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.BuildCommencedTimeProvider
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -65,6 +70,7 @@ class ResolveIvyFactoryTest extends Specification {
     RepositoryBlacklister repositoryBlacklister
     VersionParser versionParser
     InstantiatorFactory instantiatorFactory
+    BuildOperationExecutor buildOperationExecutor
 
     def setup() {
         moduleVersionsCache = Mock(ModuleVersionsCache)
@@ -75,6 +81,7 @@ class ResolveIvyFactoryTest extends Specification {
         cacheProvider = new ModuleRepositoryCacheProvider(caches, caches)
         startParameterResolutionOverride = Mock(StartParameterResolutionOverride) {
             _ * overrideModuleVersionRepository(_) >> { ModuleComponentRepository repository -> repository }
+            _ * dependencyVerificationOverride(_, _, _, _) >> DependencyVerificationOverride.NO_VERIFICATION
         }
         buildCommencedTimeProvider = Mock(BuildCommencedTimeProvider)
         moduleIdentifierFactory = Mock(ImmutableModuleIdentifierFactory)
@@ -82,8 +89,9 @@ class ResolveIvyFactoryTest extends Specification {
         repositoryBlacklister = Mock(RepositoryBlacklister)
         versionParser = new VersionParser()
         instantiatorFactory = Mock()
+        buildOperationExecutor = Mock()
 
-        resolveIvyFactory = new ResolveIvyFactory(cacheProvider, startParameterResolutionOverride, buildCommencedTimeProvider, versionComparator, moduleIdentifierFactory, repositoryBlacklister, versionParser, instantiatorFactory)
+        resolveIvyFactory = new ResolveIvyFactory(cacheProvider, startParameterResolutionOverride, startParameterResolutionOverride.dependencyVerificationOverride(buildOperationExecutor, TestUtil.checksumService, Mock(SignatureVerificationServiceFactory), new DocumentationRegistry()), buildCommencedTimeProvider, versionComparator, moduleIdentifierFactory, repositoryBlacklister, versionParser, instantiatorFactory)
     }
 
     def "returns an empty resolver when no repositories are configured" () {
@@ -145,7 +153,8 @@ class ResolveIvyFactoryTest extends Specification {
                 metadataArtifactProvider,
                 componentMetadataSupplierFactory,
                 versionListerFactory,
-                Mock(Instantiator)
+                Mock(Instantiator),
+                TestUtil.checksumService
             ]
         ) {
             appendId(_) >> { }

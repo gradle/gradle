@@ -15,14 +15,17 @@
  */
 
 package org.gradle.language.base
+
 import groovy.transform.NotYetImplemented
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 import static org.gradle.util.TextUtil.normaliseFileSeparators
 
 class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
 
+    @ToBeFixedForInstantExecution
     def "can create a top level functional source set with a rule"() {
         buildScript """
         apply plugin: 'language-base'
@@ -52,6 +55,7 @@ class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
         output.contains("to-string: FunctionalSourceSet 'fss'")
     }
 
+    @ToBeFixedForInstantExecution
     def "can view a functional source set as a ModelElement"() {
         buildScript """
         apply plugin: 'language-base'
@@ -189,6 +193,7 @@ class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
         buildType.testSources."0".@creator[0] == 'Rules#addSources(BuildType) > create()'
     }
 
+    @ToBeFixedForInstantExecution
     def "can register a language source set"() {
         buildScript """
         apply plugin: 'language-base'
@@ -211,6 +216,7 @@ class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
         normaliseFileSeparators(output).contains("source dirs: [${normaliseFileSeparators(testDirectory.path)}/src/main/myJavaSourceSet]")
     }
 
+    @ToBeFixedForInstantExecution
     def "non-component language source sets are not added to the project source set"() {
         buildFile << """
         ${registerJavaLanguage()}
@@ -240,6 +246,7 @@ class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
 
     }
 
+    @ToBeFixedForInstantExecution
     def "can reference sourceSet elements in a rule"() {
         given:
         buildFile << registerJavaLanguage()
@@ -270,6 +277,7 @@ class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
         output.contains "sources display name: SomeJava source 'myJavaSourceSet'"
     }
 
+    @ToBeFixedForInstantExecution
     def "can reference sourceSet elements using specialized type in a rule"() {
         given:
         buildFile << registerJavaLanguage()

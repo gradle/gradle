@@ -50,11 +50,12 @@ public class BlockingHttpServer extends ExternalResource {
     private static final AtomicInteger COUNTER = new AtomicInteger();
     private static final ExecutorService EXECUTOR_SERVICE = Executors.newCachedThreadPool();
     private final Lock lock = new ReentrantLock();
-    private final HttpServer server;
+    protected final HttpServer server;
     private HttpContext context;
     private final ChainingHttpHandler handler;
     private final int timeoutMs;
     private final int serverId;
+    private final Scheme scheme;
     private boolean running;
     private int clientVarCounter;
 
@@ -64,12 +65,17 @@ public class BlockingHttpServer extends ExternalResource {
 
     public BlockingHttpServer(int timeoutMs) throws IOException {
         // Use an OS selected port
-        server = HttpServer.create(new InetSocketAddress(0), 10);
-        server.setExecutor(EXECUTOR_SERVICE);
-        serverId = COUNTER.incrementAndGet();
-        handler = new ChainingHttpHandler(lock, timeoutMs, COUNTER, new MustBeRunning());
-        context = server.createContext("/", handler);
+        this(HttpServer.create(new InetSocketAddress(0), 10), timeoutMs, Scheme.HTTP);
+    }
+
+    protected BlockingHttpServer(HttpServer server, int timeoutMs, Scheme scheme) {
+        this.server = server;
+        this.server.setExecutor(EXECUTOR_SERVICE);
+        this.serverId = COUNTER.incrementAndGet();
+        this.handler = new ChainingHttpHandler(lock, timeoutMs, COUNTER, new MustBeRunning());
+        this.context = server.createContext("/", handler);
         this.timeoutMs = timeoutMs;
+        this.scheme = scheme;
     }
 
     /**
@@ -77,7 +83,7 @@ public class BlockingHttpServer extends ExternalResource {
      */
     public URI getUri() {
         try {
-            return new URI("http://localhost:" + getPort());
+            return new URI(scheme.scheme + "://" + scheme.host + ":" + getPort());
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }
@@ -88,7 +94,7 @@ public class BlockingHttpServer extends ExternalResource {
      */
     public URI uri(String resource) {
         try {
-            return new URI("http", null, "localhost", getPort(), "/" + resource, null, null);
+            return new URI(scheme.scheme, null, scheme.host, getPort(), "/" + resource, null, null);
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }
@@ -501,6 +507,19 @@ public class BlockingHttpServer extends ExternalResource {
             } finally {
                 lock.unlock();
             }
+        }
+    }
+
+    protected enum Scheme {
+        HTTP("http", "127.0.0.1"),
+        HTTPS("https", "localhost");
+
+        private final String scheme;
+        private final String host;
+
+        Scheme(String scheme, String host) {
+            this.scheme = scheme;
+            this.host = host;
         }
     }
 }

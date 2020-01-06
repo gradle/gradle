@@ -16,23 +16,52 @@
 
 package org.gradle.internal.execution.steps
 
-
+import org.gradle.internal.execution.Context
 import org.gradle.internal.execution.Step
 import org.gradle.internal.execution.UnitOfWork
+import org.gradle.internal.operations.BuildOperationType
+import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.testing.internal.util.Specification
 import org.junit.Rule
+import spock.lang.Specification
 
-class StepSpec extends Specification {
+import java.util.function.Consumer
+
+abstract class StepSpec<C extends Context> extends Specification {
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance()
+    final buildOperationExecutor = new TestBuildOperationExecutor()
 
+    final displayName = "job ':test'"
+    final identity = ":test"
     final delegate = Mock(Step)
+    final work = Stub(UnitOfWork)
+    final C context = createContext()
 
-    final work = Mock(UnitOfWork)
+    abstract protected C createContext()
+
+    def setup() {
+        _ * context.work >> work
+        _ * work.displayName >> displayName
+        _ * work.identity >> identity
+    }
 
     protected TestFile file(Object... path) {
         return temporaryFolder.file(path)
+    }
+
+    protected void assertNoOperation() {
+        assert buildOperationExecutor.log.records.empty
+    }
+
+    protected <D, R, T extends BuildOperationType<D, R>> void withOnlyOperation(
+        Class<T> operationType,
+        Consumer<TestBuildOperationExecutor.Log.TypedRecord<D, R>> verifier
+    ) {
+        assert buildOperationExecutor.log.records.size() == 1
+        interaction {
+            verifier.accept(buildOperationExecutor.log.mostRecent(operationType))
+        }
     }
 }

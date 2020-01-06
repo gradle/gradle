@@ -16,34 +16,21 @@
 
 package org.gradle.plugin.use
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.plugin.PluginBuilder
-import org.gradle.test.fixtures.server.http.MavenHttpModule
-import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
-import org.junit.Rule
 
 import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.CoreMatchers.startsWith
 
 @LeaksFileHandles
-class NonDeclarativePluginUseIntegrationSpec extends AbstractIntegrationSpec {
-
-    public static final String PLUGIN_ID = "org.myplugin"
-    public static final String VERSION = "1.0"
-    public static final String GROUP = "my"
-    public static final String ARTIFACT = "plugin"
-    public static final String USE = "plugins { id '$PLUGIN_ID' version '$VERSION' }"
-
-    @Rule
-    MavenHttpPluginRepository pluginRepo = MavenHttpPluginRepository.asGradlePluginPortal(executer, mavenRepo)
-
-    def pluginBuilder = new PluginBuilder(file("plugin"))
+class NonDeclarativePluginUseIntegrationSpec extends AbstractPluginSpec {
 
     def setup() {
         executer.requireOwnGradleUserHomeDir()
     }
 
+    @ToBeFixedForInstantExecution
     def "non declarative plugin implementation can access core plugins and not core impl"() {
         given:
         publishPlugin """
@@ -73,6 +60,7 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractIntegrationSpec {
         succeeds("pluginTask")
     }
 
+    @ToBeFixedForInstantExecution
     def "plugin implementation and dependencies are visible to plugin and build script"() {
         given:
         def pluginBuilder2 = new PluginBuilder(file("plugin2"))
@@ -131,6 +119,7 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractIntegrationSpec {
         output.contains 'ops = [withId 1, withId 2, withType 1, withType 2]'
     }
 
+    @ToBeFixedForInstantExecution
     def "classes from builscript and plugin block are visible in same build"() {
         given:
         def pluginBuilder2 = new PluginBuilder(file("plugin2"))
@@ -162,6 +151,7 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractIntegrationSpec {
         succeeds("tasks")
     }
 
+    @ToBeFixedForInstantExecution
     def "dependencies of non declarative plugins influence buildscript dependency resolution"() {
         given:
         [1, 2].each { n ->
@@ -220,6 +210,7 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractIntegrationSpec {
         output.contains "buildscriptDependencies - 2"
     }
 
+    @ToBeFixedForInstantExecution
     def "failure due to no plugin with id in implementation"() {
         when:
         pluginBuilder.with {
@@ -245,6 +236,7 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractIntegrationSpec {
         failure.assertHasLineNumber(2)
     }
 
+    @ToBeFixedForInstantExecution
     def "failure due to plugin class is unloadable"() {
         when:
         pluginBuilder.with {
@@ -266,6 +258,7 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractIntegrationSpec {
         failure.assertHasLineNumber(2)
     }
 
+    @ToBeFixedForInstantExecution
     def "failure due to plugin instantiation throwing"() {
         when:
         pluginBuilder.with {
@@ -288,6 +281,7 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractIntegrationSpec {
         failure.assertHasLineNumber(2)
     }
 
+    @ToBeFixedForInstantExecution
     def "failure due to plugin apply throwing"() {
         when:
         publishPlugin "throw new Exception('throwing plugin')"
@@ -306,10 +300,4 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractIntegrationSpec {
         failure.assertHasLineNumber(2)
     }
 
-    MavenHttpModule publishPlugin(String impl) {
-        pluginBuilder.with {
-            addPlugin(impl, PLUGIN_ID)
-            publishAs(GROUP, ARTIFACT, VERSION, pluginRepo, executer).allowAll().pluginModule as MavenHttpModule
-        }
-    }
 }

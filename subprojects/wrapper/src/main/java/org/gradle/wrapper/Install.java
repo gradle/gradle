@@ -49,7 +49,13 @@ public class Install {
             public File call() throws Exception {
                 final File markerFile = new File(localZipFile.getParentFile(), localZipFile.getName() + ".ok");
                 if (distDir.isDirectory() && markerFile.isFile()) {
-                    return getAndVerifyDistributionRoot(distDir, distDir.getAbsolutePath());
+                    InstallCheck installCheck = verifyDistributionRoot(distDir, distDir.getAbsolutePath());
+                    if (installCheck.isVerified()) {
+                        return installCheck.gradleHome;
+                    }
+                    // Distribution is invalid. Try to reinstall.
+                    System.err.println(installCheck.failureMessage);
+                    markerFile.delete();
                 }
 
                 boolean needsDownload = !localZipFile.isFile();
@@ -79,11 +85,14 @@ public class Install {
                     throw e;
                 }
 
-                File root = getAndVerifyDistributionRoot(distDir, safeDistributionUrl.toString());
-                setExecutablePermissions(root);
-                markerFile.createNewFile();
-
-                return root;
+                InstallCheck installCheck = verifyDistributionRoot(distDir, safeDistributionUrl.toString());
+                if (installCheck.isVerified()) {
+                    setExecutablePermissions(installCheck.gradleHome);
+                    markerFile.createNewFile();
+                    return installCheck.gradleHome;
+                }
+                // Distribution couldn't be installed.
+                throw new RuntimeException(installCheck.failureMessage);
             }
         });
     }
@@ -114,16 +123,21 @@ public class Install {
         return hexString.toString();
     }
 
-    private File getAndVerifyDistributionRoot(File distDir, String distributionDescription)
+    private InstallCheck verifyDistributionRoot(File distDir, String distributionDescription)
         throws Exception {
         List<File> dirs = listDirs(distDir);
         if (dirs.isEmpty()) {
-            throw new RuntimeException(String.format("Gradle distribution '%s' does not contain any directories. Expected to find exactly 1 directory.", distributionDescription));
+            return InstallCheck.failure(String.format("Gradle distribution '%s' does not contain any directories. Expected to find exactly 1 directory.", distributionDescription));
         }
         if (dirs.size() != 1) {
-            throw new RuntimeException(String.format("Gradle distribution '%s' contains too many directories. Expected to find exactly 1 directory.", distributionDescription));
+            return InstallCheck.failure(String.format("Gradle distribution '%s' contains too many directories. Expected to find exactly 1 directory.", distributionDescription));
         }
-        return dirs.get(0);
+
+        File gradleHome = dirs.get(0);
+        if (BootstrapMainStarter.findLauncherJar(gradleHome) == null) {
+            return InstallCheck.failure(String.format("Gradle distribution '%s' does not appear to contain a Gradle distribution.", distributionDescription));
+        }
+        return InstallCheck.success(gradleHome);
     }
 
     private void verifyDownloadChecksum(String sourceUrl, File localZipFile, String expectedSum) throws Exception {
@@ -152,9 +166,12 @@ public class Install {
     private List<File> listDirs(File distDir) {
         List<File> dirs = new ArrayList<File>();
         if (distDir.exists()) {
-            for (File file : distDir.listFiles()) {
-                if (file.isDirectory()) {
-                    dirs.add(file);
+            File[] files = distDir.listFiles();
+            if (files != null) {
+                for (File file : files) {
+                    if (file.isDirectory()) {
+                        dirs.add(file);
+                    }
                 }
             }
         }
@@ -187,7 +204,6 @@ public class Install {
         }
         if (errorMessage != null) {
             logger.log("Could not set executable permissions for: " + gradleCommand.getAbsolutePath());
-            logger.log("Please do this manually if you want to use the Gradle UI.");
         }
     }
 
@@ -252,5 +268,26 @@ public class Install {
         out.close();
     }
 
+    private static class InstallCheck {
+        private final File gradleHome;
+        private final String failureMessage;
+
+        private static InstallCheck failure(String message) {
+            return new InstallCheck(null, message);
+        }
+
+        private static InstallCheck success(File gradleHome) {
+            return new InstallCheck(gradleHome, null);
+        }
+
+        private InstallCheck(File gradleHome, String failureMessage) {
+            this.gradleHome = gradleHome;
+            this.failureMessage = failureMessage;
+        }
+
+        private boolean isVerified() {
+            return gradleHome != null;
+        }
+    }
 
 }

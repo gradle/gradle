@@ -75,7 +75,7 @@ class IvyResolverTest extends Specification {
     @Unroll
     def "remote access fails directly for module id #moduleId with layout #layoutPattern"() {
         given:
-        def overrideMetadata = new DefaultComponentOverrideMetadata()
+        def overrideMetadata = DefaultComponentOverrideMetadata.EMPTY
         def result = new DefaultBuildableModuleComponentMetaDataResolveResult()
 
         when:
@@ -105,7 +105,7 @@ class IvyResolverTest extends Specification {
     @Unroll
     def "remote access attempts to access metadata for id #moduleId with layout #layoutPattern"() {
         given:
-        def overrideMetadata = new DefaultComponentOverrideMetadata()
+        def overrideMetadata = DefaultComponentOverrideMetadata.EMPTY
         def result = new DefaultBuildableModuleComponentMetaDataResolveResult()
 
         when:
@@ -172,7 +172,7 @@ class IvyResolverTest extends Specification {
                     metadataArtifactProvider,
                     null,
                     fileResourceRepository,
-                    moduleIdentifierFactory
+                    TestUtil.checksumService
                 ))
             }
             appendId(_) >> { args ->
@@ -185,16 +185,17 @@ class IvyResolverTest extends Specification {
         def lister = new InstantiatingAction<ComponentMetadataListerDetails>(DefaultConfigurableRules.of(Stub(ConfigurableRule)), TestUtil.instantiatorFactory().inject(), Stub(InstantiatingAction.ExceptionHandler))
 
         new IvyResolver(
-            "repo",
-            transport,
-            Stub(LocallyAvailableResourceFinder),
-            false,
-            Stub(FileStore),
-            moduleIdentifierFactory,
-            supplier,
-            lister,
-            metadataSources,
-            metadataArtifactProvider, Mock(Instantiator)).with {
+                "repo",
+                transport,
+                Stub(LocallyAvailableResourceFinder),
+                false,
+                Stub(FileStore),
+                moduleIdentifierFactory,
+                supplier,
+                lister,
+                metadataSources,
+                metadataArtifactProvider, Mock(Instantiator),
+                TestUtil.checksumService).with {
             if (ivyPattern) {
                 it.addDescriptorLocation(URI.create(""), ivyPattern)
             }

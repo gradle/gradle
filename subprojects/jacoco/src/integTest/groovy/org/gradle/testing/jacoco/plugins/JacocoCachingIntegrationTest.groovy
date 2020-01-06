@@ -18,6 +18,7 @@ package org.gradle.testing.jacoco.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testing.jacoco.plugins.fixtures.JavaProjectUnderTest
 
@@ -42,12 +43,13 @@ class JacocoCachingIntegrationTest extends AbstractIntegrationSpec implements Di
         """
     }
 
+    @ToBeFixedForInstantExecution
     def "jacoco file results are cached"() {
         when:
         withBuildCache().run "test", "jacocoTestReport"
         def snapshot = reportFile.snapshot()
         then:
-        nonSkippedTasks.containsAll ":test", ":jacocoTestReport"
+        executedAndNotSkipped ":test", ":jacocoTestReport"
         reportFile.assertIsFile()
 
         when:
@@ -58,10 +60,11 @@ class JacocoCachingIntegrationTest extends AbstractIntegrationSpec implements Di
         when:
         withBuildCache().run "jacocoTestReport"
         then:
-        skippedTasks.containsAll ":test", ":jacocoTestReport"
+        skipped ":test", ":jacocoTestReport"
         reportFile.assertContentsHaveNotChangedSince(snapshot)
     }
 
+    @ToBeFixedForInstantExecution
     def "jacoco file results are not cached when sharing output with another task"() {
         javaProjectUnderTest.writeIntegrationTestSourceFiles()
         buildFile << """
@@ -72,7 +75,7 @@ class JacocoCachingIntegrationTest extends AbstractIntegrationSpec implements Di
         when:
         withBuildCache().run "jacocoTestReport"
         then:
-        nonSkippedTasks.containsAll ":test", ":jacocoTestReport"
+        executedAndNotSkipped ":test", ":jacocoTestReport"
         reportFile.assertIsFile()
 
         when:
@@ -85,15 +88,16 @@ class JacocoCachingIntegrationTest extends AbstractIntegrationSpec implements Di
         and:
         withBuildCache().run "jacocoTestReport"
         then:
-        nonSkippedTasks.containsAll ":test", ":jacocoTestReport"
+        executedAndNotSkipped ":test", ":jacocoTestReport"
     }
 
+    @ToBeFixedForInstantExecution
     def "test execution is cached with different gradle user home"() {
         when:
         withBuildCache().run "test", "jacocoTestReport"
         def snapshot = reportFile.snapshot()
         then:
-        nonSkippedTasks.containsAll ":test", ":jacocoTestReport"
+        executedAndNotSkipped ":test", ":jacocoTestReport"
         reportFile.assertIsFile()
 
         when:
@@ -105,10 +109,11 @@ class JacocoCachingIntegrationTest extends AbstractIntegrationSpec implements Di
         executer.requireOwnGradleUserHomeDir()
         withBuildCache().run "jacocoTestReport"
         then:
-        skippedTasks.containsAll ":test", ":jacocoTestReport"
+        skipped ":test", ":jacocoTestReport"
         reportFile.assertContentsHaveNotChangedSince(snapshot)
     }
 
+    @ToBeFixedForInstantExecution
     def "test is cached when jacoco is disabled"() {
         buildFile << """
             test {
@@ -120,7 +125,7 @@ class JacocoCachingIntegrationTest extends AbstractIntegrationSpec implements Di
         when:
         withBuildCache().run "test"
         then:
-        nonSkippedTasks.containsAll ":test"
+        executedAndNotSkipped ":test"
 
         when:
         succeeds "clean"
@@ -131,6 +136,6 @@ class JacocoCachingIntegrationTest extends AbstractIntegrationSpec implements Di
         executer.requireOwnGradleUserHomeDir()
         withBuildCache().run "test"
         then:
-        skippedTasks.containsAll ":test"
+        skipped ":test"
     }
 }

@@ -25,8 +25,8 @@ import org.gradle.api.artifacts.transform.TransformParameters
 import org.gradle.api.artifacts.transform.TransformSpec
 import org.gradle.api.attributes.Attribute
 import org.gradle.kotlin.dsl.*
+import org.gradle.util.GradleVersion
 import java.io.File
-import java.lang.Integer.max
 
 
 interface SourceDistributionProvider {
@@ -131,16 +131,7 @@ class SourceDistributionResolver(val project: Project) : SourceDistributionProvi
 
     private
     fun toVersionRange(gradleVersion: String) =
-        "(${previousMinor(gradleVersion)}, $gradleVersion]"
-
-    private
-    fun previousMinor(gradleVersion: String): String =
-        gradleVersion
-            .split('.')
-            .take(2)
-            .map { it.takeWhile { it != '-' }.toInt() }
-            .mapIndexed { i, v -> if (i == 0) v else max(v - 1, 0) }
-            .joinToString(".") { it.toString() }
+        "(${minimumGradleVersion()}, $gradleVersion]"
 
     private
     fun makeItFirstInTheList(repository: ArtifactRepository) {
@@ -157,6 +148,30 @@ class SourceDistributionResolver(val project: Project) : SourceDistributionProvi
     private
     fun ivy(configure: IvyArtifactRepository.() -> Unit) =
         repositories.ivy { configure(it) }
+
+    private
+    fun minimumGradleVersion(): String? {
+        val baseVersionString = GradleVersion.version(gradleVersion).baseVersion.version
+        val (major, minor) = baseVersionString.split('.')
+        return when (minor) {
+            // TODO:kotlin-dsl consider commenting out this clause once the 1st 6.0 snapshot is out
+            "0" -> {
+                // When testing against a `major.0` snapshot we need to take into account
+                // that source distributions matching the major version might not have
+                // been published yet. In that case we adjust the constraint to include
+                // source distributions beginning from the previous major version.
+                "${previous(major)}.0"
+            }
+            else -> {
+                // Otherwise include source distributions beginning from the previous minor version only.
+                "$major.${previous(minor)}"
+            }
+        }
+    }
+
+    private
+    fun previous(versionDigit: String) =
+        Integer.valueOf(versionDigit) - 1
 
     private
     val repositories

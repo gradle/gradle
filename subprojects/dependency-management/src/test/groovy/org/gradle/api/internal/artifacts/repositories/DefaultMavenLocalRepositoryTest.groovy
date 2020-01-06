@@ -15,21 +15,24 @@
  */
 package org.gradle.api.internal.artifacts.repositories
 
+import groovy.transform.CompileStatic
 import org.gradle.api.artifacts.repositories.AuthenticationContainer
-import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
+import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore
 import org.gradle.api.model.ObjectFactory
-import org.gradle.internal.logging.progress.ProgressLoggerFactory
+import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
+import org.gradle.internal.component.external.model.maven.MutableMavenModuleResolveMetadata
+import org.gradle.internal.isolation.IsolatableFactory
 import org.gradle.internal.resource.ExternalResourceRepository
 import org.gradle.internal.resource.local.FileResourceRepository
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
-import org.gradle.util.AttributeTestUtil
 import org.gradle.util.SnapshotTestUtil
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -37,38 +40,45 @@ import spock.lang.Specification
 class DefaultMavenLocalRepositoryTest extends Specification {
     final FileResolver resolver = Mock()
     final RepositoryTransportFactory transportFactory = Mock()
-    final LocallyAvailableResourceFinder locallyAvailableResourceFinder = Mock()
+    final LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder = Mock()
     final ExternalResourceRepository resourceRepository = Mock()
     final ArtifactIdentifierFileStore artifactIdentifierFileStore = Stub()
-    final MetaDataParser pomParser = Stub()
+    final MetaDataParser<MutableMavenModuleResolveMetadata> pomParser = Stub()
     final GradleModuleMetadataParser metadataParser = Stub()
     final AuthenticationContainer authenticationContainer = Stub()
-    final ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock()
-    final MavenMutableModuleMetadataFactory mavenMetadataFactory = new MavenMutableModuleMetadataFactory(moduleIdentifierFactory, AttributeTestUtil.attributesFactory(), TestUtil.objectInstantiator(), TestUtil.featurePreviews())
+    final FileResourceRepository fileResourceRepository = Mock()
+    final MavenMutableModuleMetadataFactory mavenMetadataFactory = DependencyManagementTestUtil.mavenMetadataFactory()
+    final ObjectFactory objectFactory = Mock()
+    final DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory = new DefaultUrlArtifactRepository.Factory(resolver, new DocumentationRegistry())
 
-    final DefaultMavenArtifactRepository repository = new DefaultMavenLocalArtifactRepository(resolver,
-        transportFactory,
-        locallyAvailableResourceFinder,
-        TestUtil.instantiatorFactory(),
-        artifactIdentifierFileStore,
-        pomParser,
-        metadataParser,
-        authenticationContainer,
-        moduleIdentifierFactory,
-        Mock(FileResourceRepository),
-        TestUtil.featurePreviews(),
-        mavenMetadataFactory,
-        SnapshotTestUtil.valueSnapshotter(),
-        Mock(ObjectFactory)
-    )
-    final ProgressLoggerFactory progressLoggerFactory = Mock()
+    final DefaultMavenArtifactRepository repository = createRepository()
+
+    @CompileStatic
+    DefaultMavenArtifactRepository createRepository() {
+        return new DefaultMavenLocalArtifactRepository(
+            resolver,
+            transportFactory,
+            locallyAvailableResourceFinder,
+            TestUtil.instantiatorFactory(),
+            artifactIdentifierFileStore,
+            pomParser,
+            metadataParser,
+            authenticationContainer,
+            fileResourceRepository,
+            mavenMetadataFactory,
+            (IsolatableFactory) SnapshotTestUtil.valueSnapshotter(),
+            objectFactory,
+            urlArtifactRepositoryFactory,
+            TestUtil.checksumService
+        )
+    }
 
     def "creates local repository"() {
         given:
         def file = new File('repo')
         def uri = file.toURI()
         _ * resolver.resolveUri('repo-dir') >> uri
-        transportFactory.createTransport('file', 'repo', _) >> transport()
+        transportFactory.createTransport('file', 'repo', _, _) >> transport()
 
         and:
         repository.name = 'repo'

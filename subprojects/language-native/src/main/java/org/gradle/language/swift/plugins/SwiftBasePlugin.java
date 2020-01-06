@@ -16,7 +16,6 @@
 
 package org.gradle.language.swift.plugins;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.attributes.AttributeCompatibilityRule;
@@ -27,13 +26,13 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublica
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
+import org.gradle.language.nativeplatform.internal.DefaultNativeComponent;
 import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.plugins.NativeBasePlugin;
 import org.gradle.language.swift.ProductionSwiftComponent;
 import org.gradle.language.swift.SwiftSharedLibrary;
 import org.gradle.language.swift.SwiftStaticLibrary;
 import org.gradle.language.swift.internal.DefaultSwiftBinary;
-import org.gradle.language.swift.internal.DefaultSwiftComponent;
 import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.nativeplatform.toolchain.internal.xcode.MacOSSdkPathLocator;
 import org.gradle.nativeplatform.toolchain.plugins.SwiftCompilerPlugin;
@@ -47,7 +46,6 @@ import javax.inject.Inject;
  *
  * @since 4.1
  */
-@Incubating
 public class SwiftBasePlugin implements Plugin<Project> {
     private final ProjectPublicationRegistry publicationRegistry;
     private final MacOSSdkPathLocator locator;
@@ -104,7 +102,7 @@ public class SwiftBasePlugin implements Plugin<Project> {
 
         project.getComponents().withType(ProductionSwiftComponent.class, component -> {
             project.afterEvaluate(p -> {
-                DefaultSwiftComponent componentInternal = (DefaultSwiftComponent) component;
+                DefaultNativeComponent componentInternal = (DefaultNativeComponent) component;
                 publicationRegistry.registerPublication((ProjectInternal) project, new NativeProjectPublication(componentInternal.getDisplayName(), new SwiftPmTarget(component.getModule().get())));
             });
         });

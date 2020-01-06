@@ -19,17 +19,15 @@ package org.gradle.instantexecution.serialization.codecs
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
-import org.gradle.instantexecution.serialization.readClass
-import org.gradle.instantexecution.serialization.writeClass
 
 
 internal
 object ClassCodec : Codec<Class<*>> {
 
-    override fun WriteContext.encode(value: Class<*>) {
+    override suspend fun WriteContext.encode(value: Class<*>) {
         writeClass(value)
     }
 
-    override fun ReadContext.decode(): Class<*>? =
+    override suspend fun ReadContext.decode(): Class<*>? =
         readClass()
 }

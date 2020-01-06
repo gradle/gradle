@@ -7,8 +7,25 @@ plugins {
     gradlebuild.classycle
 }
 
+val integTestRuntimeResources by configurations.creating {
+    isCanBeResolved = false
+    isCanBeConsumed = false
+}
+val integTestRuntimeResourcesClasspath by configurations.creating {
+    extendsFrom(integTestRuntimeResources)
+    isCanBeResolved = true
+    isCanBeConsumed = false
+    attributes {
+        // play test apps MUST be found as exploded directory
+        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage::class.java, Usage.JAVA_RUNTIME))
+        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, project.objects.named(LibraryElements::class.java, LibraryElements.RESOURCES))
+    }
+    isTransitive = false
+}
+
 dependencies {
     implementation(project(":baseServices"))
+    implementation(project(":files"))
     implementation(project(":messaging"))
     implementation(project(":processServices"))
     implementation(project(":logging"))
@@ -16,7 +33,7 @@ dependencies {
     implementation(project(":coreApi"))
     implementation(project(":modelCore"))
     implementation(project(":core"))
-    implementation(project(":files"))
+    implementation(project(":fileCollections"))
     implementation(project(":snapshots"))
     implementation(project(":dependencyManagement"))
     implementation(project(":workers"))
@@ -42,29 +59,37 @@ dependencies {
     testImplementation(project(":resources"))
     testImplementation(project(":baseServicesGroovy"))
 
+    testRuntimeOnly(project(":runtimeApiInfo"))
+
     integTestImplementation(library("ant"))
     integTestRuntimeOnly(project(":compositeBuilds"))
     integTestRuntimeOnly(project(":idePlay"))
+    integTestRuntimeOnly(project(":testingJunitPlatform"))
 
-    testFixturesImplementation(project(":internalIntegTesting"))
+    testFixturesApi(project(":platformBase")) {
+        because("Test fixtures export the Platform class")
+    }
+    testFixturesApi(testFixtures(project(":core")))
+    testFixturesApi(testFixtures(project(":platformNative")))
+    testFixturesApi(testFixtures(project(":languageJvm")))
+    testFixturesApi(project(":internalIntegTesting"))
+    testFixturesImplementation(project(":internalTesting"))
+    testFixturesImplementation(project(":processServices"))
     testFixturesImplementation(library("commons_io"))
     testFixturesImplementation(library("commons_httpclient"))
+    testFixturesImplementation(library("slf4j_api"))
+    testFixturesApi(testFixtures(project(":languageScala")))
+    testFixturesApi(testFixtures(project(":languageJava")))
+
+    testImplementation(testFixtures(project(":dependencyManagement")))
+    testImplementation(testFixtures(project(":diagnostics")))
+    testImplementation(testFixtures(project(":platformBase")))
+
+    integTestRuntimeResources(testFixtures(project(":platformPlay")))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
-}
-
-testFixtures {
-    from(":core", "testFixtures")
-    from(":platformNative", "testFixtures")
-    from(":languageJvm", "testFixtures")
-    from(":launcher", "testFixtures")
-    from(":languageScala", "integTest")
-    from(":languageJava", "integTest")
-    from(":dependencyManagement")
-    from(":diagnostics")
-    from(":platformBase")
 }
 
 tasks.named<Test>("integTest") {
@@ -83,5 +108,10 @@ val integTestPrepare by tasks.registering(IntegrationTest::class) {
 tasks.withType<IntegrationTest>().configureEach {
     if (name != "integTestPrepare") {
         dependsOn(integTestPrepare)
+        // this is a workaround for which we need a better fix:
+        // it sets the platform play test fixtures resources directory in front
+        // of the classpath, so that we can find them when executing tests in
+        // an exploded format, rather than finding them in the test fixtures jar
+        classpath = integTestRuntimeResourcesClasspath + classpath
     }
 }

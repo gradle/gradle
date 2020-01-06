@@ -22,7 +22,7 @@ import org.gradle.api.resources.TextResource;
 
 import javax.annotation.Nullable;
 
-public class CustomizableHtmlReportImpl extends TaskGeneratedSingleFileReport implements CustomizableHtmlReport {
+public abstract class CustomizableHtmlReportImpl extends TaskGeneratedSingleFileReport implements CustomizableHtmlReport {
 
     private TextResource stylesheet;
 

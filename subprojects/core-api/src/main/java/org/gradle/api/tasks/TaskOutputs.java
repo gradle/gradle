@@ -130,13 +130,13 @@ public interface TaskOutputs {
      * Registers some output files for this task.
      *
      * <p>When the given {@code paths} is a {@link java.util.Map}, then each output file
-     * will be associated with an identity. For cacheable tasks this is a requirement.
+     * will be associated with an identity.
      * The keys of the map must be non-empty strings.
      * The values of the map will be evaluated to individual files as per
      * {@link org.gradle.api.Project#file(Object)}.</p>
      *
-     * <p>Otherwise the given files will be evaluated as per {@link org.gradle.api.Project#files(Object...)},
-     * and task output caching will be disabled for the task.</p>
+     * <p>Otherwise the given files will be evaluated as per
+     * {@link org.gradle.api.Project#files(Object...)}.</p>
      *
      * @param paths The output files.
      *
@@ -148,13 +148,13 @@ public interface TaskOutputs {
      * Registers some output directories for this task.
      *
      * <p>When the given {@code paths} is a {@link java.util.Map}, then each output directory
-     * will be associated with an identity. For cacheable tasks this is a requirement.
+     * will be associated with an identity.
      * The keys of the map must be non-empty strings.
      * The values of the map will be evaluated to individual directories as per
      * {@link org.gradle.api.Project#file(Object)}.</p>
      *
-     * <p>Otherwise the given directories will be evaluated as per {@link org.gradle.api.Project#files(Object...)},
-     * and task output caching will be disabled for the task.</p>
+     * <p>Otherwise the given directories will be evaluated as per
+     * {@link org.gradle.api.Project#files(Object...)}.</p>
      *
      * @param paths The output files.
      *

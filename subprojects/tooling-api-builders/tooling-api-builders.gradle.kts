@@ -7,8 +7,10 @@ plugins {
 }
 
 dependencies {
+    implementation(project(":launcher"))
     implementation(project(":baseServices"))
     implementation(project(":messaging"))
+    implementation(project(":native"))
     implementation(project(":logging"))
     implementation(project(":processServices"))
     implementation(project(":coreApi"))
@@ -17,18 +19,18 @@ dependencies {
     implementation(project(":baseServicesGroovy")) // for 'Specs'
     implementation(project(":testingBase"))
     implementation(project(":testingJvm"))
-    implementation(project(":launcher"))
     implementation(project(":dependencyManagement"))
     implementation(project(":reporting"))
     implementation(project(":workers"))
     implementation(project(":compositeBuilds"))
     implementation(project(":toolingApi"))
+    implementation(project(":buildEvents"))
 
     implementation(library("groovy")) // for 'Closure'
     implementation(library("guava"))
     implementation(library("commons_io"))
 
-    testImplementation(project(":files"))
+    testImplementation(project(":fileCollections"))
 }
 
 gradlebuildJava {

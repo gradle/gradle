@@ -16,7 +16,6 @@
 
 package org.gradle.nativeplatform.test.xctest.tasks;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
@@ -44,7 +43,6 @@ import java.util.List;
  *
  * @since 4.5
  */
-@Incubating
 public class XCTest extends AbstractTestTask {
     private final DirectoryProperty workingDirectory;
     private final DirectoryProperty testInstallDirectory;

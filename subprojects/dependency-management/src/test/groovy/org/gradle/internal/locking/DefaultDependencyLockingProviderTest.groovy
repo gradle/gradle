@@ -20,6 +20,7 @@ import org.gradle.StartParameter
 import org.gradle.api.Action
 import org.gradle.api.artifacts.DependencySubstitution
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.artifacts.dsl.LockMode
 import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules
@@ -173,6 +174,19 @@ org:foo:1.1
 
     private ModuleComponentIdentifier module(String org, String name, String version) {
         return new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId(org, name), version)
+    }
+
+    def 'fails with missing lockfile in strict mode'() {
+        given:
+        provider.setLockMode(LockMode.STRICT)
+
+        when:
+        provider.loadLockState('conf')
+
+        then:
+        def ex = thrown(MissingLockStateException)
+        1 * context.identityPath('conf') >> Path.path(':conf')
+        ex.message == 'Locking strict mode: Configuration \':conf\' is locked but does not have a lockfile.'
     }
 
 }

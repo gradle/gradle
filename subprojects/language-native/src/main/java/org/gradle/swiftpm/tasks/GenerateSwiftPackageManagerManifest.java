@@ -18,7 +18,6 @@ package org.gradle.swiftpm.tasks;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
-import org.gradle.api.Incubating;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
@@ -49,7 +48,6 @@ import java.util.TreeSet;
  *
  * @since 4.6
  */
-@Incubating
 public class GenerateSwiftPackageManagerManifest extends DefaultTask {
     private final RegularFileProperty manifestFile;
     private final Property<Package> packageProperty;

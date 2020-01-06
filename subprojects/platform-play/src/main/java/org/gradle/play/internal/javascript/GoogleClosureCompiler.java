@@ -37,7 +37,6 @@ import java.lang.reflect.Field;
 import java.util.List;
 
 public class GoogleClosureCompiler implements Compiler<JavaScriptCompileSpec>, Serializable {
-    public static final Iterable<String> SHARED_PACKAGES = Lists.newArrayList("com.google.javascript");
     private static final String DEFAULT_GOOGLE_CLOSURE_VERSION = "v20141215";
     private Class<?> sourceFileClass;
     private Class<?> compilerOptionsClass;
@@ -113,9 +112,7 @@ public class GoogleClosureCompiler implements Compiler<JavaScriptCompileSpec>, S
         try {
             Field field = result.getClass().getField(fieldName);
             return Cast.uncheckedCast(field.get(result));
-        } catch (NoSuchFieldException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        } catch (IllegalAccessException e) {
+        } catch (NoSuchFieldException | IllegalAccessException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
     }

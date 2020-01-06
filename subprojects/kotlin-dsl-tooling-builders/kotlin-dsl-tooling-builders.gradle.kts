@@ -30,30 +30,28 @@ gradlebuildJava {
 dependencies {
     implementation(project(":kotlinDsl"))
 
-    compileOnly(project(":baseServices"))
-    compileOnly(project(":coreApi"))
-    compileOnly(project(":modelCore"))
-    compileOnly(project(":core"))
-    compileOnly(project(":resources"))
-    compileOnly(project(":platformBase"))
-    compileOnly(project(":platformJvm"))
-    compileOnly(project(":plugins"))
+    implementation(project(":baseServices"))
+    implementation(project(":coreApi"))
+    implementation(project(":modelCore"))
+    implementation(project(":core"))
+    implementation(project(":resources"))
+    implementation(project(":platformBase"))
+    implementation(project(":platformJvm"))
+    implementation(project(":plugins"))
+    implementation(project(":toolingApi"))
 
-    testImplementation(project(":baseServices"))
-    testImplementation(project(":core"))
     testImplementation(project(":kotlinDslTestFixtures"))
-
-    integTestImplementation(project(":baseServices"))
     integTestImplementation(project(":kotlinDslTestFixtures"))
 
     integTestRuntimeOnly(project(":toolingApiBuilders"))
+    integTestRuntimeOnly(project(":runtimeApiInfo"))
 
-    crossVersionTestImplementation(project(":baseServices"))
     crossVersionTestImplementation(project(":persistentCache"))
     crossVersionTestImplementation(library("slf4j_api"))
     crossVersionTestImplementation(library("guava"))
     crossVersionTestImplementation(library("ant"))
     crossVersionTestRuntimeOnly(project(":pluginDevelopment"))
+    crossVersionTestRuntimeOnly(project(":runtimeApiInfo"))
 }
 
 tasks {

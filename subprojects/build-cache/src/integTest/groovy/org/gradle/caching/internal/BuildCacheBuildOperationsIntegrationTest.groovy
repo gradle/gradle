@@ -243,8 +243,7 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
         }
 
         when:
-        executer.withStackTraceChecksDisabled()
-        succeeds("clean", "t")
+        fails("clean", "t")
 
         then:
         def failedUnpackOp = operations.only(BuildCacheArchiveUnpackBuildOperationType)
@@ -301,7 +300,6 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
         true       | false             | "remote($remoteCacheClass) { push = true }"
         false      | false             | "local.push = false; remote($remoteCacheClass) { push = true }"
         false      | false             | "local.enabled = false; remote($remoteCacheClass) { push = true }"
-        false      | true              | "local($remoteCacheClass) { push = true }; remote($remoteCacheClass) { push = true }; "
     }
 
     def "records ops for remote hit"() {
@@ -359,43 +357,6 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
         localStore << [
             true, false, false
         ]
-    }
-
-    def "does not emit operations for custom local cache implementations"() {
-        def localCache = new TestBuildCache(file("local-cache"))
-        settingsFile << localCache.localCacheConfiguration()
-
-        given:
-        remote("", "writer.writeTo(new ${NullOutputStream.name}())")
-
-        settingsFile << """
-            buildCache {
-                local($remoteCacheClass)   
-                remote($remoteCacheClass)   
-            }
-        """
-
-        buildFile << cacheableTask() << """
-            apply plugin: "base"
-            tasks.create("t", CustomTask).paths << "out1" << "out2"
-        """
-
-        executer.expectDeprecationWarning()
-
-        when:
-        succeeds("t")
-
-        then:
-        def remoteMissLoadOp = operations.only(BuildCacheRemoteLoadBuildOperationType)
-        def packOp = operations.only(BuildCacheArchivePackBuildOperationType)
-
-        packOp.details.cacheKey == remoteMissLoadOp.details.cacheKey
-        def localCacheArtifact = localCache.cacheArtifact(packOp.details.cacheKey.toString())
-        !localCacheArtifact.exists()
-
-        packOp.result.archiveEntryCount == 5
-
-        operations.orderedSerialSiblings(remoteMissLoadOp, packOp)
     }
 
 }

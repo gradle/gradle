@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve.transform
 
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Unroll
 
 class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture {
@@ -36,10 +37,10 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                     $inputAnnotations
                     ConfigurableFileCollection getSomeFiles()
                 }
-            
+
                 @InputArtifact
                 abstract Provider<FileSystemLocation> getInputArtifact()
-                
+
                 void transform(TransformOutputs outputs) {
                     def input = inputArtifact.get().asFile
                     println "processing \${input.name} using \${parameters.someFiles*.name}"
@@ -60,7 +61,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
             allprojects {
                 ext.inputFiles = files('a.txt', 'b.txt')
             }
-            
+
             project(':a') {
                 dependencies {
                     implementation project(':b')
@@ -94,7 +95,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                 repositories.maven { url = '${mavenRepo.uri}' }
                 ext.inputFiles = configurations.tools
             }
-            
+
             project(':a') {
                 dependencies {
                     tools 'test:tool-a:1.2'
@@ -115,6 +116,62 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         outputContains("result = [b.jar.green, c.jar.green]")
     }
 
+    def "transform can receive a file input from a nested bean on the parameter object"() {
+        settingsFile << """
+            include 'a', 'b'
+        """
+        buildFile << """
+            allprojects {
+                task tool(type: FileProducer) {
+                    output = file("build/tool-\${project.name}.jar")
+                }
+            }
+        """
+        setupBuildWithColorTransform {
+            params("""
+                nestedBean.inputFiles.from(tasks.tool)
+            """)
+        }
+        buildFile << """
+            interface NestedInputFiles {
+                @InputFiles
+                ConfigurableFileCollection getInputFiles()
+            }
+
+            project(':a') {
+                dependencies {
+                    implementation project(':b')
+                }
+            }
+
+            abstract class MakeGreen implements TransformAction<Parameters> {
+                interface Parameters extends TransformParameters{
+                    @Nested
+                    NestedInputFiles getNestedBean()
+                }
+
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                void transform(TransformOutputs outputs) {
+                    def inputFiles = parameters.nestedBean.inputFiles
+                    def input = inputArtifact.get().asFile
+                    println "processing \${input.name} using \${inputFiles*.name}"
+                    def output = outputs.file(input.name + ".green")
+                    def paramContent = inputFiles.collect { it.file ? it.text : it.list().length }.join("")
+                    output.text = input.text + paramContent + ".green"
+                }
+            }
+        """
+
+        when:
+        run(":a:resolve")
+
+        then:
+        outputContains("processing b.jar using [tool-a.jar]")
+        outputContains("result = [b.jar.green]")
+    }
+
     def "transform can receive a file collection containing task outputs as parameter"() {
         settingsFile << """
                 include 'a', 'b', 'c'
@@ -125,7 +182,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                 task tool(type: FileProducer) {
                     output = file("build/tool-\${project.name}.jar")
                 }
-                ext.inputFiles = files(tool.output)                
+                ext.inputFiles = files(tool.output)
             }
 
             project(':a') {
@@ -155,7 +212,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
             abstract class MakeRed implements TransformAction<TransformParameters.None> {
                 @InputArtifact
                 abstract Provider<FileSystemLocation> getInputArtifact()
-                
+
                 void transform(TransformOutputs outputs) {
                     def input = inputArtifact.get().asFile
                     println "processing \${input.name} wit MakeRedAction"
@@ -166,11 +223,17 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
 
             allprojects {
                 def attr = Attribute.of('color', String)
-                configurations.create("tools") {
+                def tools = configurations.create("tools") {
                     canBeConsumed = false
+                    canBeResolved = false
+                }
+                configurations.create("toolsPath") {
+                    extendsFrom(tools)
+                    canBeConsumed = false
+                    canBeResolved = true
                     attributes.attribute(attr, 'blue')
                 }
-                ext.inputFiles = configurations.tools.incoming.artifactView {
+                ext.inputFiles = configurations.toolsPath.incoming.artifactView {
                     attributes.attribute(attr, 'red')
                 }.files
                 dependencies {
@@ -180,7 +243,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                     }
                 }
             }
-            
+
             project(':a') {
                 dependencies {
                     tools project(':d')
@@ -202,12 +265,13 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         outputContains("result = [b.jar.green, c.jar.green]")
     }
 
+    @ToBeFixedForInstantExecution
     def "transform can receive a file collection containing substituted external dependencies as parameter"() {
         file("tools/settings.gradle") << """
             include 'tool-a', 'tool-b'
         """
         file("tools/build.gradle") << """
-            allprojects { 
+            allprojects {
                 group = 'test'
                 configurations.create("default")
                 task producer(type: Producer) {
@@ -215,11 +279,11 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                 }
                 artifacts."default" producer.outputFile
             }
-            
+
             class Producer extends DefaultTask {
                 @OutputFile
-                RegularFileProperty outputFile = project.objects.fileProperty()
-            
+                final RegularFileProperty outputFile = project.objects.fileProperty()
+
                 @TaskAction
                 def go() {
                     outputFile.get().asFile.text = "output"
@@ -236,7 +300,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                 configurations.create("tools") { }
                 ext.inputFiles = configurations.tools
             }
-            
+
             project(':a') {
                 dependencies {
                     tools 'test:tool-a:1.2'
@@ -272,7 +336,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         """
         setupBuildWithColorTransform {
             params("""
-                someFile.set(project.inputFile)
+                someFile = project.inputFile
             """)
         }
         buildFile << """
@@ -288,10 +352,10 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                     @InputFile
                     RegularFileProperty getSomeFile()
                 }
-            
+
                 @InputArtifact
                 abstract Provider<FileSystemLocation> getInputArtifact()
-                
+
                 void transform(TransformOutputs outputs) {
                     def input = inputArtifact.get().asFile
                     println "processing \${input.name} using \${parameters.someFile.get().asFile.name}"
@@ -324,7 +388,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         """
         setupBuildWithColorTransform {
             params("""
-                someDir.set(project.inputDir)
+                someDir = project.inputDir
             """)
         }
         buildFile << """
@@ -340,10 +404,10 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                     @InputDirectory
                     DirectoryProperty getSomeDir()
                 }
-            
+
                 @InputArtifact
                 abstract Provider<FileSystemLocation> getInputArtifact()
-                
+
                 void transform(TransformOutputs outputs) {
                     def input = inputArtifact.get().asFile
                     println "processing \${input.name} using \${parameters.someDir.get().asFile.name}"
@@ -373,7 +437,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                     output = file("build/tool-\${project.name}.jar")
                     doLast { throw new RuntimeException('broken') }
                 }
-                ext.inputFiles = files(tool.output)                
+                ext.inputFiles = files(tool.output)
             }
 
             project(':a') {
@@ -397,6 +461,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "can use input path sensitivity #pathSensitivity for parameter object"() {
         settingsFile << """
                 include 'a', 'b', 'c'
@@ -406,7 +471,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
             allprojects {
                 ext.inputFiles = files(rootProject.file(project.property('fileName')))
             }
-            
+
             project(':a') {
                 dependencies {
                     implementation project(':b')
@@ -451,6 +516,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         PathSensitivity.ABSOLUTE  | [['first/input', 'foo'], ['first/input', 'foo'], ['third/input', 'foo']]
     }
 
+    @ToBeFixedForInstantExecution
     def "can use classpath normalization for parameter object"() {
         settingsFile << """
                 include 'a', 'b', 'c'
@@ -460,7 +526,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
             allprojects {
                 ext.inputFiles = files(rootProject.file("inputDir"), rootProject.file("input.jar"))
             }
-            
+
             project(':a') {
                 dependencies {
                     implementation project(':b')

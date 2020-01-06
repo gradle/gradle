@@ -24,18 +24,18 @@ import org.gradle.util.BuildCommencedTimeProvider;
 import java.io.File;
 
 public class MavenPublishers {
-    private final RepositoryTransportFactory repositoryTransportFactory;
     private final BuildCommencedTimeProvider timeProvider;
+    private RepositoryTransportFactory repositoryTransportFactory;
     private final LocalMavenRepositoryLocator mavenRepositoryLocator;
 
-    public MavenPublishers(RepositoryTransportFactory repositoryTransportFactory, BuildCommencedTimeProvider timeProvider, LocalMavenRepositoryLocator mavenRepositoryLocator) {
-        this.repositoryTransportFactory = repositoryTransportFactory;
+    public MavenPublishers(BuildCommencedTimeProvider timeProvider, RepositoryTransportFactory repositoryTransportFactory, LocalMavenRepositoryLocator mavenRepositoryLocator) {
         this.timeProvider = timeProvider;
+        this.repositoryTransportFactory = repositoryTransportFactory;
         this.mavenRepositoryLocator = mavenRepositoryLocator;
     }
 
     public MavenPublisher getRemotePublisher(Factory<File> temporaryDirFactory) {
-        return new MavenRemotePublisher(temporaryDirFactory, repositoryTransportFactory, timeProvider);
+        return new MavenRemotePublisher(temporaryDirFactory, timeProvider);
     }
 
     public MavenPublisher getLocalPublisher(Factory<File> temporaryDirFactory) {

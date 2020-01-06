@@ -17,13 +17,12 @@
 package org.gradle.language.swift;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.provider.Property;
-import org.gradle.language.ComponentWithBinaries;
 import org.gradle.language.BinaryCollection;
+import org.gradle.language.ComponentWithBinaries;
 import org.gradle.language.ComponentWithDependencies;
 import org.gradle.language.ComponentWithTargetMachines;
 
@@ -36,7 +35,6 @@ import org.gradle.language.ComponentWithTargetMachines;
  *
  * @since 4.2
  */
-@Incubating
 public interface SwiftComponent extends ComponentWithBinaries, ComponentWithDependencies, ComponentWithTargetMachines {
     /**
      * Defines the Swift module for this component. The default value is calculated from the project name.

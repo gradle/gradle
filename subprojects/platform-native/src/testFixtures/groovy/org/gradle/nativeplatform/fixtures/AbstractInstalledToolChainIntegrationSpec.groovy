@@ -16,7 +16,7 @@
 
 package org.gradle.nativeplatform.fixtures
 
-import org.gradle.api.internal.file.BaseDirFileResolver
+
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ContextualMultiVersionTest
@@ -136,7 +136,7 @@ abstract class AbstractInstalledToolChainIntegrationSpec extends AbstractIntegra
     }
 
     def intermediateFileFor(File sourceFile, String intermediateFilesDir, String intermediateFileSuffix) {
-        File intermediateFile = new CompilerOutputFileNamingSchemeFactory(new BaseDirFileResolver(testDirectory, TestFiles.getPatternSetFactory())).create()
+        File intermediateFile = new CompilerOutputFileNamingSchemeFactory(TestFiles.resolver(testDirectory)).create()
             .withObjectFileNameSuffix(intermediateFileSuffix)
             .withOutputBaseFolder(file(intermediateFilesDir))
             .map(file(sourceFile))

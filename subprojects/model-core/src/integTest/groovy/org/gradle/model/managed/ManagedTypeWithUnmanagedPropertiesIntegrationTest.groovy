@@ -17,9 +17,11 @@
 package org.gradle.model.managed
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 class ManagedTypeWithUnmanagedPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
+    @ToBeFixedForInstantExecution
     def "can have unmanaged property of unsupported types"() {
         when:
         buildScript '''
@@ -122,6 +124,7 @@ class ManagedTypeWithUnmanagedPropertiesIntegrationTest extends AbstractIntegrat
         output.contains("fromScript: foo")
     }
 
+    @ToBeFixedForInstantExecution
     def "can view unmanaged property as ModelElement"() {
         when:
         buildScript '''

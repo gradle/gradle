@@ -17,21 +17,20 @@
 package org.gradle.testing
 
 import org.gradle.integtests.fixtures.*
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import org.junit.Rule
-import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Unroll
 
 import static org.gradle.testing.fixture.JUnitCoverage.*
 import static org.hamcrest.CoreMatchers.*
+import static org.junit.Assume.assumeTrue
 
-// https://github.com/junit-team/junit5/issues/1285
 @TargetCoverage({ JUNIT_4_LATEST + emptyIfJava7(JUPITER, VINTAGE) })
 class TestReportIntegrationTest extends JUnitMultiVersionIntegrationSpec {
     @Rule Sample sample = new Sample(temporaryFolder)
 
+    @ToBeFixedForInstantExecution
     def "report includes results of most recent invocation"() {
         given:
         buildFile << """
@@ -73,6 +72,7 @@ public class LoggingTest {
     }
 
     @UsesSample("testing/testReport/groovy")
+    @ToBeFixedForInstantExecution
     def "can generate report for subprojects"() {
         given:
         sample sample
@@ -86,7 +86,7 @@ public class LoggingTest {
         htmlReport.testClass("org.gradle.sample.UtilTest").assertTestCount(1, 0, 0).assertTestPassed("ok").assertStdout(equalTo("hello from UtilTest.\n"))
     }
 
-    @IgnoreIf({ GradleContextualExecuter.parallel })
+    @ToBeFixedForInstantExecution
     def "merges report with duplicated classes and methods"() {
         given:
         ignoreWhenJupiter()
@@ -184,7 +184,7 @@ public class SubClassTests extends SuperClassTests {
     }
 
     @Issue("https://issues.gradle.org//browse/GRADLE-2821")
-    @IgnoreIf({GradleContextualExecuter.parallel})
+    @ToBeFixedForInstantExecution
     def "test report task can handle test tasks that did not run tests"() {
         given:
         buildScript """
@@ -210,8 +210,8 @@ public class SubClassTests extends SuperClassTests {
         succeeds "testReport"
 
         then:
-        ":otherTests" in skippedTasks
-        ":test" in nonSkippedTasks
+        skipped(":otherTests")
+        executedAndNotSkipped(":test")
         new HtmlTestExecutionResult(testDirectory, "build/reports/tr").assertTestClassesExecuted("Thing")
     }
 
@@ -237,7 +237,7 @@ public class SubClassTests extends SuperClassTests {
         succeeds "testReport"
     }
 
-    @IgnoreIf({GradleContextualExecuter.parallel})
+    @ToBeFixedForInstantExecution
     def "test report task is skipped when there are no results"() {
         given:
         buildScript """
@@ -253,12 +253,11 @@ public class SubClassTests extends SuperClassTests {
         succeeds "testReport"
 
         then:
-        ":test" in skippedTasks
-        ":testReport" in skippedTasks
+        skipped(":test")
+        skipped(":testReport")
     }
 
     @Unroll
-    @IgnoreIf({GradleContextualExecuter.parallel})
     "#type report files are considered outputs"() {
         given:
         buildScript """
@@ -272,14 +271,14 @@ public class SubClassTests extends SuperClassTests {
         run "test"
 
         then:
-        ":test" in nonSkippedTasks
+        executedAndNotSkipped(":test")
         file(reportsDir).exists()
 
         when:
         run "test"
 
         then:
-        ":test" in skippedTasks
+        skipped(":test")
         file(reportsDir).exists()
 
         when:
@@ -287,7 +286,7 @@ public class SubClassTests extends SuperClassTests {
         run "test"
 
         then:
-        ":test" in nonSkippedTasks
+        executedAndNotSkipped(":test")
         file(reportsDir).exists()
 
         where:
@@ -296,7 +295,7 @@ public class SubClassTests extends SuperClassTests {
         "html" | "build/reports/tests"
     }
 
-    @IgnoreIf({GradleContextualExecuter.parallel})
+    @ToBeFixedForInstantExecution
     def "results or reports are linked to in error output"() {
         given:
         buildScript """
@@ -313,7 +312,7 @@ public class SubClassTests extends SuperClassTests {
         fails "test"
 
         then:
-        ":test" in nonSkippedTasks
+        executedAndNotSkipped(":test")
         failure.assertHasCause("There were failing tests. See the report at: ")
 
         when:
@@ -321,7 +320,7 @@ public class SubClassTests extends SuperClassTests {
         fails "test"
 
         then:
-        ":test" in nonSkippedTasks
+        executedAndNotSkipped(":test")
         failure.assertHasCause("There were failing tests. See the results at: ")
 
         when:
@@ -329,12 +328,12 @@ public class SubClassTests extends SuperClassTests {
         fails "test"
 
         then:
-        ":test" in nonSkippedTasks
+        executedAndNotSkipped(":test")
         failure.assertHasCause("There were failing tests")
         failure.assertHasNoCause("See the")
     }
 
-    @IgnoreIf({GradleContextualExecuter.parallel})
+    @ToBeFixedForInstantExecution
     def "output per test case flag invalidates outputs"() {
         when:
         buildScript """
@@ -345,14 +344,14 @@ public class SubClassTests extends SuperClassTests {
         succeeds "test"
 
         then:
-        ":test" in nonSkippedTasks
+        executedAndNotSkipped(":test")
 
         when:
         buildFile << "\ntest.reports.junitXml.outputPerTestCase = true\n"
         succeeds "test"
 
         then:
-        ":test" in nonSkippedTasks
+        executedAndNotSkipped(":test")
     }
 
     def "outputs over lifecycle"() {
@@ -421,11 +420,49 @@ public class SubClassTests extends SuperClassTests {
         clazz.assertStdout(is("beforeClass out\nconstructor out\nconstructor out\nafterClass out\n"))
     }
 
+    def "collects output for failing non-root suite descriptors"() {
+        assumeTrue("TestExecutionListener only works on the JUnit Platform", isJUnitPlatform())
+
+        given:
+        buildScript """
+            $junitSetup
+            dependencies {
+                testImplementation(platform('org.junit:junit-bom:$dependencyVersion'))
+                testImplementation('org.junit.platform:junit-platform-launcher')
+            }
+        """
+
+        and:
+        testClass "SomeTest"
+        file("src/test/java/ThrowingListener.java") << """
+            import org.junit.platform.launcher.*;
+            public class ThrowingListener implements TestExecutionListener {
+                @Override
+                public void testPlanExecutionStarted(TestPlan testPlan) {
+                    System.out.println("System.out from ThrowingListener");
+                    System.err.println("System.err from ThrowingListener");
+                    throw new OutOfMemoryError("not caught by JUnit Platform");
+                }
+            }
+        """
+        file("src/test/resources/META-INF/services/org.junit.platform.launcher.TestExecutionListener") << "ThrowingListener"
+
+        when:
+        fails "test"
+
+        then:
+        new HtmlTestExecutionResult(testDirectory)
+            .testClassStartsWith("Gradle Test Executor")
+            .assertTestFailed("failed to execute tests", containsString("Could not complete execution"))
+            .assertStdout(containsString("System.out from ThrowingListener"))
+            .assertStderr(containsString("System.err from ThrowingListener"))
+    }
+
     String getJunitSetup() {
         """
         apply plugin: 'java'
         ${mavenCentralRepository()}
-        dependencies { testCompile 'junit:junit:4.12' }
+        dependencies { testImplementation 'junit:junit:4.12' }
         """
     }
 

@@ -21,7 +21,6 @@ import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 
 public class ClasspathEntryChangeProcessor {
-
     private final ClasspathChangeDependentsFinder dependentsFinder;
 
     public ClasspathEntryChangeProcessor(ClasspathSnapshot classpathSnapshot, PreviousCompilation previousCompilation) {
@@ -34,7 +33,8 @@ public class ClasspathEntryChangeProcessor {
             spec.setFullRebuildCause(actualDependents.getDescription(), input.getFile());
             return;
         }
-        spec.getClassesToCompile().addAll(actualDependents.getDependentClasses());
+        spec.getClassesToCompile().addAll(actualDependents.getPrivateDependentClasses());
+        spec.getClassesToCompile().addAll(actualDependents.getAccessibleDependentClasses());
         spec.getResourcesToGenerate().addAll(actualDependents.getDependentResources());
     }
 }

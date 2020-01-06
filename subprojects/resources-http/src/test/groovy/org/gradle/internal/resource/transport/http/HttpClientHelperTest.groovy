@@ -74,6 +74,19 @@ class HttpClientHelperTest extends AbstractHttpClientTest {
         request.getHeaders("Cache-Control")[0].value == "max-age=0"
     }
 
+    def "stripping user credentials removes username and password"() {
+        given:
+        def uri = new URI("https", "admin:password", "foo.example", 80, null, null, null)
+
+        when:
+        def strippedUri = HttpClientHelper.stripUserCredentials(uri)
+
+        then:
+        strippedUri.userInfo == null
+        strippedUri.scheme == "https"
+        strippedUri.host == "foo.example"
+    }
+
     private HttpSettings getHttpSettings() {
         return Stub(HttpSettings) {
             getProxySettings() >> Mock(HttpProxySettings)

@@ -1,5 +1,3 @@
-import java.io.File
-
 /*
  * Copyright 2018 the original author or authors.
  *
@@ -36,7 +34,7 @@ fun Project.configureCheckstyle(codeQualityConfigDir: File) {
 
     val checkStyleConfigDir = codeQualityConfigDir.resolve("checkstyle")
     configure<CheckstyleExtension> {
-        configDir = checkStyleConfigDir
+        configDirectory.set(checkStyleConfigDir)
         toolVersion = "8.12"
 
         plugins.withType<GroovyBasePlugin> {
@@ -112,11 +110,10 @@ open class CodeNarcRule : ComponentMetadataRule {
                 removeAll { it.group == "org.codehaus.groovy" }
                 add("org.gradle.groovy:groovy-all") {
                     // TODO This must match the version number in dependencies.gradle
-                    version { prefer("1.0-" + groovy.lang.GroovySystem.getVersion()) }
+                    version { prefer("1.3-" + groovy.lang.GroovySystem.getVersion()) }
                     because("We use groovy-all everywhere")
                 }
             }
         }
-
     }
 }

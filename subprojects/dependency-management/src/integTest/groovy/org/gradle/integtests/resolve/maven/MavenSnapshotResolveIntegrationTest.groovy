@@ -16,13 +16,15 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import spock.lang.Issue
+import spock.lang.Unroll
 
 class MavenSnapshotResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def setup() {
-        new ResolveTestFixture(buildFile).addDefaultVariantDerivationStrategy()
+        new ResolveTestFixture(buildFile, "compile").addDefaultVariantDerivationStrategy()
     }
 
     def "can resolve unique and non-unique snapshots"() {
@@ -40,7 +42,7 @@ dependencies {
     compile "org.gradle.integtests.resolve:nonunique:1.0-SNAPSHOT"
 }
 """
-        def resolve = new ResolveTestFixture(buildFile)
+        def resolve = new ResolveTestFixture(buildFile, "compile")
         resolve.prepare()
 
         when:
@@ -232,6 +234,7 @@ task retrieve(type: Sync) {
         file('libs/projectA-1.0-SNAPSHOT-tests.jar').assertHasNotChangedSince(snapshotA);
     }
 
+    @ToBeFixedForInstantExecution
     def "will detect changed snapshot artifacts when pom has not changed"() {
         buildFile << """
 repositories {
@@ -338,6 +341,7 @@ task retrieve(type: Sync) {
         run 'retrieve'
     }
 
+    @ToBeFixedForInstantExecution
     def "uses cached snapshots from a Maven HTTP repository until the snapshot timeout is reached"() {
         given:
         buildFile << """
@@ -409,6 +413,7 @@ task retrieve(type: Sync) {
     }
 
     @Issue("gradle/gradle#3019")
+    @ToBeFixedForInstantExecution
     def "should honour changing module cache expiry for subsequent snapshot resolutions in the same build"() {
         given:
         buildFile << """
@@ -421,7 +426,7 @@ configurations {
     stale
 }
 configurations.fresh.resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
- 
+
 dependencies {
     stale "org.gradle.integtests.resolve:unique:1.0-SNAPSHOT"
     fresh "org.gradle.integtests.resolve:unique:1.0-SNAPSHOT"
@@ -472,6 +477,7 @@ task resolveStaleThenFresh {
         file('fresh/unique-1.0-SNAPSHOT.jar').assertIsCopyOf(snapshotModule.artifactFile)
     }
 
+    @ToBeFixedForInstantExecution
     def "does not download snapshot artifacts after expiry when snapshot has not changed"() {
         buildFile << """
 repositories {
@@ -564,6 +570,7 @@ tasks.getByPath(":a:retrieve").dependsOn ":b:retrieve"
         file('b/build').assertHasDescendants('testproject-1.0-SNAPSHOT.jar')
     }
 
+    @ToBeFixedForInstantExecution
     def "avoid redownload unchanged artifact when no checksum available"() {
         given:
         buildFile << """
@@ -634,6 +641,7 @@ tasks.getByPath(":a:retrieve").dependsOn ":b:retrieve"
     }
 
     @Issue("GRADLE-3017")
+    @ToBeFixedForInstantExecution
     def "resolves changed metadata in snapshot dependency"() {
         given:
         def projectB1 = mavenHttpRepo.module('group', 'projectB', '1.0').publish()
@@ -708,6 +716,7 @@ task retrieve(type: Sync) {
         file('libs').assertHasDescendants('projectA-1.0-SNAPSHOT.jar', 'projectB-2.0.jar')
     }
 
+    @ToBeFixedForInstantExecution
     def "reports and recovers from missing snapshot"() {
         given:
         def projectA = mavenHttpRepo.module('group', 'projectA', "1.0-SNAPSHOT")
@@ -732,7 +741,6 @@ task retrieve(type: Sync) {
         when:
         projectA.metaData.expectGetMissing()
         projectA.pom.expectGetMissing()
-        projectA.artifact.expectHeadMissing()
 
         then:
         fails 'retrieve'
@@ -742,7 +750,6 @@ task retrieve(type: Sync) {
 Searched in the following locations:
   - ${projectA.metaData.uri}
   - ${projectA.pom.uri}
-  - ${projectA.artifact.uri}
 Required by:
 """)
 
@@ -758,6 +765,7 @@ Required by:
         file('libs').assertHasDescendants('projectA-1.0-SNAPSHOT.jar')
     }
 
+    @ToBeFixedForInstantExecution
     def "reports missing unique snapshot artifact"() {
         given:
         def projectA = mavenHttpRepo.module('group', 'projectA', "1.0-SNAPSHOT").publish()
@@ -788,7 +796,7 @@ task retrieve(type: Sync) {
         fails 'retrieve'
 
         and:
-        failure.assertHasCause("""Could not find projectA.jar (group:projectA:1.0-SNAPSHOT:${projectA.uniqueSnapshotVersion}).
+        failure.assertHasCause("""Could not find projectA-1.0-SNAPSHOT.jar (group:projectA:1.0-SNAPSHOT:${projectA.uniqueSnapshotVersion}).
 Searched in the following locations:
     ${projectA.artifact.uri}""")
 
@@ -799,11 +807,12 @@ Searched in the following locations:
         fails 'retrieve'
 
         and:
-        failure.assertHasCause("""Could not find projectA.jar (group:projectA:1.0-SNAPSHOT:${projectA.uniqueSnapshotVersion}).
+        failure.assertHasCause("""Could not find projectA-1.0-SNAPSHOT.jar (group:projectA:1.0-SNAPSHOT:${projectA.uniqueSnapshotVersion}).
 Searched in the following locations:
     ${projectA.artifact.uri}""")
     }
 
+    @ToBeFixedForInstantExecution
     def "reports and recovers from broken maven-metadata.xml"() {
         given:
         def projectA = mavenHttpRepo.module('group', 'projectA', "1.0-SNAPSHOT").publish()
@@ -848,10 +857,14 @@ task retrieve(type: Sync) {
         file('libs').assertHasDescendants('projectA-1.0-SNAPSHOT.jar')
     }
 
-    def "can find and cache a unique snapshot in a Maven HTTP repository"() {
+    @Unroll
+    def "can find and cache a unique snapshot in a Maven HTTP repository (GMM redirection #redirection)"() {
         given:
         def repo1 = mavenHttpRepo("repo1")
-        def projectA = repo1.module("org.gradle.integtests.resolve", "projectA", "1.0-SNAPSHOT")
+        def projectA = repo1.module("org.gradle.integtests.resolve", "projectA", "1.0-SNAPSHOT").withModuleMetadata()
+        if (!redirection) {
+            projectA.withoutGradleMetadataRedirection()
+        }
         def published = projectA.publish()
         buildFile << """
 repositories {
@@ -878,6 +891,9 @@ task retrieve(type: Sync) {
 
         when:
         published.pom.expectGet()
+        if (redirection) {
+            published.moduleMetadata.expectGet()
+        }
         published.artifact.expectGet()
 
         and:
@@ -892,6 +908,9 @@ task retrieve(type: Sync) {
 
         then:
         file('libs').assertHasDescendants("projectA-${published.publishArtifactVersion}.jar")
+
+        where:
+        redirection << [true, false]
     }
 
     def "can find a unique snapshot in a Maven file repository"() {
@@ -931,6 +950,7 @@ task retrieve(type: Sync) {
         file('libs').assertHasDescendants("projectA-${projectA.publishArtifactVersion}.jar")
     }
 
+    @ToBeFixedForInstantExecution
     def "applies conflict resolution when unique snapshot is referenced by timestamp"() {
         given:
         def repo1 = mavenHttpRepo("repo1")
@@ -1002,6 +1022,7 @@ dependencies {
         file('libs').assertHasDescendants("projectA-1.0.jar")
     }
 
+    @ToBeFixedForInstantExecution
     def "reports failure to find a missing unique snapshot in a Maven HTTP repository"() {
         given:
         def repo1 = mavenHttpRepo("repo1")
@@ -1036,14 +1057,92 @@ task retrieve(type: Sync) {
         failure.assertHasCause("""Could not find org.gradle.integtests.resolve:projectA:${published.publishArtifactVersion}.
 Searched in the following locations:
   - ${projectA.pom.uri}
-  - ${projectA.artifact.uri}
+If the artifact you are trying to retrieve can be found in the repository but without metadata in 'Maven POM' format, you need to adjust the 'metadataSources { ... }' of the repository declaration.
 Required by:
 """)
     }
 
-    private expectModuleServed(MavenHttpModule module) {
+    @Unroll
+    def "can resolve unique and non-unique snapshots using Gradle Module Metadata (redirection = #redirection, metadata sources=#metadataSources)"() {
+        given:
+        settingsFile << "rootProject.name = 'test'"
+        buildFile << """
+repositories {
+    maven {
+      url "${mavenHttpRepo.uri}"
+      metadataSources {
+          ${metadataSources.code}
+      }
+    }
+}
+configurations {
+    compile
+}
+dependencies {
+    compile "org.gradle.integtests.resolve:unique:1.0-SNAPSHOT"
+    compile "org.gradle.integtests.resolve:nonunique:1.0-SNAPSHOT"
+
+    components {
+        all(CheckIsChangingRule)
+    }
+}
+
+class CheckIsChangingRule implements ComponentMetadataRule {
+    @Override
+    void execute(ComponentMetadataContext context) {
+        assert context.details.changing
+    }
+}
+
+"""
+
+        def resolve = new ResolveTestFixture(buildFile, "compile")
+        def usesGradleMetadata = metadataSources == Sources.GRADLE || redirection
+        resolve.prepare()
+
+        when:
+        def uniqueVersionModule = mavenHttpRepo.module("org.gradle.integtests.resolve", "unique", "1.0-SNAPSHOT").withModuleMetadata()
+        def nonUniqueVersionModule = mavenHttpRepo.module("org.gradle.integtests.resolve", "nonunique", "1.0-SNAPSHOT").withNonUniqueSnapshots().withModuleMetadata()
+
+        if (!redirection) {
+            uniqueVersionModule.withoutGradleMetadataRedirection()
+            nonUniqueVersionModule.withoutGradleMetadataRedirection()
+        }
+        uniqueVersionModule.publish()
+        nonUniqueVersionModule.publish()
+
+        and:
+        expectModuleServed(uniqueVersionModule, metadataSources == Sources.POM, usesGradleMetadata)
+        expectModuleServed(nonUniqueVersionModule, metadataSources == Sources.POM, usesGradleMetadata)
+
+        and:
+        run 'checkDeps'
+
+        then:
+        resolve.expectDefaultConfiguration("runtime")
+        resolve.expectGraph {
+            root(":", ":test:") {
+                snapshot("org.gradle.integtests.resolve:unique:1.0-SNAPSHOT", uniqueVersionModule.uniqueSnapshotVersion)
+                module("org.gradle.integtests.resolve:nonunique:1.0-SNAPSHOT")
+            }
+        }
+
+        where:
+        redirection | metadataSources
+        true        | Sources.GRADLE
+        false       | Sources.GRADLE
+        true        | Sources.POM
+        false       | Sources.POM
+    }
+
+    private expectModuleServed(MavenHttpModule module, boolean pom=true, boolean gmm = false) {
         module.metaData.expectGet()
-        module.pom.expectGet()
+        if (pom) {
+            module.pom.expectGet()
+        }
+        if (gmm) {
+            module.moduleMetadata.expectGet()
+        }
         module.artifact.expectGet()
     }
 
@@ -1086,6 +1185,16 @@ Required by:
     private expectModuleMissing(MavenHttpModule module) {
         module.metaData.expectGetMissing()
         module.pom.expectGetMissing()
-        module.artifact.expectHeadMissing()
+    }
+
+    enum Sources {
+        GRADLE("gradleMetadata()"),
+        POM("mavenPom()")
+
+        private final String code
+
+        Sources(String code) {
+            this.code = code
+        }
     }
 }

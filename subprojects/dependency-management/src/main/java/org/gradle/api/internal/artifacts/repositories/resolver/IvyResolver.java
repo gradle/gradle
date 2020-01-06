@@ -29,6 +29,7 @@ import org.gradle.internal.component.external.model.ModuleComponentArtifactIdent
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ivy.IvyModuleResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
+import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
@@ -56,8 +57,20 @@ public class IvyResolver extends ExternalResourceResolver<IvyModuleResolveMetada
                        @Nullable InstantiatingAction<ComponentMetadataListerDetails> componentMetadataVersionListerFactory,
                        ImmutableMetadataSources repositoryContentFilter,
                        MetadataArtifactProvider metadataArtifactProvider,
-                       Instantiator injector) {
-        super(name, transport.isLocal(), transport.getRepository(), transport.getResourceAccessor(), locallyAvailableResourceFinder, artifactFileStore, repositoryContentFilter, metadataArtifactProvider, componentMetadataSupplierFactory, componentMetadataVersionListerFactory, injector);
+                       Instantiator injector, ChecksumService checksumService) {
+        super(
+            name,
+            transport.isLocal(),
+            transport.getRepository(),
+            transport.getResourceAccessor(),
+            locallyAvailableResourceFinder,
+            artifactFileStore,
+            repositoryContentFilter,
+            metadataArtifactProvider,
+            componentMetadataSupplierFactory,
+            componentMetadataVersionListerFactory,
+            injector,
+            checksumService);
         this.dynamicResolve = dynamicResolve;
         this.localRepositoryAccess = new IvyLocalRepositoryAccess();
         this.remoteRepositoryAccess = new IvyRemoteRepositoryAccess();
@@ -124,7 +137,7 @@ public class IvyResolver extends ExternalResourceResolver<IvyModuleResolveMetada
 
     private class IvyLocalRepositoryAccess extends LocalRepositoryAccess {
         @Override
-        protected void resolveModuleArtifacts(IvyModuleResolveMetadata module, BuildableComponentArtifactsResolveResult result) {
+        protected void resolveModuleArtifacts(IvyModuleResolveMetadata module, ConfigurationMetadata variant, BuildableComponentArtifactsResolveResult result) {
             result.resolved(new MetadataSourcedComponentArtifacts());
         }
 
@@ -147,7 +160,7 @@ public class IvyResolver extends ExternalResourceResolver<IvyModuleResolveMetada
 
     private class IvyRemoteRepositoryAccess extends RemoteRepositoryAccess {
         @Override
-        protected void resolveModuleArtifacts(IvyModuleResolveMetadata module, BuildableComponentArtifactsResolveResult result) {
+        protected void resolveModuleArtifacts(IvyModuleResolveMetadata module, ConfigurationMetadata variant, BuildableComponentArtifactsResolveResult result) {
             // Configuration artifacts are determined locally
         }
 

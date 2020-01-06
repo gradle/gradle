@@ -40,7 +40,7 @@ class GroovyCompileRelocationIntegrationTest extends AbstractProjectRelocationIn
             task compile(type: GroovyCompile) {
                 sourceCompatibility = JavaVersion.current()
                 targetCompatibility = JavaVersion.current()
-                destinationDir = file("build/classes")
+                destinationDirectory = file("build/classes")
                 source "src/main/groovy"
                 classpath = files()
                 groovyClasspath = files('libs')

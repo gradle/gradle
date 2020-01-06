@@ -17,11 +17,14 @@
 package org.gradle.normalization
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
 
 @Unroll
 class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractIntegrationSpec {
+
+    @ToBeFixedForInstantExecution
     def "can ignore files on runtime classpath in #tree (using runtime API: #useRuntimeApi)"() {
         def project = new ProjectWithRuntimeClasspathNormalization(useRuntimeApi).withFilesIgnored()
 
@@ -31,38 +34,38 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         when:
         succeeds project.customTask
         then:
-        nonSkippedTasks.contains(project.customTask)
+        executedAndNotSkipped(project.customTask)
 
         when:
         succeeds project.customTask
         then:
-        skippedTasks.contains(project.customTask)
+        skipped(project.customTask)
 
         when:
         ignoredResource.changeContents()
         succeeds project.customTask
         then:
-        skippedTasks.contains(project.customTask)
+        skipped(project.customTask)
 
         when:
         notIgnoredResource.changeContents()
         succeeds project.customTask
         then:
-        nonSkippedTasks.contains(project.customTask)
+        executedAndNotSkipped(project.customTask)
 
         when:
         ignoredResource.remove()
         succeeds project.customTask
 
         then:
-        skippedTasks.contains(project.customTask)
+        skipped(project.customTask)
 
         when:
         ignoredResource.add()
         succeeds project.customTask
 
         then:
-        skippedTasks.contains(project.customTask)
+        skipped(project.customTask)
 
         where:
         tree          | ignoredResourceName          | notIgnoredResourceName          | useRuntimeApi
@@ -74,6 +77,7 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         'nested jars' | 'ignoredResourceInNestedJar' | 'notIgnoredResourceInNestedJar' | false
     }
 
+    @ToBeFixedForInstantExecution
     def "can configure ignore rules per project (using runtime API: #useRuntimeApi)"() {
         def projectWithIgnores = new ProjectWithRuntimeClasspathNormalization('a', useRuntimeApi).withFilesIgnored()
         def projectWithoutIgnores = new ProjectWithRuntimeClasspathNormalization('b', useRuntimeApi)
@@ -83,15 +87,15 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         when:
         succeeds(*allProjects*.customTask)
         then:
-        nonSkippedTasks.containsAll(allProjects*.customTask)
+        executedAndNotSkipped(*allProjects*.customTask)
 
         when:
         projectWithIgnores.ignoredResourceInJar.changeContents()
         projectWithoutIgnores.ignoredResourceInJar.changeContents()
         succeeds(*allProjects*.customTask)
         then:
-        skippedTasks.contains(projectWithIgnores.customTask)
-        nonSkippedTasks.contains(projectWithoutIgnores.customTask)
+        skipped(projectWithIgnores.customTask)
+        executedAndNotSkipped(projectWithoutIgnores.customTask)
 
         where:
         useRuntimeApi << [true, false]

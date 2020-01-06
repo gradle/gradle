@@ -24,15 +24,15 @@ import org.gradle.api.Transformer
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.RelativePath
+import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.specs.Spec
+import org.gradle.api.internal.file.pattern.PatternMatcher
 import org.gradle.internal.Actions
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.junit.Rule
-import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -41,11 +41,10 @@ import java.nio.charset.Charset
 class DefaultCopySpecTest extends Specification {
     @Rule
     public TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider();
-    @Shared
-    private FileResolver fileResolver = [resolve: { it as File }, getPatternSetFactory: { TestFiles.getPatternSetFactory() }] as FileResolver
-    @Shared
+    private FileCollectionFactory fileCollectionFactory = TestFiles.fileCollectionFactory(testDir.testDirectory)
+    private FileResolver fileResolver = TestFiles.resolver(testDir.testDirectory)
     private Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
-    private final DefaultCopySpec spec = new DefaultCopySpec(fileResolver, instantiator)
+    private final DefaultCopySpec spec = new DefaultCopySpec(fileResolver, fileCollectionFactory, instantiator)
 
     private List<String> getTestSourceFileNames() {
         ['first', 'second']
@@ -105,8 +104,8 @@ class DefaultCopySpecTest extends Specification {
 
     def 'with Spec'() {
         given:
-        DefaultCopySpec other1 = new DefaultCopySpec(fileResolver, instantiator)
-        DefaultCopySpec other2 = new DefaultCopySpec(fileResolver, instantiator)
+        def other1 = Stub(CopySpecInternal)
+        def other2 = Stub(CopySpecInternal)
 
         when:
         spec.with other1, other2
@@ -241,14 +240,14 @@ class DefaultCopySpecTest extends Specification {
         spec.copyActions.size() == 1
         def (copyAction) = spec.copyActions
         copyAction instanceof MatchingCopyAction
-        Spec<RelativePath> matchSpec = copyAction.matchSpec
+        PatternMatcher matcher = copyAction.matcher
 
         ['/root/folder/abc', '/root/abc'].each {
-            assert matchSpec.isSatisfiedBy(relativeFile(it))
+            assertMatches matcher, it
         }
 
         ['/notRoot/abc', '/not/root/abc', 'root/bbc', 'notRoot/bbc'].each {
-            assert !matchSpec.isSatisfiedBy(relativeFile(it))
+            assertMatches matcher.negate(), it
         }
     }
 
@@ -260,14 +259,14 @@ class DefaultCopySpecTest extends Specification {
         spec.copyActions.size() == 1
         def (copyAction) = spec.copyActions
         copyAction instanceof MatchingCopyAction
-        Spec<RelativePath> matchSpec = copyAction.matchSpec
+        PatternMatcher matcher = copyAction.matcher
 
         ['/root/folder/abc', '/root/abc', 'special/foo', 'banner.txt'].each {
-            assert matchSpec.isSatisfiedBy(relativeFile(it))
+            assertMatches matcher, it
         }
 
         ['/notRoot/abc', '/not/root/abc', 'root/bbc', 'notRoot/bbc', 'not/special/bar'].each {
-            assert !matchSpec.isSatisfiedBy(relativeFile(it))
+            assertMatches matcher.negate(), it
         }
     }
 
@@ -279,14 +278,14 @@ class DefaultCopySpecTest extends Specification {
         spec.copyActions.size() == 1
         def (copyAction) = spec.copyActions
         copyAction instanceof MatchingCopyAction
-        Spec<RelativePath> matchSpec = copyAction.matchSpec
+        PatternMatcher matcher = copyAction.matcher
 
         ['root/folder1/folder2', 'modules/project1'].each {
-            assert matchSpec.isSatisfiedBy(relativeFile(it))
+            assertMatches matcher, it
         }
 
         ['archive/folder/file', 'root/archives/file', 'root/folder/abc'].each {
-            assert !matchSpec.isSatisfiedBy(relativeFile(it))
+            assertMatches matcher.negate(), it
         }
     }
 
@@ -298,17 +297,22 @@ class DefaultCopySpecTest extends Specification {
         spec.copyActions.size() == 1
         def (copyAction) = spec.copyActions
         copyAction instanceof MatchingCopyAction
-        Spec<RelativePath> matchSpec = copyAction.matchSpec
+        PatternMatcher matcher = copyAction.matcher
 
         ['root/folder1/folder2', 'modules/project1'].each {
-            assert matchSpec.isSatisfiedBy(relativeFile(it))
+            assertMatches matcher, it
         }
 
         ['archive/folder/file', 'root/archives/file', 'root/folder/abc',
          'collections/folder/file', 'root/collections/file', 'archives/collections/file',
          'root/folder/cde'].each {
-            assert !matchSpec.isSatisfiedBy(relativeFile(it))
+            assertMatches matcher.negate(), it
         }
+    }
+
+    private static void assertMatches(PatternMatcher matcher, String path) {
+        def file = relativeFile(path)
+        assert matcher.test(file.segments, file.isFile())
     }
 
     def 'add Spec as first child'() {
@@ -363,7 +367,7 @@ class DefaultCopySpecTest extends Specification {
         spec.children == [child1, child2, child3]
 
         where:
-        notContainedChild << [null, new DefaultCopySpec(fileResolver, instantiator)]
+        notContainedChild << [null, Stub(CopySpecInternal)]
     }
 
     def 'properties accessed directly have defaults'() {
@@ -433,7 +437,7 @@ class DefaultCopySpecTest extends Specification {
     }
 
     def 'can add spec hierarchy as child'() {
-        CopySpec otherSpec = new DefaultCopySpec(fileResolver, instantiator)
+        CopySpec otherSpec = new DefaultCopySpec(fileResolver, fileCollectionFactory, instantiator)
         otherSpec.addChild()
         def added = []
 

@@ -18,9 +18,9 @@ package org.gradle.api.tasks.outputorigin
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.OriginFixture
 import org.gradle.integtests.fixtures.ScopeIdsFixture
-import org.gradle.internal.id.UniqueId
 import org.junit.Rule
 
 class BuildCacheOutputOriginIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
@@ -31,11 +31,11 @@ class BuildCacheOutputOriginIntegrationTest extends AbstractIntegrationSpec impl
     @Rule
     public final OriginFixture outputOrigin = new OriginFixture(executer, temporaryFolder)
 
-    UniqueId getBuildInvocationId() {
-        scopeIds.buildInvocationId
+    String getBuildInvocationId() {
+        scopeIds.buildInvocationId.asString()
     }
 
-    UniqueId originBuildInvocationId(String taskPath) {
+    String originBuildInvocationId(String taskPath) {
         outputOrigin.originId(taskPath)
     }
 
@@ -45,6 +45,7 @@ class BuildCacheOutputOriginIntegrationTest extends AbstractIntegrationSpec impl
         }
     }
 
+    @ToBeFixedForInstantExecution
     def "exposes origin build id when reusing cached outputs"() {
         given:
         buildScript """

@@ -19,7 +19,9 @@ package org.gradle.integtests
 import groovy.transform.NotYetImplemented
 import org.gradle.api.CircularReferenceException
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Issue
+import spock.lang.Timeout
 import spock.lang.Unroll
 
 import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.any
@@ -131,6 +133,7 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         executer.withArguments("-m").withTasks("b").run().normalizedOutput.contains(":a SKIPPED\n:b SKIPPED")
     }
 
+    @ToBeFixedForInstantExecution
     def executesTaskActionsInCorrectEnvironment() {
         buildFile << """
     // An action attached to built-in task
@@ -156,6 +159,7 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         succeeds("a", "b", "c")
     }
 
+    @ToBeFixedForInstantExecution
     def excludesTasksWhenExcludePatternSpecified() {
         settingsFile << "include 'sub'"
         buildFile << """
@@ -201,6 +205,7 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         executer.inDirectory(file('sub')).withTasks('c').withArguments('-x', 'a').run().assertTasksExecuted(':a', ':sub:b', ':sub:c')
     }
 
+    @ToBeFixedForInstantExecution
     def 'can use camel-case matching to exclude tasks'() {
         buildFile << """
 task someDep
@@ -213,6 +218,7 @@ task someTask(dependsOn: [someDep, someOtherDep])
         executer.withTasks("someTask").withArguments("-x", ":sODep").run().assertTasksExecuted(":someDep", ":someTask")
     }
 
+    @ToBeFixedForInstantExecution
     def 'can combine exclude task filters'() {
         buildFile << """
 task someDep
@@ -303,7 +309,7 @@ task someTask(dependsOn: [someDep, someOtherDep])
         succeeds 'b'
 
         then:
-        ":a" in executedTasks
+        executed(":a")
     }
 
     def "finalizer task is executed even if the finalised task fails"() {
@@ -318,7 +324,7 @@ task someTask(dependsOn: [someDep, someOtherDep])
         fails 'b'
 
         then:
-        ":a" in executedTasks
+        executed(":a")
     }
 
     def "finalizer task is not executed if the finalized task does not run"() {
@@ -338,7 +344,7 @@ task someTask(dependsOn: [someDep, someOtherDep])
         fails 'c'
 
         then:
-        !(":b" in executedTasks)
+        notExecuted(":b")
     }
 
     def "sensible error message for circular task dependency due to mustRunAfter"() {
@@ -400,7 +406,7 @@ task someTask(dependsOn: [someDep, someOtherDep])
         succeeds 'a', 'd'
 
         then:
-        executedTasks == [':c', ':b', ':a', ':d']
+        result.assertTasksExecuted(':c', ':b', ':a', ':d')
     }
 
     def "multiple should run after ordering can be ignored for one execution plan"() {
@@ -436,7 +442,7 @@ task someTask(dependsOn: [someDep, someOtherDep])
         succeeds 'a', 'd'
 
         then:
-        executedTasks == [':g', ':c', ':b', ':h', ':a', ':f', ':d', ':e']
+        result.assertTasksExecuted(':g', ':c', ':b', ':h', ':a', ':f', ':d', ':e')
     }
 
     @Issue("GRADLE-3575")
@@ -658,6 +664,39 @@ task someTask(dependsOn: [someDep, someOtherDep])
 
         then:
         failure.assertHasDescription('Task :a has both local state and destroyables defined.  A task can define either local state or destroyables, but not both.')
+    }
+
+    @Timeout(30)
+    def "downstream dependencies of a failed task do not block destroyer to run"() {
+        buildFile << """
+            def mutatedFile = file("build/mutated.txt")
+            def destroyer = tasks.register("destroyer") {
+                destroyables.register(mutatedFile)
+                doLast {
+                    assert mutatedFile.delete()
+                }                                
+            }
+            def producer = tasks.register("producer") {
+                outputs.file(mutatedFile)
+                doLast {
+                    mutatedFile.text = "created"
+                }                                
+            }
+            def failingConsumer = tasks.register("failingConsumer") {
+                dependsOn(producer)
+                finalizedBy(destroyer)
+                doLast {
+                    assert false
+                }
+            }
+            def consumer = tasks.register("consumer") {
+                dependsOn(failingConsumer)
+                dependsOn(producer)
+            }
+        """
+
+        expect:
+        fails "consumer"
     }
 
     @Issue("https://github.com/gradle/gradle/issues/2401")

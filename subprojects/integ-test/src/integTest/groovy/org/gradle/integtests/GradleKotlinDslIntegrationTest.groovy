@@ -17,6 +17,7 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.Requires
@@ -72,7 +73,7 @@ class GradleKotlinDslIntegrationTest extends AbstractIntegrationSpec {
 
         buildFile << """
             apply { 
-                from("http://localhost:${server.port}/script.gradle") 
+                from("${server.uri}/script.gradle") 
             }
         """
 
@@ -114,7 +115,7 @@ class GradleKotlinDslIntegrationTest extends AbstractIntegrationSpec {
         """
         server.expectGet('/script.gradle.kts', scriptFile)
 
-        buildFile << """apply { from("http://localhost:${server.port}/script.gradle.kts") }"""
+        buildFile << """apply { from("${server.uri}/script.gradle.kts") }"""
 
         when:
         succeeds 'hello'
@@ -166,6 +167,7 @@ task("dumpKotlinBuildScriptModelClassPath") {
         outputContains("gradle-kotlin-dsl!")
     }
 
+    @ToBeFixedForInstantExecution
     def 'can use Kotlin lambda as path notation'() {
         given:
         buildFile << """
@@ -198,6 +200,7 @@ task("dumpKotlinBuildScriptModelClassPath") {
         outputContains '[foo, bar, baz, bazar]'
     }
 
+    @ToBeFixedForInstantExecution
     def 'can use Kotlin lambda as input property'() {
         given:
         buildFile << """

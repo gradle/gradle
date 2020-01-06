@@ -19,8 +19,10 @@ package org.gradle.model.collection.internal;
 import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectCollection;
 import org.gradle.api.Namer;
+import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.DefaultNamedDomainObjectCollection;
+import org.gradle.api.internal.tasks.DefaultTaskCollection;
 import org.gradle.internal.Factory;
 import org.gradle.model.internal.core.ModelActionRole;
 import org.gradle.model.internal.core.ModelPath;
@@ -30,14 +32,13 @@ import org.gradle.model.internal.core.ModelRegistrations;
 import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
-import org.gradle.util.DeprecationLogger;
 
 public abstract class BridgedCollections {
 
     private BridgedCollections() {
     }
 
-    public static <I, C extends DefaultNamedDomainObjectCollection<I>> ModelRegistrations.Builder registration(
+    public static <I extends Task, C extends DefaultTaskCollection<I>> ModelRegistrations.Builder bridgeTaskCollection(
         final ModelReference<C> containerReference,
         final Transformer<? extends C, ? super MutableModelNode> containerFactory,
         final Namer<? super I> namer,
@@ -85,16 +86,11 @@ public abstract class BridgedCollections {
                             }
                         }
                     });
-                    DeprecationLogger.whileDisabled(new Runnable() {
+                    container.whenObjectRemovedInternal(new Action<I>() {
                         @Override
-                        public void run() {
-                            container.whenObjectRemoved(new Action<I>() {
-                                @Override
-                                public void execute(I item) {
-                                    String name = namer.determineName(item);
-                                    containerNode.removeLink(name);
-                                }
-                            });
+                        public void execute(I item) {
+                            String name = namer.determineName(item);
+                            containerNode.removeLink(name);
                         }
                     });
                 }

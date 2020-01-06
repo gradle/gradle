@@ -27,8 +27,8 @@ import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.initialization.JdkToolsInitializer;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
-import org.gradle.internal.snapshot.FileSystemSnapshotter;
-import org.gradle.internal.snapshot.WellKnownFileLocations;
+import org.gradle.internal.vfs.AdditiveCacheLocations;
+import org.gradle.internal.vfs.VirtualFileSystem;
 
 public class CompileServices extends AbstractPluginServiceRegistry {
     @Override
@@ -52,14 +52,30 @@ public class CompileServices extends AbstractPluginServiceRegistry {
             initializer.initializeJdkTools();
         }
 
-        DefaultGeneralCompileCaches createGeneralCompileCaches(CacheRepository cacheRepository, Gradle gradle, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, UserHomeScopedCompileCaches userHomeScopedCompileCaches, WellKnownFileLocations wellKnownFileLocations, FileSystemSnapshotter fileSystemSnapshotter, StringInterner interner) {
-            return new DefaultGeneralCompileCaches(fileSystemSnapshotter, userHomeScopedCompileCaches, cacheRepository, gradle, inMemoryCacheDecoratorFactory, wellKnownFileLocations, interner);
+        DefaultGeneralCompileCaches createGeneralCompileCaches(
+            AdditiveCacheLocations additiveCacheLocations,
+            CacheRepository cacheRepository,
+            Gradle gradle,
+            InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
+            StringInterner interner,
+            UserHomeScopedCompileCaches userHomeScopedCompileCaches,
+            VirtualFileSystem virtualFileSystem
+        ) {
+            return new DefaultGeneralCompileCaches(
+                additiveCacheLocations,
+                cacheRepository,
+                gradle,
+                inMemoryCacheDecoratorFactory,
+                interner,
+                userHomeScopedCompileCaches,
+                virtualFileSystem
+            );
         }
     }
 
-    private class UserHomeScopeServices {
-        DefaultUserHomeScopedCompileCaches createCompileCaches(CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, FileSystemSnapshotter fileSystemSnapshotter, StringInterner interner) {
-            return new DefaultUserHomeScopedCompileCaches(fileSystemSnapshotter, cacheRepository, inMemoryCacheDecoratorFactory, interner);
+    private static class UserHomeScopeServices {
+        DefaultUserHomeScopedCompileCaches createCompileCaches(CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, VirtualFileSystem virtualFileSystem, StringInterner interner) {
+            return new DefaultUserHomeScopedCompileCaches(virtualFileSystem, cacheRepository, inMemoryCacheDecoratorFactory, interner);
         }
     }
 }

@@ -34,12 +34,12 @@ import javax.annotation.Nullable;
  * @param <T> Type of value represented by the property
  * @since 4.3
  */
-@Incubating
-public interface Property<T> extends Provider<T> {
+public interface Property<T> extends Provider<T>, HasConfigurableValue {
     /**
      * Sets the value of the property the given value, replacing whatever value the property already had.
      *
-     * <p>This method can also be used to clear the value of the property, by passing {@code null} as the value.
+     * <p>This method can also be used to discard the value of the property, by passing {@code null} as the value.
+     * The convention for this property, if any, will be used to provide the value instead.
      *
      * @param value The value, can be null.
      */
@@ -52,7 +52,7 @@ public interface Property<T> extends Provider<T> {
      * When the given provider represents a task output, this property will also carry the task dependency information from the provider.
      * </p>
      *
-     * @param provider Provider
+     * @param provider The provider whose value to use.
      */
     void set(Provider<? extends T> provider);
 
@@ -65,7 +65,20 @@ public interface Property<T> extends Provider<T> {
      * @return this
      * @since 5.0
      */
+    @Incubating
     Property<T> value(@Nullable T value);
+
+    /**
+     * Sets the property to have the same value of the given provider, replacing whatever value the property already had. This property will track the value of the provider and query its value each time the value of the property is queried. When the provider has no value, this property will also have no value.
+     *
+     * <p>This is the same as {@link #set(Provider)} but returns this property to allow method chaining.</p>
+     *
+     * @param provider The provider whose value to use.
+     * @return this
+     * @since 5.6
+     */
+    @Incubating
+    Property<T> value(Provider<? extends T> provider);
 
     /**
      * Specifies the value to use as the convention for this property. The convention is used when no value has been set for this property.
@@ -74,6 +87,7 @@ public interface Property<T> extends Provider<T> {
      * @return this
      * @since 5.1
      */
+    @Incubating
     Property<T> convention(T value);
 
     /**
@@ -83,6 +97,7 @@ public interface Property<T> extends Provider<T> {
      * @return this
      * @since 5.1
      */
+    @Incubating
     Property<T> convention(Provider<? extends T> valueProvider);
 
     /**
@@ -90,9 +105,10 @@ public interface Property<T> extends Provider<T> {
      *
      * <p>When this property has a value provided by a {@link Provider}, the value of the provider is queried when this method is called and the value of this property set to the result. The value of the provider will no longer be tracked.</p>
      *
-     * <p>Note that although the value of the property will not change, the value may refer to a mutable object. Calling this method does not guarantee that the value will become immutable.</p>
+     * <p>Note that although the value of the property will not change, the value itself may be a mutable object. Calling this method does not guarantee that the value will become immutable.</p>
      *
      * @since 5.0
      */
+    @Incubating @Override
     void finalizeValue();
 }

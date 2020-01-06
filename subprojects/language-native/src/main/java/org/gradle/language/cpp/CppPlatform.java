@@ -16,7 +16,6 @@
 
 package org.gradle.language.cpp;
 
-import org.gradle.api.Incubating;
 import org.gradle.nativeplatform.TargetMachine;
 
 /**
@@ -24,7 +23,6 @@ import org.gradle.nativeplatform.TargetMachine;
  *
  * @since 4.5
  */
-@Incubating
 public interface CppPlatform {
     /**
      * Returns the target machine for this platform.

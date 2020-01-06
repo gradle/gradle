@@ -416,7 +416,9 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
         ivyRepo.module("org.gradle.test", "a", "1.0")
                 .dependsOn("org.gradle.dep", "dep_module", "1.134")
                 .withXml({
-            asNode().dependencies[0].dependency[0].appendNode("exclude", excludeAttributes)
+            asNode().dependencies[0].dependency.each { dep ->
+                dep.appendNode("exclude", excludeAttributes)
+            }
         })
                 .publish()
 
@@ -454,15 +456,18 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
         ivyRepo.module("a")
                 .dependsOn("c")
                 .withXml({
-            asNode().dependencies[0].dependency[0].appendNode("exclude", [module: "d"])
+            asNode().dependencies[0].dependency.each { dep ->
+                dep.appendNode("exclude", [module: "d"])
+            }
         })
                 .publish()
         ivyRepo.module("b")
                 .dependsOn("c")
                 .withXml({
-            def dep = asNode().dependencies[0].dependency[0]
-            dep.appendNode("exclude", [module: "d"])
-            dep.appendNode("exclude", [module: "e"])
+            asNode().dependencies[0].dependency.each { dep ->
+                dep.appendNode("exclude", [module: "d"])
+                dep.appendNode("exclude", [module: "e"])
+            }
         })
                 .publish()
 
@@ -491,9 +496,9 @@ task syncMerged(type: Sync) {
 
     private void addExcludeRuleToModuleDependency(IvyModule module, String dependencyName, Map<String, String> excludeAttributes) {
         module.withXml {
-            Node moduleDependency = asNode().dependencies[0].dependency.find { it.@name == dependencyName }
-            assert moduleDependency, "Failed to find module dependency with name '$dependencyName'"
-            moduleDependency.appendNode(EXCLUDE_ATTRIBUTE, excludeAttributes)
+            asNode().dependencies[0].dependency.findAll { it.@name == dependencyName }.each { Node moduleDependency ->
+                moduleDependency.appendNode(EXCLUDE_ATTRIBUTE, excludeAttributes)
+            }
         }
     }
 }

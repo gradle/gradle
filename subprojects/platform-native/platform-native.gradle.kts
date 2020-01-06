@@ -26,7 +26,7 @@ dependencies {
     implementation(project(":logging"))
     implementation(project(":native"))
     implementation(project(":processServices"))
-    implementation(project(":files"))
+    implementation(project(":fileCollections"))
     implementation(project(":coreApi"))
     implementation(project(":modelCore"))
     implementation(project(":core"))
@@ -44,27 +44,38 @@ dependencies {
     implementation(library("gson"))
     implementation(library("inject"))
 
+    testRuntimeOnly(project(":runtimeApiInfo"))
+
     integTestRuntimeOnly(project(":maven"))
     // Required to test visual studio project file generation for generated sources
     integTestRuntimeOnly(project(":ideNative"))
 
-    testFixturesImplementation(project(":resources"))
+    testFixturesApi(project(":resources"))
+    testFixturesApi(testFixtures(project(":ide")))
+    testFixturesImplementation(testFixtures(project(":core")))
+    testFixturesImplementation(project(":internalTesting"))
     testFixturesImplementation(project(":internalIntegTesting"))
+    testFixturesImplementation(project(":native"))
+    testFixturesImplementation(project(":platformBase"))
+    testFixturesImplementation(project(":fileCollections"))
+    testFixturesImplementation(project(":processServices"))
+    testFixturesImplementation(project(":snapshots"))
+    testFixturesImplementation(library("guava"))
+    testFixturesImplementation(library("nativePlatform"))
+    testFixturesImplementation(library("commons_lang"))
+    testFixturesImplementation(library("commons_io"))
+
+    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":messaging")))
+    testImplementation(testFixtures(project(":platformBase")))
+    testImplementation(testFixtures(project(":modelCore")))
+    testImplementation(testFixtures(project(":diagnostics")))
+    testImplementation(testFixtures(project(":baseServices")))
+    testImplementation(testFixtures(project(":snapshots")))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
-}
-
-testFixtures {
-    from(":core")
-    from(":core", "testFixtures")
-    from(":ide", "testFixtures")
-    from(":messaging")
-    from(":platformBase")
-    from(":modelCore")
-    from(":diagnostics")
-    from(":baseServices")
 }
 
 classycle {

@@ -26,7 +26,7 @@ dependencies {
     implementation(project(":coreApi"))
     implementation(project(":modelCore"))
     implementation(project(":core"))
-    implementation(project(":files"))
+    implementation(project(":fileCollections"))
     implementation(project(":dependencyManagement"))
     implementation(project(":ide"))
     implementation(project(":platformBase"))
@@ -42,19 +42,24 @@ dependencies {
     implementation(library("inject"))
     implementation(library("plist"))
 
+    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":platformNative")))
+    testImplementation(testFixtures(project(":languageNative")))
+    testImplementation(testFixtures(project(":versionControl")))
+
+    testRuntimeOnly(project(":runtimeApiInfo"))
+
     integTestImplementation(project(":native"))
     integTestImplementation(library("commons_io"))
     integTestImplementation(library("jgit"))
+
+    testFixturesApi(testFixtures(project(":ide")))
+    testFixturesImplementation(library("plist"))
+    testFixturesImplementation(library("guava"))
+    testFixturesImplementation(testFixtures(project(":ide")))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
 }
 
-testFixtures {
-    from(":core")
-    from(":platformNative")
-    from(":languageNative")
-    from(":versionControl")
-    from(":ide", "testFixtures")
-}

@@ -18,6 +18,7 @@ package org.gradle.launcher
 
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -169,6 +170,7 @@ task check {
     }
 
     @Unroll("forked java processes inherit default encoding - input = #inputEncoding, expectedEncoding: #expectedEncoding")
+    @ToBeFixedForInstantExecution
     def "forked java processes inherit default encoding"() {
         given:
         executerEncoding inputEncoding

@@ -19,7 +19,7 @@ package org.gradle.jvm.application.tasks;
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import org.gradle.api.Incubating;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.plugins.StartScriptGenerator;
@@ -78,7 +78,7 @@ import java.util.Collections;
  * The default generators are of the type {@link org.gradle.jvm.application.scripts.TemplateBasedScriptGenerator}, with default templates.
  * This templates can be changed via the {@link org.gradle.jvm.application.scripts.TemplateBasedScriptGenerator#setTemplate(org.gradle.api.resources.TextResource)} method.
  * <p>
- * The default implementations used by this task use <a href="http://docs.groovy-lang.org/latest/html/documentation/template-engines.html#_simpletemplateengine">Groovy's SimpleTemplateEngine</a>
+ * The default implementations used by this task use <a href="https://docs.groovy-lang.org/latest/html/documentation/template-engines.html#_simpletemplateengine">Groovy's SimpleTemplateEngine</a>
  * to parse the template, with the following variables available:
  *
  * <ul>
@@ -183,7 +183,6 @@ public class CreateStartScripts extends ConventionTask {
      * The directory to write the scripts into in the distribution.
      * @since 4.5
      */
-    @Incubating
     @Input
     public String getExecutableDir() {
         return executableDir;
@@ -193,7 +192,6 @@ public class CreateStartScripts extends ConventionTask {
      * The directory to write the scripts into in the distribution.
      * @since 4.5
      */
-    @Incubating
     public void setExecutableDir(String executableDir) {
         this.executableDir = executableDir;
     }
@@ -296,7 +294,11 @@ public class CreateStartScripts extends ConventionTask {
         generator.setOptsEnvironmentVar(getOptsEnvironmentVar());
         generator.setExitEnvironmentVar(getExitEnvironmentVar());
         generator.setClasspath(getRelativeClasspath());
-        generator.setScriptRelPath(getExecutableDir() + "/" + getUnixScript().getName());
+        if (StringUtils.isEmpty(getExecutableDir())) {
+            generator.setScriptRelPath(getUnixScript().getName());
+        } else {
+            generator.setScriptRelPath(getExecutableDir() + "/" + getUnixScript().getName());
+        }
         generator.generateUnixScript(getUnixScript());
         generator.generateWindowsScript(getWindowsScript());
     }

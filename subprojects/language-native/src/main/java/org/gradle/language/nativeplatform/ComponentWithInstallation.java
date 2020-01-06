@@ -16,7 +16,6 @@
 
 package org.gradle.language.nativeplatform;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.provider.Provider;
@@ -27,7 +26,6 @@ import org.gradle.nativeplatform.tasks.InstallExecutable;
  *
  * @since 4.5
  */
-@Incubating
 public interface ComponentWithInstallation extends ComponentWithNativeRuntime {
     /**
      * Returns the runtime libraries required for the installation. Includes the runtime libraries of the component's dependencies.

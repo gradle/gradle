@@ -16,10 +16,10 @@
 
 package org.gradle.cache.internal
 
-import org.gradle.internal.Factory
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.function.Supplier
 
 class ProducerGuardTest extends ConcurrentSpec {
 
@@ -31,9 +31,9 @@ class ProducerGuardTest extends ConcurrentSpec {
         async {
             100.times {
                 start {
-                    guard.guardByKey("foo", new Factory() {
+                    guard.guardByKey("foo", new Supplier() {
                         @Override
-                        Object create() {
+                        Object get() {
                             return calls.getAndIncrement()
                         }
                     })
@@ -55,9 +55,9 @@ class ProducerGuardTest extends ConcurrentSpec {
         async {
             100.times {
                 start {
-                    guard.guardByKey("foo", new Factory() {
+                    guard.guardByKey("foo", new Supplier() {
                         @Override
-                        Object create() {
+                        Object get() {
                             if (concurrentCalls.getAndIncrement() != 0) {
                                 throw new IllegalStateException("Factory called concurrently")
                             }

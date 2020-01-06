@@ -16,10 +16,11 @@
 package org.gradle.java
 
 import org.gradle.api.reporting.components.AbstractComponentReportIntegrationTest
+import org.gradle.util.GradleVersion
 
 class PluginsComponentReportIntegrationTest extends AbstractComponentReportIntegrationTest {
 
-    def "shows details of legacy Java project"() {
+    def "shows details of Java project"() {
         given:
         buildFile << """
 plugins {
@@ -61,8 +62,9 @@ Classes 'test'
 """
     }
 
-    def "shows details of mixed legacy Java and JVM library project"() {
+    def "shows details of mixed Java and JVM library project"() {
         given:
+        executer.expectDeprecationWarning("The jvm-component plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
         buildFile << """
 plugins {
     id 'java'
@@ -123,7 +125,7 @@ Classes 'test'
 """
     }
 
-    def "shows details of legacy Java project with custom source sets"() {
+    def "shows details of Java project with custom source sets"() {
         given:
         buildFile << """
 plugins {

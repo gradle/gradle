@@ -32,8 +32,8 @@ import org.gradle.nativeplatform.TargetMachine;
 
 import java.util.Collections;
 
-public abstract class DefaultSwiftComponent extends DefaultNativeComponent implements SwiftComponent, ComponentWithNames {
-    private final DefaultBinaryCollection<SwiftBinary> binaries;
+public abstract class DefaultSwiftComponent<T extends SwiftBinary> extends DefaultNativeComponent implements SwiftComponent, ComponentWithNames {
+    private final DefaultBinaryCollection<T> binaries;
     private final FileCollection swiftSource;
     private final Property<String> module;
     private final String name;
@@ -42,15 +42,19 @@ public abstract class DefaultSwiftComponent extends DefaultNativeComponent imple
     private final SetProperty<TargetMachine> targetMachines;
 
     public DefaultSwiftComponent(String name, ObjectFactory objectFactory) {
+        this(name, SwiftBinary.class, objectFactory);
+    }
+
+    public DefaultSwiftComponent(String name, Class<? extends SwiftBinary> binaryType, ObjectFactory objectFactory) {
         super(objectFactory);
         this.name = name;
-        swiftSource = createSourceView("src/"+ name + "/swift", Collections.singletonList("swift"));
-        module = objectFactory.property(String.class);
-        sourceCompatibility = objectFactory.property(SwiftVersion.class);
+        this.swiftSource = createSourceView("src/"+ name + "/swift", Collections.singletonList("swift"));
+        this.module = objectFactory.property(String.class);
+        this.sourceCompatibility = objectFactory.property(SwiftVersion.class);
 
-        names = Names.of(name);
-        binaries = Cast.uncheckedCast(objectFactory.newInstance(DefaultBinaryCollection.class, SwiftBinary.class));
-        targetMachines = objectFactory.setProperty(TargetMachine.class);
+        this.names = Names.of(name);
+        this.binaries = Cast.uncheckedCast(objectFactory.newInstance(DefaultBinaryCollection.class, binaryType));
+        this.targetMachines = objectFactory.setProperty(TargetMachine.class);
     }
 
     @Override
@@ -74,7 +78,7 @@ public abstract class DefaultSwiftComponent extends DefaultNativeComponent imple
     }
 
     @Override
-    public DefaultBinaryCollection<SwiftBinary> getBinaries() {
+    public DefaultBinaryCollection<T> getBinaries() {
         return binaries;
     }
 

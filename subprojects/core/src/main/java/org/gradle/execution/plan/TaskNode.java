@@ -21,11 +21,14 @@ import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.NavigableSet;
 import java.util.Set;
 
 public abstract class TaskNode extends Node {
+    private static final Logger LOGGER = LoggerFactory.getLogger(TaskNode.class);
 
     private final NavigableSet<Node> mustSuccessors = Sets.newTreeSet();
     private final Set<Node> mustPredecessors = Sets.newHashSet();
@@ -38,18 +41,21 @@ public abstract class TaskNode extends Node {
         if (!super.doCheckDependenciesComplete()) {
             return false;
         }
+        LOGGER.debug("Checking if all must successors are complete for {}", this);
         for (Node dependency : mustSuccessors) {
             if (!dependency.isComplete()) {
                 return false;
             }
         }
 
+        LOGGER.debug("Checking if all finalizing successors are complete for {}", this);
         for (Node dependency : finalizingSuccessors) {
             if (!dependency.isComplete()) {
                 return false;
             }
         }
 
+        LOGGER.debug("All task dependencies are complete for {}", this);
         return true;
     }
 
@@ -96,6 +102,7 @@ public abstract class TaskNode extends Node {
     public Iterable<Node> getAllSuccessors() {
         return Iterables.concat(getMustSuccessors(), getFinalizingSuccessors(), super.getAllSuccessors());
     }
+
     @Override
     public Iterable<Node> getAllSuccessorsInReverseOrder() {
         return Iterables.concat(

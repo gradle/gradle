@@ -21,10 +21,16 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.Actions;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.ClasspathUtil;
+import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
+import org.gradle.internal.serialize.SerializerRegistry;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.worker.request.Receiver;
+import org.gradle.process.internal.worker.request.Request;
+import org.gradle.process.internal.worker.request.RequestArgumentSerializers;
 import org.gradle.process.internal.worker.request.RequestProtocol;
+import org.gradle.process.internal.worker.request.RequestSerializerRegistry;
 import org.gradle.process.internal.worker.request.ResponseProtocol;
 import org.gradle.process.internal.worker.request.WorkerAction;
 
@@ -32,6 +38,8 @@ import java.io.File;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.net.URL;
+import java.util.Collections;
 import java.util.Set;
 
 class DefaultMultiRequestWorkerProcessBuilder<WORKER> implements MultiRequestWorkerProcessBuilder<WORKER> {
@@ -41,6 +49,9 @@ class DefaultMultiRequestWorkerProcessBuilder<WORKER> implements MultiRequestWor
     private final Class<?> workerImplementation;
     private final DefaultWorkerProcessBuilder workerProcessBuilder;
     private Action<WorkerProcess> onFailure = Actions.doNothing();
+    private RequestArgumentSerializers argumentSerializers = new RequestArgumentSerializers();
+    private final ClassPath implementationClasspath;
+    private final OutputEventListener outputEventListener;
 
     static {
         try {
@@ -51,12 +62,14 @@ class DefaultMultiRequestWorkerProcessBuilder<WORKER> implements MultiRequestWor
         }
     }
 
-    public DefaultMultiRequestWorkerProcessBuilder(Class<WORKER> workerType, Class<?> workerImplementation, DefaultWorkerProcessBuilder workerProcessBuilder) {
+    public DefaultMultiRequestWorkerProcessBuilder(Class<WORKER> workerType, Class<?> workerImplementation, DefaultWorkerProcessBuilder workerProcessBuilder, OutputEventListener outputEventListener) {
         this.workerType = workerType;
         this.workerImplementation = workerImplementation;
         this.workerProcessBuilder = workerProcessBuilder;
+        this.implementationClasspath = ClasspathUtil.getClasspath(workerImplementation.getClassLoader());
+        this.outputEventListener = outputEventListener;
         workerProcessBuilder.worker(new WorkerAction(workerImplementation));
-        workerProcessBuilder.setImplementationClasspath(ClasspathUtil.getClasspath(workerImplementation.getClassLoader()).getAsURLs());
+        workerProcessBuilder.setImplementationClasspath(implementationClasspath.getAsURLs());
     }
 
     @Override
@@ -91,6 +104,11 @@ class DefaultMultiRequestWorkerProcessBuilder<WORKER> implements MultiRequestWor
     }
 
     @Override
+    public void registerArgumentSerializer(SerializerRegistry serializerRegistry) {
+        argumentSerializers.add(serializerRegistry);
+    }
+
+    @Override
     public WorkerProcessSettings setBaseName(String baseName) {
         workerProcessBuilder.setBaseName(baseName);
         return this;
@@ -120,6 +138,12 @@ class DefaultMultiRequestWorkerProcessBuilder<WORKER> implements MultiRequestWor
     }
 
     @Override
+    public MultiRequestWorkerProcessBuilder useApplicationClassloaderOnly() {
+        workerProcessBuilder.setImplementationClasspath(Collections.<URL>emptyList());
+        return this;
+    }
+
+    @Override
     public WORKER build() {
         // Always publish process info for multi-request workers
         workerProcessBuilder.enableJvmMemoryInfoPublishing(true);
@@ -127,7 +151,7 @@ class DefaultMultiRequestWorkerProcessBuilder<WORKER> implements MultiRequestWor
         final Action<WorkerProcess> failureHandler = onFailure;
 
         return workerType.cast(Proxy.newProxyInstance(workerType.getClassLoader(), new Class[]{workerType}, new InvocationHandler() {
-            private Receiver receiver = new Receiver(getBaseName());
+            private Receiver receiver = new Receiver(getBaseName(), outputEventListener);
             private RequestProtocol requestProtocol;
 
             @Override
@@ -140,6 +164,8 @@ class DefaultMultiRequestWorkerProcessBuilder<WORKER> implements MultiRequestWor
                     }
                     workerProcess.getConnection().addIncoming(ResponseProtocol.class, receiver);
                     workerProcess.getConnection().useJavaSerializationForParameters(workerImplementation.getClassLoader());
+                    workerProcess.getConnection().useParameterSerializers(RequestSerializerRegistry.create(workerImplementation.getClassLoader(), argumentSerializers));
+
                     requestProtocol = workerProcess.getConnection().addOutgoing(RequestProtocol.class);
                     workerProcess.getConnection().connect();
                     return workerProcess;
@@ -154,7 +180,7 @@ class DefaultMultiRequestWorkerProcessBuilder<WORKER> implements MultiRequestWor
                         requestProtocol = null;
                     }
                 }
-                requestProtocol.run(method.getName(), method.getParameterTypes(), args, CurrentBuildOperationRef.instance().get());
+                requestProtocol.run(new Request(method.getName(), method.getParameterTypes(), args, CurrentBuildOperationRef.instance().get()));
                 boolean hasResult = receiver.awaitNextResult();
                 if (!hasResult) {
                     try {

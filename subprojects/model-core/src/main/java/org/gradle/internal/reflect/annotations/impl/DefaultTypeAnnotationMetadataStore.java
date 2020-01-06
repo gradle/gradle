@@ -27,17 +27,16 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.SetMultimap;
-import com.google.common.collect.Sets;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.reflect.AnnotationCategory;
-import org.gradle.internal.reflect.ParameterValidationContext;
 import org.gradle.internal.reflect.PropertyAccessorType;
+import org.gradle.internal.reflect.TypeValidationContext;
+import org.gradle.internal.reflect.TypeValidationContext.ReplayingTypeValidationContext;
 import org.gradle.internal.reflect.annotations.PropertyAnnotationMetadata;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadata;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadataStore;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
@@ -53,13 +52,14 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.joining;
 import static org.gradle.internal.reflect.AnnotationCategory.TYPE;
 import static org.gradle.internal.reflect.Methods.SIGNATURE_EQUIVALENCE;
+import static org.gradle.internal.reflect.TypeValidationContext.Severity.WARNING;
 
 public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadataStore {
     private static final TypeAnnotationMetadata EMPTY_TYPE_ANNOTATION_METADATA = new TypeAnnotationMetadata() {
@@ -79,17 +79,17 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         }
 
         @Override
-        public void visitValidationFailures(@Nullable String ownerPath, ParameterValidationContext validationContext) {
-        }
+        public void visitValidationFailures(TypeValidationContext validationContext) {}
     };
 
-    private final Set<Class<? extends Annotation>> recordedTypeAnnotations;
+    private final ImmutableSet<Class<? extends Annotation>> recordedTypeAnnotations;
+    private final ImmutableSet<String> ignoredPackagePrefixes;
     private final ImmutableMap<Class<? extends Annotation>, AnnotationCategory> propertyAnnotationCategories;
     private final CrossBuildInMemoryCache<Class<?>, TypeAnnotationMetadata> cache;
-    private final Set<String> potentiallyIgnoredMethodNames;
-    private final Set<Equivalence.Wrapper<Method>> globallyIgnoredMethods;
-    private final Set<Class<?>> mutableNonFinalClasses;
-    private final Class<? extends Annotation> ignoredMethodAnnotation;
+    private final ImmutableSet<String> potentiallyIgnoredMethodNames;
+    private final ImmutableSet<Equivalence.Wrapper<Method>> globallyIgnoredMethods;
+    private final ImmutableSet<Class<?>> mutableNonFinalClasses;
+    private final ImmutableSet<Class<? extends Annotation>> ignoredMethodAnnotations;
     private final Predicate<? super Method> generatedMethodDetector;
 
     /**
@@ -97,9 +97,10 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
      *
      * @param recordedTypeAnnotations Annotations on the type itself that should be gathered.
      * @param propertyAnnotationCategories Annotations on the properties that should be gathered. They are mapped to {@linkplain AnnotationCategory annotation categories}. The {@code ignoreMethodAnnotation} and the {@literal @}{@link Inject} annotations are automatically mapped to the {@link AnnotationCategory#TYPE TYPE} category.
+     * @param ignoredPackagePrefixes Packages to ignore. Types from ignored packages are considered having no type annotations nor any annotated properties.
      * @param ignoredSuperTypes Super-types to ignore. Ignored super-types are considered having no type annotations nor any annotated properties.
-     * @param ignoreMethodsFromTypes Methods to ignore: any methods declared by these types are ignored even when overriden by a given type. This is to avoid detecting methods like {@code Object.equals()} or {@code GroovyObject.getMetaClass()}.
-     * @param ignoredMethodAnnotation Annotation to use to explicitly ignore a method/property.
+     * @param ignoreMethodsFromTypes Methods to ignore: any methods declared by these types are ignored even when overridden by a given type. This is to avoid detecting methods like {@code Object.equals()} or {@code GroovyObject.getMetaClass()}.
+     * @param ignoredMethodAnnotations Annotations to use to explicitly ignore a method/property.
      * @param generatedMethodDetector Predicate to test if a method was generated (vs. being provided explicitly by the user).
      * @param mutableNonFinalClasses Mutable classes that shouldn't need explicit setters
      * @param cacheFactory A factory to create cross-build in-memory caches.
@@ -107,29 +108,43 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
     public DefaultTypeAnnotationMetadataStore(
         Collection<Class<? extends Annotation>> recordedTypeAnnotations,
         Map<Class<? extends Annotation>, ? extends AnnotationCategory> propertyAnnotationCategories,
+        Collection<String> ignoredPackagePrefixes,
         Collection<Class<?>> ignoredSuperTypes,
         Collection<Class<?>> ignoreMethodsFromTypes,
         Collection<Class<?>> mutableNonFinalClasses,
-        Class<? extends Annotation> ignoredMethodAnnotation,
+        Collection<Class<? extends Annotation>> ignoredMethodAnnotations,
         Predicate<? super Method> generatedMethodDetector,
         CrossBuildInMemoryCacheFactory cacheFactory
     ) {
         this.recordedTypeAnnotations = ImmutableSet.copyOf(recordedTypeAnnotations);
-        this.propertyAnnotationCategories = getBuild(propertyAnnotationCategories, ignoredMethodAnnotation);
+        this.ignoredPackagePrefixes = collectIgnoredPackagePrefixes(ignoredPackagePrefixes);
+        this.propertyAnnotationCategories = allAnnotationCategories(propertyAnnotationCategories, ignoredMethodAnnotations);
         this.cache = initCache(ignoredSuperTypes, cacheFactory);
         this.potentiallyIgnoredMethodNames = allMethodNamesOf(ignoreMethodsFromTypes);
         this.globallyIgnoredMethods = allMethodsOf(ignoreMethodsFromTypes);
         this.mutableNonFinalClasses = ImmutableSet.copyOf(mutableNonFinalClasses);
-        this.ignoredMethodAnnotation = ignoredMethodAnnotation;
+        this.ignoredMethodAnnotations = ImmutableSet.copyOf(ignoredMethodAnnotations);
         this.generatedMethodDetector = generatedMethodDetector;
     }
 
-    private static ImmutableMap<Class<? extends Annotation>, AnnotationCategory> getBuild(Map<Class<? extends Annotation>, ? extends AnnotationCategory> propertyAnnotationCategories, Class<? extends Annotation> ignoredMethodAnnotation) {
-        return ImmutableMap.<Class<? extends Annotation>, AnnotationCategory>builder()
-            .putAll(propertyAnnotationCategories)
-            .put(Inject.class, TYPE)
-            .put(ignoredMethodAnnotation, TYPE)
-            .build();
+    private static ImmutableSet<String> collectIgnoredPackagePrefixes(Collection<String> ignoredPackagePrefixes) {
+        return ImmutableSet.copyOf(ignoredPackagePrefixes.stream()
+            .map(prefix -> prefix + ".")
+            .collect(Collectors.toList())
+        );
+    }
+
+    private static ImmutableMap<Class<? extends Annotation>, AnnotationCategory> allAnnotationCategories(
+        Map<Class<? extends Annotation>, ? extends AnnotationCategory> propertyAnnotationCategories,
+        Collection<Class<? extends Annotation>> ignoredMethodAnnotations
+    ) {
+        ImmutableMap.Builder<Class<? extends Annotation>, AnnotationCategory> builder = ImmutableMap.builder();
+        builder.putAll(propertyAnnotationCategories);
+        builder.put(Inject.class, TYPE);
+        for (Class<? extends Annotation> ignoredMethodAnnotation : ignoredMethodAnnotations) {
+            builder.put(ignoredMethodAnnotation, TYPE);
+        }
+        return builder.build();
     }
 
     private static CrossBuildInMemoryCache<Class<?>, TypeAnnotationMetadata> initCache(Collection<Class<?>> ignoredSuperTypes, CrossBuildInMemoryCacheFactory cacheFactory) {
@@ -166,6 +181,18 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
     }
 
     private TypeAnnotationMetadata createTypeAnnotationMetadata(Class<?> type) {
+        if (type.isPrimitive() || type.isArray() || type.isAnnotation()) {
+            return EMPTY_TYPE_ANNOTATION_METADATA;
+        }
+
+        Package typePackage = type.getPackage();
+        if (typePackage != null) {
+            String typePackageName = typePackage.getName();
+            if (ignoredPackagePrefixes.stream().anyMatch(typePackageName::startsWith)) {
+                return EMPTY_TYPE_ANNOTATION_METADATA;
+            }
+        }
+
         ImmutableSet.Builder<Annotation> typeAnnotations = ImmutableSet.builder();
         for (Annotation typeAnnotation : type.getDeclaredAnnotations()) {
             if (recordedTypeAnnotations.contains(typeAnnotation.annotationType())) {
@@ -174,13 +201,13 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         }
 
         Map<String, PropertyAnnotationMetadataBuilder> methodBuilders = new HashMap<>();
+        ReplayingTypeValidationContext validationContext = new ReplayingTypeValidationContext();
 
-        inheritMethods(type, methodBuilders);
+        inheritMethods(type, validationContext, methodBuilders);
 
-        ValidationErrorsBuilder errorsBuilder = new ValidationErrorsBuilder(type);
         ImmutableSortedSet<PropertyAnnotationMetadata> propertiesMetadata;
         if (!type.isSynthetic()) {
-            propertiesMetadata = extractPropertiesFrom(type, methodBuilders, errorsBuilder);
+            propertiesMetadata = extractPropertiesFrom(type, methodBuilders, validationContext);
         } else {
             ImmutableSortedSet.Builder<PropertyAnnotationMetadata> propertiesMetadataBuilder = ImmutableSortedSet.naturalOrder();
             for (PropertyAnnotationMetadataBuilder propertyMetadataBuilder : methodBuilders.values()) {
@@ -189,33 +216,33 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
             propertiesMetadata = propertiesMetadataBuilder.build();
         }
 
-        return new DefaultTypeAnnotationMetadata(typeAnnotations.build(), propertiesMetadata, errorsBuilder.build());
+        return new DefaultTypeAnnotationMetadata(typeAnnotations.build(), propertiesMetadata, validationContext);
     }
 
-    private void inheritMethods(Class<?> type, Map<String, PropertyAnnotationMetadataBuilder> methodBuilders) {
-        visitSuperTypes(type, superType -> {
-            for (PropertyAnnotationMetadata superProperty : superType.getPropertiesAnnotationMetadata()) {
-                getOrCreateBuilder(superProperty.getPropertyName(), superProperty.getMethod(), methodBuilders)
-                    .inheritAnnotations(superProperty);
+    private void inheritMethods(Class<?> type, TypeValidationContext validationContext, Map<String, PropertyAnnotationMetadataBuilder> methodBuilders) {
+        visitSuperTypes(type, (superType, metadata) -> {
+            for (PropertyAnnotationMetadata property : metadata.getPropertiesAnnotationMetadata()) {
+                getOrCreateBuilder(property.getPropertyName(), property.getMethod(), validationContext, methodBuilders)
+                    .inheritAnnotations(superType.isInterface(), property);
             }
         });
     }
 
-    private PropertyAnnotationMetadataBuilder getOrCreateBuilder(String propertyName, Method getter, Map<String, PropertyAnnotationMetadataBuilder> propertyBuilders) {
-        return propertyBuilders.computeIfAbsent(getter.getName(), methodName -> new PropertyAnnotationMetadataBuilder(propertyName, getter));
+    private PropertyAnnotationMetadataBuilder getOrCreateBuilder(String propertyName, Method getter, TypeValidationContext validationContext, Map<String, PropertyAnnotationMetadataBuilder> propertyBuilders) {
+        return propertyBuilders.computeIfAbsent(getter.getName(), methodName -> new PropertyAnnotationMetadataBuilder(propertyName, getter, validationContext));
     }
 
-    private ImmutableSortedSet<PropertyAnnotationMetadata> extractPropertiesFrom(Class<?> type, Map<String, PropertyAnnotationMetadataBuilder> methodBuilders, ValidationErrorsBuilder errorsBuilder) {
+    private ImmutableSortedSet<PropertyAnnotationMetadata> extractPropertiesFrom(Class<?> type, Map<String, PropertyAnnotationMetadataBuilder> methodBuilders, TypeValidationContext validationContext) {
         Method[] methods = type.getDeclaredMethods();
         // Make sure getters end up before the setters
-        Arrays.sort(methods, (a, b) -> a.getName().compareTo(b.getName()));
+        Arrays.sort(methods, Comparator.comparing(Method::getName));
         for (Method method : methods) {
-            processMethodAnnotations(method, methodBuilders, errorsBuilder);
+            processMethodAnnotations(method, methodBuilders, validationContext);
         }
 
         ImmutableList<PropertyAnnotationMetadataBuilder> propertyBuilders = convertMethodToPropertyBuilders(methodBuilders);
         ImmutableMap<String, ImmutableMap<Class<? extends Annotation>, Annotation>> fieldAnnotationsByPropertyName = collectFieldAnnotations(type);
-        return mergePropertiesAndFieldMetadata(propertyBuilders, fieldAnnotationsByPropertyName, errorsBuilder);
+        return mergePropertiesAndFieldMetadata(type, propertyBuilders, fieldAnnotationsByPropertyName, validationContext);
     }
 
     private ImmutableList<PropertyAnnotationMetadataBuilder> convertMethodToPropertyBuilders(Map<String, PropertyAnnotationMetadataBuilder> methodBuilders) {
@@ -233,15 +260,17 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                     continue;
                 }
                 // The 'is'-getter is ignored, we can skip it in favor of the 'get'-getter
-                if (metadataBuilder.hasAnnotation(ignoredMethodAnnotation)) {
+                if (ignoredMethodAnnotations.stream()
+                    .anyMatch(metadataBuilder::hasAnnotation)) {
                     continue;
                 }
                 // The 'get'-getter was ignored, we can override it with the 'is'`-getter
-                if (previouslySeenBuilder.hasAnnotation(ignoredMethodAnnotation)) {
+                if (ignoredMethodAnnotations.stream()
+                    .anyMatch(previouslySeenBuilder::hasAnnotation)) {
                     propertyBuilders.put(propertyName, metadataBuilder);
                     continue;
                 }
-                previouslySeenBuilder.recordError(String.format("has redundant getters: '%s()' and '%s()'",
+                previouslySeenBuilder.recordProblem(String.format("has redundant getters: '%s()' and '%s()'",
                     previouslySeenBuilder.method.getName(),
                     metadataBuilder.method.getName()));
             }
@@ -260,7 +289,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         return fieldAnnotationsByPropertyName.build();
     }
 
-    private ImmutableSortedSet<PropertyAnnotationMetadata> mergePropertiesAndFieldMetadata(ImmutableList<PropertyAnnotationMetadataBuilder> propertyBuilders, ImmutableMap<String, ImmutableMap<Class<? extends Annotation>, Annotation>> fieldAnnotationsByPropertyName, ValidationErrorsBuilder errorsBuilder) {
+    private ImmutableSortedSet<PropertyAnnotationMetadata> mergePropertiesAndFieldMetadata(Class<?> type, ImmutableList<PropertyAnnotationMetadataBuilder> propertyBuilders, ImmutableMap<String, ImmutableMap<Class<? extends Annotation>, Annotation>> fieldAnnotationsByPropertyName, TypeValidationContext validationContext) {
         ImmutableSortedSet.Builder<PropertyAnnotationMetadata> propertiesMetadataBuilder = ImmutableSortedSet.naturalOrder();
         ImmutableSet.Builder<String> fieldsSeenBuilder = ImmutableSet.builderWithExpectedSize(fieldAnnotationsByPropertyName.size());
         for (PropertyAnnotationMetadataBuilder metadataBuilder : propertyBuilders) {
@@ -291,15 +320,18 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                 .forEach(entry -> {
                     String fieldName = entry.getKey();
                     ImmutableMap<Class<? extends Annotation>, Annotation> fieldAnnotations = entry.getValue();
-                    errorsBuilder.recordError(String.format("field '%s' without corresponding getter has been annotated with %s",
-                        fieldName,
-                        simpleAnnotationNames(fieldAnnotations.keySet().stream())));
+                    validationContext.visitTypeProblem(WARNING,
+                        type,
+                        String.format("field '%s' without corresponding getter has been annotated with %s",
+                            fieldName,
+                            simpleAnnotationNames(fieldAnnotations.keySet().stream()))
+                    );
                 });
         }
         return propertiesMetadata;
     }
 
-    private void processMethodAnnotations(Method method, Map<String, PropertyAnnotationMetadataBuilder> methodBuilders, ValidationErrorsBuilder errorsBuilder) {
+    private void processMethodAnnotations(Method method, Map<String, PropertyAnnotationMetadataBuilder> methodBuilders, TypeValidationContext validationContext) {
         if (method.isSynthetic()) {
             return;
         }
@@ -315,20 +347,20 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         ImmutableMap<Class<? extends Annotation>, Annotation> annotations = collectRelevantAnnotations(method);
 
         if (Modifier.isStatic(method.getModifiers())) {
-            validateNotAnnotated("static", method, annotations.keySet(), errorsBuilder);
+            validateNotAnnotated("static", method, annotations.keySet(), validationContext);
             return;
         }
 
         PropertyAccessorType accessorType = PropertyAccessorType.of(method);
         if (accessorType == null) {
-            validateNotAnnotated("non-property", method, annotations.keySet(), errorsBuilder);
+            validateNotAnnotated("non-property", method, annotations.keySet(), validationContext);
             return;
         }
 
         String propertyName = accessorType.propertyNameFor(method);
         if (accessorType == PropertyAccessorType.SETTER) {
-            validateNotAnnotated("setter", method, annotations.keySet(), errorsBuilder);
-            validateSetterForMutableType(method, accessorType, errorsBuilder, propertyName);
+            validateNotAnnotated("setter", method, annotations.keySet(), validationContext);
+            validateSetterForMutableType(method, accessorType, validationContext, propertyName);
             return;
         }
 
@@ -340,25 +372,27 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
             return;
         }
 
-        PropertyAnnotationMetadataBuilder metadataBuilder = getOrCreateBuilder(propertyName, method, methodBuilders);
+        PropertyAnnotationMetadataBuilder metadataBuilder = getOrCreateBuilder(propertyName, method, validationContext, methodBuilders);
         metadataBuilder.overrideMethod(method);
 
         if (privateGetter) {
             // At this point we must have annotations on this private getter
-            metadataBuilder.recordError(String.format("is private and annotated with %s",
+            metadataBuilder.recordProblem(String.format("is private and annotated with %s",
                 simpleAnnotationNames(annotations.keySet().stream())));
         }
 
-        Annotation ignoredAnnotation = annotations.get(ignoredMethodAnnotation);
-        if (ignoredAnnotation != null) {
-            if (annotations.size() != 1) {
-                metadataBuilder.recordError(String.format("getter '%s()' annotated with @%s should not be also annotated with %s",
-                    method.getName(),
-                    ignoredMethodAnnotation.getSimpleName(),
-                    simpleAnnotationNames(annotations.keySet().stream()
-                        .filter(annotationType -> !annotationType.equals(ignoredMethodAnnotation)))
+        if (annotations.size() > 1) {
+            annotations.keySet().stream()
+                .filter(ignoredMethodAnnotations::contains)
+                .findFirst()
+                .ifPresent(ignoredMethodAnnotation -> metadataBuilder.recordProblem(
+                    String.format("getter '%s()' annotated with @%s should not be also annotated with %s",
+                        method.getName(),
+                        ignoredMethodAnnotation.getSimpleName(),
+                        simpleAnnotationNames(annotations.keySet().stream()
+                            .filter(annotationType -> !annotationType.equals(ignoredMethodAnnotation)))
+                    )
                 ));
-            }
         }
 
         for (Annotation annotation : annotations.values()) {
@@ -366,11 +400,14 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         }
     }
 
-    private void validateSetterForMutableType(Method setterMethod, PropertyAccessorType setterAccessorType, ValidationErrorsBuilder errorsBuilder, String propertyName) {
+    private void validateSetterForMutableType(Method setterMethod, PropertyAccessorType setterAccessorType, TypeValidationContext validationContext, String propertyName) {
         Class<?> setterType = setterAccessorType.propertyTypeFor(setterMethod);
         if (isSetterProhibitedForType(setterType)) {
-            String typeName = setterType.getName();
-            errorsBuilder.recordError(String.format("property '%s' with mutable type '%s' is redundant. Use methods on the property value itself to mutate it", propertyName, typeName));
+            validationContext.visitPropertyProblem(WARNING,
+                propertyName,
+                String.format("of mutable type '%s' is writable. Properties of this type should be read-only and mutated via the value itself",
+                    setterType.getName())
+            );
         }
     }
 
@@ -379,20 +416,26 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
             .anyMatch(prohibited -> prohibited.isAssignableFrom(setter));
     }
 
-    private void visitSuperTypes(Class<?> type, Consumer<? super TypeAnnotationMetadata> visitor) {
+    private void visitSuperTypes(Class<?> type, TypeAnnotationMetadataVisitor visitor) {
         Arrays.stream(type.getInterfaces())
-            .map(iface -> getTypeAnnotationMetadata(iface))
-            .forEach(visitor);
+            .forEach(superInterface -> visitor.visitType(superInterface, getTypeAnnotationMetadata(superInterface)));
         Class<?> superclass = type.getSuperclass();
         if (superclass != null) {
-            visitor.accept(getTypeAnnotationMetadata(superclass));
+            visitor.visitType(superclass, getTypeAnnotationMetadata(superclass));
         }
     }
 
-    private static void validateNotAnnotated(String methodKind, Method method, Set<Class<? extends Annotation>> annotationTypes, ValidationErrorsBuilder errorsBuilder) {
+    @FunctionalInterface
+    private interface TypeAnnotationMetadataVisitor {
+        void visitType(Class<?> type, TypeAnnotationMetadata metadata);
+    }
+
+    private static void validateNotAnnotated(String methodKind, Method method, Set<Class<? extends Annotation>> annotationTypes, TypeValidationContext validationContext) {
         if (!annotationTypes.isEmpty()) {
-            errorsBuilder.recordError(String.format("%s method '%s()' should not be annotated with: %s",
-                methodKind, method.getName(), simpleAnnotationNames(annotationTypes.stream())
+            validationContext.visitTypeProblem(WARNING,
+                method.getDeclaringClass(),
+                String.format("%s method '%s()' should not be annotated with: %s",
+                    methodKind, method.getName(), simpleAnnotationNames(annotationTypes.stream())
             ));
         }
     }
@@ -411,8 +454,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         ImmutableMap.Builder<Class<? extends Annotation>, Annotation> relevantAnnotations = ImmutableMap.builderWithExpectedSize(annotations.length);
         for (Annotation annotation : annotations) {
             Class<? extends Annotation> annotationType = annotation.annotationType();
-            if (propertyAnnotationCategories.containsKey(annotationType)
-                || ignoredMethodAnnotation.equals(annotationType)) {
+            if (propertyAnnotationCategories.containsKey(annotationType)) {
                 relevantAnnotations.put(annotationType, annotation);
             }
         }
@@ -423,12 +465,14 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         private final String propertyName;
         private Method method;
         private final ListMultimap<AnnotationCategory, Annotation> declaredAnnotations = ArrayListMultimap.create();
-        private final SetMultimap<AnnotationCategory, Annotation> inheritedAnnotations = HashMultimap.create();
-        private final ImmutableList.Builder<String> problems = ImmutableList.builder();
+        private final SetMultimap<AnnotationCategory, Annotation> inheritedInterfaceAnnotations = HashMultimap.create();
+        private final SetMultimap<AnnotationCategory, Annotation> inheritedSuperclassAnnotations = HashMultimap.create();
+        private final TypeValidationContext validationContext;
 
-        public PropertyAnnotationMetadataBuilder(String propertyName, Method method) {
+        public PropertyAnnotationMetadataBuilder(String propertyName, Method method, TypeValidationContext validationContext) {
             this.propertyName = propertyName;
             this.method = method;
+            this.validationContext = validationContext;
         }
 
         public String getPropertyName() {
@@ -448,46 +492,64 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
             declaredAnnotations.put(category, annotation);
         }
 
-        public void inheritAnnotations(PropertyAnnotationMetadata superProperty) {
-            superProperty.getAnnotations().forEach((category, annotation) -> inheritedAnnotations.put(category, annotation));
+        public void inheritAnnotations(boolean fromInterface, PropertyAnnotationMetadata superProperty) {
+            superProperty.getAnnotations()
+                .forEach((fromInterface
+                    ? inheritedInterfaceAnnotations
+                    : inheritedSuperclassAnnotations)::put);
         }
 
-        public void recordError(String problem) {
-            problems.add(problem);
+        public void recordProblem(String problem) {
+            validationContext.visitPropertyProblem(WARNING, propertyName, problem);
         }
 
         public PropertyAnnotationMetadata build() {
-            return new DefaultPropertyAnnotationMetadata(propertyName, method, mergeAnnotations(), problems.build());
+            return new DefaultPropertyAnnotationMetadata(propertyName, method, resolveAnnotations());
         }
 
-        private ImmutableMap<AnnotationCategory, Annotation> mergeAnnotations() {
+        private ImmutableMap<AnnotationCategory, Annotation> resolveAnnotations() {
+            // If method should be ignored, then ignore all other annotations
             List<Annotation> declaredTypes = declaredAnnotations.get(TYPE);
             for (Annotation declaredType : declaredTypes) {
-                if (declaredType.annotationType().equals(ignoredMethodAnnotation)) {
+                if (ignoredMethodAnnotations.contains(declaredType.annotationType())) {
                     return ImmutableMap.of(TYPE, declaredType);
                 }
             }
 
             ImmutableMap.Builder<AnnotationCategory, Annotation> builder = ImmutableMap.builder();
-            for (AnnotationCategory category : Sets.union(declaredAnnotations.keySet(), inheritedAnnotations.keySet())) {
+            for (AnnotationCategory category : allAnnotationCategories()) {
+                Annotation resolvedAnnotation;
                 Collection<Annotation> declaredAnnotationsForCategory = declaredAnnotations.get(category);
-                Annotation firstAnnotation;
                 if (!declaredAnnotationsForCategory.isEmpty()) {
-                    firstAnnotation = getFirstAnnotation("declared", category, declaredAnnotationsForCategory);
+                    resolvedAnnotation = resolveAnnotation("declared", category, declaredAnnotationsForCategory);
                 } else {
-                    firstAnnotation = getFirstAnnotation("inherited", category, inheritedAnnotations.get(category));
+                    Collection<Annotation> interfaceAnnotations = inheritedInterfaceAnnotations.get(category);
+                    if (!interfaceAnnotations.isEmpty()) {
+                        resolvedAnnotation = resolveAnnotation("inherited (from interface)", category, interfaceAnnotations);
+                    } else {
+                        Collection<Annotation> superclassAnnotations = inheritedSuperclassAnnotations.get(category);
+                        resolvedAnnotation = resolveAnnotation("inherited (from superclass)", category, superclassAnnotations);
+                    }
                 }
-                builder.put(category, firstAnnotation);
+                builder.put(category, resolvedAnnotation);
             }
             return builder.build();
         }
 
-        private Annotation getFirstAnnotation(String source, AnnotationCategory category, Collection<Annotation> annotationsForCategory) {
+        private ImmutableSet<AnnotationCategory> allAnnotationCategories() {
+            return ImmutableSet.<AnnotationCategory>builder()
+                .addAll(declaredAnnotations.keySet())
+                .addAll(inheritedInterfaceAnnotations.keySet())
+                .addAll(inheritedSuperclassAnnotations.keySet())
+                .build();
+        }
+
+        private Annotation resolveAnnotation(String source, AnnotationCategory category, Collection<Annotation> annotationsForCategory) {
             Iterator<Annotation> iDeclaredAnnotationForCategory = annotationsForCategory.iterator();
             // Ignore all but the first recorded annotation
             Annotation declaredAnnotationForCategory = iDeclaredAnnotationForCategory.next();
             if (iDeclaredAnnotationForCategory.hasNext()) {
-                recordError(String.format("has conflicting %s annotations %s: %s; assuming @%s",
+                recordProblem(String.format("has conflicting %s annotations %s: %s; assuming @%s",
                     category.getDisplayName(),
                     source,
                     simpleAnnotationNames(annotationsForCategory.stream()
@@ -499,7 +561,12 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         }
 
         public boolean hasAnnotation(Class<? extends Annotation> annotationType) {
-            for (Annotation annotation : Iterables.concat(declaredAnnotations.values(), inheritedAnnotations.values())) {
+            Iterable<Annotation> allAnnotations = Iterables.concat(
+                declaredAnnotations.values(),
+                inheritedInterfaceAnnotations.values(),
+                inheritedSuperclassAnnotations.values()
+            );
+            for (Annotation annotation : allAnnotations) {
                 if (annotation.annotationType().equals(annotationType)) {
                     return true;
                 }
@@ -510,23 +577,6 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         @Override
         public int compareTo(PropertyAnnotationMetadataBuilder o) {
             return propertyName.compareTo(o.propertyName);
-        }
-    }
-
-    private static class ValidationErrorsBuilder {
-        private final Class<?> type;
-        private final ImmutableList.Builder<String> errors = ImmutableList.builder();
-
-        public ValidationErrorsBuilder(Class<?> type) {
-            this.type = type;
-        }
-
-        public void recordError(String error) {
-            errors.add("Type '" + type.getName() + "': " + error);
-        }
-
-        public ImmutableList<String> build() {
-            return errors.build();
         }
     }
 }

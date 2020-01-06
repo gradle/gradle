@@ -24,7 +24,7 @@ dependencies {
     implementation(project(":baseServices"))
     implementation(project(":logging"))
     implementation(project(":processServices"))
-    implementation(project(":files"))
+    implementation(project(":fileCollections"))
     implementation(project(":persistentCache"))
     implementation(project(":coreApi"))
     implementation(project(":modelCore"))
@@ -58,31 +58,37 @@ dependencies {
     testImplementation(project(":messaging"))
     testImplementation(project(":native"))
     testImplementation(project(":resources"))
+    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":dependencyManagement")))
+    testImplementation(testFixtures(project(":resourcesHttp")))
+    testImplementation(testFixtures(project(":platformNative")))
+    testImplementation(testFixtures(project(":languageJvm")))
+    testImplementation(testFixtures(project(":languageJava")))
+    testImplementation(testFixtures(project(":languageGroovy")))
+    testImplementation(testFixtures(project(":diagnostics")))
 
+    testRuntimeOnly(project(":runtimeApiInfo"))
+
+    testFixturesImplementation(testFixtures(project(":core")))
     testFixturesImplementation(project(":baseServicesGroovy"))
+    testFixturesImplementation(project(":fileCollections"))
+    testFixturesImplementation(project(":languageJvm"))
     testFixturesImplementation(project(":internalIntegTesting"))
+    testFixturesImplementation(library("guava"))
 
     testImplementation(testLibrary("jsoup"))
 
     integTestRuntimeOnly(project(":maven"))
+
+    testImplementation(library("gson")) {
+        because("for unknown reason (bug in the Groovy/Spock compiler?) requires it to be present to use the Gradle Module Metadata test fixtures")
+    }
+    integTestRuntimeOnly(project(":testingJunitPlatform"))
 }
 
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
-}
-
-testFixtures {
-    from(":core")
-    from(":core", "testFixtures")
-    from(":launcher")
-    from(":dependencyManagement")
-    from(":resourcesHttp")
-    from(":platformNative")
-    from(":languageJvm")
-    from(":languageJava")
-    from(":languageGroovy")
-    from(":diagnostics")
 }
 
 val wrapperJarDir = file("$buildDir/generated-resources/wrapper-jar")

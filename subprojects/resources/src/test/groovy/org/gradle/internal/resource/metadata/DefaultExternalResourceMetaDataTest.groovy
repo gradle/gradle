@@ -16,18 +16,18 @@
 
 package org.gradle.internal.resource.metadata
 
+import org.gradle.internal.hash.HashCode
 import spock.lang.Specification
-import org.gradle.internal.hash.HashValue
 
 class DefaultExternalResourceMetaDataTest extends Specification {
 
     def "hash value is preserved"() {
         given:
-        def sha1 = "abc"
-        def md = new DefaultExternalResourceMetaData(new URI("scheme:thing"), -1, -1, null, null, new HashValue(sha1))
+        def sha1 = "abcd"*10
+        def md = new DefaultExternalResourceMetaData(new URI("scheme:thing"), -1, -1, null, null, HashCode.fromString(sha1))
 
         expect:
-        md.sha1.equals(new HashValue(sha1))
+        md.sha1.equals(HashCode.fromString(sha1))
     }
 
 }

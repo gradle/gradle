@@ -42,4 +42,12 @@ public interface EclipseWorkspaceProject {
      */
     @Incubating
     File getLocation();
+
+    /**
+     * The status of the eclipse project.
+     *
+     * @since 5.6
+     */
+    @Incubating
+    boolean isOpen();
 }

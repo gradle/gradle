@@ -418,7 +418,7 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         resolve.expectGraph {
             root(":", ":test:") {
                 edge("org:foo:1.0", "org:foo:1.1:runtime").byConflictResolution("between versions 1.1 and 1.0")
-                edge("org:included:1.0", "project :included", "org:included:1.0") {
+                edge("org:included:1.0", "project :includeBuild", "org:included:1.0") {
                     noArtifacts()
                     constraint("org:foo:1.1", "org:foo:1.1")
                 }.compositeSubstitute()
@@ -571,5 +571,98 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
                 edge('org:bar', 'org:bar:1.1')
             }
         }
+    }
+
+    void 'dependency constraint can be not pending, then pending, then not pending and still participate in resolution'() {
+        def constrainedBase = mavenRepo.module('org', 'constrained', '1.0').publish()
+        def constrained = mavenRepo.module('org', 'constrained', '1.1').publish()
+        def bom = mavenRepo.module('org', 'bom', '1.0').hasType('pom').dependencyConstraint(constrained).publish()
+        def user = mavenRepo.module('org', 'user', '1.0').dependsOn(constrainedBase).publish()
+        def higherUser = mavenRepo.module('org', 'user', '1.1').dependsOn(constrainedBase).publish()
+        def otherUser = mavenRepo.module('org', 'otherUser', '1.0').dependsOn(higherUser).publish()
+        mavenRepo.module('org', 'indirect', '1.0').dependsOn(user).dependsOn(otherUser).dependsOn(bom).publish()
+
+        buildFile << """
+            class PickPlatformRule implements ComponentMetadataRule {
+                ObjectFactory objects
+                
+                @javax.inject.Inject
+                PickPlatformRule(ObjectFactory objects) {
+                    this.objects = objects
+                }
+                
+                @Override
+                void execute(ComponentMetadataContext context) {
+                    def details = context.details
+                    if (details.id.name == 'indirect') {
+                        details.allVariants {
+                            withDependencies {
+                                it.each {
+                                    if (it.name == 'bom') {
+                                        it.attributes {
+                                            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, 'platform'))
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            dependencies {
+                conf(platform('org:bom:1.0'))
+                
+                conf 'org:indirect:1.0'
+                
+                components {
+                    withModule('org:indirect', PickPlatformRule)
+                }
+            }
+"""
+
+        when:
+        run 'checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(':', ':test:') {
+                module("org:bom:1.0:platform-runtime") {
+                    constraint("org:constrained:1.1", "org:constrained:1.1")
+                    noArtifacts()
+                }
+                module("org:indirect:1.0") {
+                    edge("org:user:1.0", "org:user:1.1") {
+                        edge("org:constrained:1.0", "org:constrained:1.1")
+                    }
+                    module("org:otherUser:1.0") {
+                        module( "org:user:1.1")
+                    }
+                    module("org:bom:1.0:platform-runtime")
+                }
+            }
+        }
+    }
+
+    void 'dependency constraint on failed variant resolution needs to be in the right state'() {
+        mavenRepo.module('org', 'bar', '1.0').publish()
+
+        buildFile << """
+            dependencies {
+                constraints {
+                    conf 'org:bar:1.0'
+                }
+                conf('org:bar') {
+                    attributes {
+                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, 'wrong'))
+                    }
+                }
+            }
+"""
+
+        when:
+        succeeds 'dependencyInsight', '--configuration', 'conf', '--dependency', 'org:bar'
+
+        then:
+        outputContains("org:bar: FAILED")
     }
 }

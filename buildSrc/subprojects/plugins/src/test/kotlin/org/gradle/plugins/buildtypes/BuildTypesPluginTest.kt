@@ -21,10 +21,15 @@ import io.mockk.mockk
 import io.mockk.verify
 import org.gradle.api.Project
 import org.gradle.api.tasks.TaskContainer
+import org.gradle.gradlebuild.test.integrationtests.splitIntoBuckets
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Before
 import org.junit.Test
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
+import java.io.File
 
 
 class BuildTypesPluginTest {
@@ -42,9 +47,31 @@ class BuildTypesPluginTest {
     @Before
     fun setUp() {
         every { project.tasks } returns taskContainer
+        every { project.project } returns project
+        every { project.findProperty(any()) } returns ""
         every { project.name } returns "project"
         every { project.findProject(any()) } returns null
         every { taskContainer.findByPath(any()) } returns null
+    }
+
+    @ParameterizedTest
+    @CsvSource(value = [
+        "100, 2",
+        "100, 3",
+        "100, 4",
+        "100, 5",
+        "100, 6",
+        "100, 7",
+        "100, 8",
+        "100, 9",
+        "100, 10"
+    ])
+    fun `can split files into buckets`(fileCount: Int, numberOfSplits: Int) {
+        val files = (1..fileCount).map { File("$it") }
+        val buckets = splitIntoBuckets(files, numberOfSplits)
+
+        Assertions.assertEquals(numberOfSplits, buckets.size)
+        Assertions.assertEquals(files, buckets.flatten())
     }
 
     @Test

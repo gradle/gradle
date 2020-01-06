@@ -34,7 +34,7 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
     def "can load custom action from url containing whitespaces"() {
         setup:
         toolingApi.requireIsolatedDaemons()
-        def builder = new GradleBackedArtifactBuilder(new NoDaemonGradleExecuter(dist, temporaryFolder).withWarningMode(null), temporaryFolder.testDirectory)
+        def builder = new GradleBackedArtifactBuilder(new NoDaemonGradleExecuter(dist, temporaryFolder).withWarningMode(null), temporaryFolder.testDirectory.file("action"))
         builder.sourceFile('ActionImpl.java') << """
             public class ActionImpl implements ${BuildAction.name}<Void> {
                 public Void execute(${BuildController.name} controller) {

@@ -16,8 +16,7 @@
 
 package org.gradle.api.provider;
 
-import org.gradle.api.Incubating;
-
+import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -32,13 +31,24 @@ import java.util.List;
  * @param <T> the type of elements.
  * @since 4.3
  */
-@Incubating
 public interface ListProperty<T> extends Provider<List<T>>, HasMultipleValues<T> {
     /**
      * {@inheritDoc}
      */
     @Override
     ListProperty<T> empty();
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    ListProperty<T> value(@Nullable Iterable<? extends T> elements);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    ListProperty<T> value(Provider<? extends Iterable<? extends T>> provider);
 
     /**
      * {@inheritDoc}

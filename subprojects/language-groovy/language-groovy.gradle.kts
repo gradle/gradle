@@ -12,7 +12,7 @@ dependencies {
     implementation(project(":logging"))
     implementation(project(":processServices"))
     implementation(project(":workerProcesses"))
-    implementation(project(":files"))
+    implementation(project(":fileCollections"))
     implementation(project(":coreApi"))
     implementation(project(":modelCore"))
     implementation(project(":core"))
@@ -22,6 +22,7 @@ dependencies {
     implementation(project(":platformJvm"))
     implementation(project(":languageJvm"))
     implementation(project(":languageJava"))
+    implementation(project(":files"))
 
     implementation(library("slf4j_api"))
     implementation(library("groovy"))
@@ -30,19 +31,20 @@ dependencies {
     implementation(library("inject"))
 
     testImplementation(project(":baseServicesGroovy"))
-    
+    testImplementation(testFixtures(project(":core")))
+
+    testRuntimeOnly(project(":runtimeApiInfo"))
+
+    testFixturesApi(testFixtures(project(":languageJvm")))
+    testFixturesImplementation(project(":core"))
+    testFixturesImplementation(project(":internalTesting"))
+
     integTestImplementation(library("commons_lang"))
     integTestRuntimeOnly(project(":plugins"))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
-}
-
-testFixtures {
-    from(":core")
-    from(":launcher")
-    from(":languageJvm", "testFixtures")
 }
 
 classycle {

@@ -29,7 +29,11 @@ class CapturingUserInputCrossVersionSpec extends ToolingApiSpecification {
     def outputStream = new ByteArrayOutputStream()
 
     def setup() {
-        toolingApi.requireDaemons()
+        if (!dist.toolingApiStdinInEmbeddedModeSupported) {
+            // Did not work in embedded mode in older versions
+            toolingApi.requireDaemons()
+        }
+
         file('buildSrc/src/main/java/BuildScanPlugin.java') << buildScanPlugin()
         file('build.gradle') << buildScanPluginApplication()
     }

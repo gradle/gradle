@@ -14,15 +14,12 @@
  * limitations under the License.
  */
 
-import org.gradle.kotlin.dsl.plugins.dsl.KotlinDslPlugin
-
-import java.io.File
-import java.util.Properties
+import java.util.*
 
 plugins {
     `java`
     `kotlin-dsl` apply false
-    id("org.gradle.kotlin-dsl.ktlint-convention") version "0.3.0" apply false
+    id("org.gradle.kotlin-dsl.ktlint-convention") version "0.4.1" apply false
 }
 
 subprojects {
@@ -44,12 +41,13 @@ subprojects {
         }
 
         dependencies {
+            "api"(platform(project(":buildPlatform")))
             implementation(gradleApi())
         }
 
         afterEvaluate {
-            if (tasks.withType<ValidateTaskProperties>().isEmpty()) {
-                val validateTaskProperties by tasks.registering(ValidateTaskProperties::class) {
+            if (tasks.withType<ValidatePlugins>().isEmpty()) {
+                val validatePlugins by tasks.registering(ValidatePlugins::class) {
                     outputFile.set(project.reporting.baseDirectory.file("task-properties/report.txt"))
 
                     val mainSourceSet = project.sourceSets.main.get()
@@ -57,13 +55,13 @@ subprojects {
                     dependsOn(mainSourceSet.output)
                     classpath.setFrom(mainSourceSet.runtimeClasspath)
                 }
-                tasks.check { dependsOn(validateTaskProperties) }
+                tasks.check { dependsOn(validatePlugins) }
             }
         }
 
-        tasks.withType<ValidateTaskProperties> {
-            failOnWarning = true
-            enableStricterValidation = true
+        tasks.withType<ValidatePlugins> {
+            failOnWarning.set(true)
+            enableStricterValidation.set(true)
         }
 
         apply(from = "../../../gradle/shared-with-buildSrc/code-quality-configuration.gradle.kts")
@@ -76,19 +74,27 @@ allprojects {
         maven {
             name = "Gradle libs"
             url = uri("https://repo.gradle.org/gradle/libs")
+            mavenContent {
+                // This repository contains an older version which has been overwritten in Central
+                excludeModule("com.google.j2objc", "j2objc-annotations")
+            }
         }
         gradlePluginPortal()
         maven {
             name = "Gradle snapshot libs"
             url = uri("https://repo.gradle.org/gradle/libs-snapshots")
+            mavenContent {
+                // This repository contains an older version which has been overwritten in Central
+                excludeModule("com.google.j2objc", "j2objc-annotations")
+            }
         }
         maven {
             name = "kotlinx"
             url = uri("https://dl.bintray.com/kotlin/kotlinx")
         }
         maven {
-            name = "kotlin-eap"
-            url = uri("https://dl.bintray.com/kotlin/kotlin-eap")
+            name = "kotlin-dev"
+            url = uri("https://dl.bintray.com/kotlin/kotlin-dev")
         }
     }
 }
@@ -119,8 +125,12 @@ val isSkipBuildSrcVerification: Boolean =
 
 if (isSkipBuildSrcVerification) {
     allprojects {
-        tasks.matching { it.group == LifecycleBasePlugin.VERIFICATION_GROUP }.configureEach {
-            enabled = false
+        afterEvaluate {
+            plugins.withId("lifecycle-base") {
+                tasks.named("check") {
+                    setDependsOn(listOf("assemble"))
+                }
+            }
         }
     }
 }
@@ -176,11 +186,12 @@ val checkSameDaemonArgs by tasks.registering {
 tasks.build { dependsOn(checkSameDaemonArgs) }
 
 fun Project.applyGroovyProjectConventions() {
+    apply(plugin = "java-gradle-plugin")
     apply(plugin = "groovy")
 
     dependencies {
         implementation(localGroovy())
-        testImplementation("org.spockframework:spock-core:1.2-groovy-2.5") {
+        testImplementation("org.spockframework:spock-core:1.3-groovy-2.5") {
             exclude(group = "org.codehaus.groovy")
         }
         testImplementation("net.bytebuddy:byte-buddy:1.8.21")

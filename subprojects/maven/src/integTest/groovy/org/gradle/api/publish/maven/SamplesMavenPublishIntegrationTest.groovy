@@ -18,6 +18,7 @@
 package org.gradle.api.publish.maven
 
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.maven.MavenFileModule
@@ -30,6 +31,7 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample("maven-publish/quickstart")
+    @ToBeFixedForInstantExecution
     def "quickstart publish with #dsl dsl"() {
         given:
         def sampleDir = sampleProject.dir.file(dsl)
@@ -37,7 +39,7 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
         and:
         def fileRepo = maven(sampleDir.file("build/repo"))
-        def module = fileRepo.module("org.gradle.sample", "quickstart", "1.0")
+        def module = fileRepo.module("org.gradle.sample", "quickstart", "1.0").withModuleMetadata()
 
         when:
         succeeds "publish"
@@ -53,12 +55,13 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample("maven-publish/quickstart")
+    @ToBeFixedForInstantExecution
     def "quickstart publish local with #dsl dsl"() {
         using m2
-        
+
         given:
         executer.beforeExecute m2
-        def localModule = m2.mavenRepo().module("org.gradle.sample", "quickstart", "1.0")
+        def localModule = m2.mavenRepo().module("org.gradle.sample", "quickstart", "1.0").withModuleMetadata()
 
         and:
         def sampleDir = sampleProject.dir.file(dsl)
@@ -81,14 +84,15 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample("maven-publish/javaProject")
-    def javaProject() {
+    @ToBeFixedForInstantExecution
+    def "publish java project with #dsl dsl"() {
         given:
         def sampleDir = sampleProject.dir.file(dsl)
         executer.inDirectory(sampleDir)
 
         and:
         def fileRepo = maven(sampleDir.file("build/repos/releases"))
-        def module = fileRepo.module("org.gradle.sample", "javaProject", "1.0")
+        def module = fileRepo.module("org.gradle.sample", "javaProject", "1.0").withModuleMetadata()
 
         when:
         succeeds "publish"
@@ -97,11 +101,11 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
         module.assertPublished()
         module.assertArtifactsPublished(
             "javaProject-1.0.jar",
-            "javaProject-1.0-sources.jar",
             "javaProject-1.0-javadoc.jar",
-            "javaProject-1.0.pom")
+            "javaProject-1.0.pom",
+            "javaProject-1.0.module")
         module.parsedPom.packaging == null
-        module.parsedPom.scopes.compile.assertDependsOn("commons-collections:commons-collections:3.2.2")
+        module.parsedPom.scopes.runtime.assertDependsOn("commons-collections:commons-collections:3.2.2")
 
         where:
         dsl << ['groovy', 'kotlin']
@@ -109,6 +113,7 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample("maven-publish/multiple-publications")
+    @ToBeFixedForInstantExecution
     def "multiple publications with #dsl dsl"() {
         given:
         def sampleDir = sampleProject.dir.file(dsl)
@@ -116,9 +121,9 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
         and:
         def fileRepo = maven(sampleDir.file("build/repo"))
-        def project1sample = fileRepo.module("org.gradle.sample", "project1-sample", "1.1")
-        def project2api = fileRepo.module("org.gradle.sample", "project2-api", "2.3")
-        def project2impl = fileRepo.module("org.gradle.sample", "project2-impl", "2.3")
+        def project1sample = fileRepo.module("org.gradle.sample", "project1-sample", "1.1").withModuleMetadata()
+        def project2api = fileRepo.module("org.gradle.sample", "project2-api", "2.3") // publication without component
+        def project2impl = fileRepo.module("org.gradle.sample", "project2-impl", "2.3").withModuleMetadata()
 
         when:
         succeeds "publish"
@@ -141,6 +146,7 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample("maven-publish/conditional-publishing")
+    @ToBeFixedForInstantExecution
     def "conditional publishing with #dsl dsl"() {
         using m2
 
@@ -152,11 +158,11 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
         def artifactId = "maven-conditional-publishing"
         def version = "1.0"
         def externalRepo = maven(sampleDir.file("build/repos/external"))
-        def binary = externalRepo.module("org.gradle.sample", artifactId, version)
+        def binary = externalRepo.module("org.gradle.sample", artifactId, version).withModuleMetadata()
         def internalRepo = maven(sampleDir.file("build/repos/internal"))
-        def binaryAndSourcesInRepo = internalRepo.module("org.gradle.sample", artifactId, version)
+        def binaryAndSourcesInRepo = internalRepo.module("org.gradle.sample", artifactId, version).withModuleMetadata()
         def localRepo = maven(temporaryFolder.createDir("m2_repo"))
-        def binaryAndSourcesLocal = localRepo.module("org.gradle.sample", artifactId, version)
+        def binaryAndSourcesLocal = localRepo.module("org.gradle.sample", artifactId, version).withModuleMetadata()
 
         when:
         args "-Dmaven.repo.local=${localRepo.rootDir.getAbsolutePath()}"
@@ -169,7 +175,7 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
         and:
         binary.assertPublishedAsJavaModule()
         binaryAndSourcesInRepo.assertPublished()
-        binaryAndSourcesInRepo.assertArtifactsPublished "${artifactId}-${version}.jar", "${artifactId}-${version}-sources.jar", "${artifactId}-${version}.pom"
+        binaryAndSourcesInRepo.assertArtifactsPublished "${artifactId}-${version}.jar", "${artifactId}-${version}-sources.jar", "${artifactId}-${version}.pom", "${artifactId}-${version}.module"
         binaryAndSourcesLocal.assertPublished()
 
         where:
@@ -178,6 +184,7 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample("maven-publish/conditional-publishing")
+    @ToBeFixedForInstantExecution
     def "shorthand publish to external repository with #dsl dsl"() {
         given:
         inDirectory(sampleProject.dir.file(dsl))
@@ -196,6 +203,7 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample("maven-publish/conditional-publishing")
+    @ToBeFixedForInstantExecution
     def "shorthand publish for development with #dsl dsl"() {
         given:
         inDirectory(sampleProject.dir.file(dsl))
@@ -216,6 +224,7 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample("maven-publish/publish-artifact")
+    @ToBeFixedForInstantExecution
     def "publishes rpm artifact with #dsl dsl"() {
         given:
         def sampleDir = sampleProject.dir.file(dsl)
@@ -240,6 +249,7 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
     }
 
     @UsesSample("maven-publish/pomGeneration")
+    @ToBeFixedForInstantExecution
     def pomGeneration() {
         given:
         sample sampleProject
@@ -255,6 +265,7 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample("maven-publish/distribution")
+    @ToBeFixedForInstantExecution
     def "publishes distribution archives with #dsl dsl"() {
         given:
         def sampleDir = sampleProject.dir.file(dsl)

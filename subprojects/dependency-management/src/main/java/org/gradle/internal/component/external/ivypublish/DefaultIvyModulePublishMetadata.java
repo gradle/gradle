@@ -104,7 +104,8 @@ public class DefaultIvyModulePublishMetadata implements IvyModulePublishMetadata
                     VERSION_TRANSFORMER.transform(versionConstraint.getPreferredVersion()),
                     VERSION_TRANSFORMER.transform(versionConstraint.getRequiredVersion()),
                     VERSION_TRANSFORMER.transform(versionConstraint.getStrictVersion()),
-                    CollectionUtils.collect(versionConstraint.getRejectedVersions(), VERSION_TRANSFORMER));
+                    CollectionUtils.collect(versionConstraint.getRejectedVersions(), VERSION_TRANSFORMER),
+                    versionConstraint.getBranch());
             ModuleComponentSelector newSelector = DefaultModuleComponentSelector.newSelector(selector.getModuleIdentifier(), transformedConstraint, selector.getAttributes(), selector.getRequestedCapabilities());
             return dependency.withTarget(newSelector);
         }

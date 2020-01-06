@@ -3,6 +3,7 @@ dependencies {
     implementation(project(":binaryCompatibility"))
     implementation(project(":cleanup"))
     implementation(project(":configuration"))
+    implementation(project(":docs"))
     implementation(project(":kotlinDsl"))
     implementation(project(":profiling"))
     implementation(project(":integrationTesting"))
@@ -32,10 +33,6 @@ gradlePlugin {
         register("dependencyVulnerabilities") {
             id = "gradlebuild.dependency-vulnerabilities"
             implementationClass = "org.gradle.gradlebuild.buildquality.DependencyVulnerabilitiesPlugin"
-        }
-        register("noResolutionAtConfigurationTime") {
-            id = "gradlebuild.no-resolution-at-configuration"
-            implementationClass = "org.gradle.gradlebuild.buildquality.NoResolutionAtConfigurationTimePlugin"
         }
         register("taskPropertyValidation") {
             id = "gradlebuild.task-properties-validation"

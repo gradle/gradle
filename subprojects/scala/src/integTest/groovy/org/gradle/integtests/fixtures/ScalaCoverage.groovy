@@ -16,13 +16,8 @@
 
 package org.gradle.integtests.fixtures
 
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-
 class ScalaCoverage {
+    static final String NEWEST = "2.12.10"
 
-    static final boolean USE_SINGLE_VERSION_ONLY = GradleContextualExecuter.isDaemon()
-
-    static final String NEWEST = "2.11.12"
-
-    static final String[] DEFAULT = USE_SINGLE_VERSION_ONLY ? [NEWEST] : ["2.10.7", "2.12.6", NEWEST]
+    static final String[] DEFAULT = [NEWEST, "2.10.7", "2.11.12", "2.13.0", "2.13.1"]
 }

@@ -100,7 +100,7 @@ runtimeClasspath - Runtime classpath of source set 'main'.
         failure.assertHasCause("""Could not find org.test:test:1.2.
 Searched in the following locations:
   - ${m.pom.file.toURL()}
-  - ${m.artifact.file.toURL()}
+If the artifact you are trying to retrieve can be found in the repository but without metadata in 'Maven POM' format, you need to adjust the 'metadataSources { ... }' of the repository declaration.
 Required by:
     project :buildSrc""")
 
@@ -113,7 +113,7 @@ Required by:
         then:
         failure.assertHasDescription("Execution failed for task ':buildSrc:compileJava'.")
         failure.assertHasCause("Could not resolve all files for configuration ':buildSrc:compileClasspath'.")
-        failure.assertHasCause("Could not find test.jar (org.test:test:1.2).")
+        failure.assertHasCause("Could not find test-1.2.jar (org.test:test:1.2).")
 
         where:
         settings                     | display

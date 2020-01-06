@@ -22,12 +22,12 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.execution.ProjectConfigurer
 import org.gradle.initialization.BuildEventConsumer
+import org.gradle.internal.build.event.BuildEventSubscriptions
 import org.gradle.internal.invocation.BuildController
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.tooling.internal.protocol.InternalBuildAction
 import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException
 import org.gradle.tooling.internal.protocol.InternalBuildActionVersion2
-import org.gradle.tooling.internal.provider.BuildClientSubscriptions
 import org.gradle.tooling.internal.provider.ClientProvidedBuildAction
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload
@@ -37,7 +37,7 @@ class ClientProvidedBuildActionRunnerTest extends Specification {
 
     def startParameter = Mock(StartParameterInternal)
     def action = Mock(SerializedPayload)
-    def clientSubscriptions = Mock(BuildClientSubscriptions)
+    def clientSubscriptions = Mock(BuildEventSubscriptions)
     def buildEventConsumer = Mock(BuildEventConsumer)
     def payloadSerializer = Mock(PayloadSerializer)
     def projectConfigurer = Mock(ProjectConfigurer)

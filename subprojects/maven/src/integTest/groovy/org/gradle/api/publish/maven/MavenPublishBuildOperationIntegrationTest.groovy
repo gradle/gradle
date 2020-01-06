@@ -17,6 +17,7 @@
 package org.gradle.api.publish.maven
 
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.internal.resource.ExternalResourceReadBuildOperationType
 import org.gradle.internal.resource.ExternalResourceWriteBuildOperationType
@@ -28,6 +29,7 @@ class MavenPublishBuildOperationIntegrationTest extends AbstractMavenPublishInte
     def buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
     def repo = new MavenHttpRepository(server, mavenRepo)
 
+    @ToBeFixedForInstantExecution
     def "generates build operation events while publishing"() {
         server.start()
 
@@ -64,7 +66,7 @@ class MavenPublishBuildOperationIntegrationTest extends AbstractMavenPublishInte
 
         then:
         def writes1 = buildOperations.all(ExternalResourceWriteBuildOperationType)
-        writes1.size() == 12
+        writes1.size() == 20
         writes1[0].details.location == m1.artifact.uri.toString()
         writes1[0].result.bytesWritten == m1.artifact.file.length()
 
@@ -90,7 +92,7 @@ class MavenPublishBuildOperationIntegrationTest extends AbstractMavenPublishInte
 
         then:
         def writes2 = buildOperations.all(ExternalResourceWriteBuildOperationType)
-        writes2.size() == 12
+        writes2.size() == 20
 
         def reads2 = buildOperations.all(ExternalResourceReadBuildOperationType)
         reads2.size() == 1

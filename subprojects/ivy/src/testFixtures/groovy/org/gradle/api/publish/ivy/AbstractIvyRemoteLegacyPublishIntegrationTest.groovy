@@ -18,6 +18,7 @@
 package org.gradle.api.publish.ivy
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.ProgressLoggingFixture
 import org.gradle.test.fixtures.ivy.IvyDescriptorDependencyExclusion
 import org.gradle.test.fixtures.ivy.RemoteIvyModule
@@ -42,7 +43,13 @@ abstract class AbstractIvyRemoteLegacyPublishIntegrationTest extends AbstractInt
     }
 
     @Issue("GRADLE-3440")
-    public void "can publish using uploadArchives"() {
+    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_TO_CLEANUP)
+    void "can publish using uploadArchives"() {
+        // We expect 'The compile/runtime configuration has been deprecated for removal.' for using this legacy mechanism in the traditional way.
+        executer.expectDeprecationWarning("The compile configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 7.0. Please use the implementation configuration instead.")
+        executer.expectDeprecationWarning("The runtime configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 7.0. Please use the runtimeOnly configuration instead.")
+        executer.expectDeprecationWarning("The uploadArchives task has been deprecated. This is scheduled to be removed in Gradle 7.0. Use the 'ivy-publish' plugin instead")
+
         given:
         settingsFile << 'rootProject.name = "publish"'
         buildFile << """
@@ -83,10 +90,18 @@ uploadArchives {
         // TODO - should not check on each upload to a particular directory
         module.jar.sha1.expectParentCheckdir()
         module.jar.sha1.expectUpload()
+        module.jar.sha256.expectParentCheckdir()
+        module.jar.sha256.expectUpload()
+        module.jar.sha512.expectParentCheckdir()
+        module.jar.sha512.expectUpload()
         module.ivy.expectParentCheckdir()
         module.ivy.expectUpload()
         module.ivy.sha1.expectParentCheckdir()
         module.ivy.sha1.expectUpload()
+        module.ivy.sha256.expectParentCheckdir()
+        module.ivy.sha256.expectUpload()
+        module.ivy.sha512.expectParentCheckdir()
+        module.ivy.sha512.expectUpload()
 
         when:
         run 'uploadArchives'
@@ -120,7 +135,8 @@ uploadArchives {
         progressLogger.uploadProgressLogged(module.ivy.uri)
     }
 
-    public void "does not upload meta-data file when artifact upload fails"() {
+    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_TO_CLEANUP)
+    void "does not upload meta-data file when artifact upload fails"() {
         given:
         settingsFile << 'rootProject.name = "publish"'
         buildFile << """
@@ -141,6 +157,7 @@ uploadArchives {
         module.jar.expectUploadBroken()
 
         when:
+        executer.expectDeprecationWarning("The uploadArchives task has been deprecated. This is scheduled to be removed in Gradle 7.0. Use the 'ivy-publish' plugin instead")
         fails 'uploadArchives'
 
         then:

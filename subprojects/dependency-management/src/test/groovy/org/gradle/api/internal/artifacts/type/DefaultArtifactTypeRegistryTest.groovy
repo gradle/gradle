@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.type
 
+import com.google.common.collect.ImmutableList
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.CollectionCallbackActionDecorator
@@ -66,7 +67,7 @@ class DefaultArtifactTypeRegistryTest extends Specification {
 
         given:
         variant.attributes >> attrs
-        variant.artifacts >> []
+        variant.artifacts >> ImmutableList.of()
 
         expect:
         registry.mapAttributesFor(variant) == attrs
@@ -81,7 +82,7 @@ class DefaultArtifactTypeRegistryTest extends Specification {
 
         given:
         variant.attributes >> attrs
-        variant.artifacts >> [artifact]
+        variant.artifacts >> ImmutableList.of(artifact)
         artifact.name >> artifactName
         artifactName.extension >> "jar"
         artifactName.type >> "jar"
@@ -101,7 +102,7 @@ class DefaultArtifactTypeRegistryTest extends Specification {
 
         given:
         variant.attributes >> attrs
-        variant.artifacts >> [artifact]
+        variant.artifacts >> ImmutableList.of(artifact)
         artifact.name >> artifactName
         artifactName.extension >> "jar"
         artifactName.type >> "jar"
@@ -121,7 +122,7 @@ class DefaultArtifactTypeRegistryTest extends Specification {
 
         given:
         variant.attributes >> attrs
-        variant.artifacts >> [artifact]
+        variant.artifacts >> ImmutableList.of(artifact)
         artifact.name >> artifactName
         artifactName.extension >> "jar"
         artifactName.type >> "jar"
@@ -142,7 +143,7 @@ class DefaultArtifactTypeRegistryTest extends Specification {
 
         given:
         variant.attributes >> attrs
-        variant.artifacts >> [artifact1, artifact2]
+        variant.artifacts >> ImmutableList.of(artifact1, artifact2)
         artifact1.name >> artifactName1
         artifactName1.extension >> "jar"
         artifactName1.type >> "jar"

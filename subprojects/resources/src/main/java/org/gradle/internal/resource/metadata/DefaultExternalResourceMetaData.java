@@ -16,7 +16,7 @@
 
 package org.gradle.internal.resource.metadata;
 
-import org.gradle.internal.hash.HashValue;
+import org.gradle.internal.hash.HashCode;
 
 import javax.annotation.Nullable;
 import java.net.URI;
@@ -27,18 +27,18 @@ public class DefaultExternalResourceMetaData implements ExternalResourceMetaData
     private final Date lastModified;
     private final long contentLength;
     private final String etag;
-    private final HashValue sha1;
+    private final HashCode sha1;
     private final String contentType;
 
     public DefaultExternalResourceMetaData(URI location, long lastModified, long contentLength) {
         this(location, lastModified > 0 ? new Date(lastModified) : null, contentLength, null, null, null);
     }
 
-    public DefaultExternalResourceMetaData(URI location, long lastModified, long contentLength, @Nullable String contentType, @Nullable String etag, @Nullable HashValue sha1) {
+    public DefaultExternalResourceMetaData(URI location, long lastModified, long contentLength, @Nullable String contentType, @Nullable String etag, @Nullable HashCode sha1) {
         this(location, lastModified > 0 ? new Date(lastModified) : null, contentLength, contentType, etag, sha1);
     }
 
-    public DefaultExternalResourceMetaData(URI location, @Nullable Date lastModified, long contentLength, @Nullable String contentType, @Nullable String etag, @Nullable HashValue sha1) {
+    public DefaultExternalResourceMetaData(URI location, @Nullable Date lastModified, long contentLength, @Nullable String contentType, @Nullable String etag, @Nullable HashCode sha1) {
         this.location = location;
         this.lastModified = lastModified;
         this.contentLength = contentLength;
@@ -77,7 +77,7 @@ public class DefaultExternalResourceMetaData implements ExternalResourceMetaData
 
     @Nullable
     @Override
-    public HashValue getSha1() {
+    public HashCode getSha1() {
         return sha1;
     }
 }

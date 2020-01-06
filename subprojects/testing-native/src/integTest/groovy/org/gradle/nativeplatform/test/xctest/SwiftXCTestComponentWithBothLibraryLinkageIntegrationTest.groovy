@@ -16,7 +16,7 @@
 
 package org.gradle.nativeplatform.test.xctest
 
-import org.gradle.nativeplatform.fixtures.app.SourceElement
+import org.gradle.nativeplatform.fixtures.app.MainWithXCTestSourceElement
 import org.gradle.nativeplatform.fixtures.app.SwiftLibWithXCTest
 
 class SwiftXCTestComponentWithBothLibraryLinkageIntegrationTest extends AbstractSwiftXCTestComponentWithTestedComponentIntegrationTest {
@@ -40,7 +40,7 @@ class SwiftXCTestComponentWithBothLibraryLinkageIntegrationTest extends Abstract
     }
 
     @Override
-    protected SourceElement getComponentUnderTest() {
+    protected MainWithXCTestSourceElement getComponentUnderTest() {
         return new SwiftLibWithXCTest()
     }
 }

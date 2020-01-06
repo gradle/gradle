@@ -16,6 +16,7 @@
 
 package org.gradle.performance.results
 
+import org.gradle.performance.results.report.TestPageGenerator
 import spock.lang.Specification
 
 class TestPageGeneratorTest extends Specification {

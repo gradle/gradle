@@ -50,9 +50,15 @@ class MavenFileModule extends AbstractMavenModule {
     }
 
     @Override
+    MavenFileModule withModuleMetadata() {
+        super.withModuleMetadata()
+        return this
+    }
+
+    @Override
     MavenFileModule withNonUniqueSnapshots() {
-        uniqueSnapshots = false;
-        return this;
+        uniqueSnapshots = false
+        return this
     }
 
     @Override
@@ -78,6 +84,7 @@ class MavenFileModule extends AbstractMavenModule {
     protected onPublish(TestFile file) {
         sha1File(file)
         md5File(file)
+        postPublish(file)
     }
 
     @Override
@@ -86,13 +93,13 @@ class MavenFileModule extends AbstractMavenModule {
     }
 
     MavenFileModule removeGradleMetadataRedirection() {
-        if (pomFile.exists() && pomFile.text.contains(MetaDataParser.GRADLE_METADATA_MARKER)) {
-            pomFile.replace(MetaDataParser.GRADLE_METADATA_MARKER, '')
+        if (pomFile.exists() && pomFile.text.contains(MetaDataParser.GRADLE_6_METADATA_MARKER)) {
+            pomFile.replace(MetaDataParser.GRADLE_6_METADATA_MARKER, '')
         }
         this
     }
 
     boolean hasGradleMetadataRedirectionMarker() {
-        pomFile.exists() && pomFile.text.contains(MetaDataParser.GRADLE_METADATA_MARKER)
+        pomFile.exists() && pomFile.text.contains(MetaDataParser.GRADLE_6_METADATA_MARKER)
     }
 }

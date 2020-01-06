@@ -40,6 +40,8 @@ import spock.lang.Specification
 import java.util.jar.JarEntry
 import java.util.jar.JarFile
 
+import spock.lang.Issue
+
 @UsesNativeServices
 @CleanupTestDirectory(fieldName = "tmpDir")
 class RuntimeShadedJarCreatorTest extends Specification {
@@ -108,7 +110,6 @@ org.gradle.api.internal.tasks.CompileServices
         createJarFileWithResources(jarFile5, [
             'org/gradle/reporting/report.js',
             'net/rubygrapefruit/platform/osx-i386/libnative-platform.dylib',
-            'aQute/libg/tuple/packageinfo',
             'org/joda/time/tz/data/Africa/Abidjan'])
         def jarFile6 = inputFilesDir.file('lib6.jar')
         createJarFileWithProviderConfigurationFile(jarFile6, 'org.gradle.internal.other.Service', 'org.gradle.internal.other.ServiceImpl')
@@ -130,8 +131,6 @@ org.gradle.api.internal.tasks.CompileServices
             assert entries*.name == [
                 'org/gradle/MyClass.class',
                 'org/gradle/MySecondClass.class',
-                'aQute/libg/tuple/packageinfo',
-                'org/gradle/internal/impldep/aQute/libg/tuple/packageinfo',
                 'net/rubygrapefruit/platform/osx-i386/libnative-platform.dylib',
                 'org/gradle/reporting/report.js',
                 'org/joda/time/tz/data/Africa/Abidjan',
@@ -143,7 +142,7 @@ org.gradle.api.internal.tasks.CompileServices
                 'META-INF/services/org.gradle.internal.other.Service',
                 'META-INF/.gradle-runtime-shaded']
         }
-        outputJar.md5Hash == "8eb7b9c992e83362a1445585b00a4fd0"
+        outputJar.md5Hash == "84791783853fcd2c66437a674c219bbe"
     }
 
     def "excludes module-info.class from jar"() {
@@ -342,8 +341,7 @@ org.gradle.api.internal.tasks.CompileServices"""
         given:
         def noRelocationResources = ['org/gradle/reporting/report.js',
                                      'net/rubygrapefruit/platform/osx-i386/libnative-platform.dylib']
-        def duplicateResources = ['aQute/libg/tuple/packageinfo',
-                                  'org/joda/time/tz/data/Africa/Abidjan']
+        def duplicateResources = ['org/joda/time/tz/data/Africa/Abidjan']
         def onlyRelocatedResources = [] // None
         def generatedFiles = [GradleRuntimeShadedJarDetector.MARKER_FILENAME]
         def resources = noRelocationResources + duplicateResources + onlyRelocatedResources
@@ -379,6 +377,34 @@ org.gradle.api.internal.tasks.CompileServices"""
             generatedFiles.each { resourceName ->
                 assert jar.getEntry(resourceName)
             }
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/11027")
+    def "relocates multiple third-party impl dependency service providers in the same provider-configuration file"() {
+        given:
+        def inputFilesDir = tmpDir.createDir('inputFiles')
+        def serviceType = 'java.util.spi.ToolProvider'
+        def jarFile = inputFilesDir.file('lib1.jar')
+        def multiLineProviders = 'org.junit.JarToolProvider\norg.jetbrains.ide.JavadocToolProvider\nbsh.Main'
+        createJarFileWithProviderConfigurationFile(jarFile, serviceType, multiLineProviders)
+
+        when:
+        relocatedJarCreator.create(outputJar, [jarFile])
+
+        then:
+        TestFile[] contents = tmpDir.testDirectory.listFiles().findAll { it.isFile() }
+        contents.length == 1
+        def relocatedJar = contents[0]
+        relocatedJar == outputJar
+
+        handleAsJarFile(relocatedJar) { JarFile jar ->
+            JarEntry providerConfigJarEntry = jar.getJarEntry("META-INF/services/$serviceType")
+            IoActions.withResource(jar.getInputStream(providerConfigJarEntry), new Action<InputStream>() {
+                void execute(InputStream inputStream) {
+                    assert inputStream.text == "org.gradle.internal.impldep.org.junit.JarToolProvider\norg.gradle.internal.impldep.org.jetbrains.ide.JavadocToolProvider\norg.gradle.internal.impldep.bsh.Main"
+                }
+            })
         }
     }
 

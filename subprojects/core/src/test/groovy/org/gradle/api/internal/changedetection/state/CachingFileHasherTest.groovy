@@ -16,14 +16,13 @@
 
 package org.gradle.api.internal.changedetection.state
 
-import org.gradle.api.file.FileTreeElement
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.state.CachingFileHasher.FileInfo
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.cache.PersistentIndexedCache
+import org.gradle.internal.file.impl.DefaultFileMetadata
 import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.nativeintegration.filesystem.DefaultFileMetadata
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -145,39 +144,13 @@ class CachingFileHasherTest extends Specification {
         0 * _._
     }
 
-    def hashesFileDetails() {
-        long lastModified = 123l
-        long length = 321l
-        def fileDetails = Mock(FileTreeElement)
-
-        when:
-        def result = hasher.hash(fileDetails)
-
-        then:
-        result == hash
-
-        and:
-        _ * fileDetails.file >> file
-        _ * fileDetails.lastModified >> lastModified
-        _ * fileDetails.size >> length
-        1 * timeStampInspector.timestampCanBeUsedToDetectFileChange(file.absolutePath, lastModified) >> true
-        1 * cache.get(file.absolutePath) >> null
-        1 * target.hash(file) >> hash
-        1 * cache.put(file.absolutePath, _) >> { String key, FileInfo fileInfo ->
-            assert fileInfo.hash == hash
-            assert fileInfo.length == length
-            assert fileInfo.timestamp == lastModified
-        }
-        0 * _._
-    }
-
-    def hashesGivenFileMetadataSnapshot() {
+    def hashesGivenFileLengthAndLastModified() {
         long lastModified = 123l
         long length = 321l
         def fileDetails = DefaultFileMetadata.file(lastModified, length)
 
         when:
-        def result = hasher.hash(file, fileDetails)
+        def result = hasher.hash(file, fileDetails.length, fileDetails.lastModified)
 
         then:
         result == hash

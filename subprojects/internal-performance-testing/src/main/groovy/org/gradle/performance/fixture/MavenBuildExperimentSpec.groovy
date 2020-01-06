@@ -16,9 +16,14 @@
 
 package org.gradle.performance.fixture
 
+import com.google.common.collect.ImmutableList
 import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
 import org.gradle.performance.results.BuildDisplayInfo
+import org.gradle.profiler.BuildMutator
+import org.gradle.profiler.InvocationSettings
+
+import java.util.function.Function
 
 @CompileStatic
 @EqualsAndHashCode
@@ -83,6 +88,16 @@ class MavenBuildExperimentSpec extends BuildExperimentSpec {
         MavenBuilder invocationCustomizer(InvocationCustomizer invocationCustomizer) {
             this.invocationCustomizer = invocationCustomizer
             this
+        }
+
+        @Override
+        ImmutableList<Function<InvocationSettings, BuildMutator>> getBuildMutators() {
+            throw new UnsupportedOperationException("Maven for Gradle profiler is not yet supported")
+        }
+
+        @Override
+        ImmutableList<String> getMeasuredBuildOperations() {
+            throw new UnsupportedOperationException("Maven for Gradle profiler is not yet supported")
         }
 
         BuildExperimentSpec build() {

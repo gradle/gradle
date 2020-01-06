@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
@@ -39,7 +40,7 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
             buildFile << """
                 def usage = Attribute.of('usage', String)
                 def artifactType = Attribute.of('artifactType', String)
-    
+
                 allprojects {
                     dependencies {
                         attributesSchema {
@@ -52,30 +53,34 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
                         }
                     }
                     dependencies {
-                        registerTransform {
+                        registerTransform(SynchronizedTransform) {
                             from.attribute(artifactType, "jar")
                             to.attribute(artifactType, "size")
-                            artifactTransform(SynchronizedTransform)
                         }
                     }
                     configurations {
                         compile
-                    }            
+                    }
                 }
-    
-                class SynchronizedTransform extends ArtifactTransform {
-                    List<File> transform(File input) {
+
+                import org.gradle.api.artifacts.transform.TransformParameters
+
+                abstract class SynchronizedTransform implements TransformAction<TransformParameters.None> {
+                    @InputArtifact
+                    abstract Provider<FileSystemLocation> getInputArtifact()
+
+                    void transform(TransformOutputs outputs) {
+                        def input = inputArtifact.get().asFile
                         ${server.callFromBuildUsingExpression("input.name")}
                         if (input.name.startsWith("bad")) {
                             throw new RuntimeException("Transform Failure: " + input.name)
-                        }        
+                        }
                         if (!input.exists()) {
                             throw new IllegalStateException("Input file \${input} does not exist")
                         }
-                        def output = new File(outputDirectory, input.name + ".txt")
+                        def output = outputs.file(input.name + ".txt")
                         println "Transforming \${input.name} to \${output.name}"
                         output.text = String.valueOf(input.length())
-                        return [output]
                     }
                 }
             """
@@ -130,12 +135,12 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
             include "lib1", "lib2", "lib3"
         """
 
-        buildFile << """            
+        buildFile << """
             configure([project(":lib1"), project(":lib2"), project(":lib3")]) {
 
                 task jar(type: Jar) {
-                    archiveName = "\${project.name}.jar"
-                    destinationDir = buildDir
+                    archiveFileName = "\${project.name}.jar"
+                    destinationDirectory = buildDir
                 }
                 artifacts {
                     compile jar
@@ -359,25 +364,26 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
         fails ":resolve"
 
         then:
-        failure.assertHasCause("Failed to transform file 'bad-b.jar' to match attributes {artifactType=size}")
-        failure.assertHasCause("Failed to transform file 'bad-c.jar' to match attributes {artifactType=size}")
+        failure.assertHasCause("Failed to transform bad-b.jar to match attributes {artifactType=size}")
+        failure.assertHasCause("Failed to transform bad-c.jar to match attributes {artifactType=size}")
     }
 
+    @ToBeFixedForInstantExecution
     def "only one transformer execution per workspace"() {
 
         settingsFile << """
             include "lib", "app1", "app2"
         """
 
-        buildFile << """            
+        buildFile << """
             project(":lib") {
                 dependencies {
                     compile files("lib1.jar")
                 }
 
                 task jar2(type: Jar) {
-                    archiveName = 'lib2.jar'
-                    destinationDir = buildDir
+                    archiveFileName = 'lib2.jar'
+                    destinationDirectory = buildDir
                 }
                 artifacts {
                     compile jar2
@@ -411,6 +417,7 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
         handle.waitForFinish()
     }
 
+    @ToBeFixedForInstantExecution
     def "only one process can run immutable transforms at the same time"() {
         given:
         List<BuildTestFile> builds = (1..3).collect { idx ->
@@ -429,7 +436,7 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
                         }.artifacts
                         inputs.files(artifacts.artifactFiles)
 
-                        doLast { 
+                        doLast {
                             ${server.callFromBuildUsingExpression('"resolveStarted_" + project.name')}
                             assert artifacts.artifactFiles.collect { it.name } == [project.name + '.jar.txt']
                         }

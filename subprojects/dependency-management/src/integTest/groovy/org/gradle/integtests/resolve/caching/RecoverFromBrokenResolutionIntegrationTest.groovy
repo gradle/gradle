@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.caching
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
@@ -51,6 +52,7 @@ class RecoverFromBrokenResolutionIntegrationTest extends AbstractHttpDependencyR
             """
     }
 
+    @ToBeFixedForInstantExecution
     def "can run offline mode after hitting broken repo url"() {
         given:
         buildFileWithSnapshotDependency()
@@ -84,6 +86,7 @@ class RecoverFromBrokenResolutionIntegrationTest extends AbstractHttpDependencyR
         file('libs/projectA-1.0-SNAPSHOT.jar').assertIsCopyOf(module.artifact.file)
     }
 
+    @ToBeFixedForInstantExecution
     def "can run offline mode after connection problem with repo url using unique snapshot version"() {
         given:
         buildFileWithSnapshotDependency()
@@ -106,7 +109,7 @@ class RecoverFromBrokenResolutionIntegrationTest extends AbstractHttpDependencyR
         and:
         failure.assertHasDescription("Execution failed for task ':retrieve'.")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
-        failure.assertThatCause(matchesRegexp(".*?Connect to localhost:${port} (\\[.*\\])? failed: Connection refused.*"))
+        failure.assertThatCause(matchesRegexp(".*?Connect to 127.0.0.1:${port} (\\[.*\\])? failed: Connection refused.*"))
 
         when:
         server.resetExpectations()
@@ -117,6 +120,7 @@ class RecoverFromBrokenResolutionIntegrationTest extends AbstractHttpDependencyR
         file('libs/projectA-1.0-SNAPSHOT.jar').assertIsCopyOf(module.artifact.file)
     }
 
+    @ToBeFixedForInstantExecution
     def "can run offline mode after connection problem with repo url using non unique snapshot version"() {
         given:
         buildFileWithSnapshotDependency()
@@ -139,7 +143,7 @@ class RecoverFromBrokenResolutionIntegrationTest extends AbstractHttpDependencyR
         and:
         failure.assertHasDescription("Execution failed for task ':retrieve'.")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
-        failure.assertThatCause(matchesRegexp(".*?Connect to localhost:${port} (\\[.*\\])? failed: Connection refused.*"))
+        failure.assertThatCause(matchesRegexp(".*?Connect to 127.0.0.1:${port} (\\[.*\\])? failed: Connection refused.*"))
 
         when:
         server.resetExpectations()
@@ -150,6 +154,7 @@ class RecoverFromBrokenResolutionIntegrationTest extends AbstractHttpDependencyR
         file('libs/projectA-1.0-SNAPSHOT.jar').assertIsCopyOf(module.artifact.file)
     }
 
+    @ToBeFixedForInstantExecution
     def "can run offline mode after authentication fails on remote repo"() {
         given:
         buildFileWithSnapshotDependency()
@@ -186,6 +191,7 @@ class RecoverFromBrokenResolutionIntegrationTest extends AbstractHttpDependencyR
         file('libs/projectA-1.0-SNAPSHOT.jar').assertIsCopyOf(module.artifact.file)
     }
 
+    @ToBeFixedForInstantExecution
     def "can run offline mode after connection problem with repo when using ivy changing modules"() {
         given:
         def ivyRepo = ivyHttpRepo("ivyRepo")
@@ -232,7 +238,7 @@ class RecoverFromBrokenResolutionIntegrationTest extends AbstractHttpDependencyR
         and:
         failure.assertHasDescription("Execution failed for task ':retrieve'.")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
-        failure.assertThatCause(matchesRegexp(".*?Connect to localhost:${port} (\\[.*\\])? failed: Connection refused.*"))
+        failure.assertThatCause(matchesRegexp(".*?Connect to 127.0.0.1:${port} (\\[.*\\])? failed: Connection refused.*"))
 
         when:
         server.resetExpectations()
@@ -243,6 +249,7 @@ class RecoverFromBrokenResolutionIntegrationTest extends AbstractHttpDependencyR
         file('libs/projectA-1.0.jar').assertIsCopyOf(ivyModule.jarFile)
     }
 
+    @ToBeFixedForInstantExecution
     def "can run offline mode after connection problem with repo when using ivy dynamic version"() {
         given:
         def ivyRepo = ivyHttpRepo("ivyRepo")
@@ -285,8 +292,8 @@ class RecoverFromBrokenResolutionIntegrationTest extends AbstractHttpDependencyR
         and:
         failure.assertHasDescription("Execution failed for task ':retrieve'.")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
-        failure.assertHasCause("Could not list versions using Ivy pattern 'http://localhost:${port}/ivyRepo/[organisation]/[module]/[revision]/ivy-[revision].xml")
-        failure.assertThatCause(matchesRegexp(".*?Connect to localhost:${port} (\\[.*\\])? failed: Connection refused.*"))
+        failure.assertHasCause("Could not list versions using Ivy pattern 'http://127.0.0.1:${port}/ivyRepo/[organisation]/[module]/[revision]/ivy-[revision].xml")
+        failure.assertThatCause(matchesRegexp(".*?Connect to 127.0.0.1:${port} (\\[.*\\])? failed: Connection refused.*"))
 
         when:
         server.resetExpectations()

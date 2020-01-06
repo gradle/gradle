@@ -27,6 +27,7 @@ import org.gradle.api.internal.tasks.properties.GetInputPropertiesVisitor
 import org.gradle.api.internal.tasks.properties.InputFilePropertyType
 import org.gradle.api.internal.tasks.properties.PropertyValue
 import org.gradle.api.internal.tasks.properties.PropertyVisitor
+import org.gradle.api.internal.tasks.properties.annotations.NoOpPropertyAnnotationHandler
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.FileNormalizer
 import org.gradle.api.tasks.Internal
@@ -49,12 +50,11 @@ class DefaultTaskInputsTest extends Specification {
     private final fileCollectionFactory = TestFiles.fileCollectionFactory(temporaryFolder.testDirectory)
 
     private def taskStatusNagger = Stub(TaskMutator) {
-        mutate(_, _) >> { String method, Object action ->
-            if (action instanceof Runnable) {
-                action.run()
-            } else if (action instanceof Callable) {
-                return action.call()
-            }
+        mutate(_ as String, _ as Runnable) >> { String method, Runnable action ->
+            action.run()
+        }
+        mutate(_ as String, _ as Callable) >> { String method, Callable<?> action ->
+            return action.call()
         }
     }
     def task = Mock(TaskInternal) {
@@ -66,8 +66,18 @@ class DefaultTaskInputsTest extends Specification {
         getLocalState() >> Stub(TaskLocalStateInternal)
     }
     def cacheFactory = new TestCrossBuildInMemoryCacheFactory()
-    def typeAnnotationMetadataStore = new DefaultTypeAnnotationMetadataStore([], [:], [Object, GroovyObject], [Object, GroovyObject], [ConfigurableFileCollection, Property], Internal, { false }, cacheFactory)
-    def walker = new DefaultPropertyWalker(new DefaultTypeMetadataStore([], [], [], typeAnnotationMetadataStore, cacheFactory))
+    def typeAnnotationMetadataStore = new DefaultTypeAnnotationMetadataStore(
+        [],
+        [:],
+        ["java", "groovy"],
+        [],
+        [Object, GroovyObject],
+        [ConfigurableFileCollection, Property],
+        [Internal],
+        { false },
+        cacheFactory
+    )
+    def walker = new DefaultPropertyWalker(new DefaultTypeMetadataStore([], [new NoOpPropertyAnnotationHandler(Internal)], [], typeAnnotationMetadataStore, cacheFactory))
     private final DefaultTaskInputs inputs = new DefaultTaskInputs(task, taskStatusNagger, walker, fileCollectionFactory)
 
     def "default values"() {
@@ -326,7 +336,7 @@ class DefaultTaskInputsTest extends Specification {
     def inputProperties() {
         def visitor = new GetInputPropertiesVisitor("test")
         TaskPropertyUtils.visitProperties(walker, task, visitor)
-        return visitor.propertyValuesFactory.create()
+        return visitor.propertyValuesSupplier.get()
     }
 
     def inputFileProperties() {

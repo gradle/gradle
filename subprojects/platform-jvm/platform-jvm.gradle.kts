@@ -2,14 +2,14 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
     `java-library`
-    gradlebuild.`strict-compile`
     gradlebuild.classycle
 }
 
 dependencies {
     implementation(project(":baseServices"))
     implementation(project(":logging"))
-    implementation(project(":files"))
+    implementation(project(":fileCollections"))
+    implementation(project(":execution"))
     implementation(project(":processServices"))
     implementation(project(":coreApi"))
     implementation(project(":modelCore"))
@@ -27,7 +27,14 @@ dependencies {
     implementation(library("asm"))
 
     testImplementation(project(":native"))
+    testImplementation(project(":snapshots"))
     testImplementation(library("ant"))
+    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":diagnostics")))
+    testImplementation(testFixtures(project(":platformBase")))
+    testImplementation(testFixtures(project(":platformNative")))
+
+    testRuntimeOnly(project(":runtimeApiInfo"))
 
     integTestImplementation(library("slf4j_api"))
 }
@@ -36,9 +43,3 @@ gradlebuildJava {
     moduleType = ModuleType.CORE
 }
 
-testFixtures {
-    from(":core")
-    from(":diagnostics")
-    from(":platformBase")
-    from(":platformNative")
-}

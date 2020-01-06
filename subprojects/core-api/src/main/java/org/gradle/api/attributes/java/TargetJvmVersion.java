@@ -15,7 +15,6 @@
  */
 package org.gradle.api.attributes.java;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.attributes.Attribute;
 
 /**
@@ -24,7 +23,6 @@ import org.gradle.api.attributes.Attribute;
  *
  * @since 5.3
  */
-@Incubating
 public interface TargetJvmVersion {
 
     /**

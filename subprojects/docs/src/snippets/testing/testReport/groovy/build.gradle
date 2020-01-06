@@ -1,0 +1,26 @@
+// tag::test-report[]
+subprojects {
+    apply plugin: 'java'
+
+// end::test-report[]
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        testImplementation 'junit:junit:4.12'
+    }
+
+// tag::test-report[]
+    // Disable the test report for the individual test task
+    test {
+        reports.html.enabled = false
+    }
+}
+
+task testReport(type: TestReport) {
+    destinationDir = file("$buildDir/reports/allTests")
+    // Include the results from the `test` task in all subprojects
+    reportOn subprojects*.test
+}
+// end::test-report[]

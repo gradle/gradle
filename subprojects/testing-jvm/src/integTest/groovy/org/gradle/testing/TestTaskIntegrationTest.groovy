@@ -16,6 +16,7 @@
 
 package org.gradle.testing
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
@@ -112,7 +113,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         buildFile << """
             apply plugin: 'java'
             ${jcenterRepository()}
-            dependencies { testCompile 'junit:junit:4.12' }
+            dependencies { testImplementation 'junit:junit:4.12' }
             test {
                 maxParallelForks = $maxParallelForks
             }
@@ -140,8 +141,8 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
                 ${jcenterRepository()}
             }
             dependencies { 
-                testCompile 'junit:junit:4.12'
-                testCompile project(":dependency") 
+                testImplementation 'junit:junit:4.12'
+                testImplementation project(":dependency") 
             }
         """
         settingsFile << """
@@ -181,7 +182,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
             ${jcenterRepository()}
 
             dependencies { 
-                testCompile 'junit:junit:4.12' 
+                testImplementation 'junit:junit:4.12' 
             }
         """
         file("src/test/java/MyTest.java") << """
@@ -212,6 +213,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/3627")
+    @ToBeFixedForInstantExecution
     def "can reference properties from TestTaskReports when using @CompileStatic"() {
         buildFile << """
             import groovy.transform.CompileStatic
@@ -260,7 +262,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
             ${jcenterRepository()}
 
             dependencies {
-                testCompile 'junit:junit:4.12'
+                testImplementation 'junit:junit:4.12'
             }
 
             sourceCompatibility = 1.9

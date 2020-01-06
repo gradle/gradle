@@ -15,8 +15,7 @@
  */
 package org.gradle.plugins.signing
 
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import spock.lang.IgnoreIf
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -27,6 +26,7 @@ class NoSigningCredentialsIntegrationSpec extends SigningIntegrationSpec {
         executer.withArguments("-info")
     }
 
+    @ToBeFixedForInstantExecution
     def "trying to perform a signing operation without a signatory produces reasonable error"() {
         when:
         buildFile << """
@@ -36,13 +36,14 @@ class NoSigningCredentialsIntegrationSpec extends SigningIntegrationSpec {
         """ << uploadArchives()
 
         then:
+        executer.expectDeprecationWarning()
         fails ":uploadArchives"
 
         and:
         failureHasCause "Cannot perform signing task ':signJar' because it has no configured signatory"
     }
 
-    @IgnoreIf({GradleContextualExecuter.parallel})
+    @ToBeFixedForInstantExecution
     def "trying to perform a signing operation without a signatory when not required does not error, and other artifacts still uploaded"() {
         when:
         buildFile << """
@@ -53,10 +54,11 @@ class NoSigningCredentialsIntegrationSpec extends SigningIntegrationSpec {
         """ << uploadArchives() << signDeploymentPom()
 
         then:
+        executer.expectDeprecationWarnings(2)
         succeeds ":uploadArchives"
 
         and:
-        ":signArchives" in skippedTasks
+        skipped(":signArchives")
 
         and:
         jarUploaded()
@@ -68,10 +70,11 @@ class NoSigningCredentialsIntegrationSpec extends SigningIntegrationSpec {
         buildFile << keyInfo.addAsPropertiesScript()
 
         then:
+        executer.expectDeprecationWarnings(2)
         succeeds ":uploadArchives"
 
         and:
-        ":signArchives" in nonSkippedTasks
+        executedAndNotSkipped(":signArchives")
 
         and:
         jarUploaded()
@@ -82,6 +85,7 @@ class NoSigningCredentialsIntegrationSpec extends SigningIntegrationSpec {
 
     @Issue("https://github.com/gradle/gradle/issues/2267")
     @Unroll
+    @ToBeFixedForInstantExecution
     def "trying to perform a signing operation for null signing properties when not required does not error"() {
         when:
         buildFile << """
@@ -96,10 +100,11 @@ class NoSigningCredentialsIntegrationSpec extends SigningIntegrationSpec {
         """
 
         then:
+        executer.expectDeprecationWarnings(2)
         succeeds ":uploadArchives"
 
         and:
-        ":signArchives" in skippedTasks
+        skipped(":signArchives")
 
         and:
         jarUploaded()

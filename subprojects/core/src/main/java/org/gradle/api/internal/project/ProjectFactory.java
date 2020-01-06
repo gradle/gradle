@@ -16,59 +16,64 @@
 
 package org.gradle.api.internal.project;
 
-import org.gradle.api.Action;
-import org.gradle.api.Project;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.TextResourceScriptSource;
 import org.gradle.initialization.DefaultProjectDescriptor;
+import org.gradle.internal.build.BuildState;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.resource.BasicTextResourceLoader;
+import org.gradle.internal.resource.TextFileResourceLoader;
 import org.gradle.internal.resource.TextResource;
 import org.gradle.util.NameValidator;
+import org.gradle.util.Path;
 
+import javax.annotation.Nullable;
 import java.io.File;
 
 public class ProjectFactory implements IProjectFactory {
     private final Instantiator instantiator;
+    private final TextFileResourceLoader textFileResourceLoader;
     private final ProjectRegistry<ProjectInternal> projectRegistry;
-    private final BasicTextResourceLoader resourceLoader = new BasicTextResourceLoader();
+    private final BuildState owner;
+    private final ProjectStateRegistry projectStateRegistry;
 
-    public ProjectFactory(Instantiator instantiator, ProjectRegistry<ProjectInternal> projectRegistry) {
+    public ProjectFactory(Instantiator instantiator, TextFileResourceLoader textFileResourceLoader, ProjectRegistry<ProjectInternal> projectRegistry, BuildState owner, ProjectStateRegistry projectStateRegistry) {
         this.instantiator = instantiator;
+        this.textFileResourceLoader = textFileResourceLoader;
         this.projectRegistry = projectRegistry;
+        this.owner = owner;
+        this.projectStateRegistry = projectStateRegistry;
     }
 
     @Override
-    public DefaultProject createProject(ProjectDescriptor projectDescriptor, ProjectInternal parent, GradleInternal gradle, ClassLoaderScope selfClassLoaderScope, ClassLoaderScope baseClassLoaderScope) {
+    public ProjectInternal createProject(GradleInternal gradle, ProjectDescriptor projectDescriptor, @Nullable ProjectInternal parent, ClassLoaderScope selfClassLoaderScope, ClassLoaderScope baseClassLoaderScope) {
+        Path projectPath = ((DefaultProjectDescriptor) projectDescriptor).path();
+        ProjectState projectContainer = projectStateRegistry.stateFor(owner.getBuildIdentifier(), projectPath);
+
         File buildFile = projectDescriptor.getBuildFile();
-        TextResource resource = resourceLoader.loadFile("build file", buildFile);
+        TextResource resource = textFileResourceLoader.loadFile("build file", buildFile);
         ScriptSource source = new TextResourceScriptSource(resource);
         DefaultProject project = instantiator.newInstance(DefaultProject.class,
-                projectDescriptor.getName(),
-                parent,
-                projectDescriptor.getProjectDir(),
-                buildFile,
-                source,
-                gradle,
-                gradle.getServiceRegistryFactory(),
-                selfClassLoaderScope,
-                baseClassLoaderScope
+            projectDescriptor.getName(),
+            parent,
+            projectDescriptor.getProjectDir(),
+            buildFile,
+            source,
+            gradle,
+            projectContainer,
+            gradle.getServiceRegistryFactory(),
+            selfClassLoaderScope,
+            baseClassLoaderScope
         );
-        project.beforeEvaluate(new Action<Project>() {
-            @Override
-            public void execute(Project project) {
-                NameValidator.validate(project.getName(), "project name", DefaultProjectDescriptor.INVALID_NAME_IN_INCLUDE_HINT);
-            }
-        });
+        project.beforeEvaluate(p -> NameValidator.validate(project.getName(), "project name", DefaultProjectDescriptor.INVALID_NAME_IN_INCLUDE_HINT));
 
         if (parent != null) {
             parent.addChildProject(project);
         }
         projectRegistry.addProject(project);
-
+        projectContainer.attachMutableModel(project);
         return project;
     }
 }

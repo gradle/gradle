@@ -91,11 +91,7 @@ public class JdkTools {
                 clazz = isolatedToolsLoader.loadClass("javax.tools.ToolProvider");
                 try {
                     return (JavaCompiler) clazz.getDeclaredMethod("getSystemJavaCompiler").invoke(null);
-                } catch (IllegalAccessException e) {
-                    cannotCreateJavaCompiler(e);
-                } catch (InvocationTargetException e) {
-                    cannotCreateJavaCompiler(e);
-                } catch (NoSuchMethodException e) {
+                } catch (IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
                     cannotCreateJavaCompiler(e);
                 }
             } else {

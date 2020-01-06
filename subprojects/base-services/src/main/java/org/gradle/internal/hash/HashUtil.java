@@ -79,10 +79,6 @@ public class HashUtil {
         return createHash(scriptText, "MD5").asCompactString();
     }
 
-    public static String compactStringFor(HashCode hashCode) {
-        return compactStringFor(hashCode.getBytes());
-    }
-
     public static String compactStringFor(byte[] digest) {
         return new HashValue(digest).asCompactString();
     }
@@ -93,6 +89,10 @@ public class HashUtil {
 
     public static HashValue sha1(InputStream inputStream) {
         return createHash(inputStream, "SHA1");
+    }
+
+    public static HashValue md5(File file) {
+        return createHash(file, "MD5");
     }
 
     public static HashValue sha1(File file) {
@@ -109,6 +109,14 @@ public class HashUtil {
 
     public static HashValue sha256(File file) {
         return createHash(file, "SHA-256");
+    }
+
+    public static HashValue sha512(InputStream inputStream) {
+        return createHash(inputStream, "SHA-512");
+    }
+
+    public static HashValue sha512(File file) {
+        return createHash(file, "SHA-512");
     }
 
 }

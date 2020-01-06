@@ -31,16 +31,17 @@ import java.util.Set;
 public class ClassDependentsAccumulator {
 
     private final Set<String> dependenciesToAll = Sets.newHashSet();
-    private final Map<String, Set<String>> dependents = new HashMap<String, Set<String>>();
+    private final Map<String, Set<String>> privateDependents = new HashMap<String, Set<String>>();
+    private final Map<String, Set<String>> accessibleDependents = new HashMap<String, Set<String>>();
     private final ImmutableMap.Builder<String, IntSet> classesToConstants = ImmutableMap.builder();
     private final Set<String> seenClasses = Sets.newHashSet();
     private String fullRebuildCause;
 
     public void addClass(ClassAnalysis classAnalysis) {
-        addClass(classAnalysis.getClassName(), classAnalysis.isDependencyToAll(), classAnalysis.getClassDependencies(), classAnalysis.getConstants());
+        addClass(classAnalysis.getClassName(), classAnalysis.isDependencyToAll(), classAnalysis.getPrivateClassDependencies(), classAnalysis.getAccessibleClassDependencies(), classAnalysis.getConstants());
     }
 
-    public void addClass(String className, boolean dependencyToAll, Iterable<String> classDependencies, IntSet constants) {
+    public void addClass(String className, boolean dependencyToAll, Iterable<String> privateClassDependencies, Iterable<String> accessibleClassDependencies, IntSet constants) {
         if (seenClasses.contains(className)) {
             // same classes may be found in different classpath trees/jars
             // and we keep only the first one
@@ -52,16 +53,22 @@ public class ClassDependentsAccumulator {
         }
         if (dependencyToAll) {
             dependenciesToAll.add(className);
-            dependents.remove(className);
+            privateDependents.remove(className);
+            accessibleDependents.remove(className);
         }
-        for (String dependency : classDependencies) {
+        for (String dependency : privateClassDependencies) {
             if (!dependency.equals(className) && !dependenciesToAll.contains(dependency)) {
-                addDependency(dependency, className);
+                addDependency(privateDependents, dependency, className);
+            }
+        }
+        for (String dependency : accessibleClassDependencies) {
+            if (!dependency.equals(className) && !dependenciesToAll.contains(dependency)) {
+                addDependency(accessibleDependents, dependency, className);
             }
         }
     }
 
-    private Set<String> rememberClass(String className) {
+    private Set<String> rememberClass(Map<String, Set<String>> dependents, String className) {
         Set<String> d = dependents.get(className);
         if (d == null) {
             d = Sets.newHashSet();
@@ -72,15 +79,23 @@ public class ClassDependentsAccumulator {
 
     @VisibleForTesting
     Map<String, DependentsSet> getDependentsMap() {
-        if (dependenciesToAll.isEmpty() && dependents.isEmpty()) {
+        if (dependenciesToAll.isEmpty() && privateDependents.isEmpty() && accessibleDependents.isEmpty()) {
             return Collections.emptyMap();
         }
         ImmutableMap.Builder<String, DependentsSet> builder = ImmutableMap.builder();
         for (String s : dependenciesToAll) {
             builder.put(s, DependentsSet.dependencyToAll());
         }
-        for (Map.Entry<String, Set<String>> entry : dependents.entrySet()) {
-            builder.put(entry.getKey(), DependentsSet.dependentClasses(entry.getValue()));
+        Set<String> collected = Sets.newHashSet();
+        for (Map.Entry<String, Set<String>> entry : accessibleDependents.entrySet()) {
+            if (collected.add(entry.getKey())) {
+                builder.put(entry.getKey(), DependentsSet.dependentClasses(privateDependents.getOrDefault(entry.getKey(), Collections.emptySet()), entry.getValue()));
+            }
+        }
+        for (Map.Entry<String, Set<String>> entry : privateDependents.entrySet()) {
+            if (collected.add(entry.getKey())) {
+                builder.put(entry.getKey(), DependentsSet.dependentClasses(entry.getValue(), accessibleDependents.getOrDefault(entry.getKey(), Collections.emptySet())));
+            }
         }
         return builder.build();
     }
@@ -90,8 +105,8 @@ public class ClassDependentsAccumulator {
         return classesToConstants.build();
     }
 
-    private void addDependency(String dependency, String dependent) {
-        Set<String> dependents = rememberClass(dependency);
+    private void addDependency(Map<String, Set<String>> dependentsMap, String dependency, String dependent) {
+        Set<String> dependents = rememberClass(dependentsMap, dependency);
         dependents.add(dependent);
     }
 

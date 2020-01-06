@@ -39,7 +39,7 @@ class RunningPlayApp {
         return new URL("http://localhost:$httpPort/${path}")
     }
 
-    def playUrlError(String path='', int timeout=30) {
+    def playUrlError(String path='', int timeout=60) {
         requireHttpPort()
         HttpURLConnection connection
         ConcurrentTestUtil.poll(timeout) {

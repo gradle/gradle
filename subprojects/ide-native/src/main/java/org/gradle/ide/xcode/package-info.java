@@ -19,5 +19,4 @@
  *
  * @since 4.2
  */
-@org.gradle.api.Incubating
 package org.gradle.ide.xcode;

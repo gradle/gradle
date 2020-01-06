@@ -27,4 +27,19 @@ public class DirectDependencyMetadataAdapter extends AbstractDependencyMetadataA
     public DirectDependencyMetadataAdapter(ImmutableAttributesFactory attributesFactory, List<ModuleDependencyMetadata> container, int originalIndex) {
         super(attributesFactory, container, originalIndex);
     }
+
+    @Override
+    public void endorseStrictVersions() {
+        updateMetadata(getOriginalMetadata().withEndorseStrictVersions(true));
+    }
+
+    @Override
+    public void doNotEndorseStrictVersions() {
+        updateMetadata(getOriginalMetadata().withEndorseStrictVersions(false));
+    }
+
+    @Override
+    public boolean isEndorsingStrictVersions() {
+        return getOriginalMetadata().isEndorsingStrictVersions();
+    }
 }

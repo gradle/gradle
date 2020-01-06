@@ -16,7 +16,6 @@
 
 package org.gradle.api.component;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 
 /**
@@ -24,7 +23,6 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
  *
  * @since 4.7
  */
-@Incubating
 public interface ComponentWithCoordinates extends SoftwareComponent {
     /**
      * The publication coordinates for this component.

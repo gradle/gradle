@@ -16,12 +16,14 @@
 
 package org.gradle.launcher.continuous
 
+import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import spock.lang.Ignore
 import spock.lang.Unroll
 
 @TestReproducibleArchives
-class ArchivesContinuousIntegrationTest extends Java7RequiringContinuousIntegrationTest {
+class ArchivesContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
     def "creating zips"() {
         given:
         def sourceDir = file("src")
@@ -37,7 +39,7 @@ class ArchivesContinuousIntegrationTest extends Java7RequiringContinuousIntegrat
         buildFile << """
             apply plugin: 'base'
             task zip(type: Zip) {
-                archiveName = "zip.zip"
+                archiveFileName = "zip.zip"
                 from("src")
             }
         """
@@ -69,24 +71,25 @@ class ArchivesContinuousIntegrationTest extends Java7RequiringContinuousIntegrat
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "using compressed files as inputs - #source - readonly #readonly"() {
         given:
         def packDir = file("pack").createDir()
         def outputDir = file("unpack")
         def sourceFile = file(source)
 
+        def permissions = readonly
+            ? """
+                fileMode 0644
+                dirMode 0755
+              """
+            : ""
+
         buildFile << """
             task unpack(type: Sync) {
                 from($type("${sourceFile.toURI()}"))
                 into("unpack")
-"""
-        if (readonly) {
-            buildFile << """
-                fileMode 0644
-                dirMode 0755
-            """
-        }
-        buildFile << """
+                ${permissions}
             }
         """
 

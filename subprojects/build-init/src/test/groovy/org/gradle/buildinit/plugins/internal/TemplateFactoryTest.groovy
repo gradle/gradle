@@ -16,7 +16,7 @@
 
 package org.gradle.buildinit.plugins.internal
 
-import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileTreeInternal
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework
@@ -25,14 +25,14 @@ import spock.lang.Specification
 
 class TemplateFactoryTest extends Specification {
 
-    FileResolver fileResolver = Mock()
+    FileCollectionFactory fileCollectionFactory = Mock()
     TemplateOperationFactory templateOperationFactory = Mock()
     TemplateOperationFactory.TemplateOperationBuilder templateOperationBuilder = Mock(TemplateOperationFactory.TemplateOperationBuilder)
 
     def "generates from template within sourceSet"() {
         setup:
         def settings = new InitSettings("project", BuildInitDsl.GROOVY, "", BuildInitTestFramework.NONE)
-        def factory = new TemplateFactory(settings, Language.withName(language), fileResolver, templateOperationFactory)
+        def factory = new TemplateFactory(settings, Language.withName(language), fileCollectionFactory, templateOperationFactory)
 
         when:
         factory.fromSourceTemplate("someTemplate/SomeClazz.somelang.template", sourceSet)
@@ -55,7 +55,7 @@ class TemplateFactoryTest extends Specification {
     def "generates source file with package from template"() {
         setup:
         def settings = new InitSettings("project", BuildInitDsl.GROOVY, "my.lib", BuildInitTestFramework.NONE)
-        def factory = new TemplateFactory(settings, Language.withName(language), fileResolver, templateOperationFactory)
+        def factory = new TemplateFactory(settings, Language.withName(language), fileCollectionFactory, templateOperationFactory)
 
         when:
         factory.fromSourceTemplate("someTemplate/SomeClazz.somelang.template", sourceSet)
@@ -78,7 +78,7 @@ class TemplateFactoryTest extends Specification {
     def "can specify output class name"() {
         setup:
         def settings = new InitSettings("project", BuildInitDsl.GROOVY, packageName, BuildInitTestFramework.NONE)
-        def factory = new TemplateFactory(settings, Language.withName("somelang"), fileResolver, templateOperationFactory)
+        def factory = new TemplateFactory(settings, Language.withName("somelang"), fileCollectionFactory, templateOperationFactory)
 
         when:
         factory.fromSourceTemplate("someTemplate/SomeClazz.somelang.template") {
@@ -105,16 +105,18 @@ class TemplateFactoryTest extends Specification {
         def testSourceDirectory = Mock(FileTreeInternal)
         def delegate = Mock(TemplateOperation)
         def settings = new InitSettings("project", BuildInitDsl.GROOVY, "my.lib", BuildInitTestFramework.NONE)
-        def factory = new TemplateFactory(settings, Language.withName("somelang"), fileResolver, templateOperationFactory)
+        def factory = new TemplateFactory(settings, Language.withName("somelang"), fileCollectionFactory, templateOperationFactory)
 
         when:
         factory.whenNoSourcesAvailable(delegate).generate()
 
         then:
+        _ * mainSourceDirectory.asFileTree >> mainSourceDirectory
         1 * mainSourceDirectory.empty >> noMainSources
+        _ * testSourceDirectory.asFileTree >> testSourceDirectory
         _ * testSourceDirectory.empty >> noTestSources
-        1 * fileResolver.resolveFilesAsTree("src/main/somelang") >> mainSourceDirectory
-        _ * fileResolver.resolveFilesAsTree("src/test/somelang") >> testSourceDirectory
+        1 * fileCollectionFactory.resolving(_, "src/main/somelang") >> mainSourceDirectory
+        _ * fileCollectionFactory.resolving(_, "src/test/somelang") >> testSourceDirectory
         delegateInvocation * delegate.generate()
 
         where:

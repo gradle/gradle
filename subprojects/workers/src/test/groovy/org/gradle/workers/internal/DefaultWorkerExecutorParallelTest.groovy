@@ -16,22 +16,29 @@
 
 package org.gradle.workers.internal
 
-import com.google.common.util.concurrent.ListenableFutureTask
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.model.ObjectFactory
+import org.gradle.internal.Actions
 import org.gradle.internal.Factory
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.work.AsyncWorkTracker
 import org.gradle.internal.work.ConditionalExecutionQueue
 import org.gradle.internal.work.WorkerLeaseRegistry
+import org.gradle.process.internal.JavaForkOptionsFactory
+import org.gradle.process.internal.JavaForkOptionsInternal
 import org.gradle.process.internal.worker.child.WorkerDirectoryProvider
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.util.UsesNativeServices
-import org.gradle.workers.IsolationMode
+import org.gradle.workers.WorkAction
+import org.gradle.workers.WorkParameters
 import org.gradle.workers.WorkerExecutionException
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Unroll
+
+import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RETAIN_PROJECT_LOCKS
 
 @UsesNativeServices
 class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
@@ -43,31 +50,38 @@ class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
     def buildOperationWorkerRegistry = Mock(WorkerLeaseRegistry)
     def buildOperationExecutor = Mock(BuildOperationExecutor)
     def asyncWorkerTracker = Mock(AsyncWorkTracker)
-    def forkOptionsFactory = TestFiles.execFactory()
+    def forkOptionsFactory = new TestForkOptionsFactory(TestFiles.execFactory())
+    def objectFactory = Stub(ObjectFactory) {
+        fileCollection() >> { TestFiles.fileCollectionFactory().configurableFiles() }
+    }
     def workerDirectoryProvider = Stub(WorkerDirectoryProvider) {
         getWorkingDirectory() >> { temporaryFolder.root }
     }
     def executionQueueFactory = Mock(WorkerExecutionQueueFactory)
     def executionQueue = Mock(ConditionalExecutionQueue)
-    ListenableFutureTask task
+    def classLoaderStructureProvider = Mock(ClassLoaderStructureProvider)
+    def actionExecutionSpecFactory = Mock(ActionExecutionSpecFactory)
+    def instantiator = Mock(Instantiator)
     DefaultWorkerExecutor workerExecutor
 
     def setup() {
         _ * executionQueueFactory.create() >> executionQueue
-        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, workerInProcessFactory, workerNoIsolationFactory, forkOptionsFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkerTracker, workerDirectoryProvider, executionQueueFactory)
+        _ * instantiator.newInstance(DefaultWorkerSpec) >> { args -> new DefaultWorkerSpec() }
+        _ * instantiator.newInstance(DefaultClassLoaderWorkerSpec) >> { args -> new DefaultClassLoaderWorkerSpec(objectFactory) }
+        _ * instantiator.newInstance(DefaultProcessWorkerSpec, _) >> { args -> new DefaultProcessWorkerSpec(args[1][0], objectFactory) }
+        _ * instantiator.newInstance(DefaultWorkerExecutor.DefaultWorkQueue, _, _, _) >> { args -> new DefaultWorkerExecutor.DefaultWorkQueue(args[1][0], args[1][1], args[1][2]) }
+        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, workerInProcessFactory, workerNoIsolationFactory, forkOptionsFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkerTracker, workerDirectoryProvider, executionQueueFactory, classLoaderStructureProvider, actionExecutionSpecFactory, instantiator, temporaryFolder.root)
+        _ * actionExecutionSpecFactory.newIsolatedSpec(_, _, _, _, _) >> Mock(IsolatedParametersActionExecutionSpec)
     }
 
     @Unroll
-    def "work can be submitted concurrently in IsolationMode.#isolationMode"() {
+    def "work can be submitted concurrently using #isolationMode"() {
         when:
         async {
             6.times {
                 start {
                     thread.blockUntil.allStarted
-                    workerExecutor.submit(TestRunnable.class) { config ->
-                        config.isolationMode = isolationMode
-                        config.params = []
-                    }
+                    workerExecutor."${isolationMode}"().submit(TestExecution.class, Actions.doNothing())
                 }
             }
             instant.allStarted
@@ -78,7 +92,7 @@ class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
         6 * executionQueue.submit(_)
 
         where:
-        isolationMode << IsolationMode.values()
+        isolationMode << ["noIsolation", "classLoaderIsolation", "processIsolation"]
     }
 
     def "can wait on results to complete"() {
@@ -86,7 +100,7 @@ class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
         workerExecutor.await()
 
         then:
-        1 * asyncWorkerTracker.waitForCompletion(_, false)
+        1 * asyncWorkerTracker.waitForCompletion(_, RETAIN_PROJECT_LOCKS)
     }
 
     def "all errors are thrown when waiting on multiple results"() {
@@ -94,7 +108,7 @@ class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
         workerExecutor.await()
 
         then:
-        1 * asyncWorkerTracker.waitForCompletion(_, false) >> {
+        1 * asyncWorkerTracker.waitForCompletion(_, RETAIN_PROJECT_LOCKS) >> {
             throw new DefaultMultiCauseException(null, new RuntimeException(), new RuntimeException())
         }
 
@@ -111,9 +125,35 @@ class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
         }
     }
 
-    static class TestRunnable implements Runnable {
+    abstract static class TestExecution implements WorkAction<WorkParameters.None> {
         @Override
-        void run() {
+        void execute() {
+
+        }
+    }
+
+    class TestForkOptionsFactory implements JavaForkOptionsFactory {
+        private final JavaForkOptionsFactory delegate
+
+        TestForkOptionsFactory(JavaForkOptionsFactory delegate) {
+            this.delegate = delegate
+        }
+
+        @Override
+        JavaForkOptionsInternal newDecoratedJavaForkOptions() {
+            return newJavaForkOptions()
+        }
+
+        @Override
+        JavaForkOptionsInternal newJavaForkOptions() {
+            def forkOptions = delegate.newJavaForkOptions()
+            forkOptions.setWorkingDir(temporaryFolder.root)
+            return forkOptions
+        }
+
+        @Override
+        JavaForkOptionsInternal immutableCopy(JavaForkOptionsInternal options) {
+            return delegate.immutableCopy(options)
         }
     }
 }

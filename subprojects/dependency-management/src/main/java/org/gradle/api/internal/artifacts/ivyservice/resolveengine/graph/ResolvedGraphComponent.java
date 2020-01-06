@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
+import org.gradle.api.artifacts.result.ResolvedVariantResult;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -55,5 +56,5 @@ public interface ResolvedGraphComponent {
     @Nullable
     String getRepositoryName();
 
-    List<ResolvedVariantDetails> getResolvedVariants();
+    List<ResolvedVariantResult> getResolvedVariants();
 }

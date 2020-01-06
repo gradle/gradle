@@ -40,9 +40,6 @@
                 <td>create</td>
             </tr>
             <tr>
-                <td>platform</td>
-            </tr>
-            <tr>
                 <td>enforcedPlatform</td>
             </tr>
         </table>

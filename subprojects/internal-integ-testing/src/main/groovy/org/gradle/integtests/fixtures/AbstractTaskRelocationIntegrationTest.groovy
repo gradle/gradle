@@ -18,6 +18,7 @@ package org.gradle.integtests.fixtures
 
 abstract class AbstractTaskRelocationIntegrationTest extends AbstractIntegrationSpec {
 
+    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
     def "task is relocatable"() {
         setupProjectInOriginalLocation()
 
@@ -25,25 +26,25 @@ abstract class AbstractTaskRelocationIntegrationTest extends AbstractIntegration
         succeeds taskName
         def originalResults = extractResults()
         then:
-        nonSkippedTasks.contains taskName
+        executedAndNotSkipped taskName
 
         when:
         succeeds taskName
         then:
-        skippedTasks.contains taskName
+        skipped taskName
 
         when:
         moveFilesAround()
         succeeds taskName
         then:
-        skippedTasks.contains(taskName)
+        skipped(taskName)
 
         when:
         removeResults()
         succeeds taskName
         def movedResults = extractResults()
         then:
-        nonSkippedTasks.contains taskName
+        executedAndNotSkipped taskName
         assertResultsEqual originalResults, movedResults
     }
 

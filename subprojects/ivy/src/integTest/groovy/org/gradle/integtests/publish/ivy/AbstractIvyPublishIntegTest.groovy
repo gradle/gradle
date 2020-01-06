@@ -17,8 +17,6 @@
 package org.gradle.integtests.publish.ivy
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FeaturePreviewsFixture
-import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.test.fixtures.ArtifactResolutionExpectationSpec
 import org.gradle.test.fixtures.GradleMetadataAwarePublishingSpec
 import org.gradle.test.fixtures.ModuleArtifact
@@ -29,10 +27,6 @@ import org.gradle.test.fixtures.ivy.IvyModule
 
 
 abstract class AbstractIvyPublishIntegTest extends AbstractIntegrationSpec implements GradleMetadataAwarePublishingSpec {
-
-    def setup() {
-        prepare()
-    }
 
     protected static IvyJavaModule javaLibrary(IvyFileModule ivyFileModule) {
         return new IvyJavaModule(ivyFileModule)
@@ -68,7 +62,6 @@ abstract class AbstractIvyPublishIntegTest extends AbstractIntegrationSpec imple
     private def doResolveArtifacts(ResolveParams params) {
         // Replace the existing buildfile with one for resolving the published module
         settingsFile.text = "rootProject.name = 'resolve'"
-        FeaturePreviewsFixture.enableGradleMetadata(settingsFile)
         def attributes = params.variant == null ?
             "" :
             """ 
@@ -117,15 +110,14 @@ abstract class AbstractIvyPublishIntegTest extends AbstractIntegrationSpec imple
             repositories {
                 ivy { 
                     url "${ivyRepo.uri}"
+                    metadataSources {
+                        ${params.resolveModuleMetadata?'gradleMetadata':'ivyDescriptor'}()
+                        ${params.resolveModuleMetadata?'':'ignoreGradleMetadataRedirection()'}
+                    }
                 }
             }
 
             dependencies {
-               attributesSchema { 
-                getMatchingStrategy(Category.CATEGORY_ATTRIBUTE)
-                   .disambiguationRules
-                   .add(PlatformSupport.PreferRegularPlatform)
-               }
                resolve($dependencyNotation) $extraArtifacts
                $optional
             }
@@ -155,7 +147,7 @@ abstract class AbstractIvyPublishIntegTest extends AbstractIntegrationSpec imple
         String classifier
         String ext
         String variant
-        boolean resolveModuleMetadata = GradleMetadataResolveRunner.isExperimentalResolveBehaviorEnabled()
+        boolean resolveModuleMetadata
         boolean expectFailure
 
         List<String> optionalFeatureCapabilities = []
@@ -175,8 +167,8 @@ abstract class AbstractIvyPublishIntegTest extends AbstractIntegrationSpec imple
         }
 
         void validate() {
-            singleValidation(true, withModuleMetadataSpec)
             singleValidation(false, withoutModuleMetadataSpec)
+            singleValidation(true, withModuleMetadataSpec)
         }
 
         void singleValidation(boolean withModuleMetadata, SingleArtifactResolutionResultSpec expectationSpec) {

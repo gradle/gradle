@@ -16,14 +16,16 @@
 
 package org.gradle.instantexecution
 
-import org.gradle.api.Project
-import org.gradle.api.Task
+import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.execution.plan.Node
 
 
 interface InstantExecutionBuild {
 
-    fun createProject(path: String): Project
+    val gradle: GradleInternal
+
+    fun createProject(path: String)
 
     fun getProject(path: String): ProjectInternal
 
@@ -31,5 +33,5 @@ interface InstantExecutionBuild {
 
     fun registerProjects()
 
-    fun scheduleTasks(tasks: Iterable<Task>)
+    fun scheduleNodes(nodes: Collection<Node>)
 }

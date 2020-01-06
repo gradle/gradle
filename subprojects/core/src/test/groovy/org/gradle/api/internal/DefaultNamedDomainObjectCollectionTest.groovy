@@ -38,6 +38,8 @@ class DefaultNamedDomainObjectCollectionTest extends AbstractNamedDomainObjectCo
     final Bean c = new BeanSub1("c")
     final Bean d = new BeanSub2("d")
     final boolean externalProviderAllowed = true
+    boolean directElementAdditionAllowed = true
+    boolean elementRemovalAllowed = true
     final boolean supportsBuildOperations = true
 
     def setup() {

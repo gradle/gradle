@@ -24,6 +24,8 @@ import org.gradle.test.fixtures.file.TestFile
 trait TasksWithInputsAndOutputs {
     abstract TestFile getBuildFile()
 
+    abstract TestFile getBuildKotlinFile()
+
     def taskTypeWithOutputFileProperty() {
         buildFile << """
             class FileProducer extends DefaultTask {
@@ -39,6 +41,27 @@ trait TasksWithInputsAndOutputs {
                         file.delete()
                     } else {
                         file.text = content
+                    }
+                }
+            }
+        """
+    }
+
+    def kotlinTaskTypeWithOutputFileProperty() {
+        buildKotlinFile << """
+            abstract class FileProducer: DefaultTask() {
+                @get:OutputFile
+                abstract val output: RegularFileProperty
+                @get:Input
+                var content = "content" // set to empty string to delete file
+            
+                @TaskAction
+                fun go() {
+                    val file = output.get().asFile
+                    if (content.isBlank()) {
+                        file.delete()
+                    } else {
+                        file.writeText(content)
                     }
                 }
             }
@@ -120,6 +143,36 @@ trait TasksWithInputsAndOutputs {
         """
     }
 
+    def taskTypeWithInputListProperty() {
+        buildFile << """
+            class InputTask extends DefaultTask {
+                @Input
+                final ListProperty<Integer> inValue = project.objects.listProperty(Integer)
+                @OutputFile
+                final RegularFileProperty outFile = project.objects.fileProperty()
+                @TaskAction
+                def go() {
+                    outFile.get().asFile.text = inValue.get().collect { it + 10 }.join(",")
+                }
+            }
+        """
+    }
+
+    def taskTypeWithInputMapProperty() {
+        buildFile << """
+            class InputTask extends DefaultTask {
+                @Input
+                final MapProperty<String, Integer> inValue = project.objects.mapProperty(String, Integer)
+                @OutputFile
+                final RegularFileProperty outFile = project.objects.fileProperty()
+                @TaskAction
+                def go() {
+                    outFile.get().asFile.text = inValue.get().collect { k, v -> "\$k=\${v + 10}" }.join(",")
+                }
+            }
+        """
+    }
+
     def taskTypeWithInputFileProperty() {
         buildFile << """
             class InputFileTask extends DefaultTask {
@@ -135,16 +188,31 @@ trait TasksWithInputsAndOutputs {
         """
     }
 
-    def taskTypeWithInputFilesProperty() {
+    def taskTypeWithInputFileCollection() {
         buildFile << """
             class InputFilesTask extends DefaultTask {
                 @InputFiles
-                final inFiles = project.files()
+                final ConfigurableFileCollection inFiles = project.files()
                 @OutputFile
                 final RegularFileProperty outFile = project.objects.fileProperty()
                 @TaskAction
                 def go() {
                     outFile.get().asFile.text = inFiles*.text.sort().join(',')
+                }
+            }
+        """
+    }
+
+    def taskTypeWithInputFileListProperty() {
+        buildFile << """
+            class InputFilesTask extends DefaultTask {
+                @InputFiles
+                final ListProperty<FileSystemLocation> inFiles = project.objects.listProperty(FileSystemLocation)
+                @OutputFile
+                final RegularFileProperty outFile = project.objects.fileProperty()
+                @TaskAction
+                def go() {
+                    outFile.get().asFile.text = inFiles.get()*.asFile.text.sort().join(',')
                 }
             }
         """

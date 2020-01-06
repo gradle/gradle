@@ -16,13 +16,11 @@
 
 package org.gradle.ide.visualstudio;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectSet;
 
 /**
  * The configuration for mapping a set of native components to a Visual Studio project.
  */
-@Incubating
 public interface VisualStudioExtension {
     /**
      * The {@link VisualStudioProject}s generated.

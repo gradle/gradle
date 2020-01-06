@@ -95,7 +95,7 @@ assert f.files as List == [file("testdir")]
         "'testdir'"                       | _
     }
 
-    def "gives reasonable error message when value cannot be converted to file collection"() {
+    def "gives reasonable error message when resolving file collection that contains unsupported element"() {
         buildFile << """
 def f = files({[12]})
 f.files.each { println it }

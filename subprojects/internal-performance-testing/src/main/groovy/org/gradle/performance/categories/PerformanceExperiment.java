@@ -20,5 +20,5 @@ package org.gradle.performance.categories;
  * A performance test that is only there for informational purposes, e.g. comparing
  * two different ways of building a project.
  */
-public interface PerformanceExperiment extends PerformanceRegressionTest {
+public interface PerformanceExperiment extends PerformanceTest {
 }

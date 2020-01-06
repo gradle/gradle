@@ -40,7 +40,6 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.plugins.signing.signatory.Signatory;
 import org.gradle.plugins.signing.type.SignatureType;
-import org.gradle.util.SingleMessageLogger;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -71,22 +70,6 @@ public class Sign extends DefaultTask implements SignatureSpec {
         onlyIf(task -> isRequired() || getSignatory() != null);
     }
 
-    @Internal
-    @Deprecated
-    public Iterable<File> getInputFiles() {
-        SingleMessageLogger.nagUserOfDiscontinuedMethod("Sign.getInputFiles()",
-            "Please use Sign.getSignatures() and Signature.getToSign() instead.");
-        return Iterables.transform(signatures, Signature::getToSign);
-    }
-
-    @Internal
-    @Deprecated
-    public Map<String, File> getOutputFiles() {
-        SingleMessageLogger.nagUserOfDiscontinuedMethod("Sign.getOutputFiles()",
-            "Please use Sign.getSignatures() and Signature.getFile() instead.");
-        return signatures.stream().collect(toMap(Signature::toKey, Signature::getFile));
-    }
-
     /**
      * Configures the task to sign the archive produced for each of the given tasks (which must be archive tasks).
      */
@@ -103,7 +86,7 @@ public class Sign extends DefaultTask implements SignatureSpec {
 
     private void signTask(final AbstractArchiveTask archiveTask) {
         dependsOn(archiveTask);
-        addSignature(new Signature(archiveTask::getArchivePath, archiveTask::getClassifier, this, this));
+        addSignature(new Signature(() -> archiveTask.getArchiveFile().get().getAsFile(), () -> archiveTask.getArchiveClassifier().getOrNull(), this, this));
     }
 
     /**
@@ -122,7 +105,18 @@ public class Sign extends DefaultTask implements SignatureSpec {
     }
 
     private void signArtifact(final PublicationArtifact publicationArtifact) {
-        addSignature(new Signature(publicationArtifact, publicationArtifact::getFile, null, null, this, this));
+        if (publicationArtifactCanBeSigned(publicationArtifact)) {
+            addSignature(new Signature(publicationArtifact, publicationArtifact::getFile, null, null, this, this));
+        } else {
+            addSignature(new InvalidSignature(publicationArtifact, publicationArtifact::getFile, this));
+        }
+    }
+
+    private boolean publicationArtifactCanBeSigned(PublicationArtifact publicationArtifact) {
+        if (publicationArtifact.getFile().getName().equals("module.json")) {
+            return !String.valueOf(getProject().getVersion()).endsWith("-SNAPSHOT");
+        }
+        return true;
     }
 
     /**
@@ -169,7 +163,6 @@ public class Sign extends DefaultTask implements SignatureSpec {
      *
      * @since 4.8
      */
-    @Incubating
     public void sign(Publication... publications) {
         for (Publication publication : publications) {
             PublicationInternal<?> publicationInternal = (PublicationInternal<?>) publication;
@@ -224,7 +217,7 @@ public class Sign extends DefaultTask implements SignatureSpec {
             throw new InvalidUserDataException("Cannot perform signing task \'" + getPath() + "\' because it has no configured signatory");
         }
 
-        for (Signature signature : signatures) {
+        for (Signature signature : sanitizedSignatures().values()) {
             signature.generate();
         }
     }
@@ -244,7 +237,14 @@ public class Sign extends DefaultTask implements SignatureSpec {
     @Nested
     @Incubating
     public Map<String, Signature> getSignaturesByKey() {
-        return signatures.stream().collect(toMap(Signature::toKey, identity()));
+        return sanitizedSignatures();
+    }
+
+    /**
+     * Returns signatures mapped by their key with duplicated and non-existing inputs removed.
+     */
+    private Map<String, Signature> sanitizedSignatures() {
+        return signatures.matching(signature -> signature.getToSign().exists()).stream().collect(toMap(Signature::toKey, identity(), (signature, duplicate) -> signature));
     }
 
     /**
@@ -255,10 +255,11 @@ public class Sign extends DefaultTask implements SignatureSpec {
      */
     @Internal
     public Signature getSingleSignature() {
-        if (signatures.size() == 1) {
-            return signatures.iterator().next();
+        Map<String, Signature> sanitizedSignatures = sanitizedSignatures();
+        if (sanitizedSignatures.size() == 1) {
+            return sanitizedSignatures.values().iterator().next();
         }
-        throw new IllegalStateException("Expected %s to contain exactly one signature, however, it contains " + signatures.size() + " signatures.");
+        throw new IllegalStateException("Expected %s to contain exactly one signature, however, it contains " + sanitizedSignatures.size() + " signatures.");
     }
 
     @Inject
@@ -273,7 +274,7 @@ public class Sign extends DefaultTask implements SignatureSpec {
     @Internal
     public FileCollection getFilesToSign() {
         return getFileCollectionFactory().fixed("Task \'" + getPath() + "\' files to sign",
-            Lists.newLinkedList(Iterables.filter(getInputFiles(), Predicates.notNull())));
+            Lists.newLinkedList(Iterables.filter(Iterables.transform(signatures, Signature::getToSign), Predicates.notNull())));
     }
 
     /**

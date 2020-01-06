@@ -16,12 +16,14 @@
 
 package org.gradle.plugins.ide.idea
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.plugins.ide.AbstractIdeIntegrationTest
 import org.junit.Test
 
 class IdeaDependencyLockingIntegrationTest extends AbstractIdeIntegrationTest {
 
     @Test
+    @ToBeFixedForInstantExecution
     void "does not break when lockfile is out of date"() {
         //given
         def mvnRepo = maven(file("repo"))
@@ -47,7 +49,7 @@ configurations {
 }
 
 dependencies {
-    compile 'groupOne:artifactTwo:[2.0,3.0)'
+    implementation 'groupOne:artifactTwo:[2.0,3.0)'
 }
 """
         def content = getFile([print : true], 'root.iml').text
@@ -58,6 +60,7 @@ dependencies {
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     void "does not break when extra dependency not in lockfile is defined"() {
         //given
         def mvnRepo = maven(file("repo"))
@@ -83,8 +86,8 @@ configurations {
 }
 
 dependencies {
-    compile 'groupOne:artifactOne:[1.0,2.0)'
-    compile 'groupOne:artifactTwo:[2.0,3.0)'
+    implementation 'groupOne:artifactOne:[1.0,2.0)'
+    implementation 'groupOne:artifactTwo:[2.0,3.0)'
 }
 """
         def content = getFile([print : true], 'root.iml').text

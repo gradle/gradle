@@ -9,6 +9,8 @@ plugins {
 }
 
 dependencies {
+    api(project(":files"))
+
     implementation(project(":baseServices"))
 
     implementation(library("nativePlatform"))
@@ -16,15 +18,15 @@ dependencies {
     implementation(library("guava"))
     implementation(library("commons_io"))
     implementation(library("jansi"))
+
+    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":logging")))
+
+    jmhImplementation(project(":files"))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.WORKER
-}
-
-testFixtures {
-    from(":core")
-    from(":logging")
 }
 
 jmh {

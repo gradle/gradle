@@ -31,6 +31,13 @@ final class DefaultExcludeAllOf extends DefaultCompositeExclude implements Exclu
     }
 
     @Override
+    int mask() {
+        return 1877062907;
+    }
+
+    private Boolean mayExcludeArtifacts;
+
+    @Override
     protected String getDisplayName() {
         return "all of";
     }
@@ -47,7 +54,11 @@ final class DefaultExcludeAllOf extends DefaultCompositeExclude implements Exclu
 
     @Override
     public boolean mayExcludeArtifacts() {
-        return components().allMatch(ExcludeSpec::mayExcludeArtifacts);
+        if (mayExcludeArtifacts != null) {
+            return mayExcludeArtifacts;
+        }
+        mayExcludeArtifacts = components().allMatch(ExcludeSpec::mayExcludeArtifacts);
+        return mayExcludeArtifacts;
     }
 
 }

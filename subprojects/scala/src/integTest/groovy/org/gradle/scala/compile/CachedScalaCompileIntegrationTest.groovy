@@ -17,6 +17,7 @@
 package org.gradle.scala.compile
 
 import org.gradle.api.tasks.compile.AbstractCachedCompileIntegrationTest
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.scala.ScalaCompilationFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
@@ -41,7 +42,7 @@ class CachedScalaCompileIntegrationTest extends AbstractCachedCompileIntegration
             ${mavenCentralRepository()}
 
             dependencies {
-                compile group: 'org.scala-lang', name: 'scala-library', version: '2.11.12'
+                implementation group: 'org.scala-lang', name: 'scala-library', version: '2.11.12'
             }
         """.stripIndent()
 
@@ -55,6 +56,7 @@ class CachedScalaCompileIntegrationTest extends AbstractCachedCompileIntegration
         }
     }
 
+    @ToBeFixedForInstantExecution
     def "joint Java and Scala compilation can be cached"() {
         given:
         buildScript """
@@ -65,7 +67,7 @@ class CachedScalaCompileIntegrationTest extends AbstractCachedCompileIntegration
             ${mavenCentralRepository()}
             
             dependencies {
-                compile group: 'org.scala-lang', name: 'scala-library', version: '2.11.12'
+                implementation group: 'org.scala-lang', name: 'scala-library', version: '2.11.12'
             }
         """
         file('src/main/java/RequiredByScala.java') << """
@@ -137,6 +139,7 @@ class CachedScalaCompileIntegrationTest extends AbstractCachedCompileIntegration
         compiledScalaClass.exists()
     }
 
+    @ToBeFixedForInstantExecution
     def "incremental compilation works with caching"() {
         def warmupDir = testDirectory.file('warmupCache')
         setupProjectInDirectory(warmupDir)
@@ -195,6 +198,7 @@ class CachedScalaCompileIntegrationTest extends AbstractCachedCompileIntegration
         classes.analysisFile.assertIsFile()
     }
 
+    @ToBeFixedForInstantExecution
     def "stale outputs are cleaned up before the first compilation after loading from cache"() {
         createJavaClass("Class1")
         def source2 = createJavaClass("Class2", "proto")
@@ -239,6 +243,7 @@ class CachedScalaCompileIntegrationTest extends AbstractCachedCompileIntegration
     }
 
     @Requires(TestPrecondition.FIX_TO_WORK_ON_JAVA9) // Zinc cannot do incremental compilation on Java 9, yet
+    @ToBeFixedForInstantExecution
     def "zinc handles removal of stale output files after loading from cache"() {
         createJavaClass("Class1")
         def source2 = createJavaClass("Class2")

@@ -26,7 +26,15 @@ import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 
 public class ClassLoaderVisitor {
     private static final String JAVA_CLASS_PATH = "java.class.path";
-    private final ClassLoader stopAt = getSystemClassLoader() == null ? null : getSystemClassLoader().getParent();
+    private final ClassLoader stopAt;
+
+    public ClassLoaderVisitor() {
+        this(getSystemClassLoader() == null ? null : getSystemClassLoader().getParent());
+    }
+
+    public ClassLoaderVisitor(ClassLoader stopAt) {
+        this.stopAt = stopAt;
+    }
 
     public void visit(ClassLoader classLoader) {
         if (classLoader == stopAt) {

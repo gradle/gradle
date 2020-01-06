@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import build.futureKotlin
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
-    `kotlin-dsl-module`
+    `java-library`
+    gradlebuild.classycle
+    gradlebuild.`strict-compile`
 }
 
 description = "Kotlin DSL Tooling Models for IDEs"
@@ -27,5 +28,5 @@ gradlebuildJava {
 }
 
 dependencies {
-    compileOnly(futureKotlin("stdlib-jdk8"))
+    api(library("jsr305"))
 }

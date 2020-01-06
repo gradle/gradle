@@ -16,25 +16,82 @@
 
 package org.gradle.api.internal.provider;
 
+import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-import org.gradle.util.DeprecationLogger;
+import org.gradle.internal.Describables;
+import org.gradle.internal.DisplayName;
 
 public abstract class AbstractProperty<T> extends AbstractMinimalProvider<T> implements PropertyInternal<T> {
     private enum State {
-        InitialValue, Convention, Mutable, FinalLenient, FinalStrict
+        ImplicitValue, ExplicitValue, Final
     }
 
-    private State state = State.InitialValue;
+    private static final DisplayName DEFAULT_DISPLAY_NAME = Describables.of("this property");
+    private static final DisplayName DEFAULT_VALIDATION_DISPLAY_NAME = Describables.of("a property");
+
+    private State state = State.ImplicitValue;
     private boolean finalizeOnNextGet;
+    private boolean disallowChanges;
     private Task producer;
+    private DisplayName displayName;
+
+    @Override
+    public void attachDisplayName(DisplayName displayName) {
+        this.displayName = displayName;
+    }
+
+    protected DisplayName getDisplayName() {
+        if (displayName == null) {
+            return DEFAULT_DISPLAY_NAME;
+        }
+        return displayName;
+    }
+
+    protected DisplayName getValidationDisplayName() {
+        if (displayName == null) {
+            return DEFAULT_VALIDATION_DISPLAY_NAME;
+        }
+        return displayName;
+    }
 
     @Override
     public void attachProducer(Task task) {
         if (this.producer != null && this.producer != task) {
-            throw new IllegalStateException("This property already has a producer task associated with it.");
+            throw new IllegalStateException(String.format("%s already has a producer task associated with it.", getDisplayName().getCapitalizedDisplayName()));
         }
         this.producer = task;
+    }
+
+    protected abstract ValueSupplier getSupplier();
+
+    /**
+     * Returns a diagnostic string describing the current source of value of this property. Should not realize the value.
+     */
+    protected abstract String describeContents();
+
+    // This method is final - implement describeContents() instead
+    @Override
+    public final String toString() {
+        if (displayName != null) {
+            return displayName.toString();
+        } else {
+            return describeContents();
+        }
+    }
+
+    @Override
+    public void visitProducerTasks(Action<? super Task> visitor) {
+        if (producer != null) {
+            visitor.execute(producer);
+        } else {
+            getSupplier().visitProducerTasks(visitor);
+        }
+    }
+
+    @Override
+    public boolean isValueProducedByTask() {
+        return getSupplier().isValueProducedByTask();
     }
 
     @Override
@@ -43,19 +100,31 @@ public abstract class AbstractProperty<T> extends AbstractMinimalProvider<T> imp
             context.add(producer);
             return true;
         }
-        return false;
+        return getSupplier().maybeVisitBuildDependencies(context);
     }
 
     @Override
     public void finalizeValue() {
-        if (state != State.FinalStrict) {
+        if (state != State.Final) {
             makeFinal();
         }
-        state = State.FinalStrict;
+        state = State.Final;
+        disallowChanges = true;
     }
 
     @Override
-    public void finalizeValueOnReadAndWarnAboutChanges() {
+    public void disallowChanges() {
+        disallowChanges = true;
+    }
+
+    @Override
+    public void finalizeValueOnRead() {
+        finalizeOnNextGet = true;
+    }
+
+    @Override
+    public void implicitFinalizeValue() {
+        disallowChanges = true;
         finalizeOnNextGet = true;
     }
 
@@ -67,12 +136,12 @@ public abstract class AbstractProperty<T> extends AbstractMinimalProvider<T> imp
      * Call prior to reading the value of this property.
      */
     protected void beforeRead() {
-        if (state == State.FinalLenient || state == State.FinalStrict) {
+        if (state == State.Final) {
             return;
         }
         if (finalizeOnNextGet) {
             makeFinal();
-            state = State.FinalLenient;
+            state = State.Final;
         }
     }
 
@@ -80,38 +149,43 @@ public abstract class AbstractProperty<T> extends AbstractMinimalProvider<T> imp
      * Call prior to mutating the value of this property.
      */
     protected boolean beforeMutate() {
-        if (state == State.FinalStrict) {
-            throw new IllegalStateException("The value for this property is final and cannot be changed any further.");
-        } else if (state == State.FinalLenient) {
-            DeprecationLogger.nagUserOfDiscontinuedInvocation("Changing the value for a property with a final value");
-            return false;
-        } else if (state == State.Convention) {
-            applyDefaultValue();
-            state = State.InitialValue;
-        }
-        return true;
-    }
-
-    /**
-     * Call immediately after mutating the value of this property.
-     */
-    protected void afterMutate() {
-        if (state == State.InitialValue || state == State.Convention) {
-            state = State.Mutable;
-        }
-    }
-
-    /**
-     * Call prior to applying a convention of this property.
-     */
-    protected boolean shouldApplyConvention() {
-        if (!beforeMutate()) {
-            return false;
-        }
-        if (state == State.InitialValue) {
-            state = State.Convention;
+        if (canMutate()) {
+            if (state == State.ImplicitValue) {
+                applyDefaultValue();
+                state = State.ExplicitValue;
+            }
             return true;
         }
-        return state == State.Convention;
+        return false;
+    }
+
+    /**
+     * Call prior to discarding the value of this property.
+     */
+    protected boolean beforeReset() {
+        if (canMutate()) {
+            state = State.ImplicitValue;
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Call prior to applying a convention to this property.
+     */
+    protected boolean shouldApplyConvention() {
+        if (canMutate()) {
+            return state == State.ImplicitValue;
+        }
+        return false;
+    }
+
+    private boolean canMutate() {
+        if (state == State.Final) {
+            throw new IllegalStateException(String.format("The value for %s is final and cannot be changed any further.", getDisplayName().getDisplayName()));
+        } else if (disallowChanges) {
+            throw new IllegalStateException(String.format("The value for %s cannot be changed any further.", getDisplayName().getDisplayName()));
+        }
+        return true;
     }
 }

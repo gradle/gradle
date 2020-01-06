@@ -17,6 +17,8 @@
 package org.gradle.api.internal.provider;
 
 import com.google.common.base.Preconditions;
+import org.gradle.api.Action;
+import org.gradle.api.Task;
 import org.gradle.api.internal.provider.Collectors.ElementFromProvider;
 import org.gradle.api.internal.provider.Collectors.ElementsFromArray;
 import org.gradle.api.internal.provider.Collectors.ElementsFromCollection;
@@ -27,11 +29,11 @@ import org.gradle.api.internal.provider.Collectors.SingleElement;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.HasMultipleValues;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.DisplayName;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedList;
 import java.util.List;
 
 public abstract class AbstractCollectionProperty<T, C extends Collection<T>> extends AbstractProperty<C> implements CollectionPropertyInternal<T, C> {
@@ -40,14 +42,20 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     private final Class<? extends Collection> collectionType;
     private final Class<T> elementType;
     private final ValueCollector<T> valueCollector;
+    private Collector<T> convention = (Collector<T>) NO_VALUE_COLLECTOR;
+    private Collector<T> defaultValue = (Collector<T>) EMPTY_COLLECTION;
     private Collector<T> value;
-    private List<Collector<T>> collectors = new LinkedList<Collector<T>>();
 
     AbstractCollectionProperty(Class<? extends Collection> collectionType, Class<T> elementType) {
         applyDefaultValue();
         this.collectionType = collectionType;
         this.elementType = elementType;
         valueCollector = new ValidatingValueCollector<T>(collectionType, elementType, ValueSanitizers.forType(elementType));
+    }
+
+    @Override
+    protected ValueSupplier getSupplier() {
+        return value;
     }
 
     /**
@@ -97,8 +105,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     }
 
     private void addCollector(Collector<T> collector) {
-        collectors.add(collector);
-        afterMutate();
+        value = new PlusCollector<>(value, collector);
     }
 
     @Nullable
@@ -112,46 +119,39 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         return elementType;
     }
 
-    @Override
-    public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-        if (super.maybeVisitBuildDependencies(context)) {
-            return true;
-        }
+    /**
+     * Unpacks this property into a list of element providers.
+     */
+    public List<ProviderInternal<? extends Iterable<? extends T>>> getProviders() {
+        List<ProviderInternal<? extends Iterable<? extends T>>> sources = new ArrayList<>();
+        value.visit(sources);
+        return sources;
+    }
 
-        boolean visitedAll = true;
-        if (!value.maybeVisitBuildDependencies(context)) {
-            visitedAll = false;
+    /**
+     * Sets the value of this property the given list of element providers.
+     */
+    public void providers(List<ProviderInternal<? extends Iterable<? extends T>>> providers) {
+        if (!beforeMutate()) {
+            return;
         }
-        for (Collector<T> collector : collectors) {
-            if (!collector.maybeVisitBuildDependencies(context)) {
-                visitedAll = false;
-            }
+        value = defaultValue;
+        for (ProviderInternal<? extends Iterable<? extends T>> provider : providers) {
+            value = new PlusCollector<>(value, new ElementsFromCollectionProvider<>(provider));
         }
-        return visitedAll;
     }
 
     @Override
     public boolean isPresent() {
         beforeRead();
-        if (!value.present()) {
-            return false;
-        }
-        for (Collector<T> collector : collectors) {
-            if (!collector.present()) {
-                return false;
-            }
-        }
-        return true;
+        return value.present();
     }
 
     @Override
     public C get() {
         beforeRead();
-        List<T> values = new ArrayList<T>(1 + collectors.size());
-        value.collectInto(valueCollector, values);
-        for (Collector<T> collector : collectors) {
-            collector.collectInto(valueCollector, values);
-        }
+        List<T> values = new ArrayList<T>();
+        value.collectInto(getDisplayName(), valueCollector, values);
         return fromValue(values);
     }
 
@@ -164,14 +164,9 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     @Nullable
     private C doGetOrNull() {
-        List<T> values = new ArrayList<T>(1 + collectors.size());
+        List<T> values = new ArrayList<T>();
         if (!value.maybeCollectInto(valueCollector, values)) {
             return null;
-        }
-        for (Collector<T> collector : collectors) {
-            if (!collector.maybeCollectInto(valueCollector, values)) {
-                return null;
-            }
         }
         return fromValue(values);
     }
@@ -190,12 +185,14 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     @Override
     public void set(@Nullable final Iterable<? extends T> elements) {
-        if (!beforeMutate()) {
+        if (elements == null) {
+            if (beforeReset()) {
+                set(convention);
+                defaultValue = (Collector<T>) NO_VALUE_COLLECTOR;
+            }
             return;
         }
-        if (elements == null) {
-            set((Collector<T>) NO_VALUE_COLLECTOR);
-        } else {
+        if (beforeMutate()) {
             set(new ElementsFromCollection<T>(elements));
         }
     }
@@ -222,6 +219,18 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     }
 
     @Override
+    public HasMultipleValues<T> value(@Nullable Iterable<? extends T> elements) {
+        set(elements);
+        return this;
+    }
+
+    @Override
+    public HasMultipleValues<T> value(Provider<? extends Iterable<? extends T>> provider) {
+        set(provider);
+        return this;
+    }
+
+    @Override
     public HasMultipleValues<T> empty() {
         if (!beforeMutate()) {
             return this;
@@ -232,8 +241,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     @Override
     protected void applyDefaultValue() {
-        value = (Collector<T>) EMPTY_COLLECTION;
-        collectors.clear();
+        value = defaultValue;
     }
 
     @Override
@@ -244,39 +252,93 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         } else {
             set((Collector<T>) NO_VALUE_COLLECTOR);
         }
+        convention = (Collector<T>) NO_VALUE_COLLECTOR;
     }
 
     private void set(Collector<T> collector) {
-        collectors.clear();
         value = collector;
-        afterMutate();
     }
 
     @Override
     public HasMultipleValues<T> convention(Iterable<? extends T> elements) {
-        if (shouldApplyConvention()) {
-            value = new ElementsFromCollection<T>(elements);
-            collectors.clear();
-        }
+        convention(new ElementsFromCollection<T>(elements));
         return this;
     }
 
     @Override
     public HasMultipleValues<T> convention(Provider<? extends Iterable<? extends T>> provider) {
-        if (shouldApplyConvention()) {
-            value = new ElementsFromCollectionProvider<T>(Providers.internal(provider));
-            collectors.clear();
-        }
+        convention(new ElementsFromCollectionProvider<T>(Providers.internal(provider)));
         return this;
     }
 
-    @Override
-    public String toString() {
-        List<String> values = new ArrayList<String>(1 + collectors.size());
-        values.add(value.toString());
-        for (Collector<T> collector : collectors) {
-            values.add(collector.toString());
+    private void convention(Collector<T> collector) {
+        if (shouldApplyConvention()) {
+            this.value = collector;
         }
-        return String.format("%s(%s, %s)", collectionType.getSimpleName().toLowerCase(), elementType, values);
+        convention = collector;
+    }
+
+    @Override
+    protected String describeContents() {
+        return String.format("%s(%s, %s)", collectionType.getSimpleName().toLowerCase(), elementType, value.toString());
+    }
+
+    private static class PlusCollector<T> implements Collector<T> {
+        private final Collector<T> left;
+        private final Collector<T> right;
+
+        public PlusCollector(Collector<T> left, Collector<T> right) {
+            this.left = left;
+            this.right = right;
+        }
+
+        @Override
+        public boolean present() {
+            return left.present() && right.present();
+        }
+
+        @Override
+        public int size() {
+            return left.size() + right.size();
+        }
+
+        @Override
+        public void collectInto(DisplayName owner, ValueCollector<T> collector, Collection<T> dest) {
+            left.collectInto(owner, collector, dest);
+            right.collectInto(owner, collector, dest);
+        }
+
+        @Override
+        public boolean maybeCollectInto(ValueCollector<T> collector, Collection<T> dest) {
+            if (left.maybeCollectInto(collector, dest)) {
+                return right.maybeCollectInto(collector, dest);
+            }
+            return false;
+        }
+
+        @Override
+        public void visit(List<ProviderInternal<? extends Iterable<? extends T>>> sources) {
+            left.visit(sources);
+            right.visit(sources);
+        }
+
+        @Override
+        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
+            if (left.maybeVisitBuildDependencies(context)) {
+                return right.maybeVisitBuildDependencies(context);
+            }
+            return false;
+        }
+
+        @Override
+        public void visitProducerTasks(Action<? super Task> visitor) {
+            left.visitProducerTasks(visitor);
+            right.visitProducerTasks(visitor);
+        }
+
+        @Override
+        public boolean isValueProducedByTask() {
+            return left.isValueProducedByTask() || right.isValueProducedByTask();
+        }
     }
 }

@@ -17,7 +17,7 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
-import org.gradle.internal.component.model.ModuleSource;
+import org.gradle.internal.component.external.model.UrlBackedArtifactMetadata;
 import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 
@@ -31,18 +31,21 @@ class MavenUniqueSnapshotExternalResourceArtifactResolver implements ExternalRes
     }
 
     @Override
-    public ModuleSource getSource() {
-        return snapshot;
-    }
-
-    @Override
     public boolean artifactExists(ModuleComponentArtifactMetadata artifact, ResourceAwareResolveResult result) {
-        return delegate.artifactExists(timestamp(artifact), result);
+        if (artifact instanceof UrlBackedArtifactMetadata) {
+            return delegate.artifactExists(artifact, result);
+        } else {
+            return delegate.artifactExists(timestamp(artifact), result);
+        }
     }
 
     @Override
     public LocallyAvailableExternalResource resolveArtifact(ModuleComponentArtifactMetadata artifact, ResourceAwareResolveResult result) {
-        return delegate.resolveArtifact(timestamp(artifact), result);
+        if (artifact instanceof UrlBackedArtifactMetadata) {
+            return delegate.resolveArtifact(artifact, result);
+        } else {
+            return delegate.resolveArtifact(timestamp(artifact), result);
+        }
     }
 
     protected ModuleComponentArtifactMetadata timestamp(ModuleComponentArtifactMetadata artifact) {

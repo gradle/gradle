@@ -17,7 +17,7 @@
 package org.gradle.internal.reflect;
 
 import java.lang.reflect.Method;
-import java.util.List;
+import java.util.Collection;
 
 class MutablePropertyDetails implements PropertyDetails {
     private final String name;
@@ -34,12 +34,12 @@ class MutablePropertyDetails implements PropertyDetails {
     }
 
     @Override
-    public List<Method> getGetters() {
+    public Collection<Method> getGetters() {
         return getters.getValues();
     }
 
     @Override
-    public List<Method> getSetters() {
+    public Collection<Method> getSetters() {
         return setters.getValues();
     }
 

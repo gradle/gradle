@@ -1,9 +1,15 @@
 package org.gradle.gradlebuild
 
+/**
+ * This is the definition of what constitutes the Gradle public API.
+ *
+ * A type is part of the Gradle public API if and only if its FQCN matches {@link #includes} and does not match {@link #excludes}.
+ */
 object PublicApi {
     val includes = listOf("org/gradle/*",
         "org/gradle/api/**",
         "org/gradle/authentication/**",
+        "org/gradle/build/**",
         "org/gradle/buildinit/**",
         "org/gradle/caching/**",
         "org/gradle/concurrent/**",

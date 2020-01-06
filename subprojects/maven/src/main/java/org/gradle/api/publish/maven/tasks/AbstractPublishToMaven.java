@@ -21,11 +21,10 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.publish.maven.MavenPublication;
 import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
+import org.gradle.api.publish.maven.internal.publisher.MavenDuplicatePublicationTracker;
 import org.gradle.api.publish.maven.internal.publisher.MavenPublishers;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.PathSensitivity;
-import org.gradle.internal.Factory;
-import org.gradle.internal.logging.LoggingManagerInternal;
 
 import javax.inject.Inject;
 import java.util.concurrent.Callable;
@@ -99,14 +98,13 @@ public abstract class AbstractPublishToMaven extends DefaultTask {
         }
     }
 
-    @Deprecated
     @Inject
-    protected Factory<LoggingManagerInternal> getLoggingManagerFactory() {
+    protected MavenPublishers getMavenPublishers() {
         throw new UnsupportedOperationException();
     }
 
     @Inject
-    protected MavenPublishers getMavenPublishers() {
+    protected MavenDuplicatePublicationTracker getDuplicatePublicationTracker() {
         throw new UnsupportedOperationException();
     }
 

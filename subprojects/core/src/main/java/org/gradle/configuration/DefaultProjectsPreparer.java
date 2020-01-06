@@ -32,7 +32,13 @@ public class DefaultProjectsPreparer implements ProjectsPreparer {
     private final BuildStateRegistry buildRegistry;
     private final ModelConfigurationListener modelConfigurationListener;
 
-    public DefaultProjectsPreparer(ProjectConfigurer projectConfigurer, BuildStateRegistry buildRegistry, BuildLoader buildLoader, ModelConfigurationListener modelConfigurationListener, BuildOperationExecutor buildOperationExecutor) {
+    public DefaultProjectsPreparer(
+        ProjectConfigurer projectConfigurer,
+        BuildStateRegistry buildRegistry,
+        BuildLoader buildLoader,
+        ModelConfigurationListener modelConfigurationListener,
+        BuildOperationExecutor buildOperationExecutor
+    ) {
         this.projectConfigurer = projectConfigurer;
         this.buildRegistry = buildRegistry;
         this.buildLoader = buildLoader;

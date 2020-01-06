@@ -59,39 +59,56 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
+    fun `returns given Java home`() {
+
+        val javaHome = System.getProperty("java.home")
+        val env = arrayOf("gradleJavaHome" to javaHome)
+        assertThat(
+            resolvedScriptDependencies(env = *env)?.javaHome,
+            equalTo(javaHome)
+        )
+    }
+
+
+    @Test
     fun `succeeds on init script`() {
 
-        assertSucceeds(withFile("my.init.gradle.kts", """
-            require(this is Gradle)
-        """))
+        assertSucceedsForScriptWithReceiver(
+            "my.init.gradle.kts",
+            "Gradle"
+        )
     }
 
     @Test
     fun `succeeds on settings script`() {
 
-        assertSucceeds(withSettings("""
-            require(this is Settings)
-        """))
+        assertSucceedsForScriptWithReceiver(
+            "settings.gradle.kts",
+            "Settings"
+        )
 
         recorder.clear()
 
-        assertSucceeds(withFile("my.settings.gradle.kts", """
-            require(this is Settings)
-        """))
+        assertSucceedsForScriptWithReceiver(
+            "my.settings.gradle.kts",
+            "Settings"
+        )
     }
 
     @Test
     fun `succeeds on project script`() {
 
-        assertSucceeds(withFile("build.gradle.kts", """
-            require(this is Project)
-        """))
+        assertSucceedsForScriptWithReceiver(
+            "build.gradle.kts",
+            "Project"
+        )
 
         recorder.clear()
 
-        assertSucceeds(withFile("plugin.gradle.kts", """
-            require(this is Project)
-        """))
+        assertSucceedsForScriptWithReceiver(
+            "plugin.gradle.kts",
+            "Project"
+        )
     }
 
     @Test
@@ -99,9 +116,10 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
 
         withKotlinBuildSrc()
 
-        assertSucceeds(withFile("buildSrc/src/main/kotlin/my-plugin.init.gradle.kts", """
-            require(this is Gradle)
-        """))
+        assertSucceedsForScriptWithReceiver(
+            "buildSrc/src/main/kotlin/my-plugin.init.gradle.kts",
+            "Gradle"
+        )
     }
 
     @Test
@@ -113,9 +131,10 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
             apply(plugin = "my-plugin")
         """)
 
-        assertSucceeds(withFile("buildSrc/src/main/kotlin/my-plugin.settings.gradle.kts", """
-            require(this is Settings)
-        """))
+        assertSucceedsForScriptWithReceiver(
+            "buildSrc/src/main/kotlin/my-plugin.settings.gradle.kts",
+            "Settings"
+        )
     }
 
     @Test
@@ -129,9 +148,38 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
             }
         """)
 
-        assertSucceeds(withFile("buildSrc/src/main/kotlin/my-plugin.gradle.kts", """
-            require(this is Project)
-        """))
+        assertSucceedsForScriptWithReceiver(
+            "buildSrc/src/main/kotlin/my-plugin.gradle.kts",
+            "Project"
+        )
+    }
+
+    private
+    fun assertSucceedsForScriptWithReceiver(fileName: String, receiverType: String) {
+        assertSucceeds(
+            withFile(fileName, requiringImplicitReceiverOf(receiverType))
+        )
+    }
+
+    private
+    fun requiringImplicitReceiverOf(type: String) = """
+        val $type.implicitReceiver get() = this
+        require(implicitReceiver is $type)
+    """
+
+    @Test
+    fun `pass environment`() {
+        assertSucceeds(
+            withBuildScript("""
+                require(System.getProperty("myJvmSysProp") == "systemValue") { "gradleJvmOptions" }
+                require(System.getProperty("myGradleSysProp") == "systemValue") { "gradleOptions system property" }
+                require(findProperty("myGradleProp") == "gradleValue") { "gradleOptions Gradle property" }
+                require(System.getenv("myEnvVar") == "envValue") { "gradleEnvironmentVariables" }
+            """),
+            "gradleJvmOptions" to listOf("-DmyJvmSysProp=systemValue"),
+            "gradleOptions" to listOf("-DmyGradleSysProp=systemValue", "-PmyGradleProp=gradleValue"),
+            "gradleEnvironmentVariables" to mapOf("myEnvVar" to "envValue")
+        )
     }
 
     @Test
@@ -344,9 +392,9 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
         ).get()
 
     private
-    fun assertSucceeds(editedScript: File? = null) {
+    fun assertSucceeds(editedScript: File? = null, vararg env: Pair<String, Any?>) {
 
-        resolvedScriptDependencies(editedScript).apply {
+        resolvedScriptDependencies(editedScript, null, *env).apply {
             assertThat(this, notNullValue())
             this!!.assertContainsBasicDependencies()
         }

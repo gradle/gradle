@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.file
 
+
 import org.gradle.api.provider.Provider
 import org.gradle.internal.typeconversion.UnsupportedNotationException
 import org.gradle.test.fixtures.file.TestFile
@@ -165,7 +166,8 @@ The following types/formats are supported:
   - A Path instance.
   - A Directory instance.
   - A RegularFile instance.
-  - A URI or URL instance.""")
+  - A URI or URL instance.
+  - A TextResource instance.""")
     }
 
     def "normalizes null-returning closure to null"() {

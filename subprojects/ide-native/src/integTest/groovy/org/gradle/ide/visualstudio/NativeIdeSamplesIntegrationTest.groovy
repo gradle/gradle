@@ -16,6 +16,7 @@
 package org.gradle.ide.visualstudio
 
 import org.gradle.ide.visualstudio.fixtures.AbstractVisualStudioIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.util.Requires
@@ -30,6 +31,7 @@ class NativeIdeSamplesIntegrationTest extends AbstractVisualStudioIntegrationSpe
         return new Sample(testDirectoryProvider, "native-binaries/${name}", name)
     }
 
+    @ToBeFixedForInstantExecution
     def "visual studio"() {
         given:
         sample visualStudio
@@ -51,6 +53,7 @@ class NativeIdeSamplesIntegrationTest extends AbstractVisualStudioIntegrationSpe
     }
 
     @Requires(TestPrecondition.MSBUILD)
+    @ToBeFixedForInstantExecution
     def "build generated visual studio solution"() {
         useMsbuildTool()
 

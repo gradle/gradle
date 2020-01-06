@@ -19,6 +19,7 @@ package org.gradle.internal.build;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 
 /**
@@ -50,12 +51,12 @@ public interface BuildStateRegistry {
     /**
      * Locates an included build by {@link BuildIdentifier}, if present. Fails if not an included build.
      */
-    IncludedBuildState getIncludedBuild(BuildIdentifier buildIdentifier);
+    IncludedBuildState getIncludedBuild(BuildIdentifier buildIdentifier) throws IllegalArgumentException;
 
     /**
      * Locates a build. Fails if not present.
      */
-    BuildState getBuild(BuildIdentifier buildIdentifier);
+    BuildState getBuild(BuildIdentifier buildIdentifier) throws IllegalArgumentException;
 
     /**
      * Notification that the settings have been loaded for the root build.
@@ -84,10 +85,10 @@ public interface BuildStateRegistry {
     /**
      * Creates a standalone nested build.
      */
-    StandAloneNestedBuild addNestedBuild(BuildDefinition buildDefinition, BuildState owner);
+    StandAloneNestedBuild addBuildSrcNestedBuild(BuildDefinition buildDefinition, BuildState owner);
 
     /**
      * Creates a new standalone nested build tree.
      */
-    NestedRootBuild addNestedBuildTree(BuildDefinition buildDefinition, BuildState owner);
+    NestedRootBuild addNestedBuildTree(BuildDefinition buildDefinition, BuildState owner, @Nullable String buildName);
 }

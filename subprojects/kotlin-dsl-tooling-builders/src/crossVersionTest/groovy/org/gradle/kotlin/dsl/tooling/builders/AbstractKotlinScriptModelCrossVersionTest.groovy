@@ -277,6 +277,13 @@ abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpeci
         )
     }
 
+    protected static void assertNotContainsBuildSrc(List<File> classPath) {
+        assertThat(
+            classPath.collect { it.name } as List<String>,
+            not(hasBuildSrc())
+        )
+    }
+
     protected static Matcher<Iterable<? super String>> hasBuildSrc() {
         hasItem("buildSrc.jar")
     }

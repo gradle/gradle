@@ -16,14 +16,19 @@
 
 package org.gradle.initialization;
 
+import com.google.common.base.Splitter;
 import org.gradle.api.Transformer;
+import org.gradle.api.artifacts.verification.DependencyVerificationMode;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.file.BasicFileResolver;
+import org.gradle.cli.CommandLineOption;
+import org.gradle.cli.CommandLineParser;
 import org.gradle.internal.buildoption.BooleanBuildOption;
 import org.gradle.internal.buildoption.BooleanCommandLineOptionConfiguration;
 import org.gradle.internal.buildoption.BuildOption;
 import org.gradle.internal.buildoption.CommandLineOptionConfiguration;
 import org.gradle.internal.buildoption.EnabledOnlyBooleanBuildOption;
+import org.gradle.internal.buildoption.EnumBuildOption;
 import org.gradle.internal.buildoption.ListBuildOption;
 import org.gradle.internal.buildoption.Origin;
 import org.gradle.internal.buildoption.StringBuildOption;
@@ -32,6 +37,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class StartParameterBuildOptions {
 
@@ -58,7 +64,11 @@ public class StartParameterBuildOptions {
         options.add(new BuildCacheDebugLoggingOption());
         options.add(new BuildScanOption());
         options.add(new DependencyLockingWriteOption());
+        options.add(new DependencyVerificationWriteOption());
+        options.add(new DependencyVerificationModeOption());
         options.add(new DependencyLockingUpdateOption());
+        options.add(new RefreshKeysOption());
+        options.add(new ExportKeysOption());
         StartParameterBuildOptions.options = Collections.unmodifiableList(options);
     }
 
@@ -308,6 +318,55 @@ public class StartParameterBuildOptions {
         }
     }
 
+    public static class DependencyVerificationWriteOption extends StringBuildOption<StartParameterInternal> {
+        public static final String SHORT_OPTION = "M";
+        public static final String LONG_OPTION = "write-verification-metadata";
+
+        DependencyVerificationWriteOption() {
+            super(null, CommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION,
+                "Generates checksums for dependencies used in the project (comma-separated list)").incubating());
+        }
+
+        @Override
+        protected CommandLineOption configureCommandLineOption(CommandLineParser parser, String[] options, String description, boolean deprecated, boolean incubating) {
+            return super.configureCommandLineOption(parser, options, description, deprecated, incubating);
+        }
+
+        @Override
+        public void applyTo(String value, StartParameterInternal settings, Origin origin) {
+            List<String> checksums = Splitter.on(",")
+                .omitEmptyStrings()
+                .trimResults()
+                .splitToList(value)
+                .stream()
+                .map(String::toLowerCase)
+                .collect(Collectors.toList());
+            settings.setWriteDependencyVerifications(checksums);
+        }
+    }
+
+    public static class DependencyVerificationModeOption extends EnumBuildOption<DependencyVerificationMode, StartParameterInternal> {
+
+        private static final String GRADLE_PROPERTY = "org.gradle.dependency.verification";
+        private static final String LONG_OPTION = "dependency-verification";
+        private static final String SHORT_OPTION = "F";
+
+        public DependencyVerificationModeOption() {
+            super(LONG_OPTION,
+                DependencyVerificationMode.class,
+                DependencyVerificationMode.values(),
+                GRADLE_PROPERTY,
+                CommandLineOptionConfiguration.create(
+                LONG_OPTION, SHORT_OPTION, "Configures the dependency verification mode (strict, lenient or off)").incubating()
+            );
+        }
+
+        @Override
+        public void applyTo(DependencyVerificationMode value, StartParameterInternal settings, Origin origin) {
+            settings.setDependencyVerificationMode(value);
+        }
+    }
+
     public static class DependencyLockingUpdateOption extends ListBuildOption<StartParameterInternal> {
 
         public DependencyLockingUpdateOption() {
@@ -317,6 +376,36 @@ public class StartParameterBuildOptions {
         @Override
         public void applyTo(List<String> modulesToUpdate, StartParameterInternal settings, Origin origin) {
             settings.setLockedDependenciesToUpdate(modulesToUpdate);
+        }
+    }
+
+    public static class RefreshKeysOption extends EnabledOnlyBooleanBuildOption<StartParameterInternal> {
+
+        private static final String LONG_OPTION = "refresh-keys";
+
+        public RefreshKeysOption() {
+            super(null,
+                CommandLineOptionConfiguration.create(LONG_OPTION, "Refresh the public keys used for dependency verification.").incubating());
+        }
+
+        @Override
+        public void applyTo(StartParameterInternal settings, Origin origin) {
+            settings.setRefreshKeys(true);
+        }
+    }
+
+    public static class ExportKeysOption extends EnabledOnlyBooleanBuildOption<StartParameterInternal> {
+
+        private static final String LONG_OPTION = "export-keys";
+
+        public ExportKeysOption() {
+            super(null,
+                CommandLineOptionConfiguration.create(LONG_OPTION, "Exports the public keys used for dependency verification.").incubating());
+        }
+
+        @Override
+        public void applyTo(StartParameterInternal settings, Origin origin) {
+            settings.setExportKeys(true);
         }
     }
 }

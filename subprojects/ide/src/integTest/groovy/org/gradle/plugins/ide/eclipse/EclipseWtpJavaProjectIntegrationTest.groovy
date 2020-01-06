@@ -15,7 +15,11 @@
  */
 package org.gradle.plugins.ide.eclipse
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+
 class EclipseWtpJavaProjectIntegrationTest extends AbstractEclipseIntegrationSpec {
+
+    @ToBeFixedForInstantExecution
     def "generates configuration files for a Java project"() {
         file('src/main/java').mkdirs()
         file('src/main/resources').mkdirs()
@@ -31,8 +35,8 @@ class EclipseWtpJavaProjectIntegrationTest extends AbstractEclipseIntegrationSpe
            sourceCompatibility = 1.6
 
            dependencies {
-               compile 'com.google.guava:guava:18.0'
-               testCompile "junit:junit:4.12"
+               implementation 'com.google.guava:guava:18.0'
+               testImplementation "junit:junit:4.12"
            }
         """
 

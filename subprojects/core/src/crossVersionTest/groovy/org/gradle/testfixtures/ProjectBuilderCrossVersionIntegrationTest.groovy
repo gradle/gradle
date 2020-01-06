@@ -36,20 +36,18 @@ class ProjectBuilderCrossVersionIntegrationTest extends MultiVersionIntegrationS
 
     private final List<GradleExecuter> executers = []
 
-    def setup() {
-        writeSourceFiles()
-    }
-
     def cleanup() {
         executers.each { it.cleanup() }
     }
 
     def "can apply plugin using ProjectBuilder in a test running with Gradle version under development"() {
+        writeSourceFiles(false)
         expect:
         run(TEST_TASK_NAME)
     }
 
     def "cannot apply plugin using ProjectBuilder in a test running with broken Gradle versions"() {
+        writeSourceFiles(true)
         expect:
         BROKEN_GRADLE_VERSIONS.each {
             def executionFailure = createGradleExecutor(it, TEST_TASK_NAME).runWithFailure()
@@ -58,10 +56,10 @@ class ProjectBuilderCrossVersionIntegrationTest extends MultiVersionIntegrationS
         }
     }
 
-    private void writeSourceFiles() {
+    private void writeSourceFiles(boolean forOldGradle) {
         File repoDir = file('repo')
         publishHelloWorldPluginWithOldGradleVersion(repoDir)
-        writeConsumingProject(repoDir)
+        writeConsumingProject(repoDir, forOldGradle)
     }
 
     private void publishHelloWorldPluginWithOldGradleVersion(File repoDir) {
@@ -124,7 +122,7 @@ class ProjectBuilderCrossVersionIntegrationTest extends MultiVersionIntegrationS
         createGradleExecutor(version, helloWorldPluginDir, 'publish').run()
     }
 
-    private void writeConsumingProject(File repoDir) {
+    private void writeConsumingProject(File repoDir, boolean forOldGradle) {
         file('src/test/java/org/gradle/consumer/PluginTest.java') << """
             package org.gradle.consumer;
 
@@ -157,9 +155,9 @@ class ProjectBuilderCrossVersionIntegrationTest extends MultiVersionIntegrationS
             version = '1.0'
 
             dependencies {
-                compile gradleApi()
-                compile 'org.gradle:hello:1.0'
-                testCompile 'junit:junit:4.12'
+                ${forOldGradle? 'compile' : 'implementation'} gradleApi()
+                ${forOldGradle? 'compile' : 'implementation'} 'org.gradle:hello:1.0'
+                ${forOldGradle? 'testCompile' : 'testImplementation'} 'junit:junit:4.12'
             }
 
             repositories {

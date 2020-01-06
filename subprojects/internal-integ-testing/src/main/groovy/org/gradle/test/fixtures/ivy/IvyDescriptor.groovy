@@ -76,7 +76,7 @@ class IvyDescriptor {
                     module: dep.@name,
                     revision: dep.@rev,
                     revisionConstraint: dep.@revConstraint,
-                    conf: dep.@conf,
+                    confs: [dep.@conf],
                     transitive: dep.@transitive
             )
 
@@ -85,7 +85,11 @@ class IvyDescriptor {
             }
 
             def key = "${ivyDependency.org}:${ivyDependency.module}:${ivyDependency.revision}"
-            dependencies[key] = ivyDependency
+            if (dependencies[key]) {
+                dependencies[key].confs += ivyDependency.confs
+            } else {
+                dependencies[key] = ivyDependency
+            }
         }
 
         ivy.dependencies.exclude.each { exclude ->
@@ -123,7 +127,7 @@ class IvyDescriptor {
     }
 
     def assertConfigurationDependsOn(String configuration, String[] expected) {
-        def actualDependencies = dependencies.values().findAll { it.conf.contains(configuration) }
+        def actualDependencies = dependencies.values().findAll { it.confs.any { it.contains(configuration) }}
         assert actualDependencies.size() == expected.length
         expected.each {
             String conf = "$configuration->default"

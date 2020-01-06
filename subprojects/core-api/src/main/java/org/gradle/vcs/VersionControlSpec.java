@@ -17,7 +17,6 @@ package org.gradle.vcs;
 
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
-import org.gradle.api.Incubating;
 import org.gradle.api.initialization.definition.InjectedPluginDependencies;
 
 /**
@@ -25,7 +24,6 @@ import org.gradle.api.initialization.definition.InjectedPluginDependencies;
  *
  * @since 4.4
  */
-@Incubating
 public interface VersionControlSpec extends Describable {
     /**
      * Returns a {@link String} identifier which will be unique to this version

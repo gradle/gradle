@@ -17,11 +17,13 @@
 package org.gradle.ide.xcode
 
 import groovy.transform.NotYetImplemented
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.nativeplatform.fixtures.app.SwiftApp
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibrary
 import org.gradle.nativeplatform.fixtures.app.SwiftSourceElement
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Ignore
 import spock.lang.Issue
 
 import static org.gradle.ide.xcode.internal.XcodeUtils.toSpaceSeparatedList
@@ -45,6 +47,8 @@ class XcodeSwiftApplicationProjectIntegrationTest extends AbstractXcodeSwiftProj
     }
 
     @Requires(TestPrecondition.XCODE)
+    @ToBeFixedForInstantExecution
+    @Ignore("https://github.com/gradle/gradle-native-private/issues/273")
     def "can create xcode project for unbuildable Swift application with library"() {
         useXcodebuildTool()
 

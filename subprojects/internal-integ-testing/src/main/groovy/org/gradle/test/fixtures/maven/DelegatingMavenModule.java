@@ -24,6 +24,7 @@ import org.gradle.test.fixtures.ModuleArtifact;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.test.fixtures.gradle.VariantMetadataSpec;
 
+import java.io.File;
 import java.util.Map;
 
 public abstract class DelegatingMavenModule<T extends MavenModule> implements MavenModule {
@@ -110,8 +111,20 @@ public abstract class DelegatingMavenModule<T extends MavenModule> implements Ma
     }
 
     @Override
-    public MavenModule withGradleMetadataRedirection() {
-        backingModule.withGradleMetadataRedirection();
+    public MavenModule withoutGradleMetadataRedirection() {
+        backingModule.withoutGradleMetadataRedirection();
+        return t();
+    }
+
+    @Override
+    public MavenModule withoutExtraChecksums() {
+        backingModule.withoutExtraChecksums();
+        return t();
+    }
+
+    @Override
+    public MavenModule withExtraChecksums() {
+        backingModule.withoutGradleMetadataRedirection();
         return t();
     }
 
@@ -283,12 +296,25 @@ public abstract class DelegatingMavenModule<T extends MavenModule> implements Ma
     }
 
     @Override
-    public void withVariant(String name, Closure<?> action) {
+    public MavenModule withVariant(String name, Closure<?> action) {
         backingModule.withVariant(name, action);
+        return this;
     }
 
     @Override
     public Map<String, String> getAttributes() {
         return backingModule.getAttributes();
+    }
+
+    @Override
+    public T withoutDefaultVariants() {
+        backingModule.withoutDefaultVariants();
+        return t();
+    }
+
+    @Override
+    public Module withSignature(@DelegatesTo(value = File.class, strategy = Closure.DELEGATE_FIRST) Closure<?> signer) {
+        backingModule.withSignature(signer);
+        return t();
     }
 }

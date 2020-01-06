@@ -17,6 +17,7 @@ package org.gradle.internal.resource.transport.http;
 
 
 import org.gradle.authentication.Authentication;
+import org.gradle.internal.verifier.HttpRedirectVerifier;
 
 import javax.net.ssl.HostnameVerifier;
 import java.util.Collection;
@@ -29,6 +30,8 @@ public interface HttpSettings {
     HttpTimeoutSettings getTimeoutSettings();
 
     boolean isFollowRedirects();
+
+    HttpRedirectVerifier getRedirectVerifier();
 
     Collection<Authentication> getAuthenticationSettings();
 

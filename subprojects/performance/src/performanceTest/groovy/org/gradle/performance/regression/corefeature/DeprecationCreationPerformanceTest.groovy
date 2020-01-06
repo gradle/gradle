@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.performance.regression.corefeature;
+package org.gradle.performance.regression.corefeature
 
-import org.gradle.performance.AbstractCrossVersionPerformanceTest
+import org.gradle.performance.AbstractCrossVersionGradleProfilerPerformanceTest
 
-class DeprecationCreationPerformanceTest extends AbstractCrossVersionPerformanceTest {
+class DeprecationCreationPerformanceTest extends AbstractCrossVersionGradleProfilerPerformanceTest {
 
     def "create many deprecation warnings"() {
         given:
         runner.testProject = "generateLotsOfDeprecationWarnings"
         runner.tasksToRun = ['help']
         runner.gradleOpts = ["-Xms1g", "-Xmx1g"]
-        runner.minimumVersion = '4.9'
-        runner.targetVersions = ["5.5-20190515115345+0000"]
+        runner.minimumBaseVersion = '4.9'
+        runner.targetVersions = ["6.1-20191209153604+0000"]
         when:
         def result = runner.run()
 

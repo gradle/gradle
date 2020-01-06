@@ -17,6 +17,7 @@
 package org.gradle.plugin.devel.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 import static org.gradle.plugin.use.resolve.internal.ArtifactRepositoriesPluginResolver.PLUGIN_MARKER_SUFFIX
 
@@ -55,6 +56,7 @@ class JavaGradlePluginPluginPublishingIntegrationTest extends AbstractIntegratio
         mavenRepo.module('com.example.foo', 'com.example.foo' + PLUGIN_MARKER_SUFFIX, '1.0').assertNotPublished()
     }
 
+    @ToBeFixedForInstantExecution
     def "Publishes main plugin artifact to Ivy"() {
         given:
         plugin('foo', 'com.example.foo')
@@ -68,6 +70,7 @@ class JavaGradlePluginPluginPublishingIntegrationTest extends AbstractIntegratio
         ivyRepo.module('com.example', 'plugins', '1.0').assertPublished()
     }
 
+    @ToBeFixedForInstantExecution
     def "Publishes main plugin artifact to Maven"() {
         given:
         plugin('foo', 'com.example.foo')
@@ -81,6 +84,7 @@ class JavaGradlePluginPluginPublishingIntegrationTest extends AbstractIntegratio
         mavenRepo.module('com.example', 'plugins', '1.0').assertPublished()
     }
 
+    @ToBeFixedForInstantExecution
     def "Publishes one Ivy marker for every plugin"() {
         given:
         plugin('foo', 'com.example.foo', 'The Foo Plugin', 'The greatest Foo plugin of all time.')
@@ -101,6 +105,7 @@ class JavaGradlePluginPluginPublishingIntegrationTest extends AbstractIntegratio
         barMarker.parsedIvy.description.text() == 'The greatest Bar plugin of all time.'
     }
 
+    @ToBeFixedForInstantExecution
     def "Publishes one Maven marker for every plugin"() {
         given:
         plugin('foo', 'com.example.foo', 'The Foo Plugin', 'The greatest Foo plugin of all time.')
@@ -115,7 +120,7 @@ class JavaGradlePluginPluginPublishingIntegrationTest extends AbstractIntegratio
         def barMarker = mavenRepo.module('com.example.bar', 'com.example.bar' + PLUGIN_MARKER_SUFFIX, '1.0')
         [fooMarker, barMarker].each { marker ->
             marker.assertPublished()
-            assert marker.parsedPom.scopes['runtime'].expectDependency('com.example:plugins:1.0')
+            assert marker.parsedPom.scopes['compile'].expectDependency('com.example:plugins:1.0')
         }
         with(fooMarker.parsedPom) {
             it.name == 'The Foo Plugin'
@@ -127,6 +132,7 @@ class JavaGradlePluginPluginPublishingIntegrationTest extends AbstractIntegratio
         }
     }
 
+    @ToBeFixedForInstantExecution
     def "Can publish to Maven and Ivy at the same time"() {
         given:
         plugin('foo', 'com.example.foo')
@@ -145,6 +151,7 @@ class JavaGradlePluginPluginPublishingIntegrationTest extends AbstractIntegratio
         ivyRepo.module('com.example.foo', 'com.example.foo' + PLUGIN_MARKER_SUFFIX, '1.0').assertPublished()
     }
 
+    @ToBeFixedForInstantExecution
     def "Can publish supplementary artifacts to both Maven and Ivy"() {
 
         given:
@@ -156,7 +163,7 @@ class JavaGradlePluginPluginPublishingIntegrationTest extends AbstractIntegratio
         buildFile << """
 
             task sourceJar(type: Jar) {
-                classifier "sources"
+                archiveClassifier = "sources"
                 from sourceSets.main.allSource
             }
             
@@ -179,14 +186,15 @@ class JavaGradlePluginPluginPublishingIntegrationTest extends AbstractIntegratio
         then:
 
         mavenRepo.module('com.example', 'plugins', '1.0')
-            .assertArtifactsPublished("plugins-1.0.pom", "plugins-1.0.jar", "plugins-1.0-sources.jar")
+            .assertArtifactsPublished("plugins-1.0.pom", "plugins-1.0.module", "plugins-1.0.jar", "plugins-1.0-sources.jar")
         mavenRepo.module('com.example.foo', 'com.example.foo' + PLUGIN_MARKER_SUFFIX, '1.0').assertPublished()
 
         ivyRepo.module('com.example', 'plugins', '1.0')
-            .assertArtifactsPublished("ivy-1.0.xml", "plugins-1.0.jar", "plugins-1.0-sources.jar")
+            .assertArtifactsPublished("ivy-1.0.xml", "plugins-1.0.module", "plugins-1.0.jar", "plugins-1.0-sources.jar")
         ivyRepo.module('com.example.foo', 'com.example.foo' + PLUGIN_MARKER_SUFFIX, '1.0').assertPublished()
     }
 
+    @ToBeFixedForInstantExecution
     def "Can handle unspecified version"() {
         given:
         buildFile << """
@@ -235,7 +243,7 @@ class JavaGradlePluginPluginPublishingIntegrationTest extends AbstractIntegratio
     }
 
     def plugin(String name, String pluginId, String displayName = null, String description = null) {
-        String implementationClass = name.capitalize();
+        String implementationClass = name.capitalize()
 
         file("src/main/java/com/xxx/${implementationClass}.java") << """
 package com.xxx;

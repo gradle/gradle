@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.model.cpp;
 
-import org.gradle.api.Incubating;
 import org.gradle.tooling.model.Task;
 
 import java.io.File;
@@ -27,7 +26,6 @@ import java.util.List;
  *
  * @since 4.10
  */
-@Incubating
 public interface LinkageDetails {
     /**
      * Returns details of the link task for the binary. This is the task that should be run to produce the binary output, but may not necessarily be the task that links the binary. For example, the task may do some post processing of the binary.

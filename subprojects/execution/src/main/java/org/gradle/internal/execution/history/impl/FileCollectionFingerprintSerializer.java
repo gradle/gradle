@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableMultimap;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
-import org.gradle.internal.fingerprint.impl.FingerprintMapSerializer;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;

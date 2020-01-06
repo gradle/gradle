@@ -18,7 +18,7 @@ package org.gradle.internal.resource.transport.http
 
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory
 import org.apache.http.impl.client.HttpClientBuilder
-import org.gradle.testing.internal.util.Specification
+import spock.lang.Specification
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 

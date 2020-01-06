@@ -40,7 +40,7 @@ public class NativeDependencyCache implements Stoppable {
     }
 
     public File getModuleMapFile(final ModuleMap moduleMap) {
-        final String hash = HashUtil.compactStringFor(moduleMap.getHashCode());
+        final String hash = HashUtil.compactStringFor(moduleMap.getHashCode().toByteArray());
         return cache.useCache(new Factory<File>() {
             @Override
             public File create() {

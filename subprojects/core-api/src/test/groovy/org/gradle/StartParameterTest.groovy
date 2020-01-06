@@ -48,11 +48,9 @@ class StartParameterTest extends Specification {
         parameter.continueOnFailure = true
         parameter.rerunTasks = true
         parameter.refreshDependencies = true
-        parameter.recompileScripts = true
         parameter.configureOnDemand = true
         parameter.parallelProjectExecutionEnabled = true
         parameter.buildCacheEnabled = true
-        parameter.interactive = true
         parameter.writeDependencyLocks = true
         parameter.lockedDependenciesToUpdate = ['foo']
         parameter.includeBuild(new File('participant'))
@@ -119,11 +117,9 @@ class StartParameterTest extends Specification {
         !parameter.dryRun
         !parameter.continueOnFailure
         !parameter.rerunTasks
-        !parameter.recompileScripts
         !parameter.refreshDependencies
         !parameter.parallelProjectExecutionEnabled
         !parameter.buildCacheEnabled
-        !parameter.interactive
         !parameter.writeDependencyLocks
         parameter.lockedDependenciesToUpdate.isEmpty()
 
@@ -284,12 +280,10 @@ class StartParameterTest extends Specification {
         parameter.excludedTaskNames = ['excluded1']
         parameter.dryRun = true
         parameter.continueOnFailure = true
-        parameter.recompileScripts = true
         parameter.rerunTasks = true
         parameter.refreshDependencies = true
         parameter.parallelProjectExecutionEnabled = true
         parameter.buildCacheEnabled = true
-        parameter.interactive = true
         parameter.writeDependencyLocks = true
         parameter.lockedDependenciesToUpdate = ['foo']
 
@@ -308,11 +302,9 @@ class StartParameterTest extends Specification {
         newParameter.continueOnFailure == parameter.continueOnFailure
         newParameter.refreshDependencies == parameter.refreshDependencies
         newParameter.rerunTasks == parameter.rerunTasks
-        newParameter.recompileScripts == parameter.recompileScripts
         newParameter.systemPropertiesArgs == parameter.systemPropertiesArgs
         newParameter.parallelProjectExecutionEnabled == parameter.parallelProjectExecutionEnabled
         newParameter.buildCacheEnabled == parameter.buildCacheEnabled
-        newParameter.interactive == parameter.interactive
         newParameter.writeDependencyLocks == parameter.writeDependencyLocks
         newParameter.lockedDependenciesToUpdate == parameter.lockedDependenciesToUpdate
 

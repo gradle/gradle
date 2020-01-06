@@ -22,20 +22,10 @@ import org.gradle.api.plugins.quality.CodeNarcReports;
 import org.gradle.api.reporting.SingleFileReport;
 import org.gradle.api.reporting.internal.TaskGeneratedSingleFileReport;
 import org.gradle.api.reporting.internal.TaskReportContainer;
-import org.gradle.util.DeprecationLogger;
 
 import javax.inject.Inject;
 
 public class CodeNarcReportsImpl extends TaskReportContainer<SingleFileReport> implements CodeNarcReports {
-
-    /**
-     * This internal constructor is used by the 'nebula.lint' plugin which we test as part of our ci pipeline.
-     * */
-    @Deprecated
-    public CodeNarcReportsImpl(Task task) {
-        this(task, CollectionCallbackActionDecorator.NOOP);
-        DeprecationLogger.nagUserOfDeprecated("Internal API constructor CodeNarcReportsImpl(Task)");
-    }
 
     @Inject
     public CodeNarcReportsImpl(Task task, CollectionCallbackActionDecorator callbackActionDecorator) {

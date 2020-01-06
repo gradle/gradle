@@ -17,8 +17,10 @@
 package org.gradle.api.internal;
 
 import org.gradle.StartParameter;
+import org.gradle.api.Action;
+import org.gradle.api.artifacts.DependencySubstitutions;
+import org.gradle.internal.Actions;
 import org.gradle.internal.build.PublicBuildPath;
-import org.gradle.plugin.management.internal.DefaultPluginRequests;
 import org.gradle.plugin.management.internal.PluginRequests;
 
 import javax.annotation.Nullable;
@@ -31,14 +33,22 @@ public class BuildDefinition {
     private final File buildRootDir;
     private final StartParameter startParameter;
     private final PluginRequests injectedSettingsPlugins;
-
+    private final Action<? super DependencySubstitutions> dependencySubstitutions;
     private final PublicBuildPath fromBuild;
 
-    private BuildDefinition(@Nullable String name, @Nullable File buildRootDir, StartParameter startParameter, PluginRequests injectedSettingsPlugins, @Nullable PublicBuildPath fromBuild) {
+    private BuildDefinition(
+        @Nullable String name,
+        @Nullable File buildRootDir,
+        StartParameter startParameter,
+        PluginRequests injectedSettingsPlugins,
+        Action<? super DependencySubstitutions> dependencySubstitutions,
+        PublicBuildPath fromBuild
+    ) {
         this.name = name;
         this.buildRootDir = buildRootDir;
         this.startParameter = startParameter;
         this.injectedSettingsPlugins = injectedSettingsPlugins;
+        this.dependencySubstitutions = dependencySubstitutions;
         this.fromBuild = fromBuild;
     }
 
@@ -78,31 +88,31 @@ public class BuildDefinition {
         return injectedSettingsPlugins;
     }
 
-    public static BuildDefinition fromStartParameterForBuild(StartParameter startParameter, @Nullable String name, File buildRootDir, PublicBuildPath fromBuild) {
-        return fromStartParameterForBuild(startParameter, name, buildRootDir, DefaultPluginRequests.EMPTY, fromBuild);
+    public Action<? super DependencySubstitutions> getDependencySubstitutions() {
+        return dependencySubstitutions;
     }
 
-    public static BuildDefinition fromStartParameterForBuild(StartParameter startParameter, @Nullable String name, File buildRootDir, PluginRequests pluginRequests, PublicBuildPath fromBuild) {
-        return new BuildDefinition(name, buildRootDir, configure(startParameter, buildRootDir), pluginRequests, fromBuild);
+    public static BuildDefinition fromStartParameterForBuild(StartParameter startParameter, String name, File buildRootDir, PluginRequests pluginRequests, Action<? super DependencySubstitutions> dependencySubstitutions, PublicBuildPath fromBuild) {
+        return new BuildDefinition(name, buildRootDir, configure(startParameter, buildRootDir), pluginRequests, dependencySubstitutions, fromBuild);
+    }
+
+    public static BuildDefinition fromStartParameter(StartParameter startParameter, @Nullable PublicBuildPath fromBuild) {
+        return new BuildDefinition(null, null, startParameter, PluginRequests.EMPTY, Actions.doNothing(), fromBuild);
     }
 
     private static StartParameter configure(StartParameter startParameter, File buildRootDir) {
         StartParameter includedBuildStartParam = startParameter.newBuild();
         includedBuildStartParam.setCurrentDir(buildRootDir);
-        includedBuildStartParam.setSearchUpwards(false);
+        ((StartParameterInternal) includedBuildStartParam).setSearchUpwardsWithoutDeprecationWarning(false);
         includedBuildStartParam.setConfigureOnDemand(false);
         includedBuildStartParam.setInitScripts(startParameter.getInitScripts());
         return includedBuildStartParam;
-    }
-
-    public static BuildDefinition fromStartParameter(StartParameter startParameter, @Nullable PublicBuildPath fromBuild) {
-        return new BuildDefinition(null, null, startParameter, DefaultPluginRequests.EMPTY, fromBuild);
     }
 
     /**
      * Creates a defensive copy of this build definition, to isolate this instance from mutations made to the {@link StartParameter} during execution of the build.
      */
     public BuildDefinition newInstance() {
-        return new BuildDefinition(name, buildRootDir, startParameter.newInstance(), injectedSettingsPlugins, fromBuild);
+        return new BuildDefinition(name, buildRootDir, startParameter.newInstance(), injectedSettingsPlugins, dependencySubstitutions, fromBuild);
     }
 }

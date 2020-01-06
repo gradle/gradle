@@ -16,13 +16,14 @@
 
 package org.gradle.launcher.continuous
 
-
+import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 // NB: there's nothing specific about Java support and continuous.
 //     this spec just lays out some more practical use cases than the other targeted tests.
-class SimpleJavaContinuousIntegrationTest extends Java7RequiringContinuousIntegrationTest {
+class SimpleJavaContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
 
     def setup() {
         buildFile << """
@@ -36,10 +37,11 @@ class SimpleJavaContinuousIntegrationTest extends Java7RequiringContinuousIntegr
 
         then:
         succeeds("build")
-        ":compileJava" in skippedTasks
-        ":build" in executedTasks
+        skipped(":compileJava")
+        executed(":build")
     }
 
+    @ToBeFixedForInstantExecution
     def "can build when source dir is removed"() {
         when:
         file("src/main/java/Thing.java") << "class Thing {}"
@@ -61,8 +63,8 @@ class SimpleJavaContinuousIntegrationTest extends Java7RequiringContinuousIntegr
 
         then:
         succeeds()
-        ":compileJava" in nonSkippedTasks
-        ":build" in executedTasks
+        executedAndNotSkipped(":compileJava")
+        executed(":build")
     }
 
     def "build is not triggered when a new directory is created in the source inputs"() {
@@ -255,8 +257,8 @@ class SimpleJavaContinuousIntegrationTest extends Java7RequiringContinuousIntegr
     def "creation of initial source file triggers build"() {
         expect:
         succeeds("build")
-        ":compileJava" in skippedTasks
-        ":build" in executedTasks
+        skipped(":compileJava")
+        executed(":build")
 
         when:
         file("src/main/java/Thing.java") << "class Thing {}"

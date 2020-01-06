@@ -25,9 +25,12 @@ import org.gradle.internal.component.model.ConfigurationMetadata;
 import java.util.Set;
 
 class RootNode extends NodeState implements RootGraphNode {
+    private final ResolveOptimizations resolveOptimizations;
+
     RootNode(Long resultId, ComponentState moduleRevision, ResolvedConfigurationIdentifier id, ResolveState resolveState, ConfigurationMetadata configuration) {
         super(resultId, id, moduleRevision, resolveState, configuration);
         moduleRevision.setRoot();
+        this.resolveOptimizations = resolveState.getResolveOptimizations();
     }
 
     @Override
@@ -52,5 +55,10 @@ class RootNode extends NodeState implements RootGraphNode {
     @Override
     public RootConfigurationMetadata getMetadata() {
         return (RootConfigurationMetadata) super.getMetadata();
+    }
+
+    @Override
+    public ResolveOptimizations getResolveOptimizations() {
+        return resolveOptimizations;
     }
 }

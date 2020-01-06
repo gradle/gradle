@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.simp
 
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeEverything;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 final class DefaultExcludeEverything implements ExcludeEverything {
@@ -48,7 +47,7 @@ final class DefaultExcludeEverything implements ExcludeEverything {
 
     @Override
     public String toString() {
-        return "{excludes everything}";
+        return "\"excludes everything\"";
     }
 
     @Override
@@ -59,11 +58,6 @@ final class DefaultExcludeEverything implements ExcludeEverything {
     @Override
     public boolean equals(Object obj) {
         return this == obj;
-    }
-
-    @Override
-    public boolean equalsIgnoreArtifact(ExcludeSpec o) {
-        return this == o;
     }
 
     private int size() {

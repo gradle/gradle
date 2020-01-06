@@ -1,6 +1,7 @@
 package org.gradle.kotlin.dsl.plugins.dsl
 
 import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
@@ -46,6 +47,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     fun `gradle kotlin dsl api dependency is added`() {
 
         withKotlinDslPlugin()
@@ -66,6 +68,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     fun `gradle kotlin dsl api is available for test implementation`() {
 
         withBuildScript("""
@@ -77,7 +80,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
             $repositoriesBlock
 
             dependencies {
-                testCompile("junit:junit:4.12")
+                testImplementation("junit:junit:4.12")
             }
 
         """)
@@ -120,6 +123,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     fun `gradle kotlin dsl api is available in test-kit injected plugin classpath`() {
 
         withBuildScript("""
@@ -131,9 +135,9 @@ class KotlinDslPluginTest : AbstractPluginTest() {
             $repositoriesBlock
 
             dependencies {
-                testCompile("junit:junit:4.12")
-                testCompile("org.hamcrest:hamcrest-library:1.3")
-                testCompile(gradleTestKit())
+                testImplementation("junit:junit:4.12")
+                testImplementation("org.hamcrest:hamcrest-library:1.3")
+                testImplementation(gradleTestKit())
             }
 
             gradlePlugin {
@@ -212,6 +216,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     fun `sam-with-receiver kotlin compiler plugin is applied to production code`() {
 
         withKotlinDslPlugin()

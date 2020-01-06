@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.dsl.DependencyHandler
-import org.gradle.api.plugins.ExtensionAware
 
 import org.gradle.kotlin.dsl.support.delegates.DependencyHandlerDelegate
 
@@ -38,12 +37,7 @@ private constructor(
 
     companion object {
         fun of(dependencies: DependencyHandler): DependencyHandlerScope =
-            ExtensionAwareDependencyHandlerScope(dependencies)
-
-        private
-        class ExtensionAwareDependencyHandlerScope(
-            dependencies: DependencyHandler
-        ) : DependencyHandlerScope(dependencies), ExtensionAware by (dependencies as ExtensionAware)
+            DependencyHandlerScope(dependencies)
     }
 
     override val delegate: DependencyHandler
@@ -217,5 +211,5 @@ private constructor(
      * Configures the dependencies.
      */
     inline operator fun invoke(configuration: DependencyHandlerScope.() -> Unit) =
-        configuration()
+        this.configuration()
 }

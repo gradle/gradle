@@ -29,7 +29,7 @@ class SuiteTimestampIntegrationTest extends AbstractIntegrationSpec {
         file("build.gradle") << """
             apply plugin: 'java'
                 ${mavenCentralRepository()}
-                dependencies { testCompile 'junit:junit:4.12' }
+                dependencies { testImplementation 'junit:junit:4.12' }
         """
 
         file("src/test/java/SomeTest.java") << """

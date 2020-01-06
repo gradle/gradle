@@ -157,7 +157,32 @@ class DefaultCrossBuildInMemoryCacheFactoryTest extends ConcurrentSpec {
         transformer.transform(String) >> a
         transformer.transform(Long) >> b
 
-        def cache = factory.newCache()
+        def cache = factory.newClassCache()
+
+        expect:
+        cache.get(String, transformer) == a
+        cache.get(Long, transformer) == b
+        cache.get(String) == a
+        cache.get(Long) == b
+
+        cache.put(String, c)
+        cache.get(String) == c
+
+        cache.clear()
+        cache.get(String) == null
+    }
+
+    def "creates a map whose keys are classes"() {
+        def a = new Object()
+        def b = new Object()
+        def c = new Object()
+        def transformer = Mock(Transformer)
+
+        given:
+        transformer.transform(String) >> a
+        transformer.transform(Long) >> b
+
+        def cache = factory.newClassMap()
 
         expect:
         cache.get(String, transformer) == a
@@ -168,5 +193,4 @@ class DefaultCrossBuildInMemoryCacheFactoryTest extends ConcurrentSpec {
         cache.put(String, c)
         cache.get(String) == c
     }
-
 }

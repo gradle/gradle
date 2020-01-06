@@ -41,7 +41,7 @@ abstract class AbstractAntlrIntegrationTest extends AbstractIntegrationSpec {
             project(":grammar-user") {
 
                 dependencies {
-                    compile project(":grammar-builder")
+                    implementation project(":grammar-builder")
                 }
             }
 """

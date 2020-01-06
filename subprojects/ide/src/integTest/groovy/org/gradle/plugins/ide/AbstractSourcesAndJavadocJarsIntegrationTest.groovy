@@ -15,6 +15,8 @@
  */
 package org.gradle.plugins.ide
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.*
 import org.junit.Rule
 
@@ -43,6 +45,7 @@ abstract class AbstractSourcesAndJavadocJarsIntegrationTest extends AbstractIdeI
         succeeds "resolve"
     }
 
+    @ToBeFixedForInstantExecution
     def "sources and javadoc jars from maven repositories are resolved, attached and cached"() {
         def repo = mavenHttpRepo
         def module = repo.module("some", "module", "1.0")
@@ -54,7 +57,7 @@ abstract class AbstractSourcesAndJavadocJarsIntegrationTest extends AbstractIdeI
 
         buildFile << """
 dependencies {
-    compile 'some:module:1.0:api'
+    implementation 'some:module:1.0:api'
 }
 """
 
@@ -75,6 +78,7 @@ dependencies {
         ideFileContainsEntry("module-1.0-api.jar", "module-1.0-sources.jar", "module-1.0-javadoc.jar")
     }
 
+    @ToBeFixedForInstantExecution
     def "ignores missing sources and javadoc jars in maven repositories"() {
         def repo = mavenHttpRepo
         repo.module("some", "module", "1.0").publish().allowAll()
@@ -87,6 +91,7 @@ dependencies {
         ideFileContainsNoSourcesAndJavadocEntry()
     }
 
+    @ToBeFixedForInstantExecution
     def "ignores broken source or javadoc artifacts in maven repository"() {
         def repo = mavenHttpRepo
         def module = repo.module("some", "module", "1.0")
@@ -128,6 +133,7 @@ dependencies {
         succeeds "resolve"
     }
 
+    @ToBeFixedForInstantExecution
     def "sources and javadoc jars from ivy repositories are resolved, attached and cached"() {
         def repo = ivyHttpRepo
         def module = repo.module("some", "module", "1.0")
@@ -150,6 +156,7 @@ dependencies {
         ideFileContainsEntry("module-1.0.jar", "module-1.0-my-sources.jar", "module-1.0-my-javadoc.jar")
     }
 
+    @ToBeFixedForInstantExecution
     def "all sources and javadoc jars resolved from ivy repo are attached to all artifacts for module"() {
         def repo = ivyHttpRepo
         def module = repo.module("some", "module", "1.0")
@@ -169,8 +176,8 @@ dependencies {
         useIvyRepo(repo)
         buildFile << """
 dependencies {
-    compile 'some:module:1.0:api'
-    testCompile 'some:module:1.0:tests'
+    implementation 'some:module:1.0:api'
+    testImplementation 'some:module:1.0:tests'
 }"""
 
         succeeds ideTask
@@ -183,6 +190,7 @@ dependencies {
         ideFileContainsEntry("module-1.0-tests.jar", sources, javadoc)
     }
 
+    @ToBeFixedForInstantExecution
     def "all sources jars from ivy repositories are attached when there are multiple unclassified artifacts"() {
         def repo = ivyHttpRepo
 
@@ -210,6 +218,7 @@ dependencies {
         ideFileContainsEntry("foo-api-1.0.jar", ["foo-sources-1.0.jar", "foo-api-sources-1.0.jar"], ["foo-javadoc-1.0.jar", "foo-api-javadoc-1.0.jar"])
     }
 
+    @ToBeFixedForInstantExecution
     def "ignores missing sources and javadoc jars in ivy repositories"() {
         def repo = ivyHttpRepo
         final module = repo.module("some", "module", "1.0")
@@ -227,6 +236,7 @@ dependencies {
         ideFileContainsNoSourcesAndJavadocEntry()
     }
 
+    @ToBeFixedForInstantExecution
     def "ignores broken source or javadoc artifacts in ivy repository"() {
         def repo = ivyHttpRepo
         def module = repo.module("some", "module", "1.0")
@@ -252,6 +262,7 @@ dependencies {
         ideFileContainsNoSourcesAndJavadocEntry()
     }
 
+    @ToBeFixedForInstantExecution
     def "sources and javadoc jars stored with maven scheme in ivy repositories are resolved and attached"() {
         def repo = ivyHttpRepo
         def module = repo.module("some", "module", "1.0")
@@ -270,7 +281,7 @@ dependencies {
         ideFileContainsEntry("module-1.0.jar", "module-1.0-sources.jar", "module-1.0-javadoc.jar")
     }
 
-
+    @ToBeFixedForInstantExecution
     def "sources and javadoc jars from flatdir repositories are resolved and attached"() {
         file("repo/module-1.0.jar").createFile()
         file("repo/module-1.0-sources.jar").createFile()
@@ -282,6 +293,53 @@ dependencies {
 
         then:
         ideFileContainsEntry("module-1.0.jar", "module-1.0-sources.jar", "module-1.0-javadoc.jar")
+    }
+
+    @ToBeFixedForInstantExecution
+    def "sources for gradleApi() are resolved and attached when -all distribution is used"() {
+        given:
+        requireGradleDistribution()
+        TestFile sourcesDir = distribution.gradleHomeDir.createDir("src")
+        sourcesDir.createFile("org/gradle/Test.java").writelns("package org.gradle;", "public class Test {}")
+
+        buildScript """
+            apply plugin: "java"
+            apply plugin: "idea"
+            apply plugin: "eclipse"
+
+            dependencies {
+                implementation gradleApi()
+            }
+            """
+        when:
+        succeeds ideTask
+
+        then:
+        ideFileContainsGradleApiWithSources("gradle-api", sourcesDir.getPath())
+    }
+
+    @ToBeFixedForInstantExecution
+    def "sources for gradleTestKit() are resolved and attached when -all distribution is used"() {
+        given:
+        requireGradleDistribution()
+        TestFile sourcesDir = distribution.gradleHomeDir.createDir("src")
+        sourcesDir.createFile("org/gradle/Test.java").writelns("package org.gradle;", "public class Test {}")
+
+        buildScript """
+            apply plugin: "java"
+            apply plugin: "idea"
+            apply plugin: "eclipse"
+
+            dependencies {
+                implementation gradleTestKit()
+            }
+            """
+        when:
+        succeeds ideTask
+
+        then:
+        ideFileContainsGradleApiWithSources("gradle-test-kit", sourcesDir.getPath())
+        ideFileContainsGradleApiWithSources("gradle-api", sourcesDir.getPath())
     }
 
     private useIvyRepo(def repo) {
@@ -318,7 +376,7 @@ apply plugin: "idea"
 apply plugin: "eclipse"
 
 dependencies {
-    compile("some:module:1.0")
+    implementation("some:module:1.0")
 }
 
 idea {
@@ -335,7 +393,7 @@ eclipse {
 
 task resolve {
     doLast {
-        configurations.compile.each { println it }
+        configurations.runtimeClasspath.each { println it }
     }
 }
 """
@@ -347,6 +405,7 @@ task resolve {
         ideFileContainsEntry(jar, [sources], [javadoc])
     }
     abstract void ideFileContainsEntry(String jar, List<String> sources, List<String> javadoc)
+    abstract void ideFileContainsGradleApiWithSources(String apiJarPrefix, String sourcesPath)
     abstract void ideFileContainsNoSourcesAndJavadocEntry()
     abstract void expectBehaviorAfterBrokenMavenArtifact(HttpArtifact httpArtifact)
     abstract void expectBehaviorAfterBrokenIvyArtifact(HttpArtifact httpArtifact)

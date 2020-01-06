@@ -78,7 +78,7 @@ val Environment.gradleJavaHome: File?
 
 
 /**
- * TODO unknown.
+ * Gradle options as configured in IntelliJ.
  */
 internal
 val Environment.gradleOptions: List<String>
@@ -93,6 +93,23 @@ val Environment.gradleJvmOptions: List<String>
     get() = stringList("gradleJvmOptions")
 
 
+/**
+ * Gradle environment variables as configured in IntelliJ.
+ */
+internal
+val Environment.gradleEnvironmentVariables: Map<String, String>
+    get() = stringMap("gradleEnvironmentVariables")
+
+
+/**
+ * Environment flag to enabled short circuiting TAPI resolution when script
+ * is changed outside classpath blocks. Defaults to false.
+ */
+internal
+val Map<String, Any?>?.isShortCircuitEnabled: Boolean
+    get() = this?.get("gradleKotlinDslScriptDependenciesResolverShortCircuit") == true
+
+
 private
 fun Environment.path(key: String): File? =
     (get(key) as? String)?.let(::File)
@@ -102,3 +119,9 @@ fun Environment.path(key: String): File? =
 private
 fun Environment.stringList(key: String): List<String> =
     (get(key) as? List<String>) ?: emptyList()
+
+
+@Suppress("unchecked_cast")
+private
+fun Environment.stringMap(key: String) =
+    (get(key) as? Map<String, String>) ?: emptyMap()

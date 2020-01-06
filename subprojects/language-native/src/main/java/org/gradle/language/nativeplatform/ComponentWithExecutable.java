@@ -16,7 +16,6 @@
 
 package org.gradle.language.nativeplatform;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
@@ -28,7 +27,6 @@ import org.gradle.nativeplatform.tasks.LinkExecutable;
  *
  * @since 4.5
  */
-@Incubating
 public interface ComponentWithExecutable extends ComponentWithNativeRuntime {
     /**
      * Returns the link libraries to use to link the executable. Includes the link libraries of the component's dependencies.

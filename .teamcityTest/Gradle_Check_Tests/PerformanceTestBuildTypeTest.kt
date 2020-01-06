@@ -40,7 +40,7 @@ class PerformanceTestBuildTypeTest {
                 specificBuilds = listOf(
                         SpecificBuild.BuildDistributions,
                         SpecificBuild.Gradleception,
-                        SpecificBuild.SmokeTests),
+                        SpecificBuild.SmokeTestsMinJavaVersion),
                 functionalTests = listOf(
                         TestCoverage(1, TestType.platform, Os.linux, JvmVersion.java8),
                         TestCoverage(2, TestType.platform, Os.windows, JvmVersion.java11, vendor = JvmVendor.openjdk)),
@@ -50,7 +50,7 @@ class PerformanceTestBuildTypeTest {
         assertEquals(listOf(
                 "GRADLE_RUNNER",
                 "CHECK_CLEAN_M2",
-                "GRADLE_RERUNNER"
+                "TAG_BUILD"
         ), performanceTest.steps.items.map(BuildStep::name))
 
         val expectedRunnerParams = listOf(
@@ -63,9 +63,9 @@ class PerformanceTestBuildTypeTest {
                 "-Porg.gradle.performance.db.url=%performance.db.url%",
                 "-Porg.gradle.performance.db.username=%performance.db.username%",
                 "-Porg.gradle.performance.db.password=%performance.db.password.tcagent%",
-                "-PteamCityUsername=%teamcity.username.restbot%",
-                "-PteamCityPassword=%teamcity.password.restbot%",
+                "-PteamCityToken=%teamcity.user.bot-gradle.token%",
                 "-PtestJavaHome=%linux.java8.oracle.64bit%",
+                "-Dorg.gradle.workers.max=%maxParallelForks%",
                 "-PmaxParallelForks=%maxParallelForks%",
                 "-s",
                 "--daemon",
@@ -90,17 +90,6 @@ class PerformanceTestBuildTypeTest {
                 performanceTest.getGradleStep("GRADLE_RUNNER").gradleParams!!.trim()
         )
         assertEquals(BuildStep.ExecutionMode.DEFAULT, performanceTest.getGradleStep("GRADLE_RUNNER").executionMode)
-
-        assertEquals(
-                (listOf("tagBuild", "distributedPerformanceTests")
-                        + expectedRunnerParams
-                        + "-PteamCityBuildId=%teamcity.build.id%"
-                        + "-PonlyPreviousFailedTestClasses=true"
-                        + "-Dscan.tag.RERUN_TESTS"
-                        ).joinToString(" "),
-                performanceTest.getGradleStep("GRADLE_RERUNNER").gradleParams
-        )
-        assertEquals(BuildStep.ExecutionMode.RUN_ON_FAILURE, performanceTest.getGradleStep("GRADLE_RERUNNER").executionMode)
     }
 
     private

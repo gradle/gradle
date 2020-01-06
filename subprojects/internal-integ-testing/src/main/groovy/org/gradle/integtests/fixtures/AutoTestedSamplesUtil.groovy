@@ -22,7 +22,7 @@ import java.util.regex.Pattern
 
 class AutoTestedSamplesUtil {
 
-    private static final Pattern SAMPLE_START = Pattern.compile(/<pre class=['|"]autoTested(.*?)['|"].*?>/)
+    private static final Pattern SAMPLE_START = Pattern.compile(/<pre class=['"]autoTested(.*?)['"].*?>/)
     private static final Pattern LEADING_ASTERISK_PATTERN = Pattern.compile(/(?m)^\s*?\*/)
     private static final Pattern LITERAL_PATTERN = Pattern.compile(/\{@literal ([^}]+)}/)
 

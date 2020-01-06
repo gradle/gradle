@@ -16,14 +16,13 @@
 
 package org.gradle.api.reporting.plugins
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
-import spock.lang.IgnoreIf
 
 class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
 
@@ -38,7 +37,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
                 apply plugin: 'groovy'
 
                 dependencies {
-                    compile localGroovy()
+                    implementation localGroovy()
                 }
             }
         """
@@ -48,7 +47,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         buildFile << """
             allprojects {
                 dependencies{
-                    testCompile "junit:junit:4.12"
+                    testImplementation "junit:junit:4.12"
                 }
             }
 """
@@ -240,30 +239,35 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         !buildDashboardFile.exists()
     }
 
-    @IgnoreIf({GradleContextualExecuter.parallel})
+    @ToBeFixedForInstantExecution
     void 'buildDashboard is incremental'() {
         given:
         goodCode()
 
         expect:
-        run('buildDashboard') && ':buildDashboard' in nonSkippedTasks
-        run('buildDashboard') && ':buildDashboard' in skippedTasks
+        run('buildDashboard')
+        executedAndNotSkipped(':buildDashboard')
+
+        run('buildDashboard')
+        skipped(':buildDashboard')
 
         when:
         buildDashboardFile.delete()
 
         then:
-        run('buildDashboard') && ':buildDashboard' in nonSkippedTasks
+        run('buildDashboard')
+        executedAndNotSkipped(':buildDashboard')
     }
 
-    @IgnoreIf({GradleContextualExecuter.parallel})
+    @ToBeFixedForInstantExecution
     void 'enabling an additional report renders buildDashboard out-of-date'() {
         given:
         goodCode()
         withCodenarc()
 
         when:
-        run('check') && ':buildDashboard' in nonSkippedTasks
+        run('check')
+        executedAndNotSkipped(':buildDashboard')
 
         then:
         reports.size() == 2
@@ -278,7 +282,8 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         """
 
         and:
-        run('check') && ':buildDashboard' in nonSkippedTasks
+        run('check')
+        executedAndNotSkipped(':buildDashboard')
 
         then:
         reports.size() == 3
@@ -287,14 +292,14 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         hasReport(':codenarcMain', 'text')
     }
 
-    @IgnoreIf({GradleContextualExecuter.parallel})
     void 'generating a report that was previously not available renders buildDashboard out-of-date'() {
         given:
         goodCode()
         goodTests()
 
         when:
-        run('buildDashboard') && ':buildDashboard' in nonSkippedTasks
+        run('buildDashboard')
+        executedAndNotSkipped(':buildDashboard')
 
         then:
         reports.size() == 1
@@ -304,7 +309,8 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         hasUnavailableReport(':test', 'junitXml')
 
         when:
-        run('test') && ':buildDashboard' in nonSkippedTasks
+        run('test')
+        executedAndNotSkipped(':buildDashboard')
 
         then:
         reports.size() == 3
@@ -333,6 +339,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
     }
 
     @Requires(TestPrecondition.FIX_TO_WORK_ON_JAVA9)
+    @ToBeFixedForInstantExecution
     void 'dashboard includes JaCoCo reports'() {
         given:
         goodCode()
@@ -352,6 +359,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         hasReport(':jacocoTestReport', 'html')
     }
 
+    @ToBeFixedForInstantExecution
     void 'dashboard includes CodeNarc reports'() {
         given:
         goodCode()

@@ -59,7 +59,7 @@ public class DefaultHashingClassLoaderFactory extends DefaultClassLoaderFactory 
     }
 
     @Override
-    public HashCode getHash(ClassLoader classLoader) {
+    public HashCode getClassLoaderClasspathHash(ClassLoader classLoader) {
         if (classLoader instanceof ImplementationHashAware) {
             ImplementationHashAware loader = (ImplementationHashAware) classLoader;
             return loader.getImplementationHash();

@@ -16,7 +16,7 @@
 
 package org.gradle.buildinit.plugins.internal;
 
-import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
@@ -27,14 +27,14 @@ import java.util.Set;
 
 public class LanguageSpecificAdaptor implements ProjectGenerator {
     private final BuildScriptBuilderFactory scriptBuilderFactory;
-    private final FileResolver fileResolver;
+    private final FileCollectionFactory fileCollectionFactory;
     private final TemplateOperationFactory templateOperationFactory;
     private final LanguageSpecificProjectGenerator descriptor;
 
-    public LanguageSpecificAdaptor(LanguageSpecificProjectGenerator descriptor, BuildScriptBuilderFactory scriptBuilderFactory, FileResolver fileResolver, TemplateOperationFactory templateOperationFactory) {
+    public LanguageSpecificAdaptor(LanguageSpecificProjectGenerator descriptor, BuildScriptBuilderFactory scriptBuilderFactory, FileCollectionFactory fileCollectionFactory, TemplateOperationFactory templateOperationFactory) {
         this.scriptBuilderFactory = scriptBuilderFactory;
         this.descriptor = descriptor;
-        this.fileResolver = fileResolver;
+        this.fileCollectionFactory = fileCollectionFactory;
         this.templateOperationFactory = templateOperationFactory;
     }
 
@@ -84,7 +84,7 @@ public class LanguageSpecificAdaptor implements ProjectGenerator {
     @Override
     public void generate(InitSettings settings) {
         BuildScriptBuilder buildScriptBuilder = scriptBuilderFactory.script(settings.getDsl(), "build");
-        descriptor.generate(settings, buildScriptBuilder, new TemplateFactory(settings, descriptor.getLanguage(), fileResolver, templateOperationFactory));
+        descriptor.generate(settings, buildScriptBuilder, new TemplateFactory(settings, descriptor.getLanguage(), fileCollectionFactory, templateOperationFactory));
         buildScriptBuilder.create().generate();
     }
 }

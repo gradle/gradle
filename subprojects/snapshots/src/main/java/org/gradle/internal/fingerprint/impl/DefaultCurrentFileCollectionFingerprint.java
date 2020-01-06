@@ -18,17 +18,15 @@ package org.gradle.internal.fingerprint.impl;
 
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Iterables;
-import org.gradle.internal.change.ChangeVisitor;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
-import org.gradle.internal.fingerprint.FingerprintCompareStrategy;
+import org.gradle.internal.fingerprint.FingerprintHashingStrategy;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
-import org.gradle.internal.snapshot.DirectorySnapshot;
-import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
+import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 
@@ -37,7 +35,7 @@ import java.util.Map;
 public class DefaultCurrentFileCollectionFingerprint implements CurrentFileCollectionFingerprint {
 
     private final Map<String, FileSystemLocationFingerprint> fingerprints;
-    private final FingerprintCompareStrategy compareStrategy;
+    private final FingerprintHashingStrategy hashingStrategy;
     private final String identifier;
     private final Iterable<? extends FileSystemSnapshot> roots;
     private final ImmutableMultimap<String, HashCode> rootHashes;
@@ -51,52 +49,40 @@ public class DefaultCurrentFileCollectionFingerprint implements CurrentFileColle
         if (fingerprints.isEmpty()) {
             return strategy.getEmptyFingerprint();
         }
-        return new DefaultCurrentFileCollectionFingerprint(fingerprints, strategy.getCompareStrategy(), strategy.getIdentifier(), roots);
+        return new DefaultCurrentFileCollectionFingerprint(fingerprints, strategy.getHashingStrategy(), strategy.getIdentifier(), roots);
     }
 
-    private DefaultCurrentFileCollectionFingerprint(Map<String, FileSystemLocationFingerprint> fingerprints, FingerprintCompareStrategy compareStrategy, String identifier, Iterable<? extends FileSystemSnapshot> roots) {
+    private DefaultCurrentFileCollectionFingerprint(Map<String, FileSystemLocationFingerprint> fingerprints, FingerprintHashingStrategy hashingStrategy, String identifier, Iterable<? extends FileSystemSnapshot> roots) {
         this.fingerprints = fingerprints;
-        this.compareStrategy = compareStrategy;
+        this.hashingStrategy = hashingStrategy;
         this.identifier = identifier;
         this.roots = roots;
 
         final ImmutableMultimap.Builder<String, HashCode> builder = ImmutableMultimap.builder();
         accept(new FileSystemSnapshotVisitor() {
             @Override
-            public boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
+            public boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
                 builder.put(directorySnapshot.getAbsolutePath(), directorySnapshot.getHash());
                 return false;
             }
 
             @Override
-            public void visit(FileSystemLocationSnapshot fileSnapshot) {
+            public void visitFile(CompleteFileSystemLocationSnapshot fileSnapshot) {
                 builder.put(fileSnapshot.getAbsolutePath(), fileSnapshot.getHash());
             }
 
             @Override
-            public void postVisitDirectory(DirectorySnapshot directorySnapshot) {
+            public void postVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
             }
         });
         this.rootHashes = builder.build();
     }
 
     @Override
-    public boolean visitChangesSince(FileCollectionFingerprint oldFingerprint, String title, boolean includeAdded, ChangeVisitor visitor) {
-        if (hasSameRootHashes(oldFingerprint)) {
-            return true;
-        }
-        return compareStrategy.visitChangesSince(visitor, getFingerprints(), oldFingerprint.getFingerprints(), title, includeAdded);
-    }
-
-    private boolean hasSameRootHashes(FileCollectionFingerprint oldFingerprint) {
-        return Iterables.elementsEqual(rootHashes.entries(), oldFingerprint.getRootHashes().entries());
-    }
-
-    @Override
     public HashCode getHash() {
         if (hash == null) {
             Hasher hasher = Hashing.newHasher();
-            compareStrategy.appendToHasher(hasher, fingerprints.values());
+            hashingStrategy.appendToHasher(hasher, fingerprints.values());
             hash = hasher.hash();
         }
         return hash;

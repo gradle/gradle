@@ -27,21 +27,18 @@ import org.gradle.internal.MutableBoolean;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.Clock;
 import org.junit.platform.engine.TestExecutionResult;
-import org.junit.platform.engine.UniqueId;
 import org.junit.platform.engine.support.descriptor.ClassSource;
 import org.junit.platform.launcher.TestExecutionListener;
 import org.junit.platform.launcher.TestIdentifier;
 import org.junit.platform.launcher.TestPlan;
 
 import java.util.LinkedHashSet;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import static org.gradle.api.internal.tasks.testing.junitplatform.VintageTestNameAdapter.isVintageDynamicLeafTest;
-import static org.gradle.api.internal.tasks.testing.junitplatform.VintageTestNameAdapter.vintageDynamicClassName;
-import static org.gradle.api.internal.tasks.testing.junitplatform.VintageTestNameAdapter.vintageDynamicMethodName;
 import static org.gradle.api.tasks.testing.TestResult.ResultType.SKIPPED;
 import static org.junit.platform.engine.TestDescriptor.Type.CONTAINER;
 import static org.junit.platform.engine.TestExecutionResult.Status.ABORTED;
@@ -162,11 +159,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         MutableBoolean wasCreated = new MutableBoolean(false);
         descriptorsByUniqueId.computeIfAbsent(node.getUniqueId(), uniqueId -> {
             wasCreated.set(true);
-            if (isVintageDynamicLeafTest(node)) {
-                UniqueId parsedUniqueId = UniqueId.parse(uniqueId);
-                return new DefaultTestDescriptor(idGenerator.generateId(), vintageDynamicClassName(parsedUniqueId), vintageDynamicMethodName(parsedUniqueId));
-            }
-            if (node.getType() == CONTAINER || isClass(node)) {
+            if (node.getType() == CONTAINER || isClass(node) && !hasSameSourceAsAncestor(node)) {
                 TestIdentifier classIdentifier = findClassSource(node);
                 String className = className(classIdentifier);
                 String classDisplayName = classDisplayName(classIdentifier);
@@ -207,6 +200,17 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
 
     private boolean isClass(TestIdentifier test) {
         return test.getSource().isPresent() && test.getSource().get() instanceof ClassSource;
+    }
+
+    private boolean hasSameSourceAsAncestor(TestIdentifier node) {
+        Optional<TestIdentifier> parent = currentTestPlan.getParent(node);
+        while (parent.isPresent()) {
+            if (Objects.equals(parent.get().getSource(), node.getSource())) {
+                return true;
+            }
+            parent = currentTestPlan.getParent(parent.get());
+        }
+        return false;
     }
 
     private TestIdentifier findClassSource(TestIdentifier testIdentifier) {

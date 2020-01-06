@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.nativeintegration.services;
 
+import net.rubygrapefruit.platform.Native;
 import net.rubygrapefruit.platform.NativeException;
 import net.rubygrapefruit.platform.NativeIntegrationUnavailableException;
 import net.rubygrapefruit.platform.Process;
@@ -31,8 +32,9 @@ import org.gradle.internal.SystemProperties;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.nativeintegration.console.ConsoleDetector;
+import org.gradle.internal.nativeintegration.console.FallbackConsoleDetector;
 import org.gradle.internal.nativeintegration.console.NativePlatformConsoleDetector;
-import org.gradle.internal.nativeintegration.console.NoOpConsoleDetector;
+import org.gradle.internal.nativeintegration.console.TestOverrideConsoleDetector;
 import org.gradle.internal.nativeintegration.console.WindowsConsoleDetector;
 import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor;
 import org.gradle.internal.nativeintegration.filesystem.services.FallbackFileMetadataAccessor;
@@ -41,6 +43,7 @@ import org.gradle.internal.nativeintegration.filesystem.services.NativePlatformB
 import org.gradle.internal.nativeintegration.filesystem.services.UnavailablePosixFiles;
 import org.gradle.internal.nativeintegration.jansi.JansiBootPathConfigurer;
 import org.gradle.internal.nativeintegration.jna.UnsupportedEnvironment;
+import org.gradle.internal.nativeintegration.network.HostnameLookup;
 import org.gradle.internal.nativeintegration.processenvironment.NativePlatformBackedProcessEnvironment;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.DefaultServiceRegistry;
@@ -52,6 +55,8 @@ import java.io.File;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 import static org.gradle.internal.nativeintegration.filesystem.services.JdkFallbackHelper.newInstanceOrFallback;
 
@@ -162,6 +167,10 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
     }
 
     protected ConsoleDetector createConsoleDetector(OperatingSystem operatingSystem) {
+        return new TestOverrideConsoleDetector(backingConsoleDetector(operatingSystem));
+    }
+
+    private ConsoleDetector backingConsoleDetector(OperatingSystem operatingSystem) {
         if (useNativeIntegrations) {
             try {
                 Terminals terminals = net.rubygrapefruit.platform.Native.get(Terminals.class);
@@ -182,7 +191,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
             }
         }
 
-        return new NoOpConsoleDetector();
+        return new FallbackConsoleDetector();
     }
 
     protected WindowsRegistry createWindowsRegistry(OperatingSystem operatingSystem) {
@@ -236,6 +245,24 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
         return notAvailable(UnavailablePosixFiles.class);
     }
 
+    protected HostnameLookup createHostnameLookup() {
+        if (useNativeIntegrations) {
+            try {
+                String hostname = Native.get(SystemInfo.class).getHostname();
+                return new FixedHostname(hostname);
+            } catch (NativeIntegrationUnavailableException e) {
+                LOGGER.debug("Native-platform posix files integration is not available. Continuing with fallback.");
+            }
+        }
+        String hostname;
+        try {
+            hostname = InetAddress.getLocalHost().getHostName();
+        } catch (UnknownHostException e) {
+            hostname = InetAddress.getLoopbackAddress().getHostAddress();
+        }
+        return new FixedHostname(hostname);
+    }
+
     protected FileMetadataAccessor createFileMetadataAccessor(OperatingSystem operatingSystem) {
         // Based on the benchmark found in org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessorBenchmark
         // and the results in the PR https://github.com/gradle/gradle/pull/1183
@@ -283,6 +310,19 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
         @Override
         public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
             throw new org.gradle.internal.nativeintegration.NativeIntegrationUnavailableException(String.format("%s is not supported on this operating system.", type));
+        }
+    }
+
+    private static class FixedHostname implements HostnameLookup {
+        private final String hostname;
+
+        public FixedHostname(String hostname) {
+            this.hostname = hostname;
+        }
+
+        @Override
+        public String getHostname() {
+            return hostname;
         }
     }
 }

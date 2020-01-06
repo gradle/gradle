@@ -51,17 +51,16 @@ public class ValidatingMavenPublisher implements MavenPublisher {
     }
 
     private void validateIdentity(MavenNormalizedPublication publication) {
-        MavenProjectIdentity projectIdentity = publication.getProjectIdentity();
         Model model = parsePomFileIntoMavenModel(publication);
 
-        field(publication, "artifactId", projectIdentity.getArtifactId().get())
+        field(publication, "artifactId", publication.getArtifactId())
                 .validMavenIdentifier()
                 .matches(model.getArtifactId());
 
         boolean hasParentPom = model.getParent() != null;
-        MavenFieldValidator groupIdValidator = field(publication, "groupId", projectIdentity.getGroupId().get())
+        MavenFieldValidator groupIdValidator = field(publication, "groupId", publication.getGroupId())
                 .validMavenIdentifier();
-        MavenFieldValidator versionValidator = field(publication, "version", projectIdentity.getVersion().get())
+        MavenFieldValidator versionValidator = field(publication, "version", publication.getVersion())
                 .notEmpty()
                 .validInFileName();
 

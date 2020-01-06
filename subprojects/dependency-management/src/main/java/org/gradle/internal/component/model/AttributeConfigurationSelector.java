@@ -62,13 +62,13 @@ public abstract class AttributeConfigurationSelector {
             // Here we're going to check if in the candidates, there's a single one _strictly_ matching the requested capabilities.
             List<ConfigurationMetadata> strictlyMatchingCapabilities = filterVariantsByRequestedCapabilities(targetComponent, explicitRequestedCapabilities, matches, versionId.getGroup(), versionId.getName(), false);
             if (strictlyMatchingCapabilities.size() == 1) {
-                return singleVariant(variantsForGraphTraversal, matches);
+                return singleVariant(variantsForGraphTraversal, strictlyMatchingCapabilities);
             } else if (strictlyMatchingCapabilities.size() > 1) {
                 // there are still more than one candidate, but this time we know only a subset strictly matches the required attributes
                 // so we perform another round of selection on the remaining candidates
                 strictlyMatchingCapabilities = attributeMatcher.matches(strictlyMatchingCapabilities, consumerAttributes, fallbackConfiguration);
                 if (strictlyMatchingCapabilities.size() == 1) {
-                    return singleVariant(variantsForGraphTraversal, matches);
+                    return singleVariant(variantsForGraphTraversal, strictlyMatchingCapabilities);
                 }
             }
             if (requestedArtifacts.size() == 1) {

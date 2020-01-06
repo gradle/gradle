@@ -23,7 +23,6 @@ import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory;
 import org.gradle.internal.execution.caching.CachingState;
-import org.gradle.internal.id.UniqueId;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -58,8 +57,7 @@ public class ExecuteTaskBuildOperationResult implements ExecuteTaskBuildOperatio
     @Nullable
     @Override
     public String getOriginBuildInvocationId() {
-        UniqueId originBuildInvocationId = originMetadata == null ? null : originMetadata.getBuildInvocationId();
-        return originBuildInvocationId == null ? null : originBuildInvocationId.asString();
+        return originMetadata == null ? null : originMetadata.getBuildInvocationId();
     }
 
     @Nullable

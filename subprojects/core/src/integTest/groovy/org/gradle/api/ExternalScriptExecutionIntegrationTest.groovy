@@ -18,6 +18,7 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.ArtifactBuilder
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.file.TestFile
@@ -108,7 +109,9 @@ assert 'value' == doStuff.someProp
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     void canExecuteExternalScriptFromSettingsScript() {
+
         testFile('settings.gradle') << ''' apply { from 'other.gradle' } '''
         testFile('other.gradle') << ''' include 'child' '''
         testFile('build.gradle') << ''' assert ['child'] == subprojects*.name '''
@@ -151,11 +154,11 @@ class ListenerImpl extends BuildAdapter {
         script << """
             task doStuff
             assert buildscript.sourceFile == null
-            assert "http://localhost:$server.port/external.gradle" == buildscript.sourceURI as String
+            assert "${server.uri}/external.gradle" == buildscript.sourceURI as String
 """
 
         testFile('build.gradle') << """
-            apply from: 'http://localhost:$server.port/external.gradle'
+            apply from: '${server.uri}/external.gradle'
             defaultTasks 'doStuff'
 """
 

@@ -20,6 +20,10 @@
                 <td>deploymentDescriptor</td>
                 <td>A deployment descriptor initialized with sensible defaults</td>
             </tr>
+            <tr>
+                <td>generateDeploymentDescriptor</td>
+                <td><literal>true</literal></td>
+            </tr>
         </table>
     </section>
     <section>

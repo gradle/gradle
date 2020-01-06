@@ -15,9 +15,11 @@
  */
 package org.gradle.api.publish.maven
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 
 class MavenPublishWarProjectIntegTest extends AbstractMavenPublishIntegTest {
+    @ToBeFixedForInstantExecution
     void "publishes war and meta-data for web component with external dependencies"() {
         def webModule = mavenRepo.module("org.gradle.test", "project1", "1.9").withModuleMetadata()
 
@@ -35,9 +37,9 @@ class MavenPublishWarProjectIntegTest extends AbstractMavenPublishIntegTest {
             ${mavenCentralRepository()}
 
             dependencies {
-                compile "commons-collections:commons-collections:3.2.2"
-                runtime "commons-io:commons-io:1.4"
-                testRuntime "junit:junit:4.12"
+                implementation "commons-collections:commons-collections:3.2.2"
+                runtimeOnly "commons-io:commons-io:1.4"
+                testRuntimeOnly "junit:junit:4.12"
             }
 
             publishing {
@@ -70,6 +72,7 @@ class MavenPublishWarProjectIntegTest extends AbstractMavenPublishIntegTest {
         resolveArtifacts(webModule) { expectFiles "project1-1.9.war" }
     }
 
+    @ToBeFixedForInstantExecution
     void "publishes war and meta-data for web component with project dependencies"() {
         given:
         settingsFile << "include 'projectWeb', 'depProject1', 'depProject2'"
@@ -92,8 +95,8 @@ class MavenPublishWarProjectIntegTest extends AbstractMavenPublishIntegTest {
 
         project(":projectWeb") {
             dependencies {
-                compile project(":depProject1")
-                compile project(":depProject2")
+                implementation project(":depProject1")
+                implementation project(":depProject2")
             }
 
             publishing {

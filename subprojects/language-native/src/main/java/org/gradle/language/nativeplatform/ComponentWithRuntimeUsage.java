@@ -16,7 +16,6 @@
 
 package org.gradle.language.nativeplatform;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.provider.Provider;
 
@@ -25,7 +24,6 @@ import org.gradle.api.provider.Provider;
  *
  * @since 4.5
  */
-@Incubating
 public interface ComponentWithRuntimeUsage extends ComponentWithNativeRuntime {
     /**
      * Returns the outgoing runtime elements of this component.

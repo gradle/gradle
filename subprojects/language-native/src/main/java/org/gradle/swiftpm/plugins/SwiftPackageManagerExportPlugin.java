@@ -17,7 +17,6 @@
 package org.gradle.swiftpm.plugins;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -73,7 +72,6 @@ import java.util.concurrent.Callable;
  *
  * @since 4.6
  */
-@Incubating
 public class SwiftPackageManagerExportPlugin implements Plugin<Project> {
     private final VcsResolver vcsResolver;
     private final VersionSelectorScheme versionSelectorScheme;

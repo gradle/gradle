@@ -22,8 +22,8 @@ import spock.lang.Unroll
 class TaskOutputCachingSwiftPerformanceTest extends AbstractTaskOutputCachingPerformanceTest {
 
     def setup() {
-        runner.minimumVersion = "4.5"
-        runner.targetVersions = ["5.5-20190515115345+0000"]
+        runner.minimumBaseVersion = "4.5"
+        runner.targetVersions = ["6.1-20191209153604+0000"]
         runner.args += ["--parallel", "--${ParallelismBuildOptions.MaxWorkersOption.LONG_OPTION}=6"]
     }
 

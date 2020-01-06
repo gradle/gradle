@@ -77,7 +77,7 @@ class DefaultBinaryStore implements BinaryStore, Closeable {
                 encoder.done();
                 encoder.flush();
             }
-            return new SimpleBinaryData(file, offset, diagnose());
+            return new SimpleBinaryData(file, offset);
         } finally {
             offset = -1;
         }
@@ -109,15 +109,13 @@ class DefaultBinaryStore implements BinaryStore, Closeable {
     private static class SimpleBinaryData implements BinaryStore.BinaryData {
         private final long offset;
         private final File inputFile;
-        private final String sourceDescription;
 
         private Decoder decoder;
         private CompositeStoppable resources;
 
-        public SimpleBinaryData(File inputFile, long offset, String sourceDescription) {
+        public SimpleBinaryData(File inputFile, long offset) {
             this.inputFile = inputFile;
             this.offset = offset;
-            this.sourceDescription = sourceDescription;
         }
 
         @Override
@@ -131,7 +129,7 @@ class DefaultBinaryStore implements BinaryStore, Closeable {
                 }
                 return readAction.read(decoder);
             } catch (Exception e) {
-                throw new RuntimeException("Problems reading data from " + sourceDescription, e);
+                throw new RuntimeException("Problems reading data from " + toString(), e);
             }
         }
 
@@ -142,7 +140,7 @@ class DefaultBinaryStore implements BinaryStore, Closeable {
                     resources.stop();
                 }
             } catch (Exception e) {
-                throw new RuntimeException("Problems cleaning resources of " + sourceDescription, e);
+                throw new RuntimeException("Problems cleaning resources of " + toString(), e);
             } finally {
                 decoder = null;
                 resources = null;
@@ -150,7 +148,7 @@ class DefaultBinaryStore implements BinaryStore, Closeable {
         }
 
         public String toString() {
-            return sourceDescription;
+            return "Binary store in " + inputFile + " offset " + offset + " exists? " + inputFile.exists();
         }
     }
 }

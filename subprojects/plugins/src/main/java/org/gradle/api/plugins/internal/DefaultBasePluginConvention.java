@@ -17,7 +17,7 @@
 package org.gradle.api.plugins.internal;
 
 import org.gradle.api.Project;
-import org.gradle.api.internal.file.FileLookup;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.BasePluginConvention;
 import org.gradle.api.reflect.HasPublicType;
@@ -29,24 +29,28 @@ import java.io.File;
 import static org.gradle.api.reflect.TypeOf.typeOf;
 
 public class DefaultBasePluginConvention extends BasePluginConvention implements HasPublicType {
+    private final DirectoryProperty buildDirectory;
+    private final DirectoryProperty distsDirectory;
+    private final DirectoryProperty libsDirectory;
+
     private ProjectInternal project;
 
     private String distsDirName;
-
     private String libsDirName;
-
-    // cached resolved values
-    private File buildDir;
-    private File libsDir;
-    private File distsDir;
-
     private String archivesBaseName;
 
     public DefaultBasePluginConvention(Project project) {
         this.project = (ProjectInternal) project;
-        archivesBaseName = project.getName();
-        distsDirName = "distributions";
-        libsDirName = "libs";
+        this.buildDirectory = project.getLayout().getBuildDirectory();
+        this.archivesBaseName = project.getName();
+
+        this.distsDirName = "distributions";
+        this.distsDirectory = project.getObjects().directoryProperty();
+        distsDirectory.convention(buildDirectory.dir(distsDirName));
+
+        this.libsDirName = "libs";
+        this.libsDirectory = project.getObjects().directoryProperty();
+        libsDirectory.convention(buildDirectory.dir(libsDirName));
     }
 
     @Override
@@ -57,38 +61,36 @@ public class DefaultBasePluginConvention extends BasePluginConvention implements
     @Override
     @Deprecated
     public File getDistsDir() {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("distsDir");
-        File curProjectBuildDir = project.getBuildDir();
-        if (distsDir != null && curProjectBuildDir.equals(buildDir)) {
-            return distsDir;
-        }
-        buildDir = curProjectBuildDir;
-        File dir = project.getServices().get(FileLookup.class).getFileResolver(curProjectBuildDir).resolve(distsDirName);
-        distsDir = dir;
-        return dir;
+        DeprecationLogger.nagUserOfReplacedMethod("distsDir", "distsDirectory");
+        return getDistsDirectory().get().getAsFile();
+    }
+
+    @Override
+    public DirectoryProperty getDistsDirectory() {
+        return distsDirectory;
     }
 
     @Override
     @Deprecated
     public File getLibsDir() {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("libsDir");
-        File curProjectBuildDir = project.getBuildDir();
-        if (libsDir != null && curProjectBuildDir.equals(buildDir)) {
-            return libsDir;
-        }
-        buildDir = curProjectBuildDir;
-        File dir = project.getServices().get(FileLookup.class).getFileResolver(curProjectBuildDir).resolve(libsDirName);
-        libsDir = dir;
-        return dir;
+        DeprecationLogger.nagUserOfReplacedMethod("libsDir", "libsDirectory");
+        return getLibsDirectory().get().getAsFile();
+    }
+
+    @Override
+    public DirectoryProperty getLibsDirectory() {
+        return libsDirectory;
     }
 
     @Override
     public ProjectInternal getProject() {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("BasePluginConvention.getProject()");
         return project;
     }
 
     @Override
     public void setProject(ProjectInternal project) {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("BasePluginConvention.setProject()");
         this.project = project;
     }
 
@@ -100,7 +102,7 @@ public class DefaultBasePluginConvention extends BasePluginConvention implements
     @Override
     public void setDistsDirName(String distsDirName) {
         this.distsDirName = distsDirName;
-        this.distsDir = null;
+        distsDirectory.set(buildDirectory.dir(distsDirName));
     }
 
     @Override
@@ -111,7 +113,7 @@ public class DefaultBasePluginConvention extends BasePluginConvention implements
     @Override
     public void setLibsDirName(String libsDirName) {
         this.libsDirName = libsDirName;
-        this.libsDir = null;
+        libsDirectory.set(buildDirectory.dir(libsDirName));
     }
 
     @Override

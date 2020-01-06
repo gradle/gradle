@@ -15,12 +15,18 @@
  */
 package org.gradle.integtests.resolve
 
-import org.gradle.integtests.fixtures.cache.CachingIntegrationFixture
+import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
+import org.gradle.cache.internal.DefaultCacheScopeMapping
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.cache.CachingIntegrationFixture
 
-public class CacheResolveIntegrationTest extends AbstractHttpDependencyResolutionTest implements CachingIntegrationFixture {
+import java.nio.file.Files
 
-    public void "cache handles manual deletion of cached artifacts"() {
+class CacheResolveIntegrationTest extends AbstractHttpDependencyResolutionTest implements CachingIntegrationFixture {
+
+    @ToBeFixedForInstantExecution
+    void "cache handles manual deletion of cached artifacts"() {
         given:
         def module = ivyHttpRepo.module('group', 'projectA', '1.2').publish()
 
@@ -59,7 +65,7 @@ task deleteCacheFiles(type: Delete) {
         succeeds('listJars')
     }
 
-    public void "cache entries are segregated between different repositories"() {
+    void "cache entries are segregated between different repositories"() {
         given:
         def repo1 = ivyHttpRepo('ivy-repo-a')
         def module1 = repo1.module('org.gradle', 'testproject', '1.0').publish()
@@ -111,5 +117,46 @@ project('b') {
         and:
         file('a/build/testproject-1.0.jar').assertIsCopyOf(module1.jarFile)
         file('b/build/testproject-1.0.jar').assertIsCopyOf(module2.jarFile)
+    }
+
+    @ToBeFixedForInstantExecution
+    def 'dependency cache can be relocated'() {
+        given:
+        def module = ivyHttpRepo.module('group', 'projectA', '1.2').publish()
+
+        and:
+        buildFile << """
+repositories {
+    ivy { url "${ivyHttpRepo.uri}" }
+}
+configurations { compile }
+dependencies { compile 'group:projectA:1.2' }
+task listJars {
+    doLast {
+        assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
+    }
+}
+"""
+
+        and:
+        module.allowAll()
+
+        and:
+        succeeds('listJars')
+
+        when:
+        server.resetExpectations()
+        relocateCachesAndChangeGradleHome()
+
+        then:
+        succeeds('listJars')
+    }
+
+    def relocateCachesAndChangeGradleHome() {
+        def otherHome = executer.gradleUserHomeDir.parentFile.createDir('other-home')
+        def otherCacheDir = otherHome.toPath().resolve(DefaultCacheScopeMapping.GLOBAL_CACHE_DIR_NAME)
+        Files.createDirectory(otherCacheDir)
+        Files.move(getMetadataCacheDir().toPath(), otherCacheDir.resolve(CacheLayout.ROOT.key))
+        executer.withGradleUserHomeDir(otherHome)
     }
 }

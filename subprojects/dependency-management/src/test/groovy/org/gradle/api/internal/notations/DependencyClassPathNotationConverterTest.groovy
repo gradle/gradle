@@ -22,12 +22,10 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarType
-import org.gradle.cache.internal.GeneratedGradleJarCache
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.installation.CurrentGradleInstallation
 import org.gradle.internal.installation.GradleInstallation
-import org.gradle.internal.progress.NoOpProgressLoggerFactory
 import org.gradle.internal.typeconversion.NotationParserBuilder
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
@@ -47,12 +45,10 @@ class DependencyClassPathNotationConverterTest extends Specification {
 
     def instantiator = TestUtil.instantiatorFactory().decorateLenient()
     def classPathRegistry = Mock(ClassPathRegistry)
-    def fileResolver = TestFiles.resolver()
-    def cache = Mock(GeneratedGradleJarCache)
-    def progressLoggerFactory = new NoOpProgressLoggerFactory()
+    def fileCollectionFactory = TestFiles.fileCollectionFactory()
     def shadedJarFactory = Mock(RuntimeShadedJarFactory)
     def gradleInstallation = Mock(CurrentGradleInstallation)
-    def factory = new DependencyClassPathNotationConverter(instantiator, classPathRegistry, fileResolver, shadedJarFactory, gradleInstallation)
+    def factory = new DependencyClassPathNotationConverter(instantiator, classPathRegistry, fileCollectionFactory, shadedJarFactory, gradleInstallation)
     def shadedApiJar = testDirectoryProvider.file('gradle-api-shaded.jar')
     def localGroovyFiles = [testDirectoryProvider.file('groovy.jar')]
     def installationBeaconFiles = [testDirectoryProvider.file('gradle-installation.jar')]

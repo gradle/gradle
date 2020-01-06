@@ -21,5 +21,7 @@ import javax.annotation.Nullable;
 public interface DependenciesBuilder {
     void projectDependency(String configuration, @Nullable String comment, String projectPath);
 
+    void platformDependency(String configuration, @Nullable String comment, String dependency);
+
     void dependency(String configuration, @Nullable String comment, String... dependencies);
 }

@@ -34,12 +34,16 @@ class FeaturesResolveIntegrationTest extends AbstractModuleDependencyResolveTest
                 variant('runtime') {}
                 variant('feature1') {
                     capability('org', 'feature-1', '1.0')
-                    attribute('org.gradle.usage', 'java-runtime-jars')
+                    attribute('org.gradle.usage', 'java-runtime')
+                    attribute('org.gradle.libraryelements', 'jar')
+                    attribute('org.gradle.category', 'library')
                     artifact('feat1')
                 }
                 variant('feature2') {
                     capability('org', 'feature-2', '1.0')
-                    attribute('org.gradle.usage', 'java-runtime-jars')
+                    attribute('org.gradle.usage', 'java-runtime')
+                    attribute('org.gradle.libraryelements', 'jar')
+                    attribute('org.gradle.category', 'library')
                     artifact('feat2')
                 }
             }
@@ -69,11 +73,11 @@ class FeaturesResolveIntegrationTest extends AbstractModuleDependencyResolveTest
         resolve.expectGraph {
             root(":", ":test:") {
                 module('org:foo:1.0') {
-                    variant('runtime', ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime-jars'])
+                    variant('runtime', ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library'])
                     artifact group: 'org', module: 'foo', version: '1.0'
                 }
                 module('org:foo:1.0') {
-                    variant('feature1', ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime-jars'])
+                    variant('feature1', ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library'])
                     artifact group: 'org', module: 'foo', version: '1.0', classifier: 'feat1'
                 }
             }
@@ -88,12 +92,12 @@ class FeaturesResolveIntegrationTest extends AbstractModuleDependencyResolveTest
                 variant('runtime') {}
                 variant('feature1') {
                     capability('org', 'feature-1', '1.0')
-                    attribute('org.gradle.usage', 'java-runtime-jars')
+                    attribute('org.gradle.usage', 'java-runtime')
                     artifact('feat1')
                 }
                 variant('feature2') {
                     capability('org', 'feature-2', '1.0')
-                    attribute('org.gradle.usage', 'java-runtime-jars')
+                    attribute('org.gradle.usage', 'java-runtime')
                     artifact('feat2')
                 }
             }
@@ -135,14 +139,18 @@ class FeaturesResolveIntegrationTest extends AbstractModuleDependencyResolveTest
                 variant('v1') {
                     capability('org', 'feature-1', '1.0')
                     capability('org', 'feature-2', '1.0')
-                    attribute('org.gradle.usage', 'java-runtime-jars')
+                    attribute('org.gradle.usage', 'java-runtime')
+                    attribute('org.gradle.libraryelements', 'jar')
+                    attribute('org.gradle.category', 'library')
                     artifact('feat1')
                     artifact('feat2')
                 }
                 variant('v2') {
                     capability('org', 'feature-1', '1.0')
                     capability('org', 'feature-3', '1.0')
-                    attribute('org.gradle.usage', 'java-runtime-jars')
+                    attribute('org.gradle.usage', 'java-runtime')
+                    attribute('org.gradle.libraryelements', 'jar')
+                    attribute('org.gradle.category', 'library')
                     artifact('feat1')
                     artifact('feat3')
                 }
@@ -173,11 +181,11 @@ class FeaturesResolveIntegrationTest extends AbstractModuleDependencyResolveTest
         resolve.expectGraph {
             root(":", ":test:") {
                 module('org:foo:1.0') {
-                    variant('runtime', ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime-jars'])
+                    variant('runtime', ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library'])
                     artifact group: 'org', module: 'foo', version: '1.0'
                 }
                 module('org:foo:1.0') {
-                    variant('v2', ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime-jars'])
+                    variant('v2', ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library'])
                     artifact group: 'org', module: 'foo', version: '1.0', classifier: 'feat1'
                     artifact group: 'org', module: 'foo', version: '1.0', classifier: 'feat3'
                 }

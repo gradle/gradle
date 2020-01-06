@@ -59,16 +59,21 @@ import org.gradle.tooling.events.task.internal.TaskExecutionDetails;
 import org.gradle.tooling.events.task.internal.java.DefaultAnnotationProcessorResult;
 import org.gradle.tooling.events.task.internal.java.DefaultJavaCompileTaskSuccessResult;
 import org.gradle.tooling.events.task.java.JavaCompileTaskOperationResult.AnnotationProcessorResult;
+import org.gradle.tooling.events.test.Destination;
 import org.gradle.tooling.events.test.JvmTestKind;
 import org.gradle.tooling.events.test.TestFinishEvent;
 import org.gradle.tooling.events.test.TestOperationDescriptor;
 import org.gradle.tooling.events.test.TestOperationResult;
+import org.gradle.tooling.events.test.TestOutputDescriptor;
+import org.gradle.tooling.events.test.TestOutputEvent;
 import org.gradle.tooling.events.test.TestProgressEvent;
 import org.gradle.tooling.events.test.TestStartEvent;
 import org.gradle.tooling.events.test.internal.DefaultJvmTestOperationDescriptor;
 import org.gradle.tooling.events.test.internal.DefaultTestFailureResult;
 import org.gradle.tooling.events.test.internal.DefaultTestFinishEvent;
 import org.gradle.tooling.events.test.internal.DefaultTestOperationDescriptor;
+import org.gradle.tooling.events.test.internal.DefaultTestOutputEvent;
+import org.gradle.tooling.events.test.internal.DefaultTestOutputOperationDescriptor;
 import org.gradle.tooling.events.test.internal.DefaultTestSkippedResult;
 import org.gradle.tooling.events.test.internal.DefaultTestStartEvent;
 import org.gradle.tooling.events.test.internal.DefaultTestSuccessResult;
@@ -122,6 +127,8 @@ import org.gradle.tooling.internal.protocol.events.InternalTaskWithExtraInfoDesc
 import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalTestFailureResult;
 import org.gradle.tooling.internal.protocol.events.InternalTestFinishedProgressEvent;
+import org.gradle.tooling.internal.protocol.events.InternalTestOutputDescriptor;
+import org.gradle.tooling.internal.protocol.events.InternalTestOutputEvent;
 import org.gradle.tooling.internal.protocol.events.InternalTestProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalTestResult;
 import org.gradle.tooling.internal.protocol.events.InternalTestSkippedResult;
@@ -150,6 +157,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     private final ListenerBroadcast<ProgressListener> workItemProgressListeners = new ListenerBroadcast<ProgressListener>(ProgressListener.class);
     private final ListenerBroadcast<ProgressListener> projectConfigurationProgressListeners = new ListenerBroadcast<ProgressListener>(ProgressListener.class);
     private final ListenerBroadcast<ProgressListener> transformProgressListeners = new ListenerBroadcast<ProgressListener>(ProgressListener.class);
+    private final ListenerBroadcast<ProgressListener> testOutputProgressListeners = new ListenerBroadcast<ProgressListener>(ProgressListener.class);
     private final Map<Object, OperationDescriptor> descriptorCache = new HashMap<Object, OperationDescriptor>();
 
     BuildProgressListenerAdapter(Map<OperationType, List<ProgressListener>> listeners) {
@@ -160,6 +168,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         workItemProgressListeners.addAll(listeners.getOrDefault(OperationType.WORK_ITEM, noListeners));
         projectConfigurationProgressListeners.addAll(listeners.getOrDefault(OperationType.PROJECT_CONFIGURATION, noListeners));
         transformProgressListeners.addAll(listeners.getOrDefault(OperationType.TRANSFORM, noListeners));
+        testOutputProgressListeners.addAll(listeners.getOrDefault(OperationType.TEST_OUTPUT, noListeners));
     }
 
     @Override
@@ -182,6 +191,9 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         }
         if (!transformProgressListeners.isEmpty()) {
             operations.add(InternalBuildProgressListener.TRANSFORM_EXECUTION);
+        }
+        if (!testOutputProgressListeners.isEmpty()) {
+            operations.add(InternalBuildProgressListener.TEST_OUTPUT);
         }
         return operations;
     }
@@ -213,6 +225,8 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
             projectConfigurationProgressListeners.getSource().statusChanged(event);
         } else if (event instanceof TransformProgressEvent) {
             transformProgressListeners.getSource().statusChanged(event);
+        } else if (event instanceof TestOutputEvent) {
+            testOutputProgressListeners.getSource().statusChanged(event);
         } else {
             // Everything else treat as a generic operation
             buildOperationProgressListeners.getSource().statusChanged(event);
@@ -236,8 +250,9 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
             broadcastProjectConfigurationProgressEvent(progressEvent, (InternalProjectConfigurationDescriptor) descriptor);
         } else if (descriptor instanceof InternalTransformDescriptor) {
             broadcastTransformProgressEvent(progressEvent, (InternalTransformDescriptor) descriptor);
+        } else if (descriptor instanceof InternalTestOutputDescriptor) {
+            broadcastTestOutputEvent(progressEvent, (InternalTestOutputDescriptor) descriptor);
         } else {
-            // Everything else treat as a generic operation
             broadcastGenericProgressEvent(progressEvent);
         }
     }
@@ -267,6 +282,13 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         TransformProgressEvent transformProgressEvent = toTransformProgressEvent(event, descriptor);
         if (transformProgressEvent != null) {
             transformProgressListeners.getSource().statusChanged(transformProgressEvent);
+        }
+    }
+
+    private void broadcastTestOutputEvent(InternalProgressEvent event, InternalTestOutputDescriptor descriptor) {
+        TestOutputEvent outputEvent = toTestOutputEvent(event, descriptor);
+        if (outputEvent != null) {
+            testOutputProgressListeners.getSource().statusChanged(outputEvent);
         }
     }
 
@@ -327,6 +349,14 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         }
     }
 
+    private TestOutputEvent toTestOutputEvent(InternalProgressEvent event, InternalTestOutputDescriptor descriptor) {
+        if (event instanceof InternalTestOutputEvent) {
+            return transformTestOutput((InternalTestOutputEvent) event, descriptor);
+        } else {
+            return null;
+        }
+    }
+
     private ProgressEvent toGenericProgressEvent(InternalProgressEvent event) {
         if (event instanceof InternalOperationStartedProgressEvent) {
             return genericStartedEvent((InternalOperationStartedProgressEvent) event);
@@ -360,6 +390,11 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     private TransformStartEvent transformStartedEvent(InternalOperationStartedProgressEvent event, InternalTransformDescriptor descriptor) {
         TransformOperationDescriptor projectConfigurationDescriptor = addDescriptor(event.getDescriptor(), toTransformDescriptor(descriptor));
         return new DefaultTransformStartEvent(event.getEventTime(), event.getDisplayName(), projectConfigurationDescriptor);
+    }
+
+    private TestOutputEvent transformTestOutput(InternalTestOutputEvent event, InternalTestOutputDescriptor descriptor) {
+        TestOutputDescriptor outputDescriptor = addDescriptor(event.getDescriptor(), toTestOutputDescriptor(event, descriptor));
+        return new DefaultTestOutputEvent(event.getEventTime(), outputDescriptor);
     }
 
     private StartEvent genericStartedEvent(InternalOperationStartedProgressEvent event) {
@@ -470,6 +505,13 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         return new DefaultTransformOperationDescriptor(descriptor, parent, collectDescriptors(descriptor.getDependencies()));
     }
 
+    private TestOutputDescriptor toTestOutputDescriptor(InternalTestOutputEvent event, InternalTestOutputDescriptor descriptor) {
+        OperationDescriptor parent = getParentDescriptor(descriptor.getParentId());
+        Destination destination = Destination.fromCode(event.getResult().getDestination());
+        String message = event.getResult().getMessage();
+        return new DefaultTestOutputOperationDescriptor(descriptor, parent, destination, message);
+    }
+
     private Set<OperationDescriptor> collectDescriptors(Set<? extends InternalOperationDescriptor> dependencies) {
         Set<OperationDescriptor> result = new LinkedHashSet<OperationDescriptor>();
         for (InternalOperationDescriptor dependency : dependencies) {
@@ -511,7 +553,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         }
     }
 
-    private static TaskOperationResult toTaskResult(InternalTaskResult result) {
+    public static TaskOperationResult toTaskResult(InternalTaskResult result) {
         if (result instanceof InternalTaskSuccessResult) {
             InternalTaskSuccessResult successResult = (InternalTaskSuccessResult) result;
             if (result instanceof InternalJavaCompileTaskOperationResult) {

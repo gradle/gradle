@@ -16,12 +16,11 @@
 
 package org.gradle.internal.file;
 
-import javax.annotation.concurrent.ThreadSafe;
-import org.gradle.internal.Factory;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.util.GFileUtils;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.File;
 
 @ThreadSafe
@@ -34,15 +33,10 @@ public class JarCache {
 
     /**
      * Returns a cached copy of the given file. The cached copy is guaranteed to not be modified or removed.
-     *
-     * @param original The source file.
-     * @param baseDirFactory A factory that can provide a base directory for the file cache.
-     * @return The cached file.
      */
-    public File getCachedJar(File original, Factory<File> baseDirFactory) {
+    public File getCachedJar(File original, File cacheDir) {
         HashCode hashValue = fileHasher.hash(original);
-        File baseDir = baseDirFactory.create();
-        File cachedFile = new File(baseDir, hashValue.toString() + '/' + original.getName());
+        File cachedFile = new File(cacheDir, hashValue.toString() + '/' + original.getName());
         if (!cachedFile.isFile()) {
             GFileUtils.copyFile(original, cachedFile);
         }

@@ -405,7 +405,7 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == Providers.NULL_VALUE
+        e.message == "No value has been specified for this property."
     }
 
     def "property has no value when set to provider with no value and other values appended"() {
@@ -589,18 +589,33 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
         e.message == 'The value for this property is final and cannot be changed any further.'
     }
 
-    def "ignores set to empty list after value finalized leniently"() {
+    def "cannot set to empty list after value finalized implicitly"() {
         given:
         def property = property()
         property.set(someValue())
-        property.finalizeValueOnReadAndWarnAboutChanges()
-        property.get()
+        property.implicitFinalizeValue()
+
+        when:
+        property.empty()
+
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'The value for this property cannot be changed any further.'
+    }
+
+    def "cannot set to empty list after changes disallowed"() {
+        given:
+        def property = property()
+        property.set(someValue())
+        property.disallowChanges()
 
         when:
         property.empty()
 
         then:
-        property.get() == toImmutable(someValue())
+        def e = thrown(IllegalStateException)
+        e.message == 'The value for this property cannot be changed any further.'
     }
 
     def "cannot add element after value finalized"() {
@@ -624,19 +639,46 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
         e2.message == 'The value for this property is final and cannot be changed any further.'
     }
 
-    def "ignores add element after value finalized leniently"() {
+    def "cannot add element after value finalized implicitly"() {
         given:
         def property = property()
         property.set(someValue())
-        property.finalizeValueOnReadAndWarnAboutChanges()
-        property.get()
+        property.implicitFinalizeValue()
 
         when:
         property.add("123")
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'The value for this property cannot be changed any further.'
+
+        when:
         property.add(Stub(PropertyInternal))
 
         then:
-        property.get() == toImmutable(someValue())
+        def e2 = thrown(IllegalStateException)
+        e2.message == 'The value for this property cannot be changed any further.'
+    }
+
+    def "cannot add element after changes disallowed"() {
+        given:
+        def property = property()
+        property.set(someValue())
+        property.disallowChanges()
+
+        when:
+        property.add("123")
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'The value for this property cannot be changed any further.'
+
+        when:
+        property.add(Stub(PropertyInternal))
+
+        then:
+        def e2 = thrown(IllegalStateException)
+        e2.message == 'The value for this property cannot be changed any further.'
     }
 
     def "cannot add elements after value finalized"() {
@@ -667,19 +709,59 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
         e3.message == 'The value for this property is final and cannot be changed any further.'
     }
 
-    def "ignores add elements after value finalized leniently"() {
+    def "cannot add elements after value finalized implicitly"() {
         given:
         def property = property()
         property.set(someValue())
-        property.finalizeValueOnReadAndWarnAboutChanges()
-        property.get()
+        property.implicitFinalizeValue()
 
         when:
         property.addAll("123", "456")
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'The value for this property cannot be changed any further.'
+
+        when:
         property.addAll(["123", "456"])
+
+        then:
+        def e2 = thrown(IllegalStateException)
+        e2.message == 'The value for this property cannot be changed any further.'
+
+        when:
         property.addAll(Stub(ProviderInternal))
 
         then:
-        property.get() == toImmutable(someValue())
+        def e3 = thrown(IllegalStateException)
+        e3.message == 'The value for this property cannot be changed any further.'
+    }
+
+    def "cannot add elements after changes disallowed"() {
+        given:
+        def property = property()
+        property.set(someValue())
+        property.disallowChanges()
+
+        when:
+        property.addAll("123", "456")
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'The value for this property cannot be changed any further.'
+
+        when:
+        property.addAll(["123", "456"])
+
+        then:
+        def e2 = thrown(IllegalStateException)
+        e2.message == 'The value for this property cannot be changed any further.'
+
+        when:
+        property.addAll(Stub(ProviderInternal))
+
+        then:
+        def e3 = thrown(IllegalStateException)
+        e3.message == 'The value for this property cannot be changed any further.'
     }
 }

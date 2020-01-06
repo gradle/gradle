@@ -18,6 +18,7 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.util.Requires
 import spock.lang.Issue
 
@@ -32,6 +33,7 @@ class JavaExecJavaVersionIntegrationSpec extends AbstractIntegrationSpec {
         executer.requireDaemon().requireIsolatedDaemons()
     }
 
+    @ToBeFixedForInstantExecution
     def "up-to-date when executing twice in a row"() {
         given:
         setupRunHelloWorldTask()
@@ -40,16 +42,17 @@ class JavaExecJavaVersionIntegrationSpec extends AbstractIntegrationSpec {
         executer.withJavaHome AvailableJavaHomes.getJdk(VERSION_1_8).javaHome
         succeeds "runHelloWorld"
         then:
-        nonSkippedTasks.contains ":runHelloWorld"
+        executedAndNotSkipped ":runHelloWorld"
 
         when:
         executer.withJavaHome AvailableJavaHomes.getJdk(VERSION_1_8).javaHome
         succeeds "runHelloWorld"
         then:
-        skippedTasks.contains ":runHelloWorld"
+        skipped ":runHelloWorld"
     }
 
     @Issue("https://github.com/gradle/gradle/issues/6694")
+    @ToBeFixedForInstantExecution
     def "not up-to-date when the Java version changes"() {
         given:
         setupRunHelloWorldTask()
@@ -58,17 +61,18 @@ class JavaExecJavaVersionIntegrationSpec extends AbstractIntegrationSpec {
         executer.withJavaHome AvailableJavaHomes.getJdk(VERSION_1_8).javaHome
         succeeds "runHelloWorld"
         then:
-        nonSkippedTasks.contains ":runHelloWorld"
+        executedAndNotSkipped ":runHelloWorld"
 
         when:
         executer.withJavaHome AvailableJavaHomes.getJdk(VERSION_1_9).javaHome
         succeeds "runHelloWorld", "--info"
         then:
-        nonSkippedTasks.contains ":runHelloWorld"
+        executedAndNotSkipped ":runHelloWorld"
         output.contains "Value of input property 'javaVersion' has changed for task ':runHelloWorld'"
     }
 
     @Issue("https://github.com/gradle/gradle/issues/6694")
+    @ToBeFixedForInstantExecution
     def "up-to-date when the Java executable changes but the version does not"() {
         given:
         setupRunHelloWorldTask()
@@ -77,13 +81,13 @@ class JavaExecJavaVersionIntegrationSpec extends AbstractIntegrationSpec {
         executer.withJavaHome AvailableJavaHomes.getAvailableJdks(VERSION_1_8)[0].javaHome
         succeeds "runHelloWorld"
         then:
-        nonSkippedTasks.contains ":runHelloWorld"
+        executedAndNotSkipped ":runHelloWorld"
 
         when:
         executer.withJavaHome AvailableJavaHomes.getAvailableJdks(VERSION_1_8)[1].javaHome
         succeeds "runHelloWorld"
         then:
-        skippedTasks.contains ":runHelloWorld"
+        skipped ":runHelloWorld"
     }
 
     private void setupRunHelloWorldTask() {

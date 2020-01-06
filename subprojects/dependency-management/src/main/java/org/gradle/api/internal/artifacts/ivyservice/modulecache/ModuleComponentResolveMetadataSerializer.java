@@ -25,7 +25,6 @@ import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.internal.component.external.model.AbstractLazyModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.AbstractRealisedModuleComponentResolveMetadata;
-import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.DefaultVirtualModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.ExternalDependencyDescriptor;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
@@ -89,19 +88,18 @@ public class ModuleComponentResolveMetadataSerializer extends AbstractSerializer
         int len = decoder.readSmallInt();
         if (len>0) {
             for (int i=0; i<len; i++) {
-                ComponentIdentifier moduleComponentIdentifier = readModuleIdentifier(decoder);
+                VirtualComponentIdentifier moduleComponentIdentifier = readModuleIdentifier(decoder);
                 mutable.belongsTo(moduleComponentIdentifier);
             }
         }
     }
 
-    private ModuleComponentIdentifier readModuleIdentifier(Decoder decoder) throws IOException {
-        boolean virtual = decoder.readBoolean();
+    private VirtualComponentIdentifier readModuleIdentifier(Decoder decoder) throws IOException {
         String group = decoder.readString();
         String module = decoder.readString();
         String version = decoder.readString();
         ModuleIdentifier moduleIdentifier = DefaultModuleIdentifier.newId(group, module);
-        return virtual ? new DefaultVirtualModuleComponentIdentifier(moduleIdentifier, version) : DefaultModuleComponentIdentifier.newId(moduleIdentifier, version);
+        return new DefaultVirtualModuleComponentIdentifier(moduleIdentifier, version);
     }
 
     @Override
@@ -121,15 +119,14 @@ public class ModuleComponentResolveMetadataSerializer extends AbstractSerializer
         }
     }
 
-    private void writeOwners(Encoder encoder, ImmutableList<? extends ComponentIdentifier> platformOwners) throws IOException {
+    private void writeOwners(Encoder encoder, ImmutableList<? extends VirtualComponentIdentifier> platformOwners) throws IOException {
         encoder.writeSmallInt(platformOwners.size());
         for (ComponentIdentifier platformOwner : platformOwners) {
-            writeComponentIdentifier(encoder, (ModuleComponentIdentifier)platformOwner);
+            writeComponentIdentifier(encoder, (ModuleComponentIdentifier) platformOwner);
         }
     }
 
     private void writeComponentIdentifier(Encoder encoder, ModuleComponentIdentifier platformOwner) throws IOException {
-        encoder.writeBoolean(platformOwner instanceof VirtualComponentIdentifier);
         encoder.writeString(platformOwner.getGroup());
         encoder.writeString(platformOwner.getModule());
         encoder.writeString(platformOwner.getVersion());

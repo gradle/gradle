@@ -79,7 +79,6 @@ public interface ResolvedComponentResult extends ComponentResult {
      *
      * @deprecated Use {@link #getVariants()} instead}
      */
-    @Incubating
     @Deprecated
     ResolvedVariantResult getVariant();
 
@@ -91,6 +90,19 @@ public interface ResolvedComponentResult extends ComponentResult {
      *
      * @since 5.2
      */
-    @Incubating
     List<ResolvedVariantResult> getVariants();
+
+    /**
+     * Returns the dependencies of a specific variant. It is possible for a component to be selected multiple
+     * times with different variants (for example, the main component and its test fixtures). The dependencies
+     * of each variant are different, but the {@link #getDependencies() method} doesn't give access to each
+     * variant individual dependencies.
+     *
+     * @param variant the variant to find the dependencies for
+     *
+     * @since 5.6
+     *
+     */
+    @Incubating
+    List<DependencyResult> getDependenciesForVariant(ResolvedVariantResult variant);
 }

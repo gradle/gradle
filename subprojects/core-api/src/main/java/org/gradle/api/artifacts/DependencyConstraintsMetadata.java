@@ -16,8 +16,6 @@
 
 package org.gradle.api.artifacts;
 
-import org.gradle.api.Incubating;
-
 /**
  * Describes the dependency constraints of a variant declared in a resolved component's metadata, which typically originate from
  * a component descriptor (Gradle metadata file). This interface can be used to adjust the dependencies
@@ -25,6 +23,5 @@ import org.gradle.api.Incubating;
  *
  * @since 4.5
  */
-@Incubating
 public interface DependencyConstraintsMetadata extends DependenciesMetadata<DependencyConstraintMetadata> {
 }

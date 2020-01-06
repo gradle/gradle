@@ -36,9 +36,11 @@ import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependenc
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableModuleResult;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.UnresolvableConfigurationResult;
 import org.gradle.api.tasks.diagnostics.internal.insight.DependencyInsightReporter;
+import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GradleVersion;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -144,8 +146,23 @@ public class JsonProjectDependencyRenderer {
         json.call(overall);
     }
 
+    private List<Configuration> getNonDeprecatedConfigurations(Project project) {
+        List<Configuration> filteredConfigurations = new ArrayList<Configuration>();
+        for (Configuration configuration : project.getConfigurations()) {
+            if (!((DeprecatableConfiguration) configuration).isFullyDeprecated()) {
+                filteredConfigurations.add(configuration);
+            }
+        }
+        return filteredConfigurations;
+    }
+
+    private boolean canBeResolved(Configuration configuration) {
+        boolean isDeprecatedForResolving = ((DeprecatableConfiguration) configuration).getResolutionAlternatives() != null;
+        return configuration.isCanBeResolved() && !isDeprecatedForResolving;
+    }
+
     private List<Map> createConfigurations(Project project) {
-        Iterable<Configuration> configurations = project.getConfigurations();
+        Iterable<Configuration> configurations = getNonDeprecatedConfigurations(project);
         return CollectionUtils.collect(configurations, new Transformer<Map, Configuration>() {
             @Override
             public Map transform(Configuration configuration) {
@@ -161,7 +178,7 @@ public class JsonProjectDependencyRenderer {
     }
 
     private List createDependencies(Configuration configuration) {
-        if (configuration.isCanBeResolved()) {
+        if (canBeResolved(configuration)) {
             ResolutionResult result = configuration.getIncoming().getResolutionResult();
             RenderableDependency root = new RenderableModuleResult(result.getRoot());
             return createDependencyChildren(root, new HashSet<Object>());
@@ -215,7 +232,7 @@ public class JsonProjectDependencyRenderer {
 
     private Set<ModuleIdentifier> collectModules(Configuration configuration) {
         RenderableDependency root;
-        if (configuration.isCanBeResolved()) {
+        if (canBeResolved(configuration)) {
             ResolutionResult result = configuration.getIncoming().getResolutionResult();
             root = new RenderableModuleResult(result.getRoot());
         } else {

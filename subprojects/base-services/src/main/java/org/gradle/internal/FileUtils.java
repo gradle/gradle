@@ -66,7 +66,7 @@ public class FileUtils {
      */
     public static String toSafeFileName(String name) {
         int size = name.length();
-        StringBuffer rc = new StringBuffer(size * 2);
+        StringBuilder rc = new StringBuilder(size * 2);
         for (int i = 0; i < size; i++) {
             char c = name.charAt(i);
             boolean valid = c >= 'a' && c <= 'z';
@@ -182,7 +182,6 @@ public class FileUtils {
     /**
      * Removes the extension (if any) from the file path.  If the file path has no extension, then it returns the same string.
      *
-     * @param filePath
      * @return the file path without an extension
      */
     public static String removeExtension(String filePath) {
@@ -212,7 +211,7 @@ public class FileUtils {
      */
     public static File normalize(File src) {
         String path = src.getAbsolutePath();
-        String normalizedPath = FilenameUtils.normalize(path);
+        String normalizedPath = FilenameUtils.normalizeNoEndSeparator(path);
         if (normalizedPath != null) {
             return new File(normalizedPath);
         }

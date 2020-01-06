@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import accessors.java
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
-import accessors.*
 
 plugins {
     `java-library`
-    `javascript-base`
     gradlebuild.classycle
 }
 
@@ -27,12 +26,16 @@ val flamegraph by configurations.creating
 configurations.compileOnly { extendsFrom(flamegraph) }
 
 repositories {
-    javaScript.googleApis()
+    googleApisJs()
 }
 
 dependencies {
     reports("jquery:jquery.min:1.11.0@js")
     reports("flot:flot:0.8.1:min@js")
+
+    api(library("gradleProfiler")) {
+        because("Consumers need to instantiate BuildMutators")
+    }
 
     implementation(project(":baseServices"))
     implementation(project(":native"))
@@ -41,7 +44,8 @@ dependencies {
     implementation(project(":processServices"))
     implementation(project(":coreApi"))
     implementation(project(":buildOption"))
-    implementation(project(":files"))
+    implementation(project(":fileCollections"))
+    implementation(project(":snapshots"))
     implementation(project(":resources"))
     implementation(project(":persistentCache"))
     implementation(project(":jvmServices"))
@@ -59,10 +63,12 @@ dependencies {
     implementation(library("jsch"))
     implementation(library("commons_math"))
     implementation(library("jcl_to_slf4j"))
-    implementation("org.openjdk.jmc:flightrecorder:7.0.0-SNAPSHOT")
+    implementation("org.gradle.org.openjdk.jmc:flightrecorder:7.0.0-alpha01")
     implementation("org.gradle.ci.health:tagging:0.63")
     implementation(testLibrary("mina"))
     implementation(testLibrary("jetty"))
+    implementation(testFixtures(project(":core")))
+    implementation(testFixtures(project(":toolingApi")))
 
     runtimeOnly("com.h2database:h2:1.4.192")
 }
@@ -82,10 +88,8 @@ java.sourceSets.main { output.dir(mapOf("builtBy" to reportResources), generated
 
 tasks.jar {
     inputs.files(flamegraph)
-    from(files(deferred{ flamegraph.map { zipTree(it) } }))
-}
+        .withPropertyName("flamegraph")
+        .withPathSensitivity(PathSensitivity.RELATIVE)
 
-testFixtures {
-    from(":core", "main")
-    from(":toolingApi", "main")
+    from(files(deferred{ flamegraph.map { zipTree(it) } }))
 }

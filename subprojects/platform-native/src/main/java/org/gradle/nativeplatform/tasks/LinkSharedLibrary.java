@@ -15,7 +15,6 @@
  */
 package org.gradle.nativeplatform.tasks;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.Property;
@@ -35,7 +34,6 @@ import java.util.concurrent.Callable;
 /**
  * Links a binary shared library from object files and imported libraries.
  */
-@Incubating
 public class LinkSharedLibrary extends AbstractLinkTask {
     private final Property<String> installName = getProject().getObjects().property(String.class);
     private final RegularFileProperty importLibrary = getProject().getObjects().fileProperty();

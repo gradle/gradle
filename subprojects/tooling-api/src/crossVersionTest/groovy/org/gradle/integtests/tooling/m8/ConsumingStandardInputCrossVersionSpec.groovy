@@ -24,8 +24,10 @@ import spock.lang.Timeout
 class ConsumingStandardInputCrossVersionSpec extends ToolingApiSpecification {
 
     def setup() {
-        //since this test treats with standard input I will not run it for embedded daemon for safety.
-        toolingApi.requireDaemons()
+        if (!dist.toolingApiStdinInEmbeddedModeSupported) {
+            // Did not work in embedded mode in older versions
+            toolingApi.requireDaemons()
+        }
     }
 
     @Timeout(90)

@@ -21,19 +21,41 @@ import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.StyledTextOutputEvent;
 
-public class WorkerLogEventListener implements OutputEventListener {
-    private WorkerLoggingProtocol workerLoggingProtocol;
+import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.AtomicReference;
 
-    public WorkerLogEventListener(WorkerLoggingProtocol workerLoggingProtocol) {
-        this.workerLoggingProtocol = workerLoggingProtocol;
+public class WorkerLogEventListener implements OutputEventListener {
+    private final AtomicReference<WorkerLoggingProtocol> workerLoggingProtocol;
+
+    public WorkerLogEventListener() {
+        this.workerLoggingProtocol = new AtomicReference<WorkerLoggingProtocol>();
+    }
+
+    public void setWorkerLoggingProtocol(WorkerLoggingProtocol workerLoggingProtocol) {
+        this.workerLoggingProtocol.getAndSet(workerLoggingProtocol);
+    }
+
+    public Object withWorkerLoggingProtocol(WorkerLoggingProtocol newLoggingProtocol, Callable<?> callable) throws Exception {
+        WorkerLoggingProtocol defaultProtocol = workerLoggingProtocol.getAndSet(newLoggingProtocol);
+        try {
+            return callable.call();
+        } finally {
+            workerLoggingProtocol.getAndSet(defaultProtocol);
+        }
     }
 
     @Override
     public void onOutput(OutputEvent event) {
+        WorkerLoggingProtocol loggingProtocol = workerLoggingProtocol.get();
+
+        if (loggingProtocol == null) {
+            throw new IllegalStateException(getClass().getSimpleName() + " received an output event before the worker logging protocol object was set.");
+        }
+
         if (event instanceof LogEvent) {
-            workerLoggingProtocol.sendOutputEvent((LogEvent) event);
+            loggingProtocol.sendOutputEvent((LogEvent) event);
         } else if (event instanceof StyledTextOutputEvent) {
-            workerLoggingProtocol.sendOutputEvent((StyledTextOutputEvent) event);
+            loggingProtocol.sendOutputEvent((StyledTextOutputEvent) event);
         }
     }
 }

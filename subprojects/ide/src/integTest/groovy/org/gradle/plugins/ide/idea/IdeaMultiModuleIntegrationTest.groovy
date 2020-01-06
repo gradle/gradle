@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 package org.gradle.plugins.ide.idea
+
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.plugins.ide.AbstractIdeIntegrationTest
 import org.junit.Rule
@@ -24,6 +26,7 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
     public final TestResources testResources = new TestResources(testDirectoryProvider)
 
     @Test
+    @ToBeFixedForInstantExecution
     void buildsCorrectModuleDependencies() {
         def settingsFile = file("master/settings.gradle")
         settingsFile << """
@@ -41,8 +44,8 @@ allprojects {
 
 project(':api') {
     dependencies {
-        compile project(':shared:api')
-        testCompile project(':shared:model')
+        implementation project(':shared:api')
+        testImplementation project(':shared:model')
     }
 }
 
@@ -77,6 +80,7 @@ project(':shared:model') {
 
 
     @Test
+    @ToBeFixedForInstantExecution
     void buildsCorrectModuleDependenciesForDependencyOnRoot() {
         file("settings.gradle") << """
 rootProject.name = 'root-project-1'
@@ -91,7 +95,7 @@ allprojects {
 
 project(':api') {
     dependencies {
-        compile project(':')
+        implementation project(':')
     }
 }
 """
@@ -109,6 +113,7 @@ project(':api') {
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     void respectsApiOfJavaLibraries() {
         def settingsFile = file("master/settings.gradle")
         settingsFile << """
@@ -135,7 +140,7 @@ project(":library") {
 
 project(":application") {
     dependencies {
-        compile project(":library")
+        implementation project(":library")
     }
 }
 """
@@ -159,6 +164,7 @@ project(":application") {
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     void buildsCorrectModuleDependenciesWhenRootProjectDoesNotApplyIdePlugin() {
         file("settings.gradle") << """
 rootProject.name = 'root-project-1'
@@ -178,8 +184,8 @@ subprojects {
 
 project(':api') {
     dependencies {
-        compile project(':util')
-        compile project(':other')
+        implementation project(':util')
+        implementation project(':other')
     }
 }
 
@@ -189,7 +195,7 @@ project(':other') {
 
 project(':util') {
     dependencies {
-        testCompile project(':')
+        testImplementation project(':')
     }
 }
 
@@ -210,6 +216,7 @@ project(':util') {
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     void dealsWithDuplicatedModuleNames() {
       /*
       This is the multi-module project structure the integration test works with:
@@ -244,7 +251,7 @@ allprojects {
 
 project(':api') {
     dependencies {
-        compile project(':shared:api'), project(':shared:model')
+        implementation project(':shared:api'), project(':shared:model')
     }
 }
 
@@ -258,7 +265,7 @@ project(':shared:model') {
 
 project(':services:utilities') {
     dependencies {
-        compile project(':util'), project(':contrib:services:util'), project(':shared:api'), project(':shared:model')
+        implementation project(':util'), project(':contrib:services:util'), project(':shared:api'), project(':shared:model')
     }
     idea {
         module {
@@ -309,6 +316,7 @@ project(':services:utilities') {
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     void allowsFullyReconfiguredModuleNames() {
         //use case from the mailing list
         def settingsFile = file("master/settings.gradle")
@@ -329,7 +337,7 @@ subprojects {
 
 project(':api') {
     dependencies {
-        compile project(':shared:model')
+        implementation project(':shared:model')
     }
 }
 """
@@ -347,6 +355,7 @@ project(':api') {
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     void handlesModuleDependencyCycles() {
         def settingsFile = file("master/settings.gradle")
         settingsFile << """
@@ -358,25 +367,25 @@ include 'three'
         def buildFile = file("master/build.gradle")
         buildFile << """
 allprojects {
-    apply plugin: 'java'
+    apply plugin: 'java-library'
     apply plugin: 'idea'
 }
 
 project(':one') {
     dependencies {
-        compile project(':two')
+        api project(':two')
     }
 }
 
 project(':two') {
     dependencies {
-        compile project(':three')
+        api project(':three')
     }
 }
 
 project(':three') {
     dependencies {
-        compile project(':one')
+        api project(':one')
     }
 }
 """
@@ -402,6 +411,7 @@ project(':three') {
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     void classpathContainsConflictResolvedDependencies() {
         def someLib1Jar = mavenRepo.module('someGroup', 'someLib', '1.0').publish().artifactFile
         def someLib2Jar= mavenRepo.module('someGroup', 'someLib', '2.0').publish().artifactFile
@@ -414,7 +424,7 @@ include 'two'
         def buildFile = file("master/build.gradle")
         buildFile << """
 allprojects {
-    apply plugin: 'java'
+    apply plugin: 'java-library'
     apply plugin: 'idea'
 
     repositories {
@@ -424,16 +434,16 @@ allprojects {
 
 project(':one') {
     dependencies {
-        compile ('someGroup:someLib:1.0') {
+        implementation ('someGroup:someLib:1.0') {
             force = project.hasProperty("forceDeps")
         }
-        compile project(':two')
+        implementation project(':two')
     }
 }
 
 project(':two') {
     dependencies {
-        compile 'someGroup:someLib:2.0'
+        api 'someGroup:someLib:2.0'
     }
 }
 
@@ -449,6 +459,7 @@ project(':two') {
         dependencies = parseIml("master/two/two.iml").dependencies
         assert dependencies.libraries*.jarName as Set == [someLib2Jar.name] as Set
 
+        executer.expectDeprecationWarning()
         executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withArgument("-PforceDeps=true").withTasks("idea").run()
 
         //then
@@ -462,6 +473,7 @@ project(':two') {
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     void cleansCorrectlyWhenModuleNamesAreChangedOrDeduplicated() {
         def settingsFile = file("master/settings.gradle")
         settingsFile << "include 'api', 'shared:api', 'contrib'"
@@ -493,6 +505,7 @@ project(':contrib') {
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     void handlesInternalDependenciesToNonIdeaProjects() {
         def settingsFile = file("master/settings.gradle")
         settingsFile << "include 'api', 'nonIdeaProject'"
@@ -507,7 +520,7 @@ project(':api') {
     apply plugin: 'idea'
 
     dependencies {
-        compile project(':nonIdeaProject')
+        implementation project(':nonIdeaProject')
     }
 }
 """
@@ -520,6 +533,7 @@ project(':api') {
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     void doesNotCreateDuplicateEntriesInIpr() {
         def settingsFile = file("master/settings.gradle")
         settingsFile << "include 'api', 'iml'"
@@ -541,6 +555,7 @@ allprojects {
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     void buildsCorrectModuleDependenciesWithScopes() {
         def settingsFile = file("master/settings.gradle")
         settingsFile << """
@@ -558,15 +573,15 @@ allprojects {
 
 project(':impl') {
     dependencies {
-        compile project(':api')
+        implementation project(':api')
     }
 }
 
 project(':app') {
     dependencies {
-        compile project(':api')
-        testCompile project(':impl')
-        runtime project(':impl')
+        implementation project(':api')
+        testImplementation project(':impl')
+        runtimeOnly project(':impl')
     }
 }
 """

@@ -26,13 +26,10 @@ dependencies {
     
     implementation(library("groovy"))
     implementation(library("guava"))
+
+    testImplementation(testFixtures(project(":core")))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
-}
-
-
-testFixtures {
-    from(":core")
 }

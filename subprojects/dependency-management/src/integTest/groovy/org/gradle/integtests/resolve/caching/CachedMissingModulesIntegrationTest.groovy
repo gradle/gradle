@@ -17,11 +17,13 @@
 package org.gradle.integtests.resolve.caching
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.IgnoreIf
 
 class CachedMissingModulesIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
+    @ToBeFixedForInstantExecution
     def "caches missing module when module found in another repository"() {
         given:
         def repo1 = ivyHttpRepo("repo1")
@@ -43,7 +45,6 @@ task showMissing { doLast { println configurations.missing.files } }
 
         when:
         moduleInRepo1.ivy.expectGetMissing()
-        moduleInRepo1.jar.expectHeadMissing()
         moduleInRepo2.ivy.expectGet()
         moduleInRepo2.jar.expectGet()
 
@@ -57,6 +58,7 @@ task showMissing { doLast { println configurations.missing.files } }
         succeeds('showMissing')
     }
 
+    @ToBeFixedForInstantExecution
     def "caches missing changing module when module found in another repository"() {
         given:
         def repo1 = ivyHttpRepo("repo1")
@@ -83,7 +85,6 @@ task showMissing { doLast { println configurations.missing.files } }
 
         when:
         moduleInRepo1.ivy.expectGetMissing()
-        moduleInRepo1.jar.expectHeadMissing()
         moduleInRepo2.ivy.expectGet()
         moduleInRepo2.jar.expectGet()
 
@@ -99,6 +100,7 @@ task showMissing { doLast { println configurations.missing.files } }
         succeeds('showMissing')
     }
 
+    @ToBeFixedForInstantExecution
     def "checks for missing modules in each repository when run with --refresh-dependencies"() {
         given:
         def repo1 = ivyHttpRepo("repo1")
@@ -120,7 +122,6 @@ task showMissing { doLast { println configurations.missing.files } }
 
         when:
         moduleInRepo1.ivy.expectGetMissing()
-        moduleInRepo1.jar.expectHeadMissing()
         moduleInRepo2.ivy.expectGet()
         moduleInRepo2.jar.expectGet()
 
@@ -144,6 +145,7 @@ task showMissing { doLast { println configurations.missing.files } }
         succeeds("showMissing")
     }
 
+    @ToBeFixedForInstantExecution
     def "cached empty version list is ignored when no module for dynamic version is available in any repo"() {
         given:
         def repo1 = mavenHttpRepo("repo1")
@@ -158,6 +160,10 @@ task showMissing { doLast { println configurations.missing.files } }
                 maven {
                     name 'repo2'
                     url '${repo2.uri}'
+                    metadataSources { 
+                        mavenPom()
+                        artifact()
+                    }
                 }
             }
             configurations { compile }
@@ -179,7 +185,6 @@ task showMissing { doLast { println configurations.missing.files } }
         def repo2Module = repo2.module("group", "projectA", "1.0")
 
         repo1MetaData.expectGetMissing()
-        repo1DirList.expectGet()
         repo2MetaData.expectGetMissing()
         repo2DirLib.expectGet()
 
@@ -190,7 +195,6 @@ task showMissing { doLast { println configurations.missing.files } }
         failure.assertHasCause("""Could not find any matches for group:projectA:latest.integration as no versions of group:projectA are available.
 Searched in the following locations:
   - ${repo1MetaData.uri}
-  - ${repo1DirList.uri}
   - ${repo2MetaData.uri}
   - ${repo2DirLib.uri}
 Required by:
@@ -199,7 +203,6 @@ Required by:
         when:
         server.resetExpectations()
         repo1MetaData.expectGetMissing()
-        repo1DirList.expectGet()
         repo2MetaData.expectGetMissing()
         repo2DirLib.expectGet()
 
@@ -210,7 +213,6 @@ Required by:
         failure.assertHasCause("""Could not find any matches for group:projectA:latest.integration as no versions of group:projectA are available.
 Searched in the following locations:
   - ${repo1MetaData.uri}
-  - ${repo1DirList.uri}
   - ${repo2MetaData.uri}
   - ${repo2DirLib.uri}
 Required by:
@@ -220,7 +222,6 @@ Required by:
         server.resetExpectations()
         repo2Module.publish()
         repo1MetaData.expectGetMissing()
-        repo1DirList.expectGet()
         repo2MetaData.expectGet()
         repo2Module.pom.expectGet()
         repo2Module.artifact.expectGet()
@@ -235,6 +236,7 @@ Required by:
         run 'retrieve'
     }
 
+    @ToBeFixedForInstantExecution
     def "previously cached empty version list is ignored when no result can be found"() {
         given:
         def repo1 = mavenHttpRepo("repo1")
@@ -272,7 +274,6 @@ Required by:
         def repo2Module = repo2.module("group", "projectA", "1.0").publish()
 
         repo1MetaData.expectGetMissing()
-        repo1DirList.expectGetMissing()
         repo2MetaData.expectGet()
         repo2Module.pom.expectGet()
         repo2Module.artifact.expectGet()
@@ -293,6 +294,7 @@ Required by:
 
     }
 
+    @ToBeFixedForInstantExecution
     def "needs explicit refresh of dependencies when dynamic version appears in a previously empty repository"() {
         given:
         def repo1 = mavenHttpRepo("repo1")
@@ -334,7 +336,6 @@ Required by:
         def repo2Module2 = repo2.module("group", "projectA", "1.1")
 
         repo1MetaData.expectGetMissing()
-        repo1DirList.expectGetMissing()
         repo2MetaData.expectGet()
         repo2Module.pom.expectGet()
         repo2Module.artifact.expectGet()
@@ -366,6 +367,7 @@ Required by:
 
     }
 
+    @ToBeFixedForInstantExecution
     def "cached missing module is ignored if module is not available in any repo"() {
         given:
         def repo1 = mavenHttpRepo("repo1")
@@ -400,9 +402,7 @@ Required by:
 
         when:
         repo1Module.pom.expectGetMissing()
-        repo1Artifact.expectHeadMissing()
         repo2Module.pom.expectGetMissing()
-        repo2Artifact.expectHeadMissing()
 
         then:
         fails 'retrieve'
@@ -411,17 +411,13 @@ Required by:
         failure.assertHasCause("""Could not find group:projectA:1.0.
 Searched in the following locations:
   - ${repo1Module.pom.uri}
-  - ${repo1Module.artifact.uri}
   - ${repo2Module.pom.uri}
-  - ${repo2Module.artifact.uri}
 Required by:
 """)
 
         when:
         repo1Module.pom.expectGetMissing()
-        repo1Artifact.expectHeadMissing()
         repo2Module.pom.expectGetMissing()
-        repo2Artifact.expectHeadMissing()
 
         then:
         fails 'retrieve'
@@ -429,16 +425,13 @@ Required by:
         failure.assertHasCause("""Could not find group:projectA:1.0.
 Searched in the following locations:
   - ${repo1Module.pom.uri}
-  - ${repo1Module.artifact.uri}
   - ${repo2Module.pom.uri}
-  - ${repo2Module.artifact.uri}
 Required by:
 """)
 
         when:
         server.resetExpectations()
         repo1Module.pom.expectGetMissing()
-        repo1Artifact.expectHeadMissing()
         repo2Module.publish()
         repo2Module.pom.expectGet()
         repo2Artifact.expectGet()
@@ -453,6 +446,7 @@ Required by:
         run 'retrieve'
     }
 
+    @ToBeFixedForInstantExecution
     def "cached missing module is ignored when no module for dynamic version is available in any repo"() {
         given:
         def repo1 = mavenHttpRepo("repo1")
@@ -486,9 +480,7 @@ Required by:
 
         and:
         repo1Module.pom.expectGetMissing()
-        repo1Module.artifact.expectHeadMissing()
         repo2Module.pom.expectGetMissing()
-        repo2Module.artifact.expectHeadMissing()
         fails 'cache'
         failure.assertHasCause("Could not find group:projectA:1.0.")
 
@@ -497,9 +489,7 @@ Required by:
         repo1Module.rootMetaData.expectGet()
         repo2Module.rootMetaData.expectGet()
         repo1Module.pom.expectGetMissing()
-        repo1Module.artifact.expectHeadMissing()
         repo2Module.pom.expectGetMissing()
-        repo2Module.artifact.expectHeadMissing()
 
         then:
         fails 'retrieve'
@@ -507,10 +497,8 @@ Required by:
 Searched in the following locations:
   - ${repo1Module.rootMetaData.uri}
   - ${repo1Module.pom.uri}
-  - ${repo1Module.artifact.uri}
   - ${repo2Module.rootMetaData.uri}
   - ${repo2Module.pom.uri}
-  - ${repo2Module.artifact.uri}
 Required by:
 """)
 
@@ -518,10 +506,8 @@ Required by:
         server.resetExpectations()
         repo1Module.rootMetaData.expectHead()
         repo1Module.pom.expectGetMissing()
-        repo1Module.artifact.expectHeadMissing()
         repo2Module.rootMetaData.expectHead()
         repo2Module.pom.expectGetMissing()
-        repo2Module.artifact.expectHeadMissing()
 
         then:
         fails 'retrieve'
@@ -529,17 +515,14 @@ Required by:
 Searched in the following locations:
   - ${repo1Module.rootMetaData.uri}
   - ${repo1Module.pom.uri}
-  - ${repo1Module.artifact.uri}
   - ${repo2Module.rootMetaData.uri}
   - ${repo2Module.pom.uri}
-  - ${repo2Module.artifact.uri}
 Required by:
 """)
 
         when:
         server.resetExpectations()
         repo1Module.pom.expectGetMissing()
-        repo1Module.artifact.expectHeadMissing()
         repo2Module.pom.expectGet()
         repo2Module.artifact.expectGet()
 
@@ -550,7 +533,6 @@ Required by:
         server.resetExpectations()
         // TODO - should not need to do this
         repo1Module.pom.expectHeadMissing()
-        repo1Module.artifact.expectHeadMissing()
 
         then:
         run 'retrieve'
@@ -613,9 +595,7 @@ Required by:
         """
         when:
         repo1Module.pom.expectGetMissing()
-        repo1Artifact.expectHeadMissing()
         repo2Module.pom.expectGetMissing()
-        repo2Artifact.expectHeadMissing()
 
         then:
         run('resolveConfig1')
@@ -623,9 +603,7 @@ Required by:
         when:
         server.resetExpectations()
         repo1Module.pom.expectGetMissing()
-        repo1Artifact.expectHeadMissing()
         repo2Module.pom.expectGetMissing()
-        repo2Artifact.expectHeadMissing()
 
         then:
         run "resolveConfig1", "resolveConfig2"
@@ -663,7 +641,6 @@ Required by:
         when:
         repo2Module.publish()
         repo1Module.pom.expectGetMissing()
-        repo1Module.artifact.expectHeadMissing()
 
         then:
         run 'retrieve'

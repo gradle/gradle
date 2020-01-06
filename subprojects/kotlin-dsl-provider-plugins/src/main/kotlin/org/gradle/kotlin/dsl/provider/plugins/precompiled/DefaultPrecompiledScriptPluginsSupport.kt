@@ -26,15 +26,17 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskProvider
 
+import org.gradle.tooling.model.kotlin.dsl.KotlinDslModelsParameters
+
 import org.gradle.internal.classloader.ClasspathHasher
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.hash.HashCode
 
 import org.gradle.kotlin.dsl.*
-import org.gradle.kotlin.dsl.precompile.PrecompiledInitScript
-import org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript
-import org.gradle.kotlin.dsl.precompile.PrecompiledSettingsScript
+import org.gradle.kotlin.dsl.precompile.v1.PrecompiledInitScript
+import org.gradle.kotlin.dsl.precompile.v1.PrecompiledProjectScript
+import org.gradle.kotlin.dsl.precompile.v1.PrecompiledSettingsScript
 
 import org.gradle.kotlin.dsl.provider.PrecompiledScriptPluginsSupport
 import org.gradle.kotlin.dsl.provider.inClassPathMode
@@ -46,12 +48,12 @@ import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.GeneratePrecompi
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.GenerateScriptPluginAdapters
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.HashedProjectSchema
 
-import org.gradle.kotlin.dsl.resolver.kotlinBuildScriptModelTask
 import org.gradle.kotlin.dsl.support.serviceOf
 
 import org.gradle.plugin.devel.GradlePluginDevelopmentExtension
 import org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin
 
+import java.io.File
 import java.util.function.Consumer
 
 
@@ -165,6 +167,9 @@ class DefaultPrecompiledScriptPluginsSupport : PrecompiledScriptPluginsSupport {
                 kotlinCompilerArgsConsumer.accept(args)
         })
     }
+
+    override fun collectScriptPluginFilesOf(project: Project): List<File> =
+        project.collectScriptPluginFiles()
 }
 
 
@@ -295,7 +300,7 @@ private
 fun Project.registerBuildScriptModelTask(
     modelTask: TaskProvider<out Task>
 ) {
-    rootProject.tasks.named(kotlinBuildScriptModelTask) {
+    rootProject.tasks.named(KotlinDslModelsParameters.PREPARATION_TASK_NAME) {
         it.dependsOn(modelTask)
     }
 }
@@ -330,21 +335,21 @@ fun Project.exposeScriptsAsGradlePlugins(scriptPlugins: List<PrecompiledScriptPl
 
 private
 fun Project.collectScriptPlugins(): List<PrecompiledScriptPlugin> =
-    mutableListOf<PrecompiledScriptPlugin>().apply {
-        pluginSourceSet.allSource.matching {
+    collectScriptPluginFiles().map(::PrecompiledScriptPlugin)
+
+
+private
+fun Project.collectScriptPluginFiles(): List<File> =
+    mutableListOf<File>().apply {
+        gradlePlugin.pluginSourceSet.allSource.matching {
             it.include("**/*.gradle.kts")
         }.visit {
             if (!it.isDirectory) {
                 // TODO: preserve it.relativePath in PrecompiledScriptPlugin
-                add(PrecompiledScriptPlugin(it.file))
+                add(it.file)
             }
         }
     }
-
-
-private
-val Project.pluginSourceSet
-    get() = gradlePlugin.pluginSourceSet
 
 
 private

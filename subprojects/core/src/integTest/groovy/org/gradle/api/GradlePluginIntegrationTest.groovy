@@ -15,10 +15,10 @@
  */
 
 
-
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 class GradlePluginIntegrationTest extends AbstractIntegrationSpec {
     File initFile;
@@ -28,6 +28,7 @@ class GradlePluginIntegrationTest extends AbstractIntegrationSpec {
         executer.usingInitScript(initFile);
     }
 
+    @ToBeFixedForInstantExecution
     def "can apply binary plugin from init script"() {
         when:
         initFile << """
@@ -46,6 +47,7 @@ class GradlePluginIntegrationTest extends AbstractIntegrationSpec {
         executed.output.contains("Gradle Plugin received build finished!")
     }
 
+    @ToBeFixedForInstantExecution
     def "can apply script with relative path"() {
         setup:
         def externalInitFile = temporaryFolder.createFile("initscripts/somePath/anInit.gradle")
@@ -63,16 +65,25 @@ class GradlePluginIntegrationTest extends AbstractIntegrationSpec {
         executed.output.contains("Gradle Plugin received build finished!")
     }
 
-    def "cannot apply script with relative path on Gradle instance"() {
+    @ToBeFixedForInstantExecution
+    def "can apply script with relative path on Gradle instance"() {
+        setup:
+        def externalInitFile = temporaryFolder.createFile("initscripts/somePath/anInit.gradle")
+        externalInitFile << """
+        buildFinished {
+            println "Gradle Plugin received build finished!"
+        }
+        """
         when:
         initFile << """
-            gradle.apply(from: "somePath/anInit.gradle")
+            gradle.apply(from: "initscripts/somePath/anInit.gradle")
             """
         then:
-        fails('tasks')
-        failure.assertHasCause("Cannot convert relative path somePath${File.separator}anInit.gradle to an absolute file")
+        def executed = succeeds('tasks')
+        executed.output.contains("Gradle Plugin received build finished!")
     }
 
+    @ToBeFixedForInstantExecution
     def "path to script is interpreted relative to the applying script"() {
         setup:
         def externalInitFile = temporaryFolder.createFile("initscripts/path1/anInit.gradle")

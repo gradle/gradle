@@ -33,6 +33,37 @@ class MavenGcsRepoResolveIntegrationTest extends AbstractGcsDependencyResolution
         module = getMavenGcsRepo().module("org.gradle", "test", artifactVersion)
     }
 
+    def "can download artifacts"() {
+        setup:
+        module.publish()
+
+        buildFile << mavenGcsRepoDsl()
+        buildFile << """
+configurations { compile }
+
+dependencies{
+    compile 'org.gradle:test:$artifactVersion'
+}
+
+task retrieve(type: Sync) {
+    from configurations.compile
+    into 'libs'
+}
+"""
+        and:
+        module.pom.expectDownload()
+        module.artifact.expectDownload()
+
+        when:
+        using m2
+
+        then:
+        succeeds 'retrieve'
+
+        and:
+        file('libs/test-1.85.jar').assertIsCopyOf(module.artifactFile)
+    }
+
     def "should not download artifacts when already present in maven home"() {
         setup:
         module.publish()

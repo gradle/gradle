@@ -13,26 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
 package org.gradle.api.internal.file
 
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.PathValidation
 import org.gradle.api.file.ConfigurableFileCollection
-import org.gradle.api.file.FileTree
+import org.gradle.api.file.ConfigurableFileTree
 import org.gradle.api.internal.file.archive.TarFileTree
 import org.gradle.api.internal.file.archive.ZipFileTree
-import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection
 import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory
 import org.gradle.api.internal.file.collections.FileTreeAdapter
 import org.gradle.api.internal.file.copy.DefaultCopySpec
-import org.gradle.api.internal.tasks.TaskResolver
+import org.gradle.api.internal.resources.DefaultResourceHandler
 import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.StreamHasher
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.internal.resource.TextResourceLoader
-import org.gradle.internal.time.Time
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
@@ -45,21 +40,31 @@ class DefaultFileOperationsTest extends Specification {
     private final FileResolver resolver = Mock() {
         getPatternSetFactory() >> TestFiles.getPatternSetFactory()
     }
-    private final TaskResolver taskResolver = Mock()
     private final TemporaryFileProvider temporaryFileProvider = Mock()
     private final Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
-    private final FileLookup fileLookup = Mock()
     private final DefaultDirectoryFileTreeFactory directoryFileTreeFactory = Mock()
     private final StreamHasher streamHasher = Mock()
     private final FileHasher fileHasher = Mock()
-    private final TextResourceLoader textResourceLoader = Mock()
+    private final DefaultResourceHandler.Factory resourceHandlerFactory = Mock()
     private final FileCollectionFactory fileCollectionFactory = Mock()
     private DefaultFileOperations fileOperations = instance()
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     private DefaultFileOperations instance(FileResolver resolver = resolver) {
-        instantiator.newInstance(DefaultFileOperations, resolver, taskResolver, temporaryFileProvider, instantiator, fileLookup, directoryFileTreeFactory, streamHasher, fileHasher,  textResourceLoader, fileCollectionFactory, TestFiles.fileSystem(), Time.clock())
+        instantiator.newInstance(
+            DefaultFileOperations,
+            resolver,
+            temporaryFileProvider,
+            instantiator,
+            directoryFileTreeFactory,
+            streamHasher,
+            fileHasher,
+            resourceHandlerFactory,
+            fileCollectionFactory,
+            TestFiles.fileSystem(),
+            TestFiles.deleter()
+        )
     }
 
     def resolvesFile() {
@@ -110,27 +115,27 @@ class DefaultFileOperationsTest extends Specification {
     }
 
     def createsFileTree() {
-        TestFile baseDir = expectPathResolved('base')
+        def tree = Mock(ConfigurableFileTree)
 
         when:
         def fileTree = fileOperations.fileTree('base')
 
         then:
-        fileTree instanceof FileTree
-        fileTree.dir == baseDir
-        fileTree.resolver.is(resolver)
+        fileTree.is(tree)
+        1 * fileCollectionFactory.fileTree() >> tree
+        1 * tree.from('base')
     }
 
     def createsFileTreeFromMap() {
-        TestFile baseDir = expectPathResolved('base')
+        def tree = Mock(ConfigurableFileTree)
 
         when:
         def fileTree = fileOperations.fileTree(dir: 'base')
 
         then:
-        fileTree instanceof FileTree
-        fileTree.dir == baseDir
-        fileTree.resolver.is(resolver)
+        fileTree.is(tree)
+        1 * fileCollectionFactory.fileTree() >> tree
+        1 * tree.setDir('base')
     }
 
     def createsZipFileTree() {
@@ -158,10 +163,8 @@ class DefaultFileOperationsTest extends Specification {
 
     def copiesFiles() {
         def fileTree = Mock(FileTreeInternal)
-        resolver.resolveFilesAsTree(_) >> fileTree
-        // todo we should make this work so that we can be more specific
-//        resolver.resolveFilesAsTree(['file'] as Object[]) >> fileTree
-//        resolver.resolveFilesAsTree(['file'] as Set) >> fileTree
+        fileCollectionFactory.resolving({ it.contains('file') }) >> fileTree
+        fileTree.asFileTree >> fileTree
         fileTree.matching(_) >> fileTree
         resolver.resolve('dir') >> tmpDir.getTestDirectory()
 
@@ -173,11 +176,11 @@ class DefaultFileOperationsTest extends Specification {
     }
 
     def deletes() {
-        TestFile fileToBeDeleted = tmpDir.file("file")
-        ConfigurableFileCollection fileCollection = new DefaultConfigurableFileCollection(resolver, null, "file")
-        resolver.resolveFiles(["file"] as Object[]) >> fileCollection
-        resolver.resolve("file") >> fileToBeDeleted
-        fileToBeDeleted.touch();
+        def fileToBeDeleted = tmpDir.file("file")
+        def fileCollection = Stub(FileCollectionInternal)
+        fileCollectionFactory.resolving(["file"] as Object[]) >> fileCollection
+        fileCollection.iterator() >> [fileToBeDeleted].iterator()
+        fileToBeDeleted.touch()
 
         expect:
         fileOperations.delete('file') == true

@@ -16,7 +16,6 @@
 
 package org.gradle.language;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.provider.Provider;
 
@@ -25,7 +24,6 @@ import org.gradle.api.provider.Provider;
  *
  * @since 4.5
  */
-@Incubating
 public interface ProductionComponent extends SoftwareComponent {
     /**
      * Returns the binary of the component to use as the default for development.

@@ -40,12 +40,6 @@ public class DefaultClassLoaderFactory implements ClassLoaderFactory {
         return getSystemClassLoader().getParent();
     }
 
-    @Deprecated
-    @Override
-    public ClassLoader createIsolatedClassLoader(ClassPath classPath) {
-        return createIsolatedClassLoader("unnamed-loader", classPath);
-    }
-
     @Override
     public ClassLoader createIsolatedClassLoader(String name, ClassPath classPath) {
         // This piece of ugliness copies the JAXP (ie XML API) provider, if any, from the system ClassLoader. Here's why:

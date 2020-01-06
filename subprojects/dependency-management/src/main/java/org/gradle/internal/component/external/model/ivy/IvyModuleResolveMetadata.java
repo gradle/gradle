@@ -22,7 +22,6 @@ import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.Exclude;
-import org.gradle.internal.component.model.ModuleSource;
 
 import javax.annotation.Nullable;
 
@@ -35,12 +34,6 @@ public interface IvyModuleResolveMetadata extends ModuleComponentResolveMetadata
      */
     @Override
     MutableIvyModuleResolveMetadata asMutable();
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    IvyModuleResolveMetadata withSource(ModuleSource source);
 
     /***
      * Returns the branch attribute for the module.

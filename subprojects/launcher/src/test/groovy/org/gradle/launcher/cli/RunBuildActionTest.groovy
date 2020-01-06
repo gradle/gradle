@@ -22,6 +22,7 @@ import org.gradle.initialization.BuildRequestContext
 import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.initialization.ReportedException
 import org.gradle.internal.concurrent.Stoppable
+import org.gradle.internal.nativeintegration.console.ConsoleDetector
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.launcher.cli.action.ExecuteBuildAction
 import org.gradle.launcher.exec.BuildActionExecuter
@@ -34,9 +35,7 @@ class RunBuildActionTest extends Specification {
     final BuildActionExecuter<BuildActionParameters> client = Mock()
     final StartParameterInternal startParameter = Mock()
     final BuildClientMetaData clientMetaData = Mock()
-    final File currentDir = new File('current-dir')
     final long startTime = 90
-    final Map<String, String> systemProperties = [key: 'value']
     final BuildActionParameters parameters = Mock()
     final ServiceRegistry sharedServices = Mock()
     final Stoppable stoppable = Mock()
@@ -48,6 +47,7 @@ class RunBuildActionTest extends Specification {
 
         then:
         startParameter.logLevel >> LogLevel.ERROR
+        1 * sharedServices.get(ConsoleDetector) >> Stub(ConsoleDetector)
         1 * client.execute({ !null }, { !null }, { !null }, { !null }) >> { ExecuteBuildAction action, BuildRequestContext context, BuildActionParameters build, ServiceRegistry services ->
             assert action.startParameter == startParameter
             assert context.cancellationToken instanceof DefaultBuildCancellationToken
@@ -70,6 +70,7 @@ class RunBuildActionTest extends Specification {
 
         and:
         startParameter.logLevel >> LogLevel.ERROR
+        1 * sharedServices.get(ConsoleDetector) >> Stub(ConsoleDetector)
         1 * client.execute(_, _, _, _) >> {
             return BuildActionResult.failed(new SerializedPayload("thing", []))
         }

@@ -24,7 +24,6 @@ import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
 import org.gradle.tooling.model.gradle.GradleBuild
 import org.gradle.tooling.model.idea.BasicIdeaProject
 import org.gradle.tooling.model.idea.IdeaProject
-import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes
 import spock.lang.Specification
 
 class ModelMappingTest extends Specification {
@@ -43,7 +42,6 @@ class ModelMappingTest extends Specification {
         GradleProject              | "1.0-milestone-5"
         BasicIdeaProject           | "1.0-milestone-5"
         BuildEnvironment           | "1.0-milestone-8"
-        ProjectOutcomes            | "1.2"
         GradleBuild                | "1.8"
         CustomModel                | null
     }

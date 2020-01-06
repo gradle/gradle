@@ -19,6 +19,8 @@ import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.MultimapBuilder;
+import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Table;
 import org.gradle.api.Action;
@@ -57,11 +59,13 @@ public class IdeDependencySet {
     private final DependencyHandler dependencyHandler;
     private final Collection<Configuration> plusConfigurations;
     private final Collection<Configuration> minusConfigurations;
+    private final GradleApiSourcesResolver gradleApiSourcesResolver;
 
-    public IdeDependencySet(DependencyHandler dependencyHandler, Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {
+    public IdeDependencySet(DependencyHandler dependencyHandler, Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations, GradleApiSourcesResolver gradleApiSourcesResolver) {
         this.dependencyHandler = dependencyHandler;
         this.plusConfigurations = plusConfigurations;
         this.minusConfigurations = minusConfigurations;
+        this.gradleApiSourcesResolver = gradleApiSourcesResolver;
     }
 
     public void visit(IdeDependencyVisitor visitor) {
@@ -81,6 +85,7 @@ public class IdeDependencySet {
      */
     private class IdeDependencyResult {
         private final Map<ComponentArtifactIdentifier, ResolvedArtifactResult> resolvedArtifacts = Maps.newLinkedHashMap();
+        private final SetMultimap<ComponentArtifactIdentifier, Configuration> configurations = MultimapBuilder.hashKeys().linkedHashSetValues().build();
         private final Map<ComponentSelector, UnresolvedDependencyResult> unresolvedDependencies = Maps.newLinkedHashMap();
         private final Table<ModuleComponentIdentifier, Class<? extends Artifact>, Set<ResolvedArtifactResult>> auxiliaryArtifacts = HashBasedTable.create();
 
@@ -97,6 +102,7 @@ public class IdeDependencySet {
                 ArtifactCollection artifacts = getResolvedArtifacts(configuration, visitor);
                 for (ResolvedArtifactResult resolvedArtifact : artifacts) {
                     resolvedArtifacts.put(resolvedArtifact.getId(), resolvedArtifact);
+                    configurations.put(resolvedArtifact.getId(), configuration);
                 }
                 if (artifacts.getFailures().isEmpty()) {
                     continue;
@@ -112,6 +118,7 @@ public class IdeDependencySet {
                 ArtifactCollection artifacts = getResolvedArtifacts(configuration, visitor);
                 for (ResolvedArtifactResult resolvedArtifact : artifacts) {
                     resolvedArtifacts.remove(resolvedArtifact.getId());
+                    configurations.removeAll(resolvedArtifact.getId());
                 }
                 if (artifacts.getFailures().isEmpty()) {
                     continue;
@@ -202,6 +209,7 @@ public class IdeDependencySet {
         private void visitArtifacts(IdeDependencyVisitor visitor) {
             for (ResolvedArtifactResult artifact : resolvedArtifacts.values()) {
                 ComponentIdentifier componentIdentifier = artifact.getId().getComponentIdentifier();
+                ComponentArtifactIdentifier artifactIdentifier = artifact.getId();
                 if (componentIdentifier instanceof ProjectComponentIdentifier) {
                     visitor.visitProjectDependency(artifact);
                 } else if (componentIdentifier instanceof ModuleComponentIdentifier) {
@@ -209,11 +217,27 @@ public class IdeDependencySet {
                     sources = sources != null ? sources : Collections.<ResolvedArtifactResult>emptySet();
                     Set<ResolvedArtifactResult> javaDoc = auxiliaryArtifacts.get(componentIdentifier, JavadocArtifact.class);
                     javaDoc = javaDoc != null ? javaDoc : Collections.<ResolvedArtifactResult>emptySet();
-                    visitor.visitModuleDependency(artifact, sources, javaDoc);
+                    visitor.visitModuleDependency(artifact, sources, javaDoc, isTestConfiguration(configurations.get(artifactIdentifier)));
+                } else if (isGradleApiDependency(artifact)) {
+                    visitor.visitGradleApiDependency(artifact, gradleApiSourcesResolver.resolveGradleApiSources(artifact.getFile()), isTestConfiguration(configurations.get(artifactIdentifier)));
                 } else {
-                    visitor.visitFileDependency(artifact);
+                    visitor.visitFileDependency(artifact, isTestConfiguration(configurations.get(artifactIdentifier)));
                 }
             }
+        }
+
+        private boolean isGradleApiDependency(ResolvedArtifactResult artifact) {
+            String artifactFileName = artifact.getFile().getName();
+            return artifactFileName.startsWith("gradle-api") || artifactFileName.startsWith("gradle-test-kit");
+        }
+
+        private boolean isTestConfiguration(Set<Configuration> configurations) {
+            for (Configuration c : configurations) {
+                if (!c.getName().toLowerCase().contains("test")) {
+                    return false;
+                }
+            }
+            return true;
         }
 
         private void visitUnresolvedDependencies(IdeDependencyVisitor visitor) {

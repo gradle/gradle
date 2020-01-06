@@ -16,6 +16,7 @@
 
 package org.gradle.cache.internal
 
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.cache.CleanupProgressMonitor
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -38,8 +39,9 @@ class VersionSpecificCacheCleanupActionTest extends Specification implements Gra
     def userHomeDir = temporaryFolder.createDir("user-home")
     def currentCacheDir = createVersionSpecificCacheDir(currentVersion, NOT_USED_WITHIN_30_DAYS)
     def progressMonitor = Mock(CleanupProgressMonitor)
+    def deleter = TestFiles.deleter()
 
-    @Subject def cleanupAction = new VersionSpecificCacheCleanupAction(cachesDir, 30, 7)
+    @Subject def cleanupAction = new VersionSpecificCacheCleanupAction(cachesDir, 30, 7, deleter)
 
     def "cleans up unused version-specific cache directories"() {
         given:

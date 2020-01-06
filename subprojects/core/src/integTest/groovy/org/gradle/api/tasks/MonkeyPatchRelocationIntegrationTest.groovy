@@ -50,6 +50,7 @@ class MonkeyPatchRelocationIntegrationTest extends AbstractIntegrationSpec imple
                 FileCollection processorListFile = project.layout.files("input.txt")
 
                 @InputFiles
+                @PathSensitive(PathSensitivity.NONE)
                 FileCollection getProcessorListFile() {
                     this.processorListFile
                 }

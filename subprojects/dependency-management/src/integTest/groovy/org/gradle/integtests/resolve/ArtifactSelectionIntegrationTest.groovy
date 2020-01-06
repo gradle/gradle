@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
 import org.junit.runner.RunWith
 
@@ -140,7 +141,7 @@ allprojects {
                             }
                         }
                         assert defaultView.files.collect { it.name } == ['lib.jar', 'lib-util.jar', 'ui.jar', 'some-jar-1.0.jar']
-                        assert defaultView.artifacts.collect { it.id.displayName }  == ['lib.jar (project :lib)', 'lib-util.jar', 'ui.jar (project :ui)', 'some-jar.jar (org:test:1.0)']
+                        assert defaultView.artifacts.collect { it.id.displayName }  == ['lib.jar (project :lib)', 'lib-util.jar', 'ui.jar (project :ui)', 'some-jar-1.0.jar (org:test:1.0)']
 
                         // Get a view with additional optional attribute
                         def optionalAttributeView =  configurations.compile.incoming.artifactView {
@@ -150,7 +151,7 @@ allprojects {
                             }
                         }
                         assert optionalAttributeView.files.collect { it.name } == ['lib.jar', 'lib-util.jar', 'ui.jar', 'some-jar-1.0.jar']
-                        assert optionalAttributeView.artifacts.collect { it.id.displayName }  == ['lib.jar (project :lib)', 'lib-util.jar', 'ui.jar (project :ui)', 'some-jar.jar (org:test:1.0)']
+                        assert optionalAttributeView.artifacts.collect { it.id.displayName }  == ['lib.jar (project :lib)', 'lib-util.jar', 'ui.jar (project :ui)', 'some-jar-1.0.jar (org:test:1.0)']
                     }
                 }
             }
@@ -166,6 +167,7 @@ allprojects {
         executed ":lib:jar", ":lib:utilClasses", ":lib:utilDir", ":lib:utilJar", ":ui:jar", ":app:resolve"
     }
 
+    @ToBeFixedForInstantExecution
     def "can create a view that selects different artifacts from the same dependency graph"() {
         given:
         def m1 = ivyHttpRepo.module('org', 'test', '1.0')
@@ -226,7 +228,7 @@ allprojects {
                     inputs.files view.files
                     doLast {
                         assert view.files.collect { it.name } == ['lib.classes', 'lib-util.classes', 'ui.classes', 'some-classes-1.0.classes']
-                        assert view.artifacts.collect { it.id.displayName } == ['lib.classes (project :lib)', 'lib-util.classes', 'ui.classes (project :ui)', 'some-classes.classes (org:test2:1.0)']
+                        assert view.artifacts.collect { it.id.displayName } == ['lib.classes (project :lib)', 'lib-util.classes', 'ui.classes (project :ui)', 'some-classes-1.0.classes (org:test2:1.0)']
                     }
                 }
             }
@@ -317,6 +319,7 @@ task show {
         outputContains("variants: [{artifactType=jar, buildType=profile, flavor=tasty, usage=api}]")
     }
 
+    @ToBeFixedForInstantExecution
     def "applies producer's disambiguation rules when selecting variant"() {
         buildFile << """
 class FlavorCompatibilityRule implements AttributeCompatibilityRule<String> {
@@ -455,6 +458,7 @@ task show {
         outputContains("variants: [{artifactType=jar, buildType=debug, extra=good, usage=api}]")
     }
 
+    @ToBeFixedForInstantExecution
     def "can select the implicit variant of a configuration"() {
         buildFile << """
 
@@ -520,12 +524,15 @@ task show {
         def m1 = ivyHttpRepo.module("org", "test", "1.0").publish()
 
         buildFile << """
+import org.gradle.api.artifacts.transform.TransformParameters
 
-class VariantArtifactTransform extends ArtifactTransform {
-    List<File> transform(File input) {
-        def output = new File(outputDirectory, "transformed-" + input.name)
+abstract class VariantArtifactTransform implements TransformAction<TransformParameters.None> {
+    @InputArtifact
+    abstract Provider<FileSystemLocation> getInputArtifact()
+
+    void transform(TransformOutputs outputs) {
+        def output = outputs.file("transformed-" + inputArtifact.get().asFile.name)
         output << "transformed"
-        return [output]         
     }
 }
 
@@ -534,10 +541,9 @@ dependencies {
     compile project(':lib')
     compile project(':ui')
     compile 'org:test:1.0'
-    registerTransform {
+    registerTransform(VariantArtifactTransform) {
         from.attribute(usage, "api")
         to.attribute(usage, "transformed")
-        artifactTransform(VariantArtifactTransform)
     }
 }
 

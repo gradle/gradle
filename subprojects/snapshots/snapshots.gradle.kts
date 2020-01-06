@@ -17,37 +17,46 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
     `java-library`
-     gradlebuild.classycle
+    gradlebuild.`publish-public-libraries`
+    gradlebuild.classycle
 }
 
 description = "Tools to take immutable, comparable snapshots of files and other things"
 
 dependencies {
-    implementation(project(":baseServices"))
-    implementation(project(":native"))
-    implementation(project(":messaging"))
-    implementation(project(":coreApi"))
+    implementation(library("guava")) { version { require(libraryVersion("guava")) } }
+    implementation(library("jsr305")) { version { require(libraryVersion("jsr305")) } }
     implementation(project(":files"))
-    implementation(project(":persistentCache"))
-    implementation(project(":modelCore"))
-    
-    implementation(library("guava"))
-    implementation(library("jsr305"))
-    implementation(library("inject"))
+    implementation(project(":hashing"))
+    implementation(project(":pineapple"))
+    implementation(library("slf4j_api")) { version { require(libraryVersion("slf4j_api")) } }
 
     testImplementation(project(":processServices"))
     testImplementation(project(":resources"))
+    testImplementation(project(":native"))
+    testImplementation(project(":persistentCache"))
     testImplementation(library("ant"))
+    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":coreApi")))
+    testImplementation(testFixtures(project(":baseServices")))
+    testImplementation(testFixtures(project(":fileCollections")))
+    testImplementation(testFixtures(project(":messaging")))
+
+    testRuntimeOnly(project(":runtimeApiInfo"))
+    testRuntimeOnly(project(":workers"))
+    testRuntimeOnly(project(":dependencyManagement"))
+
+    testFixturesImplementation(project(":baseServices"))
+    testFixturesImplementation(project(":coreApi"))
+    testFixturesImplementation(project(":fileCollections"))
+
+    integTestRuntimeOnly(project(":apiMetadata"))
+    integTestRuntimeOnly(project(":kotlinDsl"))
+    integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
+    integTestRuntimeOnly(project(":kotlinDslToolingBuilders"))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
 }
 
-testFixtures {
-    from(":baseServices")
-    from(":files")
-    from(":messaging")
-    from(":core")
-    from(":coreApi")
-}

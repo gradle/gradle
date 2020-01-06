@@ -17,11 +17,12 @@
 package org.gradle.internal.fingerprint.impl;
 
 import com.google.common.collect.ImmutableMap;
-import org.gradle.api.internal.cache.StringInterner;
+import com.google.common.collect.Interner;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
-import org.gradle.internal.snapshot.DirectorySnapshot;
-import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
+import org.gradle.internal.fingerprint.FingerprintHashingStrategy;
+import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
+import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 import org.gradle.internal.snapshot.RelativePathStringTracker;
@@ -35,15 +36,17 @@ import java.util.Map;
  * File names for root directories are ignored. For root files, the file name is used as normalized path.
  */
 public class RelativePathFingerprintingStrategy extends AbstractFingerprintingStrategy {
-    private final StringInterner stringInterner;
+    public static final String IDENTIFIER = "RELATIVE_PATH";
 
-    public RelativePathFingerprintingStrategy(StringInterner stringInterner) {
-        super("RELATIVE_PATH", NormalizedPathFingerprintCompareStrategy.INSTANCE);
+    private final Interner<String> stringInterner;
+
+    public RelativePathFingerprintingStrategy(Interner<String> stringInterner) {
+        super(IDENTIFIER);
         this.stringInterner = stringInterner;
     }
 
     @Override
-    public String normalizePath(FileSystemLocationSnapshot snapshot) {
+    public String normalizePath(CompleteFileSystemLocationSnapshot snapshot) {
         if (snapshot.getType() == FileType.Directory) {
             return "";
         } else {
@@ -60,7 +63,7 @@ public class RelativePathFingerprintingStrategy extends AbstractFingerprintingSt
                 private final RelativePathStringTracker relativePathStringTracker = new RelativePathStringTracker();
 
                 @Override
-                public boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
+                public boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
                     boolean isRoot = relativePathStringTracker.isRoot();
                     relativePathStringTracker.enter(directorySnapshot);
                     String absolutePath = directorySnapshot.getAbsolutePath();
@@ -72,7 +75,7 @@ public class RelativePathFingerprintingStrategy extends AbstractFingerprintingSt
                 }
 
                 @Override
-                public void visit(FileSystemLocationSnapshot fileSnapshot) {
+                public void visitFile(CompleteFileSystemLocationSnapshot fileSnapshot) {
                     String absolutePath = fileSnapshot.getAbsolutePath();
                     if (processedEntries.add(absolutePath)) {
                         FileSystemLocationFingerprint fingerprint = relativePathStringTracker.isRoot() ? new DefaultFileSystemLocationFingerprint(fileSnapshot.getName(), fileSnapshot) : createFingerprint(fileSnapshot);
@@ -80,7 +83,7 @@ public class RelativePathFingerprintingStrategy extends AbstractFingerprintingSt
                     }
                 }
 
-                private FileSystemLocationFingerprint createFingerprint(FileSystemLocationSnapshot snapshot) {
+                private FileSystemLocationFingerprint createFingerprint(CompleteFileSystemLocationSnapshot snapshot) {
                     relativePathStringTracker.enter(snapshot);
                     FileSystemLocationFingerprint fingerprint = new DefaultFileSystemLocationFingerprint(stringInterner.intern(relativePathStringTracker.getRelativePathString()), snapshot);
                     relativePathStringTracker.leave();
@@ -88,11 +91,16 @@ public class RelativePathFingerprintingStrategy extends AbstractFingerprintingSt
                 }
 
                 @Override
-                public void postVisitDirectory(DirectorySnapshot directorySnapshot) {
+                public void postVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
                     relativePathStringTracker.leave();
                 }
             });
         }
         return builder.build();
+    }
+
+    @Override
+    public FingerprintHashingStrategy getHashingStrategy() {
+        return FingerprintHashingStrategy.SORT;
     }
 }

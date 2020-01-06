@@ -64,4 +64,12 @@ public class GroupedTaskFixture {
         });
         return join("\n", nonEmptyOutputs);
     }
+
+    public GroupedTaskFixture assertOutputContains(String... text) {
+        String output = getOutput();
+        for (String s : text) {
+            assert output.contains(s);
+        }
+        return this;
+    }
 }

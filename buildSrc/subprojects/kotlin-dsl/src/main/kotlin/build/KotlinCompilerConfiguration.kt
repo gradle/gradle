@@ -21,6 +21,7 @@ import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.JvmAnalysisFlags
 import org.jetbrains.kotlin.config.JVMConfigurationKeys
+import org.jetbrains.kotlin.config.JvmTarget
 import org.jetbrains.kotlin.config.LanguageVersion
 import org.jetbrains.kotlin.config.LanguageVersionSettingsImpl
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -39,6 +40,7 @@ fun KotlinCompile.configureKotlinCompilerForGradleBuild() {
             "-Xskip-runtime-version-check",
             "-progressive"
         )
+        jvmTarget = "1.8"
     }
 }
 
@@ -54,4 +56,5 @@ fun CompilerConfiguration.configureKotlinCompilerForGradleBuild() {
 
     put(JVMConfigurationKeys.PARAMETERS_METADATA, true)
     put(JVMConfigurationKeys.SKIP_RUNTIME_VERSION_CHECK, true)
+    put(JVMConfigurationKeys.JVM_TARGET, JvmTarget.JVM_1_8)
 }

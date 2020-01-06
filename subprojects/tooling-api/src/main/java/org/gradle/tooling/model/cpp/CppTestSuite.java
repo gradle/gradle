@@ -16,13 +16,10 @@
 
 package org.gradle.tooling.model.cpp;
 
-import org.gradle.api.Incubating;
-
 /**
  * A C++ test suite.
  *
  * @since 4.10
  */
-@Incubating
 public interface CppTestSuite extends CppComponent {
 }

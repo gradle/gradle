@@ -1,0 +1,145 @@
+<!--
+  ~ Copyright 2019 the original author or authors.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<xs:schema
+    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    targetNamespace="https://schema.gradle.org/verification">
+    <xs:complexType name="coordinatesType">
+        <xs:attribute type="xs:string" name="group"/>
+        <xs:attribute type="xs:string" name="name"/>
+        <xs:attribute type="xs:string" name="version"/>
+        <xs:attribute type="xs:boolean" name="regex"/>
+        <xs:attribute type="xs:string" name="file"/>
+    </xs:complexType>
+    <xs:complexType name="trustType">
+        <xs:simpleContent>
+            <xs:extension base="coordinatesType"/>
+        </xs:simpleContent>
+    </xs:complexType>
+    <xs:complexType name="trusted-artifactsType">
+        <xs:sequence>
+            <xs:element type="trustType" name="trust" maxOccurs="unbounded" minOccurs="0"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="ignored-keyType">
+        <xs:attribute type="xs:string" name="id" use="required"/>
+        <xs:attribute type="xs:string" name="reason"/>
+    </xs:complexType>
+    <xs:complexType name="ignored-keysType">
+        <xs:sequence>
+            <xs:element type="ignored-keyType" name="ignored-key"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="trusted-keyType" mixed="true">
+        <xs:sequence>
+            <xs:element type="trustingType" name="trusting" maxOccurs="unbounded" minOccurs="0"/>
+        </xs:sequence>
+        <xs:attribute type="xs:string" name="id" use="required"/>
+        <xs:attribute type="xs:string" name="group"/>
+        <xs:attribute type="xs:string" name="name"/>
+        <xs:attribute type="xs:string" name="version"/>
+        <xs:attribute type="xs:string" name="file"/>
+        <xs:attribute type="xs:string" name="regex"/>
+    </xs:complexType>
+    <xs:complexType name="trustingType">
+        <xs:simpleContent>
+            <xs:extension base="coordinatesType"/>
+        </xs:simpleContent>
+    </xs:complexType>
+    <xs:complexType name="trusted-keysType">
+        <xs:sequence>
+            <xs:element type="trusted-keyType" name="trusted-key" maxOccurs="unbounded" minOccurs="0"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="configurationType">
+        <xs:sequence>
+            <xs:element type="xs:boolean" name="verify-metadata"/>
+            <xs:element type="xs:boolean" name="verify-signatures"/>
+            <xs:element type="trusted-artifactsType" name="trusted-artifacts"/>
+            <xs:element type="ignored-keysType" name="ignored-keys"/>
+            <xs:element type="trusted-keysType" name="trusted-keys"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="md5Type" mixed="true">
+        <xs:sequence>
+            <xs:element type="also-trustType" name="also-trust" minOccurs="0"/>
+        </xs:sequence>
+        <xs:attribute type="xs:string" name="value" use="required"/>
+        <xs:attribute type="xs:string" name="origin"/>
+    </xs:complexType>
+    <xs:complexType name="sha1Type" mixed="true">
+        <xs:sequence>
+            <xs:element type="also-trustType" name="also-trust" minOccurs="0"/>
+        </xs:sequence>
+        <xs:attribute type="xs:string" name="value" use="required"/>
+        <xs:attribute type="xs:string" name="origin"/>
+    </xs:complexType>
+    <xs:complexType name="sha256Type" mixed="true">
+        <xs:sequence>
+            <xs:element type="also-trustType" name="also-trust" minOccurs="0"/>
+        </xs:sequence>
+        <xs:attribute type="xs:string" name="value" use="required"/>
+        <xs:attribute type="xs:string" name="origin"/>
+    </xs:complexType>
+    <xs:complexType name="sha512Type" mixed="true">
+        <xs:sequence>
+            <xs:element type="also-trustType" name="also-trust" minOccurs="0"/>
+        </xs:sequence>
+        <xs:attribute type="xs:string" name="value" use="required"/>
+        <xs:attribute type="xs:string" name="origin"/>
+    </xs:complexType>
+    <xs:complexType name="pgpType">
+        <xs:simpleContent>
+            <xs:extension base="xs:string">
+                <xs:attribute type="xs:string" name="value" use="required"/>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+    <xs:complexType name="artifactType">
+        <xs:choice maxOccurs="unbounded" minOccurs="0">
+            <xs:element type="ignored-keysType" name="ignored-keys"/>
+            <xs:element type="pgpType" name="pgp"/>
+            <xs:element type="md5Type" name="md5"/>
+            <xs:element type="sha1Type" name="sha1"/>
+            <xs:element type="sha256Type" name="sha256"/>
+            <xs:element type="sha512Type" name="sha512"/>
+        </xs:choice>
+        <xs:attribute type="xs:string" name="name" use="required"/>
+    </xs:complexType>
+    <xs:complexType name="componentType">
+        <xs:sequence>
+            <xs:element type="artifactType" name="artifact" maxOccurs="unbounded" minOccurs="0"/>
+        </xs:sequence>
+        <xs:attribute type="xs:string" name="group" use="required"/>
+        <xs:attribute type="xs:string" name="name" use="required"/>
+        <xs:attribute type="xs:string" name="version" use="required"/>
+    </xs:complexType>
+    <xs:complexType name="also-trustType">
+        <xs:attribute type="xs:string" name="value"/>
+    </xs:complexType>
+    <xs:complexType name="componentsType">
+        <xs:sequence>
+            <xs:element type="componentType" name="component" maxOccurs="unbounded" minOccurs="0"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="verification-metadataType">
+        <xs:sequence>
+            <xs:element type="configurationType" name="configuration"/>
+            <xs:element type="componentsType" name="components"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:element name="verification-metadata" type="verification-metadataType"/>
+</xs:schema>

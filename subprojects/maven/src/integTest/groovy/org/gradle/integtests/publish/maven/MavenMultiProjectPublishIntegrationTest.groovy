@@ -17,15 +17,19 @@
 package org.gradle.integtests.publish.maven
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Issue
 
 class MavenMultiProjectPublishIntegrationTest extends AbstractIntegrationSpec {
     def mavenModule = mavenRepo.module("org.gradle.test", "project1", "1.9")
 
     def setup() {
+        // the OLD publish plugins work with the OLD deprecated Java plugin configuration (compile/runtime)
+        executer.noDeprecationChecks()
         using m2 //uploadArchives leaks into local ~/.m2
     }
 
+    @ToBeFixedForInstantExecution
     def "project dependency correctly reflected in POM if publication coordinates are unchanged"() {
         createBuildScripts("""
 project(":project1") {
@@ -44,6 +48,7 @@ project(":project1") {
     }
 
     @Issue("GRADLE-443")
+    @ToBeFixedForInstantExecution
     def "project dependency correctly reflected in POM if archivesBaseName is changed"() {
         createBuildScripts("""
 project(":project1") {
@@ -66,6 +71,7 @@ project(":project2") {
     }
 
     @Issue("GRADLE-443")
+    @ToBeFixedForInstantExecution
     def "project dependency correctly reflected in POM if mavenDeployer.pom.artifactId is changed"() {
         createBuildScripts("""
 project(":project1") {
@@ -91,6 +97,7 @@ project(":project2") {
         pom.scopes.compile.assertDependsOn("org.gradle.test:changed:1.9")
     }
 
+    @ToBeFixedForInstantExecution
     def "project dependency correctly reflected in POM if second artifact is published which differs in classifier"() {
         createBuildScripts("""
 project(":project1") {
@@ -120,6 +127,7 @@ project(":project2") {
 
 
     @Issue("GRADLE-3030")
+    @ToBeFixedForInstantExecution
     def "project dependency correctly reflected in POM when dependency configuration has no artifacts"() {
         createBuildScripts("""
 project(":project1") {
@@ -147,6 +155,7 @@ project(":project2") {
     }
 
     @Issue("GRADLE-3030")
+    @ToBeFixedForInstantExecution
     def "project dependency correctly reflected in POM when dependency configuration has multiple classified artifacts"() {
         createBuildScripts("""
 project(":project1") {
@@ -203,6 +212,7 @@ project(":project2") {
     }
 
     @Issue("GRADLE-3030")
+    @ToBeFixedForInstantExecution
     def "project dependency correctly reflected in POM when default configuration has classifier"() {
         createBuildScripts("""
 project(":project1") {
@@ -228,6 +238,7 @@ project(":project2") {
     }
 
     @Issue("GRADLE-3030")
+    @ToBeFixedForInstantExecution
     def "project dependency correctly reflected in POM if configuration has classifier and modified id"() {
         createBuildScripts("""
 project(":project1") {
@@ -269,6 +280,7 @@ project(":project2") {
     }
 
     @Issue("GRADLE-3030")
+    @ToBeFixedForInstantExecution
     def "project dependency correctly reflected in POM when configuration is extended by other configurations"() {
         createBuildScripts("""
 project(":project1") {
@@ -314,6 +326,7 @@ project(":project2") {
     }
 
     @Issue("GRADLE-3030")
+    @ToBeFixedForInstantExecution
     def "dependency on testRuntime, includes classifier on jar and de-duplicates dependencies"() {
         createBuildScripts("""
 project(":project1") {
@@ -345,6 +358,7 @@ project(":project2") {
     }
 
     @Issue("GRADLE-3030")
+    @ToBeFixedForInstantExecution
     def "project dependency correctly reflected in POM when configuration is extending other configurations"() {
         createBuildScripts("""
 project(":project1") {
@@ -390,6 +404,7 @@ project(":project2") {
             "org.gradle.test:project2:1.9:extendedConfig")
     }
 
+    @ToBeFixedForInstantExecution
     def "dependencies are de-duplicated according to configuration/scope mapping priority"() {
         given:
         settingsFile << "include 'project3'"
@@ -419,6 +434,7 @@ project(":project2") {
         pom.scopes.test.assertDependsOn 'org.gradle.test:project3:1.9'
     }
 
+    @ToBeFixedForInstantExecution
     def "dependencies are de-duplicated using exclusions from the elected dependency"() {
         given:
         createBuildScripts """
@@ -459,6 +475,7 @@ project(":project2") {
         pom.scopes.test == null
     }
 
+    @ToBeFixedForInstantExecution
     def "dependencies are de-duplicated using the higher version on the higher scope"() {
         given:
         createBuildScripts """

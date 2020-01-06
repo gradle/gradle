@@ -51,6 +51,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static org.gradle.internal.component.external.model.maven.DefaultMavenModuleResolveMetadata.POM_PACKAGING;
 
@@ -110,20 +111,34 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
     }
 
     private void doParsePom(DescriptorParseContext parserSettings, GradlePomModuleDescriptorBuilder mdBuilder, PomReader pomReader) throws IOException, SAXException {
-        if (pomReader.hasParent()) {
-            //Is there any other parent properties?
-
-            ModuleComponentSelector parentId = DefaultModuleComponentSelector.newSelector(
-                DefaultModuleIdentifier.newId(pomReader.getParentGroupId(), pomReader.getParentArtifactId()),
-                new DefaultImmutableVersionConstraint(pomReader.getParentVersion()));
-            PomReader parentPomReader = parsePomForSelector(parserSettings, parentId, pomReader.getAllPomProperties());
-            pomReader.setPomParent(parentPomReader);
-        }
         pomReader.resolveGAV();
 
         String groupId = pomReader.getGroupId();
         String artifactId = pomReader.getArtifactId();
         String version = pomReader.getVersion();
+
+        if (pomReader.hasParent()) {
+            //Is there any other parent properties?
+
+            String parentGroupId = pomReader.getParentGroupId();
+            String parentArtifactId = pomReader.getParentArtifactId();
+            String parentVersion = pomReader.getParentVersion();
+
+            if (!(Objects.equals(parentGroupId, groupId) && Objects.equals(parentArtifactId, artifactId) && Objects.equals(parentVersion, version))) {
+                // Only attempt loading the parent if it has different coordinates
+                ModuleComponentSelector parentId = DefaultModuleComponentSelector.newSelector(
+                    DefaultModuleIdentifier.newId(parentGroupId, parentArtifactId),
+                    new DefaultImmutableVersionConstraint(parentVersion));
+                PomReader parentPomReader = parsePomForSelector(parserSettings, parentId, pomReader.getAllPomProperties());
+                pomReader.setPomParent(parentPomReader);
+
+                // Current POM can derive version/artifactId from parent. Resolve GAV and substitute values
+                pomReader.resolveGAV();
+                groupId = pomReader.getGroupId();
+                artifactId = pomReader.getArtifactId();
+                version = pomReader.getVersion();
+            }
+        }
         mdBuilder.setModuleRevId(groupId, artifactId, version);
 
         ModuleVersionIdentifier relocation = pomReader.getRelocation();
@@ -221,7 +236,7 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
     }
 
     private ModuleDependencyMetadata toDependencyMetadata(ModuleComponentSelector selector) {
-        return new GradleDependencyMetadata(selector, Collections.<ExcludeMetadata>emptyList(), false, null, false);
+        return new GradleDependencyMetadata(selector, Collections.<ExcludeMetadata>emptyList(), false, false, null, false, null);
     }
 
     private PomReader parsePomResource(DescriptorParseContext parseContext, LocallyAvailableExternalResource localResource, Map<String, String> childProperties) throws SAXException, IOException {

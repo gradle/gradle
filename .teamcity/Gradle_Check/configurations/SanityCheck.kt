@@ -11,13 +11,11 @@ class SanityCheck(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(model
     description = "Static code analysis, checkstyle, release notes verification, etc."
 
     params {
-        param("env.JAVA_HOME", buildJavaHome)
+        param("env.JAVA_HOME", buildJavaHome())
     }
 
-    if (model.publishStatusToGitHub) {
-        features {
-            publishBuildStatusToGithub()
-        }
+    features {
+        publishBuildStatusToGithub(model)
     }
 
     applyDefaults(

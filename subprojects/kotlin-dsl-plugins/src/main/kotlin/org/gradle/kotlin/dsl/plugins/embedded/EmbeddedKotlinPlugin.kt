@@ -35,8 +35,7 @@ import javax.inject.Inject
  * The `embedded-kotlin` plugin.
  *
  * Applies the `org.jetbrains.kotlin.jvm` plugin,
- * adds compile only dependencies on `kotlin-stdlib` and `kotlin-reflect`,
- * configures an embedded repository that contains all embedded Kotlin libraries.
+ * adds compile only and test implementation dependencies on `kotlin-stdlib` and `kotlin-reflect`.
  */
 class EmbeddedKotlinPlugin @Inject internal constructor(
     private val embeddedKotlin: EmbeddedKotlinProvider
@@ -48,8 +47,6 @@ class EmbeddedKotlinPlugin @Inject internal constructor(
             plugins.apply(KotlinPluginWrapper::class.java)
 
             logger.warnOnDifferentKotlinVersion(getKotlinPluginVersion())
-
-            embeddedKotlin.addRepositoryTo(repositories)
 
             val embeddedKotlinConfiguration = configurations.create("embeddedKotlin")
             embeddedKotlin.addDependenciesTo(

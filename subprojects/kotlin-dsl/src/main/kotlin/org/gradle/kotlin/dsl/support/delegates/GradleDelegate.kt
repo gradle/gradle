@@ -17,7 +17,6 @@
 package org.gradle.kotlin.dsl.support.delegates
 
 import groovy.lang.Closure
-
 import org.gradle.BuildListener
 import org.gradle.BuildResult
 import org.gradle.StartParameter
@@ -31,19 +30,11 @@ import org.gradle.api.invocation.Gradle
 import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.api.plugins.PluginManager
-
 import java.io.File
 
 
 /**
  * Facilitates the implementation of the [Gradle] interface by delegation via subclassing.
- *
- * So we can avoid Kotlin's [implementation by delegation](https://kotlinlang.org/docs/reference/delegation.html#implementation-by-delegation)
- * until all required interfaces have been compiled with Java 8 parameter names (otherwise parameter names
- * are lost in the exposed implementation).
- *
- * Once the required interfaces are compiled with Java 8 parameter names these classes can be removed in favor
- * of Kotlin's implementation by delegation.
  */
 abstract class GradleDelegate : Gradle {
 
@@ -82,6 +73,12 @@ abstract class GradleDelegate : Gradle {
 
     override fun removeProjectEvaluationListener(listener: ProjectEvaluationListener) =
         delegate.removeProjectEvaluationListener(listener)
+
+    override fun beforeSettings(closure: Closure<*>) =
+        delegate.beforeSettings(closure)
+
+    override fun beforeSettings(action: Action<in Settings>) =
+        delegate.beforeSettings(action)
 
     override fun beforeProject(closure: Closure<Any>) =
         delegate.beforeProject(closure)
@@ -139,6 +136,8 @@ abstract class GradleDelegate : Gradle {
 
     override fun getGradle(): Gradle =
         delegate.gradle
+
+    override fun getSharedServices() = delegate.sharedServices
 
     override fun getIncludedBuilds(): MutableCollection<IncludedBuild> =
         delegate.includedBuilds

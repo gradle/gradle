@@ -2,7 +2,6 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
     `java-library`
-    gradlebuild.`strict-compile`
     gradlebuild.classycle
 }
 
@@ -10,9 +9,10 @@ dependencies {
     api(library("jsr305"))
 
     implementation(project(":baseServices"))
+    implementation(project(":files"))
     implementation(project(":logging"))
     implementation(project(":processServices"))
-    implementation(project(":files"))
+    implementation(project(":fileCollections"))
     implementation(project(":coreApi"))
     implementation(project(":modelCore"))
     implementation(project(":core"))
@@ -26,18 +26,19 @@ dependencies {
 
     testImplementation(project(":native"))
     testImplementation(project(":resources"))
+    testImplementation(project(":snapshots"))
+    testImplementation(testFixtures(project(":core")))
+
     testRuntimeOnly(project(":languageJava"))
+    testRuntimeOnly(project(":runtimeApiInfo"))
 
     testFixturesImplementation(library("commons_lang"))
+    testFixturesImplementation(library("guava"))
     testFixturesImplementation(project(":internalIntegTesting"))
+    testFixturesImplementation(testFixtures(project(":core")))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
 }
 
-testFixtures {
-    from(":core")
-    from(":core", "testFixtures")
-    from(":launcher", "testFixtures")
-}

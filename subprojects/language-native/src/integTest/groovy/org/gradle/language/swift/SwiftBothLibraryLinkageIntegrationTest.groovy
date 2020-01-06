@@ -16,6 +16,7 @@
 
 package org.gradle.language.swift
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.nativeplatform.fixtures.app.SourceElement
 import org.gradle.nativeplatform.fixtures.app.SwiftLib
 
@@ -44,10 +45,17 @@ class SwiftBothLibraryLinkageIntegrationTest extends AbstractSwiftIntegrationTes
     }
 
     @Override
+    void assertComponentUnderTestWasBuilt() {
+        file("build/modules/main/debug/shared/${componentUnderTest.moduleName}.swiftmodule").assertIsFile()
+        sharedLibrary("build/lib/main/debug/shared/${componentUnderTest.moduleName}").assertExists()
+    }
+
+    @Override
     protected String getComponentUnderTestDsl() {
         return "library"
     }
 
+    @ToBeFixedForInstantExecution
     def "creates shared library binary by default when both linkage specified"() {
         def library = new SwiftLib()
         makeSingleProject()
@@ -64,6 +72,7 @@ class SwiftBothLibraryLinkageIntegrationTest extends AbstractSwiftIntegrationTes
         sharedLibrary('build/lib/main/debug/shared/Foo').assertExists()
     }
 
+    @ToBeFixedForInstantExecution
     def "can assemble static library followed by shared library"() {
         def library = new SwiftLib()
         makeSingleProject()

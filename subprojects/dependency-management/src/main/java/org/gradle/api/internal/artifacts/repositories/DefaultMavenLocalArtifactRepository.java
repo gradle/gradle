@@ -15,14 +15,13 @@
  */
 package org.gradle.api.internal.artifacts.repositories;
 
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
-import org.gradle.api.internal.FeaturePreviews;
+import org.gradle.internal.hash.ChecksumService;
+import org.gradle.api.internal.artifacts.repositories.metadata.MavenLocalPomMetadataSource;
 import org.gradle.internal.instantiation.InstantiatorFactory;
-import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.internal.artifacts.repositories.maven.MavenMetadataLoader;
 import org.gradle.api.internal.artifacts.repositories.metadata.DefaultMavenPomMetadataSource;
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMetadataArtifactProvider;
@@ -49,8 +48,7 @@ import java.net.URI;
 
 public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRepository implements MavenArtifactRepository {
     private static final Logger LOGGER = LoggerFactory.getLogger(MavenResolver.class);
-
-    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
+    private final ChecksumService checksumService;
 
     public DefaultMavenLocalArtifactRepository(FileResolver fileResolver, RepositoryTransportFactory transportFactory,
                                                LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder, InstantiatorFactory instantiatorFactory,
@@ -58,42 +56,43 @@ public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRep
                                                MetaDataParser<MutableMavenModuleResolveMetadata> pomParser,
                                                GradleModuleMetadataParser metadataParser,
                                                AuthenticationContainer authenticationContainer,
-                                               ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                                FileResourceRepository fileResourceRepository,
-                                               FeaturePreviews featurePreviews,
                                                MavenMutableModuleMetadataFactory metadataFactory,
                                                IsolatableFactory isolatableFactory,
-                                               ObjectFactory objectFactory) {
-        super(fileResolver, transportFactory, locallyAvailableResourceFinder, instantiatorFactory, artifactFileStore, pomParser, metadataParser, authenticationContainer, moduleIdentifierFactory, null, fileResourceRepository, featurePreviews, metadataFactory, isolatableFactory, objectFactory);
-        this.moduleIdentifierFactory = moduleIdentifierFactory;
+                                               ObjectFactory objectFactory,
+                                               DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory,
+                                               ChecksumService checksumService) {
+        super(fileResolver, transportFactory, locallyAvailableResourceFinder, instantiatorFactory, artifactFileStore, pomParser, metadataParser, authenticationContainer, null, fileResourceRepository, metadataFactory, isolatableFactory, objectFactory, urlArtifactRepositoryFactory, checksumService);
+        this.checksumService = checksumService;
     }
 
     @Override
     protected MavenResolver createRealResolver() {
-        URI rootUri = getUrl();
-        if (rootUri == null) {
-            throw new InvalidUserDataException("You must specify a URL for a Maven repository.");
-        }
+        URI rootUri = validateUrl();
 
         RepositoryTransport transport = getTransport(rootUri.getScheme());
         MavenMetadataLoader mavenMetadataLoader = new MavenMetadataLoader(transport.getResourceAccessor(), getResourcesFileStore());
-        Instantiator injector = createInjectorForMetadataSuppliers(transport, getInstantiatorFactory(), getUrl(), getResourcesFileStore());
+        Instantiator injector = createInjectorForMetadataSuppliers(transport, getInstantiatorFactory(), rootUri, getResourcesFileStore());
         MavenResolver resolver = new MavenResolver(
             getName(),
             rootUri,
             transport,
             getLocallyAvailableResourceFinder(),
             getArtifactFileStore(),
-            moduleIdentifierFactory,
             createMetadataSources(mavenMetadataLoader),
             MavenMetadataArtifactProvider.INSTANCE,
             mavenMetadataLoader,
             null,
-            null, injector);
+            null, injector, checksumService);
         for (URI repoUrl : getArtifactUrls()) {
             resolver.addArtifactLocation(repoUrl);
         }
         return resolver;
+    }
+
+    @Override
+    protected DefaultMavenPomMetadataSource createPomMetadataSource(MavenMetadataLoader mavenMetadataLoader, FileResourceRepository fileResourceRepository) {
+        return new MavenLocalPomMetadataSource(MavenMetadataArtifactProvider.INSTANCE, getPomParser(), fileResourceRepository, getMetadataValidationServices(), mavenMetadataLoader, checksumService);
     }
 
     @Override

@@ -49,6 +49,8 @@ class PrecompiledScriptPluginModelCrossVersionSpec extends AbstractKotlinScriptM
                 }
             }
 
+            $repositoriesBlock
+
             dependencies {
                 implementation(files("${implementationDependency.name}"))
             }
@@ -108,6 +110,8 @@ class PrecompiledScriptPluginModelCrossVersionSpec extends AbstractKotlinScriptM
             plugins {
                 `kotlin-dsl`
             }
+
+            $repositoriesBlock
         """)
 
         and:
@@ -134,6 +138,8 @@ class PrecompiledScriptPluginModelCrossVersionSpec extends AbstractKotlinScriptM
             plugins {
                 `kotlin-dsl`
             }
+
+            $repositoriesBlock
 
             dependencies {
                 implementation(files("${jar.name}"))

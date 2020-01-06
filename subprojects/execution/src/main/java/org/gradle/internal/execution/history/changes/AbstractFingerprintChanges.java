@@ -16,14 +16,27 @@
 
 package org.gradle.internal.execution.history.changes;
 
-import org.gradle.internal.change.ChangeContainer;
-import org.gradle.internal.change.ChangeVisitor;
+import com.google.common.collect.ImmutableMap;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
+import org.gradle.internal.fingerprint.FingerprintingStrategy;
+import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy;
+import org.gradle.internal.fingerprint.impl.IgnoredPathFingerprintingStrategy;
+import org.gradle.internal.fingerprint.impl.NameOnlyFingerprintingStrategy;
+import org.gradle.internal.fingerprint.impl.RelativePathFingerprintingStrategy;
 
 import java.util.SortedMap;
 
 public abstract class AbstractFingerprintChanges implements ChangeContainer {
+    private static final ImmutableMap<String, FingerprintCompareStrategy> COMPARE_STRATEGY_MAPPING = ImmutableMap.<String, FingerprintCompareStrategy>builder()
+        .put(AbsolutePathFingerprintingStrategy.IDENTIFIER, AbsolutePathFingerprintCompareStrategy.INSTANCE)
+        .put(NameOnlyFingerprintingStrategy.IDENTIFIER, NormalizedPathFingerprintCompareStrategy.INSTANCE)
+        .put(RelativePathFingerprintingStrategy.IDENTIFIER, NormalizedPathFingerprintCompareStrategy.INSTANCE)
+        .put(IgnoredPathFingerprintingStrategy.IDENTIFIER, IgnoredPathCompareStrategy.INSTANCE)
+        .put(FingerprintingStrategy.CLASSPATH_IDENTIFIER, ClasspathCompareStrategy.INSTANCE)
+        .put(FingerprintingStrategy.COMPILE_CLASSPATH_IDENTIFIER, ClasspathCompareStrategy.INSTANCE)
+        .build();
+
     protected final SortedMap<String, FileCollectionFingerprint> previous;
     protected final SortedMap<String, CurrentFileCollectionFingerprint> current;
     private final String title;
@@ -34,7 +47,8 @@ public abstract class AbstractFingerprintChanges implements ChangeContainer {
         this.title = title;
     }
 
-    protected boolean accept(final ChangeVisitor visitor, final boolean includeAdded) {
+    @Override
+    public boolean accept(ChangeVisitor visitor) {
         return SortedMapDiffUtil.diff(previous, current, new PropertyDiffListener<String, FileCollectionFingerprint, CurrentFileCollectionFingerprint>() {
             @Override
             public boolean removed(String previousProperty) {
@@ -49,8 +63,13 @@ public abstract class AbstractFingerprintChanges implements ChangeContainer {
             @Override
             public boolean updated(String property, FileCollectionFingerprint previousFingerprint, CurrentFileCollectionFingerprint currentFingerprint) {
                 String propertyTitle = title + " property '" + property + "'";
-                return currentFingerprint.visitChangesSince(previousFingerprint, propertyTitle, includeAdded, visitor);
+                FingerprintCompareStrategy compareStrategy = determineCompareStrategy(currentFingerprint);
+                return compareStrategy.visitChangesSince(currentFingerprint, previousFingerprint, propertyTitle, visitor);
             }
         });
+    }
+
+    protected FingerprintCompareStrategy determineCompareStrategy(CurrentFileCollectionFingerprint currentFingerprint) {
+        return COMPARE_STRATEGY_MAPPING.get(currentFingerprint.getStrategyIdentifier());
     }
 }

@@ -1,16 +1,20 @@
 package org.gradle.kotlin.dsl.provider
 
-import org.gradle.kotlin.dsl.KotlinBuildScript
-import org.gradle.kotlin.dsl.KotlinInitScript
-import org.gradle.kotlin.dsl.KotlinSettingsScript
-
 import org.gradle.api.Action
 import org.gradle.api.initialization.Settings
-
-import org.gradle.kotlin.dsl.precompile.PrecompiledInitScript
-import org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript
-import org.gradle.kotlin.dsl.precompile.PrecompiledSettingsScript
-
+import org.gradle.kotlin.dsl.*
+import org.gradle.kotlin.dsl.precompile.v1.PrecompiledInitScript
+import org.gradle.kotlin.dsl.precompile.v1.PrecompiledProjectScript
+import org.gradle.kotlin.dsl.precompile.v1.PrecompiledSettingsScript
+import org.gradle.kotlin.dsl.support.CompiledKotlinBuildScript
+import org.gradle.kotlin.dsl.support.CompiledKotlinBuildscriptAndPluginsBlock
+import org.gradle.kotlin.dsl.support.CompiledKotlinInitScript
+import org.gradle.kotlin.dsl.support.CompiledKotlinInitscriptBlock
+import org.gradle.kotlin.dsl.support.CompiledKotlinSettingsPluginManagementBlock
+import org.gradle.kotlin.dsl.support.CompiledKotlinSettingsScript
+import org.hamcrest.CoreMatchers.equalTo
+import org.junit.Assert.assertThat
+import org.junit.Test
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
@@ -28,29 +32,44 @@ import kotlin.reflect.full.withNullability
 import kotlin.reflect.jvm.javaGetter
 import kotlin.reflect.jvm.jvmErasure
 
-import org.hamcrest.CoreMatchers.equalTo
-
-import org.junit.Assert.assertThat
-import org.junit.Test
-
 
 class ScriptApiTest {
 
     @Test
-    fun `build script template implements script api`() =
+    fun `IDE build script template implements script api`() =
         assertScriptApiOf<KotlinBuildScript>()
 
     @Test
-    fun `settings script template implements script api`() =
+    fun `IDE settings script template implements script api`() =
         assertScriptApiOf<KotlinSettingsScript>()
 
     @Test
-    fun `settings script template implements Settings#enableFeaturePreview`() =
+    fun `IDE settings script template implements Settings#enableFeaturePreview`() =
         assert(KotlinSettingsScript::class.implements(Settings::enableFeaturePreview))
 
     @Test
-    fun `init script template implements script api`() =
+    fun `IDE init script template implements script api`() =
         assertScriptApiOf<KotlinInitScript>()
+
+    @Test
+    fun `compiled init script template implements script api`() =
+        assertScriptApiOf<CompiledKotlinInitScript>()
+
+    @Test
+    fun `compiled settings script template implements script api`() =
+        assertScriptApiOf<CompiledKotlinSettingsScript>()
+
+    @Test
+    fun `compiled settings pluginManagement block template implements script api`() =
+        assertScriptApiOf<CompiledKotlinSettingsPluginManagementBlock>()
+
+    @Test
+    fun `compiled project script template implements script api`() =
+        assertScriptApiOf<CompiledKotlinBuildScript>()
+
+    @Test
+    fun `compiled project buildscript and plugins block template implements script api`() =
+        assertScriptApiOf<CompiledKotlinBuildscriptAndPluginsBlock>()
 
     @Test
     fun `precompiled project script template implements script api`() =
@@ -63,19 +82,46 @@ class ScriptApiTest {
     @Test
     fun `precompiled init script template implements script api`() =
         assertScriptApiOf<PrecompiledInitScript>()
+
+    @Test
+    fun `init script template is backward compatible`() {
+        @Suppress("deprecation")
+        assertThat(
+            InitScriptApi::class.declaredMembers.filter { it.isPublic }.missingMembersFrom(
+                CompiledKotlinInitscriptBlock::class
+            ),
+            equalTo(emptyList())
+        )
+    }
+
+    @Test
+    fun `settings script template is backward compatible`() {
+        @Suppress("deprecation")
+        assertThat(
+            SettingsScriptApi::class.declaredMembers.filter { it.isPublic }.missingMembersFrom(
+                CompiledKotlinSettingsPluginManagementBlock::class
+            ).missingMembersFrom(
+                Settings::class
+            ),
+            equalTo(emptyList())
+        )
+    }
 }
 
 
 private
-inline fun <reified T> assertScriptApiOf() =
-    assertApiOf<T>(ScriptApi::class)
+inline fun <reified T> assertScriptApiOf() {
+    if (!KotlinScript::class.java.isAssignableFrom(T::class.java))
+        assertApiOf<T>(KotlinScript::class)
+}
 
 
 private
 inline fun <reified T> assertApiOf(expectedApi: KClass<*>) =
     assertThat(
         expectedApi.apiMembers.missingMembersFrom(T::class),
-        equalTo(emptyList()))
+        equalTo(emptyList())
+    )
 
 
 private
@@ -89,9 +135,7 @@ val KClass<*>.apiMembers: ScriptApiMembers
 
 private
 fun ScriptApiMembers.missingMembersFrom(scriptTemplate: KClass<*>): List<KCallable<*>> =
-    scriptTemplate.publicMembers.let { scriptTemplateMembers ->
-        filterNot(scriptTemplateMembers::containsMemberCompatibleWith)
-    }
+    filterNot(scriptTemplate.publicMembers::containsMemberCompatibleWith)
 
 
 private
@@ -101,7 +145,12 @@ fun KClass<*>.implements(api: KCallable<*>) =
 
 private
 val KClass<*>.publicMembers
-    get() = members.filter { it.visibility == KVisibility.PUBLIC }
+    get() = members.filter { it.isPublic }
+
+
+private
+val KCallable<*>.isPublic
+    get() = visibility == KVisibility.PUBLIC
 
 
 private
@@ -153,7 +202,7 @@ fun List<KParameter>.isCompatibleWith(api: List<KParameter>) =
     when {
         size != api.size -> false
         isEmpty() -> true
-        else -> (0..(size - 1)).all { idx -> this[idx].isCompatibleWith(api[idx]) }
+        else -> indices.all { idx -> get(idx).isCompatibleWith(api[idx]) }
     }
 
 
@@ -161,7 +210,7 @@ private
 fun KParameter.isCompatibleWith(api: KParameter) =
     when {
         isVarargCompatibleWith(api) -> true
-        isGradleActionCompatibleWith(api) -> true
+        isGradleActionCompatibleWith(api) || api.isGradleActionCompatibleWith(this) -> true
         type.isParameterTypeCompatibleWith(api.type) -> true
         else -> false
     }
@@ -169,9 +218,9 @@ fun KParameter.isCompatibleWith(api: KParameter) =
 
 private
 fun KParameter.isGradleActionCompatibleWith(api: KParameter) =
-    type.jvmErasure == Action::class
-        && api.isSamWithReceiverReturningUnit()
-        && type.arguments[0].type!!.isTypeArgumentCompatibleWith(api.type.arguments[0].type!!)
+    api.type.jvmErasure == Action::class
+        && isSamWithReceiverReturningUnit()
+        && api.type.arguments[0].type!!.isTypeArgumentCompatibleWith(type.arguments[0].type!!)
 
 
 private
@@ -197,8 +246,12 @@ fun KType.isParameterTypeCompatibleWith(apiParameterType: KType) =
 
 private
 fun KType.hasCompatibleTypeArguments(api: KType) =
-    arguments.size == api.arguments.size && (0..(arguments.size - 1)).all { idx ->
-        arguments[idx].type!!.isTypeArgumentCompatibleWith(api.arguments[idx].type!!)
+    arguments.size == api.arguments.size && arguments.indices.all { idx ->
+        val expectedType = arguments[idx].type
+        val actualType = api.arguments[idx].type
+        expectedType?.let { e ->
+            actualType?.let { a -> e.isTypeArgumentCompatibleWith(a) }
+        } ?: false
     }
 
 

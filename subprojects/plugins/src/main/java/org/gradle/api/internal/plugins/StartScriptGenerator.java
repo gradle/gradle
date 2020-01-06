@@ -125,7 +125,7 @@ public class StartScriptGenerator {
         }
     }
 
-    private class Generate implements Action<BufferedWriter> {
+    private static class Generate implements Action<BufferedWriter> {
         private final JavaAppStartScriptGenerationDetails startScriptGenerationDetails;
         private final ScriptGenerator unixStartScriptGenerator;
 

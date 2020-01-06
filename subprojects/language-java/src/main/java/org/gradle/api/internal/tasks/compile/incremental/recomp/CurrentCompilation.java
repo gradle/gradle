@@ -17,24 +17,18 @@
 package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
 import com.google.common.collect.Iterables;
-import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathSnapshot;
 import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathSnapshotProvider;
-import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
-import org.gradle.api.tasks.incremental.InputFileDetails;
 
 import java.io.File;
 import java.util.Collection;
 
 public class CurrentCompilation {
-    private final IncrementalTaskInputs inputs;
     private final JavaCompileSpec spec;
     private final ClasspathSnapshotProvider classpathSnapshotProvider;
 
-    public CurrentCompilation(IncrementalTaskInputs inputs, JavaCompileSpec spec, ClasspathSnapshotProvider classpathSnapshotProvider) {
-
-        this.inputs = inputs;
+    public CurrentCompilation(JavaCompileSpec spec, ClasspathSnapshotProvider classpathSnapshotProvider) {
         this.spec = spec;
         this.classpathSnapshotProvider = classpathSnapshotProvider;
     }
@@ -45,10 +39,5 @@ public class CurrentCompilation {
 
     public Collection<File> getAnnotationProcessorPath() {
         return spec.getAnnotationProcessorPath();
-    }
-
-    public void visitChanges(Action<InputFileDetails> action) {
-        inputs.outOfDate(action);
-        inputs.removed(action);
     }
 }

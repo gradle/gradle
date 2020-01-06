@@ -16,9 +16,11 @@
 
 package org.gradle.integtests.resolve.resource.sftp.ivy
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.resolve.resource.sftp.AbstractSftpDependencyResolutionTest
 
 class IvySftpRepoErrorsIntegrationTest extends AbstractSftpDependencyResolutionTest {
+    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_TO_CLEANUP)
     void "resolve missing dependencies from a SFTP Ivy repository"() {
         given:
         buildFile << """
@@ -43,7 +45,6 @@ class IvySftpRepoErrorsIntegrationTest extends AbstractSftpDependencyResolutionT
 
         when:
         module.ivy.expectMetadataRetrieve()
-        module.jar.expectMetadataRetrieve()
 
         then:
         fails 'retrieve'
@@ -52,11 +53,12 @@ class IvySftpRepoErrorsIntegrationTest extends AbstractSftpDependencyResolutionT
                 .assertHasCause("""Could not find org.group.name:projectA:1.2.
 Searched in the following locations:
   - ${module.ivy.uri}
-  - ${module.jar.uri}
+If the artifact you are trying to retrieve can be found in the repository but without metadata in 'ivy.xml' format, you need to adjust the 'metadataSources { ... }' of the repository declaration.
 Required by:
 """)
     }
 
+    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_TO_CLEANUP)
     void "resolve missing dynamic dependencies from a SFTP Ivy repository"() {
         given:
         buildFile << """
@@ -91,6 +93,7 @@ Required by:
 """)
     }
 
+    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_TO_CLEANUP)
     void "resolve dependencies from a SFTP Ivy repository with invalid credentials"() {
         given:
         buildFile << """
@@ -121,6 +124,7 @@ Required by:
                 .assertHasCause("Password authentication not supported or invalid credentials for SFTP server at ${ivySftpRepo.serverUri}")
     }
 
+    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_TO_CLEANUP)
     void "resolve dependencies from a SFTP Ivy repository with unsupported password authentication"() {
         given:
         server.withPasswordAuthenticationDisabled()
@@ -153,6 +157,7 @@ Required by:
                 .assertHasCause("Password authentication not supported or invalid credentials for SFTP server at ${ivySftpRepo.serverUri}")
     }
 
+    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_TO_CLEANUP)
     void "resolve dependencies from an unreachable SFTP Ivy repository"() {
         given:
         buildFile << """
@@ -186,6 +191,7 @@ Required by:
                 .assertHasCause("Could not connect to SFTP server at ${ivySftpRepo.serverUri}")
     }
 
+    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_TO_CLEANUP)
     void 'resolve dependencies from a SFTP Ivy that returns a failure'() {
         given:
         buildFile << """
@@ -221,6 +227,7 @@ Required by:
                 .assertHasCause("Could not get resource '${projectA.ivy.uri}'")
     }
 
+    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_TO_CLEANUP)
     def "cannot add invalid authentication types for sftp repo"() {
         given:
         def remoteIvyRepo = getIvySftpRepo()

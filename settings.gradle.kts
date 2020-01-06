@@ -16,10 +16,22 @@ import org.gradle.api.internal.FeaturePreviews
  * limitations under the License.
  */
 
-apply(from = "gradle/shared-with-buildSrc/build-cache-configuration.settings.gradle.kts")
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        maven { url = uri("https://repo.gradle.org/gradle/libs-releases") }
+    }
+}
+
+plugins {
+    id("com.gradle.enterprise").version("3.1")
+}
+
+apply(from = "gradle/build-cache-configuration.settings.gradle.kts")
 apply(from = "gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
 
 include("instantExecution")
+include("instantExecutionReport")
 include("apiMetadata")
 include("distributionsDependencies")
 include("distributions")
@@ -33,8 +45,7 @@ include("dependencyManagement")
 include("wrapper")
 include("cli")
 include("launcher")
-include("launcherBootstrap")
-include("launcherStartup")
+include("bootstrap")
 include("messaging")
 include("resources")
 include("resourcesHttp")
@@ -46,12 +57,11 @@ include("scala")
 include("ide")
 include("ideNative")
 include("idePlay")
-include("osgi")
 include("maven")
-include("announce")
 include("codeQuality")
 include("antlr")
 include("toolingApi")
+include("buildEvents")
 include("toolingApiBuilders")
 include("docs")
 include("integTest")
@@ -65,7 +75,6 @@ include("internalAndroidPerformanceTesting")
 include("performance")
 include("buildScanPerformance")
 include("javascript")
-include("buildComparison")
 include("reporting")
 include("diagnostics")
 include("publish")
@@ -103,7 +112,9 @@ include("persistentCache")
 include("buildCache")
 include("coreApi")
 include("versionControl")
+include("fileCollections")
 include("files")
+include("hashing")
 include("snapshots")
 include("architectureTest")
 include("buildCachePackaging")
@@ -118,6 +129,9 @@ include("kotlinDslToolingBuilders")
 include("kotlinDslTestFixtures")
 include("kotlinDslIntegTests")
 include("workerProcesses")
+include("pineapple")
+include("samples")
+include("security")
 
 val upperCaseLetters = "\\p{Upper}".toRegex()
 
@@ -152,17 +166,7 @@ for (project in rootProject.children) {
     }
 }
 
-pluginManagement {
-    repositories {
-        gradlePluginPortal()
-        maven { url = uri("https://repo.gradle.org/gradle/libs-releases") }
-    }
-}
-
-val ignoredFeatures = setOf(
-    // we don't want to publish Gradle metadata to public repositories until the format is stable.
-    FeaturePreviews.Feature.GRADLE_METADATA
-)
+val ignoredFeatures = setOf<FeaturePreviews.Feature>()
 
 FeaturePreviews.Feature.values().forEach { feature ->
     if (feature.isActive && feature !in ignoredFeatures) {

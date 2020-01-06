@@ -21,8 +21,8 @@ import org.gradle.performance.categories.PerformanceExperiment
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
-import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
 import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
+import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
 
 @Category(PerformanceExperiment)
 class ParallelBuildPerformanceTest extends AbstractCrossBuildPerformanceTest {
@@ -54,8 +54,8 @@ class ParallelBuildPerformanceTest extends AbstractCrossBuildPerformanceTest {
 
         where:
         testProject                   | warmUpRuns | runs
-        LARGE_MONOLITHIC_JAVA_PROJECT | 2          | 6
-        LARGE_JAVA_MULTI_PROJECT      | 2          | 6
+        LARGE_MONOLITHIC_JAVA_PROJECT | 2          | 3
+        LARGE_JAVA_MULTI_PROJECT      | 2          | 3
     }
 
 }

@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.dependencies;
 import com.google.common.base.Objects;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ModuleDependency;
@@ -35,7 +36,7 @@ import org.gradle.internal.typeconversion.NotationParser;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -48,7 +49,7 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
     private ImmutableAttributesFactory attributesFactory;
     private NotationParser<Object, Capability> capabilityNotationParser;
     private DefaultExcludeRuleContainer excludeRuleContainer = new DefaultExcludeRuleContainer();
-    private Set<DependencyArtifact> artifacts = new HashSet<DependencyArtifact>();
+    private Set<DependencyArtifact> artifacts = new LinkedHashSet<>();
     private ImmutableActionSet<ModuleDependency> onMutate = ImmutableActionSet.empty();
     private AttributeContainerInternal attributes;
     private ModuleDependencyCapabilitiesInternal moduleDependencyCapabilities;
@@ -56,6 +57,7 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
     @Nullable
     private String configuration;
     private boolean transitive = true;
+    private boolean endorsing;
 
     protected AbstractModuleDependency(@Nullable String configuration) {
         this.configuration = configuration;
@@ -81,6 +83,10 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
     @Override
     public void setTargetConfiguration(@Nullable String configuration) {
         validateMutation(this.configuration, configuration);
+        validateNotVariantAware();
+        if (!artifacts.isEmpty()) {
+            throw new InvalidUserCodeException("Cannot set target configuration when artifacts have been specified");
+        }
         this.configuration = configuration;
     }
 
@@ -112,6 +118,8 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
 
     @Override
     public AbstractModuleDependency addArtifact(DependencyArtifact artifact) {
+        validateNotVariantAware();
+        validateNoTargetConfiguration();
         artifacts.add(artifact);
         return this;
     }
@@ -123,6 +131,8 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
 
     @Override
     public DependencyArtifact artifact(Action<? super DependencyArtifact> configureAction) {
+        validateNotVariantAware();
+        validateNoTargetConfiguration();
         DefaultDependencyArtifact artifact = new DefaultDependencyArtifact();
         configureAction.execute(artifact);
         artifact.validate();
@@ -132,11 +142,18 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
 
     protected void copyTo(AbstractModuleDependency target) {
         super.copyTo(target);
-        target.setArtifacts(new HashSet<DependencyArtifact>(getArtifacts()));
+        target.setArtifacts(new LinkedHashSet<>(getArtifacts()));
         target.setExcludeRuleContainer(new DefaultExcludeRuleContainer(getExcludeRules()));
         target.setTransitive(isTransitive());
-        target.setAttributes(attributes);
-        target.moduleDependencyCapabilities = moduleDependencyCapabilities;
+        if (attributes != null) {
+            // We can only have attributes if we have the factory, then need to copy
+            target.setAttributes(attributesFactory.mutable(attributes.asImmutable()));
+        }
+        target.setAttributesFactory(attributesFactory);
+        target.setCapabilityNotationParser(capabilityNotationParser);
+        if (moduleDependencyCapabilities != null) {
+            target.moduleDependencyCapabilities = moduleDependencyCapabilities.copy();
+        }
     }
 
     protected boolean isKeyEquals(ModuleDependency dependencyRhs) {
@@ -187,6 +204,7 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
     @Override
     public AbstractModuleDependency attributes(Action<? super AttributeContainer> configureAction) {
         validateMutation();
+        validateNotLegacyConfigured();
         if (attributesFactory == null) {
             warnAboutInternalApiUse("attributes");
             return this;
@@ -201,6 +219,7 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
     @Override
     public ModuleDependency capabilities(Action<? super ModuleDependencyCapabilitiesHandler> configureAction) {
         validateMutation();
+        validateNotLegacyConfigured();
         if (capabilityNotationParser == null) {
             warnAboutInternalApiUse("capabilities");
             return this;
@@ -220,6 +239,21 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
         return moduleDependencyCapabilities.getRequestedCapabilities();
     }
 
+    @Override
+    public void endorseStrictVersions() {
+        this.endorsing = true;
+    }
+
+    @Override
+    public void doNotEndorseStrictVersions() {
+        this.endorsing = false;
+    }
+
+    @Override
+    public boolean isEndorsingStrictVersions() {
+        return this.endorsing;
+    }
+
     private void warnAboutInternalApiUse(String thing) {
         LOG.warn("Cannot set " + thing + " for dependency \"" + this.getGroup() + ":" + this.getName() + ":" + this.getVersion() + "\": it was probably created by a plugin using internal APIs");
     }
@@ -236,7 +270,7 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
         return attributesFactory;
     }
 
-    void setAttributes(AttributeContainerInternal attributes) {
+    private void setAttributes(AttributeContainerInternal attributes) {
         this.attributes = attributes;
     }
 
@@ -252,6 +286,24 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
     protected void validateMutation(Object currentValue, Object newValue) {
         if (!Objects.equal(currentValue, newValue)) {
             validateMutation();
+        }
+    }
+
+    private void validateNotVariantAware() {
+        if (!getAttributes().isEmpty() || !getRequestedCapabilities().isEmpty()) {
+            throw new InvalidUserCodeException("Cannot set artifact / configuration information on a dependency that has attributes or capabilities configured");
+        }
+    }
+
+    private void validateNotLegacyConfigured() {
+        if (getTargetConfiguration() != null || !getArtifacts().isEmpty()) {
+            throw new InvalidUserCodeException("Cannot add attributes or capabilities on a dependency that specifies artifacts or configuration information");
+        }
+    }
+
+    private void validateNoTargetConfiguration() {
+        if (configuration != null) {
+            throw new InvalidUserCodeException("Cannot add artifact if target configuration has been set");
         }
     }
 

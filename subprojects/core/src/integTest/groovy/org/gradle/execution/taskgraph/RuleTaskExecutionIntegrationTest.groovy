@@ -182,7 +182,7 @@ class RuleTaskExecutionIntegrationTest extends AbstractIntegrationSpec implement
         succeeds ":a:executed"
 
         then:
-        ":b:dependency" in executedTasks
+        executed(":b:dependency")
     }
 
     def "can get name of task defined in rules only script plugin after configuration"() {

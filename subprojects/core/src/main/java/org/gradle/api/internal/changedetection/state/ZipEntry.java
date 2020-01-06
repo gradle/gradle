@@ -25,4 +25,6 @@ public interface ZipEntry {
     String getName();
 
     InputStream getInputStream();
+
+    int size();
 }

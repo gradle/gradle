@@ -15,12 +15,12 @@
  */
 package org.gradle.initialization.layout
 
-import org.gradle.StartParameter
+import org.gradle.api.internal.StartParameterInternal
 import spock.lang.Specification
 
 class BuildLayoutConfigurationTest extends Specification {
     def "uses specified settings script"() {
-        def startParameter = new StartParameter()
+        def startParameter = new StartParameterInternal()
         def settingsFile = new File("settings.gradle")
         startParameter.settingsFile = settingsFile
         def config = new BuildLayoutConfiguration(startParameter)
@@ -30,7 +30,7 @@ class BuildLayoutConfigurationTest extends Specification {
     }
 
     def "uses default settings file when none specified"() {
-        def startParameter = new StartParameter()
+        def startParameter = new StartParameterInternal()
         def config = new BuildLayoutConfiguration(startParameter)
 
         expect:

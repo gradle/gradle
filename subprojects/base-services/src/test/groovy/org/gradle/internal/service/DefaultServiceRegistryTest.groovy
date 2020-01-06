@@ -263,6 +263,40 @@ class DefaultServiceRegistryTest extends Specification {
         registry.get(String) == '123'
     }
 
+    def canLocateSelfAsAServiceOfTypeServiceRegistry() {
+        def registry = new DefaultServiceRegistry()
+
+        expect:
+        registry.get(ServiceRegistry) == registry
+        registry.find(DefaultServiceRegistry) == null
+    }
+
+    def failsWhenRegisteringAServiceOfTypeServiceRegistry() {
+        def registry = new DefaultServiceRegistry()
+
+        when:
+        registry.add(ServiceRegistry, new DefaultServiceRegistry())
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == 'Cannot define a service of type ServiceRegistry: Service ServiceRegistry with implementation DefaultServiceRegistry'
+    }
+
+    def failsWhenProviderFactoryMethodProducesAServiceOfTypeServiceRegistry() {
+        def registry = new DefaultServiceRegistry()
+
+        when:
+        registry.addProvider(new Object() {
+            ServiceRegistry createServices() {
+                return new DefaultServiceRegistry()
+            }
+        })
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == 'Cannot define a service of type ServiceRegistry: Service ServiceRegistry at .createServices()'
+    }
+
     def failsWhenProviderFactoryMethodRequiresUnknownService() {
         def registry = new DefaultServiceRegistry()
         registry.addProvider(new StringProvider())
@@ -681,7 +715,7 @@ class DefaultServiceRegistryTest extends Specification {
 
         then:
         ServiceCreationException e = thrown()
-        e.message == 'Could not create service of type ClassWithBrokenConstructor.'
+        e.message == 'Could not create service of type DefaultServiceRegistryTest$ClassWithBrokenConstructor.'
         e.cause == ClassWithBrokenConstructor.failure
     }
 

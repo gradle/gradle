@@ -16,14 +16,25 @@
 
 package org.gradle.wrapper;
 
-import java.io.*;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.reflect.Method;
-import java.net.*;
+import java.net.Authenticator;
+import java.net.PasswordAuthentication;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.URLConnection;
 
 public class Download implements IDownload {
     public static final String UNKNOWN_VERSION = "0";
-    private static final int PROGRESS_CHUNK = 1024 * 1024;
+
     private static final int BUFFER_SIZE = 10 * 1024;
+    private static final int PROGRESS_CHUNK = 1024 * 1024;
     private final Logger logger;
     private final String appName;
     private final String appVersion;
@@ -37,7 +48,7 @@ public class Download implements IDownload {
         this.logger = logger;
         this.appName = appName;
         this.appVersion = appVersion;
-        this.progressListener = progressListener;
+        this.progressListener = new DefaultDownloadProgressListener(logger, progressListener);
         configureProxyAuthentication();
     }
 
@@ -67,23 +78,23 @@ public class Download implements IDownload {
             in = conn.getInputStream();
             byte[] buffer = new byte[BUFFER_SIZE];
             int numRead;
-            int contentLength = conn.getContentLength();
+            int totalLength = conn.getContentLength();
+            long downloadedLength = 0;
             long progressCounter = 0;
-            long numDownloaded = 0;
             while ((numRead = in.read(buffer)) != -1) {
                 if (Thread.currentThread().isInterrupted()) {
                     System.out.print("interrupted");
                     throw new IOException("Download was interrupted.");
                 }
-                numDownloaded += numRead;
+
+                downloadedLength += numRead;
                 progressCounter += numRead;
-                if (progressCounter / PROGRESS_CHUNK > 0) {
-                    logger.append(".");
+
+                if (progressCounter / PROGRESS_CHUNK > 0 || downloadedLength == totalLength) {
                     progressCounter = progressCounter - PROGRESS_CHUNK;
-                    if (progressListener != null) {
-                        progressListener.downloadStatusChanged(address, contentLength, numDownloaded);
-                    }
+                    progressListener.downloadStatusChanged(address, totalLength, downloadedLength);
                 }
+
                 out.write(buffer, 0, numRead);
             }
         } finally {
@@ -103,8 +114,12 @@ public class Download implements IDownload {
      * @param uri Original URI
      * @return a new URI with no user info
      */
-    static URI safeUri(URI uri) throws URISyntaxException {
-        return new URI(uri.getScheme(), null, uri.getHost(), uri.getPort(), uri.getPath(), uri.getQuery(), uri.getFragment());
+    static URI safeUri(URI uri) {
+        try {
+            return new URI(uri.getScheme(), null, uri.getHost(), uri.getPort(), uri.getPath(), uri.getQuery(), uri.getFragment());
+        } catch (URISyntaxException e) {
+            throw new RuntimeException("Failed to parse URI", e);
+        }
     }
 
     private void addBasicAuthentication(URI address, URLConnection connection) throws IOException {
@@ -171,6 +186,50 @@ public class Download implements IDownload {
             return new PasswordAuthentication(
                     System.getProperty("http.proxyUser"), System.getProperty(
                     "http.proxyPassword", "").toCharArray());
+        }
+    }
+
+    private static class DefaultDownloadProgressListener implements DownloadProgressListener {
+        private final Logger logger;
+        private final DownloadProgressListener delegate;
+        private int previousDownloadPercent;
+
+        public DefaultDownloadProgressListener(Logger logger, DownloadProgressListener delegate) {
+            this.logger = logger;
+            this.delegate = delegate;
+            this.previousDownloadPercent = 0;
+        }
+
+        @Override
+        public void downloadStatusChanged(URI address, long contentLength, long downloaded) {
+            // If the total size of distribution is known, but there's no advanced progress listener, provide extra progress information
+            if (contentLength > 0 && delegate == null) {
+                appendPercentageSoFar(contentLength, downloaded);
+            }
+
+            if (contentLength != downloaded) {
+                logger.append(".");
+            }
+
+            if (delegate != null) {
+                delegate.downloadStatusChanged(address, contentLength, downloaded);
+            }
+        }
+
+        private void appendPercentageSoFar(long contentLength, long downloaded) {
+            try {
+                int currentDownloadPercent = 10 * (calculateDownloadPercent(contentLength, downloaded) / 10);
+                if (currentDownloadPercent != 0 && previousDownloadPercent != currentDownloadPercent) {
+                    logger.append(String.valueOf(currentDownloadPercent)).append('%');
+                    previousDownloadPercent = currentDownloadPercent;
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        private int calculateDownloadPercent(long totalLength, long downloadedLength) {
+            return Math.min(100, Math.max(0, (int) ((downloadedLength / (double) totalLength) * 100)));
         }
     }
 }

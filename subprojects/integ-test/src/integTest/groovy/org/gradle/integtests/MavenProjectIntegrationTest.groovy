@@ -27,7 +27,8 @@ class MavenProjectIntegrationTest extends AbstractIntegrationTest {
             apply plugin: 'java'
             apply plugin: 'maven'
         '''
-        executer.run();
+        executer.expectDeprecationWarning()
+        executer.run()
     }
 
 }

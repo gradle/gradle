@@ -18,20 +18,10 @@ package org.gradle.performance.measure
 
 import groovy.transform.CompileStatic
 import groovy.transform.ToString
-import org.joda.time.DateTime
 
 @ToString(includeNames = true)
 @CompileStatic
-public class MeasuredOperation {
-    DateTime start
-    DateTime end
+class MeasuredOperation {
     Amount<Duration> totalTime
     Exception exception
-
-    boolean isValid() {
-        exception == null &&
-            start!=null &&
-            end != null &&
-            totalTime != null
-    }
 }

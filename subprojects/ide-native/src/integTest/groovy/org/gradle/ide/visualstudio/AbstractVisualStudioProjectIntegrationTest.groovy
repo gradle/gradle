@@ -19,12 +19,14 @@ package org.gradle.ide.visualstudio
 import org.gradle.ide.visualstudio.fixtures.AbstractVisualStudioIntegrationSpec
 import org.gradle.ide.visualstudio.fixtures.ProjectFile
 import org.gradle.ide.visualstudio.fixtures.SolutionFile
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.language.VariantContext
 import org.gradle.nativeplatform.OperatingSystemFamily
 import org.gradle.nativeplatform.fixtures.app.CppSourceElement
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Unroll
 
 import static org.gradle.language.VariantContext.dimensions
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.WINDOWS_GCC
@@ -43,6 +45,7 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
         """
     }
 
+    @ToBeFixedForInstantExecution
     def "ignores target machine not buildable from project configuration dimensions"() {
         assumeFalse(toolChain.meets(WINDOWS_GCC))
 
@@ -68,6 +71,7 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
         solutionFile.assertReferencesProject(projectFile, projectConfigurations)
     }
 
+    @ToBeFixedForInstantExecution
     def "create visual studio solution for component with multiple target machines"() {
         assumeFalse(toolChain.meets(WINDOWS_GCC))
 
@@ -102,6 +106,7 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
     }
 
     @Requires(TestPrecondition.MSBUILD)
+    @ToBeFixedForInstantExecution
     def "build generated visual studio solution with multiple target machines"() {
         assumeFalse(toolChain.meets(WINDOWS_GCC))
         useMsbuildTool()
@@ -157,6 +162,7 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
         succeeds "help"
     }
 
+    @ToBeFixedForInstantExecution
     def "can create visual studio project for unbuildable component"() {
         given:
         makeSingleProject()
@@ -180,6 +186,7 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
         solutionFile.assertReferencesProject(projectFile, projectConfigurations)
     }
 
+    @ToBeFixedForInstantExecution
     def "warns about unbuildable components in generated visual studio project"() {
         given:
         makeSingleProject()
@@ -197,6 +204,7 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
     }
 
     @Requires(TestPrecondition.MSBUILD)
+    @ToBeFixedForInstantExecution
     def "returns meaningful errors from visual studio when component product is unbuildable due to operating system"() {
         assumeFalse(toolChain.meets(WINDOWS_GCC))
         useMsbuildTool()
@@ -231,6 +239,7 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
     }
 
     @Requires(TestPrecondition.MSBUILD)
+    @ToBeFixedForInstantExecution
     def "returns meaningful errors from visual studio when component product is unbuildable due to architecture"() {
         assumeFalse(toolChain.meets(WINDOWS_GCC))
         useMsbuildTool()
@@ -253,6 +262,91 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
 
         then:
         result.assertHasCause("No tool chain is available to build C++")
+    }
+
+    @Unroll
+    @ToBeFixedForInstantExecution
+    def "can detect the language standard for Visual Studio IntelliSense [#expectedLanguageStandard]"() {
+        assumeFalse(toolChain.meets(WINDOWS_GCC))
+
+        given:
+        componentUnderTest.writeToProject(testDirectory)
+        makeSingleProject()
+        buildFile << """
+            ${componentUnderTestDsl}.binaries.configureEach {
+                compileTask.get().compilerArgs.add('${compilerFlag}')
+            }
+        """
+
+        when:
+        succeeds "visualStudio"
+
+        then:
+        result.assertTasksExecuted(":visualStudio", ":appVisualStudioSolution", projectTasks)
+
+        and:
+        projectFile.projectConfigurations.size() == 2
+        projectFile.projectConfigurations.values().each {
+            it.languageStandard == expectedLanguageStandard
+        }
+
+        where:
+        compilerFlag     | expectedLanguageStandard
+        '/std:cpp14'     | 'stdcpp14'
+        '-std:cpp14'     | 'stdcpp14'
+        '/std:cpp17'     | 'stdcpp17'
+        '-std:cpp17'     | 'stdcpp17'
+        '/std:cpplatest' | 'stdcpplatest'
+        '-std:cpplatest' | 'stdcpplatest'
+    }
+
+    @ToBeFixedForInstantExecution
+    def "can detect different language standard per component for Visual Studio IntelliSense"() {
+        assumeFalse(toolChain.meets(WINDOWS_GCC))
+
+        given:
+        componentUnderTest.writeToProject(testDirectory)
+        makeSingleProject()
+        buildFile << """
+            ${componentUnderTestDsl}.binaries.configureEach {
+                if (optimized) {
+                    compileTask.get().compilerArgs.add('/std:cpp17')
+                } else {
+                    compileTask.get().compilerArgs.add('/std:cpp14')
+                }
+            }
+        """
+
+        when:
+        succeeds "visualStudio"
+
+        then:
+        result.assertTasksExecuted(":visualStudio", ":appVisualStudioSolution", projectTasks)
+
+        and:
+        projectFile.projectConfigurations.size() == 2
+        projectFile.projectConfigurations['debug'].languageStandard == 'stdcpp14'
+        projectFile.projectConfigurations['release'].languageStandard == 'stdcpp17'
+    }
+
+    @ToBeFixedForInstantExecution
+    def "does not configure language standard when compiler flag is absent for Visual Studio Intellisense"() {
+        assumeFalse(toolChain.meets(WINDOWS_GCC))
+
+        given:
+        componentUnderTest.writeToProject(testDirectory)
+        makeSingleProject()
+
+        when:
+        succeeds "visualStudio"
+
+        then:
+        result.assertTasksExecuted(":visualStudio", ":appVisualStudioSolution", projectTasks)
+
+        and:
+        projectFile.projectConfigurations.size() == 2
+        projectFile.projectConfigurations['debug'].languageStandard == null
+        projectFile.projectConfigurations['release'].languageStandard == null
     }
 
     String getRootProjectName() {

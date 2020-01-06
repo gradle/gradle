@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts;
 
+import org.gradle.api.Describable;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.NodeState;
@@ -22,6 +23,13 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.
 import java.util.Collection;
 
 public interface CapabilitiesConflictHandler extends ConflictHandler<CapabilitiesConflictHandler.Candidate, ConflictResolutionResult, CapabilitiesConflictHandler.Resolver> {
+
+    /**
+     * Was the given capability already seen which might require a conflict check later?
+     * This is needed to determine if also implicit capabilities need to enter conflict detection.
+     */
+    boolean hasSeenCapability(Capability capability);
+
     interface Candidate {
         NodeState getNode();
         Capability getCapability();
@@ -36,9 +44,11 @@ public interface CapabilitiesConflictHandler extends ConflictHandler<Capabilitie
 
     interface CandidateDetails {
         ComponentIdentifier getId();
+        String getVariantName();
         void evict();
         void select();
         void reject();
+        void byReason(Describable description);
     }
 
     interface Resolver {

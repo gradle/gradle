@@ -19,6 +19,7 @@ package org.gradle.api.internal.collections;
 import com.google.common.base.Objects;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.internal.DefaultMutationGuard;
 import org.gradle.api.internal.MutationGuard;
@@ -38,6 +39,7 @@ import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Set;
 
 abstract public class AbstractIterationOrderRetainingElementSource<T> implements ElementSource<T> {
     // This set represents the order in which elements are inserted to the store, either actual
@@ -295,8 +297,8 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
     protected static class Element<T> extends TypedCollector<T> {
         private List<T> cache;
         private final List<T> removedValues = Lists.newArrayList();
-        private final List<T> realizedValues = Lists.newArrayList();
-        private final List<Integer> duplicates = Lists.newArrayList();
+        private final Set<T> realizedValues = Sets.newHashSet();
+        private final Set<Integer> duplicates = Sets.newHashSet(); // TODO IntSet
         private boolean realized;
         private final Action<T> realizeAction;
 

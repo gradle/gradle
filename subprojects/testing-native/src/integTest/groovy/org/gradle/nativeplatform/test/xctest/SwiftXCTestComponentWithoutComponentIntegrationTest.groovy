@@ -16,8 +16,9 @@
 
 package org.gradle.nativeplatform.test.xctest
 
-import org.gradle.nativeplatform.fixtures.app.SourceElement
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.app.SwiftXCTest
+import org.gradle.nativeplatform.fixtures.app.XCTestSourceElement
 
 class SwiftXCTestComponentWithoutComponentIntegrationTest extends AbstractSwiftXCTestComponentIntegrationTest {
     @Override
@@ -28,7 +29,19 @@ class SwiftXCTestComponentWithoutComponentIntegrationTest extends AbstractSwiftX
     }
 
     @Override
-    protected SourceElement getComponentUnderTest() {
+    protected XCTestSourceElement getComponentUnderTest() {
         return new SwiftXCTest('project')
+    }
+
+    @Override
+    void assertComponentUnderTestWasBuilt() {
+        if (OperatingSystem.current().linux) {
+            executable("build/exe/test/${componentUnderTest.moduleName}").assertExists()
+            installation("build/install/test").assertInstalled()
+        } else {
+            machOBundle("build/exe/test/${componentUnderTest.moduleName}").assertExists()
+            file("build/install/test/${componentUnderTest.moduleName}").assertIsFile()
+            file("build/install/test/${componentUnderTest.moduleName}.xctest").assertIsDir()
+        }
     }
 }

@@ -16,9 +16,11 @@
 
 package org.gradle.workers.internal
 
+
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.gradle.workers.fixtures.WorkerExecutorFixture
 import org.junit.Rule
 import spock.lang.IgnoreIf
 import spock.lang.Unroll
@@ -30,11 +32,50 @@ import static org.gradle.workers.fixtures.WorkerExecutorFixture.ISOLATION_MODES
 class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
     @Rule
     BlockingHttpServer blockingHttpServer = new BlockingHttpServer()
+    WorkerExecutorFixture.WorkParameterClass parallelParameterType
+    WorkerExecutorFixture.WorkActionClass parallelWorkAction
+    WorkerExecutorFixture.WorkActionClass failingWorkAction
+    WorkerExecutorFixture.WorkActionClass alternateParallelWorkAction
 
     def setup() {
         blockingHttpServer.start()
-        withParallelRunnableInBuildScript()
-        withAlternateRunnableInBuildScript()
+
+        parallelParameterType = fixture.workParameterClass("ParallelParameter", "org.gradle.test").withFields([
+                "itemName": "String"
+        ])
+
+        parallelWorkAction = fixture.workActionClass("ParallelWorkAction", "org.gradle.test", parallelParameterType)
+        parallelWorkAction.with {
+            imports += ["java.net.URI", "org.gradle.test.FileHelper"]
+            extraFields = "private static final String id = UUID.randomUUID().toString()"
+            action = """
+                System.out.println("Running \${parameters.itemName}...")
+                new URI("http", null, "localhost", ${blockingHttpServer.getPort()}, "/\${parameters.itemName}", null, null).toURL().text
+                File outputDir = new File("${fixture.outputFileDirPath}")
+                File outputFile = new File(outputDir, parameters.itemName)
+                FileHelper.write(id, outputFile)
+            """
+        }
+
+        failingWorkAction = fixture.workActionClass("FailingWorkAction", "org.gradle.test", parallelParameterType)
+        failingWorkAction.with {
+            action = """
+                throw new RuntimeException("Failure from \${parameters.itemName}");
+            """
+        }
+
+        alternateParallelWorkAction = fixture.workActionClass("AlternateParallelWorkAction", "org.gradle.test", parallelParameterType)
+        alternateParallelWorkAction.with {
+            imports += ["java.net.URI", "org.gradle.test.FileHelper"]
+            extraFields = "private static final String id = UUID.randomUUID().toString()"
+            action = """
+                System.out.println("Running alternate_\${parameters.itemName}...")
+                new URI("http", null, "localhost", ${blockingHttpServer.getPort()}, "/alternate_\${parameters.itemName}", null, null).toURL().text
+            """
+        }
+
+        parallelWorkAction.writeToBuildFile()
+        alternateParallelWorkAction.writeToBuildFile()
         withMultipleActionTaskTypeInBuildScript()
     }
 
@@ -78,9 +119,9 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
             task parallelWorkTask(type: MultipleWorkItemTask) {
                 isolationMode = $isolationMode
                 doLast {
-                    submitWorkItem("workItem0", TestParallelRunnable) { it.classpath([ new File("foo") ]) }
-                    submitWorkItem("workItem1", TestParallelRunnable) { it.classpath([ new File("bar") ]) }
-                    submitWorkItem("workItem2", TestParallelRunnable) { it.classpath([ new File("baz") ]) }
+                    submitWorkItem("workItem0", ${parallelWorkAction.name}.class) { it.classpath.from([ new File("foo") ]) }
+                    submitWorkItem("workItem1", ${parallelWorkAction.name}.class) { it.classpath.from([ new File("bar") ]) }
+                    submitWorkItem("workItem2", ${parallelWorkAction.name}.class) { it.classpath.from([ new File("baz") ]) }
                 }
             }
         """
@@ -101,9 +142,9 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
             task parallelWorkTask(type: MultipleWorkItemTask) {
                 isolationMode = $isolationMode
                 doLast {
-                    submitWorkItem("workItem0", AlternateParallelRunnable.class)
-                    submitWorkItem("workItem1", TestParallelRunnable.class)
-                    submitWorkItem("workItem2", AlternateParallelRunnable.class)
+                    submitWorkItem("workItem0", ${alternateParallelWorkAction.name}.class)
+                    submitWorkItem("workItem1", ${parallelWorkAction.name}.class)
+                    submitWorkItem("workItem2", ${alternateParallelWorkAction.name}.class)
                 }
             }
         """
@@ -121,12 +162,12 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         given:
         buildFile << """
             task parallelWorkTask(type: MultipleWorkItemTask) {
-                doLast { submitWorkItem("taskAction1", runnableClass) { isolationMode = IsolationMode.PROCESS } }
-                doLast { submitWorkItem("taskAction2", runnableClass) { isolationMode = IsolationMode.CLASSLOADER } }
-                doLast { submitWorkItem("taskAction3", runnableClass) { isolationMode = IsolationMode.PROCESS } }
-                doLast { submitWorkItem("taskAction4", runnableClass) { isolationMode = IsolationMode.PROCESS } }
-                doLast { submitWorkItem("taskAction5", runnableClass) { isolationMode = IsolationMode.CLASSLOADER } }
-                doLast { submitWorkItem("taskAction6", runnableClass) { isolationMode = IsolationMode.CLASSLOADER } }
+                doLast { submitWorkItem("taskAction1", workActionClass) { isolationMode = IsolationMode.PROCESS } }
+                doLast { submitWorkItem("taskAction2", workActionClass) { isolationMode = IsolationMode.CLASSLOADER } }
+                doLast { submitWorkItem("taskAction3", workActionClass) { isolationMode = IsolationMode.PROCESS } }
+                doLast { submitWorkItem("taskAction4", workActionClass) { isolationMode = IsolationMode.PROCESS } }
+                doLast { submitWorkItem("taskAction5", workActionClass) { isolationMode = IsolationMode.CLASSLOADER } }
+                doLast { submitWorkItem("taskAction6", workActionClass) { isolationMode = IsolationMode.CLASSLOADER } }
             }
         """
         blockingHttpServer.expectConcurrent("taskAction1")
@@ -143,13 +184,13 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
 
     @Unroll
     def "a second task action does not start if work submitted in #isolationMode by a previous task action fails"() {
+        failingWorkAction.writeToBuildFile()
+
         given:
         buildFile << """
-            $runnableThatFails
-
             task parallelWorkTask(type: MultipleWorkItemTask) {
-                doLast { submitWorkItem("taskAction1", runnableClass) { isolationMode = $isolationMode } }
-                doLast { submitWorkItem("taskAction2", RunnableThatFails.class) }
+                doLast { submitWorkItem("taskAction1", ${parallelWorkAction.name}.class) { isolationMode = $isolationMode } }
+                doLast { submitWorkItem("taskAction2", ${failingWorkAction.name}.class) }
                 doLast { submitWorkItem("taskAction3") }
             }
         """
@@ -160,7 +201,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         fails("parallelWorkTask")
 
         and:
-        failureHasCause("A failure occurred while executing RunnableThatFails")
+        failureHasCause("A failure occurred while executing ${failingWorkAction.name}")
         failureHasCause("Failure from taskAction2")
 
         where:
@@ -169,15 +210,15 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
 
     @Unroll
     def "all other submitted work executes when a work item fails in #isolationMode"() {
+        failingWorkAction.writeToBuildFile()
+
         given:
         buildFile << """
-            $runnableThatFails
-
             task parallelWorkTask(type: MultipleWorkItemTask) {
                 doLast { 
-                    submitWorkItem("workItem1", runnableClass) { isolationMode = IsolationMode.PROCESS } 
-                    submitWorkItem("workItem2", RunnableThatFails.class) { isolationMode = $isolationMode }
-                    submitWorkItem("workItem3", runnableClass) { isolationMode = IsolationMode.CLASSLOADER } 
+                    submitWorkItem("workItem1", ${parallelWorkAction.name}.class, IsolationMode.PROCESS)
+                    submitWorkItem("workItem2", ${failingWorkAction.name}.class, $isolationMode)
+                    submitWorkItem("workItem3", ${parallelWorkAction.name}.class, IsolationMode.CLASSLOADER)
                 }
             }
         """
@@ -188,52 +229,23 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         fails("parallelWorkTask")
 
         and:
-        failureHasCause("A failure occurred while executing RunnableThatFails")
+        failureHasCause("A failure occurred while executing ${failingWorkAction.name}")
         failureHasCause("Failure from workItem2")
 
         where:
         isolationMode << ISOLATION_MODES
     }
 
-    def "a task that depends on a task with work does not start until the work is complete"() {
-        given:
-        buildFile << """
-            task anotherParallelWorkTask(type: MultipleWorkItemTask) {
-                doLast { 
-                    submitWorkItem("taskAction1")  
-                    submitWorkItem("taskAction2") 
-                }
-            }
-            task parallelWorkTask(type: MultipleWorkItemTask) {
-                doLast { submitWorkItem("taskAction3") }
-                
-                dependsOn anotherParallelWorkTask
-            }
-        """
-        blockingHttpServer.expectConcurrent("taskAction1", "taskAction2")
-        blockingHttpServer.expectConcurrent("taskAction3")
-
-        expect:
-        args("--max-workers=3")
-        succeeds("parallelWorkTask")
-    }
-
     @Unroll
     def "all errors are reported when submitting failing work in #isolationModeDescription"() {
+        failingWorkAction.writeToBuildFile()
+
         given:
         buildFile << """
-            $runnableThatFails
-
             task parallelWorkTask(type: MultipleWorkItemTask) {
                 doLast { 
-                    submitWorkItem("workItem1", RunnableThatFails.class) { config ->
-                        config.isolationMode = $isolationMode1
-                        config.displayName = "work item 1"
-                    }
-                    submitWorkItem("workItem2", RunnableThatFails.class) { config ->
-                        config.isolationMode = $isolationMode2
-                        config.displayName = "work item 2"
-                    }
+                    submitWorkItem("workItem1", ${failingWorkAction.name}.class, $isolationMode1) 
+                    submitWorkItem("workItem2", ${failingWorkAction.name}.class, $isolationMode2) 
                 }
             }
         """
@@ -246,11 +258,11 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         failureHasCause("Multiple task action failures occurred")
 
         and:
-        failureHasCause("A failure occurred while executing work item 1")
+        failureHasCause("A failure occurred while executing ${failingWorkAction.name}")
         failureHasCause("Failure from workItem1")
 
         and:
-        failureHasCause("A failure occurred while executing work item 2")
+        failureHasCause("A failure occurred while executing ${failingWorkAction.name}")
         failureHasCause("Failure from workItem2")
 
         where:
@@ -264,16 +276,14 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
 
     @Unroll
     def "both errors in work items in #isolationMode and errors in the task action are reported"() {
+        failingWorkAction.writeToBuildFile()
+
         given:
         buildFile << """
-            $runnableThatFails
-
             task parallelWorkTask(type: MultipleWorkItemTask) {
                 isolationMode = $isolationMode
                 doLast { 
-                    submitWorkItem("workItem1", RunnableThatFails.class) { config ->
-                        config.displayName = "work item 1"
-                    }
+                    submitWorkItem("workItem1", ${failingWorkAction.name}.class)
                     throw new RuntimeException("Failure from task action")
                 }
             }
@@ -290,7 +300,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         failureHasCause("Failure from task action")
 
         and:
-        failureHasCause("A failure occurred while executing work item 1")
+        failureHasCause("A failure occurred while executing ${failingWorkAction.name}")
         failureHasCause("Failure from workItem1")
 
         where:
@@ -299,21 +309,19 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
 
     @Unroll
     def "user can take responsibility for failing work items in #isolationMode"() {
+        failingWorkAction.writeToBuildFile()
+
         given:
         buildFile << """
             import java.util.concurrent.ExecutionException
             import org.gradle.workers.WorkerExecutionException
 
-            $runnableThatFails
-
             task parallelWorkTask(type: MultipleWorkItemTask) {
                 isolationMode = $isolationMode
                 doLast { 
-                    submitWorkItem("workItem1", runnableClass)
+                    submitWorkItem("workItem1", workActionClass)
 
-                    submitWorkItem("workItem2", RunnableThatFails.class) { config ->
-                        config.displayName = "work item 2"
-                    }
+                    submitWorkItem("workItem2", ${failingWorkAction.name}.class)
 
                     try {
                         workerExecutor.await()
@@ -332,7 +340,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         succeeds("parallelWorkTask")
 
         and:
-        output.contains("A failure occurred while executing work item 2")
+        output.contains("A failure occurred while executing ${failingWorkAction.name}")
 
         where:
         isolationMode << ISOLATION_MODES
@@ -402,7 +410,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
                     println "\\nWorker Executor threads:"
                     def threads = new Thread[threadGroup.activeCount()]
                     threadGroup.enumerate(threads) 
-                    def executorThreads = threads.findAll { it?.name.startsWith("${WorkerExecutionQueueFactory.QUEUE_DISPLAY_NAME}") } 
+                    def executorThreads = threads.findAll { it?.name?.startsWith("${WorkerExecutionQueueFactory.QUEUE_DISPLAY_NAME}") } 
                     executorThreads.each { println it }
                     
                     // Ensure that we don't leave any threads lying around
@@ -535,7 +543,66 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         assertSameDaemonWasUsed("workItem0", "workItem1")
     }
 
-    def "can start another task when the current task is waiting on async work"() {
+    def "does not start dependent task until all submitted work for current task is complete"() {
+        given:
+        buildFile << """
+            task anotherParallelWorkTask(type: MultipleWorkItemTask) {
+                doLast { 
+                    submitWorkItem("taskAction1")  
+                    submitWorkItem("taskAction2") 
+                }
+            }
+            task parallelWorkTask(type: MultipleWorkItemTask) {
+                doLast { submitWorkItem("taskAction3") }
+                
+                dependsOn anotherParallelWorkTask
+            }
+        """
+        blockingHttpServer.expectConcurrent("taskAction1", "taskAction2")
+        blockingHttpServer.expectConcurrent("taskAction3")
+
+        expect:
+        args("--max-workers=3")
+        succeeds("parallelWorkTask")
+    }
+
+    def "starts dependent task in another project as soon as submitted work for current task is complete (with --parallel)"() {
+        given:
+        settingsFile << """
+            include ':childProject'
+        """
+        buildFile << """
+            task workTask(type: MultipleWorkItemTask) {
+                doLast { 
+                    submitWorkItem("workTask")
+                }
+            }
+            
+            task slowTask {
+                doLast { 
+                    ${blockingHttpServer.callFromBuild("slowTask1")} 
+                    ${blockingHttpServer.callFromBuild("slowTask2")} 
+                }
+            }
+            
+            project(':childProject') {
+                task dependsOnWorkTask(type: MultipleWorkItemTask) {
+                    doLast { submitWorkItem("dependsOnWorkTask") }
+                    
+                    dependsOn project(':').workTask
+                }
+            }
+        """
+
+        blockingHttpServer.expectConcurrent("workTask", "slowTask1")
+        blockingHttpServer.expectConcurrent("dependsOnWorkTask", "slowTask2")
+
+        expect:
+        args("--max-workers=3", "--parallel")
+        succeeds("dependsOnWorkTask", "slowTask")
+    }
+
+    def "can start a non-dependent task when the current task submits async work"() {
         given:
         buildFile << """
             task firstTask(type: MultipleWorkItemTask) {
@@ -558,7 +625,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         succeeds("allTasks")
     }
 
-    def "can start another task when the current task has multiple actions and is waiting on async work"() {
+    def "can start another task when the current task has multiple actions and submits async work"() {
         given:
         buildFile << """
             task firstTask(type: MultipleWorkItemTask) {
@@ -583,7 +650,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         succeeds("allTasks")
     }
 
-    def "does not start a task in another project when a task action is executing without --parallel"() {
+    def "does not start task in another project when a task action is executing without --parallel"() {
         given:
         settingsFile << """
             include ':childProject'
@@ -612,7 +679,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         succeeds("allTasks")
     }
 
-    def "can start a task in another project when a task is waiting for async work without --parallel"() {
+    def "can start task in another project when a task submits async work without --parallel"() {
         given:
         settingsFile << """
             include ':childProject'
@@ -640,7 +707,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         succeeds("allTasks")
     }
 
-    def "does not start another task when the user is waiting on async work"() {
+    def "does not start another task when a task awaits async work"() {
         given:
         buildFile << """
             task firstTask(type: MultipleWorkItemTask) {
@@ -669,7 +736,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         succeeds("allTasks")
     }
 
-    def "does not start another task in a different project when the user is waiting on async work"() {
+    def "does not start task in another project when a task awaits async work"() {
         given:
         settingsFile << """
             include ':childProject'
@@ -703,7 +770,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         succeeds("allTasks")
     }
 
-    def "can start another task in a different project when the user is waiting on async work with --parallel"() {
+    def "can start task in another project when a task awaits async work (with --parallel)"() {
         given:
         settingsFile << """
             include ':childProject'
@@ -737,30 +804,28 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
     }
 
     def "cannot mutate worker parameters when using IsolationMode.NONE"() {
+        def verifyingParameterType = fixture.workParameterClass("VerifyingParameter", "org.gradle.test").withFields([
+                "itemName": "String",
+                "list": "List<String>"
+        ])
+        def verifyingWorkAction = fixture.workActionClass("VerifyingWorkAction", "org.gradle.test", verifyingParameterType)
+        verifyingWorkAction.imports += ["java.net.URI"]
+        verifyingWorkAction.action = """
+            assert parameters.list.size() == 1
+            new URI("http", null, "localhost", ${blockingHttpServer.getPort()}, "/\${parameters.itemName}", null, null).toURL().text
+            assert parameters.list.size() == 1
+        """
+        verifyingWorkAction.writeToBuildFile()
+
         given:
         buildFile << """
             List<String> mutableList = ["foo"]
             
-            class VerifyingRunnable implements Runnable {
-                final String itemName
-                final List<String> list
-
-                @Inject
-                public VerifyingRunnable(String itemName, List<String> list) {
-                    this.itemName = itemName
-                    this.list = list
-                }
-
-                public void run() {
-                    assert list.size() == 1
-                    new URI("http", null, "localhost", ${blockingHttpServer.getPort()}, "/\${itemName}", null, null).toURL().text
-                    assert list.size() == 1
-                }
-            }
-            
             class VerifyingRunnableTask extends DefaultTask {
-                String itemName
-                List<String> list
+                @Internal
+                String item
+                @Internal
+                List<String> testList
                 
                 @Inject
                 WorkerExecutor getWorkerExecutor() {
@@ -769,16 +834,16 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
                 
                 @TaskAction
                 void executeRunnable() {
-                    workerExecutor.submit(VerifyingRunnable.class) { config ->
-                        config.isolationMode = IsolationMode.NONE
-                        config.params = [ itemName.toString(), list ]
+                    workerExecutor.noIsolation().submit(${verifyingWorkAction.name}.class) { 
+                        itemName = item.toString()
+                        list = testList
                     }
                 }
             }
             
             task firstTask(type: VerifyingRunnableTask) {
-                itemName = "task1"
-                list = mutableList
+                item = "task1"
+                testList = mutableList
             }
             
             task secondTask(type: MultipleWorkItemTask) {
@@ -797,74 +862,19 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         succeeds("firstTask", "secondTask")
     }
 
-    def getParallelRunnable() {
-        return """
-            import java.net.URI
-            import javax.inject.Inject
-            import org.gradle.test.FileHelper
-
-            public class TestParallelRunnable implements Runnable {
-                final String itemName
-                private static final String id = UUID.randomUUID().toString()
-
-                @Inject
-                public TestParallelRunnable(String itemName) {
-                    this.itemName = itemName
-                }
-                
-                public void run() {
-                    System.out.println("Running \${itemName}...")
-                    new URI("http", null, "localhost", ${blockingHttpServer.getPort()}, "/\${itemName}", null, null).toURL().text
-                    File outputDir = new File("${fixture.outputFileDirPath}")
-                    File outputFile = new File(outputDir, itemName)
-                    FileHelper.write(id, outputFile)
-                }
-            }
-        """
-    }
-
-    def withParallelRunnableInBuildScript() {
-        buildFile << """
-            $parallelRunnable
-        """
-    }
-
-    def getAlternateParallelRunnable() {
-        return """
-            import java.net.URI
-            import javax.inject.Inject
-
-            public class AlternateParallelRunnable implements Runnable {
-                final String itemName 
-
-                @Inject
-                public AlternateParallelRunnable(String itemName) {
-                    this.itemName = itemName
-                }
-                
-                public void run() {
-                    System.out.println("Running alternate_\${itemName}...")
-                    new URI("http", null, "localhost", ${blockingHttpServer.getPort()}, "/alternate_\${itemName}", null, null).toURL().text
-                }
-            }
-        """
-    }
-
-    def withAlternateRunnableInBuildScript() {
-        buildFile << """
-            $alternateParallelRunnable
-        """
-    }
-
     String getMultipleActionTaskType() {
         return """
             import javax.inject.Inject
             import org.gradle.workers.WorkerExecutor
 
             class MultipleWorkItemTask extends DefaultTask {
+                @Internal
                 def isolationMode = IsolationMode.NONE
+                @Internal
                 def additionalForkOptions = {}
-                def runnableClass = TestParallelRunnable.class
+                @Internal
+                def workActionClass = ${parallelWorkAction.name}.class
+                @Internal
                 def additionalClasspath = project.layout.files()
 
                 @Inject
@@ -872,26 +882,38 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
                     throw new UnsupportedOperationException()
                 }
                 
-                def submitWorkItem(item) {
-                    return submitWorkItem(item, runnableClass) 
+                def submitWorkItem(String item) {
+                    return submitWorkItem(item, workActionClass) 
                 }
                 
-                def submitWorkItem(item, actionClass) {
-                    return submitWorkItem(item, actionClass, {})
+                def submitWorkItem(String item, Class<?> actionClass) {
+                    return submitWorkItem(item, actionClass, isolationMode, {})
                 }
                 
-                def submitWorkItem(item, actionClass, configClosure) {
-                    return workerExecutor.submit(actionClass) { config ->
-                        config.isolationMode = this.isolationMode
-                        if (config.isolationMode == IsolationMode.PROCESS) {
+                def submitWorkItem(String item, Class<?> actionClass, IsolationMode isolationMode) {
+                    return submitWorkItem(item, actionClass, isolationMode, {})
+                }
+                
+                def submitWorkItem(String item, Class<?> actionClass, Closure configClosure) {
+                    return submitWorkItem(item, actionClass, isolationMode, configClosure)
+                }
+                
+                def submitWorkItem(String item, Class<?> actionClass, IsolationMode isolationMode, Closure configClosure) {
+                    return workerExecutor."\${getWorkerMethod(isolationMode)}"({ config ->
+                        if (config instanceof ProcessWorkerSpec) {
                             config.forkOptions.maxHeapSize = "64m"
+                            config.forkOptions(additionalForkOptions)
                         }
-                        config.forkOptions(additionalForkOptions)
-                        config.classpath(additionalClasspath)
-                        config.params = [ item.toString() ]
+                        if (config instanceof ClassLoaderWorkerSpec) {
+                            config.classpath.from(additionalClasspath)
+                        }
                         configClosure.call(config)
+                    }).submit(actionClass) {
+                        itemName = item.toString() 
                     }
                 }
+                
+                ${fixture.workerMethodTranslation}
             }
         """
     }
@@ -899,25 +921,6 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
     def withMultipleActionTaskTypeInBuildScript() {
         buildFile << """
             $multipleActionTaskType
-        """
-    }
-
-    String getRunnableThatFails() {
-        return """
-            import javax.inject.Inject
-            
-            public class RunnableThatFails implements Runnable {
-                private final String itemName
-                
-                @Inject
-                public RunnableThatFails(String itemName) { 
-                    this.itemName = itemName
-                }
-
-                public void run() {
-                    throw new RuntimeException("Failure from \${itemName}");
-                }
-            }
         """
     }
 

@@ -20,7 +20,6 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.logging.configuration.WarningMode
-import org.gradle.internal.featurelifecycle.DeprecatedFeatureUsage
 import org.gradle.internal.featurelifecycle.DeprecatedUsageBuildOperationProgressBroadaster
 import org.gradle.internal.featurelifecycle.UsageLocationReporter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -169,22 +168,9 @@ class ProjectBuilderTest extends Specification {
         latch.get()
     }
 
-    def "emits deprecation warning when using constructor directly"() {
-        given:
-        def broadcaster = Mock(DeprecatedUsageBuildOperationProgressBroadaster)
-        SingleMessageLogger.init(Mock(UsageLocationReporter), WarningMode.None, broadcaster)
-
-        when:
-        new ProjectBuilder()
-
-        then:
-        1 * broadcaster.progress(_) >> { DeprecatedFeatureUsage usage ->
-            assert usage.summary == "The ProjectBuilder() constructor has been deprecated."
-            assert usage.advice == "Please use ProjectBuilder.builder() instead."
-        }
-
-        cleanup:
-        SingleMessageLogger.reset()
+    def "ProjectBuilder can not be directly instantiated"() {
+        expect:
+        ProjectBuilder.constructors.size() == 0
     }
 
     def "does not emit deprecation warning when using the builder() method"() {

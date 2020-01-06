@@ -61,9 +61,4 @@ public class UnknownTestDescriptor implements TestDescriptorInternal {
     public String getClassDisplayName() {
         return getClassName();
     }
-
-    @Override
-    public boolean isRoot() {
-        return false;
-    }
 }

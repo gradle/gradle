@@ -18,6 +18,7 @@ package org.gradle.caching
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestBuildCache
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 
 class BuildCacheLocalCacheIntegrationTest extends AbstractIntegrationSpec {
@@ -26,11 +27,11 @@ class BuildCacheLocalCacheIntegrationTest extends AbstractIntegrationSpec {
     def remoteCache = new TestBuildCache(file("remote-cache"))
 
     void cached() {
-        assert ":t" in skippedTasks
+        skipped(":t")
     }
 
     void executed() {
-        assert ":t" in executedTasks
+        executed(":t")
     }
 
     def setup() {
@@ -66,6 +67,7 @@ class BuildCacheLocalCacheIntegrationTest extends AbstractIntegrationSpec {
         executer.beforeExecute { it.withBuildCacheEnabled() }
     }
 
+    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FLAKY)
     def "remote loads are cached locally"() {
         given:
         settingsFile << """
@@ -101,7 +103,7 @@ class BuildCacheLocalCacheIntegrationTest extends AbstractIntegrationSpec {
         cached()
     }
 
-
+    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FLAKY)
     def "remote loads are not cached locally if local cache is #state"() {
         given:
         settingsFile << """

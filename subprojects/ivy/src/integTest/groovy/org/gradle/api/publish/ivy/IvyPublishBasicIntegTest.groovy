@@ -17,6 +17,8 @@
 
 package org.gradle.api.publish.ivy
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+
 class IvyPublishBasicIntegTest extends AbstractIvyPublishIntegTest {
 
     def "publishes nothing without defined publication"() {
@@ -41,6 +43,7 @@ class IvyPublishBasicIntegTest extends AbstractIvyPublishIntegTest {
         ivyRepo.module('group', 'root', '1.0').assertNotPublished()
     }
 
+    @ToBeFixedForInstantExecution
     def "publishes empty module when publication has no added component"() {
         given:
         settingsFile << "rootProject.name = 'empty-project'"
@@ -86,6 +89,7 @@ class IvyPublishBasicIntegTest extends AbstractIvyPublishIntegTest {
         }
     }
 
+    @ToBeFixedForInstantExecution
     def "can publish simple jar"() {
         given:
         def javaLibrary = javaLibrary(ivyRepo.module('group', 'root', '1.0'))
@@ -159,4 +163,80 @@ class IvyPublishBasicIntegTest extends AbstractIvyPublishIntegTest {
         then:
         failure.assertHasCause("Ivy publication 'ivy' cannot include multiple components")
     }
+
+    @ToBeFixedForInstantExecution
+    def "publishes to all defined repositories"() {
+        given:
+        def ivyRepo2 = ivy("ivy-repo-2")
+
+        settingsFile << "rootProject.name = 'root'"
+        buildFile << """
+            apply plugin: 'ivy-publish'
+
+            group = 'org.gradle.test'
+            version = '1.0'
+
+            publishing {
+                repositories {
+                    ivy { url "${ivyRepo.uri}" }
+                    ivy { url "${ivyRepo2.uri}" }
+                }
+                publications {
+                    ivy(IvyPublication)
+                }
+            }
+        """
+        when:
+        succeeds 'publish'
+
+        then:
+        def module = ivyRepo.module('org.gradle.test', 'root', '1.0')
+        module.assertPublished()
+        def module2 = ivyRepo2.module('org.gradle.test', 'root', '1.0')
+        module2.assertPublished()
+    }
+
+    @ToBeFixedForInstantExecution
+    def "warns when trying to publish a transitive = false variant"() {
+        given:
+        def javaLibrary = javaLibrary(ivyRepo.module('group', 'root', '1.0'))
+
+        and:
+        settingsFile << "rootProject.name = 'root'"
+        buildFile << """
+            apply plugin: 'ivy-publish'
+            apply plugin: 'java'
+
+            group = 'group'
+            version = '1.0'
+
+            configurations {
+                apiElements {
+                    transitive = false
+                }
+                runtimeElements {
+                    transitive = false
+                }
+            }
+
+            publishing {
+                repositories {
+                    ivy { url "${ivyRepo.uri}" }
+                }
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
+                    }
+                }
+            }
+        """
+
+        when:
+        executer.withStackTraceChecksDisabled()
+        succeeds 'publish'
+
+        then: "build warned about transitive = true variant"
+        outputContains("Publication ignores 'transitive = false' at configuration level.")
+    }
+
 }

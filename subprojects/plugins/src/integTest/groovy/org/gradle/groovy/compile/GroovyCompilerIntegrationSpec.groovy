@@ -94,4 +94,17 @@ abstract class GroovyCompilerIntegrationSpec extends BasicGroovyCompilerIntegrat
         groovyClassFile("GroovyCode.class").exists()
         groovyClassFile("JavaCode.class").exists()
     }
+
+    @Issue("gradle/gradle#5908")
+    def "canUseAstTransformWithAsm"() {
+        if (versionLowerThan('1.8')) {
+            return
+        }
+
+        when:
+        run("test")
+
+        then:
+        noExceptionThrown()
+    }
 }

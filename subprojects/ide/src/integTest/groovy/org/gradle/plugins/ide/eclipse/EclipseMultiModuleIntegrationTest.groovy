@@ -15,6 +15,7 @@
  */
 package org.gradle.plugins.ide.eclipse
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.plugins.ide.AbstractIdeIntegrationTest
 import org.junit.Rule
@@ -25,6 +26,7 @@ class EclipseMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
     public final TestResources testResources = new TestResources(testDirectoryProvider)
 
     @Test
+    @ToBeFixedForInstantExecution
     void dealsWithDuplicatedModuleNames() {
       /*
       This is the multi-module project structure the integration test works with:
@@ -61,7 +63,7 @@ allprojects {
 
 project(':api') {
     dependencies {
-        compile project(':shared:api'), project(':shared:model')
+        implementation project(':shared:api'), project(':shared:model')
     }
 }
 
@@ -73,7 +75,7 @@ project(':shared:model') {
 
 project(':services:utilities') {
     dependencies {
-        compile project(':util'), project(':contrib:services:util'), project(':shared:api'), project(':shared:model')
+        implementation project(':util'), project(':contrib:services:util'), project(':shared:api'), project(':shared:model')
     }
     eclipse {
         project.name = 'util'
@@ -106,6 +108,7 @@ project(':services:utilities') {
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     void shouldCreateCorrectClasspathEvenIfUserReconfiguresTheProjectName() {
         //use case from the mailing list
         def settingsFile = file("master/settings.gradle")
@@ -131,7 +134,7 @@ subprojects {
 project(':api') {
     dependencies {
         //let's add a nonEclipse project to stress the test
-        compile project(':shared:model'), project(':nonEclipse')
+        implementation project(':shared:model'), project(':nonEclipse')
     }
 }
 """
@@ -147,6 +150,7 @@ project(':api') {
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     void shouldCreateCorrectClasspathEvenIfUserReconfiguresTheProjectNameAndRootProjectDoesNotApplyEclipsePlugin() {
         def settingsFile = file("master/settings.gradle") << "include 'api', 'shared:model'"
 
@@ -164,7 +168,7 @@ subprojects {
 
 project(':api') {
     dependencies {
-        compile project(':shared:model')
+        implementation project(':shared:model')
     }
 }
 """

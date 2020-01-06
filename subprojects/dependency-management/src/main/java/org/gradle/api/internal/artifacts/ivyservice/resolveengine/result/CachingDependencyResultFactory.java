@@ -20,11 +20,11 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
+import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
-import org.gradle.internal.resolve.ModuleVersionResolveException;
-import org.gradle.api.internal.artifacts.result.DefaultResolvedComponentResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedDependencyResult;
 import org.gradle.api.internal.artifacts.result.DefaultUnresolvedDependencyResult;
+import org.gradle.internal.resolve.ModuleVersionResolveException;
 
 import java.util.HashMap;
 import java.util.List;
@@ -46,10 +46,14 @@ public class CachingDependencyResultFactory {
         return unresolvedDependencies.get(key);
     }
 
-    public ResolvedDependencyResult createResolvedDependency(ComponentSelector requested, ResolvedComponentResult from, DefaultResolvedComponentResult selected, boolean constraint) {
-        List<Object> key = asList(requested, from, selected, constraint);
+    public ResolvedDependencyResult createResolvedDependency(ComponentSelector requested,
+                                                             ResolvedComponentResult from,
+                                                             ResolvedComponentResult selected,
+                                                             ResolvedVariantResult resolvedVariant,
+                                                             boolean constraint) {
+        List<Object> key = asList(requested, from, selected, resolvedVariant, constraint);
         if (!resolvedDependencies.containsKey(key)) {
-            resolvedDependencies.put(key, new DefaultResolvedDependencyResult(requested, constraint, selected, from));
+            resolvedDependencies.put(key, new DefaultResolvedDependencyResult(requested, constraint, selected, resolvedVariant, from));
         }
         return resolvedDependencies.get(key);
     }

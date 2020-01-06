@@ -17,6 +17,7 @@
 package org.gradle.vcs.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
@@ -31,7 +32,7 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
     GitHttpRepository repo = new GitHttpRepository(httpServer, 'dep', temporaryFolder.getTestDirectory())
 
     TestFile repoSettingsFile
-    def fixture = new ResolveTestFixture(buildFile)
+    def fixture = new ResolveTestFixture(buildFile, "compile")
 
     def setup() {
         httpServer.start()
@@ -59,9 +60,9 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
                 group = 'test'
                 version = '1.0'
                 def jar = tasks.create("jar_$version", Jar) {
-                    baseName = "test"
-                    destinationDir = buildDir
-                    version = project.version
+                    archiveBaseName = "test"
+                    destinationDirectory = buildDir
+                    archiveVersion = project.version
                 }
                 configurations['default'].outgoing.artifact(jar)
             }
@@ -69,6 +70,7 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
         fixture.prepare()
     }
 
+    @ToBeFixedForInstantExecution
     def "selects and builds from master for latest.integration selector"() {
         given:
         buildFile << """
@@ -86,11 +88,11 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
         then:
         fixture.expectGraph {
             root(":", "test:consumer:1.2") {
-                edge("test:test:latest.integration", "project :test", "test:test:2.0") {
+                edge("test:test:latest.integration", "project :dep", "test:test:2.0") {
                 }
             }
         }
-        result.assertTasksExecuted(":test:jar_2.0", ":checkDeps")
+        result.assertTasksExecuted(":dep:jar_2.0", ":checkDeps")
 
         when:
         repoSettingsFile.replace("version = '2.0'", "version = '3.0'")
@@ -102,11 +104,11 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
         then:
         fixture.expectGraph {
             root(":", "test:consumer:1.2") {
-                edge("test:test:latest.integration", "project :test", "test:test:3.0") {
+                edge("test:test:latest.integration", "project :dep", "test:test:3.0") {
                 }
             }
         }
-        result.assertTasksExecuted(":test:jar_3.0", ":checkDeps")
+        result.assertTasksExecuted(":dep:jar_3.0", ":checkDeps")
 
         when:
         repo.createBranch("ignore")
@@ -120,13 +122,14 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
         then:
         fixture.expectGraph {
             root(":", "test:consumer:1.2") {
-                edge("test:test:latest.integration", "project :test", "test:test:3.0") {
+                edge("test:test:latest.integration", "project :dep", "test:test:3.0") {
                 }
             }
         }
-        result.assertTasksExecuted(":test:jar_3.0", ":checkDeps")
+        result.assertTasksExecuted(":dep:jar_3.0", ":checkDeps")
     }
 
+    @ToBeFixedForInstantExecution
     def "selects and builds from tag for static selector"() {
         given:
         buildFile << """
@@ -149,11 +152,11 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
         then:
         fixture.expectGraph {
             root(":", "test:consumer:1.2") {
-                edge("test:test:2.0", "project :test", "test:test:2.0") {
+                edge("test:test:2.0", "project :dep", "test:test:2.0") {
                 }
             }
         }
-        result.assertTasksExecuted(":test:jar_2.0", ":checkDeps")
+        result.assertTasksExecuted(":dep:jar_2.0", ":checkDeps")
 
         when:
         repo.expectListVersions()
@@ -162,13 +165,14 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
         then:
         fixture.expectGraph {
             root(":", "test:consumer:1.2") {
-                edge("test:test:2.0", "project :test", "test:test:2.0") {
+                edge("test:test:2.0", "project :dep", "test:test:2.0") {
                 }
             }
         }
-        result.assertTasksExecuted(":test:jar_2.0", ":checkDeps")
+        result.assertTasksExecuted(":dep:jar_2.0", ":checkDeps")
     }
 
+    @ToBeFixedForInstantExecution
     def "reports on and recovers from missing version for static selector"() {
         given:
         buildFile << """
@@ -203,11 +207,11 @@ Required by:
         then:
         fixture.expectGraph {
             root(":", "test:consumer:1.2") {
-                edge("test:test:2.0", "project :test", "test:test:2.0") {
+                edge("test:test:2.0", "project :dep", "test:test:2.0") {
                 }
             }
         }
-        result.assertTasksExecuted(":test:jar_2.0", ":checkDeps")
+        result.assertTasksExecuted(":dep:jar_2.0", ":checkDeps")
 
         when:
         repo.expectListVersions()
@@ -216,14 +220,15 @@ Required by:
         then:
         fixture.expectGraph {
             root(":", "test:consumer:1.2") {
-                edge("test:test:2.0", "project :test", "test:test:2.0") {
+                edge("test:test:2.0", "project :dep", "test:test:2.0") {
                 }
             }
         }
-        result.assertTasksExecuted(":test:jar_2.0", ":checkDeps")
+        result.assertTasksExecuted(":dep:jar_2.0", ":checkDeps")
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "selects and builds from highest tag that matches #selector selector"() {
         given:
         buildFile << """
@@ -246,11 +251,11 @@ Required by:
         then:
         fixture.expectGraph {
             root(":", "test:consumer:1.2") {
-                edge("test:test:${selector}", "project :test", "test:test:1.1") {
+                edge("test:test:${selector}", "project :dep", "test:test:1.1") {
                 }
             }
         }
-        result.assertTasksExecuted(":test:jar_1.1", ":checkDeps")
+        result.assertTasksExecuted(":dep:jar_1.1", ":checkDeps")
 
         when:
         repoSettingsFile.replace("version = '2.0'", "version = '1.2'")
@@ -263,11 +268,11 @@ Required by:
         then:
         fixture.expectGraph {
             root(":", "test:consumer:1.2") {
-                edge("test:test:${selector}", "project :test", "test:test:1.2") {
+                edge("test:test:${selector}", "project :dep", "test:test:1.2") {
                 }
             }
         }
-        result.assertTasksExecuted(":test:jar_1.2", ":checkDeps")
+        result.assertTasksExecuted(":dep:jar_1.2", ":checkDeps")
 
         where:
         selector    | _
@@ -276,6 +281,7 @@ Required by:
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "reports on and recovers from missing version for selector #selector"() {
         given:
         buildFile << """
@@ -309,11 +315,11 @@ Required by:
         then:
         fixture.expectGraph {
             root(":", "test:consumer:1.2") {
-                edge("test:test:${selector}", "project :test", "test:test:1.1") {
+                edge("test:test:${selector}", "project :dep", "test:test:1.1") {
                 }
             }
         }
-        result.assertTasksExecuted(":test:jar_1.1", ":checkDeps")
+        result.assertTasksExecuted(":dep:jar_1.1", ":checkDeps")
 
         when:
         repo.expectListVersions()
@@ -322,11 +328,11 @@ Required by:
         then:
         fixture.expectGraph {
             root(":", "test:consumer:1.2") {
-                edge("test:test:${selector}", "project :test", "test:test:1.1") {
+                edge("test:test:${selector}", "project :dep", "test:test:1.1") {
                 }
             }
         }
-        result.assertTasksExecuted(":test:jar_1.1", ":checkDeps")
+        result.assertTasksExecuted(":dep:jar_1.1", ":checkDeps")
 
         where:
         selector    | _
@@ -362,10 +368,11 @@ Required by:
         "HEAD"    | _
     }
 
+    @ToBeFixedForInstantExecution
     def "selects and builds latest from branch for branch selector"() {
         given:
         buildFile << """
-            dependencies { 
+            dependencies {
                 compile('test:test') {
                     versionConstraint.branch = 'release'
                 }
@@ -385,11 +392,11 @@ Required by:
         then:
         fixture.expectGraph {
             root(":", "test:consumer:1.2") {
-                edge("test:test", "project :test", "test:test:2.0") {
+                edge("test:test:{branch release}", "project :dep", "test:test:2.0") {
                 }
             }
         }
-        result.assertTasksExecuted(":test:jar_2.0", ":checkDeps")
+        result.assertTasksExecuted(":dep:jar_2.0", ":checkDeps")
 
         when:
         repoSettingsFile.replace("version = '2.0'", "version = '3.0'")
@@ -401,11 +408,11 @@ Required by:
         then:
         fixture.expectGraph {
             root(":", "test:consumer:1.2") {
-                edge("test:test", "project :test", "test:test:3.0") {
+                edge("test:test:{branch release}", "project :dep", "test:test:3.0") {
                 }
             }
         }
-        result.assertTasksExecuted(":test:jar_3.0", ":checkDeps")
+        result.assertTasksExecuted(":dep:jar_3.0", ":checkDeps")
 
         when:
         repo.expectListVersions()
@@ -414,17 +421,18 @@ Required by:
         then:
         fixture.expectGraph {
             root(":", "test:consumer:1.2") {
-                edge("test:test", "project :test", "test:test:3.0") {
+                edge("test:test:{branch release}", "project :dep", "test:test:3.0") {
                 }
             }
         }
-        result.assertTasksExecuted(":test:jar_3.0", ":checkDeps")
+        result.assertTasksExecuted(":dep:jar_3.0", ":checkDeps")
     }
 
+    @ToBeFixedForInstantExecution
     def "reports on and recovers from missing branch"() {
         given:
         buildFile << """
-            dependencies { 
+            dependencies {
                 compile('test:test') {
                     versionConstraint.branch = 'release'
                 }
@@ -456,11 +464,11 @@ Required by:
         then:
         fixture.expectGraph {
             root(":", "test:consumer:1.2") {
-                edge("test:test", "project :test", "test:test:2.0") {
+                edge("test:test:{branch release}", "project :dep", "test:test:2.0") {
                 }
             }
         }
-        result.assertTasksExecuted(":test:jar_2.0", ":checkDeps")
+        result.assertTasksExecuted(":dep:jar_2.0", ":checkDeps")
 
         when:
         repo.expectListVersions()
@@ -469,10 +477,10 @@ Required by:
         then:
         fixture.expectGraph {
             root(":", "test:consumer:1.2") {
-                edge("test:test", "project :test", "test:test:2.0") {
+                edge("test:test:{branch release}", "project :dep", "test:test:2.0") {
                 }
             }
         }
-        result.assertTasksExecuted(":test:jar_2.0", ":checkDeps")
+        result.assertTasksExecuted(":dep:jar_2.0", ":checkDeps")
     }
 }

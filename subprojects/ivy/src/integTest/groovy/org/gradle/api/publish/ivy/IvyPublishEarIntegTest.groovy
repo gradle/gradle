@@ -16,8 +16,11 @@
 
 package org.gradle.api.publish.ivy
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+
 class IvyPublishEarIntegTest extends AbstractIvyPublishIntegTest {
-    public void "can publish EAR only for mixed java and WAR and EAR project"() {
+    @ToBeFixedForInstantExecution
+    void "can publish EAR only for mixed java and WAR and EAR project"() {
         given:
         file("settings.gradle") << "rootProject.name = 'publishEar' "
 
@@ -34,8 +37,8 @@ class IvyPublishEarIntegTest extends AbstractIvyPublishIntegTest {
             ${mavenCentralRepository()}
 
             dependencies {
-                compile "commons-collections:commons-collections:3.2.2"
-                runtime "commons-io:commons-io:1.4"
+                implementation "commons-collections:commons-collections:3.2.2"
+                runtimeOnly "commons-io:commons-io:1.4"
             }
 
             publishing {

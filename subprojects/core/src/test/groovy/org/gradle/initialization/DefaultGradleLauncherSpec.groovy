@@ -19,11 +19,13 @@ package org.gradle.initialization
 import org.gradle.BuildListener
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
+import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.composite.internal.IncludedBuildControllers
 import org.gradle.configuration.ProjectsPreparer
 import org.gradle.execution.BuildWorkExecutor
 import org.gradle.execution.MultipleBuildFailures
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
+import org.gradle.initialization.buildsrc.BuildSourceBuilder
 import org.gradle.initialization.exception.ExceptionAnalyser
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.service.scopes.BuildScopeServices
@@ -39,6 +41,7 @@ class DefaultGradleLauncherSpec extends Specification {
     def buildConfigurerMock = Mock(ProjectsPreparer)
     def buildBroadcaster = Mock(BuildListener)
     def buildExecuter = Mock(BuildWorkExecutor)
+    def buildSourceBuilder = Mock(BuildSourceBuilder)
 
     def settingsMock = Mock(SettingsInternal.class)
     def gradleMock = Mock(GradleInternal.class)
@@ -65,7 +68,7 @@ class DefaultGradleLauncherSpec extends Specification {
     DefaultGradleLauncher launcher() {
         return new DefaultGradleLauncher(gradleMock, buildConfigurerMock, exceptionAnalyserMock, buildBroadcaster,
             buildCompletionListener, buildExecuter, buildServices, [otherService], includedBuildControllers,
-            settingsPreparerMock, taskExecutionPreparerMock, instantExecution)
+            settingsPreparerMock, taskExecutionPreparerMock, instantExecution, buildSourceBuilder)
     }
 
     void testRunTasks() {
@@ -103,6 +106,9 @@ class DefaultGradleLauncherSpec extends Specification {
         expectSettingsBuilt()
         expectBuildListenerCallbacks()
 
+        and:
+        def buildSrcClassLoaderScope = Mock(ClassLoaderScope)
+        1 * buildSourceBuilder.buildAndCreateClassLoader(_) >> buildSrcClassLoaderScope
         1 * buildConfigurerMock.prepareProjects(gradleMock)
 
         DefaultGradleLauncher gradleLauncher = launcher()
@@ -117,6 +123,10 @@ class DefaultGradleLauncherSpec extends Specification {
         isRootBuild()
         expectSettingsBuilt()
         expectBuildListenerCallbacks()
+
+        and:
+        def buildSrcClassLoaderScope = Mock(ClassLoaderScope)
+        1 * buildSourceBuilder.buildAndCreateClassLoader(_) >> buildSrcClassLoaderScope
         1 * buildConfigurerMock.prepareProjects(gradleMock)
 
         then:
@@ -279,7 +289,7 @@ class DefaultGradleLauncherSpec extends Specification {
 
     private void isNestedBuild() {
         _ * gradleMock.parent >> Mock(GradleInternal)
-        _ * gradleMock.findIdentityPath() >> path(":nested")
+        _ * gradleMock.getIdentityPath() >> path(":nested")
         _ * gradleMock.contextualize(_) >> { "${it[0]} (:nested)" }
     }
 

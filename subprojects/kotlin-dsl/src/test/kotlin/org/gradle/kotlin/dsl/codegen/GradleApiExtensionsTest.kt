@@ -21,8 +21,7 @@ import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
-
-import org.gradle.api.specs.Specs
+import org.gradle.api.internal.file.pattern.PatternMatcher
 
 import org.gradle.internal.hash.HashUtil
 
@@ -65,7 +64,7 @@ class GradleApiExtensionsTest : TestWithClassPath() {
             ClassAndGroovyNamedArguments::class
         ) {
 
-            assertGeneratedJarHash("e5119e1447faf8184e0bb0ce913e1ad5")
+            assertGeneratedJarHash("9358afc86a3d503f1583a278a0d3cd8d")
         }
     }
 
@@ -319,7 +318,7 @@ class GradleApiExtensionsTest : TestWithClassPath() {
             "SourceBaseName",
             apiJars,
             emptyList(),
-            Specs.satisfyAll(),
+            PatternMatcher.MATCH_ALL,
             fixtureParameterNamesSupplier
         )
 

@@ -18,7 +18,6 @@ package org.gradle.api.artifacts;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.specs.Spec;
@@ -43,7 +42,7 @@ import static groovy.lang.Closure.DELEGATE_FIRST;
  * please use {@link #getArtifacts()} or {@link #getAllArtifacts()}.
  * Read more about declaring artifacts in the configuration in docs for {@link org.gradle.api.artifacts.dsl.ArtifactHandler}
  *
- * Please see the <a href="https://docs.gradle.org/current/userguide/managing_dependency_configurations.html" target="_top">Managing Dependency Configurations</a> User Manual chapter for more information.
+ * Please see the <a href="https://docs.gradle.org/current/userguide/declaring_dependencies.html" target="_top">Declaring Dependencies</a> User Manual chapter for more information.
  */
 @HasInternalProtocol
 public interface Configuration extends FileCollection, HasConfigurableAttributes<Configuration> {
@@ -328,7 +327,6 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      *
      * @since 4.6
      */
-    @Incubating
     DependencyConstraintSet getDependencyConstraints();
 
     /**
@@ -339,7 +337,6 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      *
      * @since 4.6
      */
-    @Incubating
     DependencyConstraintSet getAllDependencyConstraints();
 
     /**
@@ -429,7 +426,6 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * @param action a dependency action to execute before the configuration is used.
      * @return this
      */
-    @Incubating
     Configuration withDependencies(Action<? super DependencySet> action);
 
     /**

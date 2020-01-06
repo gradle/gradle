@@ -16,7 +16,6 @@
 
 package org.gradle.language.swift;
 
-import org.gradle.api.Incubating;
 import org.gradle.language.ComponentWithOutputs;
 import org.gradle.language.nativeplatform.ComponentWithLinkUsage;
 import org.gradle.language.nativeplatform.ComponentWithRuntimeUsage;
@@ -27,6 +26,5 @@ import org.gradle.language.nativeplatform.ComponentWithStaticLibrary;
  *
  * @since 4.5
  */
-@Incubating
 public interface SwiftStaticLibrary extends SwiftBinary, ComponentWithStaticLibrary, ComponentWithRuntimeUsage, ComponentWithLinkUsage, ComponentWithOutputs {
 }

@@ -27,7 +27,7 @@ class InternalViewsSampleIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     Sample internalViewsSample = new Sample(temporaryFolder, "customModel/internalViews")
 
-    // NOTE If you change this, you'll also need to change subprojects/docs/src/doc/samples/customModel/languageType/softwareModelExtend-iv-model.out
+    // NOTE If you change this, you'll also need to change subprojects/docs/src/doc/snippets/customModel/languageType/softwareModelExtend-iv-model.out
     def "show mutated public view data but no internal view data in model report"() {
         given:
         sample internalViewsSample
@@ -51,6 +51,6 @@ class InternalViewsSampleIntegrationTest extends AbstractIntegrationSpec {
                           | Type:   \tjava.lang.String
                           | Value:  \tSome PUBLIC data
                           | Creator: \tcomponents { ... } @ build.gradle line 53, column 5 > create(my)
-        """.stripIndent().trim()
+            """.stripIndent().trim()
     }
 }

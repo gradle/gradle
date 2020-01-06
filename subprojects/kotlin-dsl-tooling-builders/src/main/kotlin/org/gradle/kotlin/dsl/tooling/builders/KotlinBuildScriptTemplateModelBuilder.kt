@@ -51,5 +51,8 @@ object KotlinBuildScriptTemplateModelBuilder : ToolingModelBuilder {
 
 internal
 data class StandardKotlinBuildScriptTemplateModel(
-    override val classPath: List<File>
-) : KotlinBuildScriptTemplateModel, Serializable
+    private val classPath: List<File>
+) : KotlinBuildScriptTemplateModel, Serializable {
+
+    override fun getClassPath() = classPath
+}

@@ -1,0 +1,30 @@
+subprojects {
+    apply plugin: 'java-library'
+    group = 'org.gradle.sample'
+    version = '1.0'
+}
+
+project(':api') {
+    configurations {
+        spi
+    }
+    dependencies {
+        implementation project(':shared')
+    }
+    task spiJar(type: Jar) {
+        archiveBaseName = 'api-spi'
+        from sourceSets.main.output
+        include('org/gradle/sample/api/**')
+    }
+    artifacts {
+        spi spiJar
+    }
+}
+
+project(':services:personService') {
+    dependencies {
+        implementation project(':shared')
+        implementation project(path: ':api', configuration: 'spi')
+        testImplementation "junit:junit:4.12", project(':api')
+    }
+}

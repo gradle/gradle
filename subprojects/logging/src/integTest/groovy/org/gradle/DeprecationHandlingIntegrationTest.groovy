@@ -20,6 +20,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler
+import org.gradle.util.GradleVersion
 import spock.lang.Unroll
 
 class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
@@ -93,7 +94,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
             executer.expectDeprecationWarnings(warningsCountInConsole)
         }
         executer.withWarningMode(warnings)
-        run('deprecated', 'broken')
+        warnings == WarningMode.Fail ? fails('deprecated', 'broken') : succeeds('deprecated', 'broken')
 
         then:
         output.contains('build.gradle:2)') == warningsCountInConsole > 0
@@ -113,13 +114,18 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
 
         and: "system stack frames are filtered"
         !output.contains('jdk.internal.')
-        !output.contains('sun.')
+        !output.contains('sun.') || output.contains('sun.run')
         !output.contains('org.codehaus.groovy.')
         !output.contains('org.gradle.internal.metaobject.')
         !output.contains('org.gradle.kotlin.dsl.execution.')
 
         and:
         assertFullStacktraceResult(fullStacktraceEnabled, warningsCountInConsole)
+
+        and:
+        if (warnings == WarningMode.Fail) {
+            failure.assertHasDescription("Deprecated Gradle features were used in this build, making it incompatible with Gradle ${GradleVersion.current().nextMajor.version}")
+        }
 
         where:
         scenario                                        | warnings            | warningsCountInConsole | warningsCountInSummary | fullStacktraceEnabled
@@ -129,6 +135,31 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         'with stacktrace and --warning-mode=no'         | WarningMode.None    | 0                      | 0                      | true
         'without stacktrace and --warning-mode=summary' | WarningMode.Summary | 0                      | 4                      | false
         'with stacktrace and --warning-mode=summary'    | WarningMode.Summary | 0                      | 4                      | true
+        'without stacktrace and --warning-mode=fail'    | WarningMode.Fail    | 4                      | 0                      | false
+        'with stacktrace and --warning-mode=fail'       | WarningMode.Fail    | 4                      | 0                      | true
+    }
+
+    def 'build error and deprecation failure combined'() {
+        given:
+        buildFile << """
+            apply plugin: DeprecatedPlugin // line 2
+            
+            task broken() {
+                doLast {
+                    throw new IllegalStateException("Can't do that")
+                }
+            }
+        """.stripIndent()
+
+        when:
+        executer.expectDeprecationWarning("The DeprecatedPlugin plugin has been deprecated. This is scheduled to be removed in ${GradleVersion.current().nextMajor}. Consider using the Foobar plugin instead.")
+        executer.withWarningMode(WarningMode.Fail)
+
+        then:
+        fails('broken')
+        output.contains('build.gradle:2)')
+        failure.assertHasCause("Can't do that")
+        failure.assertHasDescription('Deprecated Gradle features were used in this build')
     }
 
     def 'DeprecatedPlugin from init script - without full stacktrace.'() {

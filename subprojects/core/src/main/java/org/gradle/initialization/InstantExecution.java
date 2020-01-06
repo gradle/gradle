@@ -20,7 +20,9 @@ public interface InstantExecution {
 
     boolean canExecuteInstantaneously();
 
-    void saveTaskGraph();
+    void prepareForBuildLogicExecution();
 
-    void loadTaskGraph();
+    void saveScheduledWork();
+
+    void loadScheduledWork();
 }

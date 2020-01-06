@@ -27,6 +27,7 @@ import javax.annotation.Nullable;
 public class DefaultModuleComponentArtifactIdentifier implements ModuleComponentArtifactIdentifier, DisplayName {
     private final ModuleComponentIdentifier componentIdentifier;
     private final IvyArtifactName name;
+    private final int hashCode;
 
     public DefaultModuleComponentArtifactIdentifier(ModuleComponentIdentifier componentIdentifier, String name, String type, @Nullable String extension) {
         this(componentIdentifier, new DefaultIvyArtifactName(name, type, extension));
@@ -39,28 +40,30 @@ public class DefaultModuleComponentArtifactIdentifier implements ModuleComponent
     public DefaultModuleComponentArtifactIdentifier(ModuleComponentIdentifier componentIdentifier, IvyArtifactName artifact) {
         this.componentIdentifier = componentIdentifier;
         this.name = artifact;
+        this.hashCode = 31 * name.hashCode() + componentIdentifier.hashCode();
     }
 
     @Override
     public String getFileName() {
-        StringBuilder builder = new StringBuilder();
-        builder.append(name.getName());
-        builder.append('-');
-        builder.append(componentIdentifier.getVersion());
-        if (GUtil.isTrue(name.getClassifier())) {
-            builder.append('-');
-            builder.append(name.getClassifier());
-        }
-        if (GUtil.isTrue(name.getExtension())) {
-            builder.append('.');
-            builder.append(name.getExtension());
-        }
-        return builder.toString();
+        String classifier = GUtil.isTrue(name.getClassifier()) ? "-" + name.getClassifier() : "";
+        String extension = GUtil.isTrue(name.getExtension()) ? "." + name.getExtension() : "";
+        return name.getName() + "-" + componentIdentifier.getVersion() + classifier + extension;
+    }
+
+    @Override
+    public ModuleComponentArtifactIdentifier getSignatureArtifactId() {
+        return new DefaultModuleComponentArtifactIdentifier(
+            componentIdentifier,
+            name.getName(),
+            "asc",
+            name.getType() + ".asc",
+            name.getClassifier()
+        );
     }
 
     @Override
     public String getDisplayName() {
-        String name = this.name.toString();
+        String name = this.getFileName();
         String componentIdentifier = this.componentIdentifier.toString();
         return name + " (" + componentIdentifier + ")";
     }
@@ -86,7 +89,7 @@ public class DefaultModuleComponentArtifactIdentifier implements ModuleComponent
 
     @Override
     public int hashCode() {
-        return componentIdentifier.hashCode() ^ name.hashCode();
+        return hashCode;
     }
 
     @Override

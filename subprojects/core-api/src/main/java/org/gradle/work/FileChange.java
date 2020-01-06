@@ -16,7 +16,6 @@
 
 package org.gradle.work;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.file.FileType;
 
 import java.io.File;
@@ -26,7 +25,6 @@ import java.io.File;
  *
  * @since 5.4
  */
-@Incubating
 public interface FileChange {
 
     /**

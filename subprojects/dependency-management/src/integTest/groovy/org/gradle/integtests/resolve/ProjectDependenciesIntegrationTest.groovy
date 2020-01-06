@@ -32,20 +32,20 @@ class ProjectDependenciesIntegrationTest extends AbstractDependencyResolutionTes
         buildFile << """
             apply plugin: 'java'
             dependencies {
-                compile project(":impl")
+                implementation project(":impl")
             }
             repositories {
                 //resolving project must declare the repo
                 maven { url '${mavenRepo.uri}' }
             }
-            println "Resolved at configuration time: " + configurations.compile.files*.name
+            println "Resolved at configuration time: " + configurations.runtimeClasspath.files*.name
         """
 
         mavenRepo.module("org", "foo").publish()
         file("impl/build.gradle") << """
             apply plugin: 'java'
             dependencies {
-                compile "org:foo:1.0"
+                implementation "org:foo:1.0"
             }
         """
 

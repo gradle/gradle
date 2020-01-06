@@ -16,40 +16,29 @@
 
 package org.gradle.internal.execution.steps
 
-import org.gradle.api.internal.file.collections.ImmutableFileCollection
-import org.gradle.internal.execution.Context
 import org.gradle.internal.execution.Result
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.file.TreeType
 
-class CreateOutputsStepTest extends StepSpec {
-    def context = Stub(Context) {
-        getWork() >> work
-    }
-    def step = new CreateOutputsStep<Context, Result>(delegate)
+class CreateOutputsStepTest extends ContextInsensitiveStepSpec {
+    def step = new CreateOutputsStep<>(delegate)
 
     def "outputs are created"() {
         when:
         step.execute(context)
 
         then:
-        1 * work.visitOutputProperties(_ as UnitOfWork.OutputPropertyVisitor) >> { UnitOfWork.OutputPropertyVisitor visitor ->
-            visitor.visitOutputProperty("dir", TreeType.DIRECTORY, ImmutableFileCollection.of(file("outDir")))
-            visitor.visitOutputProperty("dirs", TreeType.DIRECTORY, ImmutableFileCollection.of(file("outDir1"), file("outDir2")))
-            visitor.visitOutputProperty("file", TreeType.FILE, ImmutableFileCollection.of(file("parent/outFile")))
-            visitor.visitOutputProperty("files", TreeType.FILE, ImmutableFileCollection.of(file("parent1/outFile"), file("parent2/outputFile1"), file("parent2/outputFile2")))
+        _ * work.visitOutputProperties(_ as UnitOfWork.OutputPropertyVisitor) >> { UnitOfWork.OutputPropertyVisitor visitor ->
+            visitor.visitOutputProperty("dir", TreeType.DIRECTORY, file("outDir"))
+            visitor.visitOutputProperty("file", TreeType.FILE, file("parent/outFile"))
         }
 
         then:
-        def allDirs = ["outDir", "outDir1", "outDir2"].collect { file(it) }
-        def allFiles = ["parent/outFile", "parent1/outFile1", "parent2/outFile1", "parent2/outFile2"].collect { file(it) }
-        allDirs.each {
-            assert it.isDirectory()
-        }
-        allFiles.each {
-            assert it.parentFile.isDirectory()
-            assert !it.exists()
-        }
+        file("outDir").isDirectory()
+
+        def outFile = file("parent/outFile")
+        outFile.parentFile.isDirectory()
+        !outFile.exists()
 
         then:
         1 * delegate.execute(context)
@@ -63,7 +52,8 @@ class CreateOutputsStepTest extends StepSpec {
 
         then:
         result == expected
-        1 * work.visitOutputProperties(_ as UnitOfWork.OutputPropertyVisitor)
+
+        _ * work.visitOutputProperties(_ as UnitOfWork.OutputPropertyVisitor)
         1 * delegate.execute(context) >> expected
         0 * _
     }

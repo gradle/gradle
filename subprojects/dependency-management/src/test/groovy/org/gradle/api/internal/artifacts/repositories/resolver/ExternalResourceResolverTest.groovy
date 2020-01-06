@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.repositories.metadata.MutableModuleMeta
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
 import org.gradle.internal.component.model.ComponentOverrideMetadata
+import org.gradle.internal.component.model.ImmutableModuleSources
 import org.gradle.internal.component.model.ModuleSource
 import org.gradle.internal.resolve.ArtifactResolveException
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult
@@ -66,7 +67,7 @@ class ExternalResourceResolverTest extends Specification {
 
     def reportsNotFoundArtifactResolveResult() {
         when:
-        resolver.remoteAccess.resolveArtifact(artifact, moduleSource, artifactResult)
+        resolver.remoteAccess.resolveArtifact(artifact, ImmutableModuleSources.of(moduleSource), artifactResult)
 
         then:
         1 * artifactResolver.resolveArtifact(artifact, _) >> null
@@ -77,7 +78,7 @@ class ExternalResourceResolverTest extends Specification {
 
     def reportsFailedArtifactResolveResult() {
         when:
-        resolver.remoteAccess.resolveArtifact(artifact, moduleSource, artifactResult)
+        resolver.remoteAccess.resolveArtifact(artifact, ImmutableModuleSources.of(moduleSource), artifactResult)
 
         then:
         1 * artifactResolver.resolveArtifact(artifact, _) >> {
@@ -93,7 +94,7 @@ class ExternalResourceResolverTest extends Specification {
 
     def reportsResolvedArtifactResolveResult() {
         when:
-        resolver.remoteAccess.resolveArtifact(artifact, moduleSource, artifactResult)
+        resolver.remoteAccess.resolveArtifact(artifact, ImmutableModuleSources.of(moduleSource), artifactResult)
 
         then:
         1 * artifactResolver.resolveArtifact(artifact, _) >> Stub(LocallyAvailableExternalResource) {
@@ -109,7 +110,7 @@ class ExternalResourceResolverTest extends Specification {
         artifactIsTimestampedSnapshotVersion()
 
         when:
-        resolver.remoteAccess.resolveArtifact(artifact, moduleSource, artifactResult)
+        resolver.remoteAccess.resolveArtifact(artifact, ImmutableModuleSources.of(moduleSource), artifactResult)
 
         then:
         1 * artifactResolver.resolveArtifact(artifact, _) >> Stub(LocallyAvailableExternalResource) {

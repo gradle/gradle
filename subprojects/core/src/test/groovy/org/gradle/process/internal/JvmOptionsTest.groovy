@@ -80,21 +80,6 @@ class JvmOptionsTest extends Specification {
         parse("-Xms1G -Dfile.encoding=UTF-8 -Dfoo.encoding=blah -Dfile.encoding=UTF-16").allJvmArgs == ["-Dfoo.encoding=blah", "-Xms1G", "-Dfile.encoding=UTF-16", *localePropertyStrings()]
     }
 
-    def "debug option can be set via allJvmArgs"() {
-        setup:
-        def opts = createOpts()
-
-        when:
-        opts.allJvmArgs = ['-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005']
-        then:
-        opts.debug
-
-        when:
-        opts.allJvmArgs = []
-        then:
-        opts.debug == false
-    }
-
     def "managed jvm args includes heap settings"() {
         expect:
         parse("-Xms1G -XX:-PrintClassHistogram -Xmx2G -Dfoo.encoding=blah").managedJvmArgs == ["-Xms1G", "-Xmx2G", "-Dfile.encoding=${defaultCharset}", *localePropertyStrings()]
@@ -157,6 +142,7 @@ class JvmOptionsTest extends Specification {
         1 * target.systemProperties({
             it == new TreeMap(["file.encoding": "UTF-16"] + localeProperties())
         })
+        1 * target.getDebugOptions() >> new DefaultJavaDebugOptions()
     }
 
     @Unroll
@@ -219,6 +205,27 @@ class JvmOptionsTest extends Specification {
         opts.jvmArgs(fromString('-Xmx1G -Xms1G'))
         then:
         opts.allJvmArgs.containsAll(['-Xmx1G', '-Xms1G', '-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005'])
+    }
+
+    def "can configure debug mode"(port, server, suspend, expected) {
+        setup:
+        def opts = createOpts()
+
+        when:
+        opts.debug = true
+        opts.debugOptions.port.set(port)
+        opts.debugOptions.server.set(server)
+        opts.debugOptions.suspend.set(suspend)
+
+        then:
+        opts.allJvmArgs.findAll { it.contains 'jdwp' } == [expected]
+
+        where:
+        port | server | suspend | expected
+        1122 | false  | false   | '-agentlib:jdwp=transport=dt_socket,server=n,suspend=n,address=1122'
+        1123 | false  | true    | '-agentlib:jdwp=transport=dt_socket,server=n,suspend=y,address=1123'
+        1124 | true   | false   | '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=1124'
+        1125 | true   | true    | '-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=1125'
     }
 
     def "options with newlines are parsed correctly"() {

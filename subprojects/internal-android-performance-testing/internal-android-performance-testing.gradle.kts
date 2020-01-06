@@ -5,7 +5,7 @@ plugins {
 }
 
 val androidTools by configurations.creating
-configurations.compile { extendsFrom(androidTools) }
+configurations.implementation { extendsFrom(androidTools) }
 
 repositories {
     google()
@@ -28,31 +28,29 @@ application {
 
 tasks.register<BuildClassPath>("buildClassPath") {
     val jar: Jar by tasks
-    dependsOn(jar)
-    classpath = androidTools + files(jar.archivePath)
-    outputFile = buildDir.resolve("classpath.txt")
+    classpath.from(androidTools)
+    classpath.from(jar.archiveFile)
+    outputFile.set(project.layout.buildDirectory.file("classpath.txt"))
 }
 
 listOf(tasks.distZip, tasks.distTar).forEach {
-    it { baseName = "android-test-app" }
+    it { archiveBaseName.set("android-test-app") }
 }
 
-project(":distributions").tasks.register("buildDists") {
+tasks.register("buildDists") {
     dependsOn(tasks.distZip)
 }
 
-
 open class BuildClassPath : DefaultTask() {
+    @get:InputFiles
+    val classpath: ConfigurableFileCollection = project.files()
 
-    @InputFiles
-    lateinit var classpath: FileCollection
-
-    @OutputFile
-    lateinit var outputFile: File
+    @get:OutputFile
+    val outputFile: RegularFileProperty = project.objects.fileProperty()
 
     @TaskAction
     fun buildClasspath() =
-        outputFile.printWriter().use { wrt ->
+        outputFile.get().getAsFile().printWriter().use { wrt ->
             classpath.asFileTree.files.forEach {
                 wrt.println(it.absolutePath)
             }

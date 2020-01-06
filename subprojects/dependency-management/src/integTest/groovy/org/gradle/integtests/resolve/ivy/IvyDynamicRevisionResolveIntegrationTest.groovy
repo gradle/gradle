@@ -642,7 +642,7 @@ dependencies {
                 expectGetMetadata()
                 expectGetArtifact()
             }
-            if (GradleMetadataResolveRunner.isGradleMetadataEnabled()) {
+            if (GradleMetadataResolveRunner.isGradleMetadataPublished()) {
                 // todo: is single version in range something we want to allow in Gradle metadata?
                 'org.test:projectB' {
                     expectVersionListing()
@@ -659,7 +659,7 @@ dependencies {
         resolve.expectGraph {
             root(":", ":test:") {
                 edge("org.test:projectA:[1.1]", "org.test:projectA:1.1") {
-                    if (GradleMetadataResolveRunner.isGradleMetadataEnabled()) {
+                    if (GradleMetadataResolveRunner.isGradleMetadataPublished()) {
                         edge("org.test:projectB:[2.0]", "org.test:projectB:2.0")
                     } else {
                         edge("org.test:projectB:2.0", "org.test:projectB:2.0") // Transitive version range is lost when converting to Ivy ModuleDescriptor

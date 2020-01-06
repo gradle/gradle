@@ -15,32 +15,21 @@
  */
 package org.gradle.api.internal.tasks.execution;
 
-import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.changedetection.TaskExecutionMode;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.execution.plan.LocalTaskNode;
-import org.gradle.internal.execution.history.AfterPreviousExecutionState;
-import org.gradle.internal.execution.history.BeforeExecutionState;
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.operations.ExecutingBuildOperation;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 
-import javax.annotation.Nullable;
 import java.util.Optional;
 
 public class DefaultTaskExecutionContext implements TaskExecutionContext {
 
     private final LocalTaskNode localTaskNode;
-    private AfterPreviousExecutionState afterPreviousExecution;
-    private OverlappingOutputs overlappingOutputs;
-    private ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesBeforeExecution;
-    private BeforeExecutionState beforeExecutionState;
     private TaskExecutionMode taskExecutionMode;
     private TaskProperties properties;
-    private boolean taskCachingEnabled;
     private Long executionTime;
     private ExecutingBuildOperation snapshotTaskInputsBuildOperation;
 
@@ -54,47 +43,6 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     @Override
     public LocalTaskNode getLocalTaskNode() {
         return localTaskNode;
-    }
-
-    @Nullable
-    @Override
-    public AfterPreviousExecutionState getAfterPreviousExecution() {
-        return afterPreviousExecution;
-    }
-
-    @Override
-    public void setAfterPreviousExecution(@Nullable AfterPreviousExecutionState afterPreviousExecution) {
-        this.afterPreviousExecution = afterPreviousExecution;
-    }
-
-    @Override
-    public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getOutputFilesBeforeExecution() {
-        return outputFilesBeforeExecution;
-    }
-
-    @Override
-    public void setOutputFilesBeforeExecution(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesBeforeExecution) {
-        this.outputFilesBeforeExecution = outputFilesBeforeExecution;
-    }
-
-    @Override
-    public Optional<OverlappingOutputs> getOverlappingOutputs() {
-        return Optional.ofNullable(overlappingOutputs);
-    }
-
-    @Override
-    public void setOverlappingOutputs(OverlappingOutputs overlappingOutputs) {
-        this.overlappingOutputs = overlappingOutputs;
-    }
-
-    @Override
-    public Optional<BeforeExecutionState> getBeforeExecutionState() {
-        return Optional.ofNullable(beforeExecutionState);
-    }
-
-    @Override
-    public void setBeforeExecutionState(BeforeExecutionState beforeExecutionState) {
-        this.beforeExecutionState = beforeExecutionState;
     }
 
     @Override
@@ -124,16 +72,6 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     @Override
     public TaskProperties getTaskProperties() {
         return properties;
-    }
-
-    @Override
-    public boolean isTaskCachingEnabled() {
-        return taskCachingEnabled;
-    }
-
-    @Override
-    public void setTaskCachingEnabled(boolean taskCachingEnabled) {
-        this.taskCachingEnabled = taskCachingEnabled;
     }
 
     @Override

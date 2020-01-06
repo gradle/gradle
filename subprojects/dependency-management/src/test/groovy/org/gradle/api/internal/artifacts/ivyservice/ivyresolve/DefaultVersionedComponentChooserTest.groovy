@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
 import org.gradle.api.artifacts.ComponentSelection
-import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
@@ -30,6 +29,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.specs.Specs
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
+import org.gradle.internal.component.model.AttributeMatcher
 import org.gradle.internal.component.model.ComponentAttributeMatcher
 import org.gradle.internal.component.model.ComponentResolveMetadata
 import org.gradle.internal.resolve.ModuleVersionResolveException
@@ -252,30 +252,26 @@ class DefaultVersionedComponentChooserTest extends Specification {
             1 * selectedComponentResult.notMatched(d.id, _)
         } else {
             1 * selectedComponentResult.doesNotMatchConsumerAttributes({
-                it.id == d.id &&
-                    it.matchingDescription.find { it.requestedAttribute == Attribute.of('color', String) }
-                        .with { match ->
-                        assert match.requestedValue.get() == 'red'
-                        assert match.found.get() == 'blue'
-                        match
-                    }
+                it.id == d.id
+                assertMatchingDescription(it.matchingDescription, 'red', 'blue')
             })
         }
         1 * selectedComponentResult.doesNotMatchConsumerAttributes({
-            it.id == c.id &&
-                it.matchingDescription.find { it.requestedAttribute == Attribute.of('color', String) }
-                    .with { match ->
-                    assert match.requestedValue.get() == 'red'
-                    assert match.found.get() == 'green'
-                    match
-                }
+            it.id == c.id
+            assertMatchingDescription(it.matchingDescription, 'red', 'green')
         })
         1 * selectedComponentResult.matches(b.id)
         0 * _
 
         where:
         notation << ["[1.0,)", "latest.release", "1.+", "1+", "+"]
+    }
 
+    def assertMatchingDescription(List<AttributeMatcher.MatchingDescription> descriptions, String expectedRequestedValue, String expectedFound) {
+        descriptions.find { it.requestedAttribute.name == 'color' }.with(true) {
+            assert requestedValue.get() == expectedRequestedValue
+            assert found.get() == expectedFound
+        }
     }
 
     def "returns no match when no versions match without metadata"() {

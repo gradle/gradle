@@ -1,0 +1,24 @@
+configurations {
+    implementation
+    compileClasspath { extendsFrom implementation }
+}
+
+// tag::generated-file-dependencies[]
+dependencies {
+    implementation files("$buildDir/classes") {
+        builtBy 'compile'
+    }
+}
+
+task compile {
+    doLast {
+        println 'compiling classes'
+    }
+}
+
+task list(dependsOn: configurations.compileClasspath) {
+    doLast {
+        println "classpath = ${configurations.compileClasspath.collect { File file -> file.name }}"
+    }
+}
+// end::generated-file-dependencies[]

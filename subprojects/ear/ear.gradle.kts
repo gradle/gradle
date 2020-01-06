@@ -22,7 +22,8 @@ plugins {
 dependencies {
     implementation(project(":baseServices"))
     implementation(project(":logging"))
-    implementation(project(":files"))
+    implementation(project(":fileCollections"))
+    implementation(project(":execution"))
     implementation(project(":coreApi"))
     implementation(project(":modelCore"))
     implementation(project(":core"))
@@ -38,12 +39,12 @@ dependencies {
     testImplementation(project(":native"))
     testImplementation(project(":baseServicesGroovy"))
     testImplementation(library("ant"))
+    testImplementation(testFixtures(project(":core")))
+
+    testRuntimeOnly(project(":runtimeApiInfo"))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
 }
 
-testFixtures {
-    from(":core")
-}

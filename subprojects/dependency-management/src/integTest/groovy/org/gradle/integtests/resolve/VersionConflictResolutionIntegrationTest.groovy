@@ -15,8 +15,8 @@
  */
 package org.gradle.integtests.resolve
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -28,10 +28,11 @@ class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << """
             rootProject.name = 'test'
 """
-        new ResolveTestFixture(buildFile).addDefaultVariantDerivationStrategy()
+        new ResolveTestFixture(buildFile, "compile").addDefaultVariantDerivationStrategy()
     }
 
 
+    @ToBeFixedForInstantExecution
     void "strict conflict resolution should fail due to conflict"() {
         mavenRepo.module("org", "foo", '1.3.3').publish()
         mavenRepo.module("org", "foo", '1.4.4').publish()
@@ -48,23 +49,23 @@ allprojects {
 
 project(':api') {
 	dependencies {
-		compile (group: 'org', name: 'foo', version:'1.3.3')
+		implementation (group: 'org', name: 'foo', version:'1.3.3')
 	}
 }
 
 project(':impl') {
 	dependencies {
-		compile (group: 'org', name: 'foo', version:'1.4.4')
+		implementation (group: 'org', name: 'foo', version:'1.4.4')
 	}
 }
 
 project(':tool') {
 	dependencies {
-		compile project(':api')
-		compile project(':impl')
+		implementation project(':api')
+		implementation project(':impl')
 	}
 
-	configurations.compile.resolutionStrategy.failOnVersionConflict()
+	configurations.runtimeClasspath.resolutionStrategy.failOnVersionConflict()
 }
 """
 
@@ -73,6 +74,7 @@ project(':tool') {
         failure.assertThatCause(containsString('Conflict(s) found for the following module(s):'))
     }
 
+    @ToBeFixedForInstantExecution
     void "strict conflict resolution should pass when no conflicts"() {
         mavenRepo.module("org", "foo", '1.3.3').publish()
 
@@ -88,20 +90,20 @@ allprojects {
 
 project(':api') {
 	dependencies {
-		compile (group: 'org', name: 'foo', version:'1.3.3')
+		implementation (group: 'org', name: 'foo', version:'1.3.3')
 	}
 }
 
 project(':impl') {
 	dependencies {
-		compile (group: 'org', name: 'foo', version:'1.3.3')
+		implementation (group: 'org', name: 'foo', version:'1.3.3')
 	}
 }
 
 project(':tool') {
 	dependencies {
-		compile project(':api')
-		compile project(':impl')
+		implementation project(':api')
+		implementation project(':impl')
 	}
 
 	configurations.all { resolutionStrategy.failOnVersionConflict() }
@@ -131,20 +133,20 @@ allprojects {
 
 project(':api') {
 	dependencies {
-		compile (group: 'org', name: 'foo', version:'1.3.3')
+		implementation (group: 'org', name: 'foo', version:'1.3.3')
 	}
 }
 
 project(':impl') {
 	dependencies {
-		compile (group: 'org', name: 'foo', version:'1.4.4')
+		implementation (group: 'org', name: 'foo', version:'1.4.4')
 	}
 }
 
 project(':tool') {
 	dependencies {
-		compile project(':api')
-		compile project(':impl')
+		implementation project(':api')
+		implementation project(':impl')
 	}
 }
 """
@@ -189,8 +191,8 @@ repositories {
 }
 
 dependencies {
-    compile (group: 'org', name: 'bar', version:'1.0')
-    compile (group: 'org', name: 'baz', version:'1.0')
+    implementation (group: 'org', name: 'bar', version:'1.0')
+    implementation (group: 'org', name: 'baz', version:'1.0')
 }
 
 task resolve {
@@ -246,7 +248,7 @@ dependencies {
 }
 """
 
-        def resolve = new ResolveTestFixture(buildFile).expectDefaultConfiguration("runtime")
+        def resolve = new ResolveTestFixture(buildFile, "compile").expectDefaultConfiguration("runtime")
         resolve.prepare()
 
         when:
@@ -291,7 +293,7 @@ dependencies {
 }
 """
 
-        def resolve = new ResolveTestFixture(buildFile).expectDefaultConfiguration("runtime")
+        def resolve = new ResolveTestFixture(buildFile, "compile").expectDefaultConfiguration("runtime")
         resolve.prepare()
 
         when:
@@ -446,20 +448,20 @@ allprojects {
 
 project(':api') {
 	dependencies {
-		compile 'org:foo:1.4.4'
+		implementation 'org:foo:1.4.4'
 	}
 }
 
 project(':impl') {
 	dependencies {
-		compile 'org:foo:1.4.1'
+		implementation 'org:foo:1.4.1'
 	}
 }
 
 project(':tool') {
 
 	dependencies {
-		compile project(':api'), project(':impl'), 'org:foo:1.3.0'
+		implementation project(':api'), project(':impl'), 'org:foo:1.3.0'
 	}
 
 	configurations.all {
@@ -471,7 +473,7 @@ project(':tool') {
 
 	task checkDeps {
         doLast {
-            assert configurations.compile*.name.contains('foo-1.4.9.jar')
+            assert configurations.runtimeClasspath*.name.contains('foo-1.4.9.jar')
         }
     }
 }
@@ -507,7 +509,7 @@ repositories {
 }
 
 dependencies {
-    compile 'org:someArtifact:1.0'
+    implementation 'org:someArtifact:1.0'
 }
 
 configurations.all {
@@ -519,7 +521,7 @@ configurations.all {
 
 task checkDeps {
     doLast {
-        def deps = configurations.compile*.name
+        def deps = configurations.runtimeClasspath*.name
         assert deps.contains('someArtifact-1.0.jar')
         assert deps.contains('foo-1.3.0.jar')
         assert deps.size() == 2
@@ -639,6 +641,7 @@ task checkDeps {
     }
 
     @Issue("GRADLE-2555")
+    @ToBeFixedForInstantExecution
     void "batched up conflicts with conflicted parent and child"() {
         /*
         Dependency tree:
@@ -725,7 +728,7 @@ repositories {
 }
 
 dependencies {
-    compile "org:other:1.7"
+    implementation "org:other:1.7"
 }
 """
 
@@ -763,7 +766,7 @@ repositories {
 }
 
 dependencies {
-    compile "org:other:1.7"
+    implementation "org:other:1.7"
 }
 """
 
@@ -1545,10 +1548,10 @@ task checkDeps(dependsOn: configurations.compile) {
         noExceptionThrown()
     }
 
-    @NotYetImplemented
     def "evicted hard dependency shouldn't add constraint on range"() {
         given:
-        4.times { mavenRepo.module("org", "a", "${it+1}").publish() }
+        4.times { mavenRepo.module("org", "e", "${it+1}").publish() }
+        4.times { mavenRepo.module("org", "a", "${it+1}").dependsOn('org', 'e', "${it+1}").publish() }
         mavenRepo.module("org", "b", "1").dependsOn('org', 'a', '4').publish() // this will be evicted
         mavenRepo.module('org', 'c', '1').dependsOn('org', 'd', '1').publish()
         mavenRepo.module('org', 'd', '1').dependsOn('org', 'b', '2').publish()
@@ -1567,7 +1570,7 @@ task checkDeps(dependsOn: configurations.compile) {
             task checkDeps {
                 doLast {
                     def files = configurations.conf*.name.sort()
-                    assert files == ['a-3.jar', 'b-2.jar', 'c-1.jar', 'd-1.jar']
+                    assert files == ['a-3.jar', 'b-2.jar', 'c-1.jar', 'd-1.jar', 'e-3.jar']
                 }
             }
         """
@@ -1579,7 +1582,40 @@ task checkDeps(dependsOn: configurations.compile) {
         noExceptionThrown()
     }
 
-    @NotYetImplemented
+    def "evicted hard dependency shouldn't add constraint on version"() {
+        given:
+        mavenRepo.module("org", "a", "1").publish()
+        mavenRepo.module("org", "a", "4").publish()
+        mavenRepo.module("org", "b", "1").dependsOn('org', 'a', '4').publish() // this will be evicted
+        mavenRepo.module('org', 'b', '2').publish()
+        mavenRepo.module('org', 'c', '1').dependsOn('org', 'd', '1').publish()
+        mavenRepo.module('org', 'd', '1').dependsOn('org', 'b', '2').publish()
+
+        buildFile << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                conf
+            }
+            dependencies {
+                conf 'org:a:1', 'org:b:1', 'org:c:1'
+            }
+            task checkDeps {
+                doLast {
+                    def files = configurations.conf*.name.sort()
+                    assert files == ['a-1.jar', 'b-2.jar', 'c-1.jar', 'd-1.jar']
+                }
+            }
+        """
+
+        when:
+        run 'checkDeps'
+
+        then:
+        noExceptionThrown()
+    }
+
     def "doesn't include evicted version from branch which has been deselected"() {
         given:
         mavenRepo.module('org', 'a', '1').dependsOn('org', 'b', '2').publish()
@@ -1614,6 +1650,7 @@ task checkDeps(dependsOn: configurations.compile) {
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def 'order of dependency declaration does not effect transitive dependency versions'() {
         given:
         def foo11 = mavenRepo.module('org', 'foo', '1.1').publish()
@@ -1664,6 +1701,7 @@ task checkDeps(dependsOn: configurations.compile) {
     }
 
     @Issue("gradle/gradle-private#1268")
+    @ToBeFixedForInstantExecution
     def "shouldn't fail if root component is also added through cycle, and that failOnVersionConflict() is used"() {
         settingsFile << """
             include "testlib", "common"
@@ -1698,6 +1736,7 @@ task checkDeps(dependsOn: configurations.compile) {
     }
 
     @Issue("gradle/gradle#6403")
+    @ToBeFixedForInstantExecution
     def "shouldn't fail when forcing a dynamic version in resolution strategy"() {
 
         given:
@@ -1708,14 +1747,14 @@ task checkDeps(dependsOn: configurations.compile) {
                 maven { url "${mavenRepo.uri}" }
             }
             configurations {
-                conf { 
+                conf {
                    resolutionStrategy {
                       force "org:moduleA:1.+"
-                      failOnVersionConflict() 
+                      failOnVersionConflict()
                    }
                 }
             }
-            
+
             dependencies {
                conf("org:moduleA:1.+")
                conf("org:moduleA:1.1")
@@ -1732,6 +1771,7 @@ task checkDeps(dependsOn: configurations.compile) {
     }
 
     @Unroll('optional dependency marked as no longer pending reverts to pending if hard edge disappears (remover has constraint: #dependsOptional, root has constraint: #constraintsOptional)')
+    @ToBeFixedForInstantExecution
     def 'optional dependency marked as no longer pending reverts to pending if hard edge disappears (remover has constraint: #dependsOptional, root has constraint: #constraintsOptional)'() {
         given:
         def optional = mavenRepo.module('org', 'optional', '1.0').publish()
@@ -1782,6 +1822,7 @@ dependencies {
     }
 
     @Issue("gradle/gradle#8944")
+    @ToBeFixedForInstantExecution
     def 'verify that cleaning up constraints no longer causes a ConcurrentModificationException'() {
         given:
         // Direct dependency with transitive to be substituted by project
@@ -1825,10 +1866,10 @@ dependencies {
 
 project(':sub') {
     apply plugin: 'java'
-    
+
     group = 'org'
     version = '1.0'
-    
+
     dependencies {
         constraints {
             implementation 'org:lib:1.0'
@@ -1841,6 +1882,33 @@ project(':sub') {
 """
         expect:
         succeeds 'dependencies', '--configuration', 'runtimeClasspath'
+    }
+
+    @ToBeFixedForInstantExecution
+    def "can resolve a graph with an obvious version cycle by breaking the cycle"() {
+        given:
+        def direct2 = mavenRepo.module('org', 'direct', '2.0').publish()
+        def trans = mavenRepo.module('org', 'transitive', '1.0').dependsOn(direct2).publish()
+        mavenRepo.module('org', 'direct', '1.0').dependsOn(trans).publish()
+
+        buildFile << """
+repositories {
+    maven {
+        name 'repo'
+        url '${mavenRepo.uri}'
+    }
+}
+
+configurations {
+    conf
+}
+
+dependencies {
+    conf "org:direct:1.0"
+}
+"""
+        expect:
+        succeeds 'dependencies', '--configuration', 'conf'
     }
 
 }

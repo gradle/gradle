@@ -17,8 +17,11 @@
 package org.gradle.api.provider
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import spock.lang.Unroll
 
 class PropertyIntegrationTest extends AbstractIntegrationSpec {
+    @ToBeFixedForInstantExecution
     def "can use property as task input"() {
         given:
         taskTypeWritesPropertyValueToFile()
@@ -60,12 +63,18 @@ task thing(type: SomeTask) {
         skipped(":thing")
     }
 
-    def "can define task with abstract Property getter"() {
+    @Unroll
+    def "can define task with abstract Property<#type> getter"() {
         given:
         buildFile << """
+            class Param<T> {
+                T display
+                String toString() { display.toString() }
+            }
+
             abstract class MyTask extends DefaultTask {
                 @Input
-                abstract Property<String> getProp()
+                abstract Property<$type> getProp()
                 
                 @TaskAction
                 void go() {
@@ -74,7 +83,7 @@ task thing(type: SomeTask) {
             }
             
             tasks.create("thing", MyTask) {
-                prop = "abc"
+                prop = $value
             }
         """
 
@@ -82,7 +91,48 @@ task thing(type: SomeTask) {
         succeeds("thing")
 
         then:
-        outputContains("prop = abc")
+        outputContains("prop = $display")
+
+        where:
+        type            | value                               | display
+        "String"        | "'abc'"                             | "abc"
+        "Param<String>" | "new Param<String>(display: 'abc')" | "abc"
+    }
+
+    def "can define task with abstract nested property"() {
+        given:
+        buildFile << """
+            interface NestedType {
+                @Input
+                Property<String> getProp()
+            }
+
+            abstract class MyTask extends DefaultTask {
+                @Nested
+                abstract NestedType getNested()
+                
+                void nested(Action<NestedType> action) {
+                    action.execute(nested)
+                }
+                
+                @TaskAction
+                void go() {
+                    println("prop = \${nested.prop.get()}")
+                }
+            }
+            
+            tasks.create("thing", MyTask) {
+                nested {
+                    prop = "value"
+                }
+            }
+        """
+
+        when:
+        succeeds("thing")
+
+        then:
+        outputContains("prop = value")
     }
 
     def "can finalize the value of a property using API"() {
@@ -96,8 +146,13 @@ property.set(provider)
 
 assert property.get() == 1 
 assert property.get() == 2 
+
 property.finalizeValue()
+
+assert counter == 3 // is eager
 assert property.get() == 3 
+
+counter = 45
 assert property.get() == 3 
 
 property.set(12)
@@ -110,7 +165,62 @@ property.set(12)
         failure.assertHasCause("The value for this property is final and cannot be changed any further.")
     }
 
-    def "task @Input property is implicitly finalized and changes ignored when task starts execution"() {
+    def "can finalize the value of a property on next read using API"() {
+        given:
+        buildFile << """
+Integer counter = 0
+def provider = providers.provider { ++counter }
+
+def property = objects.property(Integer)
+property.set(provider)
+
+assert property.get() == 1 
+assert property.get() == 2 
+
+property.finalizeValueOnRead()
+
+assert counter == 2 // is lazy
+assert property.get() == 3
+ 
+counter = 45
+assert property.get() == 3 
+
+property.set(12)
+"""
+
+        when:
+        fails()
+
+        then:
+        failure.assertHasCause("The value for this property is final and cannot be changed any further.")
+    }
+
+    def "can disallow changes to a property using API without finalizing the value"() {
+        given:
+        buildFile << """
+Integer counter = 0
+def provider = providers.provider { ++counter }
+
+def property = objects.property(Integer)
+property.set(provider)
+
+assert property.get() == 1 
+assert property.get() == 2 
+property.disallowChanges()
+assert property.get() == 3
+assert property.get() == 4 
+
+property.set(12)
+"""
+
+        when:
+        fails()
+
+        then:
+        failure.assertHasCause("The value for this property cannot be changed any further.")
+    }
+
+    def "task @Input property is implicitly finalized when task starts execution"() {
         given:
         buildFile << """
 class SomeTask extends DefaultTask {
@@ -122,7 +232,6 @@ class SomeTask extends DefaultTask {
     
     @TaskAction
     void go() {
-        prop.set("ignored")
         outputFile.get().asFile.text = prop.get()
     }
 }
@@ -130,8 +239,8 @@ class SomeTask extends DefaultTask {
 task thing(type: SomeTask) {
     prop = "value 1"
     outputFile = layout.buildDirectory.file("out.txt")
-    doLast {
-        prop.set("ignored")
+    doFirst {
+        prop.set("broken")
     }
 }
 
@@ -141,29 +250,22 @@ afterEvaluate {
 
 task before {
     doLast {
-        thing.prop = providers.provider { "final value" }
+        thing.prop = providers.provider { "value 3" }
     }
 }
 thing.dependsOn before
 
-task after {
-    dependsOn thing
-    doLast {
-        thing.prop = "ignore"
-        assert thing.prop.get() == "final value"
-    }
-}
 """
 
         when:
-        executer.expectDeprecationWarning()
-        run("after")
+        fails("thing")
 
         then:
-        file("build/out.txt").text == "final value"
+        failure.assertHasDescription("Execution failed for task ':thing'.")
+        failure.assertHasCause("The value for task ':thing' property 'prop' is final and cannot be changed any further.")
     }
 
-    def "task ad hoc input property is implicitly finalized and changes ignored when task starts execution"() {
+    def "task ad hoc input property is implicitly finalized when task starts execution"() {
         given:
         buildFile << """
 
@@ -172,19 +274,19 @@ def prop = project.objects.property(String)
 task thing {
     inputs.property("prop", prop)
     prop.set("value 1")
-    doLast {
-        prop.set("ignored")
+    doFirst {
+        prop.set("broken")
         println "prop = " + prop.get()
     }
 }
 """
 
         when:
-        executer.expectDeprecationWarning()
-        run("thing")
+        fails("thing")
 
         then:
-        output.contains("prop = value 1")
+        failure.assertHasDescription("Execution failed for task ':thing'.")
+        failure.assertHasCause("The value for this property is final and cannot be changed any further.")
     }
 
     def "can use property with no value as optional ad hoc task input property"() {
@@ -227,6 +329,7 @@ task thing(type: SomeTask) {
         failure.assertHasCause("broken")
     }
 
+    @ToBeFixedForInstantExecution
     def "task @Input property calculation is called once only when task executes"() {
         taskTypeWritesPropertyValueToFile()
         buildFile << """
@@ -328,7 +431,7 @@ assert tasks.t.prop.get() == "changed"
         succeeds()
     }
 
-    def "can set String property value from DSL using a GString"() {
+    def "can set String property value using a GString"() {
         given:
         buildFile << """
 class SomeExtension {
@@ -341,14 +444,18 @@ class SomeExtension {
 }
 
 extensions.create('custom', SomeExtension)
-custom.prop = "\${'some value'.substring(5)}"
-assert custom.prop.get() == "value"
+custom.prop = "\${'some value 1'.substring(5)}"
+assert custom.prop.get() == "value 1"
 
-custom.prop = providers.provider { "\${'some new value'.substring(5)}" }
-assert custom.prop.get() == "new value"
+custom.prop = providers.provider { "\${'some value 2'.substring(5)}" }
+assert custom.prop.get() == "value 2"
 
-custom.prop.set("\${'some other value'.substring(5)}")
-assert custom.prop.get() == "other value"
+custom.prop = null
+custom.prop.convention("\${'some value 3'.substring(5)}")
+assert custom.prop.get() == "value 3"
+
+custom.prop.convention(providers.provider { "\${'some value 4'.substring(5)}" })
+assert custom.prop.get() == "value 4"
 """
 
         expect:
@@ -399,6 +506,25 @@ task wrongRuntimeType {
         custom.prop.get()
     }
 }
+
+task wrongConventionValueType {
+    doLast {
+        custom.prop.convention(123)
+    }
+}
+
+task wrongConventionPropertyType {
+    doLast {
+        custom.prop.convention(objects.property(Integer))
+    }
+}
+
+task wrongConventionRuntimeValueType {
+    doLast {
+        custom.prop.convention(providers.provider { 123 })
+        custom.prop.get()
+    }
+}
 """
 
         when:
@@ -406,38 +532,59 @@ task wrongRuntimeType {
 
         then:
         failure.assertHasDescription("Execution failed for task ':wrongValueTypeDsl'.")
-        failure.assertHasCause("Cannot set the value of a property of type java.lang.String using an instance of type java.lang.Integer.")
+        failure.assertHasCause("Cannot set the value of extension 'custom' property 'prop' of type java.lang.String using an instance of type java.lang.Integer.")
 
         when:
         fails("wrongValueTypeApi")
 
         then:
         failure.assertHasDescription("Execution failed for task ':wrongValueTypeApi'.")
-        failure.assertHasCause("Cannot set the value of a property of type java.lang.String using an instance of type java.lang.Integer.")
+        failure.assertHasCause("Cannot set the value of extension 'custom' property 'prop' of type java.lang.String using an instance of type java.lang.Integer.")
 
         when:
         fails("wrongPropertyTypeDsl")
 
         then:
         failure.assertHasDescription("Execution failed for task ':wrongPropertyTypeDsl'.")
-        failure.assertHasCause("Cannot set the value of a property of type java.lang.String using a provider of type java.lang.Integer.")
+        failure.assertHasCause("Cannot set the value of extension 'custom' property 'prop' of type java.lang.String using a provider of type java.lang.Integer.")
 
         when:
         fails("wrongPropertyTypeApi")
 
         then:
         failure.assertHasDescription("Execution failed for task ':wrongPropertyTypeApi'.")
-        failure.assertHasCause("Cannot set the value of a property of type java.lang.String using a provider of type java.lang.Integer.")
+        failure.assertHasCause("Cannot set the value of extension 'custom' property 'prop' of type java.lang.String using a provider of type java.lang.Integer.")
 
         when:
         fails("wrongRuntimeType")
 
         then:
         failure.assertHasDescription("Execution failed for task ':wrongRuntimeType'.")
-        failure.assertHasCause("Cannot get the value of a property of type java.lang.String as the provider associated with this property returned a value of type java.lang.Integer.")
+        failure.assertHasCause("Cannot get the value of extension 'custom' property 'prop' of type java.lang.String as the provider associated with this property returned a value of type java.lang.Integer.")
+
+        when:
+        fails("wrongConventionValueType")
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':wrongConventionValueType'.")
+        failure.assertHasCause("Cannot set the value of extension 'custom' property 'prop' of type java.lang.String using an instance of type java.lang.Integer.")
+
+        when:
+        fails("wrongConventionPropertyType")
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':wrongConventionPropertyType'.")
+        failure.assertHasCause("Cannot set the value of extension 'custom' property 'prop' of type java.lang.String using a provider of type java.lang.Integer.")
+
+        when:
+        fails("wrongConventionRuntimeValueType")
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':wrongConventionRuntimeValueType'.")
+        failure.assertHasCause("Cannot get the value of extension 'custom' property 'prop' of type java.lang.String as the provider associated with this property returned a value of type java.lang.Integer.")
     }
 
-    def "emits deprecation warning when specialized factory method is not used"() {
+    def "fails when specialized factory method is not used"() {
         buildFile << """
 class SomeExtension {
     final Property<List<String>> prop1
@@ -448,11 +595,7 @@ class SomeExtension {
 
     @javax.inject.Inject
     SomeExtension(ObjectFactory objects) {
-        prop1 = objects.property(List)
-        prop2 = objects.property(Set)
-        prop3 = objects.property(Directory)
-        prop4 = objects.property(RegularFile)
-        prop5 = objects.property(Map)
+        $prop = objects.property($type)
     }
 }
  
@@ -460,15 +603,18 @@ project.extensions.create("some", SomeExtension)
         """
 
         when:
-        executer.expectDeprecationWarnings(5)
-        succeeds()
+        fails()
 
         then:
-        outputContains("Using method ObjectFactory.property() to create a property of type List<T> has been deprecated. This will fail with an error in Gradle 6.0. Please use the ObjectFactory.listProperty() method instead.")
-        outputContains("Using method ObjectFactory.property() method to create a property of type Set<T> has been deprecated. This will fail with an error in Gradle 6.0. Please use the ObjectFactory.setProperty() method instead.")
-        outputContains("Using method ObjectFactory.property() method to create a property of type Directory has been deprecated. This will fail with an error in Gradle 6.0. Please use the ObjectFactory.directoryProperty() method instead.")
-        outputContains("Using method ObjectFactory.property() method to create a property of type RegularFile has been deprecated. This will fail with an error in Gradle 6.0. Please use the ObjectFactory.fileProperty() method instead.")
-        outputContains("Using method ObjectFactory.property() method to create a property of type Map<K, V> has been deprecated. This will fail with an error in Gradle 6.0. Please use the ObjectFactory.mapProperty() method instead.")
+        failure.assertHasCause("Please use the ObjectFactory.$method method to create a property of type $type$typeParam.")
+
+        where:
+        prop    | method                | type          | typeParam
+        'prop1' | 'listProperty()'      | 'List'        | '<T>'
+        'prop2' | 'setProperty()'       | 'Set'         | '<T>'
+        'prop3' | 'mapProperty()'       | 'Map'         | '<K, V>'
+        'prop4' | 'directoryProperty()' | 'Directory'   | ''
+        'prop5' | 'fileProperty()'      | 'RegularFile' | ''
     }
 
     def taskTypeWritesPropertyValueToFile() {

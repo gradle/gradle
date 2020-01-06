@@ -29,13 +29,15 @@ val originalUrls: Map<String, String> = mapOf(
 )
 
 val mirrorUrls: Map<String, String> =
-    System.getenv("REPO_MIRROR_URLS")?.split(',')?.associate { nameToUrl ->
+    System.getenv("REPO_MIRROR_URLS")?.ifBlank { null }?.split(',')?.associate { nameToUrl ->
         val (name, url) = nameToUrl.split(':', limit = 2)
         name to url
     } ?: emptyMap()
 
+fun isEc2Agent() = java.net.InetAddress.getLocalHost().getHostName().startsWith("ip-")
+
 fun withMirrors(handler: RepositoryHandler) {
-    if ("CI" !in System.getenv()) {
+    if ("CI" !in System.getenv() || isEc2Agent()) {
         return
     }
     handler.all {

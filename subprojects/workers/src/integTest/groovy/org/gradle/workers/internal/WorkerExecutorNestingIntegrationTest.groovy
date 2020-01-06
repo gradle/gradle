@@ -16,19 +16,26 @@
 
 package org.gradle.workers.internal
 
+import org.gradle.api.tasks.Internal
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.internal.work.DefaultConditionalExecutionQueue
+import org.gradle.workers.WorkerExecutor
+import org.gradle.workers.fixtures.WorkerExecutorFixture
 import spock.lang.Unroll
 
 import static org.gradle.workers.fixtures.WorkerExecutorFixture.ISOLATION_MODES
 
 @IntegrationTestTimeout(120)
 class WorkerExecutorNestingIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
+    def nestingParameterType = fixture.workParameterClass("NestingParameter", "org.gradle.test").withFields([
+        "greeting": "Property<String>",
+        "childSubmissions": "int"
+    ])
 
     @Unroll
     def "workers with no isolation can spawn more work with #nestedIsolationMode"() {
         buildFile << """
-            ${getRunnableWithNesting("IsolationMode.NONE", nestedIsolationMode)}
+            ${getWorkActionWithNesting("IsolationMode.NONE", nestedIsolationMode)}
             task runInWorker(type: NestingWorkerTask)
         """.stripIndent()
 
@@ -44,7 +51,7 @@ class WorkerExecutorNestingIntegrationTest extends AbstractWorkerExecutorIntegra
 
     def "workers with no isolation can wait on spawned work"() {
         buildFile << """
-            ${getRunnableWithNesting("IsolationMode.NONE", "IsolationMode.NONE")}
+            ${getWorkActionWithNesting("IsolationMode.NONE", "IsolationMode.NONE")}
             task runInWorker(type: NestingWorkerTask) {
                 waitForChildren = true 
             }
@@ -60,7 +67,7 @@ class WorkerExecutorNestingIntegrationTest extends AbstractWorkerExecutorIntegra
     def "workers with no isolation can spawn more than max workers items of work"() {
         def maxWorkers = 4
         buildFile << """
-            ${getRunnableWithNesting("IsolationMode.NONE", "IsolationMode.NONE")}
+            ${getWorkActionWithNesting("IsolationMode.NONE", "IsolationMode.NONE")}
             task runInWorker(type: NestingWorkerTask) {
                 submissions = ${maxWorkers * 2}
                 childSubmissions = ${maxWorkers}
@@ -78,7 +85,7 @@ class WorkerExecutorNestingIntegrationTest extends AbstractWorkerExecutorIntegra
     def "workers with no isolation can spawn and wait for more than max workers items of work"() {
         def maxWorkers = 4
         buildFile << """
-            ${getRunnableWithNesting("IsolationMode.NONE", "IsolationMode.NONE")}
+            ${getWorkActionWithNesting("IsolationMode.NONE", "IsolationMode.NONE")}
             task runInWorker(type: NestingWorkerTask) {
                 waitForChildren = true 
                 submissions = ${maxWorkers * 2}
@@ -101,7 +108,7 @@ class WorkerExecutorNestingIntegrationTest extends AbstractWorkerExecutorIntegra
     @Unroll
     def "workers with classpath isolation cannot spawn more work with #nestedIsolationMode"() {
         buildFile << """
-            ${getRunnableWithNesting("IsolationMode.CLASSLOADER", nestedIsolationMode)}
+            ${getWorkActionWithNesting("IsolationMode.CLASSLOADER", nestedIsolationMode)}
             task runInWorker(type: NestingWorkerTask)
         """.stripIndent()
 
@@ -109,8 +116,8 @@ class WorkerExecutorNestingIntegrationTest extends AbstractWorkerExecutorIntegra
         fails("runInWorker")
 
         and:
-        failure.assertHasCause("Could not create an instance of type FirstLevelRunnable.")
-        failure.assertHasCause("Unable to determine constructor argument #1: value 'Hello World' is not assignable to interface org.gradle.workers.WorkerExecutor, or no service of type interface org.gradle.workers.WorkerExecutor")
+        failure.assertHasCause("Could not create an instance of type FirstLevelExecution.")
+        failure.assertHasCause("Unable to determine constructor argument #1: missing parameter of type WorkerExecutor, or no service of type WorkerExecutor")
 
         where:
         nestedIsolationMode << ISOLATION_MODES
@@ -123,7 +130,7 @@ class WorkerExecutorNestingIntegrationTest extends AbstractWorkerExecutorIntegra
     @Unroll
     def "workers with process isolation cannot spawn more work with #nestedIsolationMode"() {
         buildFile << """
-            ${getRunnableWithNesting("IsolationMode.PROCESS", nestedIsolationMode)}
+            ${getWorkActionWithNesting("IsolationMode.PROCESS", nestedIsolationMode)}
             task runInWorker(type: NestingWorkerTask)
         """.stripIndent()
 
@@ -131,8 +138,8 @@ class WorkerExecutorNestingIntegrationTest extends AbstractWorkerExecutorIntegra
         fails("runInWorker")
 
         and:
-        failure.assertHasCause("Could not create an instance of type FirstLevelRunnable.")
-        failure.assertHasCause("Unable to determine constructor argument #1: value 'Hello World' is not assignable to interface org.gradle.workers.WorkerExecutor, or no service of type interface org.gradle.workers.WorkerExecutor")
+        failure.assertHasCause("Could not create an instance of type FirstLevelExecution.")
+        failure.assertHasCause("Unable to determine constructor argument #1: missing parameter of type WorkerExecutor, or no service of type WorkerExecutor")
 
         where:
         nestedIsolationMode << ISOLATION_MODES
@@ -142,7 +149,7 @@ class WorkerExecutorNestingIntegrationTest extends AbstractWorkerExecutorIntegra
         def maxWorkers = 4
 
         buildFile << """
-            ${getRunnableWithNesting("IsolationMode.NONE", "IsolationMode.NONE")}
+            ${getWorkActionWithNesting("IsolationMode.NONE", "IsolationMode.NONE")}
             task runInWorker(type: NestingWorkerTask) {
                 submissions = ${maxWorkers * 2}
                 childSubmissions = ${maxWorkers * 10}
@@ -186,53 +193,49 @@ class WorkerExecutorNestingIntegrationTest extends AbstractWorkerExecutorIntegra
         result.groupedOutput.task(':runInWorker').output.contains("Hello World")
     }
 
-    String getRunnableWithNesting(String isolationMode, String nestedIsolationMode) {
-        return """
-            import javax.inject.Inject
-            import org.gradle.workers.WorkerExecutor
-
-            class FirstLevelRunnable implements Runnable {
+    WorkerExecutorFixture.WorkActionClass getFirstLevelExecution(String nestedIsolationMode) {
+        def workerClass = fixture.workActionClass("FirstLevelExecution", "org.gradle.test", nestingParameterType)
+        workerClass.imports += [WorkerExecutor.name, Internal.name]
+        workerClass.extraFields = """
+            @Internal WorkerExecutor executor
             
-                WorkerExecutor executor
-                String greeting
-                int childSubmissions
-                
-                @Inject
-                public FirstLevelRunnable(WorkerExecutor executor, String greeting, int childSubmissions) {
-                    this.executor = executor
-                    this.greeting = greeting
-                    this.childSubmissions = childSubmissions
-                }
-
-                public void run() {
-                    childSubmissions.times {
-                        executor.submit(SecondLevelRunnable) {
-                            isolationMode = $nestedIsolationMode
-                            params = [greeting]
-                        }
-                    }
+            ${fixture.workerMethodTranslation}
+        """
+        workerClass.constructorArgs = "WorkerExecutor executor"
+        workerClass.constructorAction = "this.executor = executor"
+        workerClass.action = """
+            def theGreeting = parameters.greeting
+            parameters.childSubmissions.times {
+                executor."\${getWorkerMethod($nestedIsolationMode)}"().submit(SecondLevelExecution) {
+                    greeting.set(theGreeting)
                 }
             }
+        """
+        return workerClass
+    }
 
-            class SecondLevelRunnable implements Runnable {
-                
-                String greeting
+    WorkerExecutorFixture.WorkActionClass getSecondLevelExecution() {
+        def workerClass = fixture.workActionClass("SecondLevelExecution", "org.gradle.test", nestingParameterType)
+        workerClass.action = """
+            System.out.println(parameters.greeting.get())
+        """
+        return workerClass
+    }
 
-                @Inject
-                public SecondLevelRunnable(String greeting) {
-                    this.greeting = greeting
-                }
-
-                public void run() {
-                    System.out.println(greeting)
-                }
-            }
-
+    String getWorkActionWithNesting(String isolationMode, String nestedIsolationMode) {
+        getFirstLevelExecution(nestedIsolationMode).writeToBuildFile()
+        secondLevelExecution.writeToBuildFile()
+        return """
             class NestingWorkerTask extends DefaultTask {
 
-                WorkerExecutor executor
+                @Internal
+                final WorkerExecutor executor
+
+                @Internal
                 boolean waitForChildren = false
+                @Internal
                 int submissions = 1
+                @Internal
                 int childSubmissions = 1
 
                 @Inject
@@ -243,15 +246,17 @@ class WorkerExecutorNestingIntegrationTest extends AbstractWorkerExecutorIntegra
                 @TaskAction
                 public void runInWorker() {
                     submissions.times {
-                        executor.submit(FirstLevelRunnable) {
-                            isolationMode = $isolationMode
-                            params = ["Hello World", childSubmissions]
+                        executor."\${getWorkerMethod($isolationMode)}"().submit(FirstLevelExecution) {
+                            greeting = "Hello World"
+                            childSubmissions = this.childSubmissions
                         }
                     }
                     if (waitForChildren) {
                         executor.await()
                     }
                 }
+
+                ${fixture.workerMethodTranslation}
             }
         """.stripIndent()
     }

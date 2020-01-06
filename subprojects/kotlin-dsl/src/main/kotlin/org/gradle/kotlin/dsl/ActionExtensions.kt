@@ -22,4 +22,4 @@ import org.gradle.api.Action
 /**
  * Enables function invocation syntax on [Action] references.
  */
-inline operator fun <reified T> Action<in T>.invoke(target: T) = execute(target)
+operator fun <T> Action<in T>.invoke(target: T) = execute(target)

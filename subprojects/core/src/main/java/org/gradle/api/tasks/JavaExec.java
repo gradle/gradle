@@ -17,16 +17,23 @@
 package org.gradle.api.tasks;
 
 import org.apache.tools.ant.types.Commandline;
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.process.CommandLineArgumentProvider;
+import org.gradle.process.ExecResult;
+import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaExecSpec;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.ProcessForkOptions;
+import org.gradle.process.internal.DslExecActionFactory;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.process.internal.JavaExecAction;
 
@@ -55,18 +62,57 @@ import java.util.Map;
  *   // arguments to pass to the application
  *   args 'appArg1'
  * }
+ *
+ * // Using and creating an Executable Jar
+ * jar {
+ *   manifest {
+ *     attributes('Main-Class': 'package.Main')
+ *   }
+ * }
+ *
+ * task runExecutableJar(type: JavaExec) {
+ *   // Executable jars can have only _one_ jar on the classpath.
+ *   classpath = files(tasks.jar)
+ *
+ *   // 'main' does not need to be specified
+ *
+ *   // arguments to pass to the application
+ *   args 'appArg1'
+ * }
+ *
  * </pre>
  * <p>
  * The process can be started in debug mode (see {@link #getDebug()}) in an ad-hoc manner by supplying the `--debug-jvm` switch when invoking the build.
  * <pre>
  * gradle someJavaExecTask --debug-jvm
  * </pre>
+ * <p>
+ * Also, debug configuration can be explicitly set in {@link #debugOptions(Action)}:
+ * <pre>
+ * task runApp(type: JavaExec) {
+ *    ...
+ *
+ *    debugOptions {
+ *        enabled = true
+ *        port = 5566
+ *        server = true
+ *        suspend = false
+ *    }
+ * }
+ * </pre>
  */
 public class JavaExec extends ConventionTask implements JavaExecSpec {
     private final JavaExecAction javaExecHandleBuilder;
+    private final Property<ExecResult> execResult;
 
     public JavaExec() {
-        javaExecHandleBuilder = getExecActionFactory().newJavaExecAction();
+        javaExecHandleBuilder = getDslExecActionFactory().newDecoratedJavaExecAction();
+        execResult = getObjectFactory().property(ExecResult.class);
+    }
+
+    @Inject
+    protected ObjectFactory getObjectFactory() {
+        throw new UnsupportedOperationException();
     }
 
     @Inject
@@ -74,11 +120,16 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
         throw new UnsupportedOperationException();
     }
 
+    @Inject
+    protected DslExecActionFactory getDslExecActionFactory() {
+        throw new UnsupportedOperationException();
+    }
+
     @TaskAction
     public void exec() {
         setMain(getMain()); // make convention mapping work (at least for 'main'...
         setJvmArgs(getJvmArgs()); // ...and for 'jvmArgs')
-        javaExecHandleBuilder.execute();
+        execResult.set(javaExecHandleBuilder.execute());
     }
 
     /**
@@ -287,6 +338,16 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
         javaExecHandleBuilder.setDebug(enabled);
     }
 
+    @Override
+    public JavaDebugOptions getDebugOptions() {
+        return javaExecHandleBuilder.getDebugOptions();
+    }
+
+    @Override
+    public void debugOptions(Action<JavaDebugOptions> action) {
+        javaExecHandleBuilder.debugOptions(action);
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -329,8 +390,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      * @return this
      * @since 4.9
      */
-    @Incubating
-    @Option(option = "args", description = "Command line arguments passed to the main class. [INCUBATING]")
+    @Option(option = "args", description = "Command line arguments passed to the main class.")
     public JavaExec setArgsString(String args) {
         return setArgs(Arrays.asList(Commandline.translateCommandline(args)));
     }
@@ -420,7 +480,6 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      * @since 5.2
      */
     @Input
-    @Incubating
     public JavaVersion getJavaVersion() {
         return getServices().get(JvmVersionDetector.class).getJavaVersion(getExecutable());
     }
@@ -625,5 +684,17 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     @Override
     public List<CommandLineArgumentProvider> getJvmArgumentProviders() {
         return javaExecHandleBuilder.getJvmArgumentProviders();
+    }
+
+    /**
+     * Returns the result for the command run by this task. The provider has no value if this task has not been executed yet.
+     *
+     * @return A provider of the result.
+     * @since 6.1
+     */
+    @Internal
+    @Incubating
+    public Provider<ExecResult> getExecutionResult() {
+        return execResult;
     }
 }

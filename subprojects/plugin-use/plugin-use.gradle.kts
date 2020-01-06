@@ -25,7 +25,7 @@ dependencies {
     implementation(project(":baseServices"))
     implementation(project(":logging"))
     implementation(project(":messaging"))
-    implementation(project(":files"))
+    implementation(project(":fileCollections"))
     implementation(project(":coreApi"))
     implementation(project(":core"))
     implementation(project(":dependencyManagement"))
@@ -35,12 +35,20 @@ dependencies {
     implementation(library("groovy"))
     implementation(library("guava"))
 
+    testImplementation(testFixtures(project(":resourcesHttp")))
+
     integTestImplementation(project(":baseServicesGroovy"))
+    integTestImplementation(library("jetbrains_annotations"))
 
     integTestRuntimeOnly(project(":plugins"))
     integTestRuntimeOnly(project(":pluginDevelopment"))
     integTestRuntimeOnly(project(":testKit"))
     integTestRuntimeOnly(project(":toolingApiBuilders"))
+    integTestRuntimeOnly(project(":runtimeApiInfo"))
+    integTestRuntimeOnly(project(":testingJunitPlatform"))
+    integTestRuntimeOnly(project(":apiMetadata"))
+    integTestRuntimeOnly(project(":kotlinDsl"))
+    integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
 }
 
 
@@ -52,6 +60,3 @@ testFilesCleanup {
     policy.set(WhenNotEmpty.REPORT)
 }
 
-testFixtures {
-    from(":resourcesHttp")
-}

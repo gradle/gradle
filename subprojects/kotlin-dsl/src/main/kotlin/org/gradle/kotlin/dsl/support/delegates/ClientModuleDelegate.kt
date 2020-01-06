@@ -143,4 +143,13 @@ abstract class ClientModuleDelegate : ClientModule {
 
     override fun getReason(): String? =
         delegate.reason
+
+    override fun endorseStrictVersions() =
+        delegate.endorseStrictVersions()
+
+    override fun doNotEndorseStrictVersions() =
+        delegate.doNotEndorseStrictVersions()
+
+    override fun isEndorsingStrictVersions() =
+        delegate.isEndorsingStrictVersions
 }

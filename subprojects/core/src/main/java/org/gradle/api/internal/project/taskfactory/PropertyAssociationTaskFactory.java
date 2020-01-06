@@ -47,7 +47,11 @@ public class PropertyAssociationTaskFactory implements ITaskFactory {
     @Override
     public <S extends Task> S create(TaskIdentity<S> taskIdentity, @Nullable Object[] constructorArgs) {
         final S task = delegate.create(taskIdentity, constructorArgs);
-        TaskPropertyUtils.visitProperties(propertyWalker, (TaskInternal) task, new Listener(task));
+        if (constructorArgs != null) {
+            // Do not attach property objects when recreating from cache, they're not really needed
+            // TODO:instant-execution - separate construction from property attachment, so that tasks can be recreated from cache and then have properties attached
+            TaskPropertyUtils.visitProperties(propertyWalker, (TaskInternal) task, new Listener(task));
+        }
         return task;
     }
 

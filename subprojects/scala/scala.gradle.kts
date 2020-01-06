@@ -24,7 +24,7 @@ dependencies {
     implementation(project(":baseServices"))
     implementation(project(":logging"))
     implementation(project(":workerProcesses"))
-    implementation(project(":files"))
+    implementation(project(":fileCollections"))
     implementation(project(":coreApi"))
     implementation(project(":modelCore"))
     implementation(project(":core"))
@@ -43,23 +43,25 @@ dependencies {
     implementation(library("inject"))
 
     testImplementation(project(":baseServicesGroovy"))
+    testImplementation(project(":files"))
     testImplementation(library("slf4j_api"))
     testImplementation(library("commons_io"))
+    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":plugins")))
+    testImplementation(testFixtures(project(":languageJvm")))
+    testImplementation(testFixtures(project(":languageJava")))
+
+    testRuntimeOnly(project(":runtimeApiInfo"))
 
     integTestImplementation(project(":jvmServices"))
+    integTestImplementation(testFixtures(project(":languageScala")))
     integTestRuntimeOnly(project(":ide"))
     integTestRuntimeOnly(project(":maven"))
+    integTestRuntimeOnly(project(":testingJunitPlatform"))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
-}
-
-testFixtures {
-    from(":core")
-    from(":plugins")
-    from(":languageJvm")
-    from(":languageScala")
 }
 
 tasks.named<Test>("integTest") {

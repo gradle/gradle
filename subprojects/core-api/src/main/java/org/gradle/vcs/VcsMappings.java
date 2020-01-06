@@ -17,7 +17,6 @@
 package org.gradle.vcs;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
@@ -45,7 +44,6 @@ import org.gradle.internal.HasInternalProtocol;
  *
  * @since 4.4
  */
-@Incubating
 @HasInternalProtocol
 public interface VcsMappings {
     /**

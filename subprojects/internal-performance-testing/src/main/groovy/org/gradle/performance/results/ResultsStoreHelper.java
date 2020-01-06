@@ -25,7 +25,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class ResultsStoreHelper {
-    private static final String SYSPROP_PERFORMANCE_TEST_CHANNEL = "org.gradle.performance.execution.channel";
+    public static final String SYSPROP_PERFORMANCE_TEST_CHANNEL = "org.gradle.performance.execution.channel";
     private static final Logger LOGGER = LoggerFactory.getLogger(ResultsStoreHelper.class);
 
     public static List<String> split(String string) {
@@ -44,7 +44,7 @@ public class ResultsStoreHelper {
         if (value == null) {
             return null;
         }
-        List<String> result = new ArrayList<String>(value.length);
+        List<String> result = new ArrayList<>(value.length);
         for (Object aValue : value) {
             result.add(aValue.toString());
         }
@@ -53,6 +53,10 @@ public class ResultsStoreHelper {
 
     public static String determineChannel() {
         return System.getProperty(SYSPROP_PERFORMANCE_TEST_CHANNEL, "commits");
+    }
+
+    public static boolean isHistoricalChannel() {
+        return determineChannel().startsWith("historical-");
     }
 
     public static String determineTeamCityBuildId() {

@@ -16,7 +16,6 @@
 
 package org.gradle.api.artifacts;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.attributes.HasConfigurableAttributes;
@@ -47,7 +46,6 @@ public interface ArtifactView extends HasAttributes {
      *
      * @since 4.0
      */
-    @Incubating
     interface ViewConfiguration extends HasConfigurableAttributes<ViewConfiguration> {
         /**
          * Specify a filter for the components that should be included in this view.

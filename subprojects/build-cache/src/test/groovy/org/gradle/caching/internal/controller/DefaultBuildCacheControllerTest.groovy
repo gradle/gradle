@@ -25,7 +25,7 @@ import org.gradle.caching.internal.controller.service.BuildCacheServicesConfigur
 import org.gradle.caching.local.internal.LocalBuildCacheService
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.testing.internal.util.Specification
+import spock.lang.Specification
 import org.junit.Rule
 
 class DefaultBuildCacheControllerTest extends Specification {
@@ -36,7 +36,7 @@ class DefaultBuildCacheControllerTest extends Specification {
     }
 
     def local = Mock(Local) {
-        withTempFile(_, _) >> { key, action ->
+        withTempFile(_ as BuildCacheKey, _ as Action) >> { key, action ->
             action.execute(tmpDir.file("file"))
         }
     }
@@ -45,11 +45,9 @@ class DefaultBuildCacheControllerTest extends Specification {
     def remotePush = true
     def loadmetadata = Mock(Object)
 
-    BuildCacheService legacyLocal = null
-
     def storeCommand = Stub(BuildCacheStoreCommand) {
         getKey() >> key
-        store(_) >> { OutputStream output ->
+        store(_ as OutputStream) >> { OutputStream output ->
             output.close()
             new BuildCacheStoreCommand.Result() {
                 @Override
@@ -62,7 +60,7 @@ class DefaultBuildCacheControllerTest extends Specification {
 
     def loadCommand = Stub(BuildCacheLoadCommand) {
         getKey() >> key
-        load(_) >> { InputStream input ->
+        load(_ as InputStream) >> { InputStream input ->
             input.close()
             new BuildCacheLoadCommand.Result() {
                 @Override
@@ -88,12 +86,15 @@ class DefaultBuildCacheControllerTest extends Specification {
     BuildCacheController getController() {
         new DefaultBuildCacheController(
             new BuildCacheServicesConfiguration(
-                legacyLocal ?: local, localPush,
-                remote, remotePush
+                local,
+                localPush,
+                remote,
+                remotePush
             ),
             operations,
             tmpDir.file("dir"),
-            false, false
+            false,
+            false
         )
     }
 
@@ -249,93 +250,4 @@ class DefaultBuildCacheControllerTest extends Specification {
         1 * local.close()
         1 * remote.close()
     }
-
-    def "does not store to local cache if using legacy local service"() {
-        given:
-        legacyLocal = Mock(BuildCacheService)
-        1 * legacyLocal.load(key, _) // miss
-        1 * remote.load(key, _) >> { BuildCacheKey key, BuildCacheEntryReader reader ->
-            reader.readFrom(new ByteArrayInputStream("foo".bytes))
-            true
-        }
-
-        when:
-        controller.load(loadCommand)
-
-        then:
-        0 * legacyLocal.store(key, _)
-    }
-
-    def "legacy local load does not store to legacy local"() {
-        given:
-        legacyLocal = Mock(BuildCacheService)
-        1 * legacyLocal.load(key, _) >> { BuildCacheKey key, BuildCacheEntryReader reader ->
-            reader.readFrom(new ByteArrayInputStream("foo".bytes))
-            true
-        }
-
-        when:
-        controller.load(loadCommand)
-
-        then:
-        0 * legacyLocal.store(key, _)
-    }
-
-    def "legacy local loads do not emit ops"() {
-        given:
-        legacyLocal = Mock(BuildCacheService)
-        remote = null
-        1 * legacyLocal.load(key, _) // miss
-        1 * legacyLocal.load(key, _) >> { key, BuildCacheEntryReader reader ->
-            reader.readFrom(new ByteArrayInputStream("foo".bytes))
-            true
-        }
-
-        when:
-        controller.load(loadCommand)
-        controller.load(loadCommand)
-
-        then:
-        with(operations.log.descriptors) {
-            size() == 1
-            get(0).displayName ==~ "Unpack build cache entry $key"
-        }
-    }
-
-    def "legacy local stores do not emit ops"() {
-        given:
-        legacyLocal = Mock(BuildCacheService)
-        remote = null
-        1 * legacyLocal.store(key, _) >> { key, BuildCacheEntryWriter writer ->
-            writer.writeTo(new ByteArrayOutputStream())
-        }
-
-        when:
-        controller.store(storeCommand)
-
-        then:
-        with(operations.log.descriptors) {
-            size() == 1
-            get(0).displayName ==~ "Pack build cache entry $key"
-        }
-    }
-
-    def "legacy errors do not emit ops"() {
-        given:
-        legacyLocal = Mock(BuildCacheService)
-        remote = null
-        1 * legacyLocal.store(key, _) >> { key, BuildCacheEntryWriter writer ->
-            new Exception("!")
-        }
-
-        when:
-        controller.store(storeCommand)
-
-        then:
-        with(operations.log.descriptors) {
-            size() == 1
-            get(0).displayName ==~ "Pack build cache entry $key"
-        }
-    }
-
 }

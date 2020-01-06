@@ -21,24 +21,21 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Artif
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 
-import java.io.File;
 import java.util.Map;
 
 public class TransformCompletion implements ResolvedArtifactSet.Completion {
     private final AttributeContainerInternal attributes;
     private final ResolvedArtifactSet.Completion delegate;
     private final Map<ComponentArtifactIdentifier, TransformationResult> artifactResults;
-    private final Map<File, TransformationResult> fileResults;
 
-    public TransformCompletion(ResolvedArtifactSet.Completion delegate, AttributeContainerInternal attributes, Map<ComponentArtifactIdentifier, TransformationResult> artifactResults, Map<File, TransformationResult> fileResults) {
+    public TransformCompletion(ResolvedArtifactSet.Completion delegate, AttributeContainerInternal attributes, Map<ComponentArtifactIdentifier, TransformationResult> artifactResults) {
         this.delegate = delegate;
         this.attributes = attributes;
         this.artifactResults = artifactResults;
-        this.fileResults = fileResults;
     }
 
     @Override
     public void visit(ArtifactVisitor visitor) {
-        delegate.visit(new TransformingArtifactVisitor(visitor, attributes, artifactResults, fileResults));
+        delegate.visit(new TransformingArtifactVisitor(visitor, attributes, artifactResults));
     }
 }

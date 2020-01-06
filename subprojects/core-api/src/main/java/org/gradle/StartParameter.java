@@ -21,6 +21,7 @@ import com.google.common.collect.Sets;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.gradle.api.Incubating;
+import org.gradle.api.artifacts.verification.DependencyVerificationMode;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
@@ -67,20 +68,20 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
 
     private final DefaultLoggingConfiguration loggingConfiguration = new DefaultLoggingConfiguration();
     private final DefaultParallelismConfiguration parallelismConfiguration = new DefaultParallelismConfiguration();
-    private List<TaskExecutionRequest> taskRequests = new ArrayList<TaskExecutionRequest>();
-    private Set<String> excludedTaskNames = new LinkedHashSet<String>();
+    private List<TaskExecutionRequest> taskRequests = new ArrayList<>();
+    private Set<String> excludedTaskNames = new LinkedHashSet<>();
     private boolean buildProjectDependencies = true;
     private File currentDir;
     private File projectDir;
-    private boolean searchUpwards;
-    private Map<String, String> projectProperties = new HashMap<String, String>();
-    private Map<String, String> systemPropertiesArgs = new HashMap<String, String>();
+    protected boolean searchUpwards;
+    private Map<String, String> projectProperties = new HashMap<>();
+    private Map<String, String> systemPropertiesArgs = new HashMap<>();
     private File gradleUserHomeDir;
     protected File gradleHomeDir;
     private File settingsFile;
-    private boolean useEmptySettings;
+    protected boolean useEmptySettings;
     private File buildFile;
-    private List<File> initScripts = new ArrayList<File>();
+    private List<File> initScripts = new ArrayList<>();
     private boolean dryRun;
     private boolean rerunTasks;
     private boolean profile;
@@ -88,17 +89,19 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     private boolean offline;
     private File projectCacheDir;
     private boolean refreshDependencies;
-    private boolean recompileScripts;
     private boolean buildCacheEnabled;
     private boolean buildCacheDebugLogging;
     private boolean configureOnDemand;
     private boolean continuous;
-    private List<File> includedBuilds = new ArrayList<File>();
+    private List<File> includedBuilds = new ArrayList<>();
     private boolean buildScan;
     private boolean noBuildScan;
-    private boolean interactive;
     private boolean writeDependencyLocks;
+    private List<String> writeDependencyVerifications = emptyList();
     private List<String> lockedDependenciesToUpdate = emptyList();
+    private DependencyVerificationMode verificationMode = DependencyVerificationMode.STRICT;
+    private boolean isRefreshKeys;
+    private boolean isExportKeys;
 
     /**
      * {@inheritDoc}
@@ -209,15 +212,15 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
         p.projectDir = projectDir;
         p.settingsFile = settingsFile;
         p.useEmptySettings = useEmptySettings;
-        p.taskRequests = new ArrayList<TaskExecutionRequest>(taskRequests);
-        p.excludedTaskNames = new LinkedHashSet<String>(excludedTaskNames);
+        p.taskRequests = new ArrayList<>(taskRequests);
+        p.excludedTaskNames = new LinkedHashSet<>(excludedTaskNames);
         p.buildProjectDependencies = buildProjectDependencies;
         p.currentDir = currentDir;
         p.searchUpwards = searchUpwards;
-        p.projectProperties = new HashMap<String, String>(projectProperties);
-        p.systemPropertiesArgs = new HashMap<String, String>(systemPropertiesArgs);
-        p.initScripts = new ArrayList<File>(initScripts);
-        p.includedBuilds = new ArrayList<File>(includedBuilds);
+        p.projectProperties = new HashMap<>(projectProperties);
+        p.systemPropertiesArgs = new HashMap<>(systemPropertiesArgs);
+        p.initScripts = new ArrayList<>(initScripts);
+        p.includedBuilds = new ArrayList<>(includedBuilds);
         p.dryRun = dryRun;
         p.projectCacheDir = projectCacheDir;
         return p;
@@ -244,16 +247,18 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
         p.continueOnFailure = continueOnFailure;
         p.offline = offline;
         p.rerunTasks = rerunTasks;
-        p.recompileScripts = recompileScripts;
         p.refreshDependencies = refreshDependencies;
         p.setParallelProjectExecutionEnabled(isParallelProjectExecutionEnabled());
         p.buildCacheEnabled = buildCacheEnabled;
         p.configureOnDemand = configureOnDemand;
         p.setMaxWorkerCount(getMaxWorkerCount());
-        p.systemPropertiesArgs = new HashMap<String, String>(systemPropertiesArgs);
-        p.interactive = interactive;
+        p.systemPropertiesArgs = new HashMap<>(systemPropertiesArgs);
         p.writeDependencyLocks = writeDependencyLocks;
-        p.lockedDependenciesToUpdate = new ArrayList<String>(lockedDependenciesToUpdate);
+        p.writeDependencyVerifications = writeDependencyVerifications;
+        p.lockedDependenciesToUpdate = new ArrayList<>(lockedDependenciesToUpdate);
+        p.verificationMode = verificationMode;
+        p.isRefreshKeys = isRefreshKeys;
+        p.isExportKeys = isExportKeys;
         return p;
     }
 
@@ -300,10 +305,15 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * @return this
      */
     public StartParameter useEmptySettings() {
+        DeprecationLogger.nagUserOfDeprecated("StartParameter#useEmptySettings()");
+        doUseEmptySettings();
+        return this;
+    }
+
+    protected void doUseEmptySettings() {
         searchUpwards = false;
         useEmptySettings = true;
         settingsFile = null;
-        return this;
     }
 
     /**
@@ -312,6 +322,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * @return Whether to use empty settings or not.
      */
     public boolean isUseEmptySettings() {
+        DeprecationLogger.nagUserOfDeprecated("StartParameter#isUseEmptySettings()");
         return useEmptySettings;
     }
 
@@ -338,7 +349,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
         if (taskNames == null) {
             this.taskRequests = emptyList();
         } else {
-            this.taskRequests = Arrays.<TaskExecutionRequest>asList(new DefaultTaskExecutionRequest(taskNames));
+            this.taskRequests = Arrays.asList(new DefaultTaskExecutionRequest(taskNames));
         }
     }
 
@@ -402,10 +413,12 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     }
 
     public boolean isSearchUpwards() {
+        DeprecationLogger.nagUserOfDeprecated("StartParameter#isSearchUpwards()");
         return searchUpwards;
     }
 
     public void setSearchUpwards(boolean searchUpwards) {
+        DeprecationLogger.nagUserOfDeprecated("StartParameter#setSearchUpwards(boolean)");
         this.searchUpwards = searchUpwards;
     }
 
@@ -534,7 +547,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
             new UserHomeInitScriptFinder(getGradleUserHomeDir()), new DistributionInitScriptFinder(gradleHomeDir)
         );
 
-        List<File> scripts = new ArrayList<File>(getInitScripts());
+        List<File> scripts = new ArrayList<>(getInitScripts());
         initScriptFinder.findScripts(scripts);
         return Collections.unmodifiableList(scripts);
     }
@@ -640,28 +653,6 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     }
 
     /**
-     * Specifies whether to force the build scripts to be recompiled.
-     *
-     * @deprecated This flag is no longer used.
-     */
-    @Deprecated
-    public boolean isRecompileScripts() {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("StartParameter.isRecompileScripts()");
-        return recompileScripts;
-    }
-
-    /**
-     * Specifies whether to force the build scripts to be recompiled.
-     *
-     * @deprecated This flag is no longer used and simply defaults to 'false'.
-     */
-    @Deprecated
-    public void setRecompileScripts(boolean recompileScripts) {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("StartParameter.setRecompileScripts()");
-        this.recompileScripts = recompileScripts;
-    }
-
-    /**
      * {@inheritDoc}
      */
     @Override
@@ -700,7 +691,6 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      *
      * @since 4.6
      */
-    @Incubating
     public boolean isBuildCacheDebugLogging() {
         return buildCacheDebugLogging;
     }
@@ -710,7 +700,6 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      *
      * @since 4.6
      */
-    @Incubating
     public void setBuildCacheDebugLogging(boolean buildCacheDebugLogging) {
         this.buildCacheDebugLogging = buildCacheDebugLogging;
     }
@@ -756,15 +745,15 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
             + ", initScripts=" + initScripts
             + ", dryRun=" + dryRun
             + ", rerunTasks=" + rerunTasks
-            + ", recompileScripts=" + recompileScripts
             + ", offline=" + offline
             + ", refreshDependencies=" + refreshDependencies
             + ", parallelProjectExecution=" + isParallelProjectExecutionEnabled()
             + ", configureOnDemand=" + configureOnDemand
             + ", maxWorkerCount=" + getMaxWorkerCount()
             + ", buildCacheEnabled=" + buildCacheEnabled
-            + ", interactive=" + interactive
             + ", writeDependencyLocks=" + writeDependencyLocks
+            + ", verificationMode=" + verificationMode
+            + ", refreshKeys=" + isRefreshKeys
             + '}';
     }
 
@@ -837,35 +826,10 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     }
 
     /**
-     * Returns true when console is interactive.
-     *
-     * @since 4.3
-     * @deprecated This flag is no longer used and simply defaults to 'false'.
-     */
-    @Deprecated
-    public boolean isInteractive() {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("StartParameter.isInteractive()");
-        return interactive;
-    }
-
-    /**
-     * Specifies whether console is interactive.
-     *
-     * @since 4.3
-     * @deprecated This flag is no longer used.
-     */
-    @Deprecated
-    public void setInteractive(boolean interactive) {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("StartParameter.setInteractive()");
-        this.interactive = interactive;
-    }
-
-    /**
      * Specifies whether dependency resolution needs to be persisted for locking
      *
      * @since 4.8
      */
-    @Incubating
     public void setWriteDependencyLocks(boolean writeDependencyLocks) {
         this.writeDependencyLocks = writeDependencyLocks;
     }
@@ -875,7 +839,6 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      *
      * @since 4.8
      */
-    @Incubating
     public boolean isWriteDependencyLocks() {
         return writeDependencyLocks;
     }
@@ -886,24 +849,126 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      *
      * @param lockedDependenciesToUpdate the modules to update
      * @see #isWriteDependencyLocks()
-     *
      * @since 4.8
      */
-    @Incubating
     public void setLockedDependenciesToUpdate(List<String> lockedDependenciesToUpdate) {
         this.lockedDependenciesToUpdate = Lists.newArrayList(lockedDependenciesToUpdate);
         this.writeDependencyLocks = true;
     }
 
     /**
+     * Indicates if a dependency verification metadata file should be written at the
+     * end of this build. If the list is not empty, then it means we need to generate
+     * or update the dependency verification file with the checksums specified in the
+     * list.
+     *
+     * @since 6.1
+     */
+    @Incubating
+    public List<String> getWriteDependencyVerifications() {
+        return writeDependencyVerifications;
+    }
+
+    /**
+     * Tells if a dependency verification metadata file should be written at the end
+     * of this build.
+     *
+     * @param checksums the list of checksums to generate
+     * @since 6.1
+     */
+    @Incubating
+    public void setWriteDependencyVerifications(List<String> checksums) {
+        this.writeDependencyVerifications = checksums;
+    }
+
+    /**
      * Returns the list of modules that are to be allowed to update their version compared to the lockfile.
      *
      * @return a list of modules allowed to have a version update
-     *
      * @since 4.8
      */
-    @Incubating
     public List<String> getLockedDependenciesToUpdate() {
         return lockedDependenciesToUpdate;
+    }
+
+    /**
+     * Sets the dependency verification mode. There are three different modes:
+     * <ul>
+     *     <li><i>strict</i>, the default, verification is enabled as soon as a dependency verification file is present.</li>
+     *     <li><i>lenient</i>, in this mode, failure to verify a checksum, missing checksums or signatures will be logged
+     *     but will not fail the build. This mode should only be used when updating dependencies as it is inherently unsafe.</li>
+     *     <li><i>off</i>, this mode disables all verifications</li>
+     * </ul>
+     *
+     * @param verificationMode if true, enables lenient dependency verification
+     * @since 6.2
+     */
+    @Incubating
+    public void setDependencyVerificationMode(DependencyVerificationMode verificationMode) {
+        this.verificationMode = verificationMode;
+    }
+
+    /**
+     * Returns the dependency verification mode.
+     *
+     * @since 6.2
+     */
+    @Incubating
+    public DependencyVerificationMode getDependencyVerificationMode() {
+        return verificationMode;
+    }
+
+    /**
+     * Sets the key refresh flag.
+     *
+     * @param refresh If set to true, missing keys will be checked again. By default missing keys are cached for 24 hours.
+     *
+     * @since 6.2
+     */
+    @Incubating
+    public void setRefreshKeys(boolean refresh) {
+        isRefreshKeys = refresh;
+    }
+
+    /**
+     * If true, Gradle will try to download missing keys again.
+     *
+     * @since 6.2
+     */
+    @Incubating
+    public boolean isRefreshKeys() {
+        return isRefreshKeys;
+    }
+
+    /**
+     * If true, after writing the dependency verification file, a public keyring
+     * file will be generated with all keys seen during generation of the file.
+     *
+     * This file can then be used as a source for public keys instead of reaching
+     * out public key servers.
+     *
+     * @return true if keys should be exported
+     *
+     * @since 6.2
+     */
+    @Incubating
+    public boolean isExportKeys() {
+        return isExportKeys;
+    }
+
+    /**
+     * If true, after writing the dependency verification file, a public keyring
+     * file will be generated with all keys seen during generation of the file.
+     *
+     * This file can then be used as a source for public keys instead of reaching
+     * out public key servers.
+     *
+     * @param exportKeys set to true if keys should be exported
+     *
+     * @since 6.2
+     */
+    @Incubating
+    public void setExportKeys(boolean exportKeys) {
+        isExportKeys = exportKeys;
     }
 }

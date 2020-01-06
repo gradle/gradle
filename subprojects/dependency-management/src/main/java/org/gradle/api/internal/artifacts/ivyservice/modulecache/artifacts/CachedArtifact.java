@@ -16,13 +16,13 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts;
 
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.resource.cached.CachedItem;
 
-import java.math.BigInteger;
 import java.util.List;
 
 public interface CachedArtifact extends CachedItem {
-    BigInteger getDescriptorHash();
+    HashCode getDescriptorHash();
 
     List<String> attemptedLocations();
 }

@@ -41,7 +41,7 @@ class JUnitConsoleLoggingIntegrationTest extends JUnitMultiVersionIntegrationSpe
 
         then:
         outputContains("""
-org.gradle.JUnit4Test > badTest FAILED
+${classNamePrefix}JUnit4Test > badTest FAILED
     java.lang.RuntimeException at JUnit4Test.groovy:44
 """)
     }
@@ -62,7 +62,7 @@ badTest FAILED
 
         outputContains("ignoredTest SKIPPED")
 
-        outputContains("org.gradle.JUnit4Test FAILED")
+        outputContains("${classNamePrefix}JUnit4Test FAILED")
     }
 
     def "standardOutputLogging"() {
@@ -72,7 +72,7 @@ badTest FAILED
 
         then:
         outputContains("""
-org.gradle.JUnit4StandardOutputTest > printTest STANDARD_OUT
+${classNamePrefix}JUnit4StandardOutputTest > printTest STANDARD_OUT
     line 1
     line 2
     line 3
@@ -83,7 +83,7 @@ org.gradle.JUnit4StandardOutputTest > printTest STANDARD_OUT
         file("build.gradle") << """
             apply plugin: 'java'
                 ${mavenCentralRepository()}
-                dependencies { testCompile 'junit:junit:4.12' }
+                dependencies { testImplementation 'junit:junit:4.12' }
         """
 
         file("src/test/java/EncodingTest.java") << """
@@ -117,4 +117,7 @@ xml entity: &amp;
                 .assertStderr(equalTo("< html allowed, cdata closing token ]]> encoded!\n"))
     }
 
+    private String getClassNamePrefix() {
+        isJUnitPlatform() ? '' : 'org.gradle.'
+    }
 }

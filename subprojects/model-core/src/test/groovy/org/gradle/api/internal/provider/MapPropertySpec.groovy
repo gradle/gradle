@@ -17,6 +17,7 @@
 package org.gradle.api.internal.provider
 
 import com.google.common.collect.ImmutableMap
+import org.gradle.internal.state.ManagedFactory
 import org.spockframework.util.Assert
 
 class MapPropertySpec extends PropertySpec<Map<String, String>> {
@@ -64,6 +65,11 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
         property.set((Map) null)
     }
 
+    @Override
+    ManagedFactory managedFactory() {
+        return new ManagedFactories.MapPropertyManagedFactory()
+    }
+
     def property = property()
 
     def "has empty map as value by default"() {
@@ -73,6 +79,7 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
 
     def "can change value to empty map"() {
         when:
+        property.set([a: 'b'])
         property.empty()
         then:
         assertValueIs([:])
@@ -214,7 +221,7 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
         property.put('k2', 'v2')
 
         expect:
-        assertValueIs([k2:  'v2'])
+        assertValueIs([k2: 'v2'])
     }
 
     def "queries entries of provider on every call to get()"() {
@@ -448,24 +455,38 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
         given:
         property.set(someValue())
         property.finalizeValue()
+
         when:
         property.empty()
+
         then:
         def e = thrown IllegalStateException
         e.message == 'The value for this property is final and cannot be changed any further.'
     }
 
-    def "ignores set to empty map after value finalized leniently"() {
+    def "cannot set to empty map after value finalized implicitly"() {
         given:
         property.set(someValue())
-        property.finalizeValueOnReadAndWarnAboutChanges()
-        property.get()
+        property.implicitFinalizeValue()
 
         when:
         property.empty()
 
+
         then:
-        assertValueIs someValue()
+        def e = thrown IllegalStateException
+        e.message == 'The value for this property cannot be changed any further.'
+    }
+
+    def "cannot set to empty map after changes disallowed"() {
+        given:
+        property.set(someValue())
+        property.disallowChanges()
+        when:
+        property.empty()
+        then:
+        def e = thrown IllegalStateException
+        e.message == 'The value for this property cannot be changed any further.'
     }
 
     def "cannot add entry after value finalized"() {
@@ -488,18 +509,44 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
         e2.message == 'The value for this property is final and cannot be changed any further.'
     }
 
-    def "ignores add entry after value finalized leniently"() {
+    def "cannot add entry after value finalized implicitly"() {
         given:
         property.set(someValue())
-        property.finalizeValueOnReadAndWarnAboutChanges()
-        property.get()
+        property.implicitFinalizeValue()
 
         when:
         property.put('k1', 'v1')
+
+        then:
+        def e = thrown IllegalStateException
+        e.message == 'The value for this property cannot be changed any further.'
+
+        when:
         property.put('k2', Stub(ProviderInternal))
 
         then:
-        assertValueIs someValue()
+        def e2 = thrown(IllegalStateException)
+        e2.message == 'The value for this property cannot be changed any further.'
+    }
+
+    def "cannot add entry after changes disallowed"() {
+        given:
+        property.set(someValue())
+        property.disallowChanges()
+
+        when:
+        property.put('k1', 'v1')
+
+        then:
+        def e = thrown IllegalStateException
+        e.message == 'The value for this property cannot be changed any further.'
+
+        when:
+        property.put('k2', Stub(ProviderInternal))
+
+        then:
+        def e2 = thrown(IllegalStateException)
+        e2.message == 'The value for this property cannot be changed any further.'
     }
 
     def "cannot add entries after value finalized"() {
@@ -509,29 +556,55 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
 
         when:
         property.putAll(['k3': 'v3', 'k4': 'v4'])
+
         then:
         def e = thrown IllegalStateException
         e.message == 'The value for this property is final and cannot be changed any further.'
 
         when:
         property.putAll Stub(ProviderInternal)
+
         then:
         def e2 = thrown IllegalStateException
         e2.message == 'The value for this property is final and cannot be changed any further.'
     }
 
-    def "ignores add entries after value finalized leniently"() {
+    def "ignores add entries after value finalized implicitly"() {
         given:
         property.set(someValue())
-        property.finalizeValueOnReadAndWarnAboutChanges()
-        property.get()
+        property.implicitFinalizeValue()
 
         when:
         property.putAll(['k3': 'v3'])
-        property.putAll(Stub(ProviderInternal))
 
         then:
-        assertValueIs someValue()
+        def e = thrown IllegalStateException
+        e.message == 'The value for this property cannot be changed any further.'
+
+        when:
+        property.putAll Stub(ProviderInternal)
+
+        then:
+        def e2 = thrown IllegalStateException
+        e2.message == 'The value for this property cannot be changed any further.'
+    }
+
+    def "cannot add entries after changes disallowed"() {
+        given:
+        property.set(someValue())
+        property.disallowChanges()
+
+        when:
+        property.putAll(['k3': 'v3', 'k4': 'v4'])
+        then:
+        def e = thrown IllegalStateException
+        e.message == 'The value for this property cannot be changed any further.'
+
+        when:
+        property.putAll Stub(ProviderInternal)
+        then:
+        def e2 = thrown IllegalStateException
+        e2.message == 'The value for this property cannot be changed any further.'
     }
 
     def "entry provider has no value when property has no value"() {
@@ -679,6 +752,32 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
         keySetProvider.present
         keySetProvider.get() == ['k1', 'k2', 'k3', 'k4'] as Set
         keySetProvider.getOrNull() == ['k1', 'k2', 'k3', 'k4'] as Set
+    }
+
+    def "implicitly finalizes value on read of key"() {
+        def provider = Mock(ProviderInternal)
+
+        given:
+        property.put('k1', provider)
+        property.implicitFinalizeValue()
+
+        when:
+        def p = property.getting('k1')
+
+        then:
+        0 * _
+
+        when:
+        def result = p.get()
+        def result2 = property.get()
+
+        then:
+        1 * provider.getOrNull() >> "value"
+        0 * _
+
+        and:
+        result == "value"
+        result2 == [k1: "value"]
     }
 
     private void assertValueIs(Map<String, String> expected) {

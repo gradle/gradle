@@ -26,7 +26,6 @@ import org.gradle.api.internal.tasks.compile.processing.IsolatingProcessor;
 import org.gradle.api.internal.tasks.compile.processing.NonIncrementalProcessor;
 import org.gradle.api.internal.tasks.compile.processing.SupportedOptionsCollectingProcessor;
 import org.gradle.api.internal.tasks.compile.processing.TimeTrackingProcessor;
-import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
 
@@ -38,6 +37,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+
+import static org.gradle.api.internal.tasks.compile.filter.AnnotationProcessorFilter.*;
 
 /**
  * Wraps another {@link JavaCompiler.CompilationTask} and sets up its annotation processors
@@ -119,21 +120,8 @@ class AnnotationProcessingCompileTask implements JavaCompiler.CompilationTask {
     private URLClassLoader createProcessorClassLoader() {
         return new URLClassLoader(
             DefaultClassPath.of(annotationProcessorPath).getAsURLArray(),
-            new FilteringClassLoader(delegate.getClass().getClassLoader(), getExtraAllowedPackages())
+            getFilteredClassLoader(delegate.getClass().getClassLoader())
         );
-    }
-
-    /**
-     * Many popular annotation processors like lombok need access to compiler internals
-     * to do their magic, e.g. to inspect or even change method bodies. This is not valid
-     * according to the annotation processing spec, but forbidding it would upset a lot of
-     * our users.
-     */
-    private FilteringClassLoader.Spec getExtraAllowedPackages() {
-        FilteringClassLoader.Spec spec = new FilteringClassLoader.Spec();
-        spec.allowPackage("com.sun.tools.javac");
-        spec.allowPackage("com.sun.source");
-        return spec;
     }
 
     private Class<?> loadProcessor(AnnotationProcessorDeclaration declaredProcessor) {

@@ -16,6 +16,7 @@
 package org.gradle.api.plugins.quality.checkstyle
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -25,6 +26,7 @@ import static org.gradle.util.TextUtil.getPlatformLineSeparator
 @Requires(TestPrecondition.JDK8_OR_LATER)
 class CheckstylePluginMultiProjectTest extends AbstractIntegrationSpec {
 
+    @ToBeFixedForInstantExecution
     def "configures checkstyle extension to read config from root project in a single project build"() {
         given:
         buildFile << javaProjectUsingCheckstyle()
@@ -48,6 +50,7 @@ class CheckstylePluginMultiProjectTest extends AbstractIntegrationSpec {
         checkStyleReportFile(file('child')).assertDoesNotExist()
     }
 
+    @ToBeFixedForInstantExecution
     def "configures checkstyle extension to read config from root project in a flat multi-project build"() {
         given:
         settingsFile << "include 'child:grand'"
@@ -60,6 +63,7 @@ class CheckstylePluginMultiProjectTest extends AbstractIntegrationSpec {
         checkStyleReportFile(file('child/grand')).text.contains('Dummy.java')
     }
 
+    @ToBeFixedForInstantExecution
     def "configures checkstyle extension to read config from root project in a deeply nested multi-project build"() {
         given:
         settingsFile << "include 'a:b:c'"
@@ -72,6 +76,7 @@ class CheckstylePluginMultiProjectTest extends AbstractIntegrationSpec {
         checkStyleReportFile(file('a/b/c')).text.contains('Dummy.java')
     }
 
+    @ToBeFixedForInstantExecution
     def "configures checkstyle extension to read config from root project in a multi-project build even if sub project config is available"() {
         given:
         settingsFile << "include 'child:grand'"
@@ -85,13 +90,14 @@ class CheckstylePluginMultiProjectTest extends AbstractIntegrationSpec {
         checkStyleReportFile(file('child/grand')).text.contains('Dummy.java')
     }
 
+    @ToBeFixedForInstantExecution
     def "explicitly configures checkstyle extension to point to config directory"() {
         given:
         settingsFile << "include 'child'"
         file('child/build.gradle') << javaProjectUsingCheckstyle()
         file('child/build.gradle') << """
             checkstyle {
-                configDir = file('config/checkstyle')
+                configDirectory = file('config/checkstyle')
             }
         """
         file('child/src/main/java/Dummy.java') << javaClassWithNewLineAtEnd()

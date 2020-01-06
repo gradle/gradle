@@ -16,18 +16,22 @@
 
 package org.gradle.internal.component.external.model.ivy;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.internal.Cast;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.model.AbstractRealisedModuleComponentResolveMetadata;
+import org.gradle.internal.component.external.model.AdditionalVariant;
 import org.gradle.internal.component.external.model.ComponentVariant;
 import org.gradle.internal.component.external.model.ConfigurationBoundExternalDependencyMetadata;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
@@ -41,7 +45,8 @@ import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.ExcludeMetadata;
-import org.gradle.internal.component.model.ModuleSource;
+import org.gradle.internal.component.model.ModuleConfigurationMetadata;
+import org.gradle.internal.component.model.ModuleSources;
 
 import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
@@ -63,29 +68,76 @@ public class RealisedIvyModuleResolveMetadata extends AbstractRealisedModuleComp
 
         Map<String, ConfigurationMetadata> configurations = realiseConfigurations(metadata, variantMetadataRules);
 
+        if (variants.isEmpty()) {
+            addVariantsFromRules(metadata, configurations, variantMetadataRules);
+        }
+
         return new RealisedIvyModuleResolveMetadata(metadata, variants, configurations);
     }
 
     private static Map<String, ConfigurationMetadata> realiseConfigurations(DefaultIvyModuleResolveMetadata metadata, VariantMetadataRules variantMetadataRules) {
-        Map<Artifact, ModuleComponentArtifactMetadata> artifacts = new IdentityHashMap<Artifact, ModuleComponentArtifactMetadata>();
-        IvyConfigurationHelper configurationHelper = new IvyConfigurationHelper(metadata.getArtifactDefinitions(), artifacts, metadata.getExcludes(), metadata.getDependencies(), metadata.getId());
-
         Map<String, ConfigurationMetadata> configurations = Maps.newHashMapWithExpectedSize(metadata.getConfigurationNames().size());
-        ImmutableMap<String, Configuration> configurationDefinitions = metadata.getConfigurationDefinitions();
-        for (String configurationName: metadata.getConfigurationNames()) {
-            Configuration configuration = configurationDefinitions.get(configurationName);
-            ImmutableSet<String> hierarchy = LazyToRealisedModuleComponentResolveMetadataHelper.constructHierarchy(configuration, configurationDefinitions);
-
-            NameOnlyVariantResolveMetadata variant = new NameOnlyVariantResolveMetadata(configurationName);
-            ImmutableAttributes variantAttributes = variantMetadataRules.applyVariantAttributeRules(variant, metadata.getAttributes());
-
-            CapabilitiesMetadata capabilitiesMetadata = variantMetadataRules.applyCapabilitiesRules(variant, ImmutableCapabilities.EMPTY);
-
-
-            configurations.put(configurationName, createConfiguration(configurationHelper, variantMetadataRules, metadata.getId(), configurationName, configuration.isTransitive(), configuration.isVisible(), hierarchy,
-                configurationHelper.filterArtifacts(configurationName, hierarchy), configurationHelper.filterExcludes(hierarchy), variantAttributes, ImmutableCapabilities.of(capabilitiesMetadata.getCapabilities())));
+        for (String configurationName : metadata.getConfigurationNames()) {
+            configurations.put(configurationName, applyRules(metadata, variantMetadataRules, configurationName));
         }
         return configurations;
+    }
+
+    private static void addVariantsFromRules(DefaultIvyModuleResolveMetadata componentMetadata, Map<String, ConfigurationMetadata> declaredConfigurations, VariantMetadataRules variantMetadataRules) {
+        List<AdditionalVariant> additionalVariants = variantMetadataRules.getAdditionalVariants();
+        if (additionalVariants.isEmpty()) {
+            return;
+        }
+
+        for (AdditionalVariant additionalVariant : additionalVariants) {
+            String name = additionalVariant.getName();
+            String baseName = additionalVariant.getBase();
+            ImmutableAttributes attributes;
+            ImmutableCapabilities capabilities;
+            List<ModuleDependencyMetadata> dependencies;
+            ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts;
+
+            ModuleConfigurationMetadata baseConf = (ModuleConfigurationMetadata) declaredConfigurations.get(baseName);
+            if (baseConf == null) {
+                attributes = componentMetadata.getAttributes();
+                capabilities = ImmutableCapabilities.EMPTY;
+                dependencies = ImmutableList.of();
+                artifacts = ImmutableList.of();
+            } else {
+                attributes = baseConf.getAttributes();
+                capabilities = (ImmutableCapabilities) baseConf.getCapabilities();
+                dependencies = Cast.uncheckedCast(baseConf.getDependencies());
+                artifacts = Cast.uncheckedCast(baseConf.getArtifacts());
+            }
+
+            if (baseName == null || baseConf != null) {
+                declaredConfigurations.put(name, applyRules(componentMetadata.getId(), name, variantMetadataRules, attributes, capabilities, artifacts, ImmutableList.of(), true, true, ImmutableSet.of(), null, dependencies, true));
+            } else if (!additionalVariant.isLenient()) {
+                throw new InvalidUserDataException("Configuration '" + baseName + "' not defined in module " + componentMetadata.getId().getDisplayName());
+            }
+        }
+    }
+
+    private static RealisedConfigurationMetadata applyRules(DefaultIvyModuleResolveMetadata metadata, VariantMetadataRules variantMetadataRules, String configurationName) {
+        ImmutableMap<String, Configuration> configurationDefinitions = metadata.getConfigurationDefinitions();
+        Configuration configuration = configurationDefinitions.get(configurationName);
+        IvyConfigurationHelper configurationHelper = new IvyConfigurationHelper(metadata.getArtifactDefinitions(), new IdentityHashMap<>(), metadata.getExcludes(), metadata.getDependencies(), metadata.getId());
+        ImmutableSet<String> hierarchy = LazyToRealisedModuleComponentResolveMetadataHelper.constructHierarchy(configuration, configurationDefinitions);
+        ImmutableList<ExcludeMetadata> excludes = configurationHelper.filterExcludes(hierarchy);
+
+        ImmutableList<ModuleComponentArtifactMetadata> artifacts = configurationHelper.filterArtifacts(configurationName, hierarchy);
+
+        return applyRules(metadata.getId(), configurationName, variantMetadataRules, metadata.getAttributes(), ImmutableCapabilities.EMPTY, artifacts, excludes, configuration.isTransitive(), configuration.isVisible(), hierarchy, configurationHelper, null, false);
+    }
+
+    private static RealisedConfigurationMetadata applyRules(ModuleComponentIdentifier id, String configurationName, VariantMetadataRules variantMetadataRules, ImmutableAttributes attributes, ImmutableCapabilities capabilities, ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
+                                                            ImmutableList<ExcludeMetadata> excludes, boolean transitive, boolean visible, ImmutableSet<String> hierarchy, IvyConfigurationHelper configurationHelper, List<ModuleDependencyMetadata> dependenciesOverride, boolean addedByRule) {
+        NameOnlyVariantResolveMetadata variant = new NameOnlyVariantResolveMetadata(configurationName);
+        ImmutableAttributes variantAttributes = variantMetadataRules.applyVariantAttributeRules(variant, attributes);
+        CapabilitiesMetadata capabilitiesMetadata = variantMetadataRules.applyCapabilitiesRules(variant, capabilities);
+        ImmutableList<? extends ModuleComponentArtifactMetadata> artifactsMetadata = variantMetadataRules.applyVariantFilesMetadataRulesToArtifacts(variant, artifacts, id);
+        return createConfiguration(id, configurationName, transitive, visible, hierarchy,
+            artifactsMetadata, excludes, variantAttributes, ImmutableCapabilities.of(capabilitiesMetadata.getCapabilities()), variantMetadataRules, configurationHelper, dependenciesOverride, addedByRule);
     }
 
     private final ImmutableMap<String, Configuration> configurationDefinitions;
@@ -95,6 +147,8 @@ public class RealisedIvyModuleResolveMetadata extends AbstractRealisedModuleComp
     private final ImmutableMap<NamespaceId, String> extraAttributes;
     private final DefaultIvyModuleResolveMetadata metadata;
     private final String branch;
+
+    private Optional<ImmutableList<? extends ConfigurationMetadata>> derivedVariants;
 
     private RealisedIvyModuleResolveMetadata(RealisedIvyModuleResolveMetadata metadata, List<IvyDependencyDescriptor> dependencies, Map<String, ConfigurationMetadata> transformedConfigurations) {
         super(metadata, metadata.getVariants(), transformedConfigurations);
@@ -107,15 +161,15 @@ public class RealisedIvyModuleResolveMetadata extends AbstractRealisedModuleComp
         this.metadata = metadata.metadata;
     }
 
-    private RealisedIvyModuleResolveMetadata(RealisedIvyModuleResolveMetadata metadata, ModuleSource source) {
-        super(metadata, source);
+    private RealisedIvyModuleResolveMetadata(RealisedIvyModuleResolveMetadata metadata, ModuleSources sources) {
+        super(metadata, sources);
         this.configurationDefinitions = metadata.configurationDefinitions;
         this.branch = metadata.branch;
         this.artifactDefinitions = metadata.artifactDefinitions;
         this.dependencies = metadata.dependencies;
         this.excludes = metadata.excludes;
         this.extraAttributes = metadata.extraAttributes;
-        this.metadata = metadata.metadata.withSource(source);
+        this.metadata = metadata.metadata;
     }
 
     RealisedIvyModuleResolveMetadata(DefaultIvyModuleResolveMetadata metadata,
@@ -131,12 +185,40 @@ public class RealisedIvyModuleResolveMetadata extends AbstractRealisedModuleComp
         this.metadata = metadata;
     }
 
-    private static RealisedConfigurationMetadata createConfiguration(IvyConfigurationHelper configurationHelper, VariantMetadataRules variantMetadataRules, ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableSet<String> hierarchy, ImmutableList<ModuleComponentArtifactMetadata> artifacts, ImmutableList<ExcludeMetadata> excludes, ImmutableAttributes componentLevelAttributes, ImmutableCapabilities capabilities) {
-        RealisedConfigurationMetadata configuration = new RealisedConfigurationMetadata(componentId, name, transitive, visible, hierarchy, artifacts, excludes, componentLevelAttributes, capabilities);
-        ImmutableList<ModuleDependencyMetadata> dependencyMetadata = configurationHelper.filterDependencies(configuration);
-        dependencyMetadata = ImmutableList.copyOf(variantMetadataRules.applyDependencyMetadataRules(new NameOnlyVariantResolveMetadata(name), dependencyMetadata));
-        configuration.setDependencies(dependencyMetadata);
+    private static RealisedConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableSet<String> hierarchy,
+                                                                     ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts, ImmutableList<ExcludeMetadata> excludes, ImmutableAttributes componentLevelAttributes,
+                                                                     ImmutableCapabilities capabilities,
+                                                                     VariantMetadataRules variantMetadataRules, IvyConfigurationHelper configurationHelper, List<ModuleDependencyMetadata> dependenciesFromRule, boolean addedByRule) {
+        RealisedConfigurationMetadata configuration = new RealisedConfigurationMetadata(componentId, name, transitive, visible, hierarchy, artifacts, excludes, componentLevelAttributes, capabilities, false, addedByRule);
+        List<ModuleDependencyMetadata> dependencyMetadata;
+        if (configurationHelper != null) {
+            dependencyMetadata = configurationHelper.filterDependencies(configuration);
+        } else {
+            dependencyMetadata = dependenciesFromRule;
+        }
+        configuration.setDependencies(ImmutableList.copyOf(variantMetadataRules.applyDependencyMetadataRules(new NameOnlyVariantResolveMetadata(name), dependencyMetadata)));
         return configuration;
+    }
+
+    @Override
+    protected Optional<ImmutableList<? extends ConfigurationMetadata>> maybeDeriveVariants() {
+        if (derivedVariants == null && getConfigurationNames().size() != configurationDefinitions.size()) {
+            // if there are more configurations than definitions, configurations have been added by rules and thus they are variants
+            derivedVariants = Optional.of(allConfigurationsThatAreVariants());
+        } else {
+            derivedVariants = Optional.absent();
+        }
+        return derivedVariants;
+    }
+
+    private ImmutableList<? extends ConfigurationMetadata> allConfigurationsThatAreVariants() {
+        ImmutableList.Builder<ConfigurationMetadata> builder = new ImmutableList.Builder<>();
+        for (String potentialVariantName : getConfigurationNames()) {
+            if (!configurationDefinitions.containsKey(potentialVariantName)) {
+                builder.add(getConfiguration(potentialVariantName));
+            }
+        }
+        return builder.build();
     }
 
     @Override
@@ -145,8 +227,8 @@ public class RealisedIvyModuleResolveMetadata extends AbstractRealisedModuleComp
     }
 
     @Override
-    public IvyModuleResolveMetadata withSource(ModuleSource source) {
-        return new RealisedIvyModuleResolveMetadata(this, source);
+    public RealisedIvyModuleResolveMetadata withSources(ModuleSources sources) {
+        return new RealisedIvyModuleResolveMetadata(this, sources);
     }
 
     @Nullable

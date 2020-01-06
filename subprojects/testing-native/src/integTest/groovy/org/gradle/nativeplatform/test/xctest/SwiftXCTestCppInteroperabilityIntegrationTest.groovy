@@ -16,14 +16,17 @@
 
 package org.gradle.nativeplatform.test.xctest
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.language.swift.AbstractSwiftMixedLanguageIntegrationTest
+import org.gradle.language.swift.SwiftTaskNames
+import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.app.CppGreeterFunction
 import org.gradle.nativeplatform.fixtures.app.SwiftLibTest
 import org.gradle.nativeplatform.fixtures.app.SwiftLibWithCppDep
 import org.gradle.nativeplatform.fixtures.app.SwiftLibWithCppDepXCTest
 import spock.lang.Unroll
 
-class SwiftXCTestCppInteroperabilityIntegrationTest extends AbstractSwiftMixedLanguageIntegrationTest implements XCTestExecutionResult {
+class SwiftXCTestCppInteroperabilityIntegrationTest extends AbstractSwiftMixedLanguageIntegrationTest implements XCTestExecutionResult, SwiftTaskNames {
     def setup() {
         buildFile << """
             apply plugin: 'xctest'
@@ -31,6 +34,7 @@ class SwiftXCTestCppInteroperabilityIntegrationTest extends AbstractSwiftMixedLa
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "can depend on a #linkage.toLowerCase() c++ library"() {
         given:
         def cppGreeter = new CppGreeterFunction()
@@ -67,13 +71,14 @@ class SwiftXCTestCppInteroperabilityIntegrationTest extends AbstractSwiftMixedLa
 
         then:
         result.assertTasksExecuted(":cppGreeter:compileDebugCpp", ":cppGreeter:${createOrLink(linkage)}Debug",
-            ":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
+                tasks.debug.compile, tasks.test.allToInstall, ":xcTest", ":test")
         lib.assertTestCasesRan(testExecutionResult)
 
         where:
         linkage << [SHARED, STATIC]
     }
 
+    @ToBeFixedForInstantExecution
     def "can specify a test dependency on a library with a dependency on a c++ library"() {
         def cppGreeter = new CppGreeterFunction()
         def lib = new SwiftLibWithCppDep(cppGreeter)
@@ -111,7 +116,12 @@ class SwiftXCTestCppInteroperabilityIntegrationTest extends AbstractSwiftMixedLa
 
         then:
         result.assertTasksExecuted(":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
-            ":greeter:compileDebugSwift", ":greeter:linkDebug",
-            ":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
+            tasks(":greeter").debug.allToLink,
+            tasks.debug.compile, tasks.test.allToInstall, ":xcTest", ":test")
+    }
+
+    @Override
+    AvailableToolChains.InstalledToolChain getToolchainUnderTest() {
+        return swiftToolChain
     }
 }

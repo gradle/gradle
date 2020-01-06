@@ -15,14 +15,11 @@
  */
 package org.gradle.api.plugins;
 
-import org.gradle.api.Incubating;
-
 /**
  * The extension to configure a Java platform project.
  *
  * @since 5.2
  */
-@Incubating
 public interface JavaPlatformExtension {
     /**
      * Allow dependencies to be declared. By default, a platform

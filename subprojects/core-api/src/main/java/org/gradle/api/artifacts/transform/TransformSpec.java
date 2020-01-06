@@ -17,7 +17,6 @@
 package org.gradle.api.artifacts.transform;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.attributes.AttributeContainer;
 
 /**
@@ -27,7 +26,6 @@ import org.gradle.api.attributes.AttributeContainer;
  * @param <T> The transform specific parameter type.
  * @since 5.3
  */
-@Incubating
 public interface TransformSpec<T extends TransformParameters> {
     /**
      * Attributes that match the variant that is consumed.

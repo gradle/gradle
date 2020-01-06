@@ -19,7 +19,8 @@ package org.gradle.api.internal.resources
 import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.api.internal.tasks.TaskDependencyInternal
 import org.gradle.internal.resource.TextResource
-import org.gradle.internal.resource.TextResourceLoader
+import org.gradle.internal.resource.TextUriResourceLoader
+import org.gradle.internal.verifier.HttpRedirectVerifier
 
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
@@ -27,7 +28,7 @@ import java.nio.charset.StandardCharsets
 class ApiTextResourceAdapterTest extends AbstractTextResourceTest {
 
     TextResource textResource = Mock(TextResource)
-    TextResourceLoader textResourceLoader = Mock(TextResourceLoader)
+    TextUriResourceLoader textResourceLoader = Mock(TextUriResourceLoader)
     Reader reader
 
     def setup() {
@@ -35,14 +36,21 @@ class ApiTextResourceAdapterTest extends AbstractTextResourceTest {
         file.text = "contents"
         reader = new InputStreamReader(new FileInputStream(file), Charset.defaultCharset())
 
-        textResourceLoader.loadUri("textResource", new URI("http://www.gradle.org/unknown.txt")) >> textResource
+        textResourceLoader.loadUri("textResource", new URI("https://www.gradle.org/unknown.txt")) >> textResource
         textResource.getFile() >>> [file, null]
         textResource.getDisplayName() >> "Text resource display name"
         textResource.getText() >>> ["contents", "more contents"]
         textResource.getCharset() >> StandardCharsets.UTF_8
         textResource.getAsReader() >> reader
 
-        resource = new ApiTextResourceAdapter(textResourceLoader, project.services.get(TemporaryFileProvider), new URI("http://www.gradle.org/unknown.txt"),)
+        TextUriResourceLoader.Factory textResourceFactory = new TextUriResourceLoader.Factory() {
+            @Override
+            TextUriResourceLoader create(HttpRedirectVerifier redirectVerifier) {
+                return textResourceLoader
+            }
+        };
+
+        resource = new ApiTextResourceAdapter.Factory(textResourceFactory, project.services.get(TemporaryFileProvider)).create(new URI("https://www.gradle.org/unknown.txt"), Mock(HttpRedirectVerifier))
     }
 
     def cleanup() {
@@ -71,7 +79,7 @@ class ApiTextResourceAdapterTest extends AbstractTextResourceTest {
 
     def "get input properties"() {
         expect:
-        resource.getInputProperties() == new URI("http://www.gradle.org/unknown.txt")
+        resource.getInputProperties() == new URI("https://www.gradle.org/unknown.txt")
     }
 
     def "read as file when file in depending resource is null"() {

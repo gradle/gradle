@@ -30,12 +30,15 @@ import org.gradle.tooling.BuildException
 import com.google.common.annotations.VisibleForTesting
 
 import java.io.File
+import java.security.MessageDigest
 
 import kotlin.script.dependencies.KotlinScriptExternalDependencies
 import kotlin.script.dependencies.ScriptContents
 import kotlin.script.dependencies.ScriptContents.Position
 import kotlin.script.dependencies.ScriptDependenciesResolver
 import kotlin.script.dependencies.ScriptDependenciesResolver.ReportSeverity
+
+import kotlin.collections.contentEquals
 
 
 private
@@ -105,13 +108,23 @@ class KotlinBuildScriptDependenciesResolver @VisibleForTesting constructor(
         val cid = newCorrelationId()
         try {
             log(ResolutionRequest(cid, script.file, environment, previousDependencies))
-            assembleDependenciesFrom(
-                cid,
-                script.file,
-                environment!!,
-                report,
-                previousDependencies
-            )
+            if (environment.isShortCircuitEnabled) {
+                assembleDependenciesWithShortCircuit(
+                    cid,
+                    script,
+                    environment!!,
+                    report,
+                    previousDependencies
+                )
+            } else {
+                assembleDependenciesFrom(
+                    cid,
+                    script.file,
+                    environment!!,
+                    report,
+                    previousDependencies
+                )
+            }
         } catch (e: BuildException) {
             log(ResolutionFailure(cid, script.file, e))
             if (previousDependencies == null) report.fatal(EditorMessages.buildConfigurationFailed)
@@ -126,20 +139,47 @@ class KotlinBuildScriptDependenciesResolver @VisibleForTesting constructor(
     }
 
     private
+    suspend fun assembleDependenciesWithShortCircuit(
+        cid: String,
+        script: ScriptContents,
+        environment: Environment,
+        report: Report,
+        previousDependencies: KotlinScriptExternalDependencies?
+    ): KotlinScriptExternalDependencies? =
+
+        when (val action = ResolverCoordinator.selectNextActionFor(script, environment, previousDependencies)) {
+            is ResolverAction.ReturnPrevious -> {
+                log(ResolvedToPrevious(cid, script.file, previousDependencies))
+                previousDependencies
+            }
+            is ResolverAction.RequestNew -> {
+                assembleDependenciesFrom(
+                    cid,
+                    script.file,
+                    environment,
+                    report,
+                    previousDependencies,
+                    action.classPathBlocksHash
+                )
+            }
+        }
+
+    private
     suspend fun assembleDependenciesFrom(
         cid: String,
         scriptFile: File?,
         environment: Environment,
         report: Report,
-        previousDependencies: KotlinScriptExternalDependencies?
+        previousDependencies: KotlinScriptExternalDependencies?,
+        classPathBlocksHash: ByteArray? = null
     ): KotlinScriptExternalDependencies? {
 
-        val scriptModelRequest = scriptModelRequestFrom(scriptFile, environment, cid)
-        log(SubmittedModelRequest(cid, scriptFile, scriptModelRequest))
+        val request = scriptModelRequestFrom(scriptFile, environment, cid)
+        log(SubmittedModelRequest(cid, scriptFile, request))
 
-        val response = DefaultKotlinBuildScriptModelRepository.scriptModelFor(scriptModelRequest)
+        val response = DefaultKotlinBuildScriptModelRepository.scriptModelFor(request)
         if (response == null) {
-            log(RequestCancelled(cid, scriptFile, scriptModelRequest))
+            log(RequestCancelled(cid, scriptFile, request))
             return null
         }
         log(ReceivedModelResponse(cid, scriptFile, response))
@@ -150,7 +190,7 @@ class KotlinBuildScriptDependenciesResolver @VisibleForTesting constructor(
 
         return when {
             response.exceptions.isEmpty() ->
-                dependenciesFrom(response).also {
+                dependenciesFrom(request, response, classPathBlocksHash).also {
                     log(ResolvedDependencies(cid, scriptFile, it))
                 }
             previousDependencies != null && previousDependencies.classpath.count() > response.classPath.size ->
@@ -158,7 +198,7 @@ class KotlinBuildScriptDependenciesResolver @VisibleForTesting constructor(
                     log(ResolvedToPreviousWithErrors(cid, scriptFile, previousDependencies, response.exceptions))
                 }
             else ->
-                dependenciesFrom(response).also {
+                dependenciesFrom(request, response, classPathBlocksHash).also {
                     log(ResolvedDependenciesWithErrors(cid, scriptFile, it, response.exceptions))
                 }
         }
@@ -182,6 +222,7 @@ class KotlinBuildScriptDependenciesResolver @VisibleForTesting constructor(
             javaHome = environment.gradleJavaHome,
             options = environment.gradleOptions,
             jvmOptions = environment.gradleJvmOptions,
+            environmentVariables = environment.gradleEnvironmentVariables,
             correlationId = correlationId
         )
 
@@ -193,20 +234,103 @@ class KotlinBuildScriptDependenciesResolver @VisibleForTesting constructor(
             ?: GradleInstallation.Wrapper
 
     private
-    fun dependenciesFrom(response: KotlinBuildScriptModel) =
+    fun dependenciesFrom(
+        request: KotlinBuildScriptModelRequest,
+        response: KotlinBuildScriptModel,
+        classPathBlocksHash: ByteArray?
+    ) =
         KotlinBuildScriptDependencies(
             response.classPath,
             response.sourcePath,
-            response.implicitImports
+            response.implicitImports,
+            request.javaHome?.path,
+            classPathBlocksHash
         )
 }
+
+
+/**
+ * The resolver can either return the previous result
+ * or request new dependency information from Gradle.
+ */
+internal
+sealed class ResolverAction {
+    object ReturnPrevious : ResolverAction()
+    class RequestNew(val classPathBlocksHash: ByteArray?) : ResolverAction()
+}
+
+
+internal
+object ResolverCoordinator {
+
+    /**
+     * Decides which action the resolver should take based on the given [script] and [environment].
+     */
+    fun selectNextActionFor(
+        script: ScriptContents,
+        environment: Environment?,
+        previousDependencies: KotlinScriptExternalDependencies?
+    ): ResolverAction {
+
+        if (environment == null) {
+            return ResolverAction.ReturnPrevious
+        }
+
+        val classPathBlocksHash = classPathBlocksHashFor(script, environment)
+        if (sameClassPathBlocksHashAs(previousDependencies, classPathBlocksHash)) {
+            return ResolverAction.ReturnPrevious
+        }
+
+        return ResolverAction.RequestNew(classPathBlocksHash)
+    }
+
+    private
+    fun sameClassPathBlocksHashAs(previousDependencies: KotlinScriptExternalDependencies?, hash: ByteArray?) =
+        hash?.let { nonNullHash -> classPathBlocksHashOf(previousDependencies)?.contentEquals(nonNullHash) }
+            ?: false
+
+    private
+    fun classPathBlocksHashOf(previousDependencies: KotlinScriptExternalDependencies?) =
+        (previousDependencies as? KotlinBuildScriptDependencies)?.classPathBlocksHash
+
+    private
+    fun classPathBlocksHashFor(script: ScriptContents, environment: Environment): ByteArray? {
+
+        @Suppress("unchecked_cast")
+        val getScriptSectionTokens = environment["getScriptSectionTokens"] as? ScriptSectionTokensProvider
+        return when (getScriptSectionTokens) {
+            null -> null
+            else ->
+                MessageDigest.getInstance("MD5").run {
+                    val text = script.text ?: script.file?.readText()
+                    text?.let { nonNullText ->
+                        fun updateWith(section: String) =
+                            getScriptSectionTokens(nonNullText, section).forEach {
+                                update(it.toString().toByteArray())
+                            }
+                        updateWith("pluginManagement")
+                        updateWith("initscript")
+                        updateWith("buildscript")
+                        updateWith("plugins")
+                    }
+                    digest()
+                }
+        }
+    }
+}
+
+
+internal
+typealias ScriptSectionTokensProvider = (CharSequence, String) -> Sequence<CharSequence>
 
 
 internal
 class KotlinBuildScriptDependencies(
     override val classpath: Iterable<File>,
     override val sources: Iterable<File>,
-    override val imports: Iterable<String>
+    override val imports: Iterable<String>,
+    override val javaHome: String? = null,
+    val classPathBlocksHash: ByteArray?
 ) : KotlinScriptExternalDependencies
 
 

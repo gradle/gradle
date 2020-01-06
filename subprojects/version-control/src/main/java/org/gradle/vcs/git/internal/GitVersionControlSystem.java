@@ -114,9 +114,7 @@ public class GitVersionControlSystem implements VersionControlSystem {
     private Collection<Ref> getRemoteRefs(GitVersionControlSpec gitSpec, boolean tags, boolean heads) {
         try {
             return configureTransport(Git.lsRemoteRepository()).setRemote(normalizeUri(gitSpec.getUrl())).setTags(tags).setHeads(heads).call();
-        } catch (URISyntaxException e) {
-            throw wrapGitCommandException("ls-remote", gitSpec.getUrl(), null, e);
-        } catch (GitAPIException e) {
+        } catch (URISyntaxException | GitAPIException e) {
             throw wrapGitCommandException("ls-remote", gitSpec.getUrl(), null, e);
         }
     }
@@ -130,11 +128,7 @@ public class GitVersionControlSystem implements VersionControlSystem {
                     setCloneSubmodules(true);
             git = clone.call();
             git.reset().setMode(ResetCommand.ResetType.HARD).setRef(ref.getCanonicalId()).call();
-        } catch (GitAPIException e) {
-            throw wrapGitCommandException("clone", gitSpec.getUrl(), workingDir, e);
-        } catch (JGitInternalException e) {
-            throw wrapGitCommandException("clone", gitSpec.getUrl(), workingDir, e);
-        } catch (URISyntaxException e) {
+        } catch (GitAPIException | URISyntaxException | JGitInternalException e) {
             throw wrapGitCommandException("clone", gitSpec.getUrl(), workingDir, e);
         } finally {
             if (git != null) {
@@ -149,11 +143,7 @@ public class GitVersionControlSystem implements VersionControlSystem {
             git = Git.open(workingDir);
             git.reset().setMode(ResetCommand.ResetType.HARD).setRef(ref.getCanonicalId()).call();
             updateSubModules(git);
-        } catch (IOException e) {
-            throw wrapGitCommandException("reset", gitSpec.getUrl(), workingDir, e);
-        } catch (GitAPIException e) {
-            throw wrapGitCommandException("reset", gitSpec.getUrl(), workingDir, e);
-        } catch (JGitInternalException e) {
+        } catch (IOException | JGitInternalException | GitAPIException e) {
             throw wrapGitCommandException("reset", gitSpec.getUrl(), workingDir, e);
         } finally {
             if (git != null) {

@@ -21,19 +21,35 @@ object ProjectGroups {
     // TODO Why is smoke test not on that list
     private
     val Project.internalProjects
-        get() = rootProject.subprojects.filter { it.name.startsWith("internal") ||
-            it.name in setOf("integTest", "distributions", "performance", "buildScanPerformance", "kotlinCompilerEmbeddable", "kotlinDslTestFixtures", "kotlinDslIntegTests") }.toSet()
+        get() = rootProject.subprojects.filter {
+            it.name.startsWith("internal")
+                || it.name in internalProjectNames
+                || it.name in kotlinJsProjectNames
+        }.toSet()
+
+    private
+    val internalProjectNames = setOf(
+        "integTest", "distributions", "performance", "buildScanPerformance",
+        "kotlinCompilerEmbeddable", "kotlinDslTestFixtures", "kotlinDslIntegTests"
+    )
+
+    private
+    val kotlinJsProjectNames = setOf(
+        "instantExecutionReport"
+    )
+
+    val Project.kotlinJsProjects
+        get() = kotlinJsProjectNames.map { project(":$it") }
 
     val Project.javaProjects
-        get() = rootProject.subprojects - listOf(project(":distributionsDependencies"))
+        get() = rootProject.subprojects - kotlinJsProjects - listOf(project(":distributionsDependencies"))
 
     val Project.publicJavaProjects
         get() = javaProjects - internalProjects
 
-
     val Project.pluginProjects
-        get() = setOf("announce", "antlr", "plugins", "codeQuality", "wrapper", "osgi", "maven",
-            "ide", "scala", "signing", "ear", "javascript", "buildComparison",
+        get() = setOf("antlr", "plugins", "codeQuality", "wrapper", "maven",
+            "ide", "scala", "signing", "ear", "javascript",
             "diagnostics", "reporting", "publish", "ivy", "jacoco", "buildInit", "platformBase",
             "platformJvm", "languageJvm", "languageJava", "languageGroovy", "languageScala",
             "platformNative", "platformPlay", "idePlay", "languageNative", "toolingNative", "ideNative",
@@ -45,24 +61,10 @@ object ProjectGroups {
             rootProject.project("buildProfile"),
             rootProject.project("toolingApiBuilders"),
             rootProject.project("kotlinDslProviderPlugins"),
-            rootProject.project("kotlinDslToolingBuilders")
+            rootProject.project("kotlinDslToolingBuilders"),
+            rootProject.project("instantExecution"),
+            rootProject.project("security")
         )
-
-    val Project.publishedProjects
-        get() = setOf(
-            rootProject.project(":logging"),
-            rootProject.project(":core"),
-            rootProject.project(":modelCore"),
-            rootProject.project(":toolingApi"),
-            rootProject.project(":wrapper"),
-            rootProject.project(":baseServices"),
-            rootProject.project(":baseServicesGroovy"),
-            rootProject.project(":workers"),
-            rootProject.project(":dependencyManagement"),
-            rootProject.project(":messaging"),
-            rootProject.project(":processServices"),
-            rootProject.project(":resources"),
-            rootProject.project(":kotlinDslToolingModels"))
 
     val Project.publicProjects
         get() = pluginProjects +

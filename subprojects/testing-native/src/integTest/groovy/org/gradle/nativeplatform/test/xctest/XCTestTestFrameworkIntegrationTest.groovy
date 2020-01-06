@@ -82,10 +82,8 @@ allprojects { p ->
         def newTest = file("src/test/swift/NewTest.swift")
         file("src/test/swift/SomeOtherTest.swift").renameTo(newTest)
         newTest.text = newTest.text.replaceAll("SomeOtherTest", "NewTest")
-        if (OperatingSystem.current().linux) {
-            def linuxMain = file("src/test/swift/main.swift")
-            linuxMain.text = linuxMain.text.replaceAll("SomeOtherTest", "NewTest")
-        }
+        def linuxMain = file("src/test/swift/LinuxMain.swift")
+        linuxMain.text = linuxMain.text.replaceAll("SomeOtherTest", "NewTest")
     }
 
     @Override

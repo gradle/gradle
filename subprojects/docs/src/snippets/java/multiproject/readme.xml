@@ -1,0 +1,8 @@
+<sample>
+    <para>This sample demonstrates how an application can be composed using multiple Java projects.</para>
+
+    <para>This build creates a client-server application which is distributed as 2 archives. First, there is a client
+        ZIP which includes an API JAR, which a 3rd party application would compile against, and a client runtime. Then,
+        there is a server WAR which provides a web service.
+    </para>
+</sample>

@@ -20,8 +20,9 @@ import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.plugins.internal.AbstractUsageContext;
@@ -36,10 +37,10 @@ public class WebApplication implements SoftwareComponentInternal {
     private final String variantName;
 
     @Inject
-    public WebApplication(PublishArtifact warArtifact, String variantName) {
+    public WebApplication(PublishArtifact warArtifact, String variantName, AttributeContainer attributes) {
         this.warArtifact = warArtifact;
         this.variantName = variantName;
-        this.webArchiveUsage = new WebArchiveUsageContext();
+        this.webArchiveUsage = new WebArchiveUsageContext(attributes);
     }
 
     @Override
@@ -53,8 +54,8 @@ public class WebApplication implements SoftwareComponentInternal {
     }
 
     private class WebArchiveUsageContext extends AbstractUsageContext {
-        public WebArchiveUsageContext() {
-            super(ImmutableAttributes.EMPTY, Collections.singleton(warArtifact));
+        public WebArchiveUsageContext(AttributeContainer attributes) {
+            super(((AttributeContainerInternal)attributes).asImmutable(), Collections.singleton(warArtifact));
         }
 
         @Override

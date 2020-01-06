@@ -70,7 +70,7 @@ class ConcurrentGroupingQueueTest {
         pushElementSignal.countDown()
 
         assertThat(
-            subject.nextGroup(200),
+            subject.nextGroup(defaultTestTimeoutMillis),
             equalTo(listOf(42))
         )
     }

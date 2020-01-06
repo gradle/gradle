@@ -18,9 +18,7 @@ package org.gradle.internal.reflect.annotations;
 
 import com.google.common.collect.ImmutableMap;
 import org.gradle.internal.reflect.AnnotationCategory;
-import org.gradle.internal.reflect.ParameterValidationContext;
 
-import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
@@ -32,6 +30,4 @@ public interface PropertyAnnotationMetadata extends Comparable<PropertyAnnotatio
     boolean isAnnotationPresent(Class<? extends Annotation> annotationType);
 
     ImmutableMap<AnnotationCategory, Annotation> getAnnotations();
-
-    void visitValidationFailures(@Nullable String ownerPath, ParameterValidationContext validationContext);
 }

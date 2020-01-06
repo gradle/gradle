@@ -55,7 +55,7 @@ class StaticValueTest extends Specification {
         value.maybeFinalizeValue()
 
         then:
-        1 * property.finalizeValueOnReadAndWarnAboutChanges()
+        1 * property.implicitFinalizeValue()
     }
 
     def "creates value for null value"() {

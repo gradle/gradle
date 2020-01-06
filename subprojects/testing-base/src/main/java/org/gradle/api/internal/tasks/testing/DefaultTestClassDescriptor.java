@@ -35,12 +35,12 @@ public class DefaultTestClassDescriptor extends DefaultTestSuiteDescriptor {
 
     @Override
     public String getDisplayName() {
-        return classDisplayName;
+        return getClassDisplayName();
     }
 
     @Override
     public String getClassDisplayName() {
-        return getDisplayName();
+        return classDisplayName;
     }
 
     @Override

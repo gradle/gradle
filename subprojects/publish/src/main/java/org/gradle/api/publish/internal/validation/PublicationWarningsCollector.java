@@ -16,59 +16,90 @@
 
 package org.gradle.api.publish.internal.validation;
 
-import com.google.common.collect.Sets;
 import org.gradle.api.logging.Logger;
-import org.gradle.internal.DisplayName;
 import org.gradle.internal.logging.text.TreeFormatter;
 
+import javax.annotation.concurrent.NotThreadSafe;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
+@NotThreadSafe
 public class PublicationWarningsCollector {
 
     private final Logger logger;
     private final String unsupportedFeature;
     private final String incompatibleFeature;
-    Set<String> unsupportedUsages = null;
-    Set<String> incompatibleUsages = null;
+    private final String footer;
+    private final String disableMethod;
+    private final Map<String, CollectedWarnings> variantToWarnings;
+    private String currentVariant;
+    private CollectedWarnings currentWarnings;
 
-    public PublicationWarningsCollector(Logger logger, String unsupportedFeature, String incompatibleFeature) {
+    public PublicationWarningsCollector(Logger logger, String unsupportedFeature, String incompatibleFeature, String footer, String disableMethod) {
+        this.footer = footer;
+        this.disableMethod = disableMethod;
+        this.variantToWarnings = new TreeMap<>();
         this.logger = logger;
         this.unsupportedFeature = unsupportedFeature;
         this.incompatibleFeature = incompatibleFeature;
     }
 
     public void addUnsupported(String text) {
-        if (unsupportedUsages == null) {
-            unsupportedUsages = Sets.newHashSet();
-        }
-        unsupportedUsages.add(text);
+        currentWarnings.addUnsupported(text);
     }
 
     public void addIncompatible(String text) {
-        if (incompatibleUsages == null) {
-            incompatibleUsages = Sets.newHashSet();
-        }
-        incompatibleUsages.add(text);
+        currentWarnings.addIncompatible(text);
     }
 
-    public void complete(DisplayName displayName) {
-        if (unsupportedUsages != null) {
-            formatAndLog(displayName, unsupportedFeature, unsupportedUsages);
-        }
-        if (incompatibleUsages != null) {
-            formatAndLog(displayName, incompatibleFeature, incompatibleUsages);
-        }
+    public void complete(String header, Set<String> silencedVariants) {
+        saveVariantWarnings();
 
+        variantToWarnings.keySet().removeAll(silencedVariants);
+        if (!variantToWarnings.isEmpty()) {
+            TreeFormatter treeFormatter = new TreeFormatter();
+            treeFormatter.node(header + " warnings (silence with '" + disableMethod + "(variant)')");
+            treeFormatter.startChildren();
+            variantToWarnings.forEach((key, warnings) -> {
+                treeFormatter.node("Variant " + key + ":");
+                treeFormatter.startChildren();
+                if (warnings.getVariantUnsupported() != null) {
+                    warnings.getVariantUnsupported().forEach(treeFormatter::node);
+                }
+                if (warnings.getUnsupportedUsages() != null) {
+                    treeFormatter.node(unsupportedFeature);
+                    treeFormatter.startChildren();
+                    warnings.getUnsupportedUsages().forEach(treeFormatter::node);
+                    treeFormatter.endChildren();
+                }
+                if (warnings.getIncompatibleUsages() != null) {
+                    treeFormatter.node(incompatibleFeature);
+                    treeFormatter.startChildren();
+                    warnings.getIncompatibleUsages().forEach(treeFormatter::node);
+                    treeFormatter.endChildren();
+                }
+                treeFormatter.endChildren();
+            });
+            treeFormatter.endChildren();
+            treeFormatter.node(footer);
+            logger.lifecycle(treeFormatter.toString());
+        }
     }
 
-    private void formatAndLog(DisplayName displayName, String unsupportedFeature, Set<String> unsupportedUsages) {
-        TreeFormatter formatter = new TreeFormatter();
-        formatter.node(displayName + unsupportedFeature);
-        formatter.startChildren();
-        for (String usage : unsupportedUsages) {
-            formatter.node(usage);
+    public void newContext(String name) {
+        saveVariantWarnings();
+        currentVariant = name;
+        currentWarnings = new CollectedWarnings();
+    }
+
+    private void saveVariantWarnings() {
+        if (currentVariant != null && !currentWarnings.isEmpty()) {
+            variantToWarnings.put(currentVariant, currentWarnings);
         }
-        formatter.endChildren();
-        logger.lifecycle(formatter.toString());
+    }
+
+    public void addVariantUnsupported(String text) {
+        currentWarnings.addVariantUnsupported(text);
     }
 }

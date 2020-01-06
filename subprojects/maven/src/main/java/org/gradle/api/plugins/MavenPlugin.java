@@ -46,6 +46,7 @@ import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.internal.Describables;
 import org.gradle.internal.Factory;
 import org.gradle.internal.logging.LoggingManagerInternal;
+import org.gradle.util.DeprecationLogger;
 
 import javax.inject.Inject;
 
@@ -53,6 +54,7 @@ import javax.inject.Inject;
  * <p>A {@link org.gradle.api.Plugin} which allows project artifacts to be deployed to a Maven repository, or installed
  * to the local Maven cache.</p>
  */
+@Deprecated
 public class MavenPlugin implements Plugin<ProjectInternal> {
     public static final int COMPILE_PRIORITY = 300;
     public static final int RUNTIME_PRIORITY = 200;
@@ -91,6 +93,7 @@ public class MavenPlugin implements Plugin<ProjectInternal> {
     @Override
     public void apply(final ProjectInternal project) {
         this.project = project;
+        DeprecationLogger.nagUserOfReplacedPlugin("maven", "maven-publish");
         project.getPluginManager().apply(BasePlugin.class);
 
         MavenFactory mavenFactory = project.getServices().get(MavenFactory.class);

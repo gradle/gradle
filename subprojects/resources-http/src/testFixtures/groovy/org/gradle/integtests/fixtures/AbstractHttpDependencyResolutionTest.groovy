@@ -36,8 +36,8 @@ abstract class AbstractHttpDependencyResolutionTest extends AbstractDependencyRe
         }
     }
 
-    IvyHttpRepository getIvyHttpRepo() {
-        return new IvyHttpRepository(server, "/repo", ivyRepo)
+    IvyHttpRepository getIvyHttpRepo(HttpRepository.MetadataType metadataType = HttpRepository.MetadataType.DEFAULT) {
+        return new IvyHttpRepository(server, "/repo", metadataType, ivyRepo)
     }
 
     IvyHttpRepository ivyHttpRepo(String name, HttpRepository.MetadataType metadataType = HttpRepository.MetadataType.DEFAULT) {
@@ -45,8 +45,8 @@ abstract class AbstractHttpDependencyResolutionTest extends AbstractDependencyRe
         return new IvyHttpRepository(server, "/${name}", metadataType, ivyRepo(name))
     }
 
-    MavenHttpRepository getMavenHttpRepo() {
-        return new MavenHttpRepository(server, "/repo", mavenRepo)
+    MavenHttpRepository getMavenHttpRepo(HttpRepository.MetadataType metadataType = HttpRepository.MetadataType.DEFAULT) {
+        return new MavenHttpRepository(server, "/repo", metadataType, mavenRepo)
     }
 
     MavenHttpRepository mavenHttpRepo(String name, HttpRepository.MetadataType metadataType = HttpRepository.MetadataType.DEFAULT) {

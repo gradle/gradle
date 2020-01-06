@@ -152,17 +152,29 @@ fun lineWarning(message: String, line: Int) =
 
 private
 data class DefaultEditorReport(
-    override val severity: EditorReportSeverity,
-    override val message: String,
-    override val position: EditorPosition? = null
-) : EditorReport, Serializable
+    private val severity: EditorReportSeverity,
+    private val message: String,
+    private val position: EditorPosition? = null
+) : EditorReport, Serializable {
+
+    override fun getSeverity() = severity
+
+    override fun getMessage() = message
+
+    override fun getPosition() = position
+}
 
 
 internal
 data class DefaultEditorPosition(
-    override val line: Int,
-    override val column: Int = 0
-) : EditorPosition, Serializable
+    private val line: Int,
+    private val column: Int = 0
+) : EditorPosition, Serializable {
+
+    override fun getLine() = line
+
+    override fun getColumn() = column
+}
 
 
 internal

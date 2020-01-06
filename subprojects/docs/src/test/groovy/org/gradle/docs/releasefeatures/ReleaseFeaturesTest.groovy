@@ -31,7 +31,7 @@ class ReleaseFeaturesTest extends Specification {
         then:
         def lines = featuresText.readLines()
         lines.size() <= 10
-        lines.every { it.startsWith(" - ") }
+        lines.every { it.startsWith(" - ") || it.startsWith("   - ")}
         lines.every { it.length() <= 80 }
     }
 }

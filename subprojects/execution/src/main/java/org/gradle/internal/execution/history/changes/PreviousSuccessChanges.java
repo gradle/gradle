@@ -16,11 +16,6 @@
 
 package org.gradle.internal.execution.history.changes;
 
-import org.gradle.internal.change.Change;
-import org.gradle.internal.change.ChangeContainer;
-import org.gradle.internal.change.ChangeVisitor;
-import org.gradle.internal.change.DescriptiveChange;
-
 public class PreviousSuccessChanges implements ChangeContainer {
     private static final Change PREVIOUS_FAILURE = new DescriptiveChange("Task has failed previously.");
 

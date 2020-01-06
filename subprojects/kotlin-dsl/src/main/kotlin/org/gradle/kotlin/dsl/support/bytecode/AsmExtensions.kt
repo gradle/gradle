@@ -85,9 +85,15 @@ fun ClassVisitor.publicStaticMethod(
     desc: String,
     signature: String? = null,
     exceptions: Array<String>? = null,
-    methodBody: MethodVisitor.() -> Unit
+    deprecated: Boolean = false,
+    methodBody: MethodVisitor.() -> Unit,
+    annotations: MethodVisitor.() -> Unit
 ) {
-    method(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, name, desc, signature, exceptions, methodBody)
+    method(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC + if (deprecated) {
+        Opcodes.ACC_DEPRECATED
+    } else {
+        0
+    }, name, desc, signature, exceptions, annotations, methodBody)
 }
 
 
@@ -97,9 +103,10 @@ fun ClassVisitor.publicMethod(
     desc: String,
     signature: String? = null,
     exceptions: Array<String>? = null,
+    annotations: MethodVisitor.() -> Unit = {},
     methodBody: MethodVisitor.() -> Unit
 ) {
-    method(Opcodes.ACC_PUBLIC, name, desc, signature, exceptions, methodBody)
+    method(Opcodes.ACC_PUBLIC, name, desc, signature, exceptions, annotations, methodBody)
 }
 
 
@@ -110,9 +117,11 @@ fun ClassVisitor.method(
     desc: String,
     signature: String? = null,
     exceptions: Array<String>? = null,
+    annotations: MethodVisitor.() -> Unit = {},
     methodBody: MethodVisitor.() -> Unit
 ) {
     visitMethod(access, name, desc, signature, exceptions).apply {
+        annotations()
         visitCode()
         methodBody()
         visitMaxs(0, 0)
@@ -294,6 +303,12 @@ fun MethodVisitor.PUTFIELD(owner: InternalName, name: String, desc: String) {
 
 
 internal
+fun MethodVisitor.CHECKCAST(type: KClass<*>) {
+    CHECKCAST(type.internalName)
+}
+
+
+internal
 fun MethodVisitor.CHECKCAST(type: InternalName) {
     visitTypeInsn(Opcodes.CHECKCAST, type)
 }
@@ -302,6 +317,15 @@ fun MethodVisitor.CHECKCAST(type: InternalName) {
 internal
 fun MethodVisitor.ACONST_NULL() {
     visitInsn(Opcodes.ACONST_NULL)
+}
+
+
+internal
+fun MethodVisitor.kotlinDeprecation(message: String) {
+    visitAnnotation("Lkotlin/Deprecated;", true).apply {
+        visit("message", message)
+        visitEnd()
+    }
 }
 
 

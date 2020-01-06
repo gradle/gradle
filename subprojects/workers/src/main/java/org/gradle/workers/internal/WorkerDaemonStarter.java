@@ -17,24 +17,35 @@
 package org.gradle.workers.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.LoggingManager;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.worker.MultiRequestWorkerProcessBuilder;
 import org.gradle.process.internal.worker.WorkerProcess;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
+import org.gradle.util.CollectionUtils;
+
+import java.io.File;
+import java.net.URISyntaxException;
 
 public class WorkerDaemonStarter {
     private final static Logger LOG = Logging.getLogger(WorkerDaemonStarter.class);
     private final WorkerProcessFactory workerDaemonProcessFactory;
     private final LoggingManager loggingManager;
+    private final ClassPathRegistry classPathRegistry;
+    private final ActionExecutionSpecFactory actionExecutionSpecFactory;
 
-    public WorkerDaemonStarter(WorkerProcessFactory workerDaemonProcessFactory, LoggingManager loggingManager) {
+    public WorkerDaemonStarter(WorkerProcessFactory workerDaemonProcessFactory, LoggingManager loggingManager, ClassPathRegistry classPathRegistry, ActionExecutionSpecFactory actionExecutionSpecFactory) {
         this.workerDaemonProcessFactory = workerDaemonProcessFactory;
         this.loggingManager = loggingManager;
+        this.classPathRegistry = classPathRegistry;
+        this.actionExecutionSpecFactory = actionExecutionSpecFactory;
     }
 
     public WorkerDaemonClient startDaemon(Class<? extends WorkerProtocol> workerProtocolImplementationClass, DaemonForkOptions forkOptions, Action<WorkerProcess> cleanupAction) {
@@ -43,18 +54,36 @@ public class WorkerDaemonStarter {
         MultiRequestWorkerProcessBuilder<WorkerDaemonProcess> builder = workerDaemonProcessFactory.multiRequestWorker(WorkerDaemonProcess.class, WorkerProtocol.class, workerProtocolImplementationClass);
         builder.setBaseName("Gradle Worker Daemon");
         builder.setLogLevel(loggingManager.getLevel()); // NOTE: might make sense to respect per-compile-task log level
-        builder.applicationClasspath(forkOptions.getClasspath());
-        builder.sharedPackages(forkOptions.getSharedPackages());
+        builder.sharedPackages("org.gradle", "javax.inject");
+        if (forkOptions.getClassLoaderStructure() instanceof FlatClassLoaderStructure) {
+            FlatClassLoaderStructure flatClassLoaderStructure = (FlatClassLoaderStructure) forkOptions.getClassLoaderStructure();
+            builder.applicationClasspath(classPathRegistry.getClassPath("MINIMUM_WORKER_RUNTIME").getAsFiles());
+            builder.useApplicationClassloaderOnly();
+            builder.applicationClasspath(toFiles(flatClassLoaderStructure.getSpec()));
+        } else {
+            builder.applicationClasspath(classPathRegistry.getClassPath("CORE_WORKER_RUNTIME").getAsFiles());
+        }
         builder.onProcessFailure(cleanupAction);
         JavaExecHandleBuilder javaCommand = builder.getJavaCommand();
         forkOptions.getJavaForkOptions().copyTo(javaCommand);
+        builder.registerArgumentSerializer(WorkerDaemonMessageSerializer.create());
         WorkerDaemonProcess workerDaemonProcess = builder.build();
         WorkerProcess workerProcess = workerDaemonProcess.start();
 
-        WorkerDaemonClient client = new WorkerDaemonClient(forkOptions, workerDaemonProcess, workerProcess, loggingManager.getLevel());
+        WorkerDaemonClient client = new WorkerDaemonClient(forkOptions, workerDaemonProcess, workerProcess, loggingManager.getLevel(), actionExecutionSpecFactory);
 
         LOG.info("Started Gradle worker daemon ({}) with fork options {}.", clock.getElapsed(), forkOptions);
 
         return client;
+    }
+
+    private static Iterable<File> toFiles(VisitableURLClassLoader.Spec spec) {
+        return CollectionUtils.collect(spec.getClasspath(), url -> {
+            try {
+                return new File(url.toURI());
+            } catch (URISyntaxException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+        });
     }
 }

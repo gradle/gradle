@@ -17,7 +17,7 @@
 package common
 
 import configurations.buildJavaHome
-import configurations.coordinatorPerformanceTestJavaHome
+import configurations.individualPerformanceTestJavaHome
 import jetbrains.buildServer.configs.kotlin.v2018_2.BuildType
 
 fun BuildType.applyPerformanceTestSettings(os: Os = Os.linux, timeout: Int = 30) {
@@ -31,23 +31,27 @@ fun BuildType.applyPerformanceTestSettings(os: Os = Os.linux, timeout: Int = 30)
     }
     params {
         param("env.GRADLE_OPTS", "-Xmx1536m -XX:MaxPermSize=384m")
-        param("env.JAVA_HOME", buildJavaHome)
+        param("env.JAVA_HOME", buildJavaHome(os))
         param("env.BUILD_BRANCH", "%teamcity.build.branch%")
-        param("performance.db.url", "jdbc:h2:ssl://dev61.gradle.org:9092")
         param("performance.db.username", "tcagent")
     }
 }
 
-fun performanceTestCommandLine(task: String, baselines: String, extraParameters: String = "", testJavaHome: String = coordinatorPerformanceTestJavaHome) = listOf(
+fun performanceTestCommandLine(task: String, baselines: String, extraParameters: String = "", testJavaHome: String = individualPerformanceTestJavaHome(Os.linux)) = listOf(
         "$task --baselines $baselines $extraParameters",
         "-x prepareSamples",
         "-Porg.gradle.performance.branchName=%teamcity.build.branch%",
         "-Porg.gradle.performance.db.url=%performance.db.url% -Porg.gradle.performance.db.username=%performance.db.username% -Porg.gradle.performance.db.password=%performance.db.password.tcagent%",
-        "-PteamCityUsername=%teamcity.username.restbot% -PteamCityPassword=%teamcity.password.restbot%",
+        "-PteamCityToken=%teamcity.user.bot-gradle.token%",
         "-PtestJavaHome=$testJavaHome"
 )
 
 fun distributedPerformanceTestParameters(workerId: String = "Gradle_Check_IndividualPerformanceScenarioWorkersLinux") = listOf(
-        "-Porg.gradle.performance.buildTypeId=${workerId} -Porg.gradle.performance.workerTestTaskName=fullPerformanceTest -Porg.gradle.performance.coordinatorBuildId=%teamcity.build.id% -PgithubToken=%github.ci.oauth.token%"
+        "-Porg.gradle.performance.buildTypeId=$workerId -Porg.gradle.performance.workerTestTaskName=fullPerformanceTest -Porg.gradle.performance.coordinatorBuildId=%teamcity.build.id% -PgithubToken=%github.ci.oauth.token%"
 )
 
+val individualPerformanceTestArtifactRules = """
+        subprojects/*/build/test-results-*.zip => results
+        subprojects/*/build/tmp/**/log.txt => failure-logs
+        subprojects/*/build/tmp/**/profile.log => failure-logs
+    """.trimIndent()

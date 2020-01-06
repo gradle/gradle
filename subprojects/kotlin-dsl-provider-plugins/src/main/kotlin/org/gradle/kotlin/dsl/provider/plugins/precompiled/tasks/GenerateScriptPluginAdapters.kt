@@ -88,8 +88,8 @@ fun PrecompiledScriptPlugin.writeScriptPluginAdapterTo(outputDir: File) {
                 try {
                     Class
                         .forName("$compiledScriptTypeName")
-                        .getDeclaredConstructor($targetType::class.java)
-                        .newInstance(target)
+                        .getDeclaredConstructor($targetType::class.java, $targetType::class.java)
+                        .newInstance(target, target)
                 } catch (e: java.lang.reflect.InvocationTargetException) {
                     throw e.targetException
                 }

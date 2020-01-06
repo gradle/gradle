@@ -21,9 +21,7 @@ import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.component.ComponentWithVariants
 import org.gradle.api.component.PublishableComponent
 import org.gradle.api.component.SoftwareComponent
-import org.gradle.api.file.Directory
 import org.gradle.api.file.FileCollection
-import org.gradle.api.file.RegularFile
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.component.SoftwareComponentInternal
@@ -155,7 +153,7 @@ class NativeBasePluginTest extends Specification {
         def toolProvider = Stub(PlatformToolProvider)
         toolProvider.getStaticLibraryName(_) >> { String p -> p + ".lib" }
 
-        def linkFileProp = project.objects.property(RegularFile)
+        def linkFileProp = project.objects.fileProperty()
         def linkFileTasKProp = project.objects.property(Task)
         def createTaskProp = project.objects.property(CreateStaticLibrary)
 
@@ -189,7 +187,7 @@ class NativeBasePluginTest extends Specification {
         def toolProvider = Stub(PlatformToolProvider)
         toolProvider.getSharedLibraryName(_) >> { String p -> p + ".dll" }
 
-        def runtimeFileProp = project.objects.property(RegularFile)
+        def runtimeFileProp = project.objects.fileProperty()
         def linkTaskProp = project.objects.property(LinkSharedLibrary)
         def linkFileTasKProp = project.objects.property(Task)
 
@@ -225,7 +223,7 @@ class NativeBasePluginTest extends Specification {
         toolProvider.getLibrarySymbolFileName(_) >> { String p -> p + ".dll.pdb" }
         toolProvider.requiresDebugBinaryStripping() >> true
 
-        def runtimeFileProp = project.objects.property(RegularFile)
+        def runtimeFileProp = project.objects.fileProperty()
         def linkTaskProp = project.objects.property(LinkSharedLibrary)
         def linkFileTasKProp = project.objects.property(Task)
 
@@ -271,11 +269,11 @@ class NativeBasePluginTest extends Specification {
         def toolProvider = Stub(PlatformToolProvider)
         toolProvider.getExecutableName(_) >> { String p -> p + ".exe" }
 
-        def exeFileProp = project.objects.property(RegularFile)
+        def exeFileProp = project.objects.fileProperty()
         def exeFileTaskProp = project.objects.property(Task)
-        def debugExeFileProp = project.objects.property(RegularFile)
+        def debugExeFileProp = project.objects.fileProperty()
         def linkTaskProp = project.objects.property(LinkExecutable)
-        def installDirProp = project.objects.property(Directory)
+        def installDirProp = project.objects.directoryProperty()
         def installTaskProp = project.objects.property(InstallExecutable)
 
         def executable = Stub(ConfigurableComponentWithExecutable)
@@ -324,11 +322,11 @@ class NativeBasePluginTest extends Specification {
         toolProvider.getExecutableSymbolFileName(_) >> { String p -> p + ".exe.pdb" }
         toolProvider.requiresDebugBinaryStripping() >> true
 
-        def exeFileProp = project.objects.property(RegularFile)
+        def exeFileProp = project.objects.fileProperty()
         def exeFileTaskProp = project.objects.property(Task)
-        def debugExeFileProp = project.objects.property(RegularFile)
+        def debugExeFileProp = project.objects.fileProperty()
         def linkTaskProp = project.objects.property(LinkExecutable)
-        def installDirProp = project.objects.property(Directory)
+        def installDirProp = project.objects.directoryProperty()
         def installTaskProp = project.objects.property(InstallExecutable)
 
         def executable = Stub(ConfigurableComponentWithExecutable)

@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.ivy
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.server.sftp.IvySftpRepository
 import org.gradle.test.fixtures.server.sftp.SFTPServer
 import org.junit.Rule
@@ -66,6 +67,7 @@ class IvyPublishSftpIntegrationTest extends AbstractIvyPublishIntegTest {
         """
     }
 
+    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_TO_CLEANUP)
     def "can publish to a SFTP repository with layout #layout"() {
         given:
         def ivySftpRepo = getIvySftpRepo(m2Compatible)
@@ -104,14 +106,26 @@ class IvyPublishSftpIntegrationTest extends AbstractIvyPublishIntegTest {
         // TODO - should not check on each upload to a particular directory
         module.jar.sha1.expectParentCheckdir()
         module.jar.sha1.expectFileUpload()
+        module.jar.sha256.expectParentCheckdir()
+        module.jar.sha256.expectFileUpload()
+        module.jar.sha512.expectParentCheckdir()
+        module.jar.sha512.expectFileUpload()
         module.ivy.expectParentCheckdir()
         module.ivy.expectFileUpload()
         module.ivy.sha1.expectParentCheckdir()
         module.ivy.sha1.expectFileUpload()
+        module.ivy.sha256.expectParentCheckdir()
+        module.ivy.sha256.expectFileUpload()
+        module.ivy.sha512.expectParentCheckdir()
+        module.ivy.sha512.expectFileUpload()
         module.moduleMetadata.expectParentCheckdir()
         module.moduleMetadata.expectFileUpload()
         module.moduleMetadata.sha1.expectParentCheckdir()
         module.moduleMetadata.sha1.expectFileUpload()
+        module.moduleMetadata.sha256.expectParentCheckdir()
+        module.moduleMetadata.sha256.expectFileUpload()
+        module.moduleMetadata.sha512.expectParentCheckdir()
+        module.moduleMetadata.sha512.expectFileUpload()
 
         then:
         succeeds 'publish'
@@ -125,6 +139,7 @@ class IvyPublishSftpIntegrationTest extends AbstractIvyPublishIntegTest {
         'maven'  | true
     }
 
+    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_TO_CLEANUP)
     def "can publish to a SFTP repository with pattern layout and m2Compatible #m2Compatible"() {
         given:
         def ivySftpRepo = getIvySftpRepo(m2Compatible, "[module]/[organisation]/[revision]")
@@ -167,14 +182,26 @@ class IvyPublishSftpIntegrationTest extends AbstractIvyPublishIntegTest {
         // TODO - should not check on each upload to a particular directory
         module.jar.sha1.expectParentCheckdir()
         module.jar.sha1.expectFileUpload()
+        module.jar.sha256.expectParentCheckdir()
+        module.jar.sha256.expectFileUpload()
+        module.jar.sha512.expectParentCheckdir()
+        module.jar.sha512.expectFileUpload()
         module.ivy.expectParentCheckdir()
         module.ivy.expectFileUpload()
         module.ivy.sha1.expectParentCheckdir()
         module.ivy.sha1.expectFileUpload()
+        module.ivy.sha256.expectParentCheckdir()
+        module.ivy.sha256.expectFileUpload()
+        module.ivy.sha512.expectParentCheckdir()
+        module.ivy.sha512.expectFileUpload()
         module.moduleMetadata.expectParentCheckdir()
         module.moduleMetadata.expectFileUpload()
         module.moduleMetadata.sha1.expectParentCheckdir()
         module.moduleMetadata.sha1.expectFileUpload()
+        module.moduleMetadata.sha256.expectParentCheckdir()
+        module.moduleMetadata.sha256.expectFileUpload()
+        module.moduleMetadata.sha512.expectParentCheckdir()
+        module.moduleMetadata.sha512.expectFileUpload()
 
         then:
         succeeds 'publish'
@@ -186,6 +213,7 @@ class IvyPublishSftpIntegrationTest extends AbstractIvyPublishIntegTest {
         m2Compatible << [true, false]
     }
 
+    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_TO_CLEANUP)
     def "publishing to a SFTP repo when directory creation fails"() {
         given:
         buildAndSettingsFilesForPublishing()
@@ -206,6 +234,7 @@ class IvyPublishSftpIntegrationTest extends AbstractIvyPublishIntegTest {
             .assertHasCause("Could not create resource '${ivySftpRepo.uri}'.")
     }
 
+    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_TO_CLEANUP)
     def "publishing to a SFTP repo when file uploading fails"() {
         given:
         buildAndSettingsFilesForPublishing()

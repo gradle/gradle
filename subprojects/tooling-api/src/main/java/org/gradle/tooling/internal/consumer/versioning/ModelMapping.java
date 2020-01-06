@@ -25,7 +25,6 @@ import org.gradle.tooling.model.gradle.GradleBuild;
 import org.gradle.tooling.model.gradle.ProjectPublications;
 import org.gradle.tooling.model.idea.BasicIdeaProject;
 import org.gradle.tooling.model.idea.IdeaProject;
-import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;
@@ -45,7 +44,6 @@ public class ModelMapping {
         map.put(GradleProject.class, "1.0-milestone-5");
         map.put(BasicIdeaProject.class, "1.0-milestone-5");
         map.put(BuildEnvironment.class, "1.0-milestone-8");
-        map.put(ProjectOutcomes.class, "1.2");
         map.put(Void.class, "1.0-milestone-3");
         map.put(GradleBuild.class, "1.8");
         map.put(ProjectPublications.class, "1.12");
@@ -54,9 +52,6 @@ public class ModelMapping {
     public ModelIdentifier getModelIdentifierFromModelType(final Class<?> modelType) {
         if (modelType.equals(Void.class)) {
             return new DefaultModelIdentifier(ModelIdentifier.NULL_MODEL);
-        }
-        if (modelType.equals(ProjectOutcomes.class)) {
-            return new DefaultModelIdentifier("org.gradle.tooling.model.outcomes.ProjectOutcomes");
         }
         return new DefaultModelIdentifier(modelType.getName());
     }

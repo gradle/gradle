@@ -28,7 +28,7 @@ plugins {
 description = "Kotlin DSL Gradle Plugins deployed to the Plugin Portal"
 
 group = "org.gradle.kotlin"
-version = "1.2.9"
+version = "1.3.4"
 
 base.archivesBaseName = "plugins"
 
@@ -83,6 +83,8 @@ dependencies {
     integTestRuntimeOnly(project(":apiMetadata"))
     integTestRuntimeOnly(project(":pluginDevelopment"))
     integTestRuntimeOnly(project(":toolingApiBuilders"))
+    integTestRuntimeOnly(project(":testingJunitPlatform"))
+    integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
 }
 
 

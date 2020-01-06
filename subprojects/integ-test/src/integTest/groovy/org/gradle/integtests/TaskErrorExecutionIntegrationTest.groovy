@@ -116,7 +116,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec {
         expect:
         fails "custom"
 
-        failure.assertHasDescription("Some problems were found with the configuration of task ':custom'.")
+        failure.assertHasDescription("Some problems were found with the configuration of task ':custom' (type 'CustomTask').")
         failure.assertHasCause("No value has been specified for property 'srcFile'.")
         failure.assertHasCause("No value has been specified for property 'destFile'.")
     }

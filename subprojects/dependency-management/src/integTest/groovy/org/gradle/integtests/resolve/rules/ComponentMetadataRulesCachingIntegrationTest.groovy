@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.resolve.rules
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.RequiredFeatures
@@ -43,8 +44,10 @@ task resolve {
     }
 }
 """
+        executer.withArgument("-Ddebug.modulesource=true")
     }
 
+    @ToBeFixedForInstantExecution
     def "rule is cached across builds"() {
         repository {
             'org.test:projectA:1.0' {
@@ -64,7 +67,7 @@ class CachedRule implements ComponentMetadataRule {
                     deps.each {
                        println "See dependency: \$it"
                     }
-                }               
+                }
             }
     }
 }
@@ -98,6 +101,7 @@ dependencies {
         outputDoesNotContain('See dependency')
     }
 
+    @ToBeFixedForInstantExecution
     def 'rule cache properly differentiates inputs'() {
         repository {
             'org.test:projectA:1.0'()
@@ -146,6 +150,7 @@ dependencies {
         outputContains('Rule B executed - saw changing true')
     }
 
+    @ToBeFixedForInstantExecution
     def 'can cache rules with service injection'() {
         repository {
             'org.test:projectA:1.0'()
@@ -164,7 +169,7 @@ class CachedRuleA implements ComponentMetadataRule {
     CachedRuleA(RepositoryResourceAccessor accessor) {
         this.accessor = accessor
     }
-    
+
     void execute(ComponentMetadataContext context) {
             println 'Rule A executed'
             context.details.changing = true
@@ -180,7 +185,7 @@ class CachedRuleB implements ComponentMetadataRule {
     CachedRuleB(RepositoryResourceAccessor accessor) {
         this.accessor = accessor
     }
-    
+
     public void execute(ComponentMetadataContext context) {
             println 'Rule B executed - saw changing ' + context.details.changing
     }
@@ -213,6 +218,7 @@ dependencies {
         outputContains('Rule B executed - saw changing true')
     }
 
+    @ToBeFixedForInstantExecution
     def 'can cache rules having a custom type attribute as parameter'() {
         repository {
             'org.test:projectA:1.0'()
@@ -230,7 +236,7 @@ class AttributeCachedRule implements ComponentMetadataRule {
     AttributeCachedRule(Attribute attribute) {
         this.targetAttribute = attribute
     }
-    
+
     void execute(ComponentMetadataContext context) {
         println 'Attribute rule executed'
     }
@@ -267,6 +273,7 @@ dependencies {
     @RequiredFeatures(
         @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     )
+    @ToBeFixedForInstantExecution
     def 'can cache rules setting custom type attributes'() {
         repository {
             'org.test:projectA:1.0'()
@@ -289,7 +296,7 @@ class AttributeCachedRule implements ComponentMetadataRule {
         this.objects = objects
         this.targetAttribute = attribute
     }
-    
+
     void execute(ComponentMetadataContext context) {
         println 'Attribute rule executed'
         context.details.withVariant('api') {
@@ -343,7 +350,7 @@ dependencies {
         resolve.expectGraph {
             root(":", ":test:") {
                 module('org.test:projectA:1.0') {
-                    variant('runtime', ['org.gradle.status': expectedStatus, 'org.gradle.usage': 'java-runtime-jars', 'thing': 'Bar'])
+                    variant('runtime', ['org.gradle.status': expectedStatus, 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', 'thing': 'Bar'])
                 }
             }
         }
@@ -355,12 +362,13 @@ dependencies {
         resolve.expectGraph {
             root(":", ":test:") {
                 module('org.test:projectA:1.0') {
-                    variant('runtime', ['org.gradle.status': expectedStatus, 'org.gradle.usage': 'java-runtime-jars', 'thing': 'Bar'])
+                    variant('runtime', ['org.gradle.status': expectedStatus, 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', 'thing': 'Bar'])
                 }
             }
         }
     }
 
+    @ToBeFixedForInstantExecution
     def 'changing rule implementation invalidates cache'() {
         repository {
             'org.test:projectA:1.0'()
@@ -368,7 +376,7 @@ dependencies {
 
         def cachedRule = file('buildSrc/src/main/groovy/rule/CachedRule.groovy')
         cachedRule.text = """
-package rule 
+package rule
 
 import org.gradle.api.artifacts.ComponentMetadataRule
 import org.gradle.api.artifacts.CacheableRule
@@ -411,7 +419,7 @@ dependencies {
             }
         }
         cachedRule.text = """
-package rule 
+package rule
 
 import org.gradle.api.artifacts.ComponentMetadataRule
 import org.gradle.api.artifacts.CacheableRule

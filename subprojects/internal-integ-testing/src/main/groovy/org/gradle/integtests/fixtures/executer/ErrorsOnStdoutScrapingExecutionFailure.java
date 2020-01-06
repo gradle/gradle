@@ -27,6 +27,11 @@ public class ErrorsOnStdoutScrapingExecutionFailure extends ErrorsOnStdoutScrapi
     }
 
     @Override
+    public ExecutionFailure getIgnoreBuildSrc() {
+        return new ErrorsOnStdoutScrapingExecutionFailure(delegate.getIgnoreBuildSrc());
+    }
+
+    @Override
     public ExecutionFailure assertHasLineNumber(int lineNumber) {
         delegate.assertHasLineNumber(lineNumber);
         return this;
@@ -51,7 +56,7 @@ public class ErrorsOnStdoutScrapingExecutionFailure extends ErrorsOnStdoutScrapi
     }
 
     @Override
-    public ExecutionFailure assertThatCause(Matcher<String> matcher) {
+    public ExecutionFailure assertThatCause(Matcher<? super String> matcher) {
         delegate.assertThatCause(matcher);
         return this;
     }
@@ -63,7 +68,7 @@ public class ErrorsOnStdoutScrapingExecutionFailure extends ErrorsOnStdoutScrapi
     }
 
     @Override
-    public ExecutionFailure assertThatDescription(Matcher<String> matcher) {
+    public ExecutionFailure assertThatDescription(Matcher<? super String> matcher) {
         delegate.assertThatDescription(matcher);
         return this;
     }

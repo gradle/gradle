@@ -16,11 +16,11 @@
 
 package org.gradle.performance.regression.corefeature
 
-import org.gradle.performance.AbstractCrossVersionPerformanceTest
+import org.gradle.performance.AbstractCrossVersionGradleProfilerPerformanceTest
 
-class ArchiveTreePerformanceTest extends AbstractCrossVersionPerformanceTest {
+class ArchiveTreePerformanceTest extends AbstractCrossVersionGradleProfilerPerformanceTest {
     def setup() {
-        runner.targetVersions = ["5.5-20190515115345+0000"]
+        runner.targetVersions = ["6.1-20191209153604+0000"]
     }
 
     def "visiting zip trees"() {

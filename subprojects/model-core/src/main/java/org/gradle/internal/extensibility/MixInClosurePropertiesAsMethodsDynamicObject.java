@@ -18,6 +18,7 @@ package org.gradle.internal.extensibility;
 
 import groovy.lang.Closure;
 import org.codehaus.groovy.runtime.GeneratedClosure;
+import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.CompositeDynamicObject;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
@@ -47,6 +48,10 @@ public abstract class MixInClosurePropertiesAsMethodsDynamicObject extends Compo
                     return DynamicInvokeResult.found(closure.call(arguments));
                 }
                 return result;
+            }
+            if (property instanceof NamedDomainObjectContainer && arguments.length == 1 && arguments[0] instanceof Closure) {
+                ((NamedDomainObjectContainer) property).configure((Closure) arguments[0]);
+                return DynamicInvokeResult.found();
             }
         }
         return DynamicInvokeResult.notFound();

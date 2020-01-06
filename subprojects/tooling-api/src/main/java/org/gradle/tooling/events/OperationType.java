@@ -27,41 +27,98 @@ public enum OperationType {
 
     /**
      * Flag for test operation progress events.
+     *
+     * <p>
+     * The following events are currently issued for this operation type.
+     * <ul>
+     *     <li>{@link org.gradle.tooling.events.test.TestStartEvent}</li>
+     *     <li>{@link org.gradle.tooling.events.test.TestFinishEvent}</li>
+     * </ul>
      */
     TEST,
 
     /**
      * Flag for task operation progress events.
+     *
+     * <p>
+     * The following events are currently issued for this operation type.
+     * <ul>
+     *     <li>{@link org.gradle.tooling.events.task.TaskStartEvent}</li>
+     *     <li>{@link org.gradle.tooling.events.task.TaskFinishEvent}</li>
+     * </ul>
+     *
      */
     TASK,
 
     /**
      * Flag for operations with no specific type.
+     *
+     * <p>
+     * The following events are currently issued for this operation type.
+     * <ul>
+     *     <li>{@link StartEvent}</li>
+     *     <li>{@link FinishEvent}</li>
+     *     <li>{@link StatusEvent}</li>
+     * </ul>
+     *
      */
     GENERIC,
 
     /**
      * Flag for work item operation progress events.
      *
+     * <p>
+     * The following events are currently issued for this operation type.
+     * <ul>
+     *     <li>{@link org.gradle.tooling.events.work.WorkItemStartEvent}</li>
+     *     <li>{@link org.gradle.tooling.events.work.WorkItemFinishEvent}</li>
+     * </ul>
+     *
      * @since 5.1
      */
-    @Incubating
     WORK_ITEM,
 
     /**
      * Flag for project configuration operation progress events.
      *
+     * <p>
+     * The following events are currently issued for this operation type.
+     * <ul>
+     *     <li>{@link org.gradle.tooling.events.configuration.ProjectConfigurationStartEvent}</li>
+     *     <li>{@link org.gradle.tooling.events.configuration.ProjectConfigurationFinishEvent}</li>
+     * </ul>
+     *
      * @since 5.1
      */
-    @Incubating
     PROJECT_CONFIGURATION,
 
     /**
      * Flag for transform operation progress events.
      *
+     * <p>
+     * The following events are currently issued for this operation type.
+     * <ul>
+     *     <li>{@link org.gradle.tooling.events.transform.TransformStartEvent}</li>
+     *     <li>{@link org.gradle.tooling.events.transform.TransformFinishEvent}</li>
+     * </ul>
+     *
      * @since 5.1
      */
-    @Incubating
-    TRANSFORM
+    TRANSFORM,
 
+    /**
+     * Flag for test output operation progress events.
+     * <p>
+     * Clients must subscribe to {@link #TEST} events too if they want to receive test output events.
+     * </p>
+     *
+     * The following events are currently issued for this operation type.
+     * <ul>
+     *     <li>{@link org.gradle.tooling.events.test.TestOutputEvent}</li>
+     * </ul>
+     *
+     * @since 6.0
+     */
+    @Incubating
+    TEST_OUTPUT
 }

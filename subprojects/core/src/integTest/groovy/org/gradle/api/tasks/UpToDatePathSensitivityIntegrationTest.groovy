@@ -25,4 +25,9 @@ class UpToDatePathSensitivityIntegrationTest extends AbstractPathSensitivityInte
     @Override
     void cleanWorkspace() {
     }
+
+    @Override
+    String getStatusForReusedOutput() {
+        return "UP-TO-DATE"
+    }
 }

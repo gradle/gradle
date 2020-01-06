@@ -171,7 +171,7 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
         when:
         withBuildCache().run "pluralOutputs"
         then:
-        assertCachingDisabledFor NON_CACHEABLE_TREE_OUTPUT, "Output property 'outputFiles' contains a file tree"
+        assertCachingDisabledFor NON_CACHEABLE_TREE_OUTPUT, "Output property 'outputFiles\$1' contains a file tree"
 
         where:
         annotation << [OutputFiles.simpleName, OutputDirectories.simpleName]

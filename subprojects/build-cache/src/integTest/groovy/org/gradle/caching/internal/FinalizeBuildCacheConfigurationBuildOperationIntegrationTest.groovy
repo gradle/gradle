@@ -28,7 +28,7 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
         def cacheDir = temporaryFolder.file("cache-dir").createDir()
         settingsFile << """
             buildCache {
-                local(DirectoryBuildCache) {
+                local {
                     enabled = true 
                     directory = '${cacheDir.absoluteFile.toURI().toString()}'
                     push = true 
@@ -77,11 +77,10 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
             buildCache {
                 registerBuildCacheService(CustomBuildCache, CustomBuildCacheFactory)
                 
-                local(CustomBuildCache)
+                remote(CustomBuildCache)
             }
         """
         executer.withBuildCacheEnabled()
-        executer.expectDeprecationWarning()
 
         when:
         succeeds("help")
@@ -90,12 +89,11 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
         def result = result()
 
         result.enabled
-        result.localEnabled
-        !result.remoteEnabled
+        result.remoteEnabled
 
-        result.local.className == 'CustomBuildCache'
-        result.local.config.directory == directory
-        result.local.type == type
+        result.remote.className == 'CustomBuildCache'
+        result.remote.config.directory == directory
+        result.remote.type == type
 
     }
 
@@ -120,7 +118,7 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
             buildCache {
                 registerBuildCacheService(CustomBuildCache, CustomBuildCacheFactory)
 
-                local(DirectoryBuildCache) {
+                local {
                     enabled = true 
                     directory = '${cacheDir.absoluteFile.toURI().toString()}'
                 }
@@ -148,7 +146,7 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
         def cacheDir = temporaryFolder.file("cache-dir").createDir()
         settingsFile << """
             buildCache {
-                local(DirectoryBuildCache) {
+                local {
                     enabled = false
                     directory = '${cacheDir.absoluteFile.toURI().toString()}'
                     push = true 

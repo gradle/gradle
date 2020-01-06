@@ -39,7 +39,7 @@ class JUnitSmokeMultiVersionIntegrationSpec extends JUnitMultiVersionIntegration
         apply plugin: 'java'
         ${mavenCentralRepository()}
         dependencies { 
-            testCompile '$dependencyNotation' 
+            testImplementation '$dependencyNotation' 
         }"""
 
         when:

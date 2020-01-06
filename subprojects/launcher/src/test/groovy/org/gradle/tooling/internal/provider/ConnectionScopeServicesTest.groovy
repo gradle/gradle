@@ -27,7 +27,7 @@ class ConnectionScopeServicesTest extends Specification {
     def services = ServiceRegistryBuilder.builder()
         .parent(logging)
         .parent(NativeServicesTestFixture.instance)
-        .provider(new ConnectionScopeServices(logging))
+        .provider(new ConnectionScopeServices())
         .build()
 
     def "provides a ProviderConnection implementation"() {

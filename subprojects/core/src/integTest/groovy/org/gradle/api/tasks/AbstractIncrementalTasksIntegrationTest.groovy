@@ -17,7 +17,8 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.change.ChangeTypeInternal
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.internal.execution.history.changes.ChangeTypeInternal
 
 abstract class AbstractIncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
 
@@ -59,6 +60,10 @@ abstract class AbstractIncrementalTasksIntegrationTest extends AbstractIntegrati
         @InputDirectory
         abstract DirectoryProperty getInputDir()
 
+        @Optional
+        @OutputFile
+        abstract RegularFileProperty getOutputFile()
+
         @TaskAction
         $taskAction
 
@@ -68,9 +73,13 @@ abstract class AbstractIncrementalTasksIntegrationTest extends AbstractIntegrati
         def createOutputsNonIncremental() {
         }
 
+        @Internal
         def addedFiles = []
+        @Internal
         def modifiedFiles = []
+        @Internal
         def removedFiles = []
+        @Internal
         def incrementalExecution
     }
         """
@@ -136,7 +145,7 @@ abstract class AbstractIncrementalTasksIntegrationTest extends AbstractIntegrati
         run "incremental"
 
         then:
-        ":incremental" in skippedTasks
+        skipped(":incremental")
     }
 
     def "incremental task is informed of 'out-of-date' files when input file modified"() {
@@ -333,6 +342,7 @@ abstract class AbstractIncrementalTasksIntegrationTest extends AbstractIntegrati
         executesNonIncrementally()
     }
 
+    @ToBeFixedForInstantExecution
     def "incremental task is informed of 'out-of-date' files since previous successful execution"() {
         given:
         previousExecution()

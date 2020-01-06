@@ -16,7 +16,13 @@
 
 package org.gradle.api
 
+import org.gradle.api.file.FileSystemOperations
+import org.gradle.api.file.ProjectLayout
+import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.ProviderFactory
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.execution.WorkExecutor
+import org.gradle.process.ExecOperations
 import spock.lang.Unroll
 
 import javax.inject.Inject
@@ -34,10 +40,10 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
                     this.b = b
                 }
             }
-            
+
             extensions.create("one", Thing, "a")
             extensions.create("two", Thing, "a", "b")
-            
+
             assert one.a == "a"
             assert one.b == "a"
 
@@ -55,14 +61,14 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
                 Thing(String a, String b) {
                 }
             }
-            
+
             extensions.create("thing", Thing, "a")
         """
 
         expect:
         fails()
         failure.assertHasCause("Could not create an instance of type Thing.")
-        failure.assertHasCause("Unable to determine constructor argument #2: missing parameter of class java.lang.String, or no service of type class java.lang.String")
+        failure.assertHasCause("Unable to determine constructor argument #2: missing parameter of type String, or no service of type String")
     }
 
     def "fails when non-static inner class provided"() {
@@ -70,14 +76,14 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
             class Things {
                 class Thing { }
             }
-            
+
             extensions.create("thing", Things.Thing, "a")
         """
 
         expect:
         fails()
         failure.assertHasCause("Could not create an instance of type Things\$Thing.")
-        failure.assertHasCause("Class Things\$Thing is a non-static inner class.")
+        failure.assertHasCause("Class Things.Thing is a non-static inner class.")
     }
 
     def "fails when mismatched construction parameters provided"() {
@@ -86,14 +92,14 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
                 Thing(String a, String b) {
                 }
             }
-            
+
             extensions.create("thing", Thing, "a", 12)
         """
 
         expect:
         fails()
         failure.assertHasCause("Could not create an instance of type Thing.")
-        failure.assertHasCause("Unable to determine constructor argument #2: value 12 not assignable to class java.lang.String")
+        failure.assertHasCause("Unable to determine constructor argument #2: value 12 not assignable to type String")
     }
 
     def "fails when mismatched construction parameters provided when there are multiple constructors"() {
@@ -104,14 +110,14 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
                 Thing(String a, boolean b) {
                 }
             }
-            
+
             extensions.create("thing", Thing, "a", 12)
         """
 
         expect:
         fails()
         failure.assertHasCause("Could not create an instance of type Thing.")
-        failure.assertHasCause("No constructors of class Thing match parameters: ['a', 12]")
+        failure.assertHasCause("No constructors of type Thing match parameters: ['a', 12]")
     }
 
     def "fails when constructor is ambiguous"() {
@@ -122,14 +128,14 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
                 Thing(String a, String b, ProjectLayout p) {
                 }
             }
-            
+
             extensions.create("thing", Thing, "a", "b")
         """
 
         expect:
         fails()
         failure.assertHasCause("Could not create an instance of type Thing.")
-        failure.assertHasCause("Multiple constructors of class Thing match parameters: ['a', 'b']")
+        failure.assertHasCause("Multiple constructors of type Thing match parameters: ['a', 'b']")
     }
 
     def "fails when too many construction parameters provided"() {
@@ -138,14 +144,14 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
                 Thing(String a, String b) {
                 }
             }
-            
+
             extensions.create("thing", Thing, "a", "b", "c")
         """
 
         expect:
         fails()
         failure.assertHasCause("Could not create an instance of type Thing.")
-        failure.assertHasCause("Too many parameters provided for constructor for class Thing. Expected 2, received 3.")
+        failure.assertHasCause("Too many parameters provided for constructor for type Thing. Expected 2, received 3.")
     }
 
     @Unroll
@@ -155,7 +161,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
                 ${type} getValue()
                 void setValue(${type} value)
             }
-            
+
             extensions.create("thing", Thing)
             assert thing.value == ${defaultValue}
             thing {
@@ -182,8 +188,9 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
             interface Thing {
                 ConfigurableFileCollection getValue()
             }
-            
+
             extensions.create("thing", Thing)
+            assert thing.value.toString() == "file collection"
             assert thing.value.files.empty
             thing.value.from("a.txt")
             assert thing.value.files as List == [file("a.txt")]
@@ -193,14 +200,33 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
         succeeds()
     }
 
-    def "can create instance of interface with read-only Property property"() {
+    def "can create instance of interface with read-only ConfigurableFileTree property"() {
+        buildFile << """
+            interface Thing {
+                ConfigurableFileTree getValue()
+            }
+
+            extensions.create("thing", Thing)
+            assert thing.value.toString() == "directory 'null'"
+            thing.value.from("dir")
+            assert thing.value.files == [file("dir/a.txt"), file("dir/sub/b.txt")] as Set
+        """
+        file("dir/a.txt").createFile()
+        file("dir/sub/b.txt").createFile()
+
+        expect:
+        succeeds()
+    }
+
+    def "can create instance of interface with read-only Property<T> property"() {
         buildFile << """
             interface Thing {
                 Property<String> getValue()
             }
-            
+
             extensions.create("thing", Thing)
             assert thing.value.getOrNull() == null
+            assert thing.value.toString() == "extension 'thing' property 'value'"
             thing {
                 value = "value"
             }
@@ -216,8 +242,9 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
             interface Thing {
                 RegularFileProperty getValue()
             }
-            
+
             extensions.create("thing", Thing)
+            assert thing.value.toString() == "extension 'thing' property 'value'"
             assert thing.value.getOrNull() == null
             thing {
                 value = file("thing.txt")
@@ -234,8 +261,9 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
             interface Thing {
                 DirectoryProperty getValue()
             }
-            
+
             extensions.create("thing", Thing)
+            assert thing.value.toString() == "extension 'thing' property 'value'"
             assert thing.value.getOrNull() == null
             thing {
                 value = file("thing.txt")
@@ -252,8 +280,9 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
             interface Thing {
                 ListProperty<String> getValue()
             }
-            
+
             extensions.create("thing", Thing)
+            assert thing.value.toString() == "extension 'thing' property 'value'"
             assert thing.value.getOrNull() == []
             thing {
                 value = ["thing"]
@@ -270,8 +299,9 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
             interface Thing {
                 SetProperty<String> getValue()
             }
-            
+
             extensions.create("thing", Thing)
+            assert thing.value.toString() == "extension 'thing' property 'value'"
             assert thing.value.getOrNull() == [] as Set
             thing {
                 value = ["thing"]
@@ -288,13 +318,65 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
             interface Thing {
                 MapProperty<String, String> getValue()
             }
-            
+
             extensions.create("thing", Thing)
+            assert thing.value.toString() == "extension 'thing' property 'value'"
             assert thing.value.getOrNull() == [:]
             thing {
                 value = [a: "b"]
             }
             assert thing.value.get() == [a: "b"]
+        """
+
+        expect:
+        succeeds()
+    }
+
+    def "can create instance of interface with read-only NamedDomainObjectContainer property"() {
+        buildFile << """
+            class Bean {
+                final String name
+                Bean(String name) {
+                    this.name = name
+                }
+            }
+
+            interface Thing {
+                NamedDomainObjectContainer<Bean> getValue()
+            }
+
+            extensions.create("thing", Thing)
+            assert thing.value.toString() == "Bean container"
+            assert thing.value.empty
+            thing {
+                value {
+                    a { }
+                    b
+                }
+            }
+            assert thing.value.names == ["a", "b"] as Set
+        """
+
+        expect:
+        succeeds()
+    }
+
+    def "can create instance of interface with read-only DomainObjectSet property"() {
+        buildFile << """
+            class Bean {
+                String name
+            }
+
+            interface Thing {
+                DomainObjectSet<Bean> getValue()
+            }
+
+            extensions.create("thing", Thing)
+            assert thing.value.toString() == "[]"
+            assert thing.value.empty
+            thing.value.add(new Bean(name: "a"))
+            thing.value.add(new Bean(name: "b"))
+            assert thing.value*.name == ['a', 'b']
         """
 
         expect:
@@ -307,7 +389,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
                 abstract String getValue()
                 abstract void setValue(String value)
             }
-            
+
             extensions.create("thing", Thing)
             assert thing.value == null
             thing {
@@ -330,7 +412,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
                     assert objects != null
                 }
             }
-            
+
             extensions.create("thing", Thing, "a", 12)
         """
 
@@ -349,7 +431,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
                 @Inject
                 ObjectFactory getObjects() { }
             }
-            
+
             extensions.create("thing", Thing, "a")
             assert thing.objects != null
         """
@@ -369,7 +451,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
                 @Inject
                 abstract ObjectFactory getObjects()
             }
-            
+
             extensions.create("thing", Thing, "a")
             assert thing.objects != null
         """
@@ -390,7 +472,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
                 @Inject
                 ObjectFactory getObjects() { }
             }
-            
+
             extensions.create("thing", Thing, "a")
             assert thing.objects != null
         """
@@ -416,6 +498,89 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
         succeeds()
     }
 
+    @Unroll
+    def "service of type #serviceType is available for injection into project extension"() {
+        buildFile << """
+            class Thing {
+                ${serviceType} service
+
+                Thing(${serviceType} service) {
+                    this.service = service
+                }
+            }
+
+            extensions.create("thing", Thing)
+            assert thing.service != null
+        """
+
+        expect:
+        succeeds()
+
+        where:
+        serviceType << [
+            ObjectFactory,
+            ProjectLayout,
+            ProviderFactory,
+            WorkExecutor,
+            FileSystemOperations,
+            ExecOperations,
+        ].collect { it.name }
+    }
+
+    @Unroll
+    def "service of type #serviceType is available for injection into settings extension"() {
+        settingsFile << """
+            class Thing {
+                ${serviceType} service
+
+                Thing(${serviceType} service) {
+                    this.service = service
+                }
+            }
+
+            extensions.create("thing", Thing)
+            assert thing.service != null
+        """
+
+        expect:
+        succeeds()
+
+        where:
+        serviceType << [
+            ObjectFactory,
+            ProviderFactory,
+            FileSystemOperations,
+            ExecOperations,
+        ].collect { it.name }
+    }
+
+    @Unroll
+    def "service of type #serviceType is available for injection into gradle object extension"() {
+        settingsFile << """
+            class Thing {
+                ${serviceType} service
+
+                Thing(${serviceType} service) {
+                    this.service = service
+                }
+            }
+
+            gradle.extensions.create("thing", Thing)
+            assert gradle.thing.service != null
+        """
+
+        expect:
+        succeeds()
+
+        where:
+        serviceType << [
+            ObjectFactory,
+            ProviderFactory,
+            FileSystemOperations,
+            ExecOperations,
+        ].collect { it.name }
+    }
+
     def "fails when construction parameters provided for interface"() {
         buildFile << """
             interface Thing {
@@ -427,6 +592,40 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
         expect:
         fails()
         failure.assertHasCause("Could not create an instance of type Thing.")
-        failure.assertHasCause("Too many parameters provided for constructor for interface Thing. Expected 0, received 1.")
+        failure.assertHasCause("Too many parameters provided for constructor for type Thing. Expected 0, received 1.")
+    }
+
+    def "generates a display name for extension when it does not provide a toString() implementation"() {
+        buildFile << """
+            class NoDisplayName { }
+            class DisplayName {
+                String toString() { return "<display name>" }
+            }
+
+            def noDisplayName = extensions.create("no-name", NoDisplayName)
+            def displayName = extensions.create("name", DisplayName)
+
+            println("no display name = \${noDisplayName}")
+            println("display name = \${displayName}")
+        """
+
+        expect:
+        succeeds()
+        outputContains("no display name = extension 'no-name'")
+        outputContains("display name = <display name>")
+    }
+
+    def "generates a display name for extension interface"() {
+        buildFile << """
+            interface NoDisplayName { }
+
+            def noDisplayName = extensions.create("no-name", NoDisplayName)
+
+            println("display name = \${noDisplayName}")
+        """
+
+        expect:
+        succeeds()
+        outputContains("display name = extension 'no-name'")
     }
 }

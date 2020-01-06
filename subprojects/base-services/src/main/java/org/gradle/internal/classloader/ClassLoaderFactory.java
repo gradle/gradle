@@ -25,14 +25,6 @@ public interface ClassLoaderFactory {
 
     /**
      * Creates a ClassLoader implementation which has only the classes from the specified URIs and the Java API visible.
-     *
-     * @deprecated Remove once {@code ParameterNamesResourceTask#isolatedClassLoaderFor(org.gradle.api.file.FileCollection)} in the Gradle build doesn't refer to this.
-     */
-    @Deprecated
-    ClassLoader createIsolatedClassLoader(ClassPath classPath);
-
-    /**
-     * Creates a ClassLoader implementation which has only the classes from the specified URIs and the Java API visible.
      */
     ClassLoader createIsolatedClassLoader(String name, ClassPath classPath);
 

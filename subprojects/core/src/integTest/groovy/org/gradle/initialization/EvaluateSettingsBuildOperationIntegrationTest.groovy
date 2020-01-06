@@ -104,7 +104,7 @@ class EvaluateSettingsBuildOperationIntegrationTest extends AbstractIntegrationS
     def 'can configure feature preview in settings'() {
         given:
         settingsFile << '''
-enableFeaturePreview('GRADLE_METADATA')
+enableFeaturePreview('GROOVY_COMPILATION_AVOIDANCE')
 '''
         expect:
         succeeds('help')

@@ -46,9 +46,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.isNestedClassInsideEnclosedRunner;
-import static org.gradle.api.internal.tasks.testing.junitplatform.VintageTestNameAdapter.isVintageDynamicLeafTest;
-import static org.gradle.api.internal.tasks.testing.junitplatform.VintageTestNameAdapter.vintageDynamicClassName;
-import static org.gradle.api.internal.tasks.testing.junitplatform.VintageTestNameAdapter.vintageDynamicMethodName;
 import static org.junit.platform.launcher.EngineFilter.excludeEngines;
 import static org.junit.platform.launcher.EngineFilter.includeEngines;
 import static org.junit.platform.launcher.TagFilter.excludeTags;
@@ -149,7 +146,7 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
     }
 
     private void addTestNameFilters(LauncherDiscoveryRequestBuilder requestBuilder) {
-        if (!spec.getIncludedTests().isEmpty() || !spec.getIncludedTestsCommandLine().isEmpty()) {
+        if (!spec.getIncludedTests().isEmpty() || !spec.getIncludedTestsCommandLine().isEmpty() || !spec.getExcludedTests().isEmpty()) {
             TestSelectionMatcher matcher = new TestSelectionMatcher(spec.getIncludedTests(),
                 spec.getExcludedTests(), spec.getIncludedTestsCommandLine());
             requestBuilder.filters(new ClassMethodNameFilter(matcher));
@@ -186,8 +183,10 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
                         return true;
                     }
                 }
-                if (isVintageDynamicLeafTest(descriptor, source.get())) {
-                    return shouldRunVintageDynamicTest(descriptor);
+                if (descriptor.getChildren().isEmpty()) {
+                    String className = ((ClassSource) source.get()).getClassName();
+                    return matcher.matchesTest(className, null)
+                        || matcher.matchesTest(className, descriptor.getLegacyReportingName());
                 }
             }
 
@@ -209,10 +208,6 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
                 .filter(ClassSource.class::isInstance)
                 .map(ClassSource.class::cast)
                 .map(ClassSource::getClassName);
-        }
-
-        private boolean shouldRunVintageDynamicTest(TestDescriptor descriptor) {
-            return matcher.matchesTest(vintageDynamicClassName(descriptor.getUniqueId()), vintageDynamicMethodName(descriptor.getUniqueId()));
         }
     }
 

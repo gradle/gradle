@@ -18,10 +18,10 @@ package org.gradle.api.tasks.outputorigin
 
 import org.gradle.api.Action
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.OriginFixture
 import org.gradle.integtests.fixtures.ScopeIdsFixture
 import org.gradle.integtests.fixtures.executer.GradleExecuter
-import org.gradle.internal.id.UniqueId
 import org.gradle.util.ClosureBackedAction
 import org.junit.Rule
 
@@ -46,11 +46,11 @@ class ContinuousIncrementalBuildOutputOriginIntegrationTest extends AbstractCont
     @Rule
     public final OriginFixture originBuildInvocationIdFixture = new OriginFixture(delegatingExecuter, temporaryFolder)
 
-    UniqueId getBuildInvocationId() {
-        scopeIds.buildInvocationId
+    String getBuildInvocationId() {
+        scopeIds.buildInvocationId.asString()
     }
 
-    UniqueId originBuildInvocationId(String taskPath) {
+    String originBuildInvocationId(String taskPath) {
         originBuildInvocationIdFixture.originId(taskPath)
     }
 
@@ -58,6 +58,7 @@ class ContinuousIncrementalBuildOutputOriginIntegrationTest extends AbstractCont
         afterExecute*.execute(executer)
     }
 
+    @ToBeFixedForInstantExecution
     def "new ID is assigned for each execution"() {
         given:
         def i1 = file("i1")
@@ -105,7 +106,7 @@ class ContinuousIncrementalBuildOutputOriginIntegrationTest extends AbstractCont
         succeeds()
         afterBuild()
         originBuildInvocationId(":t1") == null
-        originBuildInvocationId(":t2") == scopeIds.buildInvocationIds[0]
+        originBuildInvocationId(":t2") == scopeIds.buildInvocationIds[0].asString()
 
         when:
         update(i2, "2")
@@ -113,7 +114,7 @@ class ContinuousIncrementalBuildOutputOriginIntegrationTest extends AbstractCont
         then:
         succeeds()
         afterBuild()
-        originBuildInvocationId(":t1") == scopeIds.buildInvocationIds[1]
+        originBuildInvocationId(":t1") == scopeIds.buildInvocationIds[1].asString()
         originBuildInvocationId(":t2") == null
 
         and:

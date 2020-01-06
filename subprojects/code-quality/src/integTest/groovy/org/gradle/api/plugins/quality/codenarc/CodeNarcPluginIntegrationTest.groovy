@@ -16,6 +16,7 @@
 package org.gradle.api.plugins.quality.codenarc
 
 import org.gradle.api.plugins.quality.CodeNarcPlugin
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import spock.lang.Unroll
 
@@ -73,6 +74,7 @@ class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest {
         succeeds 'assertTaskForEachSourceSet'
     }
 
+    @ToBeFixedForInstantExecution
     def "adds codenarc tasks from each source sets to check lifecycle task"() {
         given:
         buildFile << '''
@@ -88,10 +90,10 @@ class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest {
         succeeds 'check'
 
         then:
-        ":codenarcMain" in executedTasks
-        ":codenarcTest" in executedTasks
-        ":codenarcOther" in executedTasks
-        !(":codenarcCustom" in executedTasks)
+        executed(":codenarcMain")
+        executed(":codenarcTest")
+        executed(":codenarcOther")
+        notExecuted(":codenarcCustom")
     }
 
     def "can customize per-source-set tasks via extension"() {
@@ -141,6 +143,7 @@ class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest {
         succeeds 'assertHasCustomizedSettings'
     }
 
+    @ToBeFixedForInstantExecution
     def "can customize which tasks are added to check lifecycle task"() {
         given:
         buildFile << '''
@@ -159,10 +162,10 @@ class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest {
         succeeds 'check'
 
         then:
-        ':codenarcMain' in executedTasks
-        !(':codenarcTest' in executedTasks)
-        !(':codenarcOther' in executedTasks)
-        !(':codenarcCustom' in executedTasks)
+        executed(':codenarcMain')
+        notExecuted(':codenarcTest')
+        notExecuted(':codenarcOther')
+        notExecuted(':codenarcCustom')
     }
 
     def "can use legacy configFile extension property"() {
@@ -185,6 +188,7 @@ class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest {
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "allows configuring tool dependencies explicitly via #method"(String method, String buildScriptSnippet) {
         expect: //defaults exist and can be inspected
         succeeds("dependencies", "--configuration", "codenarc")
@@ -212,7 +216,7 @@ class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest {
             ${mavenCentralRepository()}
 
             dependencies {
-                compile localGroovy()
+                implementation localGroovy()
             }
         """.stripIndent()
     }

@@ -27,10 +27,10 @@ class MultiProjectDependencyIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << 'include "a", "b", "c", "d"'
         buildFile << """
 allprojects {
-    apply plugin: 'java'
+    apply plugin: 'java-library'
 
     task copyLibs(type: Copy) {
-        from configurations.compile
+        from configurations.runtimeClasspath
         into 'deps'
     }
 
@@ -235,7 +235,7 @@ project(':c') {
         def to = link['to']
 
         def dependencies = to.collect {
-            "compile project(':${it}')"
+            "api project(':${it}')"
         }.join('\n')
 
         buildFile << """

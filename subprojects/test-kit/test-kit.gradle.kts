@@ -35,23 +35,22 @@ dependencies {
     runtimeOnly(project(":native"))
 
     testImplementation(library("guava"))
+    testImplementation(testFixtures(project(":core")))
 
     integTestImplementation(project(":native"))
     integTestImplementation(project(":logging"))
-    integTestImplementation(project(":launcherStartup"))
+    integTestImplementation(project(":launcher"))
     integTestImplementation(project(":buildOption"))
     integTestImplementation(project(":jvmServices"))
     integTestImplementation(library("slf4j_api"))
     integTestRuntimeOnly(project(":toolingApiBuilders"))
     integTestRuntimeOnly(project(":pluginDevelopment"))
+    integTestRuntimeOnly(project(":runtimeApiInfo"))
+    integTestRuntimeOnly(project(":testingJunitPlatform"))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
-}
-
-testFixtures {
-    from(":core")
 }
 
 tasks.register<IntegrationTest>("crossVersionTests") {

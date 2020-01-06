@@ -16,7 +16,6 @@
 
 package org.gradle.api.artifacts.type;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectContainer;
 
 /**
@@ -26,6 +25,5 @@ import org.gradle.api.NamedDomainObjectContainer;
  *
  * @since 4.0
  */
-@Incubating
 public interface ArtifactTypeContainer extends NamedDomainObjectContainer<ArtifactTypeDefinition> {
 }

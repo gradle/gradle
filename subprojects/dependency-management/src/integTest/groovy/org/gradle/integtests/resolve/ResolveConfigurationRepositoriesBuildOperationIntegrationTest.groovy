@@ -20,6 +20,7 @@ import org.gradle.api.internal.artifacts.configurations.ResolveConfigurationDepe
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.BuildOperationNotificationsFixture
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import spock.lang.Unroll
 
@@ -39,7 +40,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         buildFile << """
             apply plugin: 'java'
             ${repoBlock.replaceAll('<<URL>>', mavenHttpRepo.uri.toString())}
-            task resolve { doLast { configurations.compile.resolve() } }
+            task resolve { doLast { configurations.compileClasspath.resolve() } }
         """
 
         when:
@@ -47,7 +48,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
 
         then:
         def op = operations.first(ResolveConfigurationDependenciesBuildOperationType)
-        op.details.configurationName == 'compile'
+        op.details.configurationName == 'compileClasspath'
         op.details.projectPath == ":"
         op.details.buildPath == ":"
         def repos = op.details.repositories
@@ -99,7 +100,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
                 AUTHENTICATED: false,
                 AUTHENTICATION_SCHEMES: [],
                 URL: getMavenHttpRepo().uri.toString(),
-                METADATA_SOURCES: ['mavenPom', 'artifact']
+                METADATA_SOURCES: ['mavenPom']
             ]
         }
     }
@@ -134,12 +135,13 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
                 ARTIFACT_URLS: [],
                 AUTHENTICATED: false,
                 AUTHENTICATION_SCHEMES: [],
-                METADATA_SOURCES: ['mavenPom', 'artifact'],
+                METADATA_SOURCES: ['mavenPom'],
                 URL: getMavenHttpRepo().uri.toString(),
             ]
         }
     }
 
+    @ToBeFixedForInstantExecution
     def "repositories shared across repository container types are stable"() {
         setup:
         publishTestPlugin('plugin', 'org.example.plugin', 'org.example.plugin:plugin:1.0')
@@ -160,7 +162,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
             }
             apply plugin: 'org.example.plugin2'
             repositories { maven { url = '$mavenRepo.uri' } }
-            task resolve { doLast { configurations.compile.resolve() } }
+            task resolve { doLast { configurations.compileClasspath.resolve() } }
         """
 
         when:
@@ -181,7 +183,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
             allprojects { 
                 apply plugin: 'java'
                 repositories { jcenter() }
-                task resolve { doLast { configurations.compile.resolve() } }
+                task resolve { doLast { configurations.compileClasspath. resolve() } }
             }
         """
 
@@ -213,7 +215,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
                     }
                 }
             }
-            task resolve { doLast { configurations.compile.resolve() } }
+            task resolve { doLast { configurations.compileClasspath. resolve() } }
         """
 
         when:
@@ -244,7 +246,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
                     name = 'custom repo'
                 }
             }
-            task resolve { doLast { configurations.compile.resolve() } }
+            task resolve { doLast { configurations.compileClasspath. resolve() } }
         """
 
         when:
@@ -281,7 +283,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
                     }
                 }
             }
-            task resolve { doLast { configurations.compile.resolve() } }
+            task resolve { doLast { configurations.compileClasspath. resolve() } }
         """
 
         when:
@@ -323,7 +325,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
                     ${definition}
                 }
             }
-            task resolve { doLast { configurations.compile.resolve() } }
+            task resolve { doLast { configurations.compileClasspath.resolve() } }
         """
 
         when:
@@ -348,7 +350,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
                     properties.IVY_PATTERNS == ['[organisation]/[module]/[revision]/ivy-[revision].xml']
                     properties.LAYOUT_TYPE == 'Gradle'
                     properties.M2_COMPATIBLE == false
-                    properties.METADATA_SOURCES == ['ivyDescriptor', 'artifact']
+                    properties.METADATA_SOURCES == ['ivyDescriptor']
                     properties.AUTHENTICATED == false
                     properties.'AUTHENTICATION_SCHEMES' == []
                 } else {
@@ -358,7 +360,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
                     properties.IVY_PATTERNS == ['[organisation]/[module]/[revision]/ivy-[revision].xml']
                     properties.LAYOUT_TYPE == 'Gradle'
                     properties.M2_COMPATIBLE == false
-                    properties.METADATA_SOURCES == ['ivyDescriptor', 'artifact']
+                    properties.METADATA_SOURCES == ['ivyDescriptor']
                     properties.AUTHENTICATED == false
                     properties.'AUTHENTICATION_SCHEMES' == []
                 }
@@ -385,7 +387,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
                     dirs 'lib1', 'lib2'
                 }
             }
-            task resolve { doLast { configurations.compile.resolve() } }
+            task resolve { doLast { configurations.compileClasspath. resolve() } }
         """
 
         when:
@@ -414,7 +416,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
             type: 'MAVEN',
             properties: [
                 ARTIFACT_URLS: [],
-                METADATA_SOURCES: ['mavenPom', 'artifact'],
+                METADATA_SOURCES: ['mavenPom'],
                 AUTHENTICATED: false,
                 AUTHENTICATION_SCHEMES: [],
                 URL: null,
@@ -433,7 +435,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
             type: 'MAVEN',
             properties: [
                 ARTIFACT_URLS: ['http://artifactUrl'],
-                METADATA_SOURCES: ['mavenPom', 'artifact'],
+                METADATA_SOURCES: ['mavenPom'],
                 AUTHENTICATED: false,
                 AUTHENTICATION_SCHEMES: []
             ]
@@ -456,7 +458,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
                 IVY_PATTERNS: ['[organisation]/[module]/[revision]/ivy-[revision].xml'],
                 LAYOUT_TYPE: 'Gradle',
                 M2_COMPATIBLE: false,
-                METADATA_SOURCES: ['ivyDescriptor', 'artifact'],
+                METADATA_SOURCES: ['ivyDescriptor'],
                 URL: null
             ]
         ]
@@ -481,7 +483,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
                 IVY_PATTERNS: ['[organisation]/[module]/[revision]/ivy-[revision].xml'],
                 LAYOUT_TYPE: 'Gradle',
                 M2_COMPATIBLE: false,
-                METADATA_SOURCES: ['ivyDescriptor', 'artifact']
+                METADATA_SOURCES: ['ivyDescriptor']
             ]
         ]
     }
@@ -514,7 +516,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
                 ARTIFACT_URLS: [],
                 AUTHENTICATED: false,
                 AUTHENTICATION_SCHEMES: [],
-                METADATA_SOURCES: ['mavenPom', 'artifact'],
+                METADATA_SOURCES: ['mavenPom'],
                 URL: null,
             ]
         ]
@@ -533,7 +535,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
                 ARTIFACT_URLS: [],
                 AUTHENTICATED: false,
                 AUTHENTICATION_SCHEMES: [],
-                METADATA_SOURCES: ['mavenPom', 'artifact'],
+                METADATA_SOURCES: ['mavenPom'],
                 URL: 'https://repo.maven.apache.org/maven2/',
             ]
         ]
@@ -550,7 +552,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
             type: 'MAVEN',
             properties: [
                 ARTIFACT_URLS: [],
-                METADATA_SOURCES: ['mavenPom', 'artifact'],
+                METADATA_SOURCES: ['mavenPom'],
                 AUTHENTICATED: false,
                 AUTHENTICATION_SCHEMES: [],
                 URL: 'https://jcenter.bintray.com/',
@@ -571,7 +573,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
                 ARTIFACT_URLS: [],
                 AUTHENTICATED: false,
                 AUTHENTICATION_SCHEMES: [],
-                METADATA_SOURCES: ['mavenPom', 'artifact'],
+                METADATA_SOURCES: ['mavenPom'],
                 URL: 'https://dl.google.com/dl/android/maven2/',
             ]
         ]

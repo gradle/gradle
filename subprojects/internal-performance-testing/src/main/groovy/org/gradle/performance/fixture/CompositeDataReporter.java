@@ -27,7 +27,7 @@ import java.util.Set;
 
 public class CompositeDataReporter implements DataReporter<CrossVersionPerformanceResults>, Closeable {
     private final List<DataReporter<CrossVersionPerformanceResults>> reporters;
-    private final Set<String> testIds = new HashSet<String>();
+    private final Set<String> testIds = new HashSet<>();
 
     public CompositeDataReporter(List<DataReporter<CrossVersionPerformanceResults>> reporters) {
         this.reporters = reporters;

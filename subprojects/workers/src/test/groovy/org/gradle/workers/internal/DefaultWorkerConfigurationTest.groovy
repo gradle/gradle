@@ -34,10 +34,10 @@ class DefaultWorkerConfigurationTest extends Specification {
         workerConfiguration.getForkMode() == forkMode
 
         where:
-        forkMode          | isolationMode
-        ForkMode.AUTO     | IsolationMode.AUTO
-        ForkMode.NEVER    | IsolationMode.CLASSLOADER
-        ForkMode.ALWAYS   | IsolationMode.PROCESS
+        forkMode        | isolationMode
+        ForkMode.AUTO   | IsolationMode.AUTO
+        ForkMode.NEVER  | IsolationMode.CLASSLOADER
+        ForkMode.ALWAYS | IsolationMode.PROCESS
     }
 
     def "can accurately adapt to/from IsolationMode"() {

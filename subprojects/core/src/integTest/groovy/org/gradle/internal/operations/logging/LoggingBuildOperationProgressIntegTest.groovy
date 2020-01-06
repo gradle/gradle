@@ -19,6 +19,7 @@ package org.gradle.internal.operations.logging
 import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.internal.logging.events.LogEvent
 import org.gradle.internal.logging.events.operations.LogEventBuildOperationProgressDetails
 import org.gradle.internal.logging.events.operations.ProgressStartBuildOperationProgressDetails
@@ -48,6 +49,14 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
 
     def operations = new BuildOperationsFixture(executer, testDirectoryProvider)
 
+    def setup() {
+        executer.beforeExecute {
+            // Don't let the incubating message interfere with logging
+            withPartialVfsInvalidation(false)
+        }
+    }
+
+    @ToBeFixedForInstantExecution
     def "captures output sources with context"() {
         given:
         executer.requireOwnGradleUserHomeDir()
@@ -69,7 +78,7 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
             }
             
             dependencies {
-                runtime 'org:foo:1.0'
+                runtimeOnly 'org:foo:1.0'
             }
             
             jar.doLast {
@@ -79,7 +88,7 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
             task resolve {
                 doLast {
                     // force resolve
-                    configurations.runtime.files
+                    configurations.runtimeClasspath.files
                 }
             }
             
@@ -135,7 +144,7 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
         jarProgress[0].details.spans[0].styleName == 'Normal'
         jarProgress[0].details.spans[0].text == "from jar task${getPlatformLineSeparator()}"
 
-        def downloadEvent = operations.only("Download http://localhost:${server.port}/repo/org/foo/1.0/foo-1.0.jar")
+        def downloadEvent = operations.only("Download ${server.uri}/repo/org/foo/1.0/foo-1.0.jar")
         operations.parentsOf(downloadEvent).find {
             it.hasDetailsOfType(ExecuteTaskBuildOperationType.Details) && it.details.taskPath == ":resolve"
         }
@@ -232,6 +241,7 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
         assertNestedTaskOutputTracked(':buildSrc')
     }
 
+    @ToBeFixedForInstantExecution
     def "captures output from composite builds"() {
         given:
         configureNestedBuild()
@@ -249,6 +259,7 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
         assertNestedTaskOutputTracked()
     }
 
+    @ToBeFixedForInstantExecution
     def "captures output from GradleBuild task builds"() {
         given:
         configureNestedBuild()
@@ -401,7 +412,7 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
                 ${jcenterRepository()}
             }
             dependencies {
-                testCompile 'junit:junit:4.10'
+                testImplementation 'junit:junit:4.10'
             }
             
         """

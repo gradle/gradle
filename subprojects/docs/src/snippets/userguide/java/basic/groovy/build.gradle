@@ -1,0 +1,109 @@
+// tag::apply-java-plugin[]
+plugins {
+    id 'java-library'
+}
+
+// tag::java-extension[]
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+// end::java-extension[]
+
+version = '1.2.1'
+// end::apply-java-plugin[]
+
+// tag::java-dependency-mgmt[]
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.hibernate:hibernate-core:3.6.7.Final'
+}
+// end::java-dependency-mgmt[]
+
+// tag::java-basic-test-config[]
+dependencies {
+    testImplementation 'junit:junit:4.12'
+}
+
+test {
+    useJUnit()
+
+    maxHeapSize = '1G'
+}
+// end::java-basic-test-config[]
+
+// tag::practical-integ-test-source-set[]
+sourceSets {
+    intTest {
+        compileClasspath += sourceSets.main.output
+        runtimeClasspath += sourceSets.main.output
+    }
+}
+
+configurations {
+    intTestImplementation.extendsFrom implementation
+    intTestRuntimeOnly.extendsFrom runtimeOnly
+}
+
+dependencies {
+    intTestImplementation 'junit:junit:4.12'
+}
+// end::practical-integ-test-source-set[]
+
+// tag::using-custom-doclet[]
+configurations {
+    asciidoclet
+}
+
+dependencies {
+    asciidoclet 'org.asciidoctor:asciidoclet:1.+'
+}
+
+task configureJavadoc {
+    doLast {
+        javadoc {
+            options.doclet = 'org.asciidoctor.Asciidoclet'
+            options.docletpath = configurations.asciidoclet.files.toList()
+        }
+    }
+}
+
+javadoc {
+    dependsOn configureJavadoc
+}
+// end::using-custom-doclet[]
+
+
+// tag::skip-tests-condition[]
+test.onlyIf { !project.hasProperty('mySkipTests') }
+// end::skip-tests-condition[]
+
+// tag::java-compiler-options[]
+compileJava {
+    options.incremental = true
+    options.fork = true
+    options.failOnError = false
+}
+// end::java-compiler-options[]
+
+// tag::integ-test-task[]
+task integrationTest(type: Test) {
+    description = 'Runs integration tests.'
+    group = 'verification'
+
+    testClassesDirs = sourceSets.intTest.output.classesDirs
+    classpath = sourceSets.intTest.runtimeClasspath
+    shouldRunAfter test
+}
+
+check.dependsOn integrationTest
+// end::integ-test-task[]
+
+// tag::defining-custom-javadoc-task[]
+task testJavadoc(type: Javadoc) {
+    source = sourceSets.test.allJava
+}
+// end::defining-custom-javadoc-task[]

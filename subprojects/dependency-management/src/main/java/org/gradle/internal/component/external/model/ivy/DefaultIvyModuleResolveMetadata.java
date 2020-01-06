@@ -32,7 +32,7 @@ import org.gradle.internal.component.external.model.ModuleComponentArtifactMetad
 import org.gradle.internal.component.external.model.VariantMetadataRules;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.ExcludeMetadata;
-import org.gradle.internal.component.model.ModuleSource;
+import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.util.CollectionUtils;
 
 import java.util.IdentityHashMap;
@@ -64,8 +64,8 @@ public class DefaultIvyModuleResolveMetadata extends AbstractLazyModuleComponent
         this.extraAttributes = metadata.getExtraAttributes();
     }
 
-    private DefaultIvyModuleResolveMetadata(DefaultIvyModuleResolveMetadata metadata, ModuleSource source) {
-        super(metadata, source);
+    private DefaultIvyModuleResolveMetadata(DefaultIvyModuleResolveMetadata metadata, ModuleSources sources) {
+        super(metadata, sources);
         this.configurationDefinitions = metadata.configurationDefinitions;
         this.branch = metadata.branch;
         this.artifactDefinitions = metadata.artifactDefinitions;
@@ -77,7 +77,7 @@ public class DefaultIvyModuleResolveMetadata extends AbstractLazyModuleComponent
     }
 
     private DefaultIvyModuleResolveMetadata(DefaultIvyModuleResolveMetadata metadata, List<IvyDependencyDescriptor> dependencies) {
-        super(metadata, metadata.getSource());
+        super(metadata, metadata.getSources());
         this.configurationDefinitions = metadata.configurationDefinitions;
         this.branch = metadata.branch;
         this.artifactDefinitions = metadata.artifactDefinitions;
@@ -97,19 +97,19 @@ public class DefaultIvyModuleResolveMetadata extends AbstractLazyModuleComponent
         ImmutableList<ModuleComponentArtifactMetadata> artifacts = configurationHelper.filterArtifacts(name, hierarchy);
         ImmutableList<ExcludeMetadata> excludesForConfiguration = configurationHelper.filterExcludes(hierarchy);
 
-        DefaultConfigurationMetadata configuration = new DefaultConfigurationMetadata(componentId, name, transitive, visible, hierarchy, ImmutableList.copyOf(artifacts), componentMetadataRules, excludesForConfiguration, getAttributes().asImmutable());
+        DefaultConfigurationMetadata configuration = new DefaultConfigurationMetadata(componentId, name, transitive, visible, hierarchy, ImmutableList.copyOf(artifacts), componentMetadataRules, excludesForConfiguration, getAttributes().asImmutable(), false);
         configuration.setDependencies(configurationHelper.filterDependencies(configuration));
         return configuration;
     }
 
     @Override
-    public DefaultIvyModuleResolveMetadata withSource(ModuleSource source) {
-        return new DefaultIvyModuleResolveMetadata(this, source);
+    public MutableIvyModuleResolveMetadata asMutable() {
+        return new DefaultMutableIvyModuleResolveMetadata(this);
     }
 
     @Override
-    public MutableIvyModuleResolveMetadata asMutable() {
-        return new DefaultMutableIvyModuleResolveMetadata(this);
+    public DefaultIvyModuleResolveMetadata withSources(ModuleSources sources) {
+        return new DefaultIvyModuleResolveMetadata(this, sources);
     }
 
     @Override

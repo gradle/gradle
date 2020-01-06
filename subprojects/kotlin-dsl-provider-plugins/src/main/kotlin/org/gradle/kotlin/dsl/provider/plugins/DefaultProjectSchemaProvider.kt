@@ -17,22 +17,26 @@
 package org.gradle.kotlin.dsl.provider.plugins
 
 import org.gradle.api.NamedDomainObjectCollectionSchema
+import org.gradle.api.NamedDomainObjectCollectionSchema.NamedDomainObjectSchema
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Project
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.plugins.ExtensionAware
-import org.gradle.api.plugins.ExtensionsSchema
 import org.gradle.api.reflect.HasPublicType
 import org.gradle.api.reflect.TypeOf
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskContainer
-
+import org.gradle.internal.deprecation.DeprecatableConfiguration
+import org.gradle.kotlin.dsl.accessors.ConfigurationEntry
 import org.gradle.kotlin.dsl.accessors.ProjectSchema
 import org.gradle.kotlin.dsl.accessors.ProjectSchemaEntry
 import org.gradle.kotlin.dsl.accessors.ProjectSchemaProvider
 import org.gradle.kotlin.dsl.accessors.SchemaType
 import org.gradle.kotlin.dsl.accessors.TypedProjectSchema
+import java.lang.reflect.Modifier
+import kotlin.reflect.KVisibility
 
 
 class DefaultProjectSchemaProvider : ProjectSchemaProvider {
@@ -50,7 +54,7 @@ class DefaultProjectSchemaProvider : ProjectSchemaProvider {
 }
 
 
-private
+internal
 data class TargetTypedSchema(
     val extensions: List<ProjectSchemaEntry<TypeOf<*>>>,
     val conventions: List<ProjectSchemaEntry<TypeOf<*>>>,
@@ -59,7 +63,7 @@ data class TargetTypedSchema(
 )
 
 
-private
+internal
 fun targetSchemaFor(target: Any, targetType: TypeOf<*>): TargetTypedSchema {
 
     val extensions = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
@@ -69,13 +73,13 @@ fun targetSchemaFor(target: Any, targetType: TypeOf<*>): TargetTypedSchema {
 
     fun collectSchemaOf(target: Any, targetType: TypeOf<*>) {
         if (target is ExtensionAware) {
-            accessibleExtensionsSchema(target.extensions.extensionsSchema).forEach { schema ->
+            accessibleContainerSchema(target.extensions.extensionsSchema).forEach { schema ->
                 extensions.add(ProjectSchemaEntry(targetType, schema.name, schema.publicType))
                 collectSchemaOf(target.extensions.getByName(schema.name), schema.publicType)
             }
         }
         if (target is Project) {
-            accessibleConventionsSchema(target.convention.plugins).forEach { name, type ->
+            accessibleConventionsSchema(target.convention.plugins).forEach { (name, type) ->
                 conventions.add(ProjectSchemaEntry(targetType, name, type))
                 collectSchemaOf(target.convention.plugins[name]!!, type)
             }
@@ -107,18 +111,111 @@ fun targetSchemaFor(target: Any, targetType: TypeOf<*>): TargetTypedSchema {
 
 
 private
-fun accessibleExtensionsSchema(extensionsSchema: ExtensionsSchema) =
-    extensionsSchema.filter { isPublic(it.name) }
-
-
-private
 fun accessibleConventionsSchema(plugins: Map<String, Any>) =
     plugins.filterKeys(::isPublic).mapValues { inferPublicTypeOfConvention(it.value) }
 
 
 private
 fun accessibleContainerSchema(collectionSchema: NamedDomainObjectCollectionSchema) =
-    collectionSchema.elements.filter { isPublic(it.name) }
+    collectionSchema.elements
+        .filter { isPublic(it.name) }
+        .map(NamedDomainObjectSchema::toFirstKotlinPublicOrSelf)
+
+
+private
+fun NamedDomainObjectSchema.toFirstKotlinPublicOrSelf() =
+    publicType.concreteClass.let { schemaType ->
+        // Because a public Java class might not correspond necessarily to a
+        // public Kotlin type due to Kotlin `internal` semantics, we check
+        // whether the public Java class is also the first public Kotlin type,
+        // otherwise we compute a new schema entry with the correct Kotlin type.
+        val firstPublicKotlinType = schemaType.firstPublicKotlinAccessorTypeOrSelf
+        when {
+            firstPublicKotlinType === schemaType -> this
+            else -> ProjectSchemaNamedDomainObjectSchema(
+                name,
+                TypeOf.typeOf(firstPublicKotlinType)
+            )
+        }
+    }
+
+
+internal
+val Class<*>.firstPublicKotlinAccessorTypeOrSelf: Class<*>
+    get() = firstPublicKotlinAccessorType ?: this
+
+
+private
+val Class<*>.firstPublicKotlinAccessorType: Class<*>?
+    get() = accessorTypePrecedenceSequence().find { it.isKotlinPublic }
+
+
+internal
+fun Class<*>.accessorTypePrecedenceSequence(): Sequence<Class<*>> = sequence {
+
+    // First, all the classes in the hierarchy, subclasses before superclasses
+    val classes = ancestorClassesIncludingSelf.toList()
+    yieldAll(classes)
+
+    // Then all supported interfaces sorted by subtyping (subtypes before supertypes)
+    val interfaces = mutableListOf<Class<*>>()
+    classes.forEach { `class` ->
+        `class`.interfaces.forEach { `interface` ->
+            when (val indexOfSupertype = interfaces.indexOfFirst { it.isAssignableFrom(`interface`) }) {
+                -1 -> interfaces.add(`interface`)
+                else -> if (interfaces[indexOfSupertype] != `interface`) {
+                    interfaces.add(indexOfSupertype, `interface`)
+                }
+            }
+        }
+    }
+    yieldAll(interfaces)
+}
+
+
+internal
+val Class<*>.ancestorClassesIncludingSelf: Sequence<Class<*>>
+    get() = sequence {
+
+        yield(this@ancestorClassesIncludingSelf)
+
+        var superclass: Class<*>? = superclass
+        while (superclass != null) {
+            val thisSuperclass: Class<*> = superclass
+            val nextSuperclass = thisSuperclass.superclass
+            if (nextSuperclass != null) { // skip java.lang.Object
+                yield(thisSuperclass)
+            }
+            superclass = nextSuperclass
+        }
+    }
+
+
+private
+val Class<*>.isKotlinPublic: Boolean
+    get() = isKotlinVisible && kotlin.visibility == KVisibility.PUBLIC
+
+
+private
+val Class<*>.isKotlinVisible: Boolean
+    get() = isPublic && !isLocalClass && !isAnonymousClass && !isSynthetic
+
+
+private
+val Class<*>.isPublic
+    get() = Modifier.isPublic(modifiers)
+
+
+private
+class ProjectSchemaNamedDomainObjectSchema(
+    private val objectName: String,
+    private val objectPublicType: TypeOf<*>
+) : NamedDomainObjectSchema {
+
+    override fun getName() = objectName
+
+    override fun getPublicType() = objectPublicType
+}
 
 
 private
@@ -144,7 +241,15 @@ val Class<*>.firstNonSyntheticOrNull: Class<*>?
 
 private
 fun accessibleConfigurationsOf(project: Project) =
-    project.configurations.names.filter(::isPublic)
+    project.configurations
+        .filter { isPublic(it.name) }
+        .map(::toConfigurationEntry)
+
+
+private
+fun toConfigurationEntry(configuration: Configuration) = (configuration as DeprecatableConfiguration).run {
+    ConfigurationEntry(name, declarationAlternatives ?: listOf())
+}
 
 
 private

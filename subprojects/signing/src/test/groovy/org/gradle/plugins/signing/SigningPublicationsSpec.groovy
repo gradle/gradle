@@ -67,7 +67,7 @@ class SigningPublicationsSpec extends SigningProjectSpec {
         publishing.publications.clear()
 
         then:
-        tasks.findByName('signMavenPublication') == null
+        !tasks.findByName('signMavenPublication').enabled
 
         and:
         signTasks.isEmpty()

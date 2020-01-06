@@ -28,7 +28,7 @@ public class DefaultTaskInputsListener implements TaskInputsListener {
     public void onExecute(TaskInternal taskInternal, FileCollectionInternal fileSystemInputs) {
         if (waiter!=null) {
             FileSystemSubset.Builder fileSystemSubsetBuilder = FileSystemSubset.builder();
-            fileSystemInputs.registerWatchPoints(fileSystemSubsetBuilder);
+            fileSystemInputs.visitStructure(fileSystemSubsetBuilder);
             waiter.watch(fileSystemSubsetBuilder.build());
         }
     }

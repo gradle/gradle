@@ -19,7 +19,6 @@ package org.gradle.api.publish.tasks;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Buildable;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.PublishArtifact;
@@ -30,6 +29,7 @@ import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
@@ -47,6 +47,7 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Cast;
+import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 
 import javax.inject.Inject;
@@ -65,11 +66,11 @@ import java.util.Set;
  *
  * @since 4.3
  */
-@Incubating
 public class GenerateModuleMetadata extends DefaultTask {
     private final Property<Publication> publication;
     private final ListProperty<Publication> publications;
     private final RegularFileProperty outputFile;
+    private final ChecksumService checksumService;
 
     public GenerateModuleMetadata() {
         ObjectFactory objectFactory = getProject().getObjects();
@@ -79,6 +80,8 @@ public class GenerateModuleMetadata extends DefaultTask {
         // TODO - should be incremental
         getOutputs().upToDateWhen(Specs.<Task>satisfyNone());
         mustHaveAttachedComponent();
+        // injected here in order to avoid exposing in public API
+        checksumService = ((ProjectInternal)getProject()).getServices().get(ChecksumService.class);
     }
 
     private void mustHaveAttachedComponent() {
@@ -167,7 +170,7 @@ public class GenerateModuleMetadata extends DefaultTask {
         try {
             Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "utf8"));
             try {
-                new GradleModuleMetadataWriter(getBuildInvocationScopeId(), getProjectDependencyPublicationResolver()).generateTo(publication, publications, writer);
+                new GradleModuleMetadataWriter(getBuildInvocationScopeId(), getProjectDependencyPublicationResolver(), checksumService).generateTo(publication, publications, writer);
             } finally {
                 writer.close();
             }

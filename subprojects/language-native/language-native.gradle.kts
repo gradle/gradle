@@ -31,6 +31,7 @@ dependencies {
     implementation(project(":modelCore"))
     implementation(project(":core"))
     implementation(project(":files"))
+    implementation(project(":fileCollections"))
     implementation(project(":persistentCache"))
     implementation(project(":snapshots"))
     implementation(project(":dependencyManagement"))
@@ -50,11 +51,27 @@ dependencies {
     implementation(library("commons_io"))
     implementation(library("inject"))
 
+    testFixturesApi(project(":baseServices")) {
+        because("Test fixtures export the Named class")
+    }
+    testFixturesApi(project(":platformBase")) {
+        because("Test fixtures export the Platform class")
+    }
+
     testFixturesImplementation(project(":internalIntegTesting"))
+    testFixturesImplementation(testFixtures(project(":platformNative")))
 
     testImplementation(project(":native"))
     testImplementation(project(":resources"))
     testImplementation(project(":baseServicesGroovy"))
+    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":versionControl")))
+    testImplementation(testFixtures(project(":platformNative")))
+    testImplementation(testFixtures(project(":platformBase")))
+    testImplementation(testFixtures(project(":messaging")))
+    testImplementation(testFixtures(project(":snapshots")))
+
+    testRuntimeOnly(project(":runtimeApiInfo"))
 
     integTestImplementation(project(":native"))
     integTestImplementation(project(":resources"))
@@ -67,16 +84,6 @@ dependencies {
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
-}
-
-testFixtures {
-    from(":core")
-    from(":versionControl")
-    from(":platformNative")
-    from(":platformBase")
-    from(":messaging")
-    from(":platformNative", "testFixtures")
-    from(":snapshots")
 }
 
 classycle {

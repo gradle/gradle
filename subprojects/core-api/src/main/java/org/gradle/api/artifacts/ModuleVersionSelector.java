@@ -16,8 +16,6 @@
 
 package org.gradle.api.artifacts;
 
-import org.gradle.api.Incubating;
-
 import javax.annotation.Nullable;
 
 /**
@@ -69,6 +67,5 @@ public interface ModuleVersionSelector {
      *
      * @since 4.9
      */
-    @Incubating
     ModuleIdentifier getModule();
 }

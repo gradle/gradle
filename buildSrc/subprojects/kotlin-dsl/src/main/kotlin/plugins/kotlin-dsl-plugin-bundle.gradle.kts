@@ -44,9 +44,9 @@ afterEvaluate {
 
 
 tasks {
-    validateTaskProperties {
-        failOnWarning = true
-        enableStricterValidation = true
+    validatePlugins {
+        failOnWarning.set(true)
+        enableStricterValidation.set(true)
     }
 }
 

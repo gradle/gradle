@@ -17,7 +17,6 @@
 package org.gradle.api.attributes;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 
 /**
  * A rule that selects the best value out of a set of two or more candidates.
@@ -25,6 +24,5 @@ import org.gradle.api.Incubating;
  * @since 4.0
  * @param <T> The attribute value type.
  */
-@Incubating
 public interface AttributeDisambiguationRule<T> extends Action<MultipleCandidatesDetails<T>> {
 }

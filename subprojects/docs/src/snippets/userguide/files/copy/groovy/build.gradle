@@ -1,0 +1,289 @@
+version = "1.1"
+
+// tag::copy-single-file-example[]
+task copyReport(type: Copy) {
+    from file("$buildDir/reports/my-report.pdf")
+    into file("$buildDir/toArchive")
+}
+// end::copy-single-file-example[]
+
+// tag::copy-single-file-example-without-file-method[]
+task copyReport2(type: Copy) {
+    from "$buildDir/reports/my-report.pdf"
+    into "$buildDir/toArchive"
+}
+// end::copy-single-file-example-without-file-method[]
+
+task myReportTask {
+    ext.outputFile = file("$buildDir/reports/my-report.pdf")
+
+    outputs.files outputFile
+    doLast {
+        outputFile.touch()
+    }
+}
+
+task archiveReportsTask {
+    ext.dirToArchive = file("$buildDir/toArchive")
+    inputs.dir dirToArchive
+}
+
+// tag::copy-single-file-example-with-task-properties[]
+task copyReport3(type: Copy) {
+    from myReportTask.outputFile
+    into archiveReportsTask.dirToArchive
+}
+// end::copy-single-file-example-with-task-properties[]
+
+// tag::copy-multiple-files-example[]
+task copyReportsForArchiving(type: Copy) {
+    from "$buildDir/reports/my-report.pdf", "src/docs/manual.pdf"
+    into "$buildDir/toArchive"
+}
+// end::copy-multiple-files-example[]
+
+// tag::copy-multiple-files-with-flat-filter-example[]
+task copyPdfReportsForArchiving(type: Copy) {
+    from "$buildDir/reports"
+    include "*.pdf"
+    into "$buildDir/toArchive"
+}
+// end::copy-multiple-files-with-flat-filter-example[]
+
+// tag::copy-multiple-files-with-deep-filter-example[]
+task copyAllPdfReportsForArchiving(type: Copy) {
+    from "$buildDir/reports"
+    include "**/*.pdf"
+    into "$buildDir/toArchive"
+}
+// end::copy-multiple-files-with-deep-filter-example[]
+
+// tag::copy-directory-example[]
+task copyReportsDirForArchiving(type: Copy) {
+    from "$buildDir/reports"
+    into "$buildDir/toArchive"
+}
+// end::copy-directory-example[]
+
+// tag::copy-directory-including-itself-example[]
+task copyReportsDirForArchiving2(type: Copy) {
+    from("$buildDir") {
+        include "reports/**"
+    }
+    into "$buildDir/toArchive"
+}
+// end::copy-directory-including-itself-example[]
+
+// tag::create-archive-example[]
+task packageDistribution(type: Zip) {
+    archiveFileName = "my-distribution.zip"
+    destinationDirectory = file("$buildDir/dist")
+
+    from "$buildDir/toArchive"
+}
+// end::create-archive-example[]
+
+// tag::rename-on-copy-example[]
+task copyFromStaging(type: Copy) {
+    from "src/main/webapp"
+    into "$buildDir/explodedWar"
+
+    rename '(.+)-staging(.+)', '$1$2'
+}
+// end::rename-on-copy-example[]
+
+// tag::truncate-names-example[]
+task copyWithTruncate(type: Copy) {
+    from "$buildDir/reports"
+    rename { String filename ->
+        if (filename.size() > 10) {
+            return filename[0..7] + "~" + filename.size()
+        }
+        else return filename
+    }
+    into "$buildDir/toArchive"
+}
+// end::truncate-names-example[]
+
+
+
+
+
+
+
+// tag::copy-task[]
+task copyTask(type: Copy) {
+    from 'src/main/webapp'
+    into "$buildDir/explodedWar"
+}
+// end::copy-task[]
+
+// tag::copy-task-with-patterns[]
+task copyTaskWithPatterns (type: Copy) {
+    from 'src/main/webapp'
+    into "$buildDir/explodedWar"
+    include '**/*.html'
+    include '**/*.jsp'
+    exclude { FileTreeElement details ->
+        details.file.name.endsWith('.html') &&
+            details.file.text.contains('DRAFT')
+    }
+}
+// end::copy-task-with-patterns[]
+
+// tag::copy-task-2[]
+task anotherCopyTask (type: Copy) {
+    // Copy everything under src/main/webapp
+    from 'src/main/webapp'
+    // Copy a single file
+    from 'src/staging/index.html'
+    // Copy the output of a task
+    from copyTask
+    // Copy the output of a task using Task outputs explicitly.
+    from copyTaskWithPatterns.outputs
+    // Copy the contents of a Zip file
+    from zipTree('src/main/assets.zip')
+    // Determine the destination directory later
+    into { getDestDir() }
+}
+// end::copy-task-2[]
+
+def getDestDir() {
+    file('some-dir')
+}
+
+// tag::copy-method[]
+task copyMethod {
+    doLast {
+        copy {
+            from 'src/main/webapp'
+            into "$buildDir/explodedWar"
+            include '**/*.html'
+            include '**/*.jsp'
+        }
+    }
+}
+// end::copy-method[]
+
+// tag::copy-method-with-dependency[]
+task copyMethodWithExplicitDependencies {
+    // up-to-date check for inputs, plus add copyTask as dependency
+    inputs.files(copyTask)
+        .withPropertyName("inputs")
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+    outputs.dir('some-dir') // up-to-date check for outputs
+        .withPropertyName("outputDir")
+    doLast{
+        copy {
+            // Copy the output of copyTask
+            from copyTask
+            into 'some-dir'
+        }
+    }
+}
+// end::copy-method-with-dependency[]
+
+configurations { runtime }
+
+// tag::rename-files[]
+task rename (type: Copy) {
+    from 'src/main/webapp'
+    into "$buildDir/explodedWar"
+    // Use a closure to convert all file names to upper case
+    rename { String fileName ->
+        fileName.toUpperCase()
+    }
+    // Use a regular expression to map the file name
+    rename '(.+)-staging-(.+)', '$1$2'
+    rename(/(.+)-staging-(.+)/, '$1$2')
+}
+// end::rename-files[]
+
+// tag::filter-files[]
+import org.apache.tools.ant.filters.FixCrLfFilter
+import org.apache.tools.ant.filters.ReplaceTokens
+
+task filter(type: Copy) {
+    from 'src/main/webapp'
+    into "$buildDir/explodedWar"
+    // Substitute property tokens in files
+    expand(copyright: '2009', version: '2.3.1')
+    expand(project.properties)
+    // Use some of the filters provided by Ant
+    filter(FixCrLfFilter)
+    filter(ReplaceTokens, tokens: [copyright: '2009', version: '2.3.1'])
+    // Use a closure to filter each line
+    filter { String line ->
+        "[$line]"
+    }
+    // Use a closure to remove lines
+    filter { String line ->
+        line.startsWith('-') ? null : line
+    }
+    filteringCharset = 'UTF-8'
+}
+// end::filter-files[]
+
+task test {
+    dependsOn tasks.withType(Copy)
+    dependsOn copyMethod
+    dependsOn copyMethodWithExplicitDependencies
+}
+
+def appClasses = layout.files("$buildDir/classes")
+
+// tag::standalone-copyspec[]
+CopySpec webAssetsSpec = copySpec {
+    from 'src/main/webapp'
+    include '**/*.html', '**/*.png', '**/*.jpg'
+    rename '(.+)-staging(.+)', '$1$2'
+}
+
+task copyAssets (type: Copy) {
+    into "$buildDir/inPlaceApp"
+    with webAssetsSpec
+}
+
+task distApp(type: Zip) {
+    archiveFileName = 'my-app-dist.zip'
+    destinationDirectory = file("$buildDir/dists")
+
+    from appClasses
+    with webAssetsSpec
+}
+// end::standalone-copyspec[]
+
+// tag::shared-copy-patterns[]
+def webAssetPatterns = {
+    include '**/*.html', '**/*.png', '**/*.jpg'
+}
+
+task copyAppAssets(type: Copy) {
+    into "$buildDir/inPlaceApp"
+    from 'src/main/webapp', webAssetPatterns
+}
+
+task archiveDistAssets(type: Zip) {
+    archiveFileName = 'distribution-assets.zip'
+    destinationDirectory = file("$buildDir/dists")
+
+    from 'distResources', webAssetPatterns
+}
+// end::shared-copy-patterns[]
+
+// tag::change-default-exclusions[]
+task forcedCopy (type: Copy) {
+    into "$buildDir/inPlaceApp"
+    from 'src/main/webapp'
+
+    doFirst {
+        ant.defaultexcludes remove: "**/.git"
+        ant.defaultexcludes remove: "**/.git/**"
+        ant.defaultexcludes remove: "**/*~"
+    }
+
+    doLast {
+        ant.defaultexcludes default: true
+    }
+}
+// end::change-default-exclusions[]

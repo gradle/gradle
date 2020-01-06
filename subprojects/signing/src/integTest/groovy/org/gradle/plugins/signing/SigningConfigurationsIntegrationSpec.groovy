@@ -15,12 +15,14 @@
  */
 package org.gradle.plugins.signing
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Issue
 
 import java.nio.file.Files
 
 class SigningConfigurationsIntegrationSpec extends SigningIntegrationSpec {
 
+    @ToBeFixedForInstantExecution
     def "signing configurations"() {
         given:
         buildFile << """
@@ -50,6 +52,7 @@ class SigningConfigurationsIntegrationSpec extends SigningIntegrationSpec {
     }
 
     @Issue("gradle/gradle#4980")
+    @ToBeFixedForInstantExecution
     def "removing signature file causes sign task to re-execute"() {
         given:
         buildFile << """
@@ -72,6 +75,33 @@ class SigningConfigurationsIntegrationSpec extends SigningIntegrationSpec {
 
         and:
         run "sign"
+
+        then:
+        executedAndNotSkipped ":signArchives"
+
+        and:
+        file("build", "libs", "sign-1.0.jar.asc").text
+    }
+
+    @ToBeFixedForInstantExecution
+    def "duplicated inputs are handled"() {
+        given:
+        buildFile << """
+            signing {
+                ${signingConfiguration()}
+                sign configurations.archives
+            }
+
+            ${keyInfo.addAsPropertiesScript()}
+
+            artifacts {
+                // depend directly on 'jar' task in addition to dependency through 'archives'
+                archives jar  
+            }
+        """
+
+        when:
+        run "buildSignatures"
 
         then:
         executedAndNotSkipped ":signArchives"

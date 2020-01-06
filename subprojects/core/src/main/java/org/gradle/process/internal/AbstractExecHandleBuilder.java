@@ -21,8 +21,8 @@ import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.process.BaseExecSpec;
 import org.gradle.process.internal.streams.EmptyStdInStreamsHandler;
 import org.gradle.process.internal.streams.ForwardStdinStreamsHandler;
-import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.process.internal.streams.OutputStreamsForwarder;
+import org.gradle.process.internal.streams.SafeStreams;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -56,6 +56,10 @@ public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOption
     }
 
     public abstract List<String> getAllArguments();
+
+    protected List<String> getEffectiveArguments() {
+        return getAllArguments();
+    }
 
     @Override
     public List<String> getCommandLine() {
@@ -141,7 +145,7 @@ public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOption
         }
 
         StreamsHandler effectiveOutputHandler = getEffectiveStreamsHandler();
-        return new DefaultExecHandle(getDisplayName(), getWorkingDir(), executable, getAllArguments(), getActualEnvironment(),
+        return new DefaultExecHandle(getDisplayName(), getWorkingDir(), executable, getEffectiveArguments(), getActualEnvironment(),
                 effectiveOutputHandler, inputHandler, listeners, redirectErrorStream, timeoutMillis, daemon, executor, buildCancellationToken);
     }
 

@@ -16,7 +16,6 @@
 
 package org.gradle.language.nativeplatform;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.provider.Provider;
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
@@ -26,7 +25,6 @@ import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
  *
  * @since 4.5
  */
-@Incubating
 public interface ComponentWithSharedLibrary extends ComponentWithLinkFile, ComponentWithRuntimeFile {
     /**
      * Returns the link libraries to use to link the shared library. Includes the link libraries of the component's dependencies.

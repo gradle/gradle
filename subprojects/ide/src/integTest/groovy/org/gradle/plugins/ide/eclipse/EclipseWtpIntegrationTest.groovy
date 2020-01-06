@@ -15,19 +15,21 @@
  */
 package org.gradle.plugins.ide.eclipse
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.junit.Test
 import spock.lang.Issue
 
 class EclipseWtpIntegrationTest extends AbstractEclipseIntegrationTest {
     @Test
     @Issue("GRADLE-1415")
+    @ToBeFixedForInstantExecution
     void canUseSelfResolvingFiles() {
         def buildFile = """
 apply plugin: "war"
 apply plugin: "eclipse"
 
 dependencies {
-    compile fileTree(dir: "libs", includes: ["*.jar"])
+    implementation fileTree(dir: "libs", includes: ["*.jar"])
 }
         """
 
@@ -44,6 +46,7 @@ dependencies {
 
     @Test
     @Issue("GRADLE-2526")
+    @ToBeFixedForInstantExecution
     void overwritesDependentModules() {
         generateEclipseFilesForWebProject()
         def projectModules = parseComponentFile(project: "web")
@@ -63,6 +66,7 @@ dependencies {
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     void respectsDependencySubstitutionRules() {
         //given
         mavenRepo.module("gradle", "foo").publish()
@@ -84,8 +88,8 @@ dependencies {
            }
 
            dependencies {
-               compile 'gradle:foo:1.0'
-               compile project(':sub')
+               implementation 'gradle:foo:1.0'
+               implementation project(':sub')
            }
 
            configurations.all {
@@ -130,9 +134,9 @@ repositories {
 }
 
 dependencies {
-    compile project(":java1")
-    compile project(":groovy")
-    runtime "mygroup:myartifact:$myArtifactVersion"
+    implementation project(":java1")
+    implementation project(":groovy")
+    runtimeOnly "mygroup:myartifact:$myArtifactVersion"
 }
         """
 
@@ -148,8 +152,8 @@ repositories {
 }
 
 dependencies {
-    compile project(":java2")
-    runtime "mygroup:myartifact:$myArtifactVersion"
+    implementation project(":java2")
+    runtimeOnly "mygroup:myartifact:$myArtifactVersion"
 }
         """
 
@@ -165,7 +169,7 @@ repositories {
 }
 
 dependencies {
-    runtime "mygroup:myartifact:$myArtifactVersion"
+    runtimeOnly "mygroup:myartifact:$myArtifactVersion"
 }
         """
 

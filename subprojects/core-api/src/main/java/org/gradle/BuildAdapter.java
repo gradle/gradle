@@ -24,7 +24,12 @@ import org.gradle.api.invocation.Gradle;
  */
 public class BuildAdapter implements BuildListener {
     @Override
+    @Deprecated
     public void buildStarted(Gradle gradle) {
+    }
+
+    @Override
+    public void beforeSettings(Settings settings) {
     }
 
     @Override

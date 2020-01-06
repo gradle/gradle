@@ -88,6 +88,14 @@ data class ResolvedDependenciesWithErrors internal constructor(
 
 
 internal
+data class ResolvedToPrevious(
+    val correlationId: String,
+    val scriptFile: File?,
+    val dependencies: KotlinScriptExternalDependencies?
+) : ResolverEvent()
+
+
+internal
 data class ResolvedToPreviousWithErrors(
     val correlationId: String,
     val scriptFile: File?,

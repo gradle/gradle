@@ -63,14 +63,16 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
       - Other attributes:
           - Found org.gradle.category 'library' but wasn't required.
           - Required org.gradle.dependency.bundling 'external' and found compatible value 'external'.
-          - Required org.gradle.usage 'java-api' and found compatible value 'java-api-jars'.
+          - Required org.gradle.libraryelements 'classes' and found compatible value 'jar'.
+          - Required org.gradle.usage 'java-api' and found compatible value 'java-api'.
   - Variant 'runtimeElements' capability test:producer:unspecified:
       - Incompatible attribute:
           - Required org.gradle.jvm.version '6' and found incompatible value '7'.
       - Other attributes:
           - Found org.gradle.category 'library' but wasn't required.
           - Required org.gradle.dependency.bundling 'external' and found compatible value 'external'.
-          - Required org.gradle.usage 'java-api' and found compatible value 'java-runtime-jars'.''')
+          - Required org.gradle.libraryelements 'classes' and found compatible value 'jar'.
+          - Required org.gradle.usage 'java-api' and found compatible value 'java-runtime'.''')
     }
 
     @Unroll
@@ -86,7 +88,8 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
                         canBeConsumed = true
                         canBeResolved = false
                         attributes {
-                            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, 'java-api-jars'))
+                            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, 'java-api'))
+                            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, 'jar'))
                             attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling, 'external'))
                             attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, v)
                         }
@@ -111,7 +114,8 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
                     variant(expected, [
                             'org.gradle.dependency.bundling': 'external',
                             'org.gradle.jvm.version': selected,
-                            'org.gradle.usage':'java-api-jars'
+                            'org.gradle.usage':'java-api',
+                            'org.gradle.libraryelements': 'jar'
                     ])
                     artifact(classifier: "jdk${selected}")
                 }
@@ -152,14 +156,16 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
       - Other attributes:
           - Found org.gradle.category 'library' but wasn't required.
           - Required org.gradle.dependency.bundling 'external' and found compatible value 'external'.
-          - Required org.gradle.usage 'java-api' and found compatible value 'java-api-jars'.
+          - Required org.gradle.libraryelements 'classes' and found compatible value 'jar'.
+          - Required org.gradle.usage 'java-api' and found compatible value 'java-api'.
   - Variant 'runtimeElements' capability test:producer:unspecified:
       - Incompatible attribute:
           - Required org.gradle.jvm.version '6' and found incompatible value '7'.
       - Other attributes:
           - Found org.gradle.category 'library' but wasn't required.
           - Required org.gradle.dependency.bundling 'external' and found compatible value 'external'.
-          - Required org.gradle.usage 'java-api' and found compatible value 'java-runtime-jars'.""")
+          - Required org.gradle.libraryelements 'classes' and found compatible value 'jar'.
+          - Required org.gradle.usage 'java-api' and found compatible value 'java-runtime'.""")
 
         when:
         buildFile << """
@@ -177,7 +183,8 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
                             'org.gradle.category': 'library',
                             'org.gradle.dependency.bundling': 'external',
                             'org.gradle.jvm.version': 7,
-                            'org.gradle.usage':'java-api-jars'
+                            'org.gradle.usage':'java-api',
+                            'org.gradle.libraryelements': 'jar'
                     ])
                     artifact group:'', module:'', version: '', type: '', name: 'main', noType: true
                 }

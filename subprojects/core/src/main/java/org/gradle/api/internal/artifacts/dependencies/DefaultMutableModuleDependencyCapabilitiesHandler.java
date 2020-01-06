@@ -31,7 +31,6 @@ public class DefaultMutableModuleDependencyCapabilitiesHandler implements Module
         this.notationParser = notationParser;
     }
 
-
     @Override
     public void requireCapability(Object capabilityNotation) {
         requestedCapabilities.add(notationParser.parseNotation(capabilityNotation));
@@ -47,5 +46,12 @@ public class DefaultMutableModuleDependencyCapabilitiesHandler implements Module
     @Override
     public List<Capability> getRequestedCapabilities() {
         return ImmutableList.copyOf(requestedCapabilities);
+    }
+
+    @Override
+    public ModuleDependencyCapabilitiesInternal copy() {
+        DefaultMutableModuleDependencyCapabilitiesHandler out = new DefaultMutableModuleDependencyCapabilitiesHandler(notationParser);
+        out.requestedCapabilities.addAll(requestedCapabilities);
+        return out;
     }
 }

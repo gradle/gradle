@@ -17,11 +17,12 @@ package org.gradle.api.internal.notations;
 
 import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ModuleFactoryHelper;
-import org.gradle.api.tasks.Optional;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.MapKey;
 import org.gradle.internal.typeconversion.MapNotationConverter;
+
+import javax.annotation.Nullable;
 
 public class DependencyMapNotationConverter<T> extends MapNotationConverter<T> {
 
@@ -38,12 +39,12 @@ public class DependencyMapNotationConverter<T> extends MapNotationConverter<T> {
         visitor.candidate("Maps").example("[group: 'org.gradle', name: 'gradle-core', version: '1.0']");
     }
 
-    protected T parseMap(@MapKey("group") @Optional String group,
-                         @MapKey("name") @Optional String name,
-                         @MapKey("version") @Optional String version,
-                         @MapKey("configuration") @Optional String configuration,
-                         @MapKey("ext") @Optional String ext,
-                         @MapKey("classifier") @Optional String classifier) {
+    protected T parseMap(@MapKey("group") @Nullable String group,
+                         @MapKey("name") @Nullable String name,
+                         @MapKey("version") @Nullable String version,
+                         @MapKey("configuration") @Nullable String configuration,
+                         @MapKey("ext") @Nullable String ext,
+                         @MapKey("classifier") @Nullable String classifier) {
         T dependency;
         if (configuration == null) {
             dependency = instantiator.newInstance(resultingType, group, name, version);

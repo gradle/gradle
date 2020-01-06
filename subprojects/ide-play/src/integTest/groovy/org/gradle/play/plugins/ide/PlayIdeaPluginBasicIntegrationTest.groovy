@@ -16,6 +16,7 @@
 
 package org.gradle.play.plugins.ide
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.play.integtest.fixtures.PlayApp
 import org.gradle.play.integtest.fixtures.app.BasicPlayApp
 import org.gradle.play.internal.platform.PlayMajorVersion
@@ -52,16 +53,17 @@ class PlayIdeaPluginBasicIntegrationTest extends PlayIdeaPluginIntegrationTest {
         succeeds("help")
 
         then:
-        outputContains("The Play plugin has been deprecated. This is scheduled to be removed in Gradle 6.0. Consider using the org.gradle.playframework plugin instead.")
-        outputContains("The Play Application plugin has been deprecated. This is scheduled to be removed in Gradle 6.0. Consider using the org.gradle.playframework-application plugin instead.")
-        outputContains("The Play JavaScript plugin has been deprecated. This is scheduled to be removed in Gradle 6.0. Consider using the org.gradle.playframework-javascript plugin instead.")
-        outputContains("The Play Ide plugin has been deprecated. This is scheduled to be removed in Gradle 6.0. Consider using the org.gradle.playframework-ide plugin instead.")
-        outputContains("The Play Twirl plugin has been deprecated. This is scheduled to be removed in Gradle 6.0. Consider using the org.gradle.playframework-twirl plugin instead.")
-        outputContains("The Play Routes plugin has been deprecated. This is scheduled to be removed in Gradle 6.0. Consider using the org.gradle.playframework-routes plugin instead.")
-        outputContains("The Play Test plugin has been deprecated. This is scheduled to be removed in Gradle 6.0. Consider using the org.gradle.playframework-test plugin instead.")
-        outputContains("The Play Distribution plugin has been deprecated. This is scheduled to be removed in Gradle 6.0. Consider using the org.gradle.playframework-distribution plugin instead.")
+        outputContains("The Play plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consider using the org.gradle.playframework plugin instead.")
+        outputContains("The Play Application plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consider using the org.gradle.playframework-application plugin instead.")
+        outputContains("The Play JavaScript plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consider using the org.gradle.playframework-javascript plugin instead.")
+        outputContains("The Play Ide plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consider using the org.gradle.playframework-ide plugin instead.")
+        outputContains("The Play Twirl plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consider using the org.gradle.playframework-twirl plugin instead.")
+        outputContains("The Play Routes plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consider using the org.gradle.playframework-routes plugin instead.")
+        outputContains("The Play Test plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consider using the org.gradle.playframework-test plugin instead.")
+        outputContains("The Play Distribution plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consider using the org.gradle.playframework-distribution plugin instead.")
     }
 
+    @ToBeFixedForInstantExecution
     def "when model configuration changes, IDEA metadata can be rebuilt"() {
         applyIdePlugin()
         succeeds(ideTask)
@@ -87,6 +89,7 @@ model {
         content.assertContainsSourcePaths("other-assets", "public", "conf", "app", "test", "build/src/play/binary/routesScalaSources", "build/src/play/binary/twirlTemplatesScalaSources")
     }
 
+    @ToBeFixedForInstantExecution
     def "IDEA metadata contains custom source set"() {
         applyIdePlugin()
         file("extra/java").mkdirs()
@@ -110,6 +113,7 @@ model {
         content.assertContainsSourcePaths("extra/java", "public", "conf", "app", "test", "build/src/play/binary/routesScalaSources", "build/src/play/binary/twirlTemplatesScalaSources")
     }
 
+    @ToBeFixedForInstantExecution
     def "can generate IDEA metadata with custom source set"() {
         applyIdePlugin()
         when:

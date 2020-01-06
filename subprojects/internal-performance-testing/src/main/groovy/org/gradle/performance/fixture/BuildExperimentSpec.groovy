@@ -19,8 +19,11 @@ package org.gradle.performance.fixture
 import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
 import org.gradle.performance.results.BuildDisplayInfo
+import org.gradle.profiler.BuildMutator
+import org.gradle.profiler.InvocationSettings
 
 import javax.annotation.Nullable
+import java.util.function.Function
 
 @CompileStatic
 @EqualsAndHashCode
@@ -63,6 +66,10 @@ abstract class BuildExperimentSpec {
 
         InvocationCustomizer getInvocationCustomizer()
         void setInvocationCustomizer(InvocationCustomizer invocationCustomizer)
+
+        List<Function<InvocationSettings, BuildMutator>> getBuildMutators()
+
+        List<String> getMeasuredBuildOperations()
 
         InvocationSpec.Builder getInvocation()
 

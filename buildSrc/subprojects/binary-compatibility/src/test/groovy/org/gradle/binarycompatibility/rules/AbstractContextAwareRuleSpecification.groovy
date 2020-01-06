@@ -16,11 +16,10 @@
 
 package org.gradle.binarycompatibility.rules
 
+import japicmp.model.JApiClass
+import javassist.ClassPool
 import me.champeau.gradle.japicmp.report.ViolationCheckContext
 import spock.lang.Specification
-import javassist.ClassPool
-import japicmp.model.JApiClass
-
 
 abstract class AbstractContextAwareRuleSpecification extends Specification {
     ViolationCheckContext context = new ViolationCheckContext() {
@@ -47,8 +46,8 @@ abstract class AbstractContextAwareRuleSpecification extends Specification {
         instanceScopedPool.appendSystemPath()
     }
 
-    boolean noViolation(def rule) {
-        rule.maybeViolation(apiClass) == null
+    void noViolation(def rule) {
+        assert rule.maybeViolation(apiClass) == null
     }
 
     Map getInitializationParams() {

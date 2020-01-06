@@ -17,14 +17,14 @@
 package org.gradle.api.internal.tasks.properties;
 
 import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler;
-import org.gradle.internal.reflect.ParameterValidationContext;
 import org.gradle.internal.reflect.PropertyMetadata;
+import org.gradle.internal.reflect.TypeValidationContext;
 
 import javax.annotation.Nullable;
 import java.util.Set;
 
 public interface TypeMetadata {
-    void collectValidationFailures(@Nullable String ownerPropertyPath, ParameterValidationContext validationContext);
+    void visitValidationFailures(@Nullable String ownerPropertyPath, TypeValidationContext validationContext);
 
     /**
      * Returns the set of relevant properties, that is, those properties annotated with a relevant annotation.

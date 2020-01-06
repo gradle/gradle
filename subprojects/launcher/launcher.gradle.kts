@@ -1,47 +1,62 @@
-import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 import org.gradle.build.GradleStartScriptGenerator
-import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
+import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
+    `java-library`
     gradlebuild.classycle
 }
 
 dependencies {
     implementation(project(":baseServices"))
+    implementation(project(":cli"))
+    implementation(project(":messaging"))
+    implementation(project(":buildOption"))
+    implementation(project(":native"))
+    implementation(project(":logging"))
+    implementation(project(":processServices"))
+    implementation(project(":files"))
+    implementation(project(":fileCollections"))
+    implementation(project(":snapshots"))
+    implementation(project(":persistentCache"))
+    implementation(project(":coreApi"))
+    implementation(project(":core"))
+    implementation(project(":bootstrap"))
+    implementation(project(":jvmServices"))
+    implementation(project(":buildEvents"))
+    implementation(project(":toolingApi"))
 
-    compileOnly(project(":launcherBootstrap"))
-    compileOnly(project(":launcherStartup"))
-
-    runtimeOnly(project(":baseServices"))
-    runtimeOnly(project(":jvmServices"))
-    runtimeOnly(project(":core"))
-    runtimeOnly(project(":cli"))
-    runtimeOnly(project(":buildOption"))
-    runtimeOnly(project(":toolingApi"))
-    runtimeOnly(project(":native"))
-    runtimeOnly(project(":logging"))
-    runtimeOnly(project(":docs"))
+    implementation(library("groovy")) // for 'ReleaseInfo.getVersion()'
+    implementation(library("slf4j_api"))
+    implementation(library("guava"))
+    implementation(library("commons_io"))
+    implementation(library("commons_lang"))
+    implementation(library("asm"))
+    implementation(library("ant"))
 
     runtimeOnly(library("asm"))
     runtimeOnly(library("commons_io"))
     runtimeOnly(library("commons_lang"))
     runtimeOnly(library("slf4j_api"))
 
+    testImplementation(project(":internalIntegTesting"))
     testImplementation(project(":native"))
     testImplementation(project(":cli"))
     testImplementation(project(":processServices"))
     testImplementation(project(":coreApi"))
     testImplementation(project(":modelCore"))
-    testImplementation(project(":files"))
     testImplementation(project(":resources"))
-    testImplementation(project(":persistentCache"))
-    testImplementation(project(":baseServicesGroovy"))
-    testImplementation(project(":buildOption"))
-    testImplementation(project(":jvmServices"))
-    testImplementation(library("slf4j_api"))
-    testImplementation(library("guava"))
-    testImplementation(library("ant"))
+    testImplementation(project(":snapshots"))
+    testImplementation(project(":baseServicesGroovy")) // for 'Specs'
+
+    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":languageJava")))
+    testImplementation(testFixtures(project(":messaging")))
+    testImplementation(testFixtures(project(":logging")))
+    testImplementation(testFixtures(project(":toolingApi")))
+
+    testRuntimeOnly(project(":runtimeApiInfo"))
+    testRuntimeOnly(project(":kotlinDsl"))
 
     integTestImplementation(project(":persistentCache"))
     integTestImplementation(project(":internalIntegTesting"))
@@ -50,68 +65,32 @@ dependencies {
     integTestImplementation(library("commons_lang"))
     integTestImplementation(library("commons_io"))
     integTestRuntimeOnly(project(":plugins"))
-    integTestRuntimeOnly(project(":languageNative"))
-
-    testFixturesImplementation(project(":internalTesting"))
-    testFixturesImplementation(project(":internalIntegTesting"))
-}
-
-val availableJavaInstallations = rootProject.availableJavaInstallations
-
-// Needed for testing debug command line option (JDWPUtil)
-val javaInstallationForTest = availableJavaInstallations.javaInstallationForTest
-if (!javaInstallationForTest.javaVersion.isJava9Compatible) {
-    dependencies {
-        integTestRuntime(files(javaInstallationForTest.toolsJar))
+    integTestRuntimeOnly(project(":languageNative")) {
+        because("for 'ProcessCrashHandlingIntegrationTest.session id of daemon is different from daemon client'")
     }
 }
 
-// If running on Java 8 but compiling with Java 9, Groovy code would still be compiled by Java 8, so here we need the tools.jar
-val currentJavaInstallation = availableJavaInstallations.currentJavaInstallation
-if (currentJavaInstallation.javaVersion.isJava8) {
-    dependencies {
-        integTestCompileOnly(files(currentJavaInstallation.toolsJar))
-    }
+// Needed for testing debug command line option (JDWPUtil) - 'CommandLineIntegrationSpec.can debug with org.gradle.debug=true'
+val toolsJar = buildJvms.testJvm.map { jvm -> jvm.toolsClasspath }
+dependencies {
+    integTestRuntimeOnly(files(toolsJar))
 }
 
 gradlebuildJava {
-    moduleType = ModuleType.STARTUP
-}
-
-testFixtures {
-    from(":core")
-    from(":languageJava")
-    from(":messaging")
-    from(":logging")
-    from(":toolingApi")
-}
-
-val integTestTasks: DomainObjectCollection<IntegrationTest> by extra
-integTestTasks.configureEach {
-    maxParallelForks = Math.min(3, project.maxParallelForks)
-}
-
-val configureJar by tasks.registering {
-    doLast {
-        val classpath = listOf(":baseServices", ":coreApi", ":core").joinToString(" ") {
-            project(it).tasks.jar.get().archiveFile.get().asFile.name
-        }
-        tasks.jar {
-            from(project(":launcherBootstrap").sourceSets["main"].output.files)
-            from(project(":launcherStartup").sourceSets["main"].output.files)
-            manifest.attributes("Class-Path" to classpath)
-        }
-    }
+    moduleType = ModuleType.CORE
 }
 
 tasks.jar {
-    dependsOn(configureJar)
+    val classpath = listOf(":bootstrap", ":baseServices", ":coreApi", ":core").joinToString(" ") {
+        project(it).tasks.jar.get().archiveFile.get().asFile.name
+    }
+    manifest.attributes("Class-Path" to classpath)
     manifest.attributes("Main-Class" to "org.gradle.launcher.GradleMain")
 }
 
 val startScripts = tasks.register<GradleStartScriptGenerator>("startScripts") {
     startScriptsDir = file("$buildDir/startScripts")
-    launcherBootstrapClasspathFiles.from(tasks.jar.get().outputs.files)
+    launcherJar = tasks.jar.get().outputs.files
 }
 
 configurations {

@@ -62,10 +62,11 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
     def "resolve pair #permutation"() {
         given:
         def candidates = permutation.candidates
-        def expected = permutation.expected
+        def expectedSingle = permutation.expectedSingle
+        def expectedMulti = permutation.expectedMulti
 
         expect:
-        checkScenarioResolution(expected, candidates)
+        checkScenarioResolution(expectedSingle, expectedMulti, candidates)
 
         where:
         permutation << VersionRangeResolveTestScenarios.SCENARIOS_TWO_DEPENDENCIES
@@ -75,10 +76,11 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
     def "resolve prefer pair #permutation"() {
         given:
         def candidates = permutation.candidates
-        def expected = permutation.expected
+        def expectedSingle = permutation.expectedSingle
+        def expectedMulti = permutation.expectedMulti
 
         expect:
-        checkScenarioResolution(expected, candidates)
+        checkScenarioResolution(expectedSingle, expectedMulti, candidates)
 
         where:
         permutation << VersionRangeResolveTestScenarios.SCENARIOS_PREFER
@@ -88,20 +90,21 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
     def "resolve reject pair #permutation"() {
         given:
         def candidates = permutation.candidates
-        def expected = permutation.expected
+        def expectedSingle = permutation.expectedSingle
+        def expectedMulti = permutation.expectedMulti
 
         expect:
-        checkScenarioResolution(expected, candidates)
+        checkScenarioResolution(expectedSingle, expectedMulti, candidates)
 
         where:
         permutation << VersionRangeResolveTestScenarios.SCENARIOS_DEPENDENCY_WITH_REJECT
     }
 
-    void checkScenarioResolution(String expected, VersionRangeResolveTestScenarios.RenderableVersion... versions) {
-        checkScenarioResolution(expected, versions as List)
+    void checkScenarioResolution(String expectedSingle, String expectedMulti, VersionRangeResolveTestScenarios.RenderableVersion... versions) {
+        checkScenarioResolution(expectedSingle, expectedMulti, versions as List)
     }
 
-    void checkScenarioResolution(String expected, List<VersionRangeResolveTestScenarios.RenderableVersion> versions) {
+    void checkScenarioResolution(String expectedSingle, String expectedMulti, List<VersionRangeResolveTestScenarios.RenderableVersion> versions) {
         settingsFile.text = baseSettings
 
         def singleProjectConfs = []
@@ -155,21 +158,28 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
 """
         }
 
-        boolean expectFailure = expected == VersionRangeResolveTestScenarios.REJECTED || expected == VersionRangeResolveTestScenarios.FAILED
-        if (expectFailure) {
+        boolean expectFailureSingle = expectedSingle == VersionRangeResolveTestScenarios.REJECTED || expectedSingle == VersionRangeResolveTestScenarios.FAILED
+        boolean expectFailureMulti = expectedMulti == VersionRangeResolveTestScenarios.REJECTED || expectedMulti == VersionRangeResolveTestScenarios.FAILED
+        if (expectFailureMulti) {
             fails 'resolveMultiProject'
+        }
+        if (expectFailureSingle) {
             fails 'resolveSingleProject'
-            return
         }
 
-        run 'resolveMultiProject'
-        def multiProjectResolve = file('libs-multi').list() as List
+        if (!expectFailureMulti) {
+            run 'resolveMultiProject'
+            def multiProjectResolve = file('libs-multi').list() as List
+            assert parseResolvedVersion(multiProjectResolve) == expectedMulti
+        }
 
-        run 'resolveSingleProject'
-        def singleProjectResolve = file('libs-single').list() as List
+        if (!expectFailureSingle) {
+            run 'resolveSingleProject'
+            def singleProjectResolve = file('libs-single').list() as List
+            assert parseResolvedVersion(singleProjectResolve) == expectedSingle
+        }
 
-        assert multiProjectResolve == singleProjectResolve
-        assert parseResolvedVersion(multiProjectResolve) == expected
+
     }
 
     def parseResolvedVersion(resolvedFiles) {
@@ -177,7 +187,7 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
         def resolvedFile = resolvedFiles.get(0)
         assert resolvedFile.startsWith('foo-')
         assert resolvedFile.endsWith('.jar')
-        def resolvedVersion = (resolvedFile =~ /\d\d/).getAt(0)
+        def resolvedVersion = (resolvedFile =~ /\d+/).getAt(0)
         resolvedVersion
     }
 }

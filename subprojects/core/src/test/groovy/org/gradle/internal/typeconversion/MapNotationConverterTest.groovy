@@ -16,12 +16,13 @@
 package org.gradle.internal.typeconversion
 
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.tasks.Optional
 import spock.lang.Specification
+
+import javax.annotation.Nullable
 
 class MapNotationConverterTest extends Specification {
     final NotationParser parser = NotationParserBuilder.toType(TargetObject).converter(new DummyConverter()).toComposite()
-    
+
     def "parses map with required keys"() {
         expect:
         def object = parser.parseNotation([name: 'name', version: 'version'])
@@ -50,10 +51,10 @@ class MapNotationConverterTest extends Specification {
     def "does not mutate original map"() {
         def source = [name: 'name', version: 'version', prop1: 'prop1', optional: '1.2']
         def copy = new HashMap<String, Object>(source)
-        
+
         when:
         parser.parseNotation(source)
-        
+
         then:
         source == copy
     }
@@ -93,11 +94,11 @@ class MapNotationConverterTest extends Specification {
         then:
         thrown(UnsupportedNotationException)
     }
-    
+
     static class DummyConverter extends MapNotationConverter<TargetObject> {
         protected TargetObject parseMap(@MapKey('name') String name,
                                         @MapKey('version') String version,
-                                        @Optional @MapKey('optional') optional) {
+                                        @MapKey('optional') @Nullable optional) {
             return new TargetObject(key1:  name, key2:  version, optional:  optional)
         }
     }

@@ -17,6 +17,7 @@
 package org.gradle.internal.component.external.model
 
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
+import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier
 import org.gradle.util.Matchers
 import spock.lang.Specification
 
@@ -26,21 +27,44 @@ class DefaultModuleComponentArtifactIdentifierTest extends Specification {
 
         expect:
         def noClassifier = new DefaultModuleComponentArtifactIdentifier(componentId, "name", "type", "ext")
-        noClassifier.displayName == "name.ext (group:module:version)"
-        noClassifier.toString() == "name.ext (group:module:version)"
+        noClassifier.displayName == "name-version.ext (group:module:version)"
+        noClassifier.toString() == "name-version.ext (group:module:version)"
 
         def withClassifier = new DefaultModuleComponentArtifactIdentifier(componentId, "name", "type", "ext", 'classifier')
-        withClassifier.displayName == "name-classifier.ext (group:module:version)"
-        withClassifier.toString() == "name-classifier.ext (group:module:version)"
+        withClassifier.displayName == "name-version-classifier.ext (group:module:version)"
+        withClassifier.toString() == "name-version-classifier.ext (group:module:version)"
 
         def noExtension = new DefaultModuleComponentArtifactIdentifier(componentId, "name", "type", null, 'classifier')
-        noExtension.displayName == "name-classifier (group:module:version)"
-        noExtension.toString() == "name-classifier (group:module:version)"
+        noExtension.displayName == "name-version-classifier (group:module:version)"
+        noExtension.toString() == "name-version-classifier (group:module:version)"
 
         def nameOnly = new DefaultModuleComponentArtifactIdentifier(componentId, "name", "type", null, null)
-        nameOnly.displayName == "name (group:module:version)"
-        nameOnly.toString() == "name (group:module:version)"
+        nameOnly.displayName == "name-version (group:module:version)"
+        nameOnly.toString() == "name-version (group:module:version)"
     }
+
+    def "has same string representation as a ComponentFileArtifactIdentifier that carries the same information"() {
+        def componentId = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "module"), "version")
+
+        expect:
+        def noClassifier = new DefaultModuleComponentArtifactIdentifier(componentId, "name", "type", "ext")
+        def noClassifierFileName = new ComponentFileArtifactIdentifier(componentId, "name-version.ext")
+        noClassifier.displayName == noClassifierFileName.displayName
+
+        def withClassifier = new DefaultModuleComponentArtifactIdentifier(componentId, "name", "type", "ext", 'classifier')
+        def withClassifierFileName = new ComponentFileArtifactIdentifier(componentId, "name-version-classifier.ext")
+        withClassifier.displayName == withClassifierFileName.displayName
+
+        def noExtension = new DefaultModuleComponentArtifactIdentifier(componentId, "name", "type", null, 'classifier')
+        def noExtensionFileName = new ComponentFileArtifactIdentifier(componentId, "name-version-classifier")
+        noExtension.displayName == noExtensionFileName.displayName
+
+        def nameOnly = new DefaultModuleComponentArtifactIdentifier(componentId, "name", "type", null, null)
+        def nameOnlyFileName = new ComponentFileArtifactIdentifier(componentId, "name-version")
+        nameOnly.displayName == nameOnlyFileName.displayName
+    }
+
+    //ComponentFileArtifactIdentifier
 
     def "calculates a file name from attributes"() {
         def componentId = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "module"), "version")

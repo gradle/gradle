@@ -21,9 +21,10 @@ import org.gradle.api.artifacts.MutableVersionConstraint
 import org.gradle.api.capabilities.Capability
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DesugaredAttributeContainerSerializer
-import org.gradle.api.internal.model.NamedObjectInstantiator
+import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.component.external.model.ImmutableCapability
 import org.gradle.internal.serialize.SerializerSpec
+import org.gradle.util.TestUtil
 import spock.lang.Unroll
 
 import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
@@ -33,7 +34,7 @@ import static org.gradle.util.AttributeTestUtil.attributesFactory
 class ModuleComponentSelectorSerializerTest extends SerializerSpec {
     private final static ModuleIdentifier UTIL = DefaultModuleIdentifier.newId("org", "util")
 
-    private serializer = new ModuleComponentSelectorSerializer(new DesugaredAttributeContainerSerializer(attributesFactory(), NamedObjectInstantiator.INSTANCE))
+    private serializer = new ModuleComponentSelectorSerializer(new DesugaredAttributeContainerSerializer(attributesFactory(), TestUtil.objectInstantiator()))
 
     @Unroll
     def "serializes"() {
@@ -49,6 +50,16 @@ class ModuleComponentSelectorSerializerTest extends SerializerSpec {
         '5.0'   | ''       | ['1.0']
         '5.0'   | ''       | ['1.0', '2.0']
         '5.0'   | '[1.0,)' | []
+    }
+
+    def "serializes branch"() {
+        when:
+        def constraint = new DefaultMutableVersionConstraint('')
+        constraint.branch = 'custom-branch'
+        def result = serialize(newSelector(UTIL, constraint, ImmutableAttributes.EMPTY, []), serializer)
+
+        then:
+        result == newSelector(UTIL, constraint, ImmutableAttributes.EMPTY, [])
     }
 
     private static MutableVersionConstraint constraint(String version, String strictVersion, List<String> rejectedVersions) {

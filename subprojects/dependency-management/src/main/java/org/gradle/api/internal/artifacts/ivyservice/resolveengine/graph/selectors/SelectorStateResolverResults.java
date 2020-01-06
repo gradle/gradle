@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors;
 
 import com.google.common.collect.Lists;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestVersionSelector;
@@ -106,7 +107,6 @@ class SelectorStateResolverResults {
 
     public static <T extends ComponentResolutionState> T componentForIdResolveResult(ComponentStateFactory<T> componentFactory, ComponentIdResolveResult idResolveResult, ResolvableSelectorState selector) {
         T component = componentFactory.getRevision(idResolveResult.getId(), idResolveResult.getModuleVersionId(), idResolveResult.getMetadata());
-        component.selectedBy(selector);
         if (idResolveResult.isRejected()) {
             component.reject();
         }
@@ -189,7 +189,11 @@ class SelectorStateResolverResults {
                 return true;
             }
 
-            return versionSelector.accept(candidate.getModuleVersionId().getVersion());
+            String version = candidate.getModuleVersionId().getVersion();
+            if (StringUtils.isEmpty(version)) {
+                return false;
+            }
+            return versionSelector.accept(version);
         }
         return false;
     }

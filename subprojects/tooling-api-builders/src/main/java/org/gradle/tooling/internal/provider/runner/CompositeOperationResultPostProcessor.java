@@ -16,8 +16,8 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
-import org.gradle.tooling.internal.provider.events.AbstractTaskResult;
-import org.gradle.tooling.internal.provider.events.OperationResultPostProcessor;
+import org.gradle.internal.build.event.types.AbstractTaskResult;
+import org.gradle.internal.build.event.OperationResultPostProcessor;
 
 import java.util.List;
 

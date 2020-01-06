@@ -27,4 +27,9 @@ public class InitialPassSettingScriptTarget extends SettingScriptTarget {
     public boolean getSupportsPluginManagementBlock() {
         return true;
     }
+
+    @Override
+    public boolean getSupportsPluginsBlock() {
+        return true;
+    }
 }

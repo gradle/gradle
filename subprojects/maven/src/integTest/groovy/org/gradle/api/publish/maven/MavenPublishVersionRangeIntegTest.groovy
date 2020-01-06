@@ -16,18 +16,19 @@
 
 package org.gradle.api.publish.maven
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
-import spock.lang.Issue
 
 class MavenPublishVersionRangeIntegTest extends AbstractMavenPublishIntegTest {
     def mavenModule = javaLibrary(mavenRepo.module("org.gradle.test", "publishTest", "1.9"))
 
+    @ToBeFixedForInstantExecution
     void "version range is mapped to maven syntax in published pom file"() {
         given:
         settingsFile << "rootProject.name = 'publishTest' "
         buildFile << """
             apply plugin: 'maven-publish'
-            apply plugin: 'java'
+            apply plugin: 'java-library'
 
             group = 'org.gradle.test'
             version = '1.9'
@@ -44,11 +45,11 @@ class MavenPublishVersionRangeIntegTest extends AbstractMavenPublishIntegTest {
             }
 
             dependencies {
-                compile "group:projectA:latest.release"
-                compile "group:projectB:latest.integration"
-                compile "group:projectC:1.+"
-                compile "group:projectD:[1.0,2.0)"
-                compile "group:projectE:[1.0]"
+                api "group:projectA:latest.release"
+                api "group:projectB:latest.integration"
+                api "group:projectC:1.+"
+                api "group:projectD:[1.0,2.0)"
+                api "group:projectE:[1.0]"
             }"""
 
         when:
@@ -71,40 +72,4 @@ class MavenPublishVersionRangeIntegTest extends AbstractMavenPublishIntegTest {
             "group:projectE:[1.0]"
         )
     }
-
-    @Issue("GRADLE-3233")
-    def "publishes POM dependency for Gradle dependency with empty version"() {
-        settingsFile << "rootProject.name = 'publishTest' "
-        buildFile << """
-
-            apply plugin: 'maven-publish'
-            apply plugin: 'java'
-
-            group = 'org.gradle.test'
-            version = '1.9'
-
-            publishing {
-                repositories {
-                    maven { url "${mavenRepo.uri}" }
-                }
-                publications {
-                    maven(MavenPublication) {
-                        from components.java
-                    }
-                }
-            }
-
-            dependencies {
-                compile "group:projectA"
-                compile group:"group", name:"projectB", version:null
-            }"""
-
-        when:
-        run "publish"
-
-        then:
-        mavenModule.assertPublished()
-        mavenModule.assertApiDependencies("group:projectA:", "group:projectB:")
-    }
-
 }

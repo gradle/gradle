@@ -558,6 +558,24 @@ public class BuildScriptBuilder {
         }
     }
 
+    private static class PlatformDepSpec extends AbstractStatement {
+        private final String configuration;
+        private final String dep;
+
+        PlatformDepSpec(String configuration, String comment, String dep) {
+            super(comment);
+            this.configuration = configuration;
+            this.dep = dep;
+        }
+
+        @Override
+        public void writeCodeTo(PrettyPrinter printer) {
+            printer.println(printer.syntax.dependencySpec(
+                configuration, "platform(" + printer.syntax.string(dep) + ")"
+            ));
+        }
+    }
+
     private static class ProjectDepSpec extends AbstractStatement {
         private final String configuration;
         private final String projectPath;
@@ -887,6 +905,11 @@ public class BuildScriptBuilder {
         @Override
         public void dependency(String configuration, @Nullable String comment, String... dependencies) {
             this.dependencies.put(configuration, new DepSpec(configuration, comment, Arrays.asList(dependencies)));
+        }
+
+        @Override
+        public void platformDependency(String configuration, @Nullable String comment, String dependency) {
+            this.dependencies.put(configuration, new PlatformDepSpec(configuration, comment, dependency));
         }
 
         @Override
@@ -1346,7 +1369,7 @@ public class BuildScriptBuilder {
         @Override
         public String pluginDependencySpec(String pluginId, @Nullable String version) {
             if (version != null) {
-                return "id(\"" + pluginId + "\").version(\"" + version + "\")";
+                return "id(\"" + pluginId + "\") version \"" + version + "\"";
             }
             return pluginId.matches("[a-z]+") ? pluginId : "`" + pluginId + "`";
         }

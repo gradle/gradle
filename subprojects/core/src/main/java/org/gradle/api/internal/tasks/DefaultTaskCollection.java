@@ -37,6 +37,7 @@ import org.gradle.api.tasks.TaskCollection;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.model.internal.core.ModelPath;
 
 import java.util.Map;
 
@@ -138,6 +139,11 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
     }
 
     @Override
+    protected boolean hasWithName(String name) {
+        return (project.getModelRegistry() != null && project.getModelRegistry().state(ModelPath.path("tasks." + name)) != null) || super.hasWithName(name);
+    }
+
+    @Override
     public NamedDomainObjectCollectionSchema getCollectionSchema() {
         return new NamedDomainObjectCollectionSchema() {
             @Override
@@ -184,6 +190,10 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
                 );
             }
         };
+    }
+
+    public Action<? super T> whenObjectRemovedInternal(Action<? super T> action) {
+        return super.whenObjectRemoved(action);
     }
 
     // Cannot be private due to reflective instantiation

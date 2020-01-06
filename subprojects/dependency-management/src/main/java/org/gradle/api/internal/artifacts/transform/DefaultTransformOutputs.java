@@ -18,8 +18,7 @@ package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.internal.file.BaseDirFileResolver;
-import org.gradle.api.tasks.util.internal.PatternSets;
+import org.gradle.api.internal.file.FileLookup;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.util.GFileUtils;
 
@@ -39,8 +38,8 @@ public class DefaultTransformOutputs implements TransformOutputsInternal {
     private final String inputArtifactPrefix;
     private final String outputDirPrefix;
 
-    public DefaultTransformOutputs(File inputArtifact, File outputDir) {
-        this.resolver = new BaseDirFileResolver(outputDir, PatternSets.getNonCachingPatternSetFactory());
+    public DefaultTransformOutputs(File inputArtifact, File outputDir, FileLookup fileLookup) {
+        this.resolver = fileLookup.getPathToFileResolver(outputDir);
         this.inputArtifact = inputArtifact;
         this.outputDir = outputDir;
         this.inputArtifactPrefix = inputArtifact.getPath() + File.separator;
@@ -51,7 +50,7 @@ public class DefaultTransformOutputs implements TransformOutputsInternal {
     public ImmutableList<File> getRegisteredOutputs() {
         ImmutableList<File> outputs = outputsBuilder.build();
         for (File output : outputs) {
-            TransformOutputsInternal.validateOutputExists(output);
+            TransformOutputsInternal.validateOutputExists(outputDirPrefix, output);
             if (outputFiles.contains(output) && !output.isFile()) {
                 throw new InvalidUserDataException("Transform output file " + output.getPath() + " must be a file, but is not.");
             }

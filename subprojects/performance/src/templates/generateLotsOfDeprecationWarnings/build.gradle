@@ -17,14 +17,13 @@
 
 @groovy.transform.CompileStatic
 void createDeprecations(int iterations) {
-    def random = new Random();
     for (int i=0; i<iterations; i++) {
-        // every ~10th deprecation should have a different message
-        if(random.nextInt(100) < 10) {
+        // every 10th deprecation should have a different message
+        if(i%10 == 0) {
             org.gradle.util.DeprecationLogger.nagUserOfDeprecated("Some unique deprecation No #\$i")
         }
         org.gradle.util.DeprecationLogger.nagUserOfDeprecated("Some repetitive Deprecation")
     }
 }
-
+// This generates 1 deprecation 10k times and 1k unique deprecations
 createDeprecations(10000)

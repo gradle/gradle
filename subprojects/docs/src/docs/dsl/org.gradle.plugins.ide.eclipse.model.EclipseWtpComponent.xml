@@ -21,7 +21,7 @@
             </tr>
             <tr>
                 <td>libConfigurations</td>
-                <td><literal>[project.configurations.runtime]</literal></td>
+                <td><literal>[project.configurations.runtimeClasspath]</literal></td>
                 <td><literal>[project.configurations.earlib]</literal></td>
             </tr>
             <tr>

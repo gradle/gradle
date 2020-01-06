@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.configurations
 
-import org.gradle.testing.internal.util.Specification
+import spock.lang.Specification
 
 class ConfigurationsTest extends Specification {
 

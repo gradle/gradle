@@ -18,7 +18,7 @@ package org.gradle.internal.component.local.model;
 
 import org.gradle.api.artifacts.FileCollectionDependency;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.FileCollectionInternal;
 
 import javax.annotation.Nullable;
 
@@ -37,5 +37,5 @@ public interface LocalFileDependencyMetadata {
      */
     FileCollectionDependency getSource();
 
-    FileCollection getFiles();
+    FileCollectionInternal getFiles();
 }

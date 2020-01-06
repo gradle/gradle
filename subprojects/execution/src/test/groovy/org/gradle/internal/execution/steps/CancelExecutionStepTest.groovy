@@ -17,14 +17,13 @@
 package org.gradle.internal.execution.steps
 
 import org.gradle.api.BuildCancelledException
-import org.gradle.initialization.BuildCancellationToken
+import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.internal.execution.Context
 import org.gradle.internal.execution.Result
 
-class CancelExecutionStepTest extends StepSpec {
-    def cancellationToken = Mock(BuildCancellationToken)
+class CancelExecutionStepTest extends ContextInsensitiveStepSpec {
+    def cancellationToken = new DefaultBuildCancellationToken()
     def step = new CancelExecutionStep<Context>(cancellationToken, delegate)
-    def context = Mock(Context)
     def delegateResult = Mock(Result)
 
     def "executes normally when cancellation is not requested"() {
@@ -37,11 +36,13 @@ class CancelExecutionStepTest extends StepSpec {
         1 * delegate.execute(context) >> delegateResult
 
         then:
-        1 * cancellationToken.cancellationRequested >> false
         0 *_
     }
 
     def "cancels execution when cancellation is requested"() {
+        given:
+        cancellationToken.cancel()
+
         when:
         step.execute(context)
 
@@ -51,9 +52,23 @@ class CancelExecutionStepTest extends StepSpec {
         1 * delegate.execute(context) >> delegateResult
 
         then:
-        1 * cancellationToken.cancellationRequested >> true
-        1 * context.work >> work
-        1 * work.displayName >> "cancelled work"
+        0 *_
+    }
+
+    def "interrupts task worker when cancellation is requested"() {
+        when:
+        step.execute(context)
+
+        then:
+        thrown BuildCancelledException
+
+        1 * delegate.execute(context) >>  {
+            cancellationToken.cancel()
+            wait()
+            delegateResult
+        }
+
+        then:
         0 *_
     }
 }

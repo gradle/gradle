@@ -16,11 +16,13 @@
 
 package org.gradle.api.tasks
 
-import org.gradle.internal.change.ChangeTypeInternal
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.internal.execution.history.changes.ChangeTypeInternal
 import org.gradle.work.Incremental
 import spock.lang.Issue
 import spock.lang.Unroll
 
+@Unroll
 class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrationTest {
 
     String getTaskAction() {
@@ -81,8 +83,8 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
         executesNonIncrementally()
     }
 
-    @Unroll
     @Issue("https://github.com/gradle/gradle/issues/4166")
+    @ToBeFixedForInstantExecution
     def "file in input dir appears in task inputs for #inputAnnotation"() {
         buildFile << """
             abstract class MyTask extends DefaultTask {
@@ -131,6 +133,10 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
                 @InputFile
                 abstract RegularFileProperty getNonIncrementalInput()
 
+                @Optional
+                @OutputFile
+                abstract RegularFileProperty getOutputFile()
+
                 @Override
                 void execute(InputChanges inputChanges) {
                     inputChanges.getFileChanges(nonIncrementalInput)
@@ -146,7 +152,7 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
 
         expect:
         fails("withNonIncrementalInput")
-        failure.assertHasCause("Cannot query incremental changes: No property found for value property(interface org.gradle.api.file.RegularFile, fixed(class org.gradle.api.internal.file.DefaultFilePropertyFactory\$FixedFile, ${file( "nonIncremental").absolutePath})). Incremental properties: inputDir.")
+        failure.assertHasCause("Cannot query incremental changes: No property found for value task ':withNonIncrementalInput' property 'nonIncrementalInput'. Incremental properties: inputDir.")
     }
 
     def "changes to non-incremental input parameters cause a rebuild"() {
@@ -156,6 +162,10 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
 
                 @InputFile
                 File nonIncrementalInput
+
+                @Optional
+                @OutputFile
+                abstract RegularFileProperty getOutputFile()
 
                 @Override
                 void execute(InputChanges changes) {
@@ -269,6 +279,7 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
         succeeds("myTask")
     }
 
+    @ToBeFixedForInstantExecution
     def "empty providers can be queried for incremental changes"() {
         file("buildSrc").deleteDir()
         buildFile.text = """
@@ -316,7 +327,6 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
         propertyDefinition << ["abstract DirectoryProperty getInput()", "abstract RegularFileProperty getInput()"]
     }
 
-    @Unroll
     def "provides normalized paths (#pathSensitivity)"() {
         buildFile << """
             abstract class MyCopy extends DefaultTask {
@@ -379,7 +389,6 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
         PathSensitivity.NAME_ONLY | [modified: "input1.txt", added: "other-input.txt", removed: "input2.txt"]
     }
 
-    @Unroll
     def "provides the file type"() {
         file("buildSrc").deleteDir()
         buildFile.text = """
@@ -395,8 +404,10 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
                 @TaskAction
                 void copy(InputChanges changes) {
                     if (!changes.incremental) {
-                        println("Full rebuild - cleaning output directory")
-                        org.gradle.util.GFileUtils.cleanDirectory(outputDirectory.get().asFile)
+                        println("Full rebuild - recreating output directory")
+                        def outputDir = outputDirectory.get().asFile
+                        project.delete(outputDir)
+                        project.mkdir(outputDir)
                     }
                     changes.getFileChanges(inputDirectory).each { change ->
                         File outputFile = new File(outputDirectory.get().asFile, change.normalizedPath)
@@ -472,7 +483,8 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
         outputDir.assertIsEmptyDir()
     }
 
-    def "outputs are cleaned out on rebuild"() {
+    @ToBeFixedForInstantExecution
+    def "outputs are cleaned out on rebuild (output type: #type)"() {
         file("buildSrc").deleteDir()
         buildFile.text = """
             abstract class MyCopy extends DefaultTask {
@@ -484,8 +496,8 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
                 @InputFile
                 abstract RegularFileProperty getNonIncrementalInput()
 
-                @OutputDirectory
-                abstract DirectoryProperty getOutputDirectory()
+                @${annotation.simpleName}
+                abstract ${type} getOutputDirectory()
 
                 @TaskAction
                 void copy(InputChanges changes) {
@@ -493,7 +505,7 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
                         println("Rebuilding")
                     }
                     changes.getFileChanges(inputDirectory).each { change ->
-                        File outputFile = new File(outputDirectory.get().asFile, change.normalizedPath)
+                        File outputFile = new File(outputDirectory.${getter}, change.normalizedPath)
                         if (change.changeType != ChangeType.REMOVED
                             && change.file.file) {
                             outputFile.parentFile.mkdirs()
@@ -506,7 +518,7 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
             task copy(type: MyCopy) {
                 inputDirectory = file("input")
                 nonIncrementalInput = file("nonIncremental.txt")
-                outputDirectory = file("build/output")
+                outputDirectory.${setter}(file("build/output"))
             }
         """
         def inputFilePath = "in/some/input.txt"
@@ -527,5 +539,10 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
         then:
         executedAndNotSkipped(":copy")
         file("build/output").assertIsEmptyDir()
+
+        where:
+        type                   | annotation      | getter         | setter
+        'DirectoryProperty'    | OutputDirectory | 'get().asFile' | 'set'
+        'ConfigurableFileTree' | OutputFiles     | 'dir'          | 'from'
     }
 }

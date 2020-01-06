@@ -16,7 +16,6 @@
 
 package org.gradle.platform.base;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
@@ -26,7 +25,6 @@ import org.gradle.api.tasks.Internal;
  *
  * Examples: the JvmPlatform defines a java runtime, while the NativePlatform defines the Operating System and Architecture for a native app.
  */
-@Incubating
 public interface Platform extends Named {
     @Override
     @Input

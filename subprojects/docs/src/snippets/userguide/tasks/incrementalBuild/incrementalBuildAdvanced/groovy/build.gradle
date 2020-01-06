@@ -1,0 +1,87 @@
+import org.example.*
+
+// tag::failed-inferred-task-dep[]
+plugins {
+// end::failed-inferred-task-dep[]
+    id 'base'
+// tag::failed-inferred-task-dep[]
+    id 'java'
+}
+// end::failed-inferred-task-dep[]
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+    implementation group: 'commons-collections', name: 'commons-collections', version: '3.2.2'
+    testImplementation group: 'junit', name: 'junit', version: '4.+'
+}
+
+// tag::custom-task-class[]
+task processTemplates(type: ProcessTemplates) {
+    templateEngine = TemplateEngineType.FREEMARKER
+    templateData = new TemplateData("test", [year: 2012])
+    outputDir = file("$buildDir/genOutput")
+
+    sources fileTree("src/templates")
+}
+// end::custom-task-class[]
+
+// tag::task-arg-method[]
+task copyTemplates(type: Copy) {
+    into "$buildDir/tmp"
+    from "src/templates"
+}
+
+task processTemplates2(type: ProcessTemplates) {
+    // ...
+// end::task-arg-method[]
+    templateEngine = TemplateEngineType.FREEMARKER
+    templateData = new TemplateData("test", [year: 2012])
+    outputDir = file("$buildDir/genOutput")
+// tag::task-arg-method[]
+    sources copyTemplates
+}
+// end::task-arg-method[]
+
+// tag::failed-inferred-task-dep[]
+
+task badInstrumentClasses(type: Instrument) {
+    classFiles = fileTree(compileJava.destinationDir)
+    destinationDir = file("$buildDir/instrumented")
+}
+// end::failed-inferred-task-dep[]
+
+// tag::inferred-task-dep[]
+task instrumentClasses(type: Instrument) {
+    classFiles = compileJava.outputs.files
+    destinationDir = file("$buildDir/instrumented")
+}
+// end::inferred-task-dep[]
+
+// tag::inferred-task-dep-with-files[]
+task instrumentClasses2(type: Instrument) {
+    classFiles = layout.files(compileJava)
+    destinationDir = file("$buildDir/instrumented")
+}
+// end::inferred-task-dep-with-files[]
+
+// tag::inferred-task-dep-with-builtby[]
+task instrumentClassesBuiltBy(type: Instrument) {
+    classFiles = fileTree(compileJava.destinationDir) {
+        builtBy compileJava
+    }
+    destinationDir = file("$buildDir/instrumented")
+}
+// end::inferred-task-dep-with-builtby[]
+
+// tag::up-to-date-when[]
+task alwaysInstrumentClasses(type: Instrument) {
+    classFiles = layout.files(compileJava)
+    destinationDir = file("$buildDir/instrumented")
+    outputs.upToDateWhen { false }
+}
+// end::up-to-date-when[]
+
+build.dependsOn processTemplates, processTemplates2

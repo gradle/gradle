@@ -21,6 +21,7 @@ import com.google.common.collect.SetMultimap
 import org.apache.ivy.plugins.matcher.PatternMatcher
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
+import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory
@@ -29,11 +30,9 @@ import org.gradle.internal.component.external.descriptor.Artifact
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.ivy.IvyDependencyDescriptor
 import org.gradle.internal.component.external.model.ivy.MutableIvyModuleResolveMetadata
-import org.gradle.internal.hash.HashUtil
 import org.gradle.internal.resource.local.FileResourceRepository
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.AttributeTestUtil
 import org.gradle.util.Resources
 import org.junit.Rule
 import spock.lang.Issue
@@ -49,12 +48,13 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
 
     DefaultImmutableModuleIdentifierFactory moduleIdentifierFactory = new DefaultImmutableModuleIdentifierFactory()
     FileResourceRepository fileRepository = TestFiles.fileRepository()
-    IvyMutableModuleMetadataFactory metadataFactory = new IvyMutableModuleMetadataFactory(moduleIdentifierFactory, AttributeTestUtil.attributesFactory())
+    IvyMutableModuleMetadataFactory metadataFactory = DependencyManagementTestUtil.ivyMetadataFactory()
 
     IvyXmlModuleDescriptorParser parser = new IvyXmlModuleDescriptorParser(new IvyModuleDescriptorConverter(moduleIdentifierFactory), moduleIdentifierFactory, fileRepository, metadataFactory)
 
     DescriptorParseContext parseContext = Mock()
     MutableIvyModuleResolveMetadata metadata
+    boolean hasGradleMetadataRedirectionMarker
 
     def "parses minimal Ivy descriptor"() {
         when:
@@ -73,7 +73,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         metadata.status == "integration"
         metadata.configurationDefinitions.keySet() == ["default"] as Set
         metadata.dependencies.empty
-        metadata.contentHash == HashUtil.createHash(file, "MD5")
+        !hasGradleMetadataRedirectionMarker
 
         artifact()
     }
@@ -607,8 +607,8 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         given:
         def file = temporaryFolder.createFile("ivy.xml")
         file.text = """
-           <ivy-module version="2.0" 
-                    xmlns:m="http://ant.apache.org/ivy/maven" 
+           <ivy-module version="2.0"
+                    xmlns:m="http://ant.apache.org/ivy/maven"
                     xmlns:e="http://ant.apache.org/ivy/extra"
                     xmlns:arbitrary="http://anything.org">
                 <info organisation="myorg"
@@ -690,8 +690,45 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         metadata.extraAttributes[new NamespaceId("namespace-c", "a")] == "info 2"
     }
 
+    def 'parses old gradle module metadata marker'() {
+        when:
+        def file = temporaryFolder.file("ivy.xml") << """
+<ivy-module version="1.0">
+    <!-- do-not-remove: published-with-gradle-metadata -->
+    <info organisation="myorg"
+          module="mymodule"
+          revision="myrev"
+    />
+</ivy-module>
+"""
+        parse(parseContext, file)
+
+        then:
+        hasGradleMetadataRedirectionMarker
+    }
+
+    def 'parses gradle module metadata marker'() {
+        when:
+        def file = temporaryFolder.file("ivy.xml") << """
+<ivy-module version="1.0">
+    <!-- do_not_remove: published-with-gradle-metadata -->
+    <info organisation="myorg"
+          module="mymodule"
+          revision="myrev"
+    />
+</ivy-module>
+"""
+        parse(parseContext, file)
+
+        then:
+        hasGradleMetadataRedirectionMarker
+    }
+
     private void parse(DescriptorParseContext parseContext, TestFile file) {
-        metadata = parser.parseMetaData(parseContext, file).result
+        def parseResult = parser.parseMetaData(parseContext, file)
+        metadata = parseResult.result
+        hasGradleMetadataRedirectionMarker = parseResult.hasGradleMetadataRedirectionMarker()
+
     }
 
     private Artifact artifact() {

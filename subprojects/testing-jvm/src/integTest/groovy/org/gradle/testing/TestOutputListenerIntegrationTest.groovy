@@ -15,6 +15,7 @@
  */
 package org.gradle.testing
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
@@ -61,7 +62,7 @@ public class SomeTest {
         buildFile << """
 apply plugin: 'java'
 ${mavenCentralRepository()}
-dependencies { testCompile "junit:junit:4.12" }
+dependencies { testImplementation "junit:junit:4.12" }
 
 test.addTestOutputListener(new VerboseOutputListener(logger: project.logger))
 
@@ -114,7 +115,7 @@ public class SomeTest {
         buildFile << """
 apply plugin: 'java'
 ${mavenCentralRepository()}
-dependencies { testCompile "junit:junit:4.12" }
+dependencies { testImplementation "junit:junit:4.12" }
 
 test.onOutput { descriptor, event ->
     logger.lifecycle("first: " + event.message)
@@ -157,7 +158,7 @@ public class SomeTest {
         buildFile << """
 apply plugin: 'java'
 ${mavenCentralRepository()}
-dependencies { testCompile "junit:junit:4.12" }
+dependencies { testImplementation "junit:junit:4.12" }
 
 test.testLogging {
     showStandardStreams = true
@@ -173,6 +174,7 @@ test.testLogging {
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     def "shows standard stream also for testNG"() {
         given:
         ignoreWhenJUnitPlatform()
@@ -193,7 +195,7 @@ public class SomeTest {
         buildFile << """
 apply plugin: 'java'
 ${mavenCentralRepository()}
-dependencies { testCompile 'org.testng:testng:6.3.1' }
+dependencies { testImplementation 'org.testng:testng:6.3.1' }
 
 test {
     useTestNG()

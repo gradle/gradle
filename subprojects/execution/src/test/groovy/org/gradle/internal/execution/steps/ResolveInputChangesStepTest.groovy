@@ -16,37 +16,35 @@
 
 package org.gradle.internal.execution.steps
 
-
 import org.gradle.internal.execution.IncrementalChangesContext
 import org.gradle.internal.execution.InputChangesContext
 import org.gradle.internal.execution.Result
-import org.gradle.internal.execution.Step
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges
 import org.gradle.internal.execution.history.changes.InputChangesInternal
-import spock.lang.Specification
 
-class ResolveInputChangesStepTest extends Specification {
+class ResolveInputChangesStepTest extends StepSpec<IncrementalChangesContext> {
 
-    def delegateStep = Mock(Step)
-    def work = Mock(UnitOfWork)
-    def step = new ResolveInputChangesStep<IncrementalChangesContext>(delegateStep)
-    def context = Mock(IncrementalChangesContext)
+    def step = new ResolveInputChangesStep<>(delegate)
     def changes = Mock(ExecutionStateChanges)
     def optionalChanges = Optional.of(changes)
     def inputChanges = Mock(InputChangesInternal)
     def result = Mock(Result)
 
+    @Override
+    protected IncrementalChangesContext createContext() {
+        Stub(IncrementalChangesContext)
+    }
+
     def "resolves input changes when required"() {
         when:
         def returnedResult = step.execute(context)
         then:
-        1 * context.work >> work
-        1 * work.inputChangeTrackingStrategy >> UnitOfWork.InputChangeTrackingStrategy.INCREMENTAL_PARAMETERS
-        1 * context.changes >> optionalChanges
+        _ * work.inputChangeTrackingStrategy >> UnitOfWork.InputChangeTrackingStrategy.INCREMENTAL_PARAMETERS
+        _ * context.changes >> optionalChanges
         1 * changes.createInputChanges() >> inputChanges
         1 * inputChanges.incremental >> true
-        1 * delegateStep.execute(_) >> { InputChangesContext context ->
+        1 * delegate.execute(_) >> { InputChangesContext context ->
             assert context.inputChanges.get() == inputChanges
             return result
         }
@@ -59,9 +57,8 @@ class ResolveInputChangesStepTest extends Specification {
         when:
         def returnedResult = step.execute(context)
         then:
-        1 * context.work >> work
-        1 * work.inputChangeTrackingStrategy >> UnitOfWork.InputChangeTrackingStrategy.NONE
-        1 * delegateStep.execute(_) >> { InputChangesContext context ->
+        _ * work.inputChangeTrackingStrategy >> UnitOfWork.InputChangeTrackingStrategy.NONE
+        1 * delegate.execute(_) >> { InputChangesContext context ->
             assert context.inputChanges == Optional.empty()
             return result
         }

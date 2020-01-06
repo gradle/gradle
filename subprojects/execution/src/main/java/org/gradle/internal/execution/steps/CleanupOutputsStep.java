@@ -16,15 +16,16 @@
 
 package org.gradle.internal.execution.steps;
 
-import com.google.common.collect.Iterables;
-import org.gradle.internal.execution.IncrementalContext;
+import org.gradle.internal.execution.BeforeExecutionContext;
 import org.gradle.internal.execution.InputChangesContext;
+import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.impl.OutputsCleaner;
+import org.gradle.internal.file.Deleter;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
-import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -34,21 +35,29 @@ import java.util.Set;
 
 public class CleanupOutputsStep<C extends InputChangesContext, R extends Result> implements Step<C, R> {
 
+    private final Deleter deleter;
+    private final OutputChangeListener outputChangeListener;
     private final Step<? super C, ? extends R> delegate;
 
-    public CleanupOutputsStep(Step<? super C, ? extends R> delegate) {
+    public CleanupOutputsStep(
+        Deleter deleter,
+        OutputChangeListener outputChangeListener,
+        Step<? super C, ? extends R> delegate
+    ) {
+        this.deleter = deleter;
+        this.outputChangeListener = outputChangeListener;
         this.delegate = delegate;
     }
 
     @Override
     public R execute(C context) {
-        boolean incremental = context.getInputChanges()
-            .map(inputChanges -> inputChanges.isIncremental())
-            .orElse(false);
-        if (!incremental) {
+        if (!context.isIncrementalExecution()) {
             UnitOfWork work = context.getWork();
             if (work.shouldCleanupOutputsOnNonIncrementalExecution()) {
-                if (work.hasOverlappingOutputs()) {
+                boolean hasOverlappingOutputs = context.getBeforeExecutionState()
+                    .flatMap(BeforeExecutionState::getDetectedOverlappingOutputs)
+                    .isPresent();
+                if (hasOverlappingOutputs) {
                     cleanupOverlappingOutputs(context, work);
                 } else {
                     cleanupExclusiveOutputs(work);
@@ -58,29 +67,33 @@ public class CleanupOutputsStep<C extends InputChangesContext, R extends Result>
         return delegate.execute(context);
     }
 
-    private void cleanupOverlappingOutputs(IncrementalContext context, UnitOfWork work) {
+    private void cleanupOverlappingOutputs(BeforeExecutionContext context, UnitOfWork work) {
         context.getAfterPreviousExecutionState().ifPresent(previousOutputs -> {
             Set<File> outputDirectoriesToPreserve = new HashSet<>();
-            work.visitOutputProperties((name, type, roots) -> {
+            work.visitOutputProperties((name, type, root) -> {
                 switch (type) {
                     case FILE:
-                        for (File root : roots) {
-                            File parentFile = root.getParentFile();
-                            if (parentFile != null) {
-                                outputDirectoriesToPreserve.add(parentFile);
-                            }
+                        File parentFile = root.getParentFile();
+                        if (parentFile != null) {
+                            outputDirectoriesToPreserve.add(parentFile);
                         }
                         break;
                     case DIRECTORY:
-                        Iterables.addAll(outputDirectoriesToPreserve, roots);
+                        outputDirectoriesToPreserve.add(root);
                         break;
                     default:
                         throw new AssertionError();
                 }
             });
-            OutputsCleaner cleaner = new OutputsCleaner(file -> true, dir -> !outputDirectoriesToPreserve.contains(dir));
+            OutputsCleaner cleaner = new OutputsCleaner(
+                deleter,
+                file -> true,
+                dir -> !outputDirectoriesToPreserve.contains(dir)
+            );
             for (FileCollectionFingerprint fileCollectionFingerprint : previousOutputs.getOutputFileProperties().values()) {
                 try {
+                    // Previous outputs can be in a different place than the current outputs
+                    outputChangeListener.beforeOutputChange(fileCollectionFingerprint.getRootHashes().keySet());
                     cleaner.cleanupOutputs(fileCollectionFingerprint);
                 } catch (IOException e) {
                     throw new UncheckedIOException("Failed to clean up output files for " + work.getDisplayName(), e);
@@ -90,19 +103,21 @@ public class CleanupOutputsStep<C extends InputChangesContext, R extends Result>
     }
 
     private void cleanupExclusiveOutputs(UnitOfWork work) {
-        work.visitOutputProperties((name, type, roots) -> {
-            for (File root : roots) {
-                if (root.exists()) {
+        work.visitOutputProperties((name, type, root) -> {
+            if (root.exists()) {
+                try {
                     switch (type) {
                         case FILE:
-                            GFileUtils.forceDelete(root);
+                            deleter.delete(root);
                             break;
                         case DIRECTORY:
-                            GFileUtils.cleanDirectory(root);
+                            deleter.ensureEmptyDirectory(root);
                             break;
                         default:
                             throw new AssertionError();
                     }
+                } catch (IOException ex) {
+                    throw new UncheckedIOException(ex);
                 }
             }
         });

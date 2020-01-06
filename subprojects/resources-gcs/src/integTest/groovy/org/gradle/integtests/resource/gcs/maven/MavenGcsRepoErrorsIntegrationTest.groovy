@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.resource.gcs.maven
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.resource.gcs.AbstractGcsDependencyResolutionTest
 import org.gradle.integtests.resource.gcs.fixtures.MavenGcsModule
 
@@ -45,6 +46,7 @@ task retrieve(type: Sync) {
 """
     }
 
+    @ToBeFixedForInstantExecution
     def "should fail with a GCS authentication error"() {
         setup:
         buildFile << mavenGcsRepoDsl()
@@ -60,6 +62,7 @@ task retrieve(type: Sync) {
             .assertHasCause("401 Unauthorized")
     }
 
+    @ToBeFixedForInstantExecution
     def "fails when providing PasswordCredentials with decent error"() {
         setup:
         buildFile << """
@@ -82,12 +85,12 @@ repositories {
             .assertHasCause("Authentication scheme 'all'(Authentication) is not supported by protocol 'gcs'")
     }
 
+    @ToBeFixedForInstantExecution
     def "should include resource uri when file not found"() {
         setup:
         buildFile << mavenGcsRepoDsl()
         when:
         module.pom.expectDownloadMissing()
-        module.artifact.expectMetadataRetrieveMissing()
         then:
         fails 'retrieve'
 
@@ -98,11 +101,12 @@ repositories {
             """Could not find org.gradle:test:1.85.
 Searched in the following locations:
   - ${module.pom.uri}
-  - ${module.artifact.uri}
+If the artifact you are trying to retrieve can be found in the repository but without metadata in 'Maven POM' format, you need to adjust the 'metadataSources { ... }' of the repository declaration.
 Required by:
 """)
     }
 
+    @ToBeFixedForInstantExecution
     def "cannot add invalid authentication types for gcs repo"() {
         given:
         module.publish()

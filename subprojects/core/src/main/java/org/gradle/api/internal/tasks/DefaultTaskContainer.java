@@ -60,7 +60,6 @@ import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.core.NamedEntityInstantiator;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.ConfigureUtil;
-import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
 
 import javax.annotation.Nullable;
@@ -232,9 +231,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         if (replaceExisting) {
             Task existing = findByNameWithoutRules(name);
             if (existing != null) {
-                DeprecationLogger.nagUserOfDeprecated("Replacing a task that may have been used by other plugins",
-                    "Use a different name for this task ('" + name + "') or avoid creating the original task you are trying to replace.");
-                removeInternal(existing);
+                throw new IllegalStateException("Replacing an existing task that may have already been used by other plugins is not supported.  Use a different name for this task ('" + name + "').");
             } else {
                 TaskCreatingProvider<? extends Task> taskProvider = Cast.uncheckedCast(findByNameLaterWithoutRules(name));
                 if (taskProvider != null) {
@@ -242,10 +239,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
                     final Action<? super T> onCreate;
                     if (!taskProvider.getType().isAssignableFrom(task.getClass())) {
-                        DeprecationLogger.nagUserOfDeprecated(
-                            "Replacing an existing task with an incompatible type",
-                            "Use a different name for this task ('" + name + "'), use a compatible type (" + ((TaskInternal) task).getTaskIdentity().type.getName() + ") or avoid creating the original task you are trying to replace.");
-                        onCreate = getEventRegister().getAddActions();
+                        throw new IllegalStateException("Replacing an existing task with an incompatible type is not supported.  Use a different name for this task ('" + name + "') or use a compatible type (" + ((TaskInternal) task).getTaskIdentity().type.getName() + ")");
                     } else {
                         onCreate = Cast.uncheckedCast(taskProvider.getOnCreateActions().mergeFrom(getEventRegister().getAddActions()));
                     }
@@ -253,9 +247,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
                     add(task, onCreate);
                     return; // Exit early as we are reusing the create actions from the provider
                 } else {
-                    DeprecationLogger.nagUserOfDeprecated(
-                        "Unnecessarily replacing a task that does not exist",
-                        "Try using create() or register() directly instead. You attempted to replace a task named '" + name + "', but no task exists with that name already.");
+                    throw new IllegalStateException("Unnecessarily replacing a task that does not exist is not supported.  Use create() or register() directly instead.  You attempted to replace a task named '" + name + "', but there is no existing task with that name.");
                 }
             }
         } else if (hasWithName(name)) {
@@ -601,32 +593,30 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         return Cast.uncheckedCast(instantiator.newInstance(DefaultRealizableTaskCollection.class, type, super.withType(type), modelNode, instantiator));
     }
 
+    @Deprecated
     @Override
     public boolean remove(Object o) {
-        warnAboutRemoveMethodDeprecation("remove(Object)");
-        return removeInternal(o);
+        throw unsupportedTaskRemovalException();
     }
 
     private boolean removeInternal(Object o) {
         return super.remove(o);
     }
 
+    @Deprecated
     @Override
     public boolean removeAll(Collection<?> c) {
-        warnAboutRemoveMethodDeprecation("removeAll(Collection)");
-        return super.removeAll(c);
+        throw unsupportedTaskRemovalException();
     }
 
     @Override
     public void clear() {
-        warnAboutRemoveMethodDeprecation("clear()");
-        super.clear();
+        throw unsupportedTaskRemovalException();
     }
 
     @Override
     public boolean retainAll(Collection<?> target) {
-        warnAboutRemoveMethodDeprecation("retainAll(Collection)");
-        return super.retainAll(target);
+        throw unsupportedTaskRemovalException();
     }
 
     @Override
@@ -645,26 +635,23 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
             @Override
             public void remove() {
-                warnAboutRemoveMethodDeprecation("iterator()#remove()");
-                delegate.remove();
+                throw unsupportedTaskRemovalException();
             }
         };
     }
 
+    private static RuntimeException unsupportedTaskRemovalException() {
+        return new UnsupportedOperationException("Removing tasks from the task container is not supported.  Disable the tasks or use replace() instead.");
+    }
+
     @Override
     public Action<? super Task> whenObjectRemoved(Action<? super Task> action) {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("TaskContainer.whenObjectRemoved(Action)");
-        return super.whenObjectRemoved(action);
+        throw new UnsupportedOperationException("Registering actions on task removal is not supported.");
     }
 
     @Override
     public void whenObjectRemoved(Closure action) {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("TaskContainer.whenObjectRemoved(Closure)");
-        super.whenObjectRemoved(action);
-    }
-
-    private void warnAboutRemoveMethodDeprecation(String methodName) {
-        DeprecationLogger.nagUserOfDiscontinuedMethodInvocation("TaskContainer." + methodName + " to remove tasks", "Prefer disabling tasks instead, see Task.setEnabled(boolean).");
+        throw new UnsupportedOperationException("Registering actions on task removal is not supported.");
     }
 
     // Cannot be private due to reflective instantiation
@@ -746,15 +733,13 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     @Deprecated
     @Override
     public boolean add(Task o) {
-        DeprecationLogger.nagUserOfReplacedMethodInvocation("TaskContainer.add()", "TaskContainer.register()");
-        return addInternal(o);
+        throw new UnsupportedOperationException("Adding a task directly to the task container is not supported.  Use register() instead.");
     }
 
     @Deprecated
     @Override
     public boolean addAll(Collection<? extends Task> c) {
-        DeprecationLogger.nagUserOfDiscontinuedMethodInvocation("TaskContainer.addAll()");
-        return addAllInternal(c);
+        throw new UnsupportedOperationException("Adding a collection of tasks directly to the task container is not supported.  Use register() instead.");
     }
 
     @Override

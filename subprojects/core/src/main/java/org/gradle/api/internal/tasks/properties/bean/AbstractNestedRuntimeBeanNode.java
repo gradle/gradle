@@ -21,19 +21,20 @@ import com.google.common.base.Suppliers;
 import org.gradle.api.Buildable;
 import org.gradle.api.GradleException;
 import org.gradle.api.Task;
+import org.gradle.api.internal.provider.HasConfigurableValueInternal;
 import org.gradle.api.internal.provider.PropertyInternal;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.properties.BeanPropertyContext;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.TypeMetadata;
 import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler;
+import org.gradle.api.provider.HasConfigurableValue;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.reflect.ParameterValidationContext;
 import org.gradle.internal.reflect.PropertyMetadata;
+import org.gradle.internal.reflect.TypeValidationContext;
 import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
@@ -46,9 +47,9 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
         super(parentNode, propertyName, bean, typeMetadata);
     }
 
-    protected void visitProperties(PropertyVisitor visitor, final Queue<RuntimeBeanNode<?>> queue, final RuntimeBeanNodeFactory nodeFactory, ParameterValidationContext validationContext) {
+    protected void visitProperties(PropertyVisitor visitor, final Queue<RuntimeBeanNode<?>> queue, final RuntimeBeanNodeFactory nodeFactory, TypeValidationContext validationContext) {
         TypeMetadata typeMetadata = getTypeMetadata();
-        typeMetadata.collectValidationFailures(getPropertyName(), validationContext);
+        typeMetadata.visitValidationFailures(getPropertyName(), validationContext);
         for (PropertyMetadata propertyMetadata : typeMetadata.getPropertiesMetadata()) {
             PropertyAnnotationHandler annotationHandler = typeMetadata.getAnnotationHandlerFor(propertyMetadata);
             if (annotationHandler.shouldVisit(visitor)) {
@@ -96,11 +97,12 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
         public TaskDependencyContainer getTaskDependencies() {
             if (isProvider()) {
                 return (TaskDependencyContainer) valueSupplier.get();
-            } else if (isBuildable()) {
-                return new TaskDependencyContainer() {
-                    @Override
-                    public void visitDependencies(TaskDependencyResolveContext context) {
-                        context.add(valueSupplier.get());
+            }
+            if (isBuildable()) {
+                return context -> {
+                    Object dependency = valueSupplier.get();
+                    if (dependency != null) {
+                        context.add(dependency);
                     }
                 };
             }
@@ -119,16 +121,18 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
 
         @Override
         public void maybeFinalizeValue() {
-            if (isProvider()) {
+            if (isConfigurable()) {
                 Object value = valueSupplier.get();
-                if (value instanceof PropertyInternal) {
-                    ((PropertyInternal) value).finalizeValueOnReadAndWarnAboutChanges();
-                }
+                ((HasConfigurableValueInternal) value).implicitFinalizeValue();
             }
         }
 
         private boolean isProvider() {
             return Provider.class.isAssignableFrom(method.getReturnType());
+        }
+
+        private boolean isConfigurable() {
+            return HasConfigurableValue.class.isAssignableFrom(method.getReturnType());
         }
 
         private boolean isBuildable() {

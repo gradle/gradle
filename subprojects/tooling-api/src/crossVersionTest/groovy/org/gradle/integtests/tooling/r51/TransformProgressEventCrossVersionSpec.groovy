@@ -42,7 +42,7 @@ class TransformProgressEventCrossVersionSpec extends ToolingApiSpecification {
             }
             project(":app") {
                 dependencies {
-                    compile project(":lib")
+                    implementation project(":lib")
                 }
             }
         """
@@ -234,7 +234,7 @@ class TransformProgressEventCrossVersionSpec extends ToolingApiSpecification {
     def createResolveTask(String attribute = "size") {
         """
             task resolve(type: Copy) {
-                from configurations.compile.incoming.artifactView {
+                from configurations.runtimeClasspath.incoming.artifactView {
                     attributes { it.attribute(artifactType, '$attribute') }
                 }.artifacts.artifactFiles
                 into "\$buildDir/libs"

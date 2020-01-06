@@ -16,6 +16,7 @@
 
 package org.gradle.testkit.runner.enduser
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.testkit.runner.fixtures.PluginUnderTest
 
 class GradleRunnerConventionalPluginClasspathInjectionEndUserIntegrationTest extends BaseTestKitEndUserIntegrationTest {
@@ -30,7 +31,7 @@ class GradleRunnerConventionalPluginClasspathInjectionEndUserIntegrationTest ext
             }
             ${jcenterRepository()}
             dependencies {
-                testCompile('org.spockframework:spock-core:1.0-groovy-2.4') {
+                testImplementation('org.spockframework:spock-core:1.0-groovy-2.4') {
                     exclude module: 'groovy-all'
                 }
             }
@@ -69,12 +70,14 @@ class GradleRunnerConventionalPluginClasspathInjectionEndUserIntegrationTest ext
         """
     }
 
+    @ToBeFixedForInstantExecution
     def "can test plugin and custom task as external files by using default conventions from Java Gradle plugin development plugin"() {
         expect:
         succeeds 'test'
         executedAndNotSkipped ':test'
     }
 
+    @ToBeFixedForInstantExecution
     def "can override plugin metadata location"() {
         when:
         buildFile << """
@@ -88,6 +91,7 @@ class GradleRunnerConventionalPluginClasspathInjectionEndUserIntegrationTest ext
         executedAndNotSkipped ':test'
     }
 
+    @ToBeFixedForInstantExecution
     def "can use custom source set"() {
         when:
         file("src/test/groovy/Test.groovy").moveToDirectory(file("src/functionalTest/groovy"))
@@ -97,7 +101,7 @@ class GradleRunnerConventionalPluginClasspathInjectionEndUserIntegrationTest ext
             }
 
             configurations {
-                functionalTestCompile.extendsFrom testCompile
+                functionalTestCompile.extendsFrom testImplementation
                 functionalTestRuntime.extendsFrom testRuntime
             }
 

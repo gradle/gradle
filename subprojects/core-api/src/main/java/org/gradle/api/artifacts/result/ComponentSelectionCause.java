@@ -16,6 +16,7 @@
 package org.gradle.api.artifacts.result;
 
 import org.gradle.api.Incubating;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
  * The possible component selection causes. There are a limited number of causes, but each of them
@@ -23,7 +24,7 @@ import org.gradle.api.Incubating;
  *
  * @since 4.6
  */
-@Incubating
+@UsedByScanPlugin
 public enum ComponentSelectionCause {
     /**
      * This component was selected because it's the root component.
@@ -63,7 +64,15 @@ public enum ComponentSelectionCause {
     /**
      * This component was selected because of a dependency constraint
      */
-    CONSTRAINT("constraint");
+    CONSTRAINT("constraint"),
+
+    /**
+     * This component was selected because it was requested by a parent with a strict version.
+     *
+     * @since 6.0
+     */
+    @Incubating
+    BY_ANCESTOR("by ancestor");
 
     private final String defaultReason;
 

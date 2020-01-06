@@ -17,6 +17,7 @@
 package org.gradle.language.base
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 class CustomComponentPluginIntegrationTest extends AbstractIntegrationSpec {
     def "setup"() {
@@ -29,6 +30,7 @@ interface SampleComponent extends ComponentSpec {
 """
     }
 
+    @ToBeFixedForInstantExecution
     def "plugin declares custom component"() {
         when:
         buildWithCustomComponentPlugin()
@@ -55,6 +57,7 @@ model {
         succeeds "checkModel"
     }
 
+    @ToBeFixedForInstantExecution
     def "can configure component declared by model rule method using model rules DSL"() {
         when:
         buildWithCustomComponentPlugin()
@@ -81,6 +84,7 @@ model {
         succeeds "checkModel"
     }
 
+    @ToBeFixedForInstantExecution
     def "can configure component declared by model rule DSL using model rule method"() {
         when:
         buildFile << """
@@ -119,6 +123,7 @@ model {
         succeeds "checkModel"
     }
 
+    @ToBeFixedForInstantExecution
     def "can register custom component model without creating"() {
         when:
         buildFile << '''
@@ -167,6 +172,7 @@ Note: currently not all plugins register their components, so some components ma
 BUILD SUCCESSFUL"""
     }
 
+    @ToBeFixedForInstantExecution
     def "can have component declaration and creation in separate plugins"() {
         when:
         buildFile << '''
@@ -211,6 +217,7 @@ BUILD SUCCESSFUL"""
         succeeds "checkModel"
     }
 
+    @ToBeFixedForInstantExecution
     def "Can define and create multiple component types in the same plugin"(){
         when:
         buildFile << '''

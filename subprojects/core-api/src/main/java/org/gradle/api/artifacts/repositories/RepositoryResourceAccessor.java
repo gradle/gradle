@@ -16,7 +16,6 @@
 package org.gradle.api.artifacts.repositories;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 
 import java.io.InputStream;
 
@@ -27,7 +26,6 @@ import java.io.InputStream;
  *
  * @since 4.0
  */
-@Incubating
 public interface RepositoryResourceAccessor {
     /**
      * Perform an action on the contents of a remote resource.

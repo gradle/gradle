@@ -17,6 +17,7 @@
 package org.gradle.language
 
 import org.apache.commons.lang.StringUtils
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
@@ -34,6 +35,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
         buildFile << app.extraConfiguration
     }
 
+    @ToBeFixedForInstantExecution
     def "clean build with PCH does not fail"() {
         given:
         writeStandardSourceFiles()
@@ -51,6 +53,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
         succeeds("clean", "helloSharedLibrary")
     }
 
+    @ToBeFixedForInstantExecution
     def "can set a precompiled header on a source set for a source header in the headers directory" () {
         given:
         writeStandardSourceFiles(path)
@@ -76,6 +79,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
         path << [ "", "subdir/to/header/" ]
     }
 
+    @ToBeFixedForInstantExecution
     def "can set a precompiled header on a source set for a header colocated with the source" () {
         given:
         new SourceFile(app.sourceType, "hello.h", app.libraryHeader.content).writeToDir(file("src/hello"))
@@ -111,6 +115,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
         pchNotCompiled()
     }
 
+    @ToBeFixedForInstantExecution
     def "can set a precompiled header on a source set for a source header in include path" () {
         given:
         app.libraryHeader.writeToDir(file("src/include"))
@@ -156,6 +161,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
         ""        | "<common.h>"
     }
 
+    @ToBeFixedForInstantExecution
     def "a precompiled header on a source set gets used for all variants of a binary" () {
         given:
         writeStandardSourceFiles()
@@ -180,6 +186,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
         pchNotCompiled("hello", "static")
     }
 
+    @ToBeFixedForInstantExecution
     def "can set a precompiled header on multiple source sets" () {
         given:
         app.headerFiles.each { it.writeToDir(file("src/hello")) }
@@ -220,6 +227,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
         pchNotCompiled("hello", "shared", "other")
     }
 
+    @ToBeFixedForInstantExecution
     def "can set a precompiled header on multiple components" () {
         given:
         writeStandardSourceFiles()
@@ -255,6 +263,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
         pchNotCompiled("hello2")
     }
 
+    @ToBeFixedForInstantExecution
     def "can have components both with and without precompiled headers" () {
         given:
         writeStandardSourceFiles()
@@ -295,6 +304,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
         output.count(getUniquePragmaOutput(DEFAULT_PCH_MESSAGE)) == 1
     }
 
+    @ToBeFixedForInstantExecution
     def "can have sources that do not use precompiled header" () {
         given:
         writeStandardSourceFiles()
@@ -311,6 +321,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
         output.count(getUniquePragmaOutput(DEFAULT_PCH_MESSAGE)) == 2
     }
 
+    @ToBeFixedForInstantExecution
     def "compiler arguments set on the binary get used for the precompiled header" () {
         given:
         writeStandardSourceFiles()
@@ -345,6 +356,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
         ! output.contains(FRENCH_PCH_MESSAGE)
     }
 
+    @ToBeFixedForInstantExecution
     def "precompiled header compile detects changes in header files" () {
         given:
         writeStandardSourceFiles()
@@ -369,6 +381,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
         pchCompiledOnceForEach([ PCHHeaderDirName ], ALTERNATE_PCH_MESSAGE)
     }
 
+    @ToBeFixedForInstantExecution
     def "produces warning when pch cannot be used" () {
         given:
         app.getLibraryHeader().writeToDir(file("src/hello"))
@@ -388,6 +401,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
         output.contains("The source file hello.${app.sourceExtension} includes the header common.h but it is not the first declared header, so the pre-compiled header will not be used.")
     }
 
+    @ToBeFixedForInstantExecution
     def "produces compiler error when specified header is missing" () {
         given:
         app.getLibraryHeader().writeToDir(file("src/hello"))
@@ -404,6 +418,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
     }
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+    @ToBeFixedForInstantExecution
     def "can build and run an executable with library using pch" () {
         given:
         writeStandardSourceFiles()

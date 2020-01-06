@@ -62,6 +62,7 @@ class GradleMetadataJavaLibraryCrossVersionIntegrationTest extends CrossVersionI
                         because "Doesn't work with other versions than 3.8"
                     }
                 }
+                implementation 'com.google.inject:guice:4.2.2:no_aop'
             }
 
             java {

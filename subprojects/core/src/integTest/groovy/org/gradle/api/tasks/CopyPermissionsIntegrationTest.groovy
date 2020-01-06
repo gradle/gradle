@@ -25,6 +25,7 @@ import spock.lang.Unroll
 
 import static org.junit.Assert.assertTrue
 
+@Unroll
 class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)
@@ -221,5 +222,35 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
 
         cleanup:
         file('src/unauthorized').mode = 0777
+    }
+
+    @Requires(TestPrecondition.FILE_PERMISSIONS)
+    @Issue('https://github.com/gradle/gradle/issues/9576')
+    def "unreadable #type not produced by task is ignored"() {
+        given:
+        def input = file("readableFile.txt").createFile()
+
+        def outputDirectory = file("output")
+        def unreadableOutput = create(file("${outputDirectory.name}/unreadable${type.capitalize()}")).makeUnreadable()
+
+        buildFile << """
+            task copy(type: Copy) {
+                from '${input.name}'
+                into '${outputDirectory.name}'
+            }
+        """
+
+        when:
+        succeeds 'copy'
+        then:
+        outputDirectory.list().contains input.name
+
+        cleanup:
+        unreadableOutput.makeReadable()
+
+        where:
+        type        | create
+        'file'      | { it.createFile() }
+        'directory' | { it.createDir() }
     }
 }

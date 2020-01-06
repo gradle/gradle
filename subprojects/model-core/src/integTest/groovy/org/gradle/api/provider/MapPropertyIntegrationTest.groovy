@@ -24,9 +24,13 @@ class MapPropertyIntegrationTest extends AbstractIntegrationSpec {
         buildFile << '''
             abstract class AbstractVerificationTask<K, V> extends DefaultTask {
 
+                @Internal
                 final MapProperty<K, V> prop
+                @Internal
                 Map<K, V> expected = [:]
+                @Internal
                 final Class<K> keyType
+                @Internal
                 final Class<V> valueType
                 
                 AbstractVerificationTask(Class<K> keyType, Class<V> valueType) {
@@ -61,12 +65,18 @@ class MapPropertyIntegrationTest extends AbstractIntegrationSpec {
             '''
     }
 
-    def "can define task with abstract MapProperty getter"() {
+    @Unroll
+    def "can define task with abstract MapProperty<#keyType, #valueType> getter"() {
         given:
         buildFile << """
+            class Param<T> {
+                T display
+                String toString() { display.toString() }
+            }
+
             abstract class MyTask extends DefaultTask {
                 @Input
-                abstract MapProperty<String, Number> getProp()
+                abstract MapProperty<$keyType, $valueType> getProp()
                 
                 @TaskAction
                 void go() {
@@ -74,8 +84,12 @@ class MapPropertyIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
             
+            def key = new Param<String>(display: 'a')
+            def map = [:]
+            map[key] = new Param<Number>(display: 12)
+            
             tasks.create("thing", MyTask) {
-                prop = [a: 12, b: 4]
+                prop = $value
             }
         """
 
@@ -83,7 +97,12 @@ class MapPropertyIntegrationTest extends AbstractIntegrationSpec {
         succeeds("thing")
 
         then:
-        outputContains("prop = [a:12, b:4]")
+        outputContains("prop = $display")
+
+        where:
+        keyType         | valueType       | value           | display
+        "String"        | "Number"        | "[a: 12, b: 4]" | "[a:12, b:4]"
+        "Param<String>" | "Param<Number>" | "map"           | "[a:12]"
     }
 
     def "can finalize the value of a property using API"() {
@@ -111,7 +130,32 @@ class MapPropertyIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause('The value for this property is final and cannot be changed any further.')
     }
 
-    def "task @Input property is implicitly finalized and changes ignored when task starts execution"() {
+    def "can disallow changes to a property using API without finalizing the value"() {
+        given:
+        buildFile << '''
+            int counter = 0
+            def provider = providers.provider { [(++counter): ++counter] }
+            
+            def property = objects.mapProperty(Integer, Integer)
+            property.set(provider)
+            
+            assert property.get() == [1: 2]
+            assert property.get() == [3: 4]
+            property.disallowChanges()
+            assert property.get() == [5: 6]
+            assert property.get() == [7: 8]
+            
+            property.set([1: 2])
+            '''.stripIndent()
+
+        when:
+        fails()
+
+        then:
+        failure.assertHasCause('The value for this property cannot be changed any further.')
+    }
+
+    def "task @Input property is implicitly finalized when task starts execution"() {
         given:
         buildFile << '''
             class SomeTask extends DefaultTask {
@@ -123,10 +167,6 @@ class MapPropertyIntegrationTest extends AbstractIntegrationSpec {
                 
                 @TaskAction
                 void go() {
-                    prop.set(['ignoredKey': 'ignoredValue'])
-                    prop.put('ignoredKey', 'ignoredValue')
-                    prop.putAll(['ignoredKey': 'ignoredValue'])
-                    prop.empty()
                     outputFile.get().asFile.text = prop.get()
                 }
             }
@@ -134,7 +174,7 @@ class MapPropertyIntegrationTest extends AbstractIntegrationSpec {
             task thing(type: SomeTask) {
                 prop = ['key1': 'value1']
                 outputFile = layout.buildDirectory.file('out.txt')
-                doLast {
+                doFirst {
                     prop.set(['ignoredKey': 'ignoredValue'])
                 }
             }
@@ -149,22 +189,14 @@ class MapPropertyIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
             thing.dependsOn before
-            
-            task after {
-                dependsOn thing
-                doLast {
-                    thing.prop = ['ignoredKey': 'ignoredValue']
-                    assert thing.prop.get() == ['finalKey': 'finalValue']
-                }
-            }
             '''.stripIndent()
 
         when:
-        executer.expectDeprecationWarning()
-        run('after')
+        fails('thing')
 
         then:
-        file('build/out.txt').text == '[finalKey:finalValue]'
+        failure.assertHasDescription("Execution failed for task ':thing'.")
+        failure.assertHasCause("The value for task ':thing' property 'prop' is final and cannot be changed any further.")
     }
 
     def "task ad hoc input property is implicitly finalized and changes ignored when task starts execution"() {
@@ -183,11 +215,11 @@ class MapPropertyIntegrationTest extends AbstractIntegrationSpec {
             '''.stripIndent()
 
         when:
-        executer.expectDeprecationWarning()
-        run('thing')
+        fails('thing')
 
         then:
-        output.contains('prop = [key1:value1]')
+        failure.assertHasDescription("Execution failed for task ':thing'.")
+        failure.assertHasCause("The value for this property is final and cannot be changed any further.")
     }
 
     def "can use property with no value as optional ad hoc task input property"() {
@@ -226,9 +258,9 @@ task thing {
         succeeds('verify')
 
         where:
-        value                                                          | _
-        "['key1': 'value1', 'key2': 'value2']"                       | _
-        "new LinkedHashMap(['key1': 'value1', 'key2': 'value2'])"    | _
+        value                                                         | _
+        "['key1': 'value1', 'key2': 'value2']"                        | _
+        "new LinkedHashMap(['key1': 'value1', 'key2': 'value2'])"     | _
         "providers.provider { ['key1': 'value1', 'key2': 'value2'] }" | _
     }
 

@@ -19,6 +19,8 @@ package org.gradle.testing.jacoco.plugins
 import org.gradle.api.Project
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.testing.jacoco.plugins.fixtures.JacocoReportFixture
 import org.gradle.testing.jacoco.plugins.fixtures.JavaProjectUnderTest
 
 class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
@@ -30,6 +32,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         javaProjectUnderTest.writeBuildScript().writeSourceFiles()
     }
 
+    @ToBeFixedForInstantExecution
     def "does not add jvmArgs if jacoco is disabled"() {
         buildFile << """
             test {
@@ -63,15 +66,21 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'doCheck'
     }
 
+    @ToBeFixedForInstantExecution
     def "dependencies report shows default jacoco dependencies"() {
-        when: succeeds("dependencies", "--configuration", "jacocoAgent")
-        then: output.contains "org.jacoco:org.jacoco.agent:"
+        when:
+        succeeds("dependencies", "--configuration", "jacocoAgent")
+        then:
+        output.contains "org.jacoco:org.jacoco.agent:"
 
-        when: succeeds("dependencies", "--configuration", "jacocoAnt")
-        then: output.contains "org.jacoco:org.jacoco.ant:"
+        when:
+        succeeds("dependencies", "--configuration", "jacocoAnt")
+        then:
+        output.contains "org.jacoco:org.jacoco.ant:"
     }
 
-    void "allows configuring tool dependencies explicitly"() {
+    @ToBeFixedForInstantExecution
+    def "allows configuring tool dependencies explicitly"() {
         when:
         buildFile << """
             dependencies {
@@ -82,19 +91,24 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         """
 
         succeeds("dependencies", "--configuration", "jacocoAgent")
-        then: output.contains "org.jacoco:org.jacoco.agent:0.6.0.201210061924"
+        then:
+        output.contains "org.jacoco:org.jacoco.agent:0.6.0.201210061924"
 
-        when: succeeds("dependencies", "--configuration", "jacocoAnt")
-        then: output.contains "org.jacoco:org.jacoco.ant:0.6.0.201210061924"
+        when:
+        succeeds("dependencies", "--configuration", "jacocoAnt")
+        then:
+        output.contains "org.jacoco:org.jacoco.ant:0.6.0.201210061924"
     }
 
-    void jacocoReportIsIncremental() {
+    @ToBeFixedForInstantExecution
+    def "jacoco report is incremental"() {
         def reportResourceDir = file("${REPORTING_BASE}/jacoco/test/html/jacoco-resources")
 
         when:
         succeeds('test', 'jacocoTestReport')
 
         then:
+        executedAndNotSkipped(":jacocoTestReport")
         htmlReport().exists()
         reportResourceDir.exists()
 
@@ -102,7 +116,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         succeeds('jacocoTestReport')
 
         then:
-        skippedTasks.contains(":jacocoTestReport")
+        skipped(":jacocoTestReport")
         htmlReport().exists()
         reportResourceDir.exists()
 
@@ -111,42 +125,31 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         succeeds('test', 'jacocoTestReport')
 
         then:
-        !skippedTasks.contains(":jacocoTestReport")
+        executedAndNotSkipped(":jacocoTestReport")
         htmlReport().exists()
         reportResourceDir.exists()
     }
 
-    def "using append is deprecated"() {
+    private JacocoReportFixture htmlReport(String basedir = "${REPORTING_BASE}/jacoco/test/html") {
+        return new JacocoReportFixture(file(basedir))
+    }
+
+    @ToBeFixedForInstantExecution
+    def "reports miss configuration of destination file"() {
+        given:
         buildFile << """
             test {
                 jacoco {
-                    append = false
+                    destinationFile = provider { null }
                 }
             }
         """
-        def deprecationMessage = "The append property has been deprecated. This is scheduled to be removed in Gradle 6.0. Append should always be true."
 
         when:
-        executer.expectDeprecationWarning()
-        succeeds("help")
-        then:
-        output.contains(deprecationMessage)
+        runAndFail("test")
 
-        when:
-        buildFile.text = ""
-        javaProjectUnderTest.writeBuildScript()
-        buildFile << """
-            println test.jacoco.append
-        """
-        and:
-        executer.expectDeprecationWarning()
-        succeeds("help")
         then:
-        output.contains(deprecationMessage)
-    }
-
-    private JacocoReportFixture htmlReport(String basedir = "${REPORTING_BASE}/jacoco/test/html") {
-        return new JacocoReportFixture(file(basedir))
+        errorOutput.contains("JaCoCo destination file must not be null if output type is FILE")
     }
 }
 

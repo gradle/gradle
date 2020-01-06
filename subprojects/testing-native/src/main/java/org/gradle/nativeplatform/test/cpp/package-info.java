@@ -16,5 +16,4 @@
 /**
  * API classes for C++ test integration.
  */
-@org.gradle.api.Incubating
 package org.gradle.nativeplatform.test.cpp;

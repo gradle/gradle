@@ -16,7 +16,6 @@
 
 package org.gradle.authentication.http;
 
-import org.gradle.api.Incubating;
 import org.gradle.authentication.Authentication;
 
 /**
@@ -24,6 +23,5 @@ import org.gradle.authentication.Authentication;
  *
  * @since 4.10
  */
-@Incubating
 public interface HttpHeaderAuthentication extends Authentication {
 }

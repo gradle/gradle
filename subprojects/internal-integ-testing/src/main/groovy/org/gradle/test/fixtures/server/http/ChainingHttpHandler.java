@@ -112,7 +112,7 @@ class ChainingHttpHandler implements HttpHandler {
 
             try {
                 ResponseProducer responseProducer = selectProducer(id, httpExchange);
-                System.out.println(String.format("[%d] sending error response for %s", id, outcome.getDisplayName()));
+                System.out.println(String.format("[%d] sending response for %s", id, outcome.getDisplayName()));
                 if (!responseProducer.isFailure()) {
                     responseProducer.writeTo(id, httpExchange);
                 } else {

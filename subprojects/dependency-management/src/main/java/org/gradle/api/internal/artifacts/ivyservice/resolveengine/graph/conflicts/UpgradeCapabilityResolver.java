@@ -17,6 +17,9 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflic
 
 import com.google.common.collect.Sets;
 import org.gradle.api.capabilities.Capability;
+import org.gradle.internal.Describables;
+import org.gradle.internal.DisplayName;
+import org.gradle.internal.component.external.model.CapabilityInternal;
 import org.gradle.util.VersionNumber;
 
 import java.util.Collection;
@@ -43,12 +46,14 @@ public class UpgradeCapabilityResolver implements CapabilitiesConflictHandler.Re
             sorted.addAll(capabilityVersions);
             boolean first = true;
             for (Capability capability : sorted) {
-                if (!first) {
-                    Collection<? extends CapabilitiesConflictHandler.CandidateDetails> candidates = details.getCandidates(capability);
-                    for (CapabilitiesConflictHandler.CandidateDetails candidate : candidates) {
-                        candidate.evict();
+                DisplayName reason = Describables.of("latest version of capability", ((CapabilityInternal) capability).getCapabilityId());
+                boolean isFirst = first;
+                details.getCandidates(capability).forEach(cand -> {
+                    cand.byReason(reason);
+                    if (!isFirst) {
+                        cand.evict();
                     }
-                }
+                });
                 first = false;
             }
         }

@@ -16,7 +16,7 @@
 
 package org.gradle.nativeplatform.test.xctest.internal.execution
 
-import org.gradle.testing.internal.util.Specification
+import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 

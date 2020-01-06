@@ -16,12 +16,17 @@
 
 package org.gradle.nativeplatform.internal.resolve;
 
-import org.gradle.api.tasks.Optional;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
-import org.gradle.internal.typeconversion.*;
+import org.gradle.internal.typeconversion.MapKey;
+import org.gradle.internal.typeconversion.MapNotationConverter;
+import org.gradle.internal.typeconversion.NotationParser;
+import org.gradle.internal.typeconversion.NotationParserBuilder;
+import org.gradle.internal.typeconversion.TypedNotationConverter;
 import org.gradle.nativeplatform.NativeLibraryRequirement;
 import org.gradle.nativeplatform.NativeLibrarySpec;
 import org.gradle.nativeplatform.internal.ProjectNativeLibraryRequirement;
+
+import javax.annotation.Nullable;
 
 class NativeDependencyNotationParser {
     public static NotationParser<Object, NativeLibraryRequirement> parser() {
@@ -51,7 +56,11 @@ class NativeDependencyNotationParser {
         }
 
         @SuppressWarnings("unused")
-        protected NativeLibraryRequirement parseMap(@MapKey("library") String libraryName, @Optional @MapKey("project") String projectPath, @Optional @MapKey("linkage") String linkage) {
+        protected NativeLibraryRequirement parseMap(
+            @MapKey("library") String libraryName,
+            @MapKey("project") @Nullable String projectPath,
+            @MapKey("linkage") @Nullable String linkage
+        ) {
             return new ProjectNativeLibraryRequirement(projectPath, libraryName, linkage);
         }
     }

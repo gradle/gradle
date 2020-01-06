@@ -42,19 +42,43 @@ class ClassLoaderScopeIdentifierTest extends Specification {
     def "children with same name are equivalent"() {
         def child1 = root.child(root.name)
         def child2 = root.child(root.name)
+        def grandChild1 = child1.child(root.name)
+        def grandChild2 = child2.child(root.name)
 
         expect:
-        child1.localId() == child2.localId()
-        child1.exportId() == child2.exportId()
+        equivalent(child1, child2)
+        equivalent(grandChild1, grandChild2)
+    }
+
+    def "children from different parents with same name are not equal"() {
+        def parent1 = root.child("parent1")
+        def parent2 = root.child("parent2")
+        def child1 = parent1.child(root.name)
+        def child2 = parent2.child(root.name)
+
+        expect:
+        notEquivalent(child1, child2)
     }
 
     def "children with different name are not equal"() {
+        given:
         def child1 = root.child(root.name)
         def child2 = root.child(root.name + "changed")
 
         expect:
-        child1.localId() != child2.localId()
-        child1.exportId() != child2.exportId()
+        notEquivalent(child1, child2)
+    }
+
+    private static void equivalent(ClassLoaderScopeIdentifier child1, ClassLoaderScopeIdentifier child2) {
+        assert child1 == child2
+        assert child1.localId() == child2.localId()
+        assert child1.exportId() == child2.exportId()
+    }
+
+    private static void notEquivalent(ClassLoaderScopeIdentifier child1, ClassLoaderScopeIdentifier child2) {
+        assert child1 != child2
+        assert child1.localId() != child2.localId()
+        assert child1.exportId() != child2.exportId()
     }
 
 }

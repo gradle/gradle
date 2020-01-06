@@ -358,7 +358,7 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
         repository('ivy') {
             "org:ivy:1.0" {
                 withModule(IvyModule) {
-                    dependsOn([organisation: 'org', module: targetRepoName, revision: '1.0', conf: 'compile->compile'])
+                    dependsOn([organisation: 'org', module: targetRepoName, revision: '1.0', conf: 'runtime->compile'])
                 }
             }
         }

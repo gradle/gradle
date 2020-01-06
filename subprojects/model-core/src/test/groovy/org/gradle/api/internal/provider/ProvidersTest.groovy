@@ -18,6 +18,7 @@ package org.gradle.api.internal.provider
 
 import org.gradle.api.Transformer
 import org.gradle.api.provider.Provider
+import org.gradle.internal.state.ManagedFactory
 
 class ProvidersTest extends ProviderSpec<Integer> {
     @Override
@@ -43,6 +44,11 @@ class ProvidersTest extends ProviderSpec<Integer> {
     @Override
     boolean isNoValueProviderImmutable() {
         return true
+    }
+
+    @Override
+    ManagedFactory managedFactory() {
+        return new ManagedFactories.ProviderManagedFactory()
     }
 
     def "mapped fixed value provider calculates transformed value lazily and caches the result"() {
