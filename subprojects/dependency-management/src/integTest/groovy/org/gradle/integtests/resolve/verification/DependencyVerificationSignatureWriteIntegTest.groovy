@@ -114,7 +114,7 @@ class DependencyVerificationSignatureWriteIntegTest extends AbstractSignatureVer
 </verification-metadata>
 """
         and:
-        outputContains("""A verification file was generated but some problems were discovered:
+        output.contains("""A verification file was generated but some problems were discovered:
    - some keys couldn't be downloaded. They were automatically added as ignored keys but you should review if this is acceptable. Look for entries with the following comment: Key couldn't be downloaded from any key server
 """)
     }
@@ -171,7 +171,7 @@ class DependencyVerificationSignatureWriteIntegTest extends AbstractSignatureVer
 </verification-metadata>
 """
         and:
-        outputContains """A verification file was generated but some problems were discovered:
+        output.contains """A verification file was generated but some problems were discovered:
    - some signature verification failed. Checksums were generated for those artifacts but you MUST check if there's an actual problem. Look for entries with the following comment: PGP verification failed
 """
     }
@@ -324,6 +324,51 @@ class DependencyVerificationSignatureWriteIntegTest extends AbstractSignatureVer
         keyrings.size() == 2
         keyrings.find { it.publicKey.keyID == SigningFixtures.validPublicKey.keyID }
         keyrings.find { it.publicKey.keyID == keyring.publicKey.keyID }
+    }
+
+    def "can generate configuration for dependencies resolved in a buildFinished hook"() {
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+        }
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0") {
+            withSignature {
+                signAsciiArmored(it)
+            }
+        }
+        buildFile << """
+            println "Adding hook"
+            gradle.buildFinished {
+               println "Executing hook"
+               allprojects {
+                   println configurations.detachedConfiguration(dependencies.create("org:foo:1.0")).files
+               }
+            }
+        """
+
+        when:
+        serveValidKey()
+        writeVerificationMetadata()
+        succeeds ":help"
+
+        then:
+        assertXmlContents """<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata>
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+      <verify-signatures>true</verify-signatures>
+      <key-servers>
+         <key-server uri="${keyServerFixture.uri}"/>
+      </key-servers>
+      <trusted-keys>
+         <trusted-key id="${SigningFixtures.validPublicKeyHexString}" group="org" name="foo" version="1.0"/>
+      </trusted-keys>
+   </configuration>
+   <components/>
+</verification-metadata>
+"""
     }
 
 }

@@ -494,7 +494,6 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
     private static class PGPPublicKeyRingListBuilder implements PublicKeyResultBuilder {
         private final ImmutableList.Builder<PGPPublicKeyRing> builder = ImmutableList.builder();
 
-        @Override
         public void keyRing(PGPPublicKeyRing keyring) {
             builder.add(keyring);
         }
