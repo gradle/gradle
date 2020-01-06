@@ -660,7 +660,7 @@ public class SigningExtension {
 
         @Override
         public File create() {
-            return  signature.getFile();
+            return signature.getFile();
         }
 
         @Override

@@ -17,6 +17,9 @@
 package org.gradle.api.publish.ivy
 
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.ivy.IvyFileModule
+import org.gradle.test.fixtures.ivy.IvyFileRepository
 import org.spockframework.util.TextUtil
 import spock.lang.Issue
 
@@ -113,6 +116,8 @@ public class IvyPublishIssuesIntegTest extends AbstractIvyPublishIntegTest {
     @ToBeFixedForInstantExecution
     @Issue("https://github.com/gradle/gradle/issues/5136")
     void "doesn't publish stale files"() {
+        IvyFileModule publishedModule
+
         settingsFile << 'rootProject.name = "test"'
         buildFile << """
             apply plugin: "java-library"
@@ -146,16 +151,21 @@ public class IvyPublishIssuesIntegTest extends AbstractIvyPublishIntegTest {
 
         when:
         succeeds "publish", "-PjavadocEnabled=true"
+        publishedModule = new IvyFileRepository(new TestFile(file("build/repo"))).module("org.gradle", "test")
 
         then:
         file("build/repo/org.gradle/test/1.0/test-1.0-javadoc.jar").exists()
         file("build/repo/org.gradle/test/1.0/test-1.0-javadoc.jar.sha1").exists()
         file("build/repo/org.gradle/test/1.0/test-1.0-javadoc.jar.sha256").exists()
         file("build/repo/org.gradle/test/1.0/test-1.0-javadoc.jar.sha512").exists()
+        publishedModule.parsedModuleMetadata.variant("javadocElements") {
+            assert files*.name == ['test-1.0-javadoc.jar']
+        }
 
         when:
         file("build/repo").deleteDir()
         succeeds "publish", "-PjavadocEnabled=false"
+        publishedModule = new IvyFileRepository(new TestFile(file("build/repo"))).module("org.gradle", "test")
 
         then:
         skipped(":javadocJar")
@@ -163,5 +173,8 @@ public class IvyPublishIssuesIntegTest extends AbstractIvyPublishIntegTest {
         !file("build/repo/org.gradle/test/1.0/test-1.0-javadoc.jar.sha1").exists()
         !file("build/repo/org.gradle/test/1.0/test-1.0-javadoc.jar.sha256").exists()
         !file("build/repo/org.gradle/test/1.0/test-1.0-javadoc.jar.sha512").exists()
+        publishedModule.parsedModuleMetadata.variant("javadocElements") {
+            assert files*.name == []
+        }
     }
 }
