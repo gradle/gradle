@@ -694,8 +694,14 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     private static boolean hasOverlap(Iterable<String> paths1, Iterable<String> paths2) {
         //build a helper TreeSet with the contents of paths2
         final TreeSet<String> set = new TreeSet<>();
+        int minPath2Length = Integer.MAX_VALUE;
         for (final String path : paths2) {
             set.add(path);
+            minPath2Length = Math.min(minPath2Length, path.length());
+        }
+
+        if (set.isEmpty()) {
+            return false;
         }
 
         for (final String path1 : paths1) {
@@ -704,7 +710,8 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                 return true;
             }
             //first iterate over all path segments (prefixes)
-            int endIndex = path1.indexOf(File.separatorChar);
+            //  those that are too short to have a chance are skipped
+            int endIndex = path1.indexOf(File.separatorChar, minPath2Length);
             while (endIndex >= 0) {
                 final String currentPrefix = path1.substring(0, endIndex);
                 if (set.contains(currentPrefix)) {
