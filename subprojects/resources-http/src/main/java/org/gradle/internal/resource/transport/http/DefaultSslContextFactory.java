@@ -180,16 +180,12 @@ public class DefaultSslContextFactory implements SslContextFactory {
                         keyStore = KeyStore.getInstance(keyStoreType);
                     }
                     char[] keyStorePassword = keystorePassword(props);
-                    FileInputStream instream = null;
                     if (keyStoreFile != null) {
-                        instream = new FileInputStream(keyStoreFile);
-                    }
-                    try {
-                        keyStore.load(instream, keyStorePassword);
-                    } finally {
-                        if (instream != null) {
-                            instream.close();
+                        try (FileInputStream instream = new FileInputStream(keyStoreFile)) {
+                            keyStore.load(instream, keyStorePassword);
                         }
+                    } else {
+                        keyStore.load(null, keyStorePassword);
                     }
                     kmFactory.init(keyStore, keyStorePassword);
                 }
