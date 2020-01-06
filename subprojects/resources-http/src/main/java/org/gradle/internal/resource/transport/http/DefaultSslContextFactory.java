@@ -33,7 +33,9 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
+import java.security.cert.CertificateException;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -172,17 +174,9 @@ public class DefaultSslContextFactory implements SslContextFactory {
                 if ("none".equalsIgnoreCase(keyStoreType)) {
                     kmFactory = KeyManagerFactory.getInstance(keyAlgorithm);
                 } else {
-                    File keyStoreFile = keyStoreFile(props);
                     kmFactory = KeyManagerFactory.getInstance(keyAlgorithm);
-                    KeyStore keyStore = getKeyStoreInstance(props, keyStoreType);
                     char[] keyStorePassword = keystorePassword(props);
-                    if (keyStoreFile != null) {
-                        try (FileInputStream instream = new FileInputStream(keyStoreFile)) {
-                            keyStore.load(instream, keyStorePassword);
-                        }
-                    } else {
-                        keyStore.load(null, keyStorePassword);
-                    }
+                    KeyStore keyStore = keyStore(props, keyStoreType, keyStorePassword);
                     kmFactory.init(keyStore, keyStorePassword);
                 }
 
@@ -201,6 +195,19 @@ public class DefaultSslContextFactory implements SslContextFactory {
                 keyStoreType = KeyStore.getDefaultType();
             }
             return keyStoreType;
+        }
+
+        private static KeyStore keyStore(Map<String, String> props, String keyStoreType, char[] keyStorePassword) throws NoSuchProviderException, KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException {
+            KeyStore keyStore = getKeyStoreInstance(props, keyStoreType);
+            File keyStoreFile = keyStoreFile(props);
+            if (keyStoreFile != null) {
+                try (FileInputStream instream = new FileInputStream(keyStoreFile)) {
+                    keyStore.load(instream, keyStorePassword);
+                }
+            } else {
+                keyStore.load(null, keyStorePassword);
+            }
+            return keyStore;
         }
 
         private static KeyStore getKeyStoreInstance(Map<String, String> props, String keyStoreType) throws NoSuchProviderException, KeyStoreException {
