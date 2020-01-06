@@ -22,6 +22,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.component.DefaultComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
@@ -105,6 +106,7 @@ import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.GeneratedGradleJarCache;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.ProducerGuard;
+import org.gradle.initialization.InternalBuildFinishedListener;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.build.BuildState;
@@ -112,6 +114,7 @@ import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.PreferJavaRuntimeVariant;
 import org.gradle.internal.component.model.PersistentModuleSource;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.hash.FileHasher;
@@ -350,8 +353,11 @@ class DependencyManagementBuildScopeServices {
                                                                         BuildOperationExecutor buildOperationExecutor,
                                                                         ChecksumService checksumService,
                                                                         SignatureVerificationServiceFactory signatureVerificationServiceFactory,
-                                                                        DocumentationRegistry documentationRegistry) {
-        return startParameterResolutionOverride.dependencyVerificationOverride(buildOperationExecutor, checksumService, signatureVerificationServiceFactory, documentationRegistry);
+                                                                        DocumentationRegistry documentationRegistry,
+                                                                        ListenerManager listenerManager) {
+        DependencyVerificationOverride override = startParameterResolutionOverride.dependencyVerificationOverride(buildOperationExecutor, checksumService, signatureVerificationServiceFactory, documentationRegistry);
+        registerBuildFinishedHooks(listenerManager, override);
+        return override;
     }
 
     ResolveIvyFactory createResolveIvyFactory(StartParameterResolutionOverride startParameterResolutionOverride, ModuleRepositoryCacheProvider moduleRepositoryCacheProvider,
@@ -480,5 +486,14 @@ class DependencyManagementBuildScopeServices {
             throw new IllegalStateException("Cannot find HttpConnectorFactory");
         }
         return new DefaultSignatureVerificationServiceFactory(httpConnectorFactory, cacheRepository, decoratorFactory, buildOperationExecutor, fileHasher, scopeCacheMapping, projectCacheDir, timeProvider, startParameter.isRefreshKeys());
+    }
+
+    private void registerBuildFinishedHooks(ListenerManager listenerManager, DependencyVerificationOverride dependencyVerificationOverride) {
+        listenerManager.addListener(new InternalBuildFinishedListener() {
+            @Override
+            public void buildFinished(GradleInternal build) {
+                dependencyVerificationOverride.buildFinished(build);
+            }
+        });
     }
 }

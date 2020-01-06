@@ -48,6 +48,7 @@ class DefaultGradleLauncherSpec extends Specification {
 
     def exceptionAnalyserMock = Mock(ExceptionAnalyser)
     def buildCompletionListener = Mock(BuildCompletionListener.class)
+    def buildFinishedListener = Mock(InternalBuildFinishedListener.class)
     def buildServices = Mock(BuildScopeServices.class)
     def otherService = Mock(Stoppable)
     def includedBuildControllers = Mock(IncludedBuildControllers)
@@ -67,7 +68,7 @@ class DefaultGradleLauncherSpec extends Specification {
 
     DefaultGradleLauncher launcher() {
         return new DefaultGradleLauncher(gradleMock, buildConfigurerMock, exceptionAnalyserMock, buildBroadcaster,
-            buildCompletionListener, buildExecuter, buildServices, [otherService], includedBuildControllers,
+            buildCompletionListener, buildFinishedListener, buildExecuter, buildServices, [otherService], includedBuildControllers,
             settingsPreparerMock, taskExecutionPreparerMock, instantExecution, buildSourceBuilder)
     }
 

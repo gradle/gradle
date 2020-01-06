@@ -36,12 +36,12 @@ import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifie
 import org.gradle.api.internal.artifacts.verification.verifier.MissingChecksums;
 import org.gradle.api.internal.artifacts.verification.verifier.SignatureVerificationFailure;
 import org.gradle.api.internal.artifacts.verification.verifier.VerificationFailure;
-import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -62,7 +62,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class ChecksumAndSignatureVerificationOverride implements DependencyVerificationOverride, ArtifactVerificationOperation {
+public class ChecksumAndSignatureVerificationOverride implements DependencyVerificationOverride, ArtifactVerificationOperation, Stoppable {
     private final static Logger LOGGER = Logging.getLogger(ChecksumAndSignatureVerificationOverride.class);
 
     private static final Comparator<Map.Entry<ModuleComponentArtifactIdentifier, Collection<FailureWrapper>>> DELETED_LAST = Comparator.comparing(e -> e.getValue().stream().anyMatch(f -> f.failure instanceof DeletedArtifact) ? 1 : 0);
@@ -79,6 +79,7 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
     private final DocumentationRegistry documentationRegistry;
     private final Set<VerificationQuery> verificationQueries = Sets.newConcurrentHashSet();
     private final Deque<VerificationEvent> verificationEvents = Queues.newArrayDeque();
+    private final AtomicBoolean closed = new AtomicBoolean();
 
     public ChecksumAndSignatureVerificationOverride(BuildOperationExecutor buildOperationExecutor,
                                                     File gradleUserHome,
@@ -124,6 +125,10 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
             if (verificationEvents.isEmpty()) {
                 return;
             }
+        }
+        if (closed.get()) {
+            LOGGER.debug("Cannot perform verification of all dependencies because the verification service has been shutdown. Under normal circumstances this shouldn't happen unless a user buildFinished was added in an unexpected way.");
+            return;
         }
         buildOperationExecutor.runAll(queue -> {
             VerificationEvent event;
@@ -300,7 +305,8 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
     }
 
     @Override
-    public void buildFinished(Gradle gradle) {
+    public void stop() {
+        closed.set(true);
         signatureVerificationService.stop();
     }
 
