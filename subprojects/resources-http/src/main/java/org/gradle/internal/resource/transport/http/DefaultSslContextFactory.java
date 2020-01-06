@@ -208,10 +208,7 @@ public class DefaultSslContextFactory implements SslContextFactory {
                 }
 
                 SSLContext sslcontext = SSLContext.getInstance("TLS");
-                sslcontext.init(
-                    kmFactory != null ? kmFactory.getKeyManagers() : null,
-                    tmFactory != null ? tmFactory.getTrustManagers() : null,
-                    null);
+                sslcontext.init(kmFactory.getKeyManagers(), tmFactory.getTrustManagers(), null);
 
                 return sslcontext;
             } catch (GeneralSecurityException | IOException e) {
