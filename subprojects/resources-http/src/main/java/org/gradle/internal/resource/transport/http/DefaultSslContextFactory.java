@@ -138,11 +138,8 @@ public class DefaultSslContextFactory implements SslContextFactory {
                             trustStore = KeyStore.getInstance(trustStoreType);
                         }
                         String trustStorePassword = props.get("javax.net.ssl.trustStorePassword");
-                        FileInputStream instream = new FileInputStream(trustStoreFile);
-                        try {
+                        try (FileInputStream instream = new FileInputStream(trustStoreFile)) {
                             trustStore.load(instream, trustStorePassword != null ? trustStorePassword.toCharArray() : null);
-                        } finally {
-                            instream.close();
                         }
                         tmFactory.init(trustStore);
                     } else {
@@ -157,11 +154,8 @@ public class DefaultSslContextFactory implements SslContextFactory {
                         tmFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
                         KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
                         String trustStorePassword = props.get("javax.net.ssl.trustStorePassword");
-                        FileInputStream instream = new FileInputStream(trustStoreFile);
-                        try {
+                        try (FileInputStream instream = new FileInputStream(trustStoreFile)) {
                             trustStore.load(instream, trustStorePassword != null ? trustStorePassword.toCharArray() : null);
-                        } finally {
-                            instream.close();
                         }
                         tmFactory.init(trustStore);
                     }
