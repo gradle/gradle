@@ -151,10 +151,8 @@ public class DefaultSslContextFactory implements SslContextFactory {
                         File file = new File(javaHome, "lib/security/jssecacerts");
                         if (!file.exists()) {
                             file = new File(javaHome, "lib/security/cacerts");
-                            trustStoreFile = file;
-                        } else {
-                            trustStoreFile = file;
                         }
+                        trustStoreFile = file;
                         tmFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
                         KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
                         String trustStorePassword = props.get("javax.net.ssl.trustStorePassword");
