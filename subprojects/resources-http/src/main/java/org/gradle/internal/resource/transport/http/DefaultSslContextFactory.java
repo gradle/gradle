@@ -135,9 +135,9 @@ public class DefaultSslContextFactory implements SslContextFactory {
                         trustStoreFile = new File(s);
                         tmFactory = TrustManagerFactory.getInstance(trustAlgorithm);
                         KeyStore trustStore = trustStore(props, trustStoreType);
-                        String trustStorePassword = props.get("javax.net.ssl.trustStorePassword");
+                        char[] trustStorePassword = trustStorePassword(props);
                         try (FileInputStream instream = new FileInputStream(trustStoreFile)) {
-                            trustStore.load(instream, trustStorePassword != null ? trustStorePassword.toCharArray() : null);
+                            trustStore.load(instream, trustStorePassword);
                         }
                         tmFactory.init(trustStore);
                     } else {
