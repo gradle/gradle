@@ -134,13 +134,7 @@ public class DefaultSslContextFactory implements SslContextFactory {
                     if (s != null) {
                         trustStoreFile = new File(s);
                         tmFactory = TrustManagerFactory.getInstance(trustAlgorithm);
-                        String trustStoreProvider = props.get("javax.net.ssl.trustStoreProvider");
-                        KeyStore trustStore;
-                        if (trustStoreProvider != null) {
-                            trustStore = KeyStore.getInstance(trustStoreType, trustStoreProvider);
-                        } else {
-                            trustStore = KeyStore.getInstance(trustStoreType);
-                        }
+                        KeyStore trustStore = trustStore(props, trustStoreType);
                         String trustStorePassword = props.get("javax.net.ssl.trustStorePassword");
                         try (FileInputStream instream = new FileInputStream(trustStoreFile)) {
                             trustStore.load(instream, trustStorePassword != null ? trustStorePassword.toCharArray() : null);
@@ -173,6 +167,15 @@ public class DefaultSslContextFactory implements SslContextFactory {
                 return sslcontext;
             } catch (GeneralSecurityException | IOException e) {
                 throw new SSLInitializationException(e.getMessage(), e);
+            }
+        }
+
+        private static KeyStore trustStore(Map<String, String> props, String trustStoreType) throws NoSuchProviderException, KeyStoreException {
+            String trustStoreProvider = props.get("javax.net.ssl.trustStoreProvider");
+            if (trustStoreProvider != null) {
+                return KeyStore.getInstance(trustStoreType, trustStoreProvider);
+            } else {
+                return KeyStore.getInstance(trustStoreType);
             }
         }
 
