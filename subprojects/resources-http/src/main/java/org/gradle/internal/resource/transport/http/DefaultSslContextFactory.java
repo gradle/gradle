@@ -32,6 +32,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchProviderException;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -172,13 +174,7 @@ public class DefaultSslContextFactory implements SslContextFactory {
                 } else {
                     File keyStoreFile = keyStoreFile(props);
                     kmFactory = KeyManagerFactory.getInstance(keyAlgorithm);
-                    String keyStoreProvider = props.get("javax.net.ssl.keyStoreProvider");
-                    KeyStore keyStore;
-                    if (keyStoreProvider != null) {
-                        keyStore = KeyStore.getInstance(keyStoreType, keyStoreProvider);
-                    } else {
-                        keyStore = KeyStore.getInstance(keyStoreType);
-                    }
+                    KeyStore keyStore = getKeyStoreInstance(props, keyStoreType);
                     char[] keyStorePassword = keystorePassword(props);
                     if (keyStoreFile != null) {
                         try (FileInputStream instream = new FileInputStream(keyStoreFile)) {
@@ -205,6 +201,15 @@ public class DefaultSslContextFactory implements SslContextFactory {
                 keyStoreType = KeyStore.getDefaultType();
             }
             return keyStoreType;
+        }
+
+        private static KeyStore getKeyStoreInstance(Map<String, String> props, String keyStoreType) throws NoSuchProviderException, KeyStoreException {
+            String keyStoreProvider = props.get("javax.net.ssl.keyStoreProvider");
+            if (keyStoreProvider != null) {
+                return KeyStore.getInstance(keyStoreType, keyStoreProvider);
+            } else {
+                return KeyStore.getInstance(keyStoreType);
+            }
         }
 
         private static File keyStoreFile(Map<String, String> props) {
