@@ -147,12 +147,7 @@ public class DefaultSslContextFactory implements SslContextFactory {
                         }
                         tmFactory.init(trustStore);
                     } else {
-                        File javaHome = new File(props.get("java.home"));
-                        File file = new File(javaHome, "lib/security/jssecacerts");
-                        if (!file.exists()) {
-                            file = new File(javaHome, "lib/security/cacerts");
-                        }
-                        trustStoreFile = file;
+                        trustStoreFile = trustStoreFile(props);
                         tmFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
                         KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
                         char[] trustStorePassword = trustStorePassword(props);
@@ -179,6 +174,15 @@ public class DefaultSslContextFactory implements SslContextFactory {
             } catch (GeneralSecurityException | IOException e) {
                 throw new SSLInitializationException(e.getMessage(), e);
             }
+        }
+
+        private static File trustStoreFile(Map<String, String> props) {
+            File javaHome = new File(props.get("java.home"));
+            File file = new File(javaHome, "lib/security/jssecacerts");
+            if (!file.exists()) {
+                file = new File(javaHome, "lib/security/cacerts");
+            }
+            return file;
         }
 
         private static char[] trustStorePassword(Map<String, String> props) {
