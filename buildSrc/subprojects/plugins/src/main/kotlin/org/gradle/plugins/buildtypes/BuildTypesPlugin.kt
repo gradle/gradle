@@ -6,6 +6,8 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.tasks.TaskProvider
 
+import org.gradle.kotlin.dsl.*
+
 class BuildTypesPlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
