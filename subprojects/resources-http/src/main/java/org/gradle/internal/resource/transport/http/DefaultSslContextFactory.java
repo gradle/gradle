@@ -116,47 +116,8 @@ public class DefaultSslContextFactory implements SslContextFactory {
             // This implementation is borrowed from the Apache HttpClient project
             // https://github.com/apache/httpclient/blob/4.2.2/httpclient/src/main/java/org/apache/http/conn/ssl/SSLSocketFactory.java#L246-L354
             try {
-                TrustManagerFactory tmFactory;
-
-                String trustAlgorithm = trustAlgorithm(props);
-                String trustStoreType = props.get("javax.net.ssl.trustStoreType");
-                if (trustStoreType == null) {
-                    trustStoreType = KeyStore.getDefaultType();
-                }
-                if ("none".equalsIgnoreCase(trustStoreType)) {
-                    tmFactory = TrustManagerFactory.getInstance(trustAlgorithm);
-                } else {
-                    File trustStoreFile;
-                    String s = props.get("javax.net.ssl.trustStore");
-                    if (s != null) {
-                        trustStoreFile = new File(s);
-                        tmFactory = TrustManagerFactory.getInstance(trustAlgorithm);
-                        KeyStore trustStore = trustStore(props, trustStoreType);
-                        char[] trustStorePassword = trustStorePassword(props);
-                        try (FileInputStream instream = new FileInputStream(trustStoreFile)) {
-                            trustStore.load(instream, trustStorePassword);
-                        }
-                        tmFactory.init(trustStore);
-                    } else {
-                        trustStoreFile = trustStoreFile(props);
-                        tmFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-                        KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
-                        char[] trustStorePassword = trustStorePassword(props);
-                        try (FileInputStream instream = new FileInputStream(trustStoreFile)) {
-                            trustStore.load(instream, trustStorePassword);
-                        }
-                        tmFactory.init(trustStore);
-                    }
-                }
-
-                KeyManagerFactory kmFactory = keyManagerFactory(props);
-
-                String keyStoreType = keyStoreType(props);
-                if (!"none".equalsIgnoreCase(keyStoreType)) {
-                    char[] keyStorePassword = keystorePassword(props);
-                    KeyStore keyStore = keyStore(props, keyStoreType, keyStorePassword);
-                    kmFactory.init(keyStore, keyStorePassword);
-                }
+                TrustManagerFactory tmFactory = initTrustManagerFactory(props);
+                KeyManagerFactory kmFactory = initKeyManagerFactory(props);
 
                 SSLContext sslcontext = SSLContext.getInstance("TLS");
                 sslcontext.init(kmFactory.getKeyManagers(), tmFactory.getTrustManagers(), null);
@@ -165,6 +126,56 @@ public class DefaultSslContextFactory implements SslContextFactory {
             } catch (GeneralSecurityException | IOException e) {
                 throw new SSLInitializationException(e.getMessage(), e);
             }
+        }
+
+        private static TrustManagerFactory initTrustManagerFactory(Map<String, String> props) throws GeneralSecurityException, IOException {
+            TrustManagerFactory tmFactory;
+
+            String trustAlgorithm = trustAlgorithm(props);
+            String trustStoreType = trustStoreType(props);
+            if ("none".equalsIgnoreCase(trustStoreType)) {
+                tmFactory = TrustManagerFactory.getInstance(trustAlgorithm);
+            } else {
+                File trustStoreFile;
+                String s = props.get("javax.net.ssl.trustStore");
+                if (s != null) {
+                    trustStoreFile = new File(s);
+                    tmFactory = TrustManagerFactory.getInstance(trustAlgorithm);
+                    KeyStore trustStore = trustStore(props, trustStoreType);
+                    char[] trustStorePassword = trustStorePassword(props);
+                    try (FileInputStream instream = new FileInputStream(trustStoreFile)) {
+                        trustStore.load(instream, trustStorePassword);
+                    }
+                    tmFactory.init(trustStore);
+                } else {
+                    trustStoreFile = trustStoreFile(props);
+                    tmFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+                    KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
+                    char[] trustStorePassword = trustStorePassword(props);
+                    try (FileInputStream instream = new FileInputStream(trustStoreFile)) {
+                        trustStore.load(instream, trustStorePassword);
+                    }
+                    tmFactory.init(trustStore);
+                }
+            }
+            return tmFactory;
+        }
+
+        private static KeyManagerFactory initKeyManagerFactory(Map<String, String> props) throws GeneralSecurityException, IOException {
+            KeyManagerFactory kmFactory = keyManagerFactory(props);
+
+            String keyStoreType = keyStoreType(props);
+            if (!"none".equalsIgnoreCase(keyStoreType)) {
+                char[] keyStorePassword = keystorePassword(props);
+                KeyStore keyStore = keyStore(props, keyStoreType, keyStorePassword);
+                kmFactory.init(keyStore, keyStorePassword);
+            }
+            return kmFactory;
+        }
+
+        private static String trustStoreType(Map<String, String> props) {
+            String trustStoreType = props.get("javax.net.ssl.trustStoreType");
+            return trustStoreType == null ? KeyStore.getDefaultType() : trustStoreType;
         }
 
         private static KeyStore trustStore(Map<String, String> props, String trustStoreType) throws NoSuchProviderException, KeyStoreException {
