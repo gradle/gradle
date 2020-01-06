@@ -49,27 +49,6 @@ class DependencyHandlerProviderIntegrationTest extends AbstractHttpDependencyRes
         succeeds('checkDeps')
     }
 
-    def "mutation after dependencies have been queried provide a reasonable error message"() {
-        given:
-        buildFile << """
-        configurations { conf }
-        
-        def lazyDep = objects.property(String).convention("org.mockito:mockito-core:1.8")
-        
-        dependencies {
-            conf lazyDep
-        }
-        // Do the resolve
-        configurations.conf.incoming.dependencies
-        // Exception do to the property having been finalized
-        lazyDep.set("junit:junit:4.12")
-        """
-        when:
-        fails("help")
-        then:
-        errorOutput.contains("The value for this property cannot be changed any further.")
-    }
-
     def "works correctly with up-to-date checking"() {
         given:
         mavenHttpRepo.module("group", "projectA", "1.1").publish()
