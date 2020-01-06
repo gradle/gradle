@@ -166,10 +166,7 @@ public class DefaultSslContextFactory implements SslContextFactory {
                 if (keyAlgorithm == null) {
                     keyAlgorithm = KeyManagerFactory.getDefaultAlgorithm();
                 }
-                String keyStoreType = props.get("javax.net.ssl.keyStoreType");
-                if (keyStoreType == null) {
-                    keyStoreType = KeyStore.getDefaultType();
-                }
+                String keyStoreType = keyStoreType(props);
                 if ("none".equalsIgnoreCase(keyStoreType)) {
                     kmFactory = KeyManagerFactory.getInstance(keyAlgorithm);
                 } else {
@@ -204,6 +201,14 @@ public class DefaultSslContextFactory implements SslContextFactory {
             } catch (GeneralSecurityException | IOException e) {
                 throw new SSLInitializationException(e.getMessage(), e);
             }
+        }
+
+        private static String keyStoreType(Map<String, String> props) {
+            String keyStoreType = props.get("javax.net.ssl.keyStoreType");
+            if (keyStoreType == null) {
+                keyStoreType = KeyStore.getDefaultType();
+            }
+            return keyStoreType;
         }
 
         private static File keyStoreFile(Map<String, String> props) {
