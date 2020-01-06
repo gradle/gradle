@@ -98,7 +98,7 @@ public class StartParameterResolutionOverride {
                 try {
                     return new ChecksumAndSignatureVerificationOverride(buildOperationExecutor, startParameter.getGradleUserHomeDir(), verificationsFile, keyringsFile, checksumService, signatureVerificationServiceFactory, startParameter.getDependencyVerificationMode(), documentationRegistry);
                 } catch (Exception e) {
-                    return new FailureVerificationOverride(e, verificationsFile);
+                    return new FailureVerificationOverride(e);
                 }
             }
         }
@@ -206,16 +206,14 @@ public class StartParameterResolutionOverride {
 
     private static class FailureVerificationOverride implements DependencyVerificationOverride {
         private final Exception error;
-        private final File verificationFile;
 
-        private FailureVerificationOverride(Exception error, File verificationFile) {
+        private FailureVerificationOverride(Exception error) {
             this.error = error;
-            this.verificationFile = verificationFile;
         }
 
         @Override
         public ModuleComponentRepository overrideDependencyVerification(ModuleComponentRepository original) {
-            throw new GradleException("Dependency verification cannot be performed because the configuration couldn't be read: "+ verificationFile, error);
+            throw new GradleException("Dependency verification cannot be performed", error);
         }
     }
 }

@@ -99,6 +99,8 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
             );
         } catch (FileNotFoundException e) {
             throw UncheckedException.throwAsUncheckedException(e);
+        } catch (InvalidUserDataException e) {
+            throw new InvalidUserDataException("Unable to read dependency verification metadata from " + verificationsFile, e.getCause());
         }
         this.signatureVerificationService = signatureVerificationServiceFactory.create(keyRingsFile, keyServers());
     }
