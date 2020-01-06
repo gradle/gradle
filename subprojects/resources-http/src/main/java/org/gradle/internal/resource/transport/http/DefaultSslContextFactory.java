@@ -57,7 +57,7 @@ public class DefaultSslContextFactory implements SslContextFactory {
     );
 
     private LoadingCache<Map<String, String>, SSLContext> cache = CacheBuilder.newBuilder().softValues().build(
-            new SynchronizedSystemPropertiesCacheLoader(new SslContextCacheLoader())
+        new SynchronizedSystemPropertiesCacheLoader(new SslContextCacheLoader())
     );
 
     @Override
@@ -118,10 +118,7 @@ public class DefaultSslContextFactory implements SslContextFactory {
             try {
                 TrustManagerFactory tmFactory;
 
-                String trustAlgorithm = props.get("ssl.TrustManagerFactory.algorithm");
-                if (trustAlgorithm == null) {
-                    trustAlgorithm = TrustManagerFactory.getDefaultAlgorithm();
-                }
+                String trustAlgorithm = trustAlgorithm(props);
                 String trustStoreType = props.get("javax.net.ssl.trustStoreType");
                 if (trustStoreType == null) {
                     trustStoreType = KeyStore.getDefaultType();
@@ -186,6 +183,11 @@ public class DefaultSslContextFactory implements SslContextFactory {
                 file = new File(javaHome, "lib/security/cacerts");
             }
             return file;
+        }
+
+        private static String trustAlgorithm(Map<String, String> props) {
+            String trustAlgorithm = props.get("ssl.TrustManagerFactory.algorithm");
+            return trustAlgorithm == null ? TrustManagerFactory.getDefaultAlgorithm() : trustAlgorithm;
         }
 
         private static char[] trustStorePassword(Map<String, String> props) {
