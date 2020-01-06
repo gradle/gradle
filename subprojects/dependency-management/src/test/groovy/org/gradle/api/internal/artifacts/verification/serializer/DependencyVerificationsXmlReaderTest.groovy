@@ -38,9 +38,9 @@ class DependencyVerificationsXmlReaderTest extends Specification {
     def "can parse file with namespace declaration"() {
         when:
         parse """<?xml version="1.0" encoding="UTF-8"?>
-<verification-metadata xmlns="https://schema.gradle.org/verification"
+<verification-metadata xmlns="https://schema.gradle.org/dependency-verification"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xmlns:schemaLocation="https://schema.gradle.org/verification https://schema.gradle.org/verification/verification-1.0.xsd">
+      xmlns:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.0.xsd">
 </verification-metadata>
 """
         then:
