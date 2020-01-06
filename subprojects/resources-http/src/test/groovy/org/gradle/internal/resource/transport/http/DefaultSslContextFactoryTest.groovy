@@ -112,6 +112,18 @@ class DefaultSslContextFactoryTest extends Specification {
         notThrown(SSLInitializationException)
     }
 
+    void 'keystore type with NONE keystore file'() {
+        given:
+        props['javax.net.ssl.keyStoreType'] = 'JKS'
+        props['javax.net.ssl.keyStore'] = 'NONE'
+
+        when:
+        loader.load(props)
+
+        then:
+        notThrown(SSLInitializationException)
+    }
+
     void 'valid keystore file without specifying password'() {
         given:
         props['javax.net.ssl.keyStore'] = getDefaultTrustStore()
