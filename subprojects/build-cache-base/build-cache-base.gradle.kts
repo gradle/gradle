@@ -22,6 +22,7 @@ plugins {
 }
 
 dependencies {
+    implementation(project(":baseAnnotations"))
     implementation(project(":files"))
 }
 
