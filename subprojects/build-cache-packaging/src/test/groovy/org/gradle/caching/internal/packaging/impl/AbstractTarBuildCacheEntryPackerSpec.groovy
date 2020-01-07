@@ -30,7 +30,6 @@ import org.gradle.internal.fingerprint.FingerprintingStrategy
 import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy
 import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerprint
 import org.gradle.internal.hash.DefaultStreamHasher
-import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -46,14 +45,12 @@ abstract class AbstractTarBuildCacheEntryPackerSpec extends Specification {
     def readOrigin = Stub(OriginReader)
     def writeOrigin = Stub(OriginWriter)
 
-    def fileSystem = createFileSystem()
     def deleter = createDeleter()
     def streamHasher = new DefaultStreamHasher()
     def stringInterner = new StringInterner()
-    def packer = new TarBuildCacheEntryPacker(deleter, fileSystem, streamHasher, stringInterner)
+    def packer = new TarBuildCacheEntryPacker(deleter, streamHasher, stringInterner)
     def virtualFileSystem = TestFiles.virtualFileSystem()
 
-    abstract protected FileSystem createFileSystem()
     abstract protected Deleter createDeleter()
 
     def pack(OutputStream output, OriginWriter writeOrigin = this.writeOrigin, TreeDefinition... treeDefs) {

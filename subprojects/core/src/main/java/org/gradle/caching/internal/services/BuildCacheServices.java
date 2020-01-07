@@ -57,12 +57,11 @@ public class BuildCacheServices {
 
     BuildCacheEntryPacker createResultPacker(
         Deleter deleter,
-        FileSystem fileSystem,
         StreamHasher fileHasher,
         StringInterner stringInterner
     ) {
         return new GZipBuildCacheEntryPacker(
-            new TarBuildCacheEntryPacker(deleter, fileSystem, fileHasher, stringInterner));
+            new TarBuildCacheEntryPacker(deleter, fileHasher, stringInterner));
     }
 
     OriginMetadataFactory createOriginMetadataFactory(

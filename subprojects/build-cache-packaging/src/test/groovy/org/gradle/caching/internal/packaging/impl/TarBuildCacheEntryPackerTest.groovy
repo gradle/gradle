@@ -26,7 +26,6 @@ import org.gradle.internal.file.TreeType
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.FingerprintingStrategy
 import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy
-import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
@@ -35,10 +34,6 @@ import static org.gradle.internal.file.TreeType.DIRECTORY
 import static org.gradle.internal.file.TreeType.FILE
 
 class TarBuildCacheEntryPackerTest extends AbstractTarBuildCacheEntryPackerSpec {
-    @Override
-    protected FileSystem createFileSystem() {
-        TestFiles.fileSystem()
-    }
 
     @Override
     protected Deleter createDeleter() {

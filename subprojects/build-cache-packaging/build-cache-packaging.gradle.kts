@@ -24,7 +24,6 @@ description = "Package build cache results"
 
 dependencies {
     implementation(project(":baseServices"))
-    implementation(project(":native"))
     implementation(project(":coreApi"))
     implementation(project(":buildCache"))
     implementation(project(":files"))
@@ -40,7 +39,7 @@ dependencies {
     testImplementation(project(":processServices"))
     testImplementation(project(":fileCollections"))
     testImplementation(project(":resources"))
-    
+
     testImplementation(testFixtures(project(":baseServices")))
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":snapshots")))

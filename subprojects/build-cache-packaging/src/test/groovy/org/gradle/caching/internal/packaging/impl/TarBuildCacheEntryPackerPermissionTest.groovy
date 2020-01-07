@@ -17,16 +17,11 @@
 package org.gradle.caching.internal.packaging.impl
 
 import org.gradle.internal.file.Deleter
-import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import spock.lang.Unroll
 
 import static org.gradle.internal.file.TreeType.FILE
 
 class TarBuildCacheEntryPackerPermissionTest extends AbstractTarBuildCacheEntryPackerSpec {
-    @Override
-    protected FileSystem createFileSystem() {
-        Mock(FileSystem)
-    }
 
     @Override
     protected Deleter createDeleter() {
@@ -35,29 +30,25 @@ class TarBuildCacheEntryPackerPermissionTest extends AbstractTarBuildCacheEntryP
 
     @Unroll
     def "can pack single file with file mode #mode"() {
-        def sourceOutputFile = Spy(File, constructorArgs: [temporaryFolder.file("source.txt").absolutePath]) as File
-        sourceOutputFile << "output"
-        def targetOutputFile = Spy(File, constructorArgs: [temporaryFolder.file("target.txt").absolutePath]) as File
-        def output = new ByteArrayOutputStream()
+        given:
+        def sourceOutputFile = temporaryFolder.file("source.txt") << "output"
         def unixMode = Integer.parseInt(mode, 8)
+        PermissionUtils.setPermissions(sourceOutputFile, unixMode)
+
+        and:
+        def targetOutputFile = temporaryFolder.file("target.txt")
+        def output = new ByteArrayOutputStream()
 
         when:
         pack output, prop(FILE, sourceOutputFile)
 
-        then:
-        1 * fileSystem.getUnixMode(sourceOutputFile) >> unixMode
-        _ * sourceOutputFile._
-        0 * _
-
-        when:
+        and:
         def input = new ByteArrayInputStream(output.toByteArray())
         unpack input, prop(FILE, targetOutputFile)
 
         then:
         targetOutputFile.text == "output"
-        1 * fileSystem.chmod(targetOutputFile, unixMode)
-        _ * targetOutputFile._
-        0 * _
+        PermissionUtils.permissions(targetOutputFile) == unixMode
 
         where:
         mode << [ "0644", "0755" ]
