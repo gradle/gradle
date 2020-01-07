@@ -28,7 +28,7 @@ import org.gradle.workers.WorkParameters;
 
 import java.util.Collection;
 
-public class DefaultWorkerServer implements WorkerProtocol {
+public class DefaultWorkerServer implements Worker {
     private final ServiceRegistry internalServices;
     private final InstantiatorFactory instantiatorFactory;
     private final IsolationScheme<WorkAction, WorkParameters> isolationScheme;
@@ -42,7 +42,7 @@ public class DefaultWorkerServer implements WorkerProtocol {
     }
 
     @Override
-    public DefaultWorkResult execute(ActionExecutionSpec<?> spec) {
+    public DefaultWorkResult execute(SimpleActionExecutionSpec<?> spec) {
         try {
             Class<? extends WorkAction<?>> implementationClass = Cast.uncheckedCast(spec.getImplementationClass());
             // Exceptions to services available for injection

@@ -114,7 +114,7 @@ public class WorkersServices extends AbstractPluginServiceRegistry {
                                             ServiceRegistry projectServices,
                                             ActionExecutionSpecFactory actionExecutionSpecFactory,
                                             ProjectLayout projectLayout) {
-            NoIsolationWorkerFactory noIsolationWorkerFactory = new NoIsolationWorkerFactory(buildOperationExecutor, instantiatorFactory, projectServices);
+            NoIsolationWorkerFactory noIsolationWorkerFactory = new NoIsolationWorkerFactory(buildOperationExecutor, instantiatorFactory, actionExecutionSpecFactory, projectServices);
 
             DefaultWorkerExecutor workerExecutor = instantiatorFactory.decorateLenient().newInstance(
                 DefaultWorkerExecutor.class,

@@ -159,7 +159,11 @@ class DefaultProjectSpec extends Specification {
         def objectFactory = Stub(ObjectFactory)
         objectFactory.fileCollection() >> TestFiles.fileCollectionFactory().configurableFiles()
 
-        return Spy(DefaultProject, constructorArgs: [name, parent, projectDir, new File("build file"), Stub(ScriptSource), build, serviceRegistryFactory, Stub(ClassLoaderScope), Stub(ClassLoaderScope)]) {
+        def container = Mock(ProjectState)
+        _ * container.projectPath >> (parent == null ? Path.ROOT : parent.projectPath.child(name))
+        _ * container.identityPath >> (parent == null ? build.identityPath : build.identityPath.append(parent.projectPath).child(name))
+
+        return Spy(DefaultProject, constructorArgs: [name, parent, projectDir, new File("build file"), Stub(ScriptSource), build, container, serviceRegistryFactory, Stub(ClassLoaderScope), Stub(ClassLoaderScope)]) {
             getFileOperations() >> fileOperations
             getObjects() >> objectFactory
         }

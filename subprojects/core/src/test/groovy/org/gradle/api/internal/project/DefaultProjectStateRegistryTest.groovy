@@ -43,14 +43,22 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
 
         def root = registry.stateFor(project(":"))
         root.name == "root"
+        root.identityPath == Path.ROOT
+        root.projectPath == Path.ROOT
         root.componentIdentifier.projectPath == ":"
         root.parent == null
+
         def p1 = registry.stateFor(project("p1"))
         p1.name == "p1"
+        p1.identityPath == Path.path(":p1")
+        p1.projectPath == Path.path(":p1")
         p1.parent == root
         p1.componentIdentifier.projectPath == ":p1"
+
         def p2 = registry.stateFor(project("p2"))
         p2.name == "p2"
+        p2.identityPath == Path.path(":p2")
+        p2.projectPath == Path.path(":p2")
         p2.parent == root
         p2.componentIdentifier.projectPath == ":p2"
 
@@ -61,6 +69,36 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
         registry.stateFor(build.buildIdentifier, Path.ROOT).is(root)
         registry.stateFor(build.buildIdentifier, Path.path(":p1")).is(p1)
         registry.stateFor(build.buildIdentifier, Path.path(":p2")).is(p2)
+    }
+
+    def "can attach mutable project instance"() {
+        given:
+        def build = build("p1", "p2")
+        registry.registerProjects(build)
+        def project = project("p1")
+
+        def state = registry.stateFor(project)
+
+        state.attachMutableModel(project)
+
+        expect:
+        state.mutableModel == project
+    }
+
+    def "cannot query mutable project instance when not set"() {
+        given:
+        def build = build("p1", "p2")
+        registry.registerProjects(build)
+        def project = project("p1")
+
+        def state = registry.stateFor(project)
+
+        when:
+        state.mutableModel
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'The project object for project :p1 has not been attached yet.'
     }
 
     def "one thread can access state at a time"() {

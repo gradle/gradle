@@ -3,22 +3,14 @@ The Gradle team is excited to announce Gradle @version@.
 This release features [1](), [2](), ... [n](), and more.
 
 We would like to thank the following community contributors to this release of Gradle:
+[Thomas Iguchi](https://github.com/tiguchi)
 <!-- 
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
 -->
 
-<!-- 
-## 1
-
-details of 1
-
-## 2
-
-details of 2
-
-## n
--->
+[Vladimir Sitnikov](https://github.com/vlsi/)
+[Peter Stöckli](https://github.com/p-)
 
 ## Upgrade Instructions
 

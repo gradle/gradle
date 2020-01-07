@@ -42,9 +42,9 @@ public class IsolatedClassloaderWorker extends AbstractClassLoaderWorker {
         this.reuseClassloader = reuseClassloader;
     }
 
-    public DefaultWorkResult execute(ActionExecutionSpec spec) {
+    @Override
+    public DefaultWorkResult execute(TransportableActionExecutionSpec<?> spec) {
         GroovySystemLoader workerClasspathGroovy = groovySystemLoaderFactory.forClassLoader(workerClassLoader);
-
         try {
             return executeInClassLoader(spec, workerClassLoader);
         } finally {
@@ -80,13 +80,13 @@ public class IsolatedClassloaderWorker extends AbstractClassLoaderWorker {
             }
             return new MixInLegacyTypesClassLoader(parent, mixinSpec.getClasspath(), legacyTypesSupport);
         } else if (spec instanceof VisitableURLClassLoader.Spec) {
-            VisitableURLClassLoader.Spec visitableSpec = (VisitableURLClassLoader.Spec)spec;
+            VisitableURLClassLoader.Spec visitableSpec = (VisitableURLClassLoader.Spec) spec;
             if (visitableSpec.getClasspath().isEmpty()) {
                 return parent;
             }
             return new VisitableURLClassLoader(visitableSpec.getName(), parent, visitableSpec.getClasspath());
         } else if (spec instanceof FilteringClassLoader.Spec) {
-            FilteringClassLoader.Spec filteringSpec = (FilteringClassLoader.Spec)spec;
+            FilteringClassLoader.Spec filteringSpec = (FilteringClassLoader.Spec) spec;
             if (filteringSpec.isEmpty()) {
                 return parent;
             }
