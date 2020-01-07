@@ -6,8 +6,6 @@ plugins {
 }
 
 dependencies {
-    api(library("jsr305"))
-
     implementation(project(":baseServices"))
     implementation(project(":logging"))
     implementation(project(":processServices"))

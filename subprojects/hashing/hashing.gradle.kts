@@ -25,7 +25,6 @@ description = "Common shared classes without external dependencies"
 
 dependencies {
     implementation(project(":baseAnnotations"))
-    implementation(library("jsr305")) { version { require(libraryVersion("jsr305")) } }
     implementation(library("guava")) { version { require(libraryVersion("guava")) } }
 }
 

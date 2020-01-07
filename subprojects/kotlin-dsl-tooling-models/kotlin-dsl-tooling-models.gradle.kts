@@ -28,5 +28,5 @@ gradlebuildJava {
 }
 
 dependencies {
-    api(library("jsr305"))
+    api(project(":baseAnnotations"))
 }
