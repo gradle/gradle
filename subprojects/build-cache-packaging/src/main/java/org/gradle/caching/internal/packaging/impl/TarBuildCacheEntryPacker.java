@@ -26,7 +26,6 @@ import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.CloseShieldInputStream;
-import org.gradle.api.GradleException;
 import org.gradle.caching.internal.CacheableEntity;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.caching.internal.origin.OriginReader;
@@ -137,7 +136,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
             try {
                 entries.increment(packTree(treeName, type, fingerprint, tarOutput));
             } catch (Exception ex) {
-                throw new GradleException(String.format("Could not pack tree '%s': %s", treeName, ex.getMessage()), ex);
+                throw new RuntimeException(String.format("Could not pack tree '%s': %s", treeName, ex.getMessage()), ex);
             }
         });
         return entries.get();
@@ -379,7 +378,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
             String targetPath = getTargetPath(isRoot);
             if (fileSnapshot.getType() == FileType.Missing) {
                 if (!isRoot) {
-                    throw new GradleException(String.format("Couldn't read content of file '%s'", fileSnapshot.getAbsolutePath()));
+                    throw new RuntimeException(String.format("Couldn't read content of file '%s'", fileSnapshot.getAbsolutePath()));
                 }
                 storeMissingTree(targetPath, tarOutput);
             } else {
