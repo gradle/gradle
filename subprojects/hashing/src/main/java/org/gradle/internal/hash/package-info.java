@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@NonNullInternalApi
+@NonNullApi
 package org.gradle.internal.hash;
 
-import org.gradle.internal.NonNullInternalApi;
+import org.gradle.api.NonNullApi;

@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.api.publish.internal;
 
-@NonNullApi
-package org.gradle.internal.fingerprint.overlap;
+import org.gradle.api.publish.PublicationArtifact;
 
-import org.gradle.api.NonNullApi;
+public interface PublicationArtifactInternal extends PublicationArtifact {
+    boolean shouldBePublished();
+}

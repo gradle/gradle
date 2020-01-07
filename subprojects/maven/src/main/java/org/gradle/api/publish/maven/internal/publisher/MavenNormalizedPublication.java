@@ -18,6 +18,7 @@ package org.gradle.api.publish.maven.internal.publisher;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
+import org.gradle.api.publish.internal.PublicationArtifactInternal;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 
@@ -82,6 +83,9 @@ public class MavenNormalizedPublication {
     }
 
     public MavenArtifact getMainArtifact() {
+        if (mainArtifact != null && !((PublicationArtifactInternal) mainArtifact).shouldBePublished()) {
+            throw new IllegalStateException("Artifact " + mainArtifact.getFile().getName() + " wasn't produced by this build.");
+        }
         return mainArtifact;
     }
 

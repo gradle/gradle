@@ -22,8 +22,6 @@ plugins {
 }
 
 dependencies {
-    api(library("jsr305"))
-
     implementation(project(":baseServices"))
     implementation(project(":messaging"))
     implementation(project(":native"))

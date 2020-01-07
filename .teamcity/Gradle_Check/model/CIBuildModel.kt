@@ -176,7 +176,7 @@ data class CIBuildModel(
         GradleSubproject("modelGroovy"),
         GradleSubproject("native"),
         GradleSubproject("persistentCache"),
-        GradleSubproject("pineapple", unitTests = false, functionalTests = false),
+        GradleSubproject("baseAnnotations", unitTests = false, functionalTests = false),
         GradleSubproject("platformBase"),
         GradleSubproject("platformJvm"),
         GradleSubproject("platformNative"),

@@ -57,7 +57,7 @@ public interface PublicationInternal<T extends PublicationArtifact> extends Publ
      * @param file The file to be used for publishing the derived artifact.
      * @return The newly created derived artifact.
      */
-    T addDerivedArtifact(T originalArtifact, Factory<File> file);
+    T addDerivedArtifact(T originalArtifact, DerivedArtifact file);
 
     void removeDerivedArtifact(T artifact);
 
@@ -76,5 +76,9 @@ public interface PublicationInternal<T extends PublicationArtifact> extends Publ
         String getName();
 
         String getUri();
+    }
+
+    interface DerivedArtifact extends Factory<File> {
+        boolean shouldBePublished();
     }
 }

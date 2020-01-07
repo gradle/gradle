@@ -13,21 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
+package org.gradle.api.internal.artifacts;
 
-plugins {
-    `java-library`
-    gradlebuild.`publish-public-libraries`
-    gradlebuild.classycle
-}
+import org.gradle.api.artifacts.PublishArtifact;
 
-description = "Common shared internal classes without external dependencies"
-
-dependencies {
-    implementation(library("jsr305")) { version { require(libraryVersion("jsr305")) } }
-}
-
-gradlebuildJava {
-    // We need this because org.gradle.internal.nativeintegration.filesystem.Stat is used in workers
-    moduleType = ModuleType.WORKER
+public interface PublishArtifactInternal extends PublishArtifact {
+    boolean shouldBePublished();
 }
