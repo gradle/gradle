@@ -83,8 +83,10 @@ public class RoutingVirtualFileSystem implements VirtualFileSystem {
 
     @Override
     public void invalidateAll() {
-        gradleUserHomeVirtualFileSystem.invalidateAll();
         buildScopedVirtualFileSystem.invalidateAll();
+        if (vfsRetained.getAsBoolean()) {
+            gradleUserHomeVirtualFileSystem.invalidateAll();
+        }
     }
 
     @Override

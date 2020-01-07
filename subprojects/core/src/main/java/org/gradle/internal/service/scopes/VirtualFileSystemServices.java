@@ -324,13 +324,13 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
 
                     @Override
                     public void beforeComplete(GradleInternal gradle) {
-                        buildSessionsScopedVirtualFileSystem.invalidateAll();
+                        routingVirtualFileSystem.invalidateAll();
                     }
                 });
                 listenerManager.addListener(new OutputChangeListener() {
                     @Override
                     public void beforeOutputChange() {
-                        buildSessionsScopedVirtualFileSystem.invalidateAll();
+                        routingVirtualFileSystem.invalidateAll();
                     }
 
                     @Override
