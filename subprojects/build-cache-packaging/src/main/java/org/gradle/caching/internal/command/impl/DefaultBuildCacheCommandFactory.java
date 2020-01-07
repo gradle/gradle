@@ -64,8 +64,8 @@ public class DefaultBuildCacheCommandFactory implements BuildCacheCommandFactory
     }
 
     @Override
-    public BuildCacheStoreCommand createStore(BuildCacheKey cacheKey, CacheableEntity entity, Map<String, CurrentFileCollectionFingerprint> fingerprints, long executionTime) {
-        return new StoreCommand(cacheKey, entity, fingerprints, executionTime);
+    public BuildCacheStoreCommand createStore(BuildCacheKey cacheKey, CacheableEntity entity, Map<String, ? extends FileSystemSnapshot> snapshots, long executionTime) {
+        return new StoreCommand(cacheKey, entity, snapshots, executionTime);
     }
 
     private class LoadCommand implements BuildCacheLoadCommand<LoadMetadata> {
@@ -155,10 +155,10 @@ public class DefaultBuildCacheCommandFactory implements BuildCacheCommandFactory
 
         private final BuildCacheKey cacheKey;
         private final CacheableEntity entity;
-        private final Map<String, CurrentFileCollectionFingerprint> fingerprints;
+        private final Map<String, ? extends FileSystemSnapshot> fingerprints;
         private final long executionTime;
 
-        private StoreCommand(BuildCacheKey cacheKey, CacheableEntity entity, Map<String, CurrentFileCollectionFingerprint> fingerprints, long executionTime) {
+        private StoreCommand(BuildCacheKey cacheKey, CacheableEntity entity, Map<String, ? extends FileSystemSnapshot> fingerprints, long executionTime) {
             this.cacheKey = cacheKey;
             this.entity = entity;
             this.fingerprints = fingerprints;

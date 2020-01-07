@@ -34,13 +34,13 @@ import org.gradle.caching.internal.packaging.BuildCacheEntryPacker;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.TreeType;
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileMetadata;
+import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
@@ -103,7 +103,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
     }
 
     @Override
-    public PackResult pack(CacheableEntity entity, Map<String, CurrentFileCollectionFingerprint> fingerprints, OutputStream output, OriginWriter writeOrigin) throws IOException {
+    public PackResult pack(CacheableEntity entity, Map<String, ? extends FileSystemSnapshot> snapshots, OutputStream output, OriginWriter writeOrigin) throws IOException {
         BufferedOutputStream bufferedOutput;
         if (output instanceof BufferedOutputStream) {
             bufferedOutput = (BufferedOutputStream) output;
@@ -115,7 +115,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
             tarOutput.setBigNumberMode(TarArchiveOutputStream.BIGNUMBER_POSIX);
             tarOutput.setAddPaxHeadersForNonAsciiNames(true);
             packMetadata(writeOrigin, tarOutput);
-            long entryCount = pack(entity, fingerprints, tarOutput);
+            long entryCount = pack(entity, snapshots, tarOutput);
             return new PackResult(entryCount + 1);
         }
     }
@@ -128,12 +128,12 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
         tarOutput.closeArchiveEntry();
     }
 
-    private long pack(CacheableEntity entity, Map<String, CurrentFileCollectionFingerprint> fingerprints, TarArchiveOutputStream tarOutput) {
+    private long pack(CacheableEntity entity, Map<String, ? extends FileSystemSnapshot> snapshots, TarArchiveOutputStream tarOutput) {
         AtomicLong entries = new AtomicLong();
         entity.visitOutputTrees((treeName, type, root) -> {
-            CurrentFileCollectionFingerprint fingerprint = fingerprints.get(treeName);
+            FileSystemSnapshot treeSnapshots = snapshots.get(treeName);
             try {
-                entries.addAndGet(packTree(treeName, type, fingerprint, tarOutput));
+                entries.addAndGet(packTree(treeName, type, treeSnapshots, tarOutput));
             } catch (Exception ex) {
                 throw new RuntimeException(String.format("Could not pack tree '%s': %s", treeName, ex.getMessage()), ex);
             }
@@ -141,9 +141,9 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
         return entries.get();
     }
 
-    private long packTree(String name, TreeType type, CurrentFileCollectionFingerprint fingerprint, TarArchiveOutputStream tarOutput) {
+    private long packTree(String name, TreeType type, FileSystemSnapshot snapshots, TarArchiveOutputStream tarOutput) {
         PackingVisitor packingVisitor = new PackingVisitor(tarOutput, name, type, fileSystem);
-        fingerprint.accept(packingVisitor);
+        snapshots.accept(packingVisitor);
         return packingVisitor.finish();
     }
 
