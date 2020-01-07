@@ -33,15 +33,15 @@ import java.util.Collections;
 
 public class NoIsolationWorkerFactory implements WorkerFactory {
     private final BuildOperationExecutor buildOperationExecutor;
-    private final InstantiatorFactory instantiatorFactory;
-    private final ServiceRegistry internalServices;
-    private final IsolationScheme<WorkAction, WorkParameters> isolationScheme = new IsolationScheme<>(WorkAction.class, WorkParameters.class, WorkParameters.None.class);
+    private final ActionExecutionSpecFactory specFactory;
+    private final Worker workerServer;
     private WorkerExecutor workerExecutor;
 
-    public NoIsolationWorkerFactory(BuildOperationExecutor buildOperationExecutor, InstantiatorFactory instantiatorFactory, ServiceRegistry internalServices) {
+    public NoIsolationWorkerFactory(BuildOperationExecutor buildOperationExecutor, InstantiatorFactory instantiatorFactory, ActionExecutionSpecFactory specFactory, ServiceRegistry internalServices) {
         this.buildOperationExecutor = buildOperationExecutor;
-        this.instantiatorFactory = instantiatorFactory;
-        this.internalServices = internalServices;
+        this.specFactory = specFactory;
+        IsolationScheme<WorkAction, WorkParameters> isolationScheme = new IsolationScheme<>(WorkAction.class, WorkParameters.class, WorkParameters.None.class);
+        workerServer = new DefaultWorkerServer(internalServices, instantiatorFactory, isolationScheme, Collections.singleton(WorkerExecutor.class));
     }
 
     // Attaches the owning WorkerExecutor to this factory
@@ -55,16 +55,15 @@ public class NoIsolationWorkerFactory implements WorkerFactory {
         final ClassLoader contextClassLoader = ((FixedClassLoaderWorkerRequirement) workerRequirement).getContextClassLoader();
         return new AbstractWorker(buildOperationExecutor) {
             @Override
-            public DefaultWorkResult execute(ActionExecutionSpec<?> spec, BuildOperationRef parentBuildOperation) {
+            public DefaultWorkResult execute(IsolatedParametersActionExecutionSpec<?> spec, BuildOperationRef parentBuildOperation) {
                 return executeWrappedInBuildOperation(spec, parentBuildOperation, workSpec -> {
                     DefaultWorkResult result;
                     try {
-                        WorkerProtocol workerServer = new DefaultWorkerServer(internalServices, instantiatorFactory, isolationScheme, Collections.singleton(WorkerExecutor.class));
                         result = ClassLoaderUtils.executeInClassloader(contextClassLoader, new Factory<DefaultWorkResult>() {
                             @Nullable
                             @Override
                             public DefaultWorkResult create() {
-                                return workerServer.execute(workSpec);
+                                return workerServer.execute(specFactory.newSimpleSpec(workSpec));
                             }
                         });
                     } finally {

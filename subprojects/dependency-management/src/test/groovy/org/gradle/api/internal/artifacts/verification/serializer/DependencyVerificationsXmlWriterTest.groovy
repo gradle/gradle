@@ -61,7 +61,7 @@ class DependencyVerificationsXmlWriterTest extends Specification {
     }
 
     private boolean hasNamespaceDeclaration() {
-        rawContents.contains('<verification-metadata xmlns="https://schema.gradle.org/verification" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:schemaLocation="https://schema.gradle.org/verification https://schema.gradle.org/verification/verification-1.0.xsd"')
+        rawContents.contains('<verification-metadata xmlns="https://schema.gradle.org/dependency-verification" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.0.xsd"')
     }
 
     def "can declare key servers"() {

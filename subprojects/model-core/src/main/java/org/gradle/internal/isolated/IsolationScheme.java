@@ -27,6 +27,7 @@ import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.ServiceLookupException;
 import org.gradle.internal.service.UnknownServiceException;
 import org.gradle.process.ExecOperations;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
@@ -66,8 +67,7 @@ public class IsolationScheme<IMPLEMENTATION, PARAMS> {
         if (implementationType == interfaceType) {
             return null;
         }
-        ParameterizedType superType = (ParameterizedType) TypeToken.of(implementationType).getSupertype(interfaceType).getType();
-        Class<P> parametersType = Cast.uncheckedNonnullCast(TypeToken.of(superType.getActualTypeArguments()[typeArgumentIndex]).getRawType());
+        Class<P> parametersType = inferParameterType(implementationType, typeArgumentIndex);
         if (parametersType == paramsType) {
             TreeFormatter formatter = new TreeFormatter();
             formatter.node("Could not create the parameters for ");
@@ -83,6 +83,24 @@ public class IsolationScheme<IMPLEMENTATION, PARAMS> {
             return null;
         }
         return parametersType;
+    }
+
+    @NotNull
+    private <T extends IMPLEMENTATION, P extends PARAMS> Class<P> inferParameterType(Class<T> implementationType, int typeArgumentIndex) {
+        // Avoid using TypeToken for the common simple case, as TypeToken is quite slow
+        for (Type superType : implementationType.getGenericInterfaces()) {
+            if (superType instanceof ParameterizedType) {
+                ParameterizedType parameterizedSuperType = (ParameterizedType) superType;
+                if (parameterizedSuperType.getRawType().equals(interfaceType)) {
+                    Type argument = parameterizedSuperType.getActualTypeArguments()[typeArgumentIndex];
+                    if (argument instanceof Class) {
+                        return Cast.uncheckedCast(argument);
+                    }
+                }
+            }
+        }
+        ParameterizedType superType = (ParameterizedType) TypeToken.of(implementationType).getSupertype(interfaceType).getType();
+        return Cast.uncheckedNonnullCast(TypeToken.of(superType.getActualTypeArguments()[typeArgumentIndex]).getRawType());
     }
 
     /**

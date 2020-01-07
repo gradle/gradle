@@ -22,8 +22,11 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.internal.Describables;
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
@@ -60,8 +63,18 @@ public class ConsumerProvidedResolvedVariant implements ResolvedArtifactSet, Con
     }
 
     @Override
+    public ImmutableAttributes getTargetVariantAttributes() {
+        return attributes.asImmutable();
+    }
+
+    @Override
+    public DisplayName getTargetVariantName() {
+        return Describables.of(componentIdentifier, attributes);
+    }
+
+    @Override
     public String toString() {
-        return componentIdentifier + " " + attributes;
+        return getTargetVariantName().getCapitalizedDisplayName();
     }
 
     @Override

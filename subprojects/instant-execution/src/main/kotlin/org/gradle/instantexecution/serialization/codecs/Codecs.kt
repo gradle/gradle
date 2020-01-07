@@ -125,7 +125,8 @@ class Codecs(
         bind(GroovyMetaClassCodec)
 
         // Dependency management types
-        bind(ArtifactCollectionCodec)
+        bind(ArtifactCollectionCodec(fileCollectionFactory))
+        bind(ImmutableAttributeCodec(attributesFactory))
         bind(AttributeContainerCodec(attributesFactory))
         bind(TransformationNodeReferenceCodec)
 
@@ -151,6 +152,7 @@ class Codecs(
         bind(ownerService<BuildOperationListenerManager>())
         bind(ownerService<BuildRequestMetaData>())
         bind(ownerService<ListenerManager>())
+        bind(ServicesCodec())
 
         bind(ProxyCodec)
 

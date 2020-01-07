@@ -36,6 +36,7 @@ import org.gradle.initialization.LoadProjectsBuildOperationType
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.internal.event.ListenerManager
 import org.gradle.invocation.DefaultGradle
+import org.gradle.jvm.toolchain.JavaInstallationRegistry
 import org.gradle.process.ExecOperations
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.workers.WorkerExecutor
@@ -472,6 +473,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         FileSystemOperations.name        | "project.services.get(${FileSystemOperations.name})"        | "toString()"
         ExecOperations.name              | "project.services.get(${ExecOperations.name})"              | "toString()"
         ListenerManager.name             | "project.services.get(${ListenerManager.name})"             | "toString()"
+        JavaInstallationRegistry.name    | "project.services.get(${JavaInstallationRegistry.name})"    | "installationForCurrentVirtualMachine"
     }
 
     @Unroll

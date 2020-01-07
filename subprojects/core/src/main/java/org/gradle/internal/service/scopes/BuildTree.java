@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.instantexecution
+package org.gradle.internal.service.scopes;
 
-import org.gradle.api.internal.GradleInternal
-import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.execution.plan.Node
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 
-
-interface InstantExecutionBuild {
-
-    val gradle: GradleInternal
-
-    fun createProject(path: String)
-
-    fun getProject(path: String): ProjectInternal
-
-    fun autoApplyPlugins()
-
-    fun registerProjects()
-
-    fun scheduleNodes(nodes: Collection<Node>)
+/**
+ * Attached to a service interface to indicate that the service is provided in a 'build tree' scope.
+ */
+@Retention(RetentionPolicy.RUNTIME)
+public @interface BuildTree {
 }

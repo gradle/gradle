@@ -86,6 +86,10 @@ class TestUtil {
         return services().get(DomainObjectCollectionFactory)
     }
 
+    static ProviderFactory providerFactory() {
+        return services().get(ProviderFactory)
+    }
+
     static ObjectFactory objectFactory() {
         return services().get(ObjectFactory)
     }
@@ -109,9 +113,11 @@ class TestUtil {
                 InstantiatorFactory createInstantiatorFactory() {
                     instantiatorFactory()
                 }
+
                 ObjectFactory createObjectFactory(InstantiatorFactory instantiatorFactory, NamedObjectInstantiator namedObjectInstantiator, DomainObjectCollectionFactory domainObjectCollectionFactory) {
                     return new DefaultObjectFactory(instantiatorFactory.decorate(services), namedObjectInstantiator, fileResolver, TestFiles.directoryFileTreeFactory(), new DefaultFilePropertyFactory(fileResolver, fileCollectionFactory), fileCollectionFactory, domainObjectCollectionFactory)
                 }
+
                 ChecksumService createChecksumService() {
                     new ChecksumService() {
                         @Override

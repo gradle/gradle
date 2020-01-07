@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.workers.internal;
+package org.gradle.api.internal.artifacts.configurations;
 
-import org.gradle.workers.WorkerSpec;
-import org.gradle.workers.IsolationMode;
+import org.gradle.api.artifacts.ArtifactCollection;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 
-public interface WorkerSpecInternal extends WorkerSpec {
-    IsolationMode getIsolationMode();
+public interface ArtifactCollectionInternal extends ArtifactCollection {
+    void visitArtifacts(ArtifactVisitor visitor);
 }

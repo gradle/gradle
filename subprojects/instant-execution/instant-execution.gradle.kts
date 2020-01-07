@@ -49,6 +49,7 @@ dependencies {
 
     integTestImplementation(project(":jvmServices"))
     integTestImplementation(project(":toolingApi"))
+    integTestImplementation(project(":platformJvm"))
 
     integTestImplementation(library("guava"))
     integTestImplementation(library("ant"))

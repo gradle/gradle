@@ -17,6 +17,7 @@
 package org.gradle.instantexecution.serialization.codecs
 
 import org.gradle.api.attributes.AttributeContainer
+import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
@@ -33,5 +34,19 @@ class AttributeContainerCodec(
 
     override suspend fun ReadContext.decode(): AttributeContainer? {
         return attributesFactory.mutable()
+    }
+}
+
+
+internal
+class ImmutableAttributeCodec(
+    private val attributesFactory: ImmutableAttributesFactory
+) : Codec<ImmutableAttributes> {
+    override suspend fun WriteContext.encode(value: ImmutableAttributes) {
+        // TODO - actually write the attributes
+    }
+
+    override suspend fun ReadContext.decode(): ImmutableAttributes {
+        return attributesFactory.mutable().asImmutable()
     }
 }
