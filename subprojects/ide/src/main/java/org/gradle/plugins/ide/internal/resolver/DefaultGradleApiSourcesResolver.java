@@ -20,7 +20,7 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
-import org.gradle.api.attributes.Attribute;
+import org.gradle.api.internal.artifacts.ArtifactAttributes;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
 import org.gradle.api.internal.artifacts.transform.UnzipTransform;
 import org.gradle.api.logging.Logger;
@@ -42,7 +42,6 @@ public class DefaultGradleApiSourcesResolver implements GradleApiSourcesResolver
 
     private final Project project;
 
-    private final Attribute<String> artifactType = Attribute.of("artifactType", String.class);
     private final String zipType = "zip";
     private final String unzippedDistributionType = "unzipped-distribution";
     private final String sourceDirectory = "src-directory";
@@ -99,18 +98,18 @@ public class DefaultGradleApiSourcesResolver implements GradleApiSourcesResolver
 
     private void registerTransforms() {
         project.getDependencies().registerTransform(UnzipTransform.class, a -> {
-            a.getFrom().attribute(artifactType, zipType);
-            a.getTo().attribute(artifactType, unzippedDistributionType);
+            a.getFrom().attribute(ArtifactAttributes.ARTIFACT_FORMAT, zipType);
+            a.getTo().attribute(ArtifactAttributes.ARTIFACT_FORMAT, unzippedDistributionType);
         });
         project.getDependencies().registerTransform(FindGradleSources.class, a -> {
-            a.getFrom().attribute(artifactType, unzippedDistributionType);
-            a.getTo().attribute(artifactType, sourceDirectory);
+            a.getFrom().attribute(ArtifactAttributes.ARTIFACT_FORMAT, unzippedDistributionType);
+            a.getTo().attribute(ArtifactAttributes.ARTIFACT_FORMAT, sourceDirectory);
         });
     }
 
     private File transientConfigurationForSourcesDownload() {
         Configuration configuration = detachedConfigurationFor(gradleSourceDependency());
-        configuration.getAttributes().attribute(artifactType, sourceDirectory);
+        configuration.getAttributes().attribute(ArtifactAttributes.ARTIFACT_FORMAT, sourceDirectory);
         return configuration.getSingleFile();
     }
 
