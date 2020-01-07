@@ -22,6 +22,8 @@ plugins {
 }
 
 dependencies {
+    api(project(":buildCacheBase"))
+
     implementation(project(":baseServices"))
     implementation(project(":coreApi"))
     implementation(project(":files"))
