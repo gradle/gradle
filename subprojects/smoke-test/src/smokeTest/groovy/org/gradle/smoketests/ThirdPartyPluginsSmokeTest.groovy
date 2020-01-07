@@ -509,4 +509,63 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
         result.task(":generateProto").outcome == UP_TO_DATE
         result.task(":compileJava").outcome == UP_TO_DATE
     }
+
+    @Issue('https://plugins.gradle.org/plugin/io.freefair.aspectj')
+    def 'freefair aspectj plugin'() {
+        given:
+        buildFile << """
+            plugins {
+                id "java-library"
+                id "io.freefair.aspectj" version "${TestedVersions.aspectj}"
+            }
+
+            ${mavenCentralRepository()}
+
+            aspectj {
+                version = "1.9.5"
+            }
+
+            dependencies {
+                inpath "org.apache.httpcomponents:httpcore-nio:4.4.11"
+                implementation "org.aspectj:aspectjrt:1.9.5"
+
+                testImplementation "junit:junit:4.12"
+            }
+        """
+        file("src/main/aspectj/StupidAspect.aj") << """
+            import org.aspectj.lang.ProceedingJoinPoint;
+            import org.aspectj.lang.annotation.Around;
+            import org.aspectj.lang.annotation.Aspect;
+
+            @Aspect
+            public class StupidAspect {
+                @Around("execution(* org.apache.http.util.Args.*(..))")
+                public Object stupidAdvice(ProceedingJoinPoint joinPoint) {
+                    throw new RuntimeException("Doing stupid things");
+                }
+            }
+        """
+        file("src/test/java/StupidAspectTest.aj") << """
+            import org.junit.Test;
+            import static org.junit.Assert.*;
+
+            public class StupidAspectTest {
+                @Test
+                public void stupidAdvice() {
+                    try {
+                        org.apache.http.util.Args.check(true, "foo");
+                        fail();
+                    } catch (Exception e) {
+                        assertTrue(e.getMessage().contains("stupid"));
+                    }
+                }
+            }
+        """
+
+        when:
+        def result = runner('check').forwardOutput().build()
+
+        then:
+        expectNoDeprecationWarnings(result)
+    }
 }

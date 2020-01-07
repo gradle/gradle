@@ -927,6 +927,10 @@ public class NodeState implements DependencyGraphNode {
                 if (outgoingDependency == edgeToKeep) {
                     continue;
                 }
+                if (outgoingDependency.getTargetComponent() == getComponent()) {
+                    // if the same component depends on itself: do not attempt to cleanup the same thing several times
+                    continue;
+                }
                 outgoingDependency.cleanUpOnSourceChange(this);
             }
         }
