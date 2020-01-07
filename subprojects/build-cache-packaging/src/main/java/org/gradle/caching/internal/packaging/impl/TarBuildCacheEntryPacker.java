@@ -31,7 +31,6 @@ import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.caching.internal.origin.OriginReader;
 import org.gradle.caching.internal.origin.OriginWriter;
 import org.gradle.caching.internal.packaging.BuildCacheEntryPacker;
-import org.gradle.internal.IoActions;
 import org.gradle.internal.MutableLong;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.FileType;
@@ -263,17 +262,13 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
     }
 
     private RegularFileSnapshot unpackFile(TarArchiveInputStream input, TarArchiveEntry entry, File file, String fileName) throws IOException {
-        CountingOutputStream output = new CountingOutputStream(new FileOutputStream(file));
-        HashCode hash;
-        try {
-            hash = streamHasher.hashCopy(input, output);
+        try (CountingOutputStream output = new CountingOutputStream(new FileOutputStream(file))) {
+            HashCode hash = streamHasher.hashCopy(input, output);
             chmodUnpackedFile(entry, file);
-        } finally {
-            IoActions.closeQuietly(output);
+            String internedAbsolutePath = stringInterner.intern(file.getAbsolutePath());
+            String internedFileName = stringInterner.intern(fileName);
+            return new RegularFileSnapshot(internedAbsolutePath, internedFileName, hash, new FileMetadata(output.getCount(), file.lastModified()));
         }
-        String internedAbsolutePath = stringInterner.intern(file.getAbsolutePath());
-        String internedFileName = stringInterner.intern(fileName);
-        return new RegularFileSnapshot(internedAbsolutePath, internedFileName, hash, new FileMetadata(output.getCount(), file.lastModified()));
     }
 
     @Nullable
@@ -451,11 +446,8 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
         private void storeFileEntry(File inputFile, String path, long size, int mode, TarArchiveOutputStream tarOutput) {
             try {
                 createTarEntry(path, size, UnixPermissions.FILE_FLAG | mode, tarOutput);
-                FileInputStream input = new FileInputStream(inputFile);
-                try {
+                try (FileInputStream input = new FileInputStream(inputFile)) {
                     IOUtils.copyLarge(input, tarOutput, COPY_BUFFERS.get());
-                } finally {
-                    IoActions.closeQuietly(input);
                 }
                 tarOutput.closeArchiveEntry();
             } catch (IOException e) {
