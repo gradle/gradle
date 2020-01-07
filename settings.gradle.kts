@@ -129,7 +129,7 @@ include("kotlinDslToolingBuilders")
 include("kotlinDslTestFixtures")
 include("kotlinDslIntegTests")
 include("workerProcesses")
-include("pineapple")
+include("baseAnnotations")
 include("samples")
 include("security")
 

@@ -21,10 +21,10 @@ plugins {
     gradlebuild.classycle
 }
 
-description = "Common shared internal classes without external dependencies"
+description = "Common shared annotations"
 
 dependencies {
-    implementation(library("jsr305")) { version { require(libraryVersion("jsr305")) } }
+    api(library("jsr305")) { version { require(libraryVersion("jsr305")) } }
 }
 
 gradlebuildJava {
