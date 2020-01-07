@@ -40,13 +40,12 @@ import org.junit.Rule
 import spock.lang.Specification
 
 import javax.annotation.Nullable
-import java.util.function.Consumer
 
 class DefaultFileCollectionSnapshotterTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def snapshotter = TestFiles.fileCollectionSnapshotter()
-    def noopAction = {} as Consumer<String>
+    def noopGenerationListener = {} as GeneratedSingletonFileTree.FileGenerationListener
 
 
     def "snapshots a singletonFileTree as RegularFileSnapshot"() {
@@ -188,7 +187,7 @@ class DefaultFileCollectionSnapshotterTest extends Specification {
         }
 
         when:
-        def tree = new FileTreeAdapter(new GeneratedSingletonFileTree(factory, file.name, noopAction, action))
+        def tree = new FileTreeAdapter(new GeneratedSingletonFileTree(factory, file.name, noopGenerationListener, action))
 
         then:
         assertSingleFileTree(tree)
