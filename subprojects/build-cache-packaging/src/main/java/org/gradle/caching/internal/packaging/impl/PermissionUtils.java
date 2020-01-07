@@ -67,7 +67,7 @@ public class PermissionUtils {
 
     public static void setPermissions(File file, int mode) throws IOException {
         if (IS_POSIX) {
-            Files.setPosixFilePermissions(file.toPath(), PermissionUtils.permissions(mode));
+            Files.setPosixFilePermissions(file.toPath(), permissions(mode));
         } else if (IS_DOS) {
             Files.getFileAttributeView(file.toPath(), DosFileAttributeView.class)
                 .setReadOnly((mode & posixPermissionToInteger.get(PosixFilePermission.OWNER_WRITE)) == 0);
