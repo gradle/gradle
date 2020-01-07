@@ -17,6 +17,7 @@ gradlebuildJava {
 }
 
 dependencies {
+    api(project(":pineapple"))
     api(project(":hashing"))
     api(library("jsr305"))
 
