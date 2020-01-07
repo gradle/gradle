@@ -1,5 +1,5 @@
 dependencies {
-    api("me.champeau.gradle:japicmp-gradle-plugin:0.2.8")
+    api("me.champeau.gradle:japicmp-gradle-plugin:0.2.9")
 
     implementation(project(":buildPlatform"))
     implementation(project(":kotlinDsl"))
