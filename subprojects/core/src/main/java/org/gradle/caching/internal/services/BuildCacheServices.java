@@ -22,6 +22,7 @@ import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
 import org.gradle.caching.internal.command.BuildCacheCommandFactory;
+import org.gradle.caching.internal.command.impl.DefaultBuildCacheCommandFactory;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.controller.RootBuildCacheControllerRef;
 import org.gradle.caching.internal.origin.OriginMetadataFactory;
@@ -87,7 +88,7 @@ public class BuildCacheServices {
         VirtualFileSystem virtualFileSystem,
         StringInterner stringInterner
     ) {
-        return new BuildCacheCommandFactory(packer, originMetadataFactory, virtualFileSystem, stringInterner);
+        return new DefaultBuildCacheCommandFactory(packer, originMetadataFactory, virtualFileSystem, stringInterner);
     }
 
     BuildCacheController createBuildCacheController(

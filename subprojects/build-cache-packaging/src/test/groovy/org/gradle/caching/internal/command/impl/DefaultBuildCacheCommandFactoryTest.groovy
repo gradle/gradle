@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.internal.command
+package org.gradle.caching.internal.command.impl
 
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
@@ -43,12 +43,12 @@ import static org.gradle.internal.file.TreeType.DIRECTORY
 import static org.gradle.internal.file.TreeType.FILE
 
 @CleanupTestDirectory
-class BuildCacheCommandFactoryTest extends Specification {
+class DefaultBuildCacheCommandFactoryTest extends Specification {
     def packer = Mock(BuildCacheEntryPacker)
     def originFactory = Mock(OriginMetadataFactory)
     def virtualFileSystem = Mock(VirtualFileSystem)
     def stringInterner = new StringInterner()
-    def commandFactory = new BuildCacheCommandFactory(packer, originFactory, virtualFileSystem, stringInterner)
+    def commandFactory = new DefaultBuildCacheCommandFactory(packer, originFactory, virtualFileSystem, stringInterner)
 
     def key = Mock(BuildCacheKey)
 
