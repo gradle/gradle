@@ -18,7 +18,6 @@ package org.gradle.internal.file;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.file.internal.FilePathUtil;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -178,7 +177,6 @@ public class DefaultFileHierarchySet {
         int sizeOfCommonPrefix(String path, int offset) {
             return FilePathUtil.sizeOfCommonPrefix(prefix, path, offset);
         }
-
 
         /**
          * This uses an optimized version of {@link String#regionMatches(int, String, int, int)}
