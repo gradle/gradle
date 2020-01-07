@@ -1884,6 +1884,41 @@ project(':sub') {
         succeeds 'dependencies', '--configuration', 'runtimeClasspath'
     }
 
+    @Issue("gradle/gradle#11844")
+    @ToBeFixedForInstantExecution
+    def 'does not fail serialization in recursive error case'() {
+        // org:lib:1.0 -> org:between:1.0 -> org:lib:1.1
+        //
+        //  - org:lib:1.1 is selected
+        //  - removes org:between:1.0
+        //  - org:lib:1.1 stays selected (because of cycle), still internal state is updated partially and org:lib:1.1 selector is removed in some places
+
+        given:
+        def libUpdated = mavenRepo.module('org', 'lib', '1.1')
+        // depend on newer version of lib (libUpdated) that is not published, the internal state is broken and deserialization expects 1.1 to exist
+        def between = mavenRepo.module('org', 'between', '1.0').dependsOn(libUpdated).publish()
+        mavenRepo.module('org', 'lib', '1.0').dependsOn(between).publish()
+
+        buildFile << """
+            apply plugin: 'java-library'
+
+            repositories {
+                maven {
+                    url '${mavenRepo.uri}'
+                }
+            }
+
+            dependencies {
+                implementation 'org:lib:1.0'
+            }
+        """
+        expect:
+        //succeeds 'dependencies', '--configuration', 'runtimeClasspath'
+        fails 'dependencies', '--configuration', 'runtimeClasspath'
+        failure.assertHasCause("Problems reading data from Binary store")
+        failure.error.contains("Corrupt serialized resolution result. Cannot find selected module (4) for runtimeClasspath -> org:lib:1.0")
+    }
+
     @ToBeFixedForInstantExecution
     def 'direct recursion between dependencies does not causes a ConcurrentModificationException during selector removal'() {
         given:
