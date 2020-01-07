@@ -75,10 +75,10 @@ public class WorkerDaemonServer implements WorkerProtocol {
     }
 
     @Override
-    public DefaultWorkResult execute(ActionExecutionSpec spec) {
+    public DefaultWorkResult execute(TransportableActionExecutionSpec<?> spec) {
         try {
             try (WorkerProjectServices internalServices = new WorkerProjectServices(spec.getBaseDir(), this.internalServices)) {
-                Worker worker = getIsolatedClassloaderWorker(spec.getClassLoaderStructure(), internalServices);
+                WorkerProtocol worker = getIsolatedClassloaderWorker(spec.getClassLoaderStructure(), internalServices);
                 return worker.execute(spec);
             }
         } catch (Throwable t) {
@@ -86,7 +86,7 @@ public class WorkerDaemonServer implements WorkerProtocol {
         }
     }
 
-    private Worker getIsolatedClassloaderWorker(ClassLoaderStructure classLoaderStructure, ServiceRegistry workServices) {
+    private WorkerProtocol getIsolatedClassloaderWorker(ClassLoaderStructure classLoaderStructure, ServiceRegistry workServices) {
         if (classLoaderStructure instanceof FlatClassLoaderStructure) {
             return new FlatClassLoaderWorker(this.getClass().getClassLoader(), workServices, actionExecutionSpecFactory, instantiatorFactory);
         } else {

@@ -25,15 +25,11 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.project.ProjectIdentifier;
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ProjectRegistry;
-import org.gradle.api.internal.resolve.ProjectModelResolver;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.internal.Cast;
+import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.internal.ProjectLayout;
@@ -280,9 +276,7 @@ public class ComponentModelBasePlugin implements Plugin<Project> {
 
         @Defaults
         void registerBaseDependentBinariesResolutionStrategy(DependentBinariesResolver resolver, ServiceRegistry serviceRegistry) {
-            ProjectRegistry<ProjectInternal> projectRegistry = Cast.uncheckedCast(serviceRegistry.get(ProjectRegistry.class));
-            ProjectModelResolver projectModelResolver = serviceRegistry.get(ProjectModelResolver.class);
-            resolver.register(new BaseDependentBinariesResolutionStrategy(projectRegistry, projectModelResolver));
+            resolver.register(new BaseDependentBinariesResolutionStrategy());
         }
     }
 }

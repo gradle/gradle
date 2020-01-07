@@ -150,6 +150,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     private static final ModelType<ExtensionContainer> EXTENSION_CONTAINER_MODEL_TYPE = ModelType.of(ExtensionContainer.class);
     private static final Logger BUILD_LOGGER = Logging.getLogger(Project.class);
 
+    private final ProjectState container;
     private final ClassLoaderScope classLoaderScope;
     private final ClassLoaderScope baseClassLoaderScope;
     private final ServiceRegistry services;
@@ -206,9 +207,6 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     private String description;
 
-    private final Path path;
-
-    private Path identityPath;
     private boolean preparedForRuleBasedPlugins;
 
     public DefaultProject(String name,
@@ -217,9 +215,11 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
                           File buildFile,
                           ScriptSource buildScriptSource,
                           GradleInternal gradle,
+                          ProjectState container,
                           ServiceRegistryFactory serviceRegistryFactory,
                           ClassLoaderScope selfClassLoaderScope,
                           ClassLoaderScope baseClassLoaderScope) {
+        this.container = container;
         this.classLoaderScope = selfClassLoaderScope;
         this.baseClassLoaderScope = baseClassLoaderScope;
         this.rootProject = parent != null ? parent.getRootProject() : this;
@@ -232,10 +232,8 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
         this.gradle = gradle;
 
         if (parent == null) {
-            path = Path.ROOT;
             depth = 0;
         } else {
-            path = parent.getProjectPath().child(name);
             depth = parent.getDepth() + 1;
         }
 
@@ -260,52 +258,62 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @SuppressWarnings("unused")
     static class BasicServicesRules extends RuleSource {
-        @Hidden @Model
+        @Hidden
+        @Model
         ObjectFactory objectFactory(ServiceRegistry serviceRegistry) {
             return serviceRegistry.get(ObjectFactory.class);
         }
 
-        @Hidden @Model
+        @Hidden
+        @Model
         NamedEntityInstantiator<Task> taskFactory(ServiceRegistry serviceRegistry) {
             return serviceRegistry.get(TaskInstantiator.class);
         }
 
-        @Hidden @Model
+        @Hidden
+        @Model
         CollectionCallbackActionDecorator collectionCallbackActionDecorator(ServiceRegistry serviceRegistry) {
             return serviceRegistry.get(CollectionCallbackActionDecorator.class);
         }
 
-        @Hidden @Model
+        @Hidden
+        @Model
         Instantiator instantiator(ServiceRegistry serviceRegistry) {
             return serviceRegistry.get(Instantiator.class);
         }
 
-        @Hidden @Model
+        @Hidden
+        @Model
         ModelSchemaStore schemaStore(ServiceRegistry serviceRegistry) {
             return serviceRegistry.get(ModelSchemaStore.class);
         }
 
-        @Hidden @Model
+        @Hidden
+        @Model
         ManagedProxyFactory proxyFactory(ServiceRegistry serviceRegistry) {
             return serviceRegistry.get(ManagedProxyFactory.class);
         }
 
-        @Hidden @Model
+        @Hidden
+        @Model
         StructBindingsStore structBindingsStore(ServiceRegistry serviceRegistry) {
             return serviceRegistry.get(StructBindingsStore.class);
         }
 
-        @Hidden @Model
+        @Hidden
+        @Model
         NodeInitializerRegistry nodeInitializerRegistry(ModelSchemaStore schemaStore, StructBindingsStore structBindingsStore) {
             return new DefaultNodeInitializerRegistry(schemaStore, structBindingsStore);
         }
 
-        @Hidden @Model
+        @Hidden
+        @Model
         TypeConverter typeConverter(ServiceRegistry serviceRegistry) {
             return serviceRegistry.get(TypeConverter.class);
         }
 
-        @Hidden @Model
+        @Hidden
+        @Model
         FileOperations fileOperations(ServiceRegistry serviceRegistry) {
             return serviceRegistry.get(FileOperations.class);
         }
@@ -546,19 +554,12 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public String getPath() {
-        return path.toString();
+        return container.getProjectPath().toString();
     }
 
     @Override
     public Path getIdentityPath() {
-        if (identityPath == null) {
-            if (parent == null) {
-                identityPath = gradle.getIdentityPath();
-            } else {
-                identityPath = parent.getIdentityPath().child(name);
-            }
-        }
-        return identityPath;
+        return container.getIdentityPath();
     }
 
     @Override
@@ -590,7 +591,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public String absoluteProjectPath(String path) {
-        return this.path.absolutePath(path);
+        return getProjectPath().absolutePath(path);
     }
 
     @Override
@@ -600,7 +601,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public Path getProjectPath() {
-        return path;
+        return container.getProjectPath();
     }
 
     @Override
@@ -615,7 +616,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public Path projectPath(String name) {
-        return path.child(name);
+        return getProjectPath().child(name);
     }
 
     @Override
@@ -625,7 +626,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public String relativeProjectPath(String path) {
-        return this.path.relativePath(path);
+        return getProjectPath().relativePath(path);
     }
 
     @Override
@@ -1460,6 +1461,6 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public ProjectState getMutationState() {
-        return services.get(ProjectStateRegistry.class).stateFor(this);
+        return container;
     }
 }
