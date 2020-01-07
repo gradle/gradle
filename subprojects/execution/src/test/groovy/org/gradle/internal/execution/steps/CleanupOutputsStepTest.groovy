@@ -191,8 +191,8 @@ class CleanupOutputsStepTest extends StepSpec<InputChangesContext> implements Fi
         }
         _ * context.afterPreviousExecutionState >> Optional.of(afterPreviousExecution)
         1 * afterPreviousExecution.outputFileProperties >> ImmutableSortedMap.<String, FileCollectionFingerprint>of("dir", outputs.dirFingerprint, "file", outputs.fileFingerprint)
-        1 * outputChangeListener.beforeOutputChange(outputs.dirFingerprint.rootHashes.keySet())
-        1 * outputChangeListener.beforeOutputChange(outputs.fileFingerprint.rootHashes.keySet())
+        1 * outputChangeListener.beforeOutputChange(outputs.dirFingerprint.rootPaths)
+        1 * outputChangeListener.beforeOutputChange(outputs.fileFingerprint.rootPaths)
     }
 
     void cleanupExclusiveOutputs(WorkOutputs outputs, boolean incrementalExecution = false) {
