@@ -43,7 +43,7 @@ import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.util.internal.PatternSpecFactory
 import org.gradle.execution.plan.TaskNodeFactory
 import org.gradle.initialization.BuildRequestMetaData
-import org.gradle.instantexecution.serialization.ownerService
+import org.gradle.instantexecution.serialization.ownerServiceCodec
 import org.gradle.instantexecution.serialization.reentrant
 import org.gradle.instantexecution.serialization.unsupported
 import org.gradle.internal.event.ListenerManager
@@ -135,23 +135,23 @@ class Codecs(
 
         bind(TaskReferenceCodec)
 
-        bind(ownerService<ProviderFactory>())
-        bind(ownerService<ObjectFactory>())
-        bind(ownerService<WorkerExecutor>())
-        bind(ownerService<ProjectLayout>())
-        bind(ownerService<PatternSpecFactory>())
-        bind(ownerService<FileResolver>())
-        bind(ownerService<Instantiator>())
-        bind(ownerService<FileCollectionFactory>())
-        bind(ownerService<FileSystemOperations>())
-        bind(ownerService<FileOperations>())
-        bind(ownerService<BuildOperationExecutor>())
-        bind(ownerService<ToolingModelBuilderRegistry>())
-        bind(ownerService<ExecOperations>())
-        bind(ownerService<ExecActionFactory>())
-        bind(ownerService<BuildOperationListenerManager>())
-        bind(ownerService<BuildRequestMetaData>())
-        bind(ownerService<ListenerManager>())
+        bind(ownerServiceCodec<ProviderFactory>())
+        bind(ownerServiceCodec<ObjectFactory>())
+        bind(ownerServiceCodec<WorkerExecutor>())
+        bind(ownerServiceCodec<ProjectLayout>())
+        bind(ownerServiceCodec<PatternSpecFactory>())
+        bind(ownerServiceCodec<FileResolver>())
+        bind(ownerServiceCodec<Instantiator>())
+        bind(ownerServiceCodec<FileCollectionFactory>())
+        bind(ownerServiceCodec<FileSystemOperations>())
+        bind(ownerServiceCodec<FileOperations>())
+        bind(ownerServiceCodec<BuildOperationExecutor>())
+        bind(ownerServiceCodec<ToolingModelBuilderRegistry>())
+        bind(ownerServiceCodec<ExecOperations>())
+        bind(ownerServiceCodec<ExecActionFactory>())
+        bind(ownerServiceCodec<BuildOperationListenerManager>())
+        bind(ownerServiceCodec<BuildRequestMetaData>())
+        bind(ownerServiceCodec<ListenerManager>())
         bind(ServicesCodec())
 
         bind(ProxyCodec)

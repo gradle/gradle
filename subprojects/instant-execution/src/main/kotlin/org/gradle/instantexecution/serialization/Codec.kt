@@ -275,11 +275,6 @@ sealed class IsolateOwner {
 }
 
 
-internal
-inline fun <reified T> IsolateOwner.service() =
-    service(T::class.java)
-
-
 interface Isolate {
 
     val owner: IsolateOwner

@@ -245,7 +245,7 @@ class DefaultReadContext(
                 parent.createChild(name).local(localClassPath).export(exportClassPath).lock()
             }
         } else {
-            isolate.owner.service(ClassLoaderScopeRegistry::class.java).coreAndPluginsScope
+            ownerService<ClassLoaderScopeRegistry>().coreAndPluginsScope
         }
         Workarounds.maybeSetDefaultStaticStateIn(newScope)
         scopes.putInstance(id, newScope)
