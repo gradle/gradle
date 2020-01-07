@@ -148,7 +148,7 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
         }
         if (value instanceof Managed) {
             Managed managed = (Managed) value;
-            if (managed.immutable()) {
+            if (managed.isImmutable()) {
                 return visitor.managedImmutableValue(managed);
             } else {
                 // May (or may not) be mutable - unpack the state

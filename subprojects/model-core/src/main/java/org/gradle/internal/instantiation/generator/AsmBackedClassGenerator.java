@@ -1218,7 +1218,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             methodVisitor.visitEnd();
 
             // Generate: Class immutable() { return <properties.empty> && <read-only-properties.empty> }
-            methodVisitor = visitor.visitMethod(ACC_PUBLIC, "immutable", RETURN_BOOLEAN, null, EMPTY_STRINGS);
+            methodVisitor = visitor.visitMethod(ACC_PUBLIC, "isImmutable", RETURN_BOOLEAN, null, EMPTY_STRINGS);
             // Could return true if all of the read only properties point to immutable objects, but at this stage there are no such types supported
             methodVisitor.visitLdcInsn(mutablePropertySize == 0 && readOnlyPropertySize == 0);
             methodVisitor.visitInsn(IRETURN);

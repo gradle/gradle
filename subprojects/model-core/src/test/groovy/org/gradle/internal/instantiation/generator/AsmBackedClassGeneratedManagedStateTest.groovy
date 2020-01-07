@@ -69,7 +69,7 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         expect:
         bean instanceof Managed
         bean.publicType() == BeanWithAbstractProperty
-        !bean.immutable()
+        !bean.isImmutable()
         def state = bean.unpackState()
         state.length == 1
         state[0] == null
@@ -109,7 +109,7 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         expect:
         bean instanceof Managed
         bean.publicType() == InterfaceBean
-        !bean.immutable()
+        !bean.isImmutable()
         def state = bean.unpackState()
         state.length == 2
         state[0] == null
@@ -258,7 +258,7 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         expect:
         bean instanceof Managed
         bean.publicType() == type
-        !bean.immutable()
+        !bean.isImmutable()
         def state = bean.unpackState()
         state.length == 1
         state[0].is(bean.prop)
@@ -306,7 +306,7 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         expect:
         bean instanceof Managed
         bean.publicType() == InterfaceWithDefaultMethods
-        bean.immutable()
+        bean.isImmutable()
         def state = bean.unpackState()
         state.length == 0
 

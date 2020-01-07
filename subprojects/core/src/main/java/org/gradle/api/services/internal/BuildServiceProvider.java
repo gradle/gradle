@@ -75,7 +75,7 @@ public class BuildServiceProvider<T extends BuildService<P>, P extends BuildServ
     }
 
     @Override
-    public boolean immutable() {
+    public boolean isImmutable() {
         return true;
     }
 

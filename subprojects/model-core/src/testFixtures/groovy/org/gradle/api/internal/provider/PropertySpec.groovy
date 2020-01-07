@@ -1667,7 +1667,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
 
         expect:
         property instanceof Managed
-        !property.immutable()
+        !property.isImmutable()
         def state = property.unpackState()
         def copy = managedFactory().fromState(property.publicType(), state)
         !copy.is(property)
