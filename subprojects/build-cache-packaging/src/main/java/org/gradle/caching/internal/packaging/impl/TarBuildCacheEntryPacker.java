@@ -31,7 +31,6 @@ import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.caching.internal.origin.OriginReader;
 import org.gradle.caching.internal.origin.OriginWriter;
 import org.gradle.caching.internal.packaging.BuildCacheEntryPacker;
-import org.gradle.internal.MutableLong;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.TreeType;
@@ -64,6 +63,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -129,11 +129,11 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
     }
 
     private long pack(CacheableEntity entity, Map<String, CurrentFileCollectionFingerprint> fingerprints, TarArchiveOutputStream tarOutput) {
-        MutableLong entries = new MutableLong();
+        AtomicLong entries = new AtomicLong();
         entity.visitOutputTrees((treeName, type, root) -> {
             CurrentFileCollectionFingerprint fingerprint = fingerprints.get(treeName);
             try {
-                entries.increment(packTree(treeName, type, fingerprint, tarOutput));
+                entries.addAndGet(packTree(treeName, type, fingerprint, tarOutput));
             } catch (Exception ex) {
                 throw new RuntimeException(String.format("Could not pack tree '%s': %s", treeName, ex.getMessage()), ex);
             }
@@ -171,9 +171,9 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
         Map<String, CompleteFileSystemLocationSnapshot> snapshots = new HashMap<>();
 
         tarEntry = tarInput.getNextTarEntry();
-        MutableLong entries = new MutableLong();
+        AtomicLong entries = new AtomicLong();
         while (tarEntry != null) {
-            entries.increment(1);
+            entries.incrementAndGet();
             String path = tarEntry.getName();
 
             if (path.equals(METADATA_PATH)) {
@@ -224,7 +224,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
     }
 
     @Nullable
-    private TarArchiveEntry unpackTree(String treeName, TreeType treeType, File treeRoot, TarArchiveInputStream input, TarArchiveEntry rootEntry, String childPath, boolean missing, Map<String, CompleteFileSystemLocationSnapshot> snapshots, MutableLong entries) throws IOException {
+    private TarArchiveEntry unpackTree(String treeName, TreeType treeType, File treeRoot, TarArchiveInputStream input, TarArchiveEntry rootEntry, String childPath, boolean missing, Map<String, CompleteFileSystemLocationSnapshot> snapshots, AtomicLong entries) throws IOException {
         boolean isDirEntry = rootEntry.isDirectory();
         boolean root = Strings.isNullOrEmpty(childPath);
         if (!root) {
@@ -272,7 +272,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
     }
 
     @Nullable
-    private TarArchiveEntry unpackDirectoryTree(TarArchiveInputStream input, TarArchiveEntry rootEntry, Map<String, CompleteFileSystemLocationSnapshot> snapshots, MutableLong entries, File treeRoot, String treeName) throws IOException {
+    private TarArchiveEntry unpackDirectoryTree(TarArchiveInputStream input, TarArchiveEntry rootEntry, Map<String, CompleteFileSystemLocationSnapshot> snapshots, AtomicLong entries, File treeRoot, String treeName) throws IOException {
         RelativePathParser parser = new RelativePathParser();
         parser.rootPath(rootEntry.getName());
 
@@ -292,7 +292,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
             if (parser.getDepth() == 0) {
                 break;
             }
-            entries.increment(1);
+            entries.incrementAndGet();
 
             File file = new File(treeRoot, parser.getRelativePath());
             if (isDir) {
