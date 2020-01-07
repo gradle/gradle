@@ -28,7 +28,7 @@ dependencies {
     implementation(library("jsr305")) { version { require(libraryVersion("jsr305")) } }
     implementation(project(":files"))
     implementation(project(":hashing"))
-    implementation(project(":pineapple"))
+    implementation(project(":baseAnnotations"))
     implementation(library("slf4j_api")) { version { require(libraryVersion("slf4j_api")) } }
 
     testImplementation(project(":processServices"))
