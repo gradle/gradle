@@ -322,7 +322,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
         try {
             PermissionUtils.setPermissions(file, entry.getMode() & UnixPermissions.PERM_MASK);
         } catch (IOException e) {
-            throw new java.io.UncheckedIOException(e);
+            throw new UncheckedIOException(e);
         }
     }
 
