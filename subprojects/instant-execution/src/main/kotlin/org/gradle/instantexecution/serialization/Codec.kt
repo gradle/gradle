@@ -74,6 +74,9 @@ interface ReadContext : IsolateContext, MutableIsolateContext, Decoder {
 }
 
 
+suspend fun <T : Any> ReadContext.readNonNull() = read()!!.uncheckedCast<T>()
+
+
 interface IsolateContext {
 
     val logger: Logger

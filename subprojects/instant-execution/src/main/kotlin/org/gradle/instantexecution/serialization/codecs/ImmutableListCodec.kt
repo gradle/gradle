@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
+import org.gradle.instantexecution.serialization.readNonNull
 import org.gradle.instantexecution.serialization.writeCollection
 
 
@@ -33,7 +34,7 @@ object ImmutableListCodec : Codec<ImmutableList<Any>> {
         val size = readSmallInt()
         val builder = ImmutableList.builderWithExpectedSize<Any>(size)
         for (i in 0 until size) {
-            val value = read()!!
+            val value = readNonNull<Any>()
             builder.add(value)
         }
         return builder.build()

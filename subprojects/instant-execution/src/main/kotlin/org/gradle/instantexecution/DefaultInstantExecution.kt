@@ -37,6 +37,7 @@ import org.gradle.instantexecution.serialization.beans.BeanConstructors
 import org.gradle.instantexecution.serialization.codecs.Codecs
 import org.gradle.instantexecution.serialization.codecs.WorkNodeCodec
 import org.gradle.instantexecution.serialization.readCollection
+import org.gradle.instantexecution.serialization.readNonNull
 import org.gradle.instantexecution.serialization.withIsolate
 import org.gradle.instantexecution.serialization.writeCollection
 import org.gradle.internal.build.event.BuildEventListenerRegistryInternal
@@ -238,7 +239,7 @@ class DefaultInstantExecution internal constructor(
     private
     suspend fun DefaultReadContext.checkFingerprintOfInputFiles(): InvalidationReason? {
         readCollection {
-            val (inputFile, hashCode) = read()!!.uncheckedCast<InstantExecutionCacheInputs.InputFile>()
+            val (inputFile, hashCode) = readNonNull<InstantExecutionCacheInputs.InputFile>()
             if (hashCodeOf(inputFile) != hashCode) {
                 // TODO: log some debug info
                 return "a configuration file has changed"
@@ -250,7 +251,7 @@ class DefaultInstantExecution internal constructor(
     private
     suspend fun DefaultReadContext.checkFingerprintOfObtainedValues(): InvalidationReason? {
         readCollection {
-            val obtainedValue = readObtainedValue()
+            val obtainedValue = readNonNull<ObtainedValue>()
             checkFingerprintValueIsUpToDate(obtainedValue)?.let { reason ->
                 return reason
             }
@@ -260,10 +261,6 @@ class DefaultInstantExecution internal constructor(
 
     private
     fun hashCodeOf(inputFile: File) = virtualFileSystem.hashCodeOf(inputFile)
-
-    private
-    suspend fun DefaultReadContext.readObtainedValue(): ObtainedValue =
-        read()!!.uncheckedCast()
 
     private
     fun checkFingerprintValueIsUpToDate(obtainedValue: ObtainedValue): InvalidationReason? = obtainedValue.run {
@@ -419,7 +416,7 @@ class DefaultInstantExecution internal constructor(
         withGradleIsolate(gradle) {
             val eventListenerRegistry = service<BuildEventListenerRegistryInternal>()
             readCollection {
-                val provider = read()!!.uncheckedCast<Provider<OperationCompletionListener>>()
+                val provider = readNonNull<Provider<OperationCompletionListener>>()
                 eventListenerRegistry.subscribe(provider)
             }
         }
