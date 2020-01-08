@@ -116,7 +116,7 @@ fun buildToolGradleParameters(daemon: Boolean = true, isContinue: Boolean = true
         if (os == Os.macos) "" else "-Dorg.gradle.internal.plugins.portal.url.override=%gradle.plugins.portal.url%"
     )
 
-fun buildToolParametersString(daemon: Boolean = true) = buildToolGradleParameters(daemon).joinToString(separator = " ")
+fun buildToolParametersString(daemon: Boolean = true, os: Os = Os.linux) = buildToolGradleParameters(daemon, os = os).joinToString(separator = " ")
 
 fun Dependencies.compileAllDependency(compileAllId: String = "Gradle_Check_CompileAll") {
     // Compile All has to succeed before anything else is started
@@ -134,10 +134,10 @@ fun Dependencies.compileAllDependency(compileAllId: String = "Gradle_Check_Compi
     }
 }
 
-fun BuildSteps.verifyTestFilesCleanup(daemon: Boolean = true) {
+fun BuildSteps.verifyTestFilesCleanup(daemon: Boolean = true, os: Os = Os.linux) {
     gradleWrapper {
         name = "VERIFY_TEST_FILES_CLEANUP"
         tasks = "verifyTestFilesCleanup"
-        gradleParams = buildToolParametersString(daemon)
+        gradleParams = buildToolParametersString(daemon, os)
     }
 }

@@ -118,6 +118,9 @@ abstract class AbstractSmokeTest extends Specification {
         // https://plugins.gradle.org/plugin/com.jfrog.artifactory
         static artifactoryPlugin = "4.12.0"
         static artifactoryRepoOSSVersion = "6.16.0"
+
+        // https://plugins.gradle.org/plugin/io.freefair.aspectj
+        static aspectj = "4.1.6"
     }
 
     static class Versions implements Iterable<String> {

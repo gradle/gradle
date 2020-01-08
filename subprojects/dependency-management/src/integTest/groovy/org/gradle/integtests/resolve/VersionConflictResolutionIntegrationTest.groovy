@@ -1885,6 +1885,40 @@ project(':sub') {
     }
 
     @ToBeFixedForInstantExecution
+    def 'direct recursion between dependencies does not causes a ConcurrentModificationException during selector removal'() {
+        given:
+        def lib2 = mavenRepo.module('org', 'lib', '2.0').publish()
+        def lib3 = mavenRepo.module('org', 'lib', '3.0').publish()
+        def lib1 = mavenRepo.module('org', 'lib', '1.0')
+            // recursive dependencies between different versions of 'lib'
+            .dependencyConstraint(lib3).dependencyConstraint(lib2).withModuleMetadata().publish()
+
+        mavenRepo.module('org', 'direct', '1.0').dependsOn(lib1).publish()
+
+        def directUpdated = mavenRepo.module('org', 'direct', '1.1').publish()
+        def b = mavenRepo.module('org', 'b', '1.0').dependsOn(directUpdated).publish()
+        mavenRepo.module('org', 'a', '1.0').dependsOn(b).publish()
+
+        buildFile << """
+            apply plugin: 'java-library'
+
+            repositories {
+                maven {
+                    url '${mavenRepo.uri}'
+                }
+            }
+
+            dependencies {
+                implementation 'org:direct:1.0'  // dependeincy on 'lib'
+                implementation 'org:a:1.0'       // updates direct (to remove dependency on 'lib' again)
+            }
+        """
+
+        expect:
+        succeeds 'dependencies', '--configuration', 'runtimeClasspath'
+    }
+
+    @ToBeFixedForInstantExecution
     def "can resolve a graph with an obvious version cycle by breaking the cycle"() {
         given:
         def direct2 = mavenRepo.module('org', 'direct', '2.0').publish()
