@@ -162,7 +162,7 @@ class DefaultBuildCacheCommandFactoryTest extends Specification {
         new TestCacheableTree(name, type, root)
     }
 
-    @Immutable
+    @Immutable(knownImmutableClasses = [File])
     private static class TestCacheableTree {
         String name
         TreeType type

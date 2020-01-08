@@ -124,7 +124,7 @@ abstract class AbstractTarBuildCacheEntryPackerSpec extends Specification {
         return fingerprint.get()
     }
 
-    @Immutable
+    @Immutable(knownImmutableClasses = [File])
     static class TestCacheableTree {
         String name
         TreeType type
