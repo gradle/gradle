@@ -74,6 +74,9 @@ interface ReadContext : IsolateContext, MutableIsolateContext, Decoder {
 }
 
 
+suspend fun <T : Any> ReadContext.readNonNull() = read()!!.uncheckedCast<T>()
+
+
 interface IsolateContext {
 
     val logger: Logger
@@ -273,11 +276,6 @@ sealed class IsolateOwner {
         override fun <T> service(type: Class<T>): T = delegate.getService(type)
     }
 }
-
-
-internal
-inline fun <reified T> IsolateOwner.service() =
-    service(T::class.java)
 
 
 interface Isolate {

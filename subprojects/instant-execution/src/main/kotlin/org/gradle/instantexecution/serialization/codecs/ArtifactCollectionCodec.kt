@@ -30,6 +30,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileCollectionStructureVisitor
+import org.gradle.instantexecution.extensions.uncheckedCast
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
@@ -50,7 +51,7 @@ class ArtifactCollectionCodec(private val fileCollectionFactory: FileCollectionF
     }
 
     override suspend fun ReadContext.decode(): ArtifactCollectionInternal {
-        val elements = readList() as List<Any>
+        val elements = readList().uncheckedCast<List<Any>>()
         val files = fileCollectionFactory.resolving(elements.map {
             when (it) {
                 is ResolvedArtifactResult -> it.file
@@ -58,7 +59,7 @@ class ArtifactCollectionCodec(private val fileCollectionFactory: FileCollectionF
                 else -> throw IllegalArgumentException("Unexpected element $it in artifact collection")
             }
         })
-        val failures = readList() as List<Throwable>
+        val failures = readList().uncheckedCast<List<Throwable>>()
         return FixedArtifactCollection(files, elements, failures)
     }
 }
