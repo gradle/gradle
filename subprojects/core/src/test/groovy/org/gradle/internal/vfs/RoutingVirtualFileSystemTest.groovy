@@ -98,7 +98,6 @@ class RoutingVirtualFileSystemTest extends Specification {
         when:
         routingVirtualFileSystem.invalidateAll()
         then:
-        0 * gradleUserHomeVirtualFileSystem.invalidateAll()
         1 * buildSessionScopedVirtualFileSystem.invalidateAll()
         0 * _
 
@@ -181,7 +180,6 @@ class RoutingVirtualFileSystemTest extends Specification {
         routingVirtualFileSystem.invalidateAll()
         then:
         1 * gradleUserHomeVirtualFileSystem.invalidateAll()
-        1 * buildSessionScopedVirtualFileSystem.invalidateAll()
         0 * _
 
         where:
