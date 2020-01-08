@@ -19,7 +19,7 @@ package org.gradle.plugins.ide.internal.resolver;
 import java.io.File;
 
 public interface GradleApiSourcesResolver {
-    File resolveGradleApiSources(File artifact);
+    File resolveGradleApiSources(boolean download);
 
     File resolveLocalGroovySources(String jarName);
 }

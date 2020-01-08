@@ -26,10 +26,11 @@ import org.gradle.api.internal.file.archive.ZipFileTree
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.file.collections.FileTreeAdapter
 import org.gradle.api.tasks.util.PatternSet
-import org.gradle.instantexecution.extensions.uncheckedCast
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
+import org.gradle.instantexecution.serialization.readNonNull
+import org.gradle.instantexecution.serialization.ownerService
 import java.io.File
 
 
@@ -60,11 +61,11 @@ class FileTreeCodec(
 
     override suspend fun ReadContext.decode(): FileTreeInternal? =
         DefaultCompositeFileTree(
-            read()!!.uncheckedCast<List<FileTreeSpec>>().map {
+            readNonNull<List<FileTreeSpec>>().map {
                 when (it) {
                     is DirectoryTreeSpec -> FileTreeAdapter(directoryFileTreeFactory.create(it.file, it.patterns))
-                    is ZipTreeSpec -> isolate.owner.service(FileOperations::class.java).zipTree(it.file) as FileTreeInternal
-                    is TarTreeSpec -> isolate.owner.service(FileOperations::class.java).tarTree(it.file) as FileTreeInternal
+                    is ZipTreeSpec -> ownerService<FileOperations>().zipTree(it.file) as FileTreeInternal
+                    is TarTreeSpec -> ownerService<FileOperations>().tarTree(it.file) as FileTreeInternal
                 }
             }
         )

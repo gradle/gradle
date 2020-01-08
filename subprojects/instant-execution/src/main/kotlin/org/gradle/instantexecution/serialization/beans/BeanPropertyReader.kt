@@ -23,7 +23,7 @@ import org.gradle.instantexecution.serialization.PropertyTrace
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.logPropertyInfo
 import org.gradle.instantexecution.serialization.logPropertyWarning
-import org.gradle.instantexecution.serialization.service
+import org.gradle.instantexecution.serialization.ownerService
 import org.gradle.instantexecution.serialization.withPropertyTrace
 import org.gradle.internal.instantiation.InstantiationScheme
 import org.gradle.internal.instantiation.InstantiatorFactory
@@ -53,7 +53,7 @@ class BeanPropertyReader(
     }
 
     override suspend fun ReadContext.newBean(generated: Boolean) = if (generated) {
-        val services = isolate.owner.service<ServiceRegistry>()
+        val services = ownerService<ServiceRegistry>()
         instantiationScheme.withServices(services).deserializationInstantiator().newInstance(beanType, Any::class.java)
     } else {
         constructorForSerialization.newInstance()

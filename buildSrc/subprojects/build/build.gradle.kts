@@ -1,5 +1,5 @@
 dependencies {
-    api("com.google.guava:guava:27.1-jre")
+    api("com.google.guava:guava")
     api("org.asciidoctor:asciidoctor-gradle-plugin:1.5.10")
 
     implementation(project(":buildPlatform"))

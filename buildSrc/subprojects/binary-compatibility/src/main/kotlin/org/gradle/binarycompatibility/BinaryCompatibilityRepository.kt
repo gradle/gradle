@@ -16,19 +16,15 @@
 
 package org.gradle.binarycompatibility
 
+import com.google.common.annotations.VisibleForTesting
 import japicmp.model.JApiClass
 import japicmp.model.JApiCompatibility
 import japicmp.model.JApiMethod
-
 import javassist.bytecode.SourceFileAttribute
-
 import org.gradle.binarycompatibility.sources.ApiSourceFile
 import org.gradle.binarycompatibility.sources.JavaSourceQueries
 import org.gradle.binarycompatibility.sources.KotlinSourceQueries
 import org.gradle.binarycompatibility.sources.SourcesRepository
-
-import com.google.common.annotations.VisibleForTesting
-
 import java.io.File
 
 

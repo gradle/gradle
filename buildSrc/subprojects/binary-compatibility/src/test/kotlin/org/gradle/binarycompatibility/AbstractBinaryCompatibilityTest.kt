@@ -215,8 +215,8 @@ abstract class AbstractBinaryCompatibilityTest {
                         newArchives = files(v2Jar)
                         newClasspath = files(v2.configurations.named("runtimeClasspath"), v2Jar)
 
-                        onlyModified = false
-                        failOnModification = false // we rely on the rich report to fail
+                        isOnlyModified = false
+                        isFailOnModification = false // we rely on the rich report to fail
 
                         txtOutputFile = file("build/japi-report.txt")
 

@@ -15,7 +15,7 @@
  */
 package org.gradle.plugins.ide.eclipse
 
-import org.apache.commons.io.FilenameUtils
+
 import org.gradle.plugins.ide.AbstractSourcesAndJavadocJarsIntegrationTest
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.HttpArtifact
@@ -43,16 +43,26 @@ class EclipseSourcesAndJavadocJarsIntegrationTest extends AbstractSourcesAndJava
     }
 
     @Override
-    void ideFileContainsGradleApiWithSources(String apiJarPrefix, TestFile sourcesDir) {
+    void ideFileContainsGradleApi(String apiJarPrefix) {
+        def apiLib = findApiLibrary(apiJarPrefix)
+        assert apiLib.sourcePath == null
+    }
+
+    @Override
+    void ideFileContainsGradleApiWithSources(String apiJarPrefix) {
+        def apiLib = findApiLibrary(apiJarPrefix)
+        assert apiLib.sourcePath != null
+        assertContainsGradleSources(new TestFile(apiLib.sourcePath))
+    }
+
+    EclipseClasspathFixture.EclipseLibrary findApiLibrary(String apiJarPrefix) {
         def classpath = EclipseClasspathFixture.create(testDirectory, executer.gradleUserHomeDir)
         def libs = classpath.libs
         def apiLibs = libs.findAll { l ->
             l.jarName.startsWith(apiJarPrefix)
         }
         assert apiLibs.size() == 1 : "gradle API jar not found"
-        def apiLib = apiLibs.get(0)
-        assert apiLib.sourcePath != null
-        assert apiLib.sourcePath == FilenameUtils.separatorsToUnix(sourcesDir.getPath())
+        return apiLibs.get(0)
     }
 
     void ideFileContainsNoSourcesAndJavadocEntry() {

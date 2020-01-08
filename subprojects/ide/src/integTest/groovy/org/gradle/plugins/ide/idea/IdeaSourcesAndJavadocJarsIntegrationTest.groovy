@@ -15,7 +15,7 @@
  */
 package org.gradle.plugins.ide.idea
 
-import org.apache.commons.io.FilenameUtils
+
 import org.gradle.plugins.ide.AbstractSourcesAndJavadocJarsIntegrationTest
 import org.gradle.plugins.ide.fixtures.IdeaModuleFixture
 import org.gradle.test.fixtures.file.TestFile
@@ -36,17 +36,26 @@ class IdeaSourcesAndJavadocJarsIntegrationTest extends AbstractSourcesAndJavadoc
     }
 
     @Override
-    void ideFileContainsGradleApiWithSources(String apiJarPrefix, TestFile sourcesDir) {
+    void ideFileContainsGradleApi(String apiJarPrefix) {
+        def libraryEntry = findApiLibrary(apiJarPrefix)
+        assert libraryEntry.source.empty
+    }
+
+    @Override
+    void ideFileContainsGradleApiWithSources(String apiJarPrefix) {
+        def libraryEntry = findApiLibrary(apiJarPrefix)
+        assert !libraryEntry.source.isEmpty()
+        TestFile sourcesRoot = file(libraryEntry.source.get(0).replace('file://$MODULE_DIR$/', '')).parentFile
+        assertContainsGradleSources(sourcesRoot)
+        File[] submodules = sourcesRoot.listFiles()
+        assert libraryEntry.source.size() == submodules.length
+    }
+
+    IdeaModuleFixture.ImlModuleLibrary findApiLibrary(String apiJarPrefix) {
         IdeaModuleFixture iml =  parseIml("root.iml")
         def libraryEntry = iml.dependencies.libraries.find { it.jarName.startsWith(apiJarPrefix) }
         assert libraryEntry != null : "gradle API jar not found"
-        File[] submodules = sourcesDir.listFiles()
-        assert libraryEntry.source.size() == submodules.length
-        List<String> submodulePaths = new ArrayList<>()
-        for (File submodule : submodules) {
-            submodulePaths.add("file://" + FilenameUtils.separatorsToUnix(submodule.getPath()))
-        }
-        assert libraryEntry.source.containsAll(submodulePaths)
+        return libraryEntry
     }
 
     void ideFileContainsNoSourcesAndJavadocEntry() {

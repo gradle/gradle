@@ -25,7 +25,8 @@ import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.junit.Rule
 
 abstract class AbstractSourcesAndJavadocJarsIntegrationTest extends AbstractIdeIntegrationSpec {
-    @Rule HttpServer server
+    @Rule
+    HttpServer server
 
     String groovyAllVersion = "1.3-2.5.8"
 
@@ -304,10 +305,8 @@ dependencies {
     @ToBeFixedForInstantExecution
     def "sources for gradleApi() are resolved and attached when -all distribution is used"() {
         given:
-        requireGradleDistribution()
-        TestFile sourcesDir = distribution.gradleHomeDir.createDir("src")
-        sourcesDir.createFile("submodule1/org/gradle/Test.java").writelns("package org.gradle;", "public class Test {}")
-        sourcesDir.createFile("submodule2/org/gradle/Test2.java").writelns("package org.gradle;", "public class Test2 {}")
+        requireIsolatedGradleDistribution()
+        givenGradleSourcesExistInDistribution()
 
         buildScript """
             apply plugin: "java"
@@ -323,16 +322,14 @@ dependencies {
         succeeds ideTask
 
         then:
-        ideFileContainsGradleApiWithSources("gradle-api", sourcesDir)
+        ideFileContainsGradleApiWithSources("gradle-api")
     }
 
     @ToBeFixedForInstantExecution
     def "sources for gradleTestKit() are resolved and attached when -all distribution is used"() {
         given:
-        requireGradleDistribution()
-        TestFile sourcesDir = distribution.gradleHomeDir.createDir("src")
-        sourcesDir.createFile("submodule/org/gradle/Test.java").writelns("package org.gradle;", "public class Test {}")
-        sourcesDir.createFile("submodule2/org/gradle/Test2.java").writelns("package org.gradle;", "public class Test2 {}")
+        requireIsolatedGradleDistribution()
+        givenGradleSourcesExistInDistribution()
 
         buildScript """
             apply plugin: "java"
@@ -348,8 +345,208 @@ dependencies {
         succeeds ideTask
 
         then:
-        ideFileContainsGradleApiWithSources("gradle-test-kit", sourcesDir)
-        ideFileContainsGradleApiWithSources("gradle-api", sourcesDir)
+        ideFileContainsGradleApiWithSources("gradle-test-kit")
+        ideFileContainsGradleApiWithSources("gradle-api")
+    }
+
+    @ToBeFixedForInstantExecution
+    def "snapshot sources for gradleApi() are downloaded and attached when not present"() {
+        given:
+        requireGradleDistribution()
+        givenSourceDistributionExistsOnRemoteServer()
+        executer.withEnvironmentVars('GRADLE_REPO_OVERRIDE': "$server.uri/")
+
+        buildScript """
+            apply plugin: "java"
+            apply plugin: "idea"
+            apply plugin: "eclipse"
+
+            dependencies {
+                implementation gradleApi()
+            }
+            """
+
+        when:
+        succeeds ideTask
+
+        then:
+        ideFileContainsGradleApiWithSources("gradle-api")
+    }
+
+    @ToBeFixedForInstantExecution
+    def "released version sources for gradleApi() are downloaded and attached when not present"() {
+        given:
+        requireGradleDistribution()
+        def gradleVersion = "42.0"
+        executer.withEnvironmentVars('GRADLE_VERSION_OVERRIDE': gradleVersion, 'GRADLE_REPO_OVERRIDE': "$server.uri/")
+        givenSourceDistributionExistsOnRemoteServer('distributions', gradleVersion)
+
+        buildScript """
+            apply plugin: "java"
+            apply plugin: "idea"
+            apply plugin: "eclipse"
+
+            dependencies {
+                implementation gradleApi()
+            }
+            """
+
+        when:
+        succeeds ideTask
+
+        then:
+        ideFileContainsGradleApiWithSources("gradle-api")
+    }
+
+    @ToBeFixedForInstantExecution
+    def "skips gradleApi() sources when not present and not available on remote server"() {
+        given:
+        requireGradleDistribution()
+
+        executer.withEnvironmentVars('GRADLE_REPO_OVERRIDE': "$server.uri/")
+        server.expectHeadMissing("/distributions-snapshots/gradle-${distribution.version.version}-src.zip")
+
+        buildScript """
+            apply plugin: "java"
+            apply plugin: "idea"
+            apply plugin: "eclipse"
+
+            dependencies {
+                implementation gradleApi()
+            }
+            """
+
+        when:
+        succeeds ideTask
+
+        then:
+        assertSourcesDirectoryDoesNotExistInDistribution()
+        ideFileContainsGradleApi("gradle-api")
+    }
+
+    @ToBeFixedForInstantExecution
+    def "skips gradleApi() sources when not present and remote distribution has unexpected directory structure"() {
+        given:
+        requireGradleDistribution()
+        executer.withEnvironmentVars('GRADLE_REPO_OVERRIDE': "$server.uri/")
+
+        givenSourceDistributionExistsOnRemoteServer("distributions-snapshots", distribution.version.version, createZip("gradle-src.zip") {
+            root {
+                foo {
+                    file("/src/main/java/org/gradle/Test.java")
+                    file("/src/main/java/org/gradle/Test2.java")
+                }
+            }
+        })
+
+        buildScript """
+            apply plugin: "java"
+            apply plugin: "idea"
+            apply plugin: "eclipse"
+
+            dependencies {
+                implementation gradleApi()
+            }
+            """
+
+        when:
+        succeeds ideTask
+
+        then:
+        assertSourcesDirectoryDoesNotExistInDistribution()
+        ideFileContainsGradleApi("gradle-api")
+    }
+
+    @ToBeFixedForInstantExecution
+    def "does not download gradleApi() sources when sources download is disabled"() {
+        given:
+        requireGradleDistribution()
+        executer.withEnvironmentVars('GRADLE_REPO_OVERRIDE': "$server.uri/")
+
+        buildScript """
+            apply plugin: "java"
+            apply plugin: "idea"
+            apply plugin: "eclipse"
+
+            dependencies {
+                implementation gradleApi()
+            }
+
+            idea.module.downloadSources = false
+            eclipse.classpath.downloadSources = false
+            """
+        when:
+        succeeds ideTask
+
+        then:
+        assertSourcesDirectoryDoesNotExistInDistribution()
+        ideFileContainsGradleApi("gradle-api")
+    }
+
+    @ToBeFixedForInstantExecution
+    def "does not download gradleApi() sources when offline"() {
+        given:
+        requireGradleDistribution()
+        executer.withEnvironmentVars('GRADLE_REPO_OVERRIDE': "$server.uri/")
+
+        buildScript """
+            apply plugin: "java"
+            apply plugin: "idea"
+            apply plugin: "eclipse"
+
+            dependencies {
+                implementation gradleApi()
+            }
+            """
+        when:
+        args("--offline")
+        succeeds ideTask
+
+        then:
+        assertSourcesDirectoryDoesNotExistInDistribution()
+        ideFileContainsGradleApi("gradle-api")
+    }
+
+    private void givenGradleSourcesExistInDistribution() {
+        TestFile sourcesDir = gradleDistributionSrcDir()
+        sourcesDir.createFile("submodule1/org/gradle/Test.java")
+        sourcesDir.createFile("submodule2/org/gradle/Test2.java")
+    }
+
+    private void givenSourceDistributionExistsOnRemoteServer(String repository = "distributions-snapshots", String version = distribution.version.version, TestFile zippedSources = gradleSourcesZip()) {
+        String distributionPath = "/$repository/gradle-${version}-src.zip"
+        server.allowGetOrHead(distributionPath, zippedSources)
+        server.allowGetMissing("${distributionPath}.sha1")
+    }
+
+    void assertSourcesDirectoryDoesNotExistInDistribution() {
+        gradleDistributionSrcDir().assertDoesNotExist()
+    }
+
+    private TestFile gradleDistributionSrcDir() {
+        return new TestFile(distribution.gradleHomeDir, "src")
+    }
+
+    private TestFile gradleSourcesZip() {
+        return createZip("gradle-src.zip") {
+            root {
+                subprojects {
+                    submodule1 {
+                        file("/src/main/java/org/gradle/Test.java")
+                    }
+                    submodule2 {
+                        file("/src/main/java/org/gradle/Test2.java")
+                    }
+                }
+            }
+        }
+    }
+
+    static void assertContainsGradleSources(TestFile sourcesDir) {
+        sourcesDir.assertContainsDescendants(
+            "submodule1/org/gradle/Test.java",
+            "submodule2/org/gradle/Test2.java"
+        )
     }
 
     @ToBeFixedForInstantExecution
@@ -516,9 +713,16 @@ task resolve {
     void ideFileContainsEntry(String jar, String sources, String javadoc) {
         ideFileContainsEntry(jar, [sources], [javadoc])
     }
+
     abstract void ideFileContainsEntry(String jar, List<String> sources, List<String> javadoc)
-    abstract void ideFileContainsGradleApiWithSources(String apiJarPrefix, TestFile sourcesDir)
+
+    abstract void ideFileContainsGradleApi(String apiJarPrefix)
+
+    abstract void ideFileContainsGradleApiWithSources(String apiJarPrefix)
+
     abstract void ideFileContainsNoSourcesAndJavadocEntry()
+
     abstract void expectBehaviorAfterBrokenMavenArtifact(HttpArtifact httpArtifact)
+
     abstract void expectBehaviorAfterBrokenIvyArtifact(HttpArtifact httpArtifact)
 }
