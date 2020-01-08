@@ -28,6 +28,8 @@ public class DeprecationMessage {
     private String contextualAdvice;
     private String documentationReference;
 
+    private DeprecatedFeatureUsage.Type usageType = DeprecatedFeatureUsage.Type.USER_CODE_DIRECT;
+
     public static DeprecationMessage thisHasBeenDeprecated(String thing) {
         return new DeprecationMessage(thing, String.format("This has been deprecated and %s", getRemovalDetails()));
     }
@@ -52,7 +54,17 @@ public class DeprecationMessage {
         return this;
     }
 
-    DeprecatedFeatureUsage toDeprecatedFeatureUsage(DeprecatedFeatureUsage.Type usageType, Class<?> calledFrom) {
+    public DeprecationMessage withIndirectUsage() {
+        this.usageType = DeprecatedFeatureUsage.Type.USER_CODE_INDIRECT;
+        return this;
+    }
+
+    public DeprecationMessage withBuildInvocation() {
+        this.usageType = DeprecatedFeatureUsage.Type.BUILD_INVOCATION;
+        return this;
+    }
+
+    DeprecatedFeatureUsage toDeprecatedFeatureUsage(Class<?> calledFrom) {
         return new DeprecatedFeatureUsage(summary, removalDetails, advice, contextualAdvice, usageType, calledFrom);
     }
 }

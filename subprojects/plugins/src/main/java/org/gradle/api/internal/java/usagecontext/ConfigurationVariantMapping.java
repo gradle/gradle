@@ -62,8 +62,8 @@ public class ConfigurationVariantMapping {
         if (!outgoingConfiguration.isTransitive()) {
             SingleMessageLogger.nagUserWith(new DeprecationMessage("Publication ignores 'transitive = false' at configuration level.", "")
                 .withAdvice("Consider using 'transitive = false' at the dependency level if you need this to be published.")
-                .withContextualAdvice(""),
-                DeprecatedFeatureUsage.Type.USER_CODE_INDIRECT);
+                .withContextualAdvice("")
+                .withIndirectUsage());
         }
         Set<String> seen = Sets.newHashSet();
         ConfigurationVariant defaultConfigurationVariant = instantiator.newInstance(DefaultConfigurationVariant.class, outgoingConfiguration);

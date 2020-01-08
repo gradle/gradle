@@ -17,7 +17,6 @@
 package org.gradle.util
 
 import org.gradle.api.logging.configuration.WarningMode
-import org.gradle.internal.featurelifecycle.DeprecatedFeatureUsage
 import org.gradle.internal.featurelifecycle.DeprecatedUsageBuildOperationProgressBroadaster
 import org.gradle.internal.featurelifecycle.UsageLocationReporter
 import org.gradle.internal.logging.CollectingTestOutputEventListener
@@ -43,7 +42,7 @@ class DeprecationLoggerTest extends Specification{
 
     def "logs deprecation message"() {
         when:
-        DeprecationLogger.nagUserWith(new DeprecationMessage("summary", "removal"), DeprecatedFeatureUsage.Type.USER_CODE_DIRECT)
+        DeprecationLogger.nagUserWith(new DeprecationMessage("summary", "removal"))
 
         then:
         def events = outputEventListener.events
@@ -53,7 +52,7 @@ class DeprecationLoggerTest extends Specification{
 
     def "logs deprecation message with advice"() {
         when:
-        DeprecationLogger.nagUserWith(new DeprecationMessage("summary", "removal").withAdvice("advice"), DeprecatedFeatureUsage.Type.USER_CODE_DIRECT)
+        DeprecationLogger.nagUserWith(new DeprecationMessage("summary", "removal").withAdvice("advice"))
 
         then:
         def events = outputEventListener.events
@@ -63,7 +62,7 @@ class DeprecationLoggerTest extends Specification{
 
     def "logs deprecation message with contextual advice"() {
         when:
-        DeprecationLogger.nagUserWith(new DeprecationMessage("summary", "removal").withContextualAdvice("contextualAdvice"), DeprecatedFeatureUsage.Type.USER_CODE_DIRECT)
+        DeprecationLogger.nagUserWith(new DeprecationMessage("summary", "removal").withContextualAdvice("contextualAdvice"))
 
         then:
         def events = outputEventListener.events
@@ -74,7 +73,7 @@ class DeprecationLoggerTest extends Specification{
     def "logs deprecation message with advice and contextual advice"() {
         when:
         DeprecationLogger.nagUserWith(new DeprecationMessage("summary", "removal")
-            .withAdvice("advice").withContextualAdvice("contextualAdvice"), DeprecatedFeatureUsage.Type.USER_CODE_DIRECT)
+            .withAdvice("advice").withContextualAdvice("contextualAdvice"))
 
         then:
         def events = outputEventListener.events
