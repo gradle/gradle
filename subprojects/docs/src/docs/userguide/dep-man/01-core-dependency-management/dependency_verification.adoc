@@ -5,12 +5,31 @@ Working with external dependencies and plugins published on third-party reposito
 In particular, you need to be aware of what binaries are brought in transitively and if they are legit.
 To mitigate the security risks and avoid integrating compromised dependencies in your project, Gradle supports _dependency verification_.
 
+[IMPORTANT]
+====
+Dependency verification is, by nature, an inconvenient feature to use.
+It means that whenever you're going to update a dependency, builds are likely to fail.
+It means that merging branches are going to be harder because each branch can have different dependencies.
+It means that you will be tempted to switch it off.
+
+So why should you bother?
+
+Dependency verification is about **trust** in what you get and what you ship.
+
+Without dependency verification it's easy for an attacker to compromise your supply chain.
+There are many real world examples of tools compromised by adding a malicious dependency.
+Dependency verification is meant to protect yourself from those attacks, by forcing you to ensure that the artifacts you include in your build are the ones that you expect.
+It is not meant, however, to prevent you from including _vulnerable_ dependencies.
+
+Finding the right balance between security and convenience is hard but Gradle will try to let you choose the "right level" for you.
+====
+
 Dependency verification consists of two different and complementary operations:
 
 - _checksum verification_, which allows asserting the integrity of a dependency
 - _signature verification_, which allows asserting the provenance of a dependency
 
-Gradle supports both out of the box but performs no dependency verification by default.
+Gradle supports both checksum and signature verification out of the box but performs no dependency verification by default.
 This section will guide you into configuring dependency verification properly for your needs.
 
 This feature can be used for:
