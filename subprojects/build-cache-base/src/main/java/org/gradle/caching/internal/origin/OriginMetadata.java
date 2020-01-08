@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,13 @@
 
 package org.gradle.caching.internal.origin;
 
-import com.google.common.base.Preconditions;
-
 public class OriginMetadata {
 
     private final String buildInvocationId;
     private final long executionTime;
 
     public OriginMetadata(String buildInvocationId, long executionTime) {
-        this.buildInvocationId = Preconditions.checkNotNull(buildInvocationId, "buildInvocationId");
+        this.buildInvocationId = buildInvocationId;
         this.executionTime = executionTime;
     }
 

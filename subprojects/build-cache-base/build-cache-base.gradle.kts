@@ -24,6 +24,7 @@ plugins {
 dependencies {
     implementation(project(":baseAnnotations"))
     implementation(project(":files"))
+    implementation(library("slf4j_api"))
 }
 
 gradlebuildJava {
