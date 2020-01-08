@@ -83,7 +83,7 @@ class DeprecationLoggerTest extends Specification{
 
     def "logs generic deprecation message"() {
         when:
-        DeprecationLogger.nagUserOfDeprecatedThing("Summary.", "Advice.")
+        DeprecationLogger.nagUserWith(DeprecationMessage.thisHasBeenDeprecated("Summary.").withAdvice("Advice."));
 
         then:
         def events = outputEventListener.events

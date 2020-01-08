@@ -380,17 +380,6 @@ public class SingleMessageLogger {
         }
     }
 
-    /**
-     * Output format:
-     * <p>
-     * ${thing} This has been deprecated and is scheduled to be removed in Gradle {X}. ${advice}
-     */
-    public static void nagUserOfDeprecatedThing(String thing, @Nullable String advice) {
-        if (isEnabled()) {
-            nagUserWith(DeprecationMessage.thisHasBeenDeprecated(thing).withAdvice(advice));
-        }
-    }
-
     /*------------ Try to avoid using the methods below ----------------*/
 
     /**
