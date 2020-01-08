@@ -24,7 +24,7 @@ import org.gradle.internal.logging.ConfigureLogging
 import org.junit.Rule
 import spock.lang.Specification
 
-class DeprecationLoggerTest extends Specification{
+class DeprecationLoggerTest extends Specification {
 
     final CollectingTestOutputEventListener outputEventListener = new CollectingTestOutputEventListener()
     @Rule
@@ -89,5 +89,15 @@ class DeprecationLoggerTest extends Specification{
         def events = outputEventListener.events
         events.size() == 1
         events[0].message == "Summary. This has been deprecated and is scheduled to be removed in Gradle ${nextGradleVersion}. Advice."
+    }
+
+    def "logs generic deprecation message for specific thing"() {
+        when:
+        DeprecationLogger.nagUserWith(DeprecationMessage.specificThingHasBeenDeprecated("FooBar"));
+
+        then:
+        def events = outputEventListener.events
+        events.size() == 1
+        events[0].message == "FooBar has been deprecated. This is scheduled to be removed in Gradle ${nextGradleVersion}."
     }
 }

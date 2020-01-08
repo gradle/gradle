@@ -401,15 +401,6 @@ public class SingleMessageLogger {
         handler.featureUsed(usage);
     }
 
-    /**
-     * Avoid using this method, use the variant with an explanation instead.
-     */
-    public static void nagUserOfDeprecated(String thing) {
-        if (isEnabled()) {
-            nagUserWith(new DeprecationMessage(String.format("%s has been deprecated.", thing), thisWillBeRemovedMessage()));
-        }
-    }
-
     public static void nagUserOfDeprecated(String thing, String advice) {
         if (isEnabled()) {
             nagUserOfDeprecated(thing, advice, null);

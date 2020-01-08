@@ -30,8 +30,12 @@ public class DeprecationMessage {
 
     private DeprecatedFeatureUsage.Type usageType = DeprecatedFeatureUsage.Type.USER_CODE_DIRECT;
 
-    public static DeprecationMessage thisHasBeenDeprecated(String thing) {
-        return new DeprecationMessage(thing, String.format("This has been deprecated and %s", getRemovalDetails()));
+    public static DeprecationMessage thisHasBeenDeprecated(String summary) {
+        return new DeprecationMessage(summary, String.format("This has been deprecated and %s", getRemovalDetails()));
+    }
+
+    public static DeprecationMessage specificThingHasBeenDeprecated(String thing) {
+        return new DeprecationMessage(String.format("%s has been deprecated.", thing), thisWillBeRemovedMessage());
     }
 
     public DeprecationMessage(String summary, String removalDetails) {
@@ -66,5 +70,9 @@ public class DeprecationMessage {
 
     DeprecatedFeatureUsage toDeprecatedFeatureUsage(Class<?> calledFrom) {
         return new DeprecatedFeatureUsage(summary, removalDetails, advice, contextualAdvice, usageType, calledFrom);
+    }
+
+    private static String thisWillBeRemovedMessage() {
+        return String.format("This %s", getRemovalDetails());
     }
 }
