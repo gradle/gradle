@@ -42,8 +42,8 @@ class SingleMessageLoggerTest extends ConcurrentSpec {
 
     def "logs deprecation warning once until reset"() {
         when:
-        SingleMessageLogger.nagUserWith("nag")
-        SingleMessageLogger.nagUserWith("nag")
+        SingleMessageLogger.nagUserWith("nag", null)
+        SingleMessageLogger.nagUserWith("nag", null)
 
         then:
         def events = outputEventListener.events
@@ -52,7 +52,7 @@ class SingleMessageLoggerTest extends ConcurrentSpec {
 
         when:
         SingleMessageLogger.reset()
-        SingleMessageLogger.nagUserWith("nag")
+        SingleMessageLogger.nagUserWith("nag", null)
 
         then:
         events.size() == 2
@@ -72,7 +72,7 @@ class SingleMessageLoggerTest extends ConcurrentSpec {
 
         and:
         1 * factory.create() >> {
-            SingleMessageLogger.nagUserWith("nag")
+            SingleMessageLogger.nagUserWith("nag", null)
             return "result"
         }
         0 * _
@@ -101,13 +101,13 @@ class SingleMessageLoggerTest extends ConcurrentSpec {
         async {
             start {
                 thread.blockUntil.disabled
-                SingleMessageLogger.nagUserWith("nag")
+                SingleMessageLogger.nagUserWith("nag", null)
                 instant.logged
             }
             start {
                 SingleMessageLogger.whileDisabled {
                     instant.disabled
-                    SingleMessageLogger.nagUserWith("ignored")
+                    SingleMessageLogger.nagUserWith("ignored", null)
                     thread.blockUntil.logged
                 }
             }
