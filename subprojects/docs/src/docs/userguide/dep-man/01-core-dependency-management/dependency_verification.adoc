@@ -922,3 +922,37 @@ If you want to retry immediately, you can run with the `--refresh-keys` CLI flag
 ./gradlew build --refresh-keys
 ----
 
+[[sub:disabling-specific-verification]]
+== Disabling dependency verification for some configurations only
+
+In order to provide the strongest security level possible, dependency verification is enabled globally.
+This will ensure, for example, that you trust all the plugins you use.
+However, the plugins themselves may need to resolve additional dependencies that it doesn't make sense to ask the user to accept.
+For this purpose, Gradle provides an API which allows _disabling dependency verification on some specific configurations_.
+
+[WARNING]
+====
+Disabling dependency verification, if you care about security, is not a good idea.
+This API mostly exist for cases where it doesn't make sense to check dependencies.
+However, in order to be on the safe side, Gradle will systematically print a warning whenever verification has been disabled for a specific configuration.
+====
+
+As an example, a plugin may want to check if there are _newer_ versions of a library available and list those versions.
+It doesn't make sense, in this context, to ask the user to put the checksums of the POM files of the newer releases because by definition, they don't know about them.
+So the plugin might need to run its code _independently of the dependency verification configuration_.
+
+To do this, you need to call the `ResolutionStrategy#disableDependencyVerification` method:
+
+.Disabling dependency verification
+====
+include::sample[dir="snippets/userguide/dependencyManagement/dependencyVerification/disablingVerification/groovy",files="build.gradle[tags=disabling-one-configuration]"]
+include::sample[dir="snippets/userguide/dependencyManagement/dependencyVerification/disablingVerification/kotlin",files="build.gradle.kts[tags=disabling-one-configuration]"]
+====
+
+It's also possible to disable verification on detached configurations like in the following example:
+
+.Disabling dependency verification
+====
+include::sample[dir="snippets/userguide/dependencyManagement/dependencyVerification/disablingVerification/groovy",files="build.gradle[tags=disabling-detached-configuration]"]
+include::sample[dir="snippets/userguide/dependencyManagement/dependencyVerification/disablingVerification/kotlin",files="build.gradle.kts[tags=disabling-detached-configuration]"]
+====
