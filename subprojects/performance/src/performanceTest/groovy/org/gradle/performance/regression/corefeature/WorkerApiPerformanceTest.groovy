@@ -22,7 +22,7 @@ import spock.lang.Unroll
 class WorkerApiPerformanceTest extends AbstractCrossVersionGradleProfilerPerformanceTest {
     def setup() {
         runner.minimumBaseVersion = '5.0'
-        runner.targetVersions = ["6.2-20200107194018+0000"]
+        runner.targetVersions = ["6.2-20200107231456+0000"]
         runner.testProject = "workerApiProject"
     }
 
