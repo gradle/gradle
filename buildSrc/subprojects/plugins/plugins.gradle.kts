@@ -6,7 +6,7 @@ dependencies {
     implementation(project(":versioning"))
     implementation(project(":performance"))
     implementation("org.jsoup:jsoup:1.11.3")
-    implementation("com.google.guava:guava-jdk5:14.0.1")
+    implementation("com.google.guava:guava")
     implementation("org.ow2.asm:asm:7.1")
     implementation("org.ow2.asm:asm-commons:7.1")
     implementation("com.google.code.gson:gson:2.7")
