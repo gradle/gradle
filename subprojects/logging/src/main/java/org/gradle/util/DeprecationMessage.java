@@ -18,6 +18,8 @@ package org.gradle.util;
 
 import org.gradle.internal.featurelifecycle.DeprecatedFeatureUsage;
 
+import static org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler.getRemovalDetails;
+
 public class DeprecationMessage {
 
     private final String summary;
@@ -25,6 +27,10 @@ public class DeprecationMessage {
     private String advice;
     private String contextualAdvice;
     private String documentationReference;
+
+    public static DeprecationMessage thisHasBeenDeprecated(String thing) {
+        return new DeprecationMessage(thing, String.format("This has been deprecated and %s", getRemovalDetails()));
+    }
 
     public DeprecationMessage(String summary, String removalDetails) {
         this.summary = summary;

@@ -31,6 +31,8 @@ class DeprecationLoggerTest extends Specification{
     @Rule
     final ConfigureLogging logging = new ConfigureLogging(outputEventListener)
 
+    final String nextGradleVersion = GradleVersion.current().nextMajor.version;
+
     def setup() {
         SingleMessageLogger.init(Mock(UsageLocationReporter), WarningMode.All, Mock(DeprecatedUsageBuildOperationProgressBroadaster))
     }
@@ -39,7 +41,7 @@ class DeprecationLoggerTest extends Specification{
         SingleMessageLogger.reset()
     }
 
-    def "logs deprecation message with summary and removal details"() {
+    def "logs deprecation message"() {
         when:
         DeprecationLogger.nagUserWith(new DeprecationMessage("summary", "removal"), DeprecatedFeatureUsage.Type.USER_CODE_DIRECT)
 
@@ -78,5 +80,15 @@ class DeprecationLoggerTest extends Specification{
         def events = outputEventListener.events
         events.size() == 1
         events[0].message == 'summary removal contextualAdvice advice'
+    }
+
+    def "logs generic deprecation message"() {
+        when:
+        DeprecationLogger.nagUserOfDeprecatedThing("Summary.", "Advice.")
+
+        then:
+        def events = outputEventListener.events
+        events.size() == 1
+        events[0].message == "Summary. This has been deprecated and is scheduled to be removed in Gradle ${nextGradleVersion}. Advice."
     }
 }

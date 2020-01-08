@@ -16,7 +16,6 @@
 
 package org.gradle.util;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.logging.configuration.WarningMode;
@@ -400,22 +399,18 @@ public class SingleMessageLogger {
      */
     public static void nagUserOfDeprecatedThing(String thing, @Nullable String advice) {
         if (isEnabled()) {
-            nagUserWith(new DeprecationMessage(thing, String.format("This has been deprecated and %s", getRemovalDetails())).withAdvice(advice), DeprecatedFeatureUsage.Type.USER_CODE_DIRECT);
+            nagUserWith(DeprecationMessage.thisHasBeenDeprecated(thing).withAdvice(advice), DeprecatedFeatureUsage.Type.USER_CODE_DIRECT);
         }
     }
 
-    public static void nagUserOfDeprecatedThing(String thing) {
-        nagUserOfDeprecatedThing(thing, null);
-    }
-
-    /**------------ Try to avoid using the methods below ----------------*/
+    /*------------ Try to avoid using the methods below ----------------*/
 
     /**
      * Try to avoid using this nagging method. The other methods use a consistent wording for when things will be removed.
      */
-    static void nagUserWith(String message, @Nullable String advice) {
+    static void nagUserWith(String message) {
         if (isEnabled()) {
-            nagUserWith(new DeprecationMessage(message, thisWillBeRemovedMessage()).withAdvice(advice), DeprecatedFeatureUsage.Type.USER_CODE_DIRECT);
+            nagUserWith(new DeprecationMessage(message, thisWillBeRemovedMessage()), DeprecatedFeatureUsage.Type.USER_CODE_DIRECT);
         }
     }
 
