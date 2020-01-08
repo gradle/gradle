@@ -34,12 +34,14 @@ import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.resources.ResourceException;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.ModuleSources;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.resolve.ArtifactResolveException;
@@ -56,6 +58,7 @@ import org.gradle.internal.resource.transfer.ExternalResourceReadResponse;
 import org.gradle.util.SingleMessageLogger;
 
 import javax.annotation.Nullable;
+import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -226,7 +229,7 @@ public class StartParameterResolutionOverride {
         }
     }
 
-    public static class DisablingVerificationOverride implements DependencyVerificationOverride {
+    public static class DisablingVerificationOverride implements DependencyVerificationOverride, Stoppable {
         private final static Logger LOGGER = Logging.getLogger(DependencyVerificationOverride.class);
 
         private final DependencyVerificationOverride delegate;
@@ -262,6 +265,19 @@ public class StartParameterResolutionOverride {
         @Override
         public ResolvedArtifactResult verifiedArtifact(ResolvedArtifactResult artifact) {
             return delegate.verifiedArtifact(artifact);
+        }
+
+        @Override
+        public void stop() {
+            if (delegate instanceof Stoppable) {
+                ((Stoppable) delegate).stop();
+            } else if (delegate instanceof Closeable) {
+                try {
+                    ((Closeable) delegate).close();
+                } catch (IOException e) {
+                    throw UncheckedException.throwAsUncheckedException(e);
+                }
+            }
         }
     }
 }
