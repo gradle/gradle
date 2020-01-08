@@ -79,6 +79,9 @@ class ProbedLocalJavaInstallation(private val javaHome: File) : LocalJavaInstall
 }
 
 
+const val compileJavaHomePropertyName = "compileJavaHome"
+
+
 const val testJavaHomePropertyName = "testJavaHome"
 
 
@@ -87,6 +90,7 @@ const val productionJdkName = "AdoptOpenJDK 11"
 
 
 interface AvailableJavaInstallationsParameters : BuildServiceParameters {
+    var compileJavaProperty: String?
     var testJavaProperty: String?
 }
 
@@ -104,19 +108,16 @@ abstract class AvailableJavaInstallations : BuildService<AvailableJavaInstallati
     val javaInstallationProbe = JavaInstallationProbe(services.get(ExecActionFactory::class.java))
 
     val currentJavaInstallation: JavaInstallation = JavaInstallation(true, Jvm.current(), JavaVersion.current(), javaInstallationProbe)
+    val javaInstallationForCompilation by lazy {
+        determineJavaInstallation(compileJavaHomePropertyName, parameters.compileJavaProperty)
+    }
     val javaInstallationForTest by lazy {
         determineJavaInstallation(testJavaHomePropertyName, parameters.testJavaProperty)
-    }
-    val javaInstallationForCompilation by lazy {
-        determineJavaInstallationForCompilation()
     }
 
     override fun close() {
         CompositeStoppable.stoppable(services).stop()
     }
-
-    private
-    fun determineJavaInstallationForCompilation() = currentJavaInstallation
 
     private
     fun determineJavaInstallation(propertyName: String, overrideValue: String?): JavaInstallation {
