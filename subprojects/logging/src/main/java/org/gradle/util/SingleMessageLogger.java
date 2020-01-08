@@ -401,21 +401,6 @@ public class SingleMessageLogger {
         handler.featureUsed(usage);
     }
 
-    public static void nagUserOfDeprecated(String thing, String advice) {
-        if (isEnabled()) {
-            nagUserOfDeprecated(thing, advice, null);
-        }
-    }
-
-    public static void nagUserOfDeprecated(String thing, String advice, @Nullable String contextualAdvice) {
-        if (isEnabled()) {
-            nagUserWith(new DeprecationMessage(String.format("%s has been deprecated.", thing), thisWillBeRemovedMessage())
-                .withAdvice(advice)
-                .withContextualAdvice(contextualAdvice));
-        }
-    }
-
-
     @Nullable
     public static <T> T whileDisabled(Factory<T> factory) {
         ENABLED.set(false);

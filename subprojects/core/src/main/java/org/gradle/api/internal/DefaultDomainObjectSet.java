@@ -26,6 +26,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.util.DeprecationLogger;
+import org.gradle.util.DeprecationMessage;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -40,7 +41,9 @@ public class DefaultDomainObjectSet<T> extends DefaultDomainObjectCollection<T> 
     @Deprecated
     public DefaultDomainObjectSet(Class<? extends T> type) {
         super(type, new IterationOrderRetainingSetElementSource<T>(), CollectionCallbackActionDecorator.NOOP);
-        DeprecationLogger.nagUserOfDeprecated("Internal API constructor DefaultDomainObjectSet(Class<T>)", "Please use ObjectFactory.domainObjectSet(Class<T>) instead.");
+        DeprecationLogger.nagUserWith(DeprecationMessage
+            .specificThingHasBeenDeprecated("Internal API constructor DefaultDomainObjectSet(Class<T>)")
+            .withAdvice("Please use ObjectFactory.domainObjectSet(Class<T>) instead."));
     }
 
     public DefaultDomainObjectSet(Class<? extends T> type, CollectionCallbackActionDecorator decorator) {

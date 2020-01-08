@@ -23,6 +23,7 @@ import org.gradle.api.resources.TextResourceFactory;
 import org.gradle.internal.verifier.HttpRedirectVerifier;
 import org.gradle.internal.verifier.HttpRedirectVerifierFactory;
 import org.gradle.util.DeprecationLogger;
+import org.gradle.util.DeprecationMessage;
 import org.gradle.util.GUtil;
 
 import java.net.URI;
@@ -81,22 +82,14 @@ public class DefaultTextResourceFactory implements TextResourceFactory {
             HttpRedirectVerifierFactory.create(
                 rootUri,
                 allowInsecureProtocol,
-                () -> DeprecationLogger
-                    .nagUserOfDeprecated(
-                        "Loading a TextResource from an insecure URI",
-                            String.format("Switch the URI to '%s' or try 'resources.text.fromInsecureUri(\"%s\")' to silence the warning.", GUtil.toSecureUrl(rootUri), rootUri),
-                            String.format("The provided URI '%s' uses an insecure protocol (HTTP).", rootUri)
-                    ),
-                redirect -> DeprecationLogger
-                    .nagUserOfDeprecated(
-                        "Loading a TextResource from an insecure redirect",
-                        "Switch to HTTPS or use TextResourceFactory.fromInsecureUri(Object) to silence the warning.",
-                        String.format(
-                            "'%s' redirects to insecure '%s'.",
-                            uri,
-                            redirect
-                        )
-                    )
+                () -> DeprecationLogger.nagUserWith(DeprecationMessage
+                    .specificThingHasBeenDeprecated("Loading a TextResource from an insecure URI")
+                    .withAdvice(String.format("Switch the URI to '%s' or try 'resources.text.fromInsecureUri(\"%s\")' to silence the warning.", GUtil.toSecureUrl(rootUri), rootUri))
+                    .withContextualAdvice(String.format("The provided URI '%s' uses an insecure protocol (HTTP).", rootUri))),
+                redirect -> DeprecationLogger.nagUserWith(DeprecationMessage
+                    .specificThingHasBeenDeprecated("Loading a TextResource from an insecure redirect")
+                    .withAdvice("Switch to HTTPS or use TextResourceFactory.fromInsecureUri(Object) to silence the warning.")
+                    .withContextualAdvice(String.format("'%s' redirects to insecure '%s'.", uri, redirect)))
             );
         return apiTextResourcesAdapterFactory.create(rootUri, redirectVerifier);
     }

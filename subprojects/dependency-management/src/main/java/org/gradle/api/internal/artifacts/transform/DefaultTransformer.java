@@ -71,6 +71,7 @@ import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.DeprecationLogger;
+import org.gradle.util.DeprecationMessage;
 import org.gradle.work.InputChanges;
 
 import javax.annotation.Nullable;
@@ -356,7 +357,9 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
             this.delegate = delegate;
             ImmutableList.Builder<InjectionPoint> builder = ImmutableList.builder();
             builder.add(InjectionPoint.injectedByAnnotation(InputArtifact.class, File.class, () -> {
-                DeprecationLogger.nagUserOfDeprecated("Injecting the input artifact of a transform as a File", "Declare the input artifact as Provider<FileSystemLocation> instead.");
+                DeprecationLogger.nagUserWith(DeprecationMessage
+                    .specificThingHasBeenDeprecated("Injecting the input artifact of a transform as a File")
+                    .withAdvice("Declare the input artifact as Provider<FileSystemLocation> instead."));
                 return inputFileProvider.get().getAsFile();
             }));
             builder.add(InjectionPoint.injectedByAnnotation(InputArtifact.class, FILE_SYSTEM_LOCATION_PROVIDER, () -> inputFileProvider));

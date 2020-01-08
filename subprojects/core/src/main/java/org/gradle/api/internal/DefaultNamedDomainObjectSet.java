@@ -26,6 +26,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.DeprecationLogger;
+import org.gradle.util.DeprecationMessage;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -41,7 +42,9 @@ public class DefaultNamedDomainObjectSet<T> extends DefaultNamedDomainObjectColl
     @Deprecated
     public DefaultNamedDomainObjectSet(Class<? extends T> type, Instantiator instantiator) {
         this(type, instantiator, CollectionCallbackActionDecorator.NOOP);
-        DeprecationLogger.nagUserOfDeprecated("Internal API constructor DefaultNamedDomainObjectSet(Class<T>, Instantiator, Namer<T>)", "Please use ObjectFactory.namedDomainObjectSet(Class<T>) instead.");
+        DeprecationLogger.nagUserWith(DeprecationMessage
+            .specificThingHasBeenDeprecated("Internal API constructor DefaultNamedDomainObjectSet(Class<T>, Instantiator, Namer<T>)")
+            .withAdvice("Please use ObjectFactory.namedDomainObjectSet(Class<T>) instead."));
     }
 
     public DefaultNamedDomainObjectSet(Class<? extends T> type, Instantiator instantiator, CollectionCallbackActionDecorator decorator) {

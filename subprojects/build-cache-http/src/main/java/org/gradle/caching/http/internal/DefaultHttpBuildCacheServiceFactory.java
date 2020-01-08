@@ -31,6 +31,7 @@ import org.gradle.internal.resource.transport.http.SslContextFactory;
 import org.gradle.internal.verifier.HttpRedirectVerifier;
 import org.gradle.internal.verifier.HttpRedirectVerifierFactory;
 import org.gradle.util.DeprecationLogger;
+import org.gradle.util.DeprecationMessage;
 
 import javax.inject.Inject;
 import java.net.URI;
@@ -109,14 +110,9 @@ public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFac
                 allowInsecureProtocol,
                 () -> {
                     String helpLink = documentationRegistry.getDslRefForProperty(HttpBuildCache.class, "allowInsecureProtocol");
-                    DeprecationLogger
-                        .nagUserOfDeprecated(
-                            "Using insecure protocols with remote build cache",
-                            String.format(
-                                "Switch remote build cache to a secure protocol (like HTTPS) or allow insecure protocols, see %s.",
-                                helpLink
-                            )
-                        );
+                    DeprecationLogger.nagUserWith(DeprecationMessage
+                        .specificThingHasBeenDeprecated("Using insecure protocols with remote build cache")
+                        .withAdvice(String.format("Switch remote build cache to a secure protocol (like HTTPS) or allow insecure protocols, see %s.", helpLink)));
                 },
                 redirect -> {
                     throw new IllegalStateException("Redirects are unsupported by the the build cache.");

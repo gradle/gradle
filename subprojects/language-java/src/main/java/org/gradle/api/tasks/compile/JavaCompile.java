@@ -55,6 +55,7 @@ import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.CompilerUtil;
 import org.gradle.util.DeprecationLogger;
+import org.gradle.util.DeprecationMessage;
 import org.gradle.work.Incremental;
 import org.gradle.work.InputChanges;
 
@@ -80,7 +81,7 @@ public class JavaCompile extends AbstractCompile {
     private final FileCollection stableSources = getProject().files(new Callable<Object[]>() {
         @Override
         public Object[] call() {
-            return new Object[] {getSource(), getSources()};
+            return new Object[]{getSource(), getSources()};
         }
     });
 
@@ -142,7 +143,9 @@ public class JavaCompile extends AbstractCompile {
     @Deprecated
     @TaskAction
     protected void compile(@SuppressWarnings("deprecation") org.gradle.api.tasks.incremental.IncrementalTaskInputs inputs) {
-        DeprecationLogger.nagUserOfDeprecated("Extending the JavaCompile task", "Configure the task instead.");
+        DeprecationLogger.nagUserWith(DeprecationMessage
+            .specificThingHasBeenDeprecated("Extending the JavaCompile task")
+            .withAdvice("Configure the task instead."));
         compile((InputChanges) inputs);
     }
 

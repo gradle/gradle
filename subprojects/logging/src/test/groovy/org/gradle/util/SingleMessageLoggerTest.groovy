@@ -124,7 +124,9 @@ class SingleMessageLoggerTest extends ConcurrentSpec {
         def major = GradleVersion.current().nextMajor
 
         when:
-        SingleMessageLogger.nagUserOfDeprecated("foo", "bar.")
+        SingleMessageLogger.nagUserWith(DeprecationMessage
+            .specificThingHasBeenDeprecated("foo")
+            .withAdvice("bar."));
 
         then:
         def events = outputEventListener.events

@@ -23,6 +23,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.verifier.HttpRedirectVerifier;
 import org.gradle.internal.verifier.HttpRedirectVerifierFactory;
 import org.gradle.util.DeprecationLogger;
+import org.gradle.util.DeprecationMessage;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -93,38 +94,34 @@ public class DefaultUrlArtifactRepository implements UrlArtifactRepository {
     }
 
     private void nagUserOfInsecureProtocol() {
-        DeprecationLogger
-            .nagUserOfDeprecated(
-                "Using insecure protocols with repositories",
-                String.format(
-                    "Switch %s repository '%s' to a secure protocol (like HTTPS) or allow insecure protocols, see %s.",
-                    repositoryType,
-                    displayNameSupplier.get(),
-                    allowInsecureProtocolHelpLink()
+        DeprecationLogger.nagUserWith(DeprecationMessage
+            .specificThingHasBeenDeprecated("Using insecure protocols with repositories")
+            .withAdvice(String.format(
+                "Switch %s repository '%s' to a secure protocol (like HTTPS) or allow insecure protocols, see %s.",
+                repositoryType,
+                displayNameSupplier.get(),
+                allowInsecureProtocolHelpLink()
                 )
-            );
+            ));
     }
 
     private void nagUserOfInsecureRedirect(@Nullable URI redirectFrom, URI redirectLocation) {
         String contextualAdvice = null;
-        if(redirectFrom != null) {
+        if (redirectFrom != null) {
             contextualAdvice = String.format(
                 "'%s' is redirecting to '%s'.",
                 redirectFrom,
                 redirectLocation
             );
         }
-        DeprecationLogger
-            .nagUserOfDeprecated(
-                "Following insecure redirects",
-                String.format(
-                    "Switch %s repository '%s' to redirect to a secure protocol (like HTTPS) or allow insecure protocols, see %s.",
-                    repositoryType,
-                    displayNameSupplier.get(),
-                    allowInsecureProtocolHelpLink()
-                ),
-                contextualAdvice
-            );
+        DeprecationLogger.nagUserWith(DeprecationMessage
+            .specificThingHasBeenDeprecated("Following insecure redirects")
+            .withAdvice(String.format(
+                "Switch %s repository '%s' to redirect to a secure protocol (like HTTPS) or allow insecure protocols, see %s.",
+                repositoryType,
+                displayNameSupplier.get(),
+                allowInsecureProtocolHelpLink()))
+            .withContextualAdvice(contextualAdvice));
     }
 
     HttpRedirectVerifier createRedirectVerifier() {
