@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.internal.command.impl
+package org.gradle.caching.internal.controller.impl
 
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
+import groovy.transform.Immutable
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.caching.BuildCacheKey
 import org.gradle.caching.internal.CacheableEntity
-import org.gradle.caching.internal.TestCacheableTree
 import org.gradle.caching.internal.origin.OriginMetadata
 import org.gradle.caching.internal.origin.OriginMetadataFactory
 import org.gradle.caching.internal.origin.OriginReader
@@ -160,5 +160,12 @@ class DefaultBuildCacheCommandFactoryTest extends Specification {
 
     TestCacheableTree prop(String name, TreeType type = FILE, File root = null) {
         new TestCacheableTree(name, type, root)
+    }
+
+    @Immutable
+    private static class TestCacheableTree {
+        String name
+        TreeType type
+        File root
     }
 }

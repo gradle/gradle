@@ -14,13 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.internal.command;
+package org.gradle.caching.internal.controller;
 
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.CacheableEntity;
-import org.gradle.caching.internal.controller.BuildCacheLoadCommand;
-import org.gradle.caching.internal.controller.BuildCacheStoreCommand;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
