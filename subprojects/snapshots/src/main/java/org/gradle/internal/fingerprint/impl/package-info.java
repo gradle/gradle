@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-@NonNullInternalApi
+@NonNullApi
 package org.gradle.internal.fingerprint.impl;
 
-import org.gradle.internal.NonNullInternalApi;
+import org.gradle.api.NonNullApi;

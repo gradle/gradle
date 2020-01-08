@@ -25,10 +25,9 @@ description = "Tools to take immutable, comparable snapshots of files and other 
 
 dependencies {
     implementation(library("guava")) { version { require(libraryVersion("guava")) } }
-    implementation(library("jsr305")) { version { require(libraryVersion("jsr305")) } }
     implementation(project(":files"))
     implementation(project(":hashing"))
-    implementation(project(":pineapple"))
+    implementation(project(":baseAnnotations"))
     implementation(library("slf4j_api")) { version { require(libraryVersion("slf4j_api")) } }
 
     testImplementation(project(":processServices"))

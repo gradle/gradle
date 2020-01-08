@@ -19,10 +19,12 @@ package org.gradle.internal.file.impl
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.IgnoreIf
 
 import static org.gradle.util.WindowsSymbolicLinkUtil.createWindowsSymbolicLink
 
 @Requires(TestPrecondition.WINDOWS)
+@IgnoreIf({ System.getProperty("os.version") == "10.0" })
 class WindowsSymbolicLinkDeleterTest extends AbstractSymlinkDeleterTest {
     @Override
     protected void createSymbolicLink(File link, TestFile target) {

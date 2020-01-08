@@ -306,7 +306,8 @@ dependencies {
         given:
         requireGradleDistribution()
         TestFile sourcesDir = distribution.gradleHomeDir.createDir("src")
-        sourcesDir.createFile("org/gradle/Test.java").writelns("package org.gradle;", "public class Test {}")
+        sourcesDir.createFile("submodule1/org/gradle/Test.java").writelns("package org.gradle;", "public class Test {}")
+        sourcesDir.createFile("submodule2/org/gradle/Test2.java").writelns("package org.gradle;", "public class Test2 {}")
 
         buildScript """
             apply plugin: "java"
@@ -322,7 +323,7 @@ dependencies {
         succeeds ideTask
 
         then:
-        ideFileContainsGradleApiWithSources("gradle-api", sourcesDir.getPath())
+        ideFileContainsGradleApiWithSources("gradle-api", sourcesDir)
     }
 
     @ToBeFixedForInstantExecution
@@ -330,7 +331,8 @@ dependencies {
         given:
         requireGradleDistribution()
         TestFile sourcesDir = distribution.gradleHomeDir.createDir("src")
-        sourcesDir.createFile("org/gradle/Test.java").writelns("package org.gradle;", "public class Test {}")
+        sourcesDir.createFile("submodule/org/gradle/Test.java").writelns("package org.gradle;", "public class Test {}")
+        sourcesDir.createFile("submodule2/org/gradle/Test2.java").writelns("package org.gradle;", "public class Test2 {}")
 
         buildScript """
             apply plugin: "java"
@@ -346,8 +348,8 @@ dependencies {
         succeeds ideTask
 
         then:
-        ideFileContainsGradleApiWithSources("gradle-test-kit", sourcesDir.getPath())
-        ideFileContainsGradleApiWithSources("gradle-api", sourcesDir.getPath())
+        ideFileContainsGradleApiWithSources("gradle-test-kit", sourcesDir)
+        ideFileContainsGradleApiWithSources("gradle-api", sourcesDir)
     }
 
     @ToBeFixedForInstantExecution
@@ -515,7 +517,7 @@ task resolve {
         ideFileContainsEntry(jar, [sources], [javadoc])
     }
     abstract void ideFileContainsEntry(String jar, List<String> sources, List<String> javadoc)
-    abstract void ideFileContainsGradleApiWithSources(String apiJarPrefix, String sourcesPath)
+    abstract void ideFileContainsGradleApiWithSources(String apiJarPrefix, TestFile sourcesDir)
     abstract void ideFileContainsNoSourcesAndJavadocEntry()
     abstract void expectBehaviorAfterBrokenMavenArtifact(HttpArtifact httpArtifact)
     abstract void expectBehaviorAfterBrokenIvyArtifact(HttpArtifact httpArtifact)

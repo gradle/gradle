@@ -16,17 +16,17 @@
 
 package org.gradle.api.publish.ivy.internal.artifact;
 
-import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.internal.artifacts.PublishArtifactInternal;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity;
 
 import java.io.File;
 
 public class PublishArtifactBasedIvyArtifact extends AbstractIvyArtifact {
-    private final PublishArtifact artifact;
+    private final PublishArtifactInternal artifact;
     private final IvyPublicationIdentity identity;
 
-    public PublishArtifactBasedIvyArtifact(PublishArtifact artifact, IvyPublicationIdentity identity) {
+    public PublishArtifactBasedIvyArtifact(PublishArtifactInternal artifact, IvyPublicationIdentity identity) {
         this.artifact = artifact;
         this.identity = identity;
     }
@@ -64,5 +64,10 @@ public class PublishArtifactBasedIvyArtifact extends AbstractIvyArtifact {
     @Override
     public File getFile() {
         return artifact.getFile();
+    }
+
+    @Override
+    public boolean shouldBePublished() {
+        return artifact.shouldBePublished();
     }
 }

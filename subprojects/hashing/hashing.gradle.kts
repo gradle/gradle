@@ -24,8 +24,7 @@ plugins {
 description = "Common shared classes without external dependencies"
 
 dependencies {
-    implementation(project(":pineapple"))
-    implementation(library("jsr305")) { version { require(libraryVersion("jsr305")) } }
+    implementation(project(":baseAnnotations"))
     implementation(library("guava")) { version { require(libraryVersion("guava")) } }
 }
 

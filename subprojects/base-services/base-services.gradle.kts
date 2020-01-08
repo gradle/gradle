@@ -17,8 +17,8 @@ gradlebuildJava {
 }
 
 dependencies {
+    api(project(":baseAnnotations"))
     api(project(":hashing"))
-    api(library("jsr305"))
 
     implementation(library("slf4j_api"))
     implementation(library("guava"))

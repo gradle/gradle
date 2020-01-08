@@ -34,7 +34,6 @@ dependencies {
     implementation(project(":buildCache"))
     implementation(project(":buildCachePackaging"))
 
-    implementation(library("jsr305"))
     implementation(library("slf4j_api"))
     implementation(library("guava"))
     implementation(library("commons_io"))

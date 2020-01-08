@@ -69,4 +69,9 @@ public class ArchiveTaskBasedIvyArtifact extends AbstractIvyArtifact {
     public File getFile() {
         return archiveTask.getArchiveFile().get().getAsFile();
     }
+
+    @Override
+    public boolean shouldBePublished() {
+        return archiveTask.isEnabled();
+    }
 }

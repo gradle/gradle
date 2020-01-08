@@ -17,12 +17,12 @@
 package org.gradle.language.plugins
 
 import org.gradle.api.Task
-import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.component.ComponentWithVariants
 import org.gradle.api.component.PublishableComponent
 import org.gradle.api.component.SoftwareComponent
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.PublishArtifactInternal
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.component.UsageContext
@@ -412,7 +412,7 @@ class NativeBasePluginTest extends Specification {
 
     def "adds Maven publications for component with main publication"() {
         def usage1 = Stub(UsageContext)
-        def artifact1 = Stub(PublishArtifact)
+        def artifact1 = Stub(PublishArtifactInternal)
         artifact1.getFile() >> projectDir.file("artifact1")
         usage1.artifacts >> [artifact1]
         def variant1 = Stub(PublishableVariant)
@@ -421,7 +421,7 @@ class NativeBasePluginTest extends Specification {
         variant1.getCoordinates() >> new DefaultModuleVersionIdentifier("my.group", "test_app_debug", "1.2")
 
         def usage2 = Stub(UsageContext)
-        def artifact2 = Stub(PublishArtifact)
+        def artifact2 = Stub(PublishArtifactInternal)
         artifact2.getFile() >> projectDir.file("artifact1")
         usage2.artifacts >> [artifact2]
         def variant2 = Stub(PublishableVariant)

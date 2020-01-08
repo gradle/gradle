@@ -33,7 +33,6 @@ import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.PublicationArtifact;
 import org.gradle.api.publish.internal.PublicationInternal;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugins.signing.internal.SignOperationInternal;
 import org.gradle.plugins.signing.signatory.Signatory;
@@ -426,12 +425,7 @@ public class SigningExtension {
         signTask.getSignatures().all(new Action<Signature>() {
             @Override
             public void execute(final Signature signature) {
-                T artifact = publicationToSign.addDerivedArtifact((T) signature.getSource(), new Factory<File>() {
-                    @Override
-                    public File create() {
-                        return signature.getFile();
-                    }
-                });
+                T artifact = publicationToSign.addDerivedArtifact((T) signature.getSource(), new DefaultDerivedArtifactFile(signature, signTask));
                 artifact.builtBy(signTask);
                 artifacts.put(signature, artifact);
             }
@@ -653,5 +647,27 @@ public class SigningExtension {
 
     private Object force(Object maybeCallable) {
         return DeferredUtil.unpack(maybeCallable);
+    }
+
+    private static class DefaultDerivedArtifactFile implements PublicationInternal.DerivedArtifact {
+        private final Signature signature;
+        private final Sign signTask;
+
+        public DefaultDerivedArtifactFile(Signature signature, Sign signTask) {
+            this.signature = signature;
+            this.signTask = signTask;
+        }
+
+        @Override
+        public File create() {
+            return signature.getFile();
+        }
+
+        @Override
+        public boolean shouldBePublished() {
+            return signTask.isEnabled() &&
+                signTask.getOnlyIf().isSatisfiedBy(signTask) &&
+                create().exists();
+        }
     }
 }

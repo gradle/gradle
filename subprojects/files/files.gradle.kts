@@ -24,8 +24,7 @@ plugins {
 description = "Base tools to work with files"
 
 dependencies {
-    implementation(project(":pineapple"))
-    implementation(library("jsr305")) { version { require(libraryVersion("jsr305")) } }
+    implementation(project(":baseAnnotations"))
     implementation(library("guava")) { version { require(libraryVersion("guava")) } }
     implementation(library("slf4j_api")) { version { require(libraryVersion("slf4j_api")) } }
 

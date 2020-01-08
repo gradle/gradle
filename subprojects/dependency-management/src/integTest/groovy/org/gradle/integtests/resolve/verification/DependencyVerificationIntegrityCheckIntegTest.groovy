@@ -862,8 +862,9 @@ This can indicate that a dependency has been compromised. Please carefully verif
         fails ":compileJava"
 
         then:
-        failure.assertThatCause(containsText("verification-metadata.xml"))
-        failure.assertThatCause(containsText("Dependency verification cannot be performed because the configuration couldn't be read:"))
+        errorOutput.contains("Unable to read dependency verification metadata from")
+        errorOutput.contains("verification-metadata.xml")
+        failure.assertThatCause(containsText("Dependency verification cannot be performed"))
     }
 
     private static String getDocsUrl() {

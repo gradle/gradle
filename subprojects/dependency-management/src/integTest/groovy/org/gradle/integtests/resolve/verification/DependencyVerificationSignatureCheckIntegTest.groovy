@@ -1132,4 +1132,40 @@ This can indicate that a dependency has been compromised. Please carefully verif
         outputContains("Dependency verification is an incubating feature.")
 
     }
+
+    def "can verify dependencies in a buildFinished hook"() {
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+            verifySignatures()
+            addTrustedKey("org:foo:1.0", validPublicKeyHexString, "pom", "pom")
+        }
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0") {
+            withSignature {
+                signAsciiArmored(it)
+            }
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+
+            gradle.buildFinished {
+               allprojects {
+                  println configurations.compileClasspath.files
+               }
+            }
+        """
+
+        when:
+        serveValidKey()
+        fails ":help"
+
+        then:
+        failure.assertHasDescription """Dependency verification failed for configuration ':compileClasspath':
+  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key 'd7bf96a169f77b28c934ab1614f53f0824875d73' (Gradle Test (This is used for testing the gradle-signing-plugin) <test@gradle.org>) and passed verification but the key isn't in your trusted keys list.
+"""
+    }
 }

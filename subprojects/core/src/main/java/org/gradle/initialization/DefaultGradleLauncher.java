@@ -55,6 +55,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
     private final ExceptionAnalyser exceptionAnalyser;
     private final BuildListener buildListener;
     private final BuildCompletionListener buildCompletionListener;
+    private final InternalBuildFinishedListener buildFinishedListener;
     private final BuildWorkExecutor buildExecuter;
     private final BuildScopeServices buildServices;
     private final List<?> servicesToStop;
@@ -67,18 +68,27 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
     private Stage stage;
 
-    public DefaultGradleLauncher(GradleInternal gradle, ProjectsPreparer projectsPreparer, ExceptionAnalyser exceptionAnalyser,
-                                 BuildListener buildListener, BuildCompletionListener buildCompletionListener,
-                                 BuildWorkExecutor buildExecuter, BuildScopeServices buildServices,
-                                 List<?> servicesToStop, IncludedBuildControllers includedBuildControllers,
-                                 SettingsPreparer settingsPreparer, TaskExecutionPreparer taskExecutionPreparer,
-                                 InstantExecution instantExecution, BuildSourceBuilder buildSourceBuilder) {
+    public DefaultGradleLauncher(GradleInternal gradle,
+                                 ProjectsPreparer projectsPreparer,
+                                 ExceptionAnalyser exceptionAnalyser,
+                                 BuildListener buildListener,
+                                 BuildCompletionListener buildCompletionListener,
+                                 InternalBuildFinishedListener buildFinishedListener,
+                                 BuildWorkExecutor buildExecuter,
+                                 BuildScopeServices buildServices,
+                                 List<?> servicesToStop,
+                                 IncludedBuildControllers includedBuildControllers,
+                                 SettingsPreparer settingsPreparer,
+                                 TaskExecutionPreparer taskExecutionPreparer,
+                                 InstantExecution instantExecution,
+                                 BuildSourceBuilder buildSourceBuilder) {
         this.gradle = gradle;
         this.projectsPreparer = projectsPreparer;
         this.exceptionAnalyser = exceptionAnalyser;
         this.buildListener = buildListener;
         this.buildExecuter = buildExecuter;
         this.buildCompletionListener = buildCompletionListener;
+        this.buildFinishedListener = buildFinishedListener;
         this.buildServices = buildServices;
         this.servicesToStop = servicesToStop;
         this.includedBuildControllers = includedBuildControllers;
@@ -172,6 +182,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
         includedBuildControllers.finishBuild(failures);
         try {
             buildListener.buildFinished(buildResult);
+            buildFinishedListener.buildFinished((GradleInternal) buildResult.getGradle());
         } catch (Throwable t) {
             failures.add(t);
         }
