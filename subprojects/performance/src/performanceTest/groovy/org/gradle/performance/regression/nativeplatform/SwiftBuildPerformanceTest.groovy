@@ -53,7 +53,6 @@ class SwiftBuildPerformanceTest extends AbstractCrossVersionGradleInternalPerfor
         given:
         runner.testProject = testProject
         runner.tasksToRun = ["assemble"]
-        runner.targetVersions = ['5.7-20190811220031+0000']
         runner.gradleOpts = ["-Xms$maxMemory", "-Xmx$maxMemory"]
         runner.addBuildExperimentListener(new ChangeSwiftFileMutator(fileToChange))
 

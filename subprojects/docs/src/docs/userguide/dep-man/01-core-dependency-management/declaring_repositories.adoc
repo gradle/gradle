@@ -335,6 +335,7 @@ There are different use cases for it:
 
 It's even more important when considering that the declared order of repositories matter.
 
+[[sec:declaring-repository-filter]]
 === Declaring a repository filter
 
 .Declaring repository contents
@@ -351,6 +352,26 @@ By default, repositories include everything and exclude nothing:
 
 It is possible to filter either by explicit _group_, _module_ or _version_, either strictly or using regular expressions.
 See link:{javadocPath}/org/gradle/api/artifacts/repositories/RepositoryContentDescriptor.html[RepositoryContentDescriptor] for details.
+
+=== Declaring content exclusively found in one repository
+
+Filters declared using the <<#sec:declaring-repository-filter,repository-level content filter>> are not exclusive.
+This means that declaring that a repository _includes_ an artifact doesn't mean that the other repositories can't have it either: you must declare what every repository contains in extension.
+
+Alternatively, Gradle provides an API which lets you declare that a repository _exclusively includes_ an artifact.
+If you do so:
+
+- an artifact declared in a repository _can't_ be found in any other
+- exclusive repository content must be declared in extension (just like for <<#sec:declaring-repository-filter, repository-level content))
+
+.Declaring exclusive repository contents
+====
+include::sample[dir="snippets//userguide/dependencyManagement/declaringRepositories/filtering/groovy",files="build.gradle[tags=exclusive-repository-filter]"]
+include::sample[dir="snippets//userguide/dependencyManagement/declaringRepositories/filtering/kotlin",files="build.gradle.kts[tags=exclusive-repository-filter]"]
+====
+
+It is possible to filter either by explicit _group_, _module_ or _version_, either strictly or using regular expressions.
+See link:{javadocPath}/org/gradle/api/artifacts/repositories/InclusiveRepositoryContentDescriptor.html[InclusiveRepositoryContentDescriptor] for details.
 
 === Maven repository filtering
 

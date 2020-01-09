@@ -80,7 +80,7 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
         }
 
         @Override
-        public boolean immutable() {
+        public boolean isImmutable() {
             return true;
         }
 
@@ -138,7 +138,7 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
         }
 
         @Override
-        public boolean immutable() {
+        public boolean isImmutable() {
             return true;
         }
 

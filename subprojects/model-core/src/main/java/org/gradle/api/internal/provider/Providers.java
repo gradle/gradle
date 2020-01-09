@@ -197,7 +197,7 @@ public class Providers {
         }
 
         @Override
-        public boolean immutable() {
+        public boolean isImmutable() {
             return true;
         }
 

@@ -279,7 +279,7 @@ abstract class ProviderSpec<T> extends Specification {
 
         expect:
         provider instanceof Managed
-        provider.immutable() == noValueProviderImmutable
+        provider.isImmutable() == noValueProviderImmutable
         def state = provider.unpackState()
         def copy = managedFactory().fromState(provider.publicType(), state)
         !copy.is(provider) || noValueProviderImmutable
@@ -293,7 +293,7 @@ abstract class ProviderSpec<T> extends Specification {
 
         expect:
         provider instanceof Managed
-        !provider.immutable()
+        !provider.isImmutable()
         def state = provider.unpackState()
         def copy = managedFactory().fromState(provider.publicType(), state)
         !copy.is(provider)

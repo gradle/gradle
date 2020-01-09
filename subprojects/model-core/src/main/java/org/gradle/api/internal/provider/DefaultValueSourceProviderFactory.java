@@ -174,7 +174,7 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         }
 
         @Override
-        public boolean immutable() {
+        public boolean isImmutable() {
             return true;
         }
 

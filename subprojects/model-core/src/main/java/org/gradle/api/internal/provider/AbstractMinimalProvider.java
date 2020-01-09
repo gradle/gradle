@@ -120,7 +120,7 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
     }
 
     @Override
-    public boolean immutable() {
+    public boolean isImmutable() {
         return false;
     }
 

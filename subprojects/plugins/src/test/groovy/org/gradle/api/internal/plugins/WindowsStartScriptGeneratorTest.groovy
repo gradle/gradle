@@ -46,7 +46,7 @@ class WindowsStartScriptGeneratorTest extends Specification {
         generator.generateScript(details, destination)
 
         then:
-        destination.toString().split(TextUtil.windowsLineSeparator).length == 100
+        destination.toString().split(TextUtil.windowsLineSeparator).length == 103
     }
 
     def "defaultJvmOpts is expanded properly in windows script"() {
