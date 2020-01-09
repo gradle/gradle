@@ -22,6 +22,7 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.copy.CopySpecInternal
 import org.gradle.api.internal.file.copy.DefaultCopySpec
 import org.gradle.api.tasks.util.PatternSet
+import org.gradle.instantexecution.extensions.uncheckedCast
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
@@ -48,7 +49,7 @@ class DefaultCopySpecCodec(
         val destPath = read() as String?
         val sourceFiles = read() as FileCollection
         val patterns = read() as PatternSet
-        val children = readList() as List<CopySpecInternal>
+        val children = readList().uncheckedCast<List<CopySpecInternal>>()
         return DefaultCopySpec(fileResolver, fileCollectionFactory, instantiator, destPath, sourceFiles, patterns, children)
     }
 }

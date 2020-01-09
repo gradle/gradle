@@ -120,7 +120,7 @@ object IsolatedArrayCodec : Codec<IsolatedArray> {
 
     override suspend fun ReadContext.decode(): IsolatedArray {
         val arrayType = readClass()
-        val elements = read() as ImmutableList<Isolatable<*>>
+        val elements = readNonNull<ImmutableList<Isolatable<*>>>()
         return IsolatedArray(elements, arrayType)
     }
 }
@@ -184,7 +184,7 @@ class IsolatedManagedValueCodec(private val managedFactory: ManagedFactoryRegist
     override suspend fun ReadContext.decode(): IsolatedManagedValue {
         val targetType = readClass()
         val factoryId = readSmallInt()
-        val state = read() as Isolatable<Any>
+        val state = readNonNull<Isolatable<Any>>()
         return IsolatedManagedValue(targetType, managedFactory.lookup(factoryId), state)
     }
 }
