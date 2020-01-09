@@ -182,7 +182,7 @@ abstract class AbstractJvmLanguageIntegrationTest extends AbstractIntegrationSpe
     }
 
     def excludeStatementFor(List<String> fileExtensions) {
-        fileExtensions.collect{"exclude '**/*.${it}'"}.join(SystemProperties.instance.lineSeparator)
+        fileExtensions.collect { "exclude '**/*.${it}'" }.join(SystemProperties.instance.lineSeparator)
     }
 
     @ToBeFixedForInstantExecution(bottomSpecs = ["JavaLanguageIntegrationTest", "JvmApiSpecIntegrationTest"])
