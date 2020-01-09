@@ -19,6 +19,7 @@ package org.gradle.util;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.internal.Factory;
+import org.gradle.internal.deprecation.DeprecationMessage;
 import org.gradle.internal.featurelifecycle.DeprecatedUsageBuildOperationProgressBroadaster;
 import org.gradle.internal.featurelifecycle.FeatureHandler;
 import org.gradle.internal.featurelifecycle.FeatureUsage;
@@ -247,123 +248,18 @@ public class SingleMessageLogger {
     /**
      * Output format:
      * <p>
-     * The ${propertyName} property has been deprecated. This is scheduled to be removed in Gradle X. ${advice}
-     */
-    public static void nagUserOfDiscontinuedProperty(String propertyName, String advice) {
-        if (isEnabled()) {
-            nagUserWith(new DeprecationMessage(String.format("The %s property has been deprecated.", propertyName), thisWillBeRemovedMessage()).withAdvice(advice));
-        }
-    }
-
-    /**
-     * Output format:
-     * <p>
-     * The ${parameterName} named parameter has been deprecated. This is scheduled to be removed in Gradle X. Please use the ${replacement} named parameter instead.
-     */
-    public static void nagUserOfReplacedNamedParameter(String parameterName, String replacement) {
-        if (isEnabled()) {
-            nagUserWith(new DeprecationMessage(String.format("The %s named parameter has been deprecated.", parameterName), thisWillBeRemovedMessage())
-                    .withAdvice(String.format("Please use the %s named parameter instead.", replacement)));
-        }
-    }
-
-    /**
-     * Output format:
-     * <p>
-     * ${summary} has been deprecated. This is scheduled to be removed in Gradle X. ${advice}
-     */
-    public static void nagUserWithDeprecatedBuildInvocationFeature(String summary, String advice) {
-        nagUserWithDeprecatedBuildInvocationFeature(summary, thisWillBeRemovedMessage(), advice);
-    }
-
-
-    /**
-     * Output format:
-     * <p>
-     * ${summary} has been deprecated. ${removeDetails} ${advice}
-     */
-    public static void nagUserWithDeprecatedBuildInvocationFeature(String summary, String removalDetails, String advice) {
-        nagUserWith(new DeprecationMessage(String.format("%s has been deprecated.", summary), removalDetails).withAdvice(advice).withBuildInvocation());
-    }
-
-    /**
-     * Output format:
-     * <p>
-     * ${summary} has been deprecated. This is scheduled to be removed in Gradle X. ${advice}
-     */
-    public static void nagUserWithDeprecatedIndirectUserCodeCause(String summary, @Nullable String advice) {
-        if (isEnabled()) {
-            nagUserWithDeprecatedIndirectUserCodeCause(summary, advice, null);
-        }
-    }
-
-    /**
-     * Try to avoid using this nagging method. The other methods use a consistent wording for when things will be removed.
-     * Output format:
-     * <p>
-     * ${summary} has been deprecated. This is scheduled to be removed in Gradle X.
-     */
-    public static void nagUserWithDeprecatedIndirectUserCodeCause(String summary) {
-        if (isEnabled()) {
-            nagUserWithDeprecatedIndirectUserCodeCause(summary, null);
-        }
-    }
-
-    /**
-     * Output format:
-     * <p>
-     * ${summary} has been deprecated. This is scheduled to be removed in Gradle X. ${contextualAdvice} ${advice}
-     */
-    public static void nagUserWithDeprecatedIndirectUserCodeCause(String summary, @Nullable String advice, @Nullable String contextualAdvice) {
-        if (isEnabled()) {
-            nagUserWith(new DeprecationMessage(String.format("%s has been deprecated.", summary), thisWillBeRemovedMessage())
-                    .withAdvice(advice)
-                    .withContextualAdvice(contextualAdvice)
-                    .withIndirectUsage());
-        }
-    }
-
-    /**
-     * Output format:
-     * <p>
-     * ${summary} has been deprecated. ${removeDetails} ${contextualAdvice} ${advice}
-     */
-    public static void nagUserWithDeprecatedIndirectUserCodeCause(String summary, String removalDetails, String advice, String contextualAdvice) {
-        if (isEnabled()) {
-            nagUserWith(new DeprecationMessage(String.format("%s has been deprecated.", summary), removalDetails)
-                .withAdvice(advice)
-                .withContextualAdvice(contextualAdvice)
-                .withIndirectUsage());
-        }
-    }
-
-    /**
-     * Output format:
-     * <p>
      * ${behaviour} This has been deprecated and is scheduled to be removed in Gradle {X}.
      */
     public static void nagUserOfDeprecatedBehaviour(String behaviour) {
         if (isEnabled()) {
-            nagUserWith(new DeprecationMessage(behaviour, String.format("This behaviour has been deprecated and %s", getRemovalDetails())));
+            nagUserWith(DeprecationMessage.behaviourHasBeenDeprecated(behaviour));
         }
     }
 
-    public enum ConfigurationDeprecationType {
-        DEPENDENCY_DECLARATION("use", true),
-        CONSUMPTION("use attributes to consume", false),
-        RESOLUTION("resolve", true),
-        ARTIFACT_DECLARATION("use", true);
-
-        public final String usage;
-        public final boolean inUserCode;
-
-        ConfigurationDeprecationType(String usage, boolean inUserCode) {
-            this.usage = usage;
-            this.inUserCode = inUserCode;
-        }
-
-        public String displayName() {
-            return name().toLowerCase().replace('_', ' ');
+    // used in performance test - do not use in new code
+    public static void nagUserOfDeprecated(String thing) {
+        if (isEnabled()) {
+            nagUserWith(DeprecationMessage.specificThingHasBeenDeprecated(thing));
         }
     }
 
@@ -416,4 +312,5 @@ public class SingleMessageLogger {
     public static Throwable getDeprecationFailure() {
         return deprecatedFeatureHandler.getDeprecationFailure();
     }
+
 }

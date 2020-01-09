@@ -31,7 +31,7 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.component.UsageContext;
 import org.gradle.internal.Actions;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.util.DeprecationMessage;
+import org.gradle.internal.deprecation.DeprecationMessage;
 import org.gradle.util.SingleMessageLogger;
 
 import java.util.Set;

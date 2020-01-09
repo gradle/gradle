@@ -25,7 +25,7 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.internal.core.NamedEntityInstantiator;
 import org.gradle.util.DeprecationLogger;
-import org.gradle.util.DeprecationMessage;
+import org.gradle.internal.deprecation.DeprecationMessage;
 
 import java.util.Set;
 

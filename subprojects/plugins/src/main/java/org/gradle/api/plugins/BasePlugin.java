@@ -43,7 +43,7 @@ import org.gradle.internal.Describables;
 import org.gradle.jvm.tasks.Jar;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.util.DeprecationLogger;
-import org.gradle.util.DeprecationMessage;
+import org.gradle.internal.deprecation.DeprecationMessage;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;

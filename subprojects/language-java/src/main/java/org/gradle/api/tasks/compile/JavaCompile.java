@@ -55,7 +55,7 @@ import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.CompilerUtil;
 import org.gradle.util.DeprecationLogger;
-import org.gradle.util.DeprecationMessage;
+import org.gradle.internal.deprecation.DeprecationMessage;
 import org.gradle.work.Incremental;
 import org.gradle.work.InputChanges;
 

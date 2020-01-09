@@ -23,7 +23,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.verifier.HttpRedirectVerifier;
 import org.gradle.internal.verifier.HttpRedirectVerifierFactory;
 import org.gradle.util.DeprecationLogger;
-import org.gradle.util.DeprecationMessage;
+import org.gradle.internal.deprecation.DeprecationMessage;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

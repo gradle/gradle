@@ -27,7 +27,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.DeprecationLogger;
-import org.gradle.util.DeprecationMessage;
+import org.gradle.internal.deprecation.DeprecationMessage;
 
 import java.util.ArrayList;
 import java.util.Collection;

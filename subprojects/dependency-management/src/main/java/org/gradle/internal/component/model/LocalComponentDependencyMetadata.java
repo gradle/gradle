@@ -28,9 +28,10 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.IncompatibleConfigurationSelectionException;
+import org.gradle.internal.deprecation.ConfigurationDeprecationType;
+import org.gradle.internal.deprecation.DeprecationMessage;
 import org.gradle.internal.exceptions.ConfigurationNotConsumableException;
 import org.gradle.util.DeprecationLogger;
-import org.gradle.util.DeprecationMessage;
 import org.gradle.util.GUtil;
 
 import java.util.Collection;
@@ -167,7 +168,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         }
         List<String> consumptionAlternatives = toConfiguration.getConsumptionAlternatives();
         if (consumptionAlternatives != null) {
-            DeprecationLogger.nagUserWith(DeprecationMessage.configurationHasBeenReplaced(toConfiguration.getName(), DeprecationLogger.ConfigurationDeprecationType.CONSUMPTION, consumptionAlternatives));
+            DeprecationLogger.nagUserWith(DeprecationMessage.replacedConfiguration(toConfiguration.getName(), ConfigurationDeprecationType.CONSUMPTION, consumptionAlternatives));
         }
     }
 

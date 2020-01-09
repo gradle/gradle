@@ -23,6 +23,7 @@ import org.gradle.internal.featurelifecycle.UsageLocationReporter
 import org.gradle.internal.logging.CollectingTestOutputEventListener
 import org.gradle.internal.logging.ConfigureLogging
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
+import org.gradle.internal.deprecation.DeprecationMessage
 import org.junit.Rule
 import spock.lang.Subject
 

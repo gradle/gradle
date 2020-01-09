@@ -37,7 +37,7 @@ import org.gradle.internal.FileUtils;
 import org.gradle.internal.concurrent.DefaultParallelismConfiguration;
 import org.gradle.internal.logging.DefaultLoggingConfiguration;
 import org.gradle.util.DeprecationLogger;
-import org.gradle.util.DeprecationMessage;
+import org.gradle.internal.deprecation.DeprecationMessage;
 
 import javax.annotation.Nullable;
 import java.io.File;
