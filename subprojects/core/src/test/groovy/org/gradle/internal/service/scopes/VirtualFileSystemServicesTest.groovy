@@ -32,7 +32,9 @@ import org.gradle.internal.vfs.VirtualFileSystem
 import org.gradle.internal.vfs.watch.FileWatcherRegistry
 import org.gradle.internal.vfs.watch.FileWatcherRegistryFactory
 import spock.lang.Specification
+import spock.lang.Unroll
 
+@Unroll
 class VirtualFileSystemServicesTest extends Specification {
     def additiveCacheLocations = Mock(AdditiveCacheLocations)
     def fileHasher = Mock(FileHasher)
@@ -44,7 +46,7 @@ class VirtualFileSystemServicesTest extends Specification {
     def watcherRegistryFactory = Mock(FileWatcherRegistryFactory)
     def watcherRegistry = Mock(FileWatcherRegistry)
 
-    def "global virtual file system is not invalidated from the build session scope listener after the build completed"() {
+    def "global virtual file system is not invalidated from the build session scope listener after the build completed (retention enabled: #retentionEnabled)"() {
         def gradleUserHomeVirtualFileSystem = Mock(VirtualFileSystem)
         RootBuildLifecycleListener rootBuildLifecycleListener
         _ * startParameter.getSystemPropertiesArgs() >> systemPropertyArgs(retentionEnabled)
