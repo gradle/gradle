@@ -43,7 +43,9 @@ public interface UnitOfWork extends CacheableEntity {
      */
     WorkResult execute(@Nullable InputChangesInternal inputChanges, InputChangesContext context);
 
-    Optional<Duration> getTimeout();
+    default Optional<Duration> getTimeout() {
+        return Optional.empty();
+    }
 
     InputChangeTrackingStrategy getInputChangeTrackingStrategy();
 
@@ -94,7 +96,9 @@ public interface UnitOfWork extends CacheableEntity {
      * Return a reason to disable caching for this work.
      * When returning {@link Optional#empty()} if caching can still be disabled further down the pipeline.
      */
-    Optional<CachingDisabledReason> shouldDisableCaching(@Nullable OverlappingOutputs detectedOverlappingOutputs);
+    default Optional<CachingDisabledReason> shouldDisableCaching(@Nullable OverlappingOutputs detectedOverlappingOutputs) {
+        return Optional.empty();
+    }
 
     /**
      * Checks if this work has empty inputs. If the work cannot be skipped, {@link Optional#empty()} is returned.
@@ -109,7 +113,9 @@ public interface UnitOfWork extends CacheableEntity {
      * Is this work item allowed to load from the cache, or if we only allow it to be stored.
      */
     // TODO Make this part of CachingState instead
-    boolean isAllowedToLoadFromCache();
+    default boolean isAllowedToLoadFromCache() {
+        return true;
+    }
 
     /**
      * Paths to locations changed by the unit of work.
@@ -145,7 +151,9 @@ public interface UnitOfWork extends CacheableEntity {
     /**
      * Whether the outputs should be cleanup up when the work is executed non-incrementally.
      */
-    boolean shouldCleanupOutputsOnNonIncrementalExecution();
+    default boolean shouldCleanupOutputsOnNonIncrementalExecution() {
+        return true;
+    }
 
     /**
      * Takes a snapshot of the outputs before execution.
