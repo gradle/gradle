@@ -296,7 +296,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
     }
 
     @ToBeFixedForInstantExecution(
-        value = ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS,
+        value = ToBeFixedForInstantExecution.Skip.UNROLLED_FAILS_IN_SUBCLASS,
         bottomSpecs = "AutoConsoleBuildPhaseFunctionalTest"
     )
     def "shows progress bar and percent phase completion with artifact transforms"() {

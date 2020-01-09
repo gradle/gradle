@@ -47,10 +47,10 @@ public @interface ToBeFixedForInstantExecution {
         DO_NOT_SKIP,
 
         /**
-         * Use this reason on tests in super classes that fail on some subclasses.
+         * Use this reason on unrolled tests in super classes that fail on some subclasses.
          * Spock doesn't allow to override test methods and annotate them.
          */
-        FAILS_IN_SUBCLASS,
+        UNROLLED_FAILS_IN_SUBCLASS,
 
         /**
          * Use this reason on tests that fail <code>:verifyTestFilesCleanup</code> with instant execution.
