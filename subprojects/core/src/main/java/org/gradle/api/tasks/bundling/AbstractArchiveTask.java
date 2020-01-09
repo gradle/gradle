@@ -30,6 +30,7 @@ import org.gradle.api.tasks.AbstractCopyTask;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputFile;
+import org.gradle.internal.deprecation.DeprecationMessage;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.DeprecationLogger;
@@ -108,7 +109,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     @ReplacedBy("archiveFileName")
     public String getArchiveName() {
         // This is used by the Kotlin plugin, we should upstream a fix to avoid this API first.
-        // DeprecationLogger.nagUserOfReplacedProperty("archiveName", "archiveFileName");
+        // DeprecationLogger.nagUserWith(DeprecationMessage.replacedProperty("archiveName", "archiveFileName"));
         return archiveName.get();
     }
 
@@ -120,7 +121,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      */
     @Deprecated
     public void setArchiveName(String name) {
-        DeprecationLogger.nagUserOfReplacedProperty("archiveName", "archiveFileName");
+        DeprecationLogger.nagUserWith(DeprecationMessage.replacedProperty("archiveName", "archiveFileName"));
         archiveName.convention(name);
         archiveName.set(name);
     }
@@ -147,7 +148,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     @ReplacedBy("archiveFile")
     public File getArchivePath() {
         // This is used by the Kotlin plugin, we should upstream a fix to avoid this API first.
-        // DeprecationLogger.nagUserOfReplacedProperty("archivePath", "archiveFile");
+        // DeprecationLogger.nagUserWith(DeprecationMessage.replacedProperty("archivePath", "archiveFile"));
         return getArchiveFile().get().getAsFile();
     }
 
@@ -182,7 +183,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     @Deprecated
     @ReplacedBy("destinationDirectory")
     public File getDestinationDir() {
-        DeprecationLogger.nagUserOfReplacedProperty("destinationDir", "destinationDirectory");
+        DeprecationLogger.nagUserWith(DeprecationMessage.replacedProperty("destinationDir", "destinationDirectory"));
         return archiveDestinationDirectory.getAsFile().get();
     }
 
@@ -193,7 +194,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      */
     @Deprecated
     public void setDestinationDir(File destinationDir) {
-        DeprecationLogger.nagUserOfReplacedProperty("destinationDir", "destinationDirectory");
+        DeprecationLogger.nagUserWith(DeprecationMessage.replacedProperty("destinationDir", "destinationDirectory"));
         archiveDestinationDirectory.set(getProject().file(destinationDir));
     }
 
@@ -217,7 +218,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     @Deprecated
     @ReplacedBy("archiveBaseName")
     public String getBaseName() {
-        DeprecationLogger.nagUserOfReplacedProperty("baseName", "archiveBaseName");
+        DeprecationLogger.nagUserWith(DeprecationMessage.replacedProperty("baseName", "archiveBaseName"));
         return archiveBaseName.getOrNull();
     }
 
@@ -228,7 +229,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      */
     @Deprecated
     public void setBaseName(@Nullable String baseName) {
-        DeprecationLogger.nagUserOfReplacedProperty("baseName", "archiveBaseName");
+        DeprecationLogger.nagUserWith(DeprecationMessage.replacedProperty("baseName", "archiveBaseName"));
         archiveBaseName.convention(baseName);
         archiveBaseName.set(baseName);
     }
@@ -254,7 +255,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     @Deprecated
     @ReplacedBy("archiveAppendix")
     public String getAppendix() {
-        DeprecationLogger.nagUserOfReplacedProperty("appendix", "archiveAppendix");
+        DeprecationLogger.nagUserWith(DeprecationMessage.replacedProperty("appendix", "archiveAppendix"));
         return archiveAppendix.getOrNull();
     }
 
@@ -266,7 +267,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     @Deprecated
     public void setAppendix(@Nullable String appendix) {
         // This is used by the Kotlin plugin, we should upstream a fix to avoid this API first.
-        // DeprecationLogger.nagUserOfReplacedProperty("appendix", "archiveAppendix");
+        // DeprecationLogger.nagUserWith(DeprecationMessage.replacedProperty("appendix", "archiveAppendix"));
         archiveAppendix.convention(appendix);
         archiveAppendix.set(appendix);
     }
@@ -292,7 +293,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     @Deprecated
     @ReplacedBy("archiveVersion")
     public String getVersion() {
-        DeprecationLogger.nagUserOfReplacedProperty("version", "archiveVersion");
+        DeprecationLogger.nagUserWith(DeprecationMessage.replacedProperty("version", "archiveVersion"));
         return archiveVersion.getOrNull();
     }
 
@@ -303,7 +304,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      */
     @Deprecated
     public void setVersion(@Nullable String version) {
-        DeprecationLogger.nagUserOfReplacedProperty("version", "archiveVersion");
+        DeprecationLogger.nagUserWith(DeprecationMessage.replacedProperty("version", "archiveVersion"));
         archiveVersion.convention(version);
         archiveVersion.set(version);
     }
@@ -327,7 +328,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     @Deprecated
     @ReplacedBy("archiveExtension")
     public String getExtension() {
-        DeprecationLogger.nagUserOfReplacedProperty("extension", "archiveExtension");
+        DeprecationLogger.nagUserWith(DeprecationMessage.replacedProperty("extension", "archiveExtension"));
         return archiveExtension.getOrNull();
     }
 
@@ -338,7 +339,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      */
     @Deprecated
     public void setExtension(@Nullable String extension) {
-        DeprecationLogger.nagUserOfReplacedProperty("extension", "archiveExtension");
+        DeprecationLogger.nagUserWith(DeprecationMessage.replacedProperty("extension", "archiveExtension"));
         archiveExtension.convention(extension);
         archiveExtension.set(extension);
     }
@@ -362,7 +363,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     @Deprecated
     @ReplacedBy("archiveClassifier")
     public String getClassifier() {
-        DeprecationLogger.nagUserOfReplacedProperty("classifier", "archiveClassifier");
+        DeprecationLogger.nagUserWith(DeprecationMessage.replacedProperty("classifier", "archiveClassifier"));
         return archiveClassifier.getOrNull();
     }
 
@@ -374,7 +375,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     @Deprecated
     public void setClassifier(@Nullable String classifier) {
         // This is used by the Kotlin plugin, we should upstream a fix to avoid this API first.
-        // DeprecationLogger.nagUserOfReplacedProperty("classifier", "archiveClassifier");
+        // DeprecationLogger.nagUserWith(DeprecationMessage.replacedProperty("classifier", "archiveClassifier"));
         archiveClassifier.convention(classifier);
         archiveClassifier.set(classifier);
     }

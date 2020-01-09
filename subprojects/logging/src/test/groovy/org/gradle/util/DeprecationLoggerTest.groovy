@@ -136,7 +136,7 @@ class DeprecationLoggerTest extends Specification {
 
     def "logs deprecated and replaced parameter usage message"() {
         when:
-        DeprecationLogger.nagUserWith(DeprecationMessage.replacedParameter("paramName", "replacement"))
+        DeprecationLogger.nagUserWith(DeprecationMessage.replacedNamedParameter("paramName", "replacement"))
 
         then:
         def events = outputEventListener.events
@@ -152,6 +152,16 @@ class DeprecationLoggerTest extends Specification {
         def events = outputEventListener.events
         events.size() == 1
         events[0].message == "The propertyName property has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Advice."
+    }
+
+    def "logs deprecated and replaced property message"() {
+        when:
+        DeprecationLogger.nagUserWith(DeprecationMessage.replacedProperty("propertyName", "replacement"))
+
+        then:
+        def events = outputEventListener.events
+        events.size() == 1
+        events[0].message == "The propertyName property has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Please use the replacement property instead."
     }
 
     @Unroll

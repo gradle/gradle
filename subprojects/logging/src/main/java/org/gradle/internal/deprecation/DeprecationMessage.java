@@ -83,7 +83,7 @@ public class DeprecationMessage {
         };
     }
 
-    public static DeprecationMessage replacedParameter(final String parameterName, final String replacement) {
+    public static DeprecationMessage replacedNamedParameter(final String parameterName, final String replacement) {
         return new DeprecationMessage() {
             @Override
             public DeprecatedFeatureUsage toDeprecatedFeatureUsage(Class<?> calledFrom) {
@@ -101,6 +101,18 @@ public class DeprecationMessage {
             public DeprecatedFeatureUsage toDeprecatedFeatureUsage(Class<?> calledFrom) {
                 summary(String.format("The %s property has been deprecated.", propertyName));
                 removalDetails(thisWillBeRemovedMessage());
+                return super.toDeprecatedFeatureUsage(calledFrom);
+            }
+        };
+    }
+
+    public static DeprecationMessage replacedProperty(final String propertyName, final String replacement) {
+        return new DeprecationMessage() {
+            @Override
+            public DeprecatedFeatureUsage toDeprecatedFeatureUsage(Class<?> calledFrom) {
+                summary(String.format("The %s property has been deprecated.", propertyName));
+                removalDetails(thisWillBeRemovedMessage());
+                withAdvice(String.format("Please use the %s property instead.", replacement));
                 return super.toDeprecatedFeatureUsage(calledFrom);
             }
         };
