@@ -16,6 +16,7 @@
 
 package org.gradle.internal.service.scopes;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import org.apache.tools.ant.DirectoryScanner;
 import org.gradle.StartParameter;
@@ -155,238 +156,245 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
 
     @Override
     public void registerGradleUserHomeServices(ServiceRegistration registration) {
-        registration.addProvider(new Object() {
-
-            CrossBuildFileHashCache createCrossBuildFileHashCache(CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
-                return new CrossBuildFileHashCache(null, cacheRepository, inMemoryCacheDecoratorFactory, CrossBuildFileHashCache.Kind.FILE_HASHES);
-            }
-
-            FileHasher createCachingFileHasher(StringInterner stringInterner, CrossBuildFileHashCache fileStore, FileSystem fileSystem, GlobalScopeFileTimeStampInspector fileTimeStampInspector, StreamHasher streamHasher) {
-                CachingFileHasher fileHasher = new CachingFileHasher(new DefaultFileHasher(streamHasher), fileStore, stringInterner, fileTimeStampInspector, "fileHashes", fileSystem);
-                fileTimeStampInspector.attach(fileHasher);
-                return fileHasher;
-            }
-
-            FileWatcherRegistryFactory createFileWatcherRegistryFactory() {
-                OperatingSystem operatingSystem = OperatingSystem.current();
-                if (operatingSystem.isMacOsX()) {
-                    return new DarwinFileWatcherRegistry.Factory();
-                } else if (operatingSystem.isWindows()) {
-                    return new WindowsFileWatcherRegistry.Factory();
-                } else if (operatingSystem.isLinux()) {
-                    // The Linux watcher in the JDK works quite well
-                    return new JdkFileWatcherRegistry.Factory();
-                } else {
-                    return new NoopFileWatcherRegistry.Factory();
-                }
-            }
-
-            VirtualFileSystem createVirtualFileSystem(
-                AdditiveCacheLocations additiveCacheLocations,
-                FileHasher hasher,
-                FileSystem fileSystem,
-                FileWatcherRegistryFactory watcherRegistryFactory,
-                ListenerManager listenerManager,
-                Stat stat,
-                StringInterner stringInterner
-            ) {
-                WatchingVirtualFileSystem virtualFileSystem = new DefaultWatchingVirtualFileSystem(
-                    watcherRegistryFactory,
-                    new DefaultVirtualFileSystem(
-                        hasher,
-                        stringInterner,
-                        stat,
-                        fileSystem.isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE,
-                        DirectoryScanner.getDefaultExcludes()
-                    ),
-                    path -> !additiveCacheLocations.isInsideAdditiveCache(path.toString())
-                );
-                listenerManager.addListener(new RootBuildLifecycleListener() {
-                    @Override
-                    public void afterStart(GradleInternal gradle) {
-                        StartParameter startParameter = gradle.getStartParameter();
-                        Map<String, String> systemPropertiesArgs = startParameter.getSystemPropertiesArgs();
-                        if (isRetentionEnabled(systemPropertiesArgs)) {
-                            SingleMessageLogger.incubatingFeatureUsed("Virtual file system retention");
-                            FileResolver fileResolver = new BaseDirFileResolver(startParameter.getCurrentDir(), () -> {
-                                throw new UnsupportedOperationException();
-                            });
-                            if (getSystemProperty(VFS_DROP_PROPERTY, systemPropertiesArgs) != null) {
-                                virtualFileSystem.invalidateAll();
-                            } else {
-                                List<File> changedPathsSinceLastBuild = getChangedPathsSinceLastBuild(fileResolver, systemPropertiesArgs);
-                                for (File changedPathSinceLastBuild : changedPathsSinceLastBuild) {
-                                    LOGGER.warn("Marking as changed since last build: {}", changedPathSinceLastBuild);
-                                }
-                                virtualFileSystem.update(
-                                    changedPathsSinceLastBuild
-                                        .stream()
-                                        .map(File::getAbsolutePath)
-                                        .collect(Collectors.toList()),
-                                    () -> {
-                                    }
-                                );
-                            }
-                        } else {
-                            virtualFileSystem.invalidateAll();
-                        }
-                        virtualFileSystem.stopWatching();
-                    }
-
-                    @Override
-                    public void beforeComplete(GradleInternal gradle) {
-                        if (isRetentionEnabled(gradle.getStartParameter().getSystemPropertiesArgs())) {
-                            virtualFileSystem.startWatching();
-                        } else {
-                            virtualFileSystem.invalidateAll();
-                        }
-                    }
-                });
-                return virtualFileSystem;
-            }
-
-            GenericFileTreeSnapshotter createGenericFileTreeSnapshotter(FileHasher hasher, StringInterner stringInterner) {
-                return new DefaultGenericFileTreeSnapshotter(hasher, stringInterner);
-            }
-
-            FileCollectionSnapshotter createFileCollectionSnapshotter(VirtualFileSystem virtualFileSystem, GenericFileTreeSnapshotter genericFileTreeSnapshotter, Stat stat) {
-                return new DefaultFileCollectionSnapshotter(virtualFileSystem, genericFileTreeSnapshotter, stat);
-            }
-
-            ResourceSnapshotterCacheService createResourceSnapshotterCacheService(CrossBuildFileHashCache store) {
-                PersistentIndexedCache<HashCode, HashCode> resourceHashesCache = store.createCache(
-                    PersistentIndexedCacheParameters.of("resourceHashesCache", HashCode.class, new HashCodeSerializer()),
-                    400000,
-                    true);
-                return new DefaultResourceSnapshotterCacheService(resourceHashesCache);
-            }
-
-            ClasspathFingerprinter createClasspathFingerprinter(ResourceSnapshotterCacheService resourceSnapshotterCacheService, FileCollectionSnapshotter fileCollectionSnapshotter, StringInterner stringInterner) {
-                return new DefaultClasspathFingerprinter(resourceSnapshotterCacheService, fileCollectionSnapshotter, ResourceFilter.FILTER_NOTHING, stringInterner);
-            }
-
-            ClasspathHasher createClasspathHasher(ClasspathFingerprinter fingerprinter, FileCollectionFactory fileCollectionFactory) {
-                return new DefaultClasspathHasher(fingerprinter, fileCollectionFactory);
-            }
-        });
+        registration.addProvider(new GradleUserHomeServices());
     }
 
     @Override
     public void registerBuildSessionServices(ServiceRegistration registration) {
-        registration.addProvider(new Object() {
-            CrossBuildFileHashCache createCrossBuildFileHashCache(ProjectCacheDir projectCacheDir, CacheScopeMapping cacheScopeMapping, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
-                File cacheDir = cacheScopeMapping.getBaseDirectory(projectCacheDir.getDir(), "fileHashes", VersionStrategy.CachePerVersion);
-                return new CrossBuildFileHashCache(cacheDir, cacheRepository, inMemoryCacheDecoratorFactory, CrossBuildFileHashCache.Kind.FILE_HASHES);
-            }
+        registration.addProvider(new BuildSessionServices());
+    }
 
-            FileHasher createFileHasher(
-                AdditiveCacheLocations additiveCacheLocations,
-                BuildScopeFileTimeStampInspector fileTimeStampInspector,
-                CrossBuildFileHashCache cacheAccess,
-                FileHasher globalHasher,
-                FileSystem fileSystem,
-                StreamHasher streamHasher,
-                StringInterner stringInterner
-            ) {
-                CachingFileHasher localHasher = new CachingFileHasher(new DefaultFileHasher(streamHasher), cacheAccess, stringInterner, fileTimeStampInspector, "fileHashes", fileSystem);
-                return new SplitFileHasher(globalHasher, localHasher, additiveCacheLocations);
-            }
+    @VisibleForTesting
+    static class GradleUserHomeServices {
 
-            VirtualFileSystem createVirtualFileSystem(
-                AdditiveCacheLocations additiveCacheLocations,
-                FileHasher hasher,
-                FileSystem fileSystem,
-                ListenerManager listenerManager,
-                StartParameter startParameter,
-                Stat stat,
-                StringInterner stringInterner,
-                VirtualFileSystem gradleUserHomeVirtualFileSystem
-            ) {
-                VirtualFileSystem buildSessionsScopedVirtualFileSystem = new DefaultVirtualFileSystem(
+        CrossBuildFileHashCache createCrossBuildFileHashCache(CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
+            return new CrossBuildFileHashCache(null, cacheRepository, inMemoryCacheDecoratorFactory, CrossBuildFileHashCache.Kind.FILE_HASHES);
+        }
+
+        FileHasher createCachingFileHasher(StringInterner stringInterner, CrossBuildFileHashCache fileStore, FileSystem fileSystem, GlobalScopeFileTimeStampInspector fileTimeStampInspector, StreamHasher streamHasher) {
+            CachingFileHasher fileHasher = new CachingFileHasher(new DefaultFileHasher(streamHasher), fileStore, stringInterner, fileTimeStampInspector, "fileHashes", fileSystem);
+            fileTimeStampInspector.attach(fileHasher);
+            return fileHasher;
+        }
+
+        FileWatcherRegistryFactory createFileWatcherRegistryFactory() {
+            OperatingSystem operatingSystem = OperatingSystem.current();
+            if (operatingSystem.isMacOsX()) {
+                return new DarwinFileWatcherRegistry.Factory();
+            } else if (operatingSystem.isWindows()) {
+                return new WindowsFileWatcherRegistry.Factory();
+            } else if (operatingSystem.isLinux()) {
+                // The Linux watcher in the JDK works quite well
+                return new JdkFileWatcherRegistry.Factory();
+            } else {
+                return new NoopFileWatcherRegistry.Factory();
+            }
+        }
+
+        VirtualFileSystem createVirtualFileSystem(
+            AdditiveCacheLocations additiveCacheLocations,
+            FileHasher hasher,
+            FileSystem fileSystem,
+            FileWatcherRegistryFactory watcherRegistryFactory,
+            ListenerManager listenerManager,
+            Stat stat,
+            StringInterner stringInterner
+        ) {
+            WatchingVirtualFileSystem virtualFileSystem = new DefaultWatchingVirtualFileSystem(
+                watcherRegistryFactory,
+                new DefaultVirtualFileSystem(
                     hasher,
                     stringInterner,
                     stat,
                     fileSystem.isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE,
                     DirectoryScanner.getDefaultExcludes()
-                );
-                RoutingVirtualFileSystem routingVirtualFileSystem = new RoutingVirtualFileSystem(
-                    additiveCacheLocations,
-                    gradleUserHomeVirtualFileSystem,
-                    buildSessionsScopedVirtualFileSystem,
-                    () -> isRetentionEnabled(startParameter.getSystemPropertiesArgs())
-                );
-
-                listenerManager.addListener(new RootBuildLifecycleListener() {
-                    @Override
-                    public void afterStart(GradleInternal gradle) {
-                        // Note: this never fires as we are registering it too late
+                ),
+                path -> !additiveCacheLocations.isInsideAdditiveCache(path.toString())
+            );
+            listenerManager.addListener(new RootBuildLifecycleListener() {
+                @Override
+                public void afterStart(GradleInternal gradle) {
+                    StartParameter startParameter = gradle.getStartParameter();
+                    Map<String, String> systemPropertiesArgs = startParameter.getSystemPropertiesArgs();
+                    if (isRetentionEnabled(systemPropertiesArgs)) {
+                        SingleMessageLogger.incubatingFeatureUsed("Virtual file system retention");
+                        FileResolver fileResolver = new BaseDirFileResolver(startParameter.getCurrentDir(), () -> {
+                            throw new UnsupportedOperationException();
+                        });
+                        if (getSystemProperty(VFS_DROP_PROPERTY, systemPropertiesArgs) != null) {
+                            virtualFileSystem.invalidateAll();
+                        } else {
+                            List<File> changedPathsSinceLastBuild = getChangedPathsSinceLastBuild(fileResolver, systemPropertiesArgs);
+                            for (File changedPathSinceLastBuild : changedPathsSinceLastBuild) {
+                                LOGGER.warn("Marking as changed since last build: {}", changedPathSinceLastBuild);
+                            }
+                            virtualFileSystem.update(
+                                changedPathsSinceLastBuild
+                                    .stream()
+                                    .map(File::getAbsolutePath)
+                                    .collect(Collectors.toList()),
+                                () -> {
+                                }
+                            );
+                        }
+                    } else {
+                        virtualFileSystem.invalidateAll();
                     }
+                    virtualFileSystem.stopWatching();
+                }
 
-                    @Override
-                    public void beforeComplete(GradleInternal gradle) {
-                        buildSessionsScopedVirtualFileSystem.invalidateAll();
+                @Override
+                public void beforeComplete(GradleInternal gradle) {
+                    if (isRetentionEnabled(gradle.getStartParameter().getSystemPropertiesArgs())) {
+                        virtualFileSystem.startWatching();
+                    } else {
+                        virtualFileSystem.invalidateAll();
                     }
-                });
-                listenerManager.addListener(new OutputChangeListener() {
-                    @Override
-                    public void beforeOutputChange() {
-                        routingVirtualFileSystem.invalidateAll();
-                    }
+                }
+            });
+            return virtualFileSystem;
+        }
 
-                    @Override
-                    public void beforeOutputChange(Iterable<String> affectedOutputPaths) {
-                        routingVirtualFileSystem.update(affectedOutputPaths, () -> {});
-                    }
-                });
+        GenericFileTreeSnapshotter createGenericFileTreeSnapshotter(FileHasher hasher, StringInterner stringInterner) {
+            return new DefaultGenericFileTreeSnapshotter(hasher, stringInterner);
+        }
 
-                return routingVirtualFileSystem;
-            }
+        FileCollectionSnapshotter createFileCollectionSnapshotter(VirtualFileSystem virtualFileSystem, GenericFileTreeSnapshotter genericFileTreeSnapshotter, Stat stat) {
+            return new DefaultFileCollectionSnapshotter(virtualFileSystem, genericFileTreeSnapshotter, stat);
+        }
 
-            GenericFileTreeSnapshotter createGenericFileTreeSnapshotter(FileHasher hasher, StringInterner stringInterner) {
-                return new DefaultGenericFileTreeSnapshotter(hasher, stringInterner);
-            }
+        ResourceSnapshotterCacheService createResourceSnapshotterCacheService(CrossBuildFileHashCache store) {
+            PersistentIndexedCache<HashCode, HashCode> resourceHashesCache = store.createCache(
+                PersistentIndexedCacheParameters.of("resourceHashesCache", HashCode.class, new HashCodeSerializer()),
+                400000,
+                true);
+            return new DefaultResourceSnapshotterCacheService(resourceHashesCache);
+        }
 
-            FileCollectionSnapshotter createFileCollectionSnapshotter(VirtualFileSystem virtualFileSystem, GenericFileTreeSnapshotter genericFileTreeSnapshotter, Stat stat) {
-                return new DefaultFileCollectionSnapshotter(virtualFileSystem, genericFileTreeSnapshotter, stat);
-            }
+        ClasspathFingerprinter createClasspathFingerprinter(ResourceSnapshotterCacheService resourceSnapshotterCacheService, FileCollectionSnapshotter fileCollectionSnapshotter, StringInterner stringInterner) {
+            return new DefaultClasspathFingerprinter(resourceSnapshotterCacheService, fileCollectionSnapshotter, ResourceFilter.FILTER_NOTHING, stringInterner);
+        }
 
-            AbsolutePathFileCollectionFingerprinter createAbsolutePathFileCollectionFingerprinter(FileCollectionSnapshotter fileCollectionSnapshotter) {
-                return new AbsolutePathFileCollectionFingerprinter(fileCollectionSnapshotter);
-            }
+        ClasspathHasher createClasspathHasher(ClasspathFingerprinter fingerprinter, FileCollectionFactory fileCollectionFactory) {
+            return new DefaultClasspathHasher(fingerprinter, fileCollectionFactory);
+        }
+    }
 
-            RelativePathFileCollectionFingerprinter createRelativePathFileCollectionFingerprinter(StringInterner stringInterner, FileCollectionSnapshotter fileCollectionSnapshotter) {
-                return new RelativePathFileCollectionFingerprinter(stringInterner, fileCollectionSnapshotter);
-            }
+    @VisibleForTesting
+    static class BuildSessionServices {
+        CrossBuildFileHashCache createCrossBuildFileHashCache(ProjectCacheDir projectCacheDir, CacheScopeMapping cacheScopeMapping, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
+            File cacheDir = cacheScopeMapping.getBaseDirectory(projectCacheDir.getDir(), "fileHashes", VersionStrategy.CachePerVersion);
+            return new CrossBuildFileHashCache(cacheDir, cacheRepository, inMemoryCacheDecoratorFactory, CrossBuildFileHashCache.Kind.FILE_HASHES);
+        }
 
-            NameOnlyFileCollectionFingerprinter createNameOnlyFileCollectionFingerprinter(FileCollectionSnapshotter fileCollectionSnapshotter) {
-                return new NameOnlyFileCollectionFingerprinter(fileCollectionSnapshotter);
-            }
+        FileHasher createFileHasher(
+            AdditiveCacheLocations additiveCacheLocations,
+            BuildScopeFileTimeStampInspector fileTimeStampInspector,
+            CrossBuildFileHashCache cacheAccess,
+            FileHasher globalHasher,
+            FileSystem fileSystem,
+            StreamHasher streamHasher,
+            StringInterner stringInterner
+        ) {
+            CachingFileHasher localHasher = new CachingFileHasher(new DefaultFileHasher(streamHasher), cacheAccess, stringInterner, fileTimeStampInspector, "fileHashes", fileSystem);
+            return new SplitFileHasher(globalHasher, localHasher, additiveCacheLocations);
+        }
 
-            IgnoredPathFileCollectionFingerprinter createIgnoredPathFileCollectionFingerprinter(FileCollectionSnapshotter fileCollectionSnapshotter) {
-                return new IgnoredPathFileCollectionFingerprinter(fileCollectionSnapshotter);
-            }
+        VirtualFileSystem createVirtualFileSystem(
+            AdditiveCacheLocations additiveCacheLocations,
+            FileHasher hasher,
+            FileSystem fileSystem,
+            ListenerManager listenerManager,
+            StartParameter startParameter,
+            Stat stat,
+            StringInterner stringInterner,
+            VirtualFileSystem gradleUserHomeVirtualFileSystem
+        ) {
+            VirtualFileSystem buildSessionsScopedVirtualFileSystem = new DefaultVirtualFileSystem(
+                hasher,
+                stringInterner,
+                stat,
+                fileSystem.isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE,
+                DirectoryScanner.getDefaultExcludes()
+            );
+            RoutingVirtualFileSystem routingVirtualFileSystem = new RoutingVirtualFileSystem(
+                additiveCacheLocations,
+                gradleUserHomeVirtualFileSystem,
+                buildSessionsScopedVirtualFileSystem,
+                () -> isRetentionEnabled(startParameter.getSystemPropertiesArgs())
+            );
 
-            OutputFileCollectionFingerprinter createOutputFileCollectionFingerprinter(FileCollectionSnapshotter fileCollectionSnapshotter) {
-                return new OutputFileCollectionFingerprinter(fileCollectionSnapshotter);
-            }
+            listenerManager.addListener(new RootBuildLifecycleListener() {
+                @Override
+                public void afterStart(GradleInternal gradle) {
+                    // Note: this never fires as we are registering it too late
+                }
 
-            FileCollectionFingerprinterRegistry createFileCollectionFingerprinterRegistry(List<FileCollectionFingerprinter> fingerprinters) {
-                return new DefaultFileCollectionFingerprinterRegistry(fingerprinters);
-            }
+                @Override
+                public void beforeComplete(GradleInternal gradle) {
+                    buildSessionsScopedVirtualFileSystem.invalidateAll();
+                }
+            });
+            listenerManager.addListener(new OutputChangeListener() {
+                @Override
+                public void beforeOutputChange() {
+                    routingVirtualFileSystem.invalidateAll();
+                }
 
-            ResourceSnapshotterCacheService createResourceSnapshotterCacheService(
-                AdditiveCacheLocations additiveCacheLocations,
-                CrossBuildFileHashCache store,
-                ResourceSnapshotterCacheService globalCache
-            ) {
-                PersistentIndexedCache<HashCode, HashCode> resourceHashesCache = store.createCache(PersistentIndexedCacheParameters.of("resourceHashesCache", HashCode.class, new HashCodeSerializer()), 800000, true);
-                DefaultResourceSnapshotterCacheService localCache = new DefaultResourceSnapshotterCacheService(resourceHashesCache);
-                return new SplitResourceSnapshotterCacheService(globalCache, localCache, additiveCacheLocations);
-            }
+                @Override
+                public void beforeOutputChange(Iterable<String> affectedOutputPaths) {
+                    routingVirtualFileSystem.update(affectedOutputPaths, () -> {});
+                }
+            });
 
-            CompileClasspathFingerprinter createCompileClasspathFingerprinter(ResourceSnapshotterCacheService resourceSnapshotterCacheService, FileCollectionSnapshotter fileCollectionSnapshotter, StringInterner stringInterner) {
-                return new DefaultCompileClasspathFingerprinter(resourceSnapshotterCacheService, fileCollectionSnapshotter, stringInterner);
-            }
-        });
+            return routingVirtualFileSystem;
+        }
+
+        GenericFileTreeSnapshotter createGenericFileTreeSnapshotter(FileHasher hasher, StringInterner stringInterner) {
+            return new DefaultGenericFileTreeSnapshotter(hasher, stringInterner);
+        }
+
+        FileCollectionSnapshotter createFileCollectionSnapshotter(VirtualFileSystem virtualFileSystem, GenericFileTreeSnapshotter genericFileTreeSnapshotter, Stat stat) {
+            return new DefaultFileCollectionSnapshotter(virtualFileSystem, genericFileTreeSnapshotter, stat);
+        }
+
+        AbsolutePathFileCollectionFingerprinter createAbsolutePathFileCollectionFingerprinter(FileCollectionSnapshotter fileCollectionSnapshotter) {
+            return new AbsolutePathFileCollectionFingerprinter(fileCollectionSnapshotter);
+        }
+
+        RelativePathFileCollectionFingerprinter createRelativePathFileCollectionFingerprinter(StringInterner stringInterner, FileCollectionSnapshotter fileCollectionSnapshotter) {
+            return new RelativePathFileCollectionFingerprinter(stringInterner, fileCollectionSnapshotter);
+        }
+
+        NameOnlyFileCollectionFingerprinter createNameOnlyFileCollectionFingerprinter(FileCollectionSnapshotter fileCollectionSnapshotter) {
+            return new NameOnlyFileCollectionFingerprinter(fileCollectionSnapshotter);
+        }
+
+        IgnoredPathFileCollectionFingerprinter createIgnoredPathFileCollectionFingerprinter(FileCollectionSnapshotter fileCollectionSnapshotter) {
+            return new IgnoredPathFileCollectionFingerprinter(fileCollectionSnapshotter);
+        }
+
+        OutputFileCollectionFingerprinter createOutputFileCollectionFingerprinter(FileCollectionSnapshotter fileCollectionSnapshotter) {
+            return new OutputFileCollectionFingerprinter(fileCollectionSnapshotter);
+        }
+
+        FileCollectionFingerprinterRegistry createFileCollectionFingerprinterRegistry(List<FileCollectionFingerprinter> fingerprinters) {
+            return new DefaultFileCollectionFingerprinterRegistry(fingerprinters);
+        }
+
+        ResourceSnapshotterCacheService createResourceSnapshotterCacheService(
+            AdditiveCacheLocations additiveCacheLocations,
+            CrossBuildFileHashCache store,
+            ResourceSnapshotterCacheService globalCache
+        ) {
+            PersistentIndexedCache<HashCode, HashCode> resourceHashesCache = store.createCache(PersistentIndexedCacheParameters.of("resourceHashesCache", HashCode.class, new HashCodeSerializer()), 800000, true);
+            DefaultResourceSnapshotterCacheService localCache = new DefaultResourceSnapshotterCacheService(resourceHashesCache);
+            return new SplitResourceSnapshotterCacheService(globalCache, localCache, additiveCacheLocations);
+        }
+
+        CompileClasspathFingerprinter createCompileClasspathFingerprinter(ResourceSnapshotterCacheService resourceSnapshotterCacheService, FileCollectionSnapshotter fileCollectionSnapshotter, StringInterner stringInterner) {
+            return new DefaultCompileClasspathFingerprinter(resourceSnapshotterCacheService, fileCollectionSnapshotter, stringInterner);
+        }
+
     }
 }
