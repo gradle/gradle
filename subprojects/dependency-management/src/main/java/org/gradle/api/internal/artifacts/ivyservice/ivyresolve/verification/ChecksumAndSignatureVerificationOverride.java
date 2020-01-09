@@ -171,6 +171,7 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
                 formatter.node("Dependency verification failed for " + displayName);
                 formatter.startChildren();
                 AtomicBoolean maybeCompromised = new AtomicBoolean();
+                AtomicBoolean hasUntrusted = new AtomicBoolean();
                 AtomicBoolean hasMissing = new AtomicBoolean();
                 AtomicBoolean failedSignatures = new AtomicBoolean();
                 AtomicBoolean hasFatalFailure = new AtomicBoolean();
@@ -192,9 +193,9 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
                             formatter.node("On artifact " + key + " ");
                             if (failures.size() == 1) {
                                 FailureWrapper firstFailure = failures.iterator().next();
-                                explainSingleFailure(formatter, maybeCompromised, hasMissing, failedSignatures, firstFailure);
+                                explainSingleFailure(formatter, maybeCompromised, hasMissing, failedSignatures, hasUntrusted, firstFailure);
                             } else {
-                                explainMultiFailure(formatter, maybeCompromised, hasMissing, failedSignatures, failures);
+                                explainMultiFailure(formatter, maybeCompromised, hasMissing, failedSignatures, hasUntrusted, failures);
                             }
                         }
                     });
@@ -206,9 +207,10 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
                         formatter.append("signatures and ");
                     }
                     formatter.append("checksums.");
-                } else if (hasMissing.get()) {
+                }
+                if ((hasMissing.get() || hasUntrusted.get()) && !maybeCompromised.get()) {
                     // the else is just to avoid telling people to use `--write-verification-metadata` if we suspect compromised dependencies
-                    formatter.node("If the dependency is legit, follow the instructions at " + documentationRegistry.getDocumentationFor("dependency_verification", "sec:troubleshooting-verification"));
+                    formatter.node("If the dependency is legit, you will need to update the gradle/verification-metadata.xml file by following the instructions at " + documentationRegistry.getDocumentationFor("dependency_verification", "sec:troubleshooting-verification"));
                 }
                 if (!affectedFiles.isEmpty()) {
                     formatter.blankLine();
@@ -254,25 +256,31 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
         }
     }
 
-    private void explainMultiFailure(TreeFormatter formatter, AtomicBoolean maybeCompromised, AtomicBoolean hasMissing, AtomicBoolean failedSignatures, Collection<FailureWrapper> failures) {
+    private void explainMultiFailure(TreeFormatter formatter, AtomicBoolean maybeCompromised, AtomicBoolean hasMissing, AtomicBoolean failedSignatures, AtomicBoolean hasUntrusted, Collection<FailureWrapper> failures) {
         formatter.append("multiple problems reported");
         formatter.startChildren();
         for (FailureWrapper failure : failures) {
             formatter.node("");
-            explainSingleFailure(formatter, maybeCompromised, hasMissing, failedSignatures, failure);
+            explainSingleFailure(formatter, maybeCompromised, hasMissing, failedSignatures, hasUntrusted, failure);
         }
         formatter.endChildren();
     }
 
-    private void explainSingleFailure(TreeFormatter formatter, AtomicBoolean maybeCompromised, AtomicBoolean hasMissing, AtomicBoolean failedSignatures, FailureWrapper wrapper) {
+    private void explainSingleFailure(TreeFormatter formatter, AtomicBoolean maybeCompromised, AtomicBoolean hasMissing, AtomicBoolean failedSignatures, AtomicBoolean hasUntrusted, FailureWrapper wrapper) {
         VerificationFailure failure = wrapper.failure;
         if (failure instanceof MissingChecksums) {
             hasMissing.set(true);
         } else {
             if (failure instanceof SignatureVerificationFailure) {
                 failedSignatures.set(true);
+                if (((SignatureVerificationFailure) failure).getErrors().values().stream().map(SignatureVerificationFailure.SignatureError::getKind).noneMatch(kind -> kind == SignatureVerificationFailure.FailureKind.PASSED_NOT_TRUSTED)) {
+                    maybeCompromised.set(true);
+                } else {
+                    hasUntrusted.set(true);
+                }
+            } else {
+                maybeCompromised.set(true);
             }
-            maybeCompromised.set(true);
         }
         formatter.append("in repository '" + wrapper.repositoryName + "': ");
         failure.explainTo(formatter);

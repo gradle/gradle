@@ -801,7 +801,6 @@ Alternatively, you can set the `org.gradle.dependency.verification` system prope
 
 or in a `gradle.properties` file:
 
-
 ----
 org.gradle.dependency.verification=lenient
 ----
