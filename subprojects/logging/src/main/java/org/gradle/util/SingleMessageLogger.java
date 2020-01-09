@@ -186,19 +186,6 @@ public class SingleMessageLogger {
     }
 
     /**
-     * Use for a method that is not deprecated, but something about the method parameters or state is deprecated.
-     * Output format:
-     * <p>
-     * Using method ${invocation} has been deprecated. This will fail with an error in Gradle X. Please use the ${replacement} method instead.
-     */
-    public static void nagUserOfReplacedMethodInvocation(String invocation, String replacement) {
-        if (isEnabled()) {
-            nagUserWith(new DeprecationMessage(String.format("Using method %s has been deprecated.", invocation), thisWillBecomeAnError())
-                    .withAdvice(String.format("Please use the %s method instead.", replacement)));
-        }
-    }
-
-    /**
      * Output format:
      * <p>
      * ${behaviour} This has been deprecated and is scheduled to be removed in Gradle {X}.

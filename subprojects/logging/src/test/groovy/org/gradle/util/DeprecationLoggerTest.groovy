@@ -174,6 +174,26 @@ class DeprecationLoggerTest extends Specification {
         events[0].message == "The method() method has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Advice."
     }
 
+    def "logs replaced method invocation message"() {
+        when:
+        DeprecationLogger.nagUserWith(DeprecationMessage.discontinuedInvocation("method()"))
+
+        then:
+        def events = outputEventListener.events
+        events.size() == 1
+        events[0].message == "method() has been deprecated. This will fail with an error in Gradle ${NEXT_GRADLE_VERSION}."
+    }
+
+    def "logs discontinued method invocation message"() {
+        when:
+        DeprecationLogger.nagUserWith(DeprecationMessage.replacedMethodInvocation("method()", "replacementMethod()"))
+
+        then:
+        def events = outputEventListener.events
+        events.size() == 1
+        events[0].message == "Using method method() has been deprecated. This will fail with an error in Gradle ${NEXT_GRADLE_VERSION}. Please use the replacementMethod() method instead."
+    }
+
     @Unroll
     def "logs deprecation message for deprecated configuration with #deprecationType deprecation"() {
         given:
