@@ -45,11 +45,15 @@ import org.gradle.jvm.JvmLibrary;
 import org.gradle.language.base.artifact.SourcesArtifact;
 import org.gradle.language.java.artifact.JavadocArtifact;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory.ClassPathNotation.GRADLE_API;
+import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory.ClassPathNotation.LOCAL_GROOVY;
 
 /**
  * Adapts Gradle's dependency resolution engine to the special needs of the IDE plugins.
@@ -220,10 +224,20 @@ public class IdeDependencySet {
                     visitor.visitModuleDependency(artifact, sources, javaDoc, isTestConfiguration(configurations.get(artifactIdentifier)));
                 } else if (isGradleApiDependency(artifact)) {
                     visitor.visitGradleApiDependency(artifact, gradleApiSourcesResolver.resolveGradleApiSources(shouldDownloadSources(visitor)), isTestConfiguration(configurations.get(artifactIdentifier)));
+                } else if (isLocalGroovyDependency(artifact)) {
+                    File localGroovySources = shouldDownloadSources(visitor) ? gradleApiSourcesResolver.resolveLocalGroovySources(artifact.getFile().getName()) : null;
+                    visitor.visitGradleApiDependency(artifact, localGroovySources, isTestConfiguration(configurations.get(artifactIdentifier)));
                 } else {
                     visitor.visitFileDependency(artifact, isTestConfiguration(configurations.get(artifactIdentifier)));
                 }
             }
+        }
+
+        private boolean isLocalGroovyDependency(ResolvedArtifactResult artifact) {
+            String artifactFileName = artifact.getFile().getName();
+            String componentIdentifier = artifact.getId().getComponentIdentifier().getDisplayName();
+            return (componentIdentifier.equals(GRADLE_API.displayName) || componentIdentifier.equals(LOCAL_GROOVY.displayName))
+                && artifactFileName.startsWith("groovy-all-");
         }
 
         private boolean isGradleApiDependency(ResolvedArtifactResult artifact) {
