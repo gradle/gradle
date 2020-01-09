@@ -110,7 +110,7 @@ public class SingleMessageLogger {
     public static void nagUserOfDeprecatedPlugin(String pluginName, @Nullable String advice) {
         if (isEnabled()) {
             nagUserWith(new DeprecationMessage(String.format("The %s plugin has been deprecated.", pluginName), thisWillBeRemovedMessage())
-                    .withAdvice(advice));
+                .withAdvice(advice));
         }
     }
 
@@ -122,31 +122,7 @@ public class SingleMessageLogger {
     public static void nagUserOfToolReplacedWithExternalOne(String toolName, String replacement) {
         if (isEnabled()) {
             nagUserWith(new DeprecationMessage(String.format("The %s has been deprecated.", toolName), thisWillBeRemovedMessage())
-                    .withAdvice(String.format("Consider using %s instead.", replacement)));
-        }
-    }
-
-    /**
-     * Output format:
-     * <p>
-     * The ${taskName} task has been deprecated. This is scheduled to be removed in Gradle X. Please use the ${replacement} task instead.
-     */
-    public static void nagUserOfReplacedTask(String taskName, String replacement) {
-        if (isEnabled()) {
-            nagUserWith(new DeprecationMessage(String.format("The %s task has been deprecated.", taskName), thisWillBeRemovedMessage())
-                    .withAdvice(String.format("Please use the %s task instead.", replacement)));
-        }
-    }
-
-    /**
-     * Output format:
-     * <p>
-     * The ${taskName} task type has been deprecated. This is scheduled to be removed in Gradle X. Please use the ${replacement} instead.
-     */
-    public static void nagUserOfReplacedTaskType(String taskName, String replacement) {
-        if (isEnabled()) {
-            nagUserWith(new DeprecationMessage(String.format("The %s task type has been deprecated.", taskName), thisWillBeRemovedMessage())
-                    .withAdvice(String.format("Please use the %s instead.", replacement)));
+                .withAdvice(String.format("Consider using %s instead.", replacement)));
         }
     }
 
@@ -163,9 +139,7 @@ public class SingleMessageLogger {
 
     // used in performance test - do not use in new code
     public static void nagUserOfDeprecated(String thing) {
-        if (isEnabled()) {
-            nagUserWith(DeprecationMessage.specificThingHasBeenDeprecated(thing));
-        }
+        nagUserWith(DeprecationMessage.specificThingHasBeenDeprecated(thing));
     }
 
     public static void nagUserWith(DeprecationMessage deprecationMessage) {

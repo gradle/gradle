@@ -44,6 +44,7 @@ import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.deprecation.DeprecationMessage;
 import org.gradle.plugin.devel.GradlePluginDevelopmentExtension;
 import org.gradle.plugin.devel.PluginDeclaration;
 import org.gradle.plugin.devel.tasks.GeneratePluginDescriptors;
@@ -269,7 +270,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
     }
 
     private static void nagAboutDeprecatedValidateTaskPropertiesTask() {
-        DeprecationLogger.nagUserOfReplacedTask(VALIDATE_TASK_PROPERTIES_TASK_NAME, VALIDATE_PLUGINS_TASK_NAME);
+        DeprecationLogger.nagUserWith(DeprecationMessage.replacedTask(VALIDATE_TASK_PROPERTIES_TASK_NAME, VALIDATE_PLUGINS_TASK_NAME));
     }
 
     /**

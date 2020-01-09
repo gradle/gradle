@@ -205,6 +205,32 @@ public class DeprecationMessage {
         };
     }
 
+    // Output: The ${taskName} task type has been deprecated. This is scheduled to be removed in Gradle X. Please use the ${replacement} instead.
+    public static DeprecationMessage replacedTaskType(final String taskName, final String replacement) {
+        return new DeprecationMessage() {
+            @Override
+            public DeprecatedFeatureUsage toDeprecatedFeatureUsage(Class<?> calledFrom) {
+                summary(String.format("The %s task type has been deprecated.", taskName));
+                removalDetails(thisWillBeRemovedMessage());
+                withAdvice(String.format("Please use the %s instead.", replacement));
+                return super.toDeprecatedFeatureUsage(calledFrom);
+            }
+        };
+    }
+
+    // Output: The ${taskName} task has been deprecated. This is scheduled to be removed in Gradle X. Please use the ${replacement} task instead.
+    public static DeprecationMessage replacedTask(final String taskName, final String replacement) {
+        return new DeprecationMessage() {
+            @Override
+            public DeprecatedFeatureUsage toDeprecatedFeatureUsage(Class<?> calledFrom) {
+                summary(String.format("The %s task has been deprecated.", taskName));
+                removalDetails(thisWillBeRemovedMessage());
+                withAdvice(String.format("Please use the %s task instead.", replacement));
+                return super.toDeprecatedFeatureUsage(calledFrom);
+            }
+        };
+    }
+
     public DeprecationMessage(String summary, String removalDetails) {
         this.summary = summary;
         this.removalDetails = removalDetails;
