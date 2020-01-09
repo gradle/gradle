@@ -19,6 +19,7 @@ package org.gradle.gradlebuild.versioning
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.file.FileContents
 import org.gradle.build.BuildReceipt
 import org.gradle.gradlebuild.BuildEnvironment
 import org.gradle.kotlin.dsl.*
@@ -49,7 +50,7 @@ fun Project.setBuildVersionProperties() {
 
     val isSnapshot = finalRelease == null && rcNumber == null && milestoneNumber == null
     val isFinalRelease = finalRelease != null
-    val baseVersion = rootProject.file("version.txt").readText().trim()
+    val baseVersion = rootProject.trimmedContentsOfFile("version.txt")
     val buildTimestamp = computeBuildTimestamp()
     project.version = when {
         isFinalRelease -> {
@@ -78,6 +79,20 @@ fun Project.setBuildVersionProperties() {
         ext["buildTimestamp"] = buildTimestamp
     }
 }
+
+
+/**
+ * Returns the trimmed contents of the file at the given [path] after
+ * marking the file as a build logic input.
+ */
+private
+fun Project.trimmedContentsOfFile(path: String): String =
+    fileContentsOf(path).asText.map { it.trim() }.get()
+
+
+private
+fun Project.fileContentsOf(path: String): FileContents =
+    providers.fileContents(layout.projectDirectory.file(path))
 
 
 private
