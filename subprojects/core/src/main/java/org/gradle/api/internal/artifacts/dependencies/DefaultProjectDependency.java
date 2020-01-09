@@ -33,6 +33,7 @@ import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.internal.exceptions.ConfigurationNotConsumableException;
 import org.gradle.util.DeprecationLogger;
+import org.gradle.util.DeprecationMessage;
 import org.gradle.util.GUtil;
 
 import java.io.File;
@@ -92,7 +93,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
     private void warnIfConfigurationIsDeprecated(DeprecatableConfiguration selectedConfiguration) {
         List<String> alternatives = selectedConfiguration.getConsumptionAlternatives();
         if (alternatives != null) {
-            DeprecationLogger.nagUserOfReplacedConfiguration(selectedConfiguration.getName(), DeprecationLogger.ConfigurationDeprecationType.CONSUMPTION, alternatives);
+            DeprecationLogger.nagUserWith(DeprecationMessage.configurationHasBeenReplaced(selectedConfiguration.getName(), DeprecationLogger.ConfigurationDeprecationType.CONSUMPTION, alternatives));
         }
     }
 

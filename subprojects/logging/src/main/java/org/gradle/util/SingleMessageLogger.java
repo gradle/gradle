@@ -16,7 +16,6 @@
 
 package org.gradle.util;
 
-import com.google.common.base.Joiner;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.internal.Factory;
@@ -30,9 +29,9 @@ import org.gradle.internal.featurelifecycle.UsageLocationReporter;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
-import java.util.List;
 
 import static org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler.getRemovalDetails;
+import static org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler.getWillBecomeErrorMessage;
 
 @ThreadSafe
 public class SingleMessageLogger {
@@ -368,20 +367,6 @@ public class SingleMessageLogger {
         }
     }
 
-    public static void nagUserOfReplacedConfiguration(String configurationName, ConfigurationDeprecationType deprecationType, List<String> replacements) {
-        if (isEnabled()) {
-            String summary = String.format("The %s configuration has been deprecated for %s.", configurationName, deprecationType.displayName());
-            String suggestion = String.format("Please %s the %s configuration instead.", deprecationType.usage, Joiner.on(" or ").join(replacements));
-            DeprecationMessage deprecationMessage = new DeprecationMessage(summary, thisWillBecomeAnError()).withAdvice(suggestion);
-            if (!deprecationType.inUserCode) {
-                deprecationMessage = deprecationMessage.withIndirectUsage();
-            }
-            nagUserWith(deprecationMessage);
-        }
-    }
-
-    /*------------ Try to avoid using the methods below ----------------*/
-
     public static void nagUserWith(DeprecationMessage deprecationMessage) {
         if (isEnabled()) {
             nagUserWith(deprecatedFeatureHandler, deprecationMessage.toDeprecatedFeatureUsage(SingleMessageLogger.class));
@@ -416,7 +401,7 @@ public class SingleMessageLogger {
     }
 
     private static String thisWillBecomeAnError() {
-        return String.format("This will fail with an error in Gradle %s.", GradleVersion.current().getNextMajor().getVersion());
+        return getWillBecomeErrorMessage();
     }
 
     private static String thisWillBeRemovedMessage() {

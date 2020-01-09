@@ -23,6 +23,7 @@ import org.gradle.internal.logging.CollectingTestOutputEventListener
 import org.gradle.internal.logging.ConfigureLogging
 import org.junit.Rule
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class DeprecationLoggerTest extends Specification {
 
@@ -30,7 +31,7 @@ class DeprecationLoggerTest extends Specification {
     @Rule
     final ConfigureLogging logging = new ConfigureLogging(outputEventListener)
 
-    final String nextGradleVersion = GradleVersion.current().nextMajor.version;
+    static final String nextGradleVersion = GradleVersion.current().nextMajor.version;
 
     def setup() {
         SingleMessageLogger.init(Mock(UsageLocationReporter), WarningMode.All, Mock(DeprecatedUsageBuildOperationProgressBroadaster))
@@ -93,11 +94,30 @@ class DeprecationLoggerTest extends Specification {
 
     def "logs generic deprecation message for specific thing"() {
         when:
-        DeprecationLogger.nagUserWith(DeprecationMessage.specificThingHasBeenDeprecated("FooBar"));
+        DeprecationLogger.nagUserWith(DeprecationMessage.specificThingHasBeenDeprecated("FooBar"))
 
         then:
         def events = outputEventListener.events
         events.size() == 1
         events[0].message == "FooBar has been deprecated. This is scheduled to be removed in Gradle ${nextGradleVersion}."
     }
+
+    @Unroll
+    def "logs deprecation message for deprecated configuration with #deprecationType deprecation"() {
+        given:
+        DeprecationLogger.nagUserWith(DeprecationMessage.configurationHasBeenReplaced("ConfigurationType", deprecationType, ['r1', 'r2', 'r3']))
+        def events = outputEventListener.events
+
+        expect:
+        events.size() == 1
+        events[0].message == expectedMessage
+
+        where:
+        deprecationType                                                       | expectedMessage
+        DeprecationLogger.ConfigurationDeprecationType.ARTIFACT_DECLARATION   | "The ConfigurationType configuration has been deprecated for artifact declaration. This will fail with an error in Gradle ${nextGradleVersion}. Please use the r1 or r2 or r3 configuration instead."
+        DeprecationLogger.ConfigurationDeprecationType.CONSUMPTION            | "The ConfigurationType configuration has been deprecated for consumption. This will fail with an error in Gradle ${nextGradleVersion}. Please use attributes to consume the r1 or r2 or r3 configuration instead."
+        DeprecationLogger.ConfigurationDeprecationType.DEPENDENCY_DECLARATION | "The ConfigurationType configuration has been deprecated for dependency declaration. This will fail with an error in Gradle ${nextGradleVersion}. Please use the r1 or r2 or r3 configuration instead."
+        DeprecationLogger.ConfigurationDeprecationType.RESOLUTION             | "The ConfigurationType configuration has been deprecated for resolution. This will fail with an error in Gradle ${nextGradleVersion}. Please resolve the r1 or r2 or r3 configuration instead."
+    }
+
 }

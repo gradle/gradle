@@ -16,9 +16,13 @@
 
 package org.gradle.util;
 
+import com.google.common.base.Joiner;
 import org.gradle.internal.featurelifecycle.DeprecatedFeatureUsage;
 
+import java.util.List;
+
 import static org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler.getRemovalDetails;
+import static org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler.getWillBecomeErrorMessage;
 
 public class DeprecationMessage {
 
@@ -36,6 +40,16 @@ public class DeprecationMessage {
 
     public static DeprecationMessage specificThingHasBeenDeprecated(String thing) {
         return new DeprecationMessage(String.format("%s has been deprecated.", thing), thisWillBeRemovedMessage());
+    }
+
+    public static DeprecationMessage configurationHasBeenReplaced(String configurationName, SingleMessageLogger.ConfigurationDeprecationType deprecationType, List<String> replacements) {
+        String summary = String.format("The %s configuration has been deprecated for %s.", configurationName, deprecationType.displayName());
+        String suggestion = String.format("Please %s the %s configuration instead.", deprecationType.usage, Joiner.on(" or ").join(replacements));
+        DeprecationMessage deprecationMessage = new DeprecationMessage(summary, thisWillBecomeAnError()).withAdvice(suggestion);
+        if (!deprecationType.inUserCode) {
+            deprecationMessage = deprecationMessage.withIndirectUsage();
+        }
+        return deprecationMessage;
     }
 
     public DeprecationMessage(String summary, String removalDetails) {
@@ -74,5 +88,9 @@ public class DeprecationMessage {
 
     private static String thisWillBeRemovedMessage() {
         return String.format("This %s", getRemovalDetails());
+    }
+
+    private static String thisWillBecomeAnError() {
+        return getWillBecomeErrorMessage();
     }
 }

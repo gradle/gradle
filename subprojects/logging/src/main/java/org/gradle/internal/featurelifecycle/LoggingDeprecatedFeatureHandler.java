@@ -40,6 +40,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
     private static final String ELEMENT_PREFIX = "\tat ";
     private static final String RUN_WITH_STACKTRACE_INFO = "\t(Run with --stacktrace to get the full stack trace of this deprecation warning.)";
     private static String deprecationMessage;
+    private static String willBecomeErrorMessage;
     private static boolean traceLoggingEnabled;
 
     private final Set<String> messages = new HashSet<String>();
@@ -181,6 +182,13 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
             deprecationMessage = initDeprecationMessage();
         }
         return deprecationMessage;
+    }
+
+    public static String getWillBecomeErrorMessage() {
+        if (willBecomeErrorMessage == null) {
+            willBecomeErrorMessage = String.format("This will fail with an error in Gradle %s.", GradleVersion.current().getNextMajor().getVersion());
+        }
+        return willBecomeErrorMessage;
     }
 
     public GradleException getDeprecationFailure() {

@@ -118,6 +118,7 @@ import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.DeprecationLogger;
+import org.gradle.util.DeprecationMessage;
 import org.gradle.util.Path;
 import org.gradle.util.WrapUtil;
 
@@ -592,7 +593,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private void warnIfConfigurationIsDeprecatedForResolving() {
         if (resolutionAlternatives != null) {
-            DeprecationLogger.nagUserOfReplacedConfiguration(this.name, DeprecationLogger.ConfigurationDeprecationType.RESOLUTION, resolutionAlternatives);
+            DeprecationLogger.nagUserWith(DeprecationMessage.configurationHasBeenReplaced(this.name, DeprecationLogger.ConfigurationDeprecationType.RESOLUTION, resolutionAlternatives));
         }
     }
 

@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.DependencyConstraintSet;
 import org.gradle.api.internal.DelegatingDomainObjectSet;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.util.DeprecationLogger;
+import org.gradle.util.DeprecationMessage;
 
 import java.util.Collection;
 import java.util.List;
@@ -51,7 +52,7 @@ public class DefaultDependencyConstraintSet extends DelegatingDomainObjectSet<De
     private void warnIfConfigurationIsDeprecated() {
         List<String> alternatives = ((DeprecatableConfiguration) clientConfiguration).getDeclarationAlternatives();
         if (alternatives != null) {
-            DeprecationLogger.nagUserOfReplacedConfiguration(clientConfiguration.getName(), DeprecationLogger.ConfigurationDeprecationType.DEPENDENCY_DECLARATION, alternatives);
+            DeprecationLogger.nagUserWith(DeprecationMessage.configurationHasBeenReplaced(clientConfiguration.getName(), DeprecationLogger.ConfigurationDeprecationType.DEPENDENCY_DECLARATION, alternatives));
         }
     }
 
