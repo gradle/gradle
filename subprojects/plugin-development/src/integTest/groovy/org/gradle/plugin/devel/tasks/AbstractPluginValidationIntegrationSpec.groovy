@@ -121,7 +121,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                         return -1;
                     }
                 }
-                
+
                 @TaskAction void execute() {}
             }
         """
@@ -154,7 +154,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                 public ${type.name} getThing() {
                     return ${value};
                 }
-                
+
                 @TaskAction void execute() {}
             }
         """
@@ -191,7 +191,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
             public class MyTask extends DefaultTask {
                 @Optional @Input
-                ${type.name} getPrimitive() { 
+                ${type.name} getPrimitive() {
                     return ${value};
                 }
 
@@ -218,21 +218,21 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
             import org.gradle.api.tasks.*;
             import org.gradle.api.artifacts.transform.*;
 
-            @CacheableTransform 
+            @CacheableTransform
             public class MyTask extends DefaultTask {
                 @Nested
-                Options getOptions() { 
+                Options getOptions() {
                     return new Options();
                 }
 
-                @CacheableTask @CacheableTransform 
+                @CacheableTask @CacheableTransform
                 public static class Options {
                     @Input
                     String getNestedThing() {
                         return "value";
                     }
                 }
-                    
+
                 @TaskAction public void execute() {}
             }
         """
@@ -266,7 +266,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                     @Input String goodNested = "good nested"
                     String badNested
                 }
-                
+
                 @TaskAction public void execute() {}
             }
         """
@@ -308,7 +308,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
             import org.gradle.api.tasks.*;
             import org.gradle.api.provider.Provider;
             import org.gradle.api.provider.Property;
-            
+
             import java.io.File;
             import java.util.concurrent.Callable;
 
@@ -354,7 +354,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
             public class Pojo {
                 private final Boolean enabled;
-                
+
                 public Pojo(Boolean enabled) {
                     this.enabled = enabled;
                 }
@@ -384,17 +384,17 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
                 // getter and setter
                 @InputFiles @PathSensitive(PathSensitivity.NONE)
-                public ${type} getMutablePropertyWithSetter() { return mutableProperty; } 
-                public void setMutablePropertyWithSetter(${type} value) {} 
+                public ${type} getMutablePropertyWithSetter() { return mutableProperty; }
+                public void setMutablePropertyWithSetter(${type} value) {}
 
                 // just getter
                 @InputFiles @PathSensitive(PathSensitivity.NONE)
-                public ${type} getMutablePropertyWithoutSetter() { return mutableProperty; } 
+                public ${type} getMutablePropertyWithoutSetter() { return mutableProperty; }
 
                 // just setter
                 // TODO implement warning for this case: https://github.com/gradle/gradle/issues/9341
                 public void setMutablePropertyWithoutGetter() {}
-                
+
                 @TaskAction public void execute() {}
             }
         """
@@ -445,7 +445,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                 public Set<File> getInputFiles() {
                     return Collections.emptySet();
                 }
-                
+
                 @Input
                 public File getFile() {
                     return new File("some-file");
@@ -512,7 +512,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                 public Iterable<Iterable<Options>> getDoubleIterableOptions() {
                     return Arrays.asList(Arrays.asList(new Options()));
                 }
-                
+
                 @Nested
                 public Map<String, Options> getMappedOptions() {
                     return Collections.singletonMap("alma", new Options());
@@ -532,18 +532,18 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                 public Iterable<NamedBean> getNamedIterable() {
                     return Arrays.asList(new NamedBean());
                 }
-                
+
                 @Nested
                 public AnnotatedList getAnnotatedList() {
                     return new AnnotatedList();
                 }
-                
+
                 public static class Options {
                     @Input
                     public String getGood() {
                         return "good";
                     }
-                
+
                     public String getNotAnnotated() {
                         return null;
                     }
@@ -554,17 +554,17 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                     public String getGood() {
                         return "good";
                     }
-                
+
                     public String getNotAnnotated() {
                         return null;
                     }
-                
+
                     @Internal
                     public String getName() {
                         return "tibor";
-                    }                
+                    }
                 }
-                
+
                 // Does not validate the type parameter of extended collection
                 // because it has annotated properties
                 public static class AnnotatedList extends ArrayList<Options> {
@@ -620,12 +620,12 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                         return "good";
                     }
                 }
-                
+
                 @OutputDirectory
                 private File getOutputDir() {
                     return new File("outputDir");
                 }
-                
+
                 @TaskAction
                 public void doStuff() { }
             }
@@ -738,25 +738,25 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
             import org.gradle.api.model.*;
             import org.gradle.api.tasks.*;
             import org.gradle.api.provider.*;
-            
+
             public class MyTask extends DefaultTask {
                 private final Property<String> newProperty = getProject().getObjects().property(String.class).convention("value");
-    
+
                 @Input
                 @ReplacedBy("newProperty")
                 public String getOldProperty() {
                     return newProperty.get();
                 }
-    
+
                 public void setOldProperty(String oldProperty) {
                     newProperty.set(oldProperty);
                 }
-    
+
                 @Input
                 public Property<String> getNewProperty() {
                     return newProperty;
                 }
-                
+
                 @TaskAction public void execute() {}
             }
         """

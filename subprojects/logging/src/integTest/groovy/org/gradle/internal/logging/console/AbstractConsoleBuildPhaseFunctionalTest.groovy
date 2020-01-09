@@ -39,21 +39,21 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
         """
         buildFile << """
             ${server.callFromBuild('root-build-script')}
-            task hello { 
-                dependsOn {                         
+            task hello {
+                dependsOn {
                     // call during task graph calculation
                     ${server.callFromBuild('task-graph')}
                     null
                 }
                 doFirst {
                     ${server.callFromBuild('task1')}
-                } 
+                }
             }
-            task hello2 { 
+            task hello2 {
                 dependsOn hello
                 doFirst {
                     ${server.callFromBuild('task2')}
-                } 
+                }
             }
             gradle.buildFinished {
                 ${server.callFromBuild('build-finished')}
@@ -129,11 +129,11 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
         """
         buildFile << """
             ${server.callFromBuild('root-build-script')}
-            task hello2 { 
+            task hello2 {
                 dependsOn gradle.includedBuild("child").task(":hello")
                 doFirst {
                     ${server.callFromBuild('task2')}
-                } 
+                }
             }
             gradle.buildFinished {
                 ${server.callFromBuild('root-build-finished')}
@@ -145,14 +145,14 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
         file("child/build.gradle") << """
             ${server.callFromBuild('child-build-script')}
             task hello {
-                dependsOn {                         
+                dependsOn {
                     // call during task graph calculation
                     ${server.callFromBuild('child-task-graph')}
                     null
                 }
                 doFirst {
                     ${server.callFromBuild('task1')}
-                } 
+                }
             }
         """
 
@@ -211,10 +211,10 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
         """
         buildFile << """
             ${server.callFromBuild('root-build-script')}
-            task hello { 
+            task hello {
                 doFirst {
                     ${server.callFromBuild('task2')}
-                } 
+                }
             }
             gradle.buildFinished {
                 ${server.callFromBuild('root-build-finished')}
@@ -226,7 +226,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
         file("buildSrc/build.gradle") << """
             ${server.callFromBuild('buildsrc-build-script')}
             assemble {
-                dependsOn {                         
+                dependsOn {
                     // call during task graph calculation
                     ${server.callFromBuild('buildsrc-task-graph')}
                     null
@@ -305,7 +305,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
         buildFile << """
             def usage = Attribute.of('usage', String)
             def artifactType = Attribute.of('artifactType', String)
-                  
+
             abstract class FileSizer implements TransformAction<Parameters> {
                 interface Parameters extends TransformParameters {
                     @Input
@@ -325,14 +325,14 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
                     output.text = String.valueOf(input.length())
                 }
             }
-            
+
             class FileDoubler extends ArtifactTransform {
                 List<File> transform(File input) {
                     ${server.callFromBuild('double-transform')}
                     return [input, input]
                 }
             }
-            
+
             allprojects {
                 dependencies {
                     attributesSchema {
@@ -359,7 +359,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
                     compile jar
                 }
             }
-    
+
             project(':util') {
                 dependencies {
                     compile project(':lib')

@@ -48,14 +48,14 @@ abstract class AbstractCompilerDaemonReuseIntegrationTest extends AbstractIntegr
                     finalizedBy ":writeCompilerIdentities"
                 }
             }
-            
+
             task writeCompilerIdentities {
                 doLast { task ->
                     def compilerDaemonIdentityFile = file("$compilerDaemonIdentityFileName")
                     compilerDaemonIdentityFile << services.get(WorkerDaemonClientsManager).allClients.collect { System.identityHashCode(it) }.sort().join(" ") + "\\n"
                 }
             }
-            
+
             task compileAll {
                 dependsOn allprojects.collect { it.tasks.withType(${compileTaskType}) }
             }

@@ -98,10 +98,10 @@ abstract class WellBehavedPluginTest extends AbstractPluginIntegrationTest {
             tasks.configureEach {
                 configuredTasks << it
             }
-            
+
             gradle.buildFinished {
                 def configuredTaskPaths = configuredTasks*.path
-                
+
                 assert configuredTaskPaths == [':help']
             }
         """

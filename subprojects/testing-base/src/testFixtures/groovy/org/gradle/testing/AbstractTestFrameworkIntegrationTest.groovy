@@ -27,13 +27,17 @@ import spock.lang.Unroll
 import static org.gradle.integtests.fixtures.DefaultTestExecutionResult.removeParentheses
 
 abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationSpec {
+
     abstract void createPassingFailingTest()
+
     abstract void createEmptyProject()
+
     abstract void renameTests()
 
     abstract String getTestTaskName()
 
     abstract String getPassingTestCaseName()
+
     abstract String getFailingTestCaseName()
 
     String testSuite(String testSuite) {
@@ -205,14 +209,17 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         createPassingFailingTest()
 
         //by command line
-        when: fails(testTaskName, "--tests", "${testSuite('SomeTest')}.missingMethod")
-        then: failure.assertHasCause("No tests found for given includes: [${testSuite('SomeTest')}.missingMethod](--tests filter)")
+        when:
+        fails(testTaskName, "--tests", "${testSuite('SomeTest')}.missingMethod")
+        then:
+        failure.assertHasCause("No tests found for given includes: [${testSuite('SomeTest')}.missingMethod](--tests filter)")
 
         //by build script
         when:
         buildFile << "tasks.withType(AbstractTestTask) { filter.includeTestsMatching '${testSuite('SomeTest')}.missingMethod' }"
         fails(testTaskName)
-        then: failure.assertHasCause("No tests found for given includes: [${testSuite('SomeTest')}.missingMethod](filter.includeTestsMatching)")
+        then:
+        failure.assertHasCause("No tests found for given includes: [${testSuite('SomeTest')}.missingMethod](filter.includeTestsMatching)")
     }
 
     @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
@@ -271,7 +278,7 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
 
         desiredTestFilters.each { testClass, testCases ->
             testCases.collect { testCase ->
-                command.addAll([ '--tests', testSuite(testClass) + "." + removeParentheses(testCase) ])
+                command.addAll(['--tests', testSuite(testClass) + "." + removeParentheses(testCase)])
             }
         }
         return command.toArray()
