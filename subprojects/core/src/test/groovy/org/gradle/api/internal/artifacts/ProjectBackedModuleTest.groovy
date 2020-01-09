@@ -16,13 +16,15 @@
 
 package org.gradle.api.internal.artifacts
 
+
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 class ProjectBackedModuleTest extends AbstractProjectBuilderSpec {
+    ProjectModuleFactory factory = new DefaultProjectModuleFactory()
 
     def "module exposes project properties"() {
         given:
-        def module = new ProjectBackedModule(project)
+        def module = factory.getModule(project)
 
         expect:
         module.name == project.name

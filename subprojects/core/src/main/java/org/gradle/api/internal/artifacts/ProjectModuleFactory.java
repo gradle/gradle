@@ -17,9 +17,6 @@ package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.Project;
 
-import java.util.List;
-
-public interface ProjectBackedModule extends Module {
-    Project getProject();
-    List<Project> getProjectsWithSameCoordinates();
+public interface ProjectModuleFactory {
+    Module getModule(Project project);
 }

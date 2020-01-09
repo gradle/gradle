@@ -27,6 +27,7 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.logging.Logger;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.JavaPlatformPlugin;
@@ -88,7 +89,8 @@ public class IvyPublishPlugin implements Plugin<Project> {
                 objectFactory,
                 fileResolver,
                 project.getPluginManager(),
-                project.getExtensions()));
+                project.getExtensions(),
+                project.getLogger()));
             createTasksLater(project, extension, project.getLayout().getBuildDirectory());
         });
     }
@@ -167,21 +169,23 @@ public class IvyPublishPlugin implements Plugin<Project> {
         private final FileResolver fileResolver;
         private final PluginManager plugins;
         private final ExtensionContainer extensionContainer;
+        private final Logger logger;
 
         private IvyPublicationFactory(DependencyMetaDataProvider dependencyMetaDataProvider, Instantiator instantiator, ObjectFactory objectFactory, FileResolver fileResolver,
-                                      PluginManager plugins, ExtensionContainer extensionContainer) {
+                                      PluginManager plugins, ExtensionContainer extensionContainer, Logger logger) {
             this.dependencyMetaDataProvider = dependencyMetaDataProvider;
             this.instantiator = instantiator;
             this.objectFactory = objectFactory;
             this.fileResolver = fileResolver;
             this.plugins = plugins;
             this.extensionContainer = extensionContainer;
+            this.logger = logger;
         }
 
         @Override
         public IvyPublication create(String name) {
             Module module = dependencyMetaDataProvider.getModule();
-            IvyPublicationIdentity publicationIdentity = new DefaultIvyPublicationIdentity(module);
+            IvyPublicationIdentity publicationIdentity = new DefaultIvyPublicationIdentity(module, logger);
             NotationParser<Object, IvyArtifact> notationParser = new IvyArtifactNotationParserFactory(instantiator, fileResolver, publicationIdentity).create();
             VersionMappingStrategyInternal versionMappingStrategy = objectFactory.newInstance(DefaultVersionMappingStrategy.class);
             configureDefaultConfigurationsUsedWhenMappingToResolvedVersions(versionMappingStrategy);
@@ -202,5 +206,4 @@ public class IvyPublishPlugin implements Plugin<Project> {
             });
         }
     }
-
 }

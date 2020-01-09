@@ -294,7 +294,7 @@ project(":project2") {
             subprojects {
                 apply plugin: 'java'
                 apply plugin: 'maven'
-                
+
                 group = "org.gradle.test"
                 version = "1.0"
 
@@ -303,7 +303,7 @@ project(":project2") {
                     println project.name + " RESOLUTION"
                 }
             }
-           
+
             subprojects {
                 if (name.startsWith("consumer")) {
                     dependencies {
@@ -313,7 +313,7 @@ project(":project2") {
                     }
                 }
             }
-            
+
             def verify = tasks.register("verify") {
                 dependsOn ((0..${parallelProjectCount}).collect { ":consumer" + it + ":install" })
                 doLast {
@@ -548,4 +548,227 @@ project(":project2") {
 $append
         """
     }
+
+    @ToBeFixedForInstantExecution
+    @Issue("https://github.com/gradle/gradle/issues/847")
+    def "can publish projects with the same name should be considered different when building the graph"() {
+        given:
+        settingsFile << """
+            rootProject.name='duplicates'
+            include 'a:core'
+            include 'b:core'
+        """
+
+        buildFile << """
+            allprojects {
+                apply plugin: 'java-library'
+                apply plugin: 'maven-publish'
+                group 'org.gradle.test'
+                version '1.0'
+
+                publishing {
+                    repositories {
+                        maven { url "${mavenRepo.uri}" }
+                    }
+                    publications {
+                        maven(MavenPublication) {
+                            from components.java
+                        }
+                    }
+                }
+            }
+
+            project(':a:core') {
+                dependencies {
+                    implementation project(':b:core')
+                }
+            }
+        """
+
+        when:
+        succeeds 'publishMavenPublicationToMavenRepo'
+        def project1 = javaLibrary(mavenRepo.module("org.gradle.test", "a-core", "1.0"))
+        def project2 = javaLibrary(mavenRepo.module("org.gradle.test", "b-core", "1.0"))
+
+        then:
+        project1.assertPublishedAsJavaModule()
+        project2.assertPublishedAsJavaModule()
+
+        project1.parsedPom.artifactId == 'a-core'
+        project2.parsedPom.artifactId == 'b-core'
+
+        project1.parsedPom.scope("runtime") {
+            assertDependsOn("org.gradle.test:b-core:1.0")
+        }
+
+        project1.parsedModuleMetadata.component.module == 'a-core'
+        project2.parsedModuleMetadata.component.module == 'b-core'
+
+        project1.parsedModuleMetadata.variant("runtimeElements") {
+            dependency("org.gradle.test", "b-core", "1.0")
+            noMoreDependencies()
+        }
+
+        and:
+        outputContains """Project :a:core has the same (groupId, artifactId) as :b:core. It has been assigned an automatic artifact id of a-core as a workaround, but you should set both the groupId and artifactId of the publication to be safe.
+Project :b:core has the same (groupId, artifactId) as :a:core. It has been assigned an automatic artifact id of b-core as a workaround, but you should set both the groupId and artifactId of the publication to be safe.
+"""
+    }
+
+    @ToBeFixedForInstantExecution
+    @Issue("https://github.com/gradle/gradle/issues/847")
+    def "can avoid publishing warning with projects with the same name by setting an explicit artifact id"() {
+        given:
+        settingsFile << """
+            rootProject.name='duplicates'
+            include 'a:core'
+            include 'b:core'
+        """
+
+        buildFile << """
+            allprojects {
+                apply plugin: 'java-library'
+                apply plugin: 'maven-publish'
+                group 'org.gradle.test'
+                version '1.0'
+
+                publishing {
+                    repositories {
+                        maven { url "${mavenRepo.uri}" }
+                    }
+                }
+            }
+
+            project(':a:core') {
+                dependencies {
+                    implementation project(':b:core')
+                }
+                publishing.publications {
+                     maven(MavenPublication) {
+                        groupId = 'org.gradle.test'
+                        artifactId = 'some-a'
+                        from components.java
+                    }
+                }
+            }
+
+            project(':b:core') {
+                publishing.publications {
+                     maven(MavenPublication) {
+                        groupId = 'org.gradle.test'
+                        artifactId = 'some-b'
+                        from components.java
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds 'publishMavenPublicationToMavenRepo'
+        def project1 = javaLibrary(mavenRepo.module("org.gradle.test", "some-a", "1.0"))
+        def project2 = javaLibrary(mavenRepo.module("org.gradle.test", "some-b", "1.0"))
+
+        then:
+        project1.assertPublishedAsJavaModule()
+        project2.assertPublishedAsJavaModule()
+
+        project1.parsedPom.artifactId == 'some-a'
+        project2.parsedPom.artifactId == 'some-b'
+
+        project1.parsedPom.scope("runtime") {
+            assertDependsOn("org.gradle.test:some-b:1.0")
+        }
+
+        project1.parsedModuleMetadata.component.module == 'some-a'
+        project2.parsedModuleMetadata.component.module == 'some-b'
+
+        project1.parsedModuleMetadata.variant("runtimeElements") {
+            dependency("org.gradle.test", "some-b", "1.0")
+            noMoreDependencies()
+        }
+
+        and:
+        outputDoesNotContain """Project :a:core has the same (groupId, artifactId) as :b:core. It has been assigned an automatic artifact id of a-core as a workaround, but you should set both the groupId and artifactId of the publication to be safe.
+Project :b:core has the same (groupId, artifactId) as :a:core. It has been assigned an automatic artifact id of b-core as a workaround, but you should set both the groupId and artifactId of the publication to be safe.
+"""
+    }
+
+    @ToBeFixedForInstantExecution
+    @Issue("https://github.com/gradle/gradle/issues/847")
+    def "can avoid publishing warning with projects with the same name by setting an explicit group id"() {
+        given:
+        settingsFile << """
+            rootProject.name='duplicates'
+            include 'a:core'
+            include 'b:core'
+        """
+
+        buildFile << """
+            allprojects {
+                apply plugin: 'java-library'
+                apply plugin: 'maven-publish'
+                group 'org.gradle.test'
+                version '1.0'
+
+                publishing {
+                    repositories {
+                        maven { url "${mavenRepo.uri}" }
+                    }
+                }
+            }
+
+            project(':a:core') {
+                dependencies {
+                    implementation project(':b:core')
+                }
+                publishing.publications {
+                     maven(MavenPublication) {
+                        groupId = 'org.gradle.test2'
+                        artifactId = 'core'
+                        from components.java
+                    }
+                }
+            }
+
+            project(':b:core') {
+                publishing.publications {
+                     maven(MavenPublication) {
+                        groupId = 'org.gradle.test'
+                        artifactId = 'core'
+                        from components.java
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds 'publishMavenPublicationToMavenRepo'
+        def project1 = javaLibrary(mavenRepo.module("org.gradle.test2", "core", "1.0"))
+        def project2 = javaLibrary(mavenRepo.module("org.gradle.test", "core", "1.0"))
+
+        then:
+        project1.assertPublishedAsJavaModule()
+        project2.assertPublishedAsJavaModule()
+
+        project1.parsedPom.groupId == 'org.gradle.test2'
+        project2.parsedPom.groupId == 'org.gradle.test'
+
+        project1.parsedPom.scope("runtime") {
+            assertDependsOn("org.gradle.test:core:1.0")
+        }
+
+        project1.parsedModuleMetadata.component.group == 'org.gradle.test2'
+        project2.parsedModuleMetadata.component.group == 'org.gradle.test'
+
+        project1.parsedModuleMetadata.variant("runtimeElements") {
+            dependency("org.gradle.test", "core", "1.0")
+            noMoreDependencies()
+        }
+
+        and:
+        outputDoesNotContain """Project :a:core has the same (groupId, artifactId) as :b:core. It has been assigned an automatic artifact id of a-core as a workaround, but you should set both the groupId and artifactId of the publication to be safe.
+Project :b:core has the same (groupId, artifactId) as :a:core. It has been assigned an automatic artifact id of b-core as a workaround, but you should set both the groupId and artifactId of the publication to be safe.
+"""
+    }
+
 }

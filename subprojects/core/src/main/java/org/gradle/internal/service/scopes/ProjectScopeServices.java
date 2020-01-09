@@ -24,7 +24,7 @@ import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.MutationGuards;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.Module;
-import org.gradle.api.internal.artifacts.ProjectBackedModule;
+import org.gradle.api.internal.artifacts.ProjectModuleFactory;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.collections.DefaultDomainObjectCollectionFactory;
@@ -279,8 +279,8 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         }
     }
 
-    protected DependencyMetaDataProvider createDependencyMetaDataProvider() {
-        return new ProjectBackedModuleMetaDataProvider();
+    protected DependencyMetaDataProvider createDependencyMetaDataProvider(ProjectModuleFactory projectModuleIdentifierFactory) {
+        return new ProjectBackedModuleMetaDataProvider(projectModuleIdentifierFactory);
     }
 
     protected ServiceRegistryFactory createServiceRegistryFactory(final ServiceRegistry services) {
@@ -301,9 +301,15 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     }
 
     private class ProjectBackedModuleMetaDataProvider implements DependencyMetaDataProvider {
+        private final ProjectModuleFactory projectModuleIdentifierFactory;
+
+        public ProjectBackedModuleMetaDataProvider(ProjectModuleFactory projectModuleIdentifierFactory) {
+            this.projectModuleIdentifierFactory = projectModuleIdentifierFactory;
+        }
+
         @Override
         public Module getModule() {
-            return new ProjectBackedModule(project);
+            return projectModuleIdentifierFactory.getModule(project);
         }
     }
 

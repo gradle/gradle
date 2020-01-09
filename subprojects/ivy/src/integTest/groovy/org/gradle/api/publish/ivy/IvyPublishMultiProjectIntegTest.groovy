@@ -17,6 +17,7 @@
 package org.gradle.api.publish.ivy
 
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import spock.lang.Issue
 
 class IvyPublishMultiProjectIntegTest extends AbstractIvyPublishIntegTest {
     def project1 = javaLibrary(ivyRepo.module("org.gradle.test", "project1", "1.0"))
@@ -341,4 +342,219 @@ project(":project2") {
 $append
         """
     }
+
+    @ToBeFixedForInstantExecution
+    @Issue("https://github.com/gradle/gradle/issues/847")
+    def "can publish projects with the same name should be considered different when building the graph"() {
+        given:
+        settingsFile << """
+            rootProject.name='duplicates'
+            include 'a:core'
+            include 'b:core'
+        """
+
+        buildFile << """
+            allprojects {
+                apply plugin: 'java-library'
+                apply plugin: 'ivy-publish'
+                group 'org.gradle.test'
+                version '1.0'
+
+                publishing {
+                    repositories {
+                        ivy { url "${ivyRepo.uri}" }
+                    }
+                    publications {
+                        ivy(IvyPublication) {
+                            from components.java
+                        }
+                    }
+                }
+            }
+
+            project(':a:core') {
+                dependencies {
+                    implementation project(':b:core')
+                }
+            }
+        """
+
+        when:
+        succeeds 'publishIvyPublicationToIvyRepo'
+        def project1 = javaLibrary(ivyRepo.module("org.gradle.test", "a-core", "1.0"))
+        def project2 = javaLibrary(ivyRepo.module("org.gradle.test", "b-core", "1.0"))
+
+        then:
+        project1.assertPublishedAsJavaModule()
+        project2.assertPublishedAsJavaModule()
+
+        project1.parsedIvy.module == 'a-core'
+        project2.parsedIvy.module == 'b-core'
+
+        project1.parsedIvy.assertConfigurationDependsOn("runtime", "org.gradle.test:b-core:1.0")
+
+        project1.parsedModuleMetadata.component.module == 'a-core'
+        project2.parsedModuleMetadata.component.module == 'b-core'
+
+        project1.parsedModuleMetadata.variant("runtimeElements") {
+            dependency("org.gradle.test", "b-core", "1.0")
+            noMoreDependencies()
+        }
+
+        and:
+        outputContains """Project :b:core has the same (organisation, module name) as :a:core. It has been assigned an automatic module name of b-core as a workaround, but you should set both the organisation and module name of the publication to be safe."""
+        outputContains """Project :a:core has the same (organisation, module name) as :b:core. It has been assigned an automatic module name of a-core as a workaround, but you should set both the organisation and module name of the publication to be safe."""
+    }
+
+    @ToBeFixedForInstantExecution
+    @Issue("https://github.com/gradle/gradle/issues/847")
+    def "can avoid publishing warning with projects with the same name by setting an explicit artifact id"() {
+        given:
+        settingsFile << """
+            rootProject.name='duplicates'
+            include 'a:core'
+            include 'b:core'
+        """
+
+        buildFile << """
+            allprojects {
+                apply plugin: 'java-library'
+                apply plugin: 'ivy-publish'
+                group 'org.gradle.test'
+                version '1.0'
+
+                publishing {
+                    repositories {
+                        ivy { url "${ivyRepo.uri}" }
+                    }
+                }
+            }
+
+            project(':a:core') {
+                dependencies {
+                    implementation project(':b:core')
+                }
+                publishing.publications {
+                     ivy(IvyPublication) {
+                        organisation = 'org.gradle.test'
+                        module = 'some-a'
+                        from components.java
+                    }
+                }
+            }
+
+            project(':b:core') {
+                publishing.publications {
+                     ivy(IvyPublication) {
+                        organisation = 'org.gradle.test'
+                        module = 'some-b'
+                        from components.java
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds 'publishIvyPublicationToIvyRepo'
+        def project1 = javaLibrary(ivyRepo.module("org.gradle.test", "some-a", "1.0"))
+        def project2 = javaLibrary(ivyRepo.module("org.gradle.test", "some-b", "1.0"))
+
+        then:
+        project1.assertPublishedAsJavaModule()
+        project2.assertPublishedAsJavaModule()
+
+        project1.parsedIvy.module == 'some-a'
+        project2.parsedIvy.module == 'some-b'
+
+        project1.parsedIvy.assertConfigurationDependsOn("runtime", "org.gradle.test:some-b:1.0")
+
+        project1.parsedModuleMetadata.component.module == 'some-a'
+        project2.parsedModuleMetadata.component.module == 'some-b'
+
+        project1.parsedModuleMetadata.variant("runtimeElements") {
+            dependency("org.gradle.test", "some-b", "1.0")
+            noMoreDependencies()
+        }
+
+        and:
+        outputDoesNotContain "Project :a:core has the same (organisation, module name) as :b:core. It has been assigned an automatic module name of a-core as a workaround, but you should set both the organisation and module name of the publication to be safe."
+        outputDoesNotContain "Project :b:core has the same (organisation, module name) as :a:core. It has been assigned an automatic module name of b-core as a workaround, but you should set both the organisation and module name of the publication to be safe."
+    }
+
+    @ToBeFixedForInstantExecution
+    @Issue("https://github.com/gradle/gradle/issues/847")
+    def "can avoid publishing warning with projects with the same name by setting an explicit group id"() {
+        given:
+        settingsFile << """
+            rootProject.name='duplicates'
+            include 'a:core'
+            include 'b:core'
+        """
+
+        buildFile << """
+            allprojects {
+                apply plugin: 'java-library'
+                apply plugin: 'ivy-publish'
+                group 'org.gradle.test'
+                version '1.0'
+
+                publishing {
+                    repositories {
+                        ivy { url "${ivyRepo.uri}" }
+                    }
+                }
+            }
+
+            project(':a:core') {
+                dependencies {
+                    implementation project(':b:core')
+                }
+                publishing.publications {
+                     ivy(IvyPublication) {
+                        organisation = 'org.gradle.test2'
+                        module = 'core'
+                        from components.java
+                    }
+                }
+            }
+
+            project(':b:core') {
+                publishing.publications {
+                     ivy(IvyPublication) {
+                        organisation = 'org.gradle.test'
+                        module = 'core'
+                        from components.java
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds 'publishIvyPublicationToIvyRepo'
+        def project1 = javaLibrary(ivyRepo.module("org.gradle.test2", "core", "1.0"))
+        def project2 = javaLibrary(ivyRepo.module("org.gradle.test", "core", "1.0"))
+
+        then:
+        project1.assertPublishedAsJavaModule()
+        project2.assertPublishedAsJavaModule()
+
+        project1.parsedIvy.organisation == 'org.gradle.test2'
+        project2.parsedIvy.organisation == 'org.gradle.test'
+
+        project1.parsedIvy.assertConfigurationDependsOn("runtime", "org.gradle.test:core:1.0")
+
+        project1.parsedModuleMetadata.component.group == 'org.gradle.test2'
+        project2.parsedModuleMetadata.component.group == 'org.gradle.test'
+
+        project1.parsedModuleMetadata.variant("runtimeElements") {
+            dependency("org.gradle.test", "core", "1.0")
+            noMoreDependencies()
+        }
+
+        and:
+        outputDoesNotContain "Project :a:core has the same (organisation, module name) as :b:core. It has been assigned an automatic module name of a-core as a workaround, but you should set both the organisation and module name of the publication to be safe."
+        outputDoesNotContain "Project :b:core has the same (organisation, module name) as :a:core. It has been assigned an automatic module name of b-core as a workaround, but you should set both the organisation and module name of the publication to be safe."
+
+    }
+
 }

@@ -26,15 +26,18 @@ import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.artifacts.Module;
+import org.gradle.api.internal.artifacts.ProjectBackedModule;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.logging.Logger;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.JavaPlatformPlugin;
 import org.gradle.api.plugins.PluginManager;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.publish.PublishingExtension;
+import org.gradle.api.publish.internal.versionmapping.DefaultVersionMappingStrategy;
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.publish.maven.MavenPublication;
@@ -43,7 +46,6 @@ import org.gradle.api.publish.maven.internal.publication.DefaultMavenPublication
 import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
 import org.gradle.api.publish.maven.internal.publication.WritableMavenProjectIdentity;
 import org.gradle.api.publish.maven.internal.publisher.MutableMavenProjectIdentity;
-import org.gradle.api.publish.internal.versionmapping.DefaultVersionMappingStrategy;
 import org.gradle.api.publish.maven.tasks.GenerateMavenPom;
 import org.gradle.api.publish.maven.tasks.PublishToMavenLocal;
 import org.gradle.api.publish.maven.tasks.PublishToMavenRepository;
@@ -58,7 +60,10 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 
 import javax.inject.Inject;
+import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 import static org.apache.commons.lang.StringUtils.capitalize;
 
@@ -101,11 +106,13 @@ public class MavenPublishPlugin implements Plugin<Project> {
 
         project.getExtensions().configure(PublishingExtension.class, extension -> {
             extension.getPublications().registerFactory(MavenPublication.class, new MavenPublicationFactory(
-                    dependencyMetaDataProvider,
-                    instantiatorFactory.decorateLenient(),
-                    fileResolver,
-                    project.getPluginManager(),
-                    project.getExtensions()));
+                dependencyMetaDataProvider,
+                instantiatorFactory.decorateLenient(),
+                fileResolver,
+                project.getPluginManager(),
+                project.getExtensions(),
+                project.getLogger()
+            ));
             realizePublishingTasksLater(project, extension);
         });
     }
@@ -179,7 +186,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
                 // are mapped to some attributes, which can be used in the version mapping strategy.
                 // This is only required for POM publication, because the variants have _implicit_ attributes that we want explicit for matching
                 generatePomTask.withCompileScopeAttributes(immutableAttributesFactory.of(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_API)))
-                        .withRuntimeScopeAttributes(immutableAttributesFactory.of(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME)));
+                    .withRuntimeScopeAttributes(immutableAttributesFactory.of(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME)));
             });
         });
         publication.setPomGenerator(generatorTask);
@@ -204,17 +211,20 @@ public class MavenPublishPlugin implements Plugin<Project> {
         private final FileResolver fileResolver;
         private final PluginManager plugins;
         private final ExtensionContainer extensionContainer;
+        private final Logger logger;
 
         private MavenPublicationFactory(DependencyMetaDataProvider dependencyMetaDataProvider,
                                         Instantiator instantiator,
                                         FileResolver fileResolver,
                                         PluginManager plugins,
-                                        ExtensionContainer extensionContainer) {
+                                        ExtensionContainer extensionContainer,
+                                        Logger logger) {
             this.dependencyMetaDataProvider = dependencyMetaDataProvider;
             this.instantiator = instantiator;
             this.fileResolver = fileResolver;
             this.plugins = plugins;
             this.extensionContainer = extensionContainer;
+            this.logger = logger;
         }
 
         @Override
@@ -224,11 +234,11 @@ public class MavenPublishPlugin implements Plugin<Project> {
             VersionMappingStrategyInternal versionMappingStrategy = objectFactory.newInstance(DefaultVersionMappingStrategy.class);
             configureDefaultConfigurationsUsedWhenMappingToResolvedVersions(versionMappingStrategy);
             return objectFactory.newInstance(
-                    DefaultMavenPublication.class,
-                    name,
-                    projectIdentity,
-                    artifactNotationParser,
-                    versionMappingStrategy
+                DefaultMavenPublication.class,
+                name,
+                projectIdentity,
+                artifactNotationParser,
+                versionMappingStrategy
             );
         }
 
@@ -248,10 +258,59 @@ public class MavenPublishPlugin implements Plugin<Project> {
         private MutableMavenProjectIdentity createProjectIdentity() {
             final Module module = dependencyMetaDataProvider.getModule();
             MutableMavenProjectIdentity projectIdentity = new WritableMavenProjectIdentity(objectFactory);
-            projectIdentity.getGroupId().set(providerFactory.provider(module::getGroup));
-            projectIdentity.getArtifactId().set(providerFactory.provider(module::getName));
+            if (module instanceof ProjectBackedModule) {
+                LazyProjectNameProvider lazyProjectNameProvider = safeProjectCoordinatesProvider(module);
+                projectIdentity.getGroupId().set(providerFactory.provider(lazyProjectNameProvider::getGroup));
+                projectIdentity.getArtifactId().set(providerFactory.provider(lazyProjectNameProvider::getName));
+            } else {
+                projectIdentity.getGroupId().set(providerFactory.provider(module::getGroup));
+                projectIdentity.getArtifactId().set(providerFactory.provider(module::getName));
+            }
             projectIdentity.getVersion().set(providerFactory.provider(module::getVersion));
             return projectIdentity;
+        }
+
+        private LazyProjectNameProvider safeProjectCoordinatesProvider(Module module) {
+            return new LazyProjectNameProvider((ProjectBackedModule) module, logger);
+        }
+    }
+
+    private static final class LazyProjectNameProvider {
+        private final ProjectBackedModule projectBackedModule;
+        private final Logger logger;
+        private final AtomicBoolean warned = new AtomicBoolean();
+
+        private LazyProjectNameProvider(ProjectBackedModule module, Logger logger) {
+            this.projectBackedModule = module;
+            this.logger = logger;
+        }
+
+        public String getGroup() {
+            maybeWarnAboutDuplicates();
+            return projectBackedModule.getGroup();
+        }
+
+        public String getName() {
+            maybeWarnAboutDuplicates();
+            return projectBackedModule.getName();
+        }
+
+        private void maybeWarnAboutDuplicates() {
+            if (!warned.getAndSet(true)) {
+                Project project = projectBackedModule.getProject();
+                List<Project> projectsWithSameId = projectBackedModule.getProjectsWithSameCoordinates();
+                if (!projectsWithSameId.isEmpty()) {
+                    StringBuilder sb = new StringBuilder();
+                    sb.append("Project ")
+                        .append(project.getPath())
+                        .append(" has the same (groupId, artifactId) as ")
+                        .append(projectsWithSameId.stream().map(Project::getPath).collect(Collectors.joining(" and ")))
+                        .append(". It has been assigned an automatic artifact id of ")
+                        .append(projectBackedModule.getName())
+                        .append(" as a workaround, but you should set both the groupId and artifactId of the publication to be safe.");
+                    logger.warn(sb.toString());
+                }
+            }
         }
     }
 
