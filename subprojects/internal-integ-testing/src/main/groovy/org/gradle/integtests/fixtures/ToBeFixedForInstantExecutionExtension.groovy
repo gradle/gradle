@@ -34,7 +34,7 @@ class ToBeFixedForInstantExecutionExtension extends AbstractAnnotationDrivenExte
             spec.allFeatures.each { feature ->
                 def annotation = feature.featureMethod.reflection.getAnnotation(ToBeFixedForInstantExecution)
                 if (annotation != null) {
-                    ToBeFixedForInstantExecution.Skip skip = annotation.value()
+                    ToBeFixedForInstantExecution.Skip skip = annotation.skip()
                     String[] bottomSpecs = annotation.bottomSpecs()
                     if (bottomSpecs.length == 0 || spec.bottomSpec.name in bottomSpecs) {
                         if (skip == ToBeFixedForInstantExecution.Skip.DO_NOT_SKIP) {
