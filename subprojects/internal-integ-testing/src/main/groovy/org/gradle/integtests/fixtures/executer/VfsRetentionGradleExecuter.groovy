@@ -32,6 +32,10 @@ class VfsRetentionGradleExecuter extends DaemonGradleExecuter {
         IntegrationTestBuildContext buildContext
     ) {
         super(distribution, testDirectoryProvider, gradleVersion, buildContext)
+        beforeExecute {
+            // Wait a second to pick up changes
+            Thread.sleep(1000)
+        }
     }
 
     @Override

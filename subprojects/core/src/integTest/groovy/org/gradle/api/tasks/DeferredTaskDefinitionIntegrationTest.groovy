@@ -307,7 +307,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         run("other")
 
         then:
-        result.assertNotOutput("Received")
+        result.assertNotOutput("Received :")
         result.assertNotOutput("task1")
         result.assertNotOutput("task2")
 
