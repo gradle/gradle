@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.Configuration;
  * hashcode based on its values not on object identity.
  * @see org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer
  */
+@Deprecated
 public class Conf2ScopeMapping {
     private Integer priority;
     private Configuration configuration;

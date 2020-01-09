@@ -44,10 +44,10 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
         actionThatThrowsUnserializableMemberException.with {
             extraFields = """
                 private class Bar { }
-                    
+
                 private class UnserializableMemberException extends RuntimeException {
                     private Bar bar = new Bar();
-                    
+
                     UnserializableMemberException(String message) {
                         super(message);
                     }
@@ -149,7 +149,7 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
                 isolationMode = $isolationMode
                 workActionClass = ${alternateExecution.name}.class
             }
-            
+
             task runInWorker(type: WorkerTask) {
                 isolationMode = $isolationMode
                 foo = new FooWithUnserializableBar()
@@ -162,8 +162,8 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
 
         then:
         failureHasCause("A failure occurred while executing ${workAction.packageName}.${workAction.name}")
-        failureHasCause("Could not isolate value")
-        failureHasCause("Could not serialize value of type 'org.gradle.other.FooWithUnserializableBar'")
+        failureHasCause("Could not isolate value ")
+        failureHasCause("Could not serialize value of type FooWithUnserializableBar")
 
         and:
         executedAndNotSkipped(":runAgainInWorker")
@@ -180,7 +180,7 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
         def alternateExecution = fixture.alternateWorkAction.writeToBuildSrc()
         withParameterMemberThatFailsDeserialization()
 
-        buildFile << """  
+        buildFile << """
             task runAgainInWorker(type: WorkerTask) {
                 isolationMode = IsolationMode.$isolationMode
                 workActionClass = ${alternateExecution.name}.class
@@ -295,10 +295,10 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
             abstract class BadWorkAction implements WorkAction<WorkParameters> {
                 @Inject
                 BadWorkAction() { }
-                
+
                 void execute() { }
             }
-            
+
             task runInWorker(type: WorkerTask) {
                 isolationMode = IsolationMode.PROCESS
                 workActionClass = BadWorkAction.class
@@ -342,10 +342,10 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
     String getClassThatFailsDeserialization() {
         return """
             package org.gradle.other;
-            
+
             import java.io.Serializable;
             import java.io.IOException;
-            
+
             public class Bar implements Serializable {
                 private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
                     throw new IOException("Broken");
@@ -357,10 +357,10 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
     String getClassThatFailsSerialization() {
         return """
             package org.gradle.other;
-            
+
             import java.io.Serializable;
             import java.io.IOException;
-            
+
             public class Bar implements Serializable {
                 private void writeObject(java.io.ObjectOutputStream out) throws IOException {
                     throw new IOException("Broken");
@@ -372,9 +372,9 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
     String getParameterClassWithUnserializableMember() {
         return """
             package org.gradle.other;
-            
+
             import java.io.Serializable;
-            
+
             public class FooWithUnserializableBar extends Foo implements Serializable {
                 private final Bar bar = new Bar();
             }

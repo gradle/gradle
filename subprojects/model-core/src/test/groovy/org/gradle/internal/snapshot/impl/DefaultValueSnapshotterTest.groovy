@@ -593,7 +593,8 @@ class DefaultValueSnapshotterTest extends Specification {
         original.set(originalValue)
 
         given:
-        1 * managedFactoryRegistry.lookup(_) >> new ManagedFactories.PropertyManagedFactory()
+        1 * managedFactoryRegistry.lookup(ManagedFactories.PropertyManagedFactory.FACTORY_ID) >> new ManagedFactories.PropertyManagedFactory()
+        1 * managedFactoryRegistry.lookup(ManagedFactories.ProviderManagedFactory.FACTORY_ID) >> new ManagedFactories.ProviderManagedFactory()
 
         expect:
         def isolated = snapshotter.isolate(original)

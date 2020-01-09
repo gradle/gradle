@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 
-import org.gradle.kotlin.dsl.plugins.dsl.KotlinDslPlugin
-
-import java.io.File
-import java.util.Properties
+import java.util.*
 
 plugins {
     `java`
@@ -44,6 +41,7 @@ subprojects {
         }
 
         dependencies {
+            "api"(platform(project(":buildPlatform")))
             implementation(gradleApi())
         }
 
@@ -76,19 +74,27 @@ allprojects {
         maven {
             name = "Gradle libs"
             url = uri("https://repo.gradle.org/gradle/libs")
+            mavenContent {
+                // This repository contains an older version which has been overwritten in Central
+                excludeModule("com.google.j2objc", "j2objc-annotations")
+            }
         }
         gradlePluginPortal()
         maven {
             name = "Gradle snapshot libs"
             url = uri("https://repo.gradle.org/gradle/libs-snapshots")
+            mavenContent {
+                // This repository contains an older version which has been overwritten in Central
+                excludeModule("com.google.j2objc", "j2objc-annotations")
+            }
         }
         maven {
             name = "kotlinx"
             url = uri("https://dl.bintray.com/kotlin/kotlinx")
         }
         maven {
-            name = "kotlin-eap"
-            url = uri("https://dl.bintray.com/kotlin/kotlin-eap")
+            name = "kotlin-dev"
+            url = uri("https://dl.bintray.com/kotlin/kotlin-dev")
         }
     }
 }
@@ -180,6 +186,7 @@ val checkSameDaemonArgs by tasks.registering {
 tasks.build { dependsOn(checkSameDaemonArgs) }
 
 fun Project.applyGroovyProjectConventions() {
+    apply(plugin = "java-gradle-plugin")
     apply(plugin = "groovy")
 
     dependencies {

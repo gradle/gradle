@@ -21,7 +21,6 @@ import org.gradle.api.Action;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.workers.ClassLoaderWorkerSpec;
-import org.gradle.workers.IsolationMode;
 import org.gradle.workers.ProcessWorkerSpec;
 
 import javax.inject.Inject;
@@ -31,9 +30,9 @@ public class DefaultProcessWorkerSpec extends DefaultClassLoaderWorkerSpec imple
 
     @Inject
     public DefaultProcessWorkerSpec(JavaForkOptions forkOptions, ObjectFactory objectFactory) {
-        super(IsolationMode.PROCESS, objectFactory);
+        super(objectFactory);
         this.forkOptions = forkOptions;
-        getForkOptions().setEnvironment(Maps.<String, Object>newHashMap());
+        this.forkOptions.setEnvironment(Maps.newHashMap());
     }
 
     @Override

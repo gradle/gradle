@@ -157,7 +157,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         new CatchExceptionStep<>(
         new CancelExecutionStep<>(cancellationToken,
         new ResolveInputChangesStep<>(
-        new CleanupOutputsStep<>(deleter,
+        new CleanupOutputsStep<>(deleter, outputChangeListener,
         new ExecuteStep<>(
     )))))))))))))))
     // @formatter:on

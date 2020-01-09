@@ -19,8 +19,6 @@ package org.gradle.internal.vfs
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import spock.lang.IgnoreIf
 
 import static org.gradle.internal.service.scopes.VirtualFileSystemServices.VFS_DROP_PROPERTY
@@ -28,13 +26,12 @@ import static org.gradle.internal.service.scopes.VirtualFileSystemServices.VFS_R
 
 // The whole test makes no sense if there isn't a daemon to retain the state.
 @IgnoreIf({ GradleContextualExecuter.noDaemon })
-// TODO Re-enable for other OSs once we have macOS and Windows native watchers merged
-@Requires(TestPrecondition.LINUX)
 class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         // Make the first build in each test drop the VFS state
         executer.withArgument("-D$VFS_DROP_PROPERTY=true")
+        executer.requireIsolatedDaemons()
     }
 
     @ToBeFixedForInstantExecution
@@ -210,6 +207,179 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         outputDoesNotContain(incubatingMessage)
     }
 
+    @ToBeFixedForInstantExecution
+    def "detects when outputs are removed for tasks without sources"() {
+        buildFile << """
+            apply plugin: 'base'
+
+            abstract class Producer extends DefaultTask {
+                @InputDirectory
+                @SkipWhenEmpty
+                abstract DirectoryProperty getSources()
+                
+                @OutputDirectory
+                abstract DirectoryProperty getOutputDir()
+                
+                @TaskAction
+                void listSources() {
+                    outputDir.file("output.txt").get().asFile.text = sources.get().asFile.list().join("\\n")
+                }
+            }
+
+            task sourceTask(type: Producer) {
+                sources = file("sources")
+                outputDir = file("build/output")
+            }
+
+            task consumer {
+                def outputFile = file("build/consumer.txt")
+                inputs.files(sourceTask.outputDir)
+                outputs.file("build/consumer.txt")
+                doLast {
+                    def input = file("build/output/output.txt")
+                    if (input.file) {
+                        outputFile.text = input.text
+                    } else {
+                        outputFile.text = "<empty>"
+                    }
+                }
+            }
+        """
+
+        def sourcesDir = file("sources")
+        def sourceFile = sourcesDir.file("source.txt").createFile()
+        def outputFile = file("build/output/output.txt")
+
+        when:
+        withRetention().run ":consumer"
+        then:
+        executedAndNotSkipped(":sourceTask", ":consumer")
+        outputFile.assertExists()
+
+        when:
+        sourceFile.delete()
+        waitForChangesToBePickedUp()
+        withRetention().run ":consumer"
+        then:
+        executedAndNotSkipped(":sourceTask", ":consumer")
+        outputFile.assertDoesNotExist()
+    }
+
+    @ToBeFixedForInstantExecution
+    def "detects when stale outputs are removed"() {
+        buildFile << """
+            apply plugin: 'base'
+            
+            task producer {
+                inputs.files("input.txt")
+                outputs.file("build/output.txt")
+                doLast {
+                    file("build/output.txt").text = file("input.txt").text
+                }
+            }            
+        """
+
+        file("input.txt").text = "input"
+        def outputFile = file("build/output.txt")
+
+        when:
+        withRetention().run ":producer"
+        then:
+        executedAndNotSkipped(":producer")
+        outputFile.assertExists()
+
+        when:
+        invalidateBuildOutputCleanupState()
+        waitForChangesToBePickedUp()
+        withRetention().run ":producer", "--info"
+        then:
+        output.contains("Deleting stale output file: ${outputFile.absolutePath}")
+        executedAndNotSkipped(":producer")
+        outputFile.assertExists()
+    }
+
+    @ToBeFixedForInstantExecution
+    def "detects non-incremental cleanup of incremental tasks"() {
+        buildFile << """
+            abstract class IncrementalTask extends DefaultTask {
+                @InputDirectory
+                @Incremental
+                abstract DirectoryProperty getSources()
+
+                @Input
+                abstract Property<String> getInput()
+                
+                @OutputDirectory
+                abstract DirectoryProperty getOutputDir()
+                
+                @TaskAction
+                void processChanges(InputChanges changes) {
+                    outputDir.file("output.txt").get().asFile.text = input.get()
+                }                
+            }
+
+            task incremental(type: IncrementalTask) {
+                sources = file("sources")
+                input = project.property("outputDir")
+                outputDir = file("build/\${input.get()}")
+            }
+        """
+
+        file("sources/input.txt").text = "input"
+
+        when:
+        withRetention().run ":incremental", "-PoutputDir=output1"
+        then:
+        executedAndNotSkipped(":incremental")
+
+        when:
+        file("build/output2/overlapping.txt").text = "overlapping"
+        waitForChangesToBePickedUp()
+        withRetention().run ":incremental", "-PoutputDir=output2"
+        then:
+        executedAndNotSkipped(":incremental")
+        file("build/output1").assertDoesNotExist()
+
+        when:
+        waitForChangesToBePickedUp()
+        withRetention().run ":incremental", "-PoutputDir=output1"
+        then:
+        executedAndNotSkipped(":incremental")
+        file("build/output1").assertExists()
+    }
+
+    @ToBeFixedForInstantExecution
+    def "detects changes to manifest"() {
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+            
+            jar {
+                manifest {
+                    attributes('Created-By': project.property("creator"))
+                }
+            }            
+        """
+
+        when:
+        withRetention().run "jar", "-Pcreator=first"
+        then:
+        executedAndNotSkipped(":jar")
+
+        when:
+        withRetention().run "jar", "-Pcreator=second"
+        then:
+        executedAndNotSkipped(":jar")
+    }
+
+    // This makes sure the next Gradle run starts with a clean BuildOutputCleanupRegistry
+    private void invalidateBuildOutputCleanupState() {
+        file(".gradle/buildOutputCleanup/cache.properties").text = """
+            gradle.version=1.0
+        """
+    }
+
     private def withRetention() {
         executer.withArgument  "-D${VFS_RETENTION_ENABLED_PROPERTY}"
         this
@@ -240,6 +410,6 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
     }
 
     private static void waitForChangesToBePickedUp() {
-        Thread.sleep(100)
+        Thread.sleep(1000)
     }
 }

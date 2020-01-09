@@ -162,7 +162,7 @@ public class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         task.getReports().all(new Action<SingleFileReport>() {
             @Override
             public void execute(final SingleFileReport report) {
-                report.getActivated().convention(true);
+                report.getRequired().convention(true);
                 report.getOutputLocation().convention(project.getLayout().getProjectDirectory().file(project.provider(() -> new File(extension.getReportsDir(), baseName + "." + report.getName()).getAbsolutePath())));
             }
         });

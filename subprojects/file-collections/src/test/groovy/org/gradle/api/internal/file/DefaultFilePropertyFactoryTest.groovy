@@ -35,6 +35,38 @@ class DefaultFilePropertyFactoryTest extends Specification {
         factory = new DefaultFilePropertyFactory(TestFiles.resolver(projectDir), TestFiles.fileCollectionFactory())
     }
 
+    def "can create directory instance from absolute file"() {
+        def location = tmpDir.createDir("dir")
+
+        expect:
+        def dir = factory.dir(location)
+        dir.asFile == location
+    }
+
+    def "can create directory instance from relative file"() {
+        def location = projectDir.createDir("dir")
+
+        expect:
+        def dir = factory.dir(new File("dir"))
+        dir.asFile == location
+    }
+
+    def "can create file instance from absolute file"() {
+        def location = tmpDir.createFile("file")
+
+        expect:
+        def file = factory.file(location)
+        file.asFile == location
+    }
+
+    def "can create file instance from relative file"() {
+        def location = projectDir.createFile("file")
+
+        expect:
+        def file = factory.file(new File("file"))
+        file.asFile == location
+    }
+
     def "can create directory property"() {
         def pathProvider = Stub(ProviderInternal)
         _ * pathProvider.get() >> { "../other-dir" }

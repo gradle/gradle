@@ -7,6 +7,8 @@
 <suppressions>
     <!-- These packages are duplicated in core-api, don't require a package-info.java in each place -->
     <suppress checks="JavadocPackage"
+              files=".*[/\\]subprojects[/\\]base-annotations[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
               files=".*[/\\]subprojects[/\\]model-core[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\][^/\\]+"/>
     <suppress checks="JavadocPackage"
               files=".*[/\\]subprojects[/\\]core[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\][^/\\]+"/>

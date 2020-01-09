@@ -17,7 +17,13 @@
 package org.gradle.api.internal.provider;
 
 import org.gradle.api.Action;
+import org.gradle.api.file.RegularFile;
+import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.internal.provider.sources.EnvironmentVariableValueSource;
+import org.gradle.api.internal.provider.sources.FileBytesValueSource;
+import org.gradle.api.internal.provider.sources.FileTextValueSource;
 import org.gradle.api.internal.provider.sources.SystemPropertyValueSource;
+import org.gradle.api.file.FileContents;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.provider.ValueSource;
@@ -49,6 +55,19 @@ public class DefaultProviderFactory implements ProviderFactory {
     }
 
     @Override
+    public Provider<String> environmentVariable(String variableName) {
+        return environmentVariable(Providers.of(variableName));
+    }
+
+    @Override
+    public Provider<String> environmentVariable(Provider<String> variableName) {
+        return of(
+            EnvironmentVariableValueSource.class,
+            spec -> spec.getParameters().getVariableName().set(variableName)
+        );
+    }
+
+    @Override
     public Provider<String> systemProperty(String propertyName) {
         return systemProperty(Providers.of(propertyName));
     }
@@ -59,6 +78,36 @@ public class DefaultProviderFactory implements ProviderFactory {
             SystemPropertyValueSource.class,
             spec -> spec.getParameters().getPropertyName().set(propertyName)
         );
+    }
+
+    @Override
+    public FileContents fileContents(RegularFile file) {
+        return fileContents(property -> property.set(file));
+    }
+
+    @Override
+    public FileContents fileContents(Provider<RegularFile> file) {
+        return fileContents(property -> property.set(file));
+    }
+
+    private FileContents fileContents(Action<RegularFileProperty> setFileProperty) {
+        return new FileContents() {
+            @Override
+            public Provider<String> getAsText() {
+                return of(
+                    FileTextValueSource.class,
+                    spec -> setFileProperty.execute(spec.getParameters().getFile())
+                );
+            }
+
+            @Override
+            public Provider<byte[]> getAsBytes() {
+                return of(
+                    FileBytesValueSource.class,
+                    spec -> setFileProperty.execute(spec.getParameters().getFile())
+                );
+            }
+        };
     }
 
     @Override

@@ -41,6 +41,10 @@
                 <td><literal>[:]</literal></td>
             </tr>
             <tr>
+                <td>parameters</td>
+                <td><literal>false</literal></td>
+            </tr>
+            <tr>
                 <td>stubDir</td>
                 <td><literal>null</literal></td>
             </tr>

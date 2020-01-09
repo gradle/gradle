@@ -32,6 +32,10 @@ public class IsolatedEnumValueSnapshot extends EnumValueSnapshot implements Isol
         this.value = value;
     }
 
+    public Enum<?> getValue() {
+        return value;
+    }
+
     @Override
     public ValueSnapshot asSnapshot() {
         return new EnumValueSnapshot(value);

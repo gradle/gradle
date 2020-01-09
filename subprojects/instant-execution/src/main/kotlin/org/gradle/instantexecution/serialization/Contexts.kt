@@ -245,7 +245,7 @@ class DefaultReadContext(
                 parent.createChild(name).local(localClassPath).export(exportClassPath).lock()
             }
         } else {
-            isolate.owner.service(ClassLoaderScopeRegistry::class.java).coreAndPluginsScope
+            ownerService<ClassLoaderScopeRegistry>().coreAndPluginsScope
         }
         Workarounds.maybeSetDefaultStaticStateIn(newScope)
         scopes.putInstance(id, newScope)
@@ -289,7 +289,7 @@ abstract class AbstractIsolateContext<T>(codec: Codec<Any?>) : MutableIsolateCon
     private
     var currentCodec = codec
 
-    var trace: PropertyTrace = PropertyTrace.Unknown
+    var trace: PropertyTrace = PropertyTrace.Gradle
 
     protected
     abstract fun newIsolate(owner: IsolateOwner): T
@@ -307,6 +307,11 @@ abstract class AbstractIsolateContext<T>(codec: Codec<Any?>) : MutableIsolateCon
 
     private
     val contexts = ArrayList<Pair<T?, Codec<Any?>>>()
+
+    override fun push(codec: Codec<Any?>) {
+        contexts.add(0, Pair(currentIsolate, currentCodec))
+        currentCodec = codec
+    }
 
     override fun push(owner: IsolateOwner, codec: Codec<Any?>) {
         contexts.add(0, Pair(currentIsolate, currentCodec))

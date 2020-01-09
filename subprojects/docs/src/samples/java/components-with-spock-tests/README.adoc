@@ -1,30 +1,22 @@
-= Java Components with Spock Tests Sample
+NOTE: You can open this sample inside an IDE using the https://www.jetbrains.com/help/idea/gradle.html#gradle_import_project_start[IntelliJ native importer] or https://projects.eclipse.org/projects/tools.buildship[Eclipse Buildship].
 
-ifndef::env-github[]
-[.download]
-- link:{zip-base-file-name}-groovy-dsl.zip[icon:download[] Groovy DSL ZIP]
-- link:{zip-base-file-name}-kotlin-dsl.zip[icon:download[] Kotlin DSL ZIP]
-endif::[]
+This sample shows how to test Java projects using the link:https://github.com/spockframework/spock[Spock Framework] with Gradle.
 
-NOTE: You can open the samples inside an IDE using the https://www.jetbrains.com/help/idea/gradle.html#gradle_import_project_start[IntelliJ native importer] or https://projects.eclipse.org/projects/tools.buildship[Eclipse Buildship].
-
-This sample shows how to test Java projects using Spock Framework in Gradle.
-
-Applications can be configured as follow:
+For applications:
 
 ====
-include::sample[dir="groovy",files="application/build.gradle[]"]
-include::sample[dir="kotlin",files="application/build.gradle.kts[]"]
+include::sample[dir="samples/java-components-with-spock-tests/groovy",files="application/build.gradle[]"]
+include::sample[dir="samples/java-components-with-spock-tests/kotlin",files="application/build.gradle.kts[]"]
 ====
 
-Libraries can be configured as follow:
+For libraries:
 
 ====
-include::sample[dir="groovy",files="library/build.gradle[]"]
-include::sample[dir="kotlin",files="library/build.gradle.kts[]"]
+include::sample[dir="samples/java-components-with-spock-tests/groovy",files="list/build.gradle[]"]
+include::sample[dir="samples/java-components-with-spock-tests/kotlin",files="list/build.gradle.kts[]"]
 ====
 
-To test the projects:
+Running the tests:
 
 ====
 [.testable-sample,dir="groovy"]
@@ -54,4 +46,5 @@ BUILD SUCCESSFUL in 5s
 ====
 
 For more information, see link:{userManualPath}/java_testing.html[Testing in Java project chapter].
-You can also get started quickly using the link:{userManualPath}/build_init_plugin.html#sec:java_application[Build Init Plugin].
+
+You can also generate this project locally using link:{userManualPath}/build_init_plugin.html#sec:java_application[`gradle init`].

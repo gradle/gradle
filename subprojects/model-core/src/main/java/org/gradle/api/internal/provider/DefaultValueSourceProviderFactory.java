@@ -24,6 +24,7 @@ import org.gradle.api.provider.ValueSourceParameters;
 import org.gradle.api.provider.ValueSourceSpec;
 import org.gradle.internal.Try;
 import org.gradle.internal.event.AnonymousListenerBroadcast;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolated.IsolationScheme;
@@ -44,12 +45,12 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
     private final InstanceGenerator specInstantiator;
 
     public DefaultValueSourceProviderFactory(
-        AnonymousListenerBroadcast<Listener> broadcaster,
+        ListenerManager listenerManager,
         InstantiatorFactory instantiatorFactory,
         IsolatableFactory isolatableFactory,
         ServiceLookup services
     ) {
-        this.broadcaster = broadcaster;
+        this.broadcaster = listenerManager.createAnonymousBroadcaster(ValueSourceProviderFactory.Listener.class);
         this.instantiatorFactory = instantiatorFactory;
         this.isolatableFactory = isolatableFactory;
         // TODO - dedupe logic copied from DefaultBuildServicesRegistry
@@ -170,6 +171,11 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         @Override
         public boolean isValueProducedByTask() {
             return value == null;
+        }
+
+        @Override
+        public boolean immutable() {
+            return true;
         }
 
         @Nullable

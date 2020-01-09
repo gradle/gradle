@@ -148,7 +148,7 @@ public interface ObjectFactory {
     <T> NamedDomainObjectContainer<T> domainObjectContainer(Class<T> elementType, NamedDomainObjectFactory<T> factory);
 
     /**
-     * <p>Creates a new {@link NamedDomainObjectContainer} for managing named objects of the specified type.</p>
+     * <p>Creates a new {@link ExtensiblePolymorphicDomainObjectContainer} for managing named objects of the specified type.</p>
      *
      * <p>The returned container will not have any factories or bindings registered.</p>
      *

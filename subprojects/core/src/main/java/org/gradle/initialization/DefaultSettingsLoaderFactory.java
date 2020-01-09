@@ -17,6 +17,7 @@
 package org.gradle.initialization;
 
 import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.internal.composite.ChildBuildRegisteringSettingsLoader;
@@ -25,20 +26,20 @@ import org.gradle.internal.composite.CompositeBuildSettingsLoader;
 import org.gradle.internal.reflect.Instantiator;
 
 public class DefaultSettingsLoaderFactory implements SettingsLoaderFactory {
-    private final ISettingsFinder settingsFinder;
     private final SettingsProcessor settingsProcessor;
     private final BuildStateRegistry buildRegistry;
     private final ProjectStateRegistry projectRegistry;
     private final PublicBuildPath publicBuildPath;
     private final Instantiator instantiator;
+    private final BuildLayoutFactory buildLayoutFactory;
 
-    public DefaultSettingsLoaderFactory(ISettingsFinder settingsFinder, SettingsProcessor settingsProcessor, BuildStateRegistry buildRegistry, ProjectStateRegistry projectRegistry, PublicBuildPath publicBuildPath, Instantiator instantiator) {
-        this.settingsFinder = settingsFinder;
+    public DefaultSettingsLoaderFactory(SettingsProcessor settingsProcessor, BuildStateRegistry buildRegistry, ProjectStateRegistry projectRegistry, PublicBuildPath publicBuildPath, Instantiator instantiator, BuildLayoutFactory buildLayoutFactory) {
         this.settingsProcessor = settingsProcessor;
         this.buildRegistry = buildRegistry;
         this.projectRegistry = projectRegistry;
         this.publicBuildPath = publicBuildPath;
         this.instantiator = instantiator;
+        this.buildLayoutFactory = buildLayoutFactory;
     }
 
     @Override
@@ -67,7 +68,7 @@ public class DefaultSettingsLoaderFactory implements SettingsLoaderFactory {
 
     private SettingsLoader defaultSettingsLoader() {
         return new SettingsAttachingSettingsLoader(
-            new DefaultSettingsLoader(settingsFinder, settingsProcessor),
+            new DefaultSettingsLoader(settingsProcessor, buildLayoutFactory),
             projectRegistry);
     }
 }

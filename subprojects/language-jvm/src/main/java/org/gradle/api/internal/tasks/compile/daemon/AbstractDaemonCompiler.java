@@ -28,12 +28,12 @@ import org.gradle.workers.IsolationMode;
 import org.gradle.workers.WorkAction;
 import org.gradle.workers.WorkParameters;
 import org.gradle.workers.internal.ActionExecutionSpecFactory;
+import org.gradle.workers.internal.BuildOperationAwareWorker;
 import org.gradle.workers.internal.DaemonForkOptions;
 import org.gradle.workers.internal.DefaultWorkResult;
 import org.gradle.workers.internal.ForkedWorkerRequirement;
 import org.gradle.workers.internal.IsolatedClassLoaderWorkerRequirement;
 import org.gradle.workers.internal.ProvidesWorkResult;
-import org.gradle.workers.internal.Worker;
 import org.gradle.workers.internal.WorkerFactory;
 
 import javax.inject.Inject;
@@ -55,7 +55,7 @@ public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements C
     @Override
     public WorkResult execute(T spec) {
         IsolatedClassLoaderWorkerRequirement workerRequirement = getWorkerRequirement(workerFactory.getIsolationMode(), spec);
-        Worker worker = workerFactory.getWorker(workerRequirement);
+        BuildOperationAwareWorker worker = workerFactory.getWorker(workerRequirement);
 
         CompilerParameters parameters = getCompilerParameters(spec);
         DefaultWorkResult result = worker.execute(actionExecutionSpecFactory.newIsolatedSpec("compiler daemon", CompilerWorkAction.class, parameters, workerRequirement, true));
@@ -112,13 +112,20 @@ public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements C
         abstract public CompileSpec getCompileSpec();
     }
 
-    public static abstract class CompilerWorkAction implements WorkAction<CompilerParameters>, ProvidesWorkResult {
+    public static class CompilerWorkAction implements WorkAction<CompilerParameters>, ProvidesWorkResult {
         private DefaultWorkResult workResult;
+        private final CompilerParameters parameters;
         private final Instantiator instantiator;
 
         @Inject
-        public CompilerWorkAction(Instantiator instantiator) {
+        public CompilerWorkAction(CompilerParameters parameters, Instantiator instantiator) {
+            this.parameters = parameters;
             this.instantiator = instantiator;
+        }
+
+        @Override
+        public CompilerParameters getParameters() {
+            return parameters;
         }
 
         @Override

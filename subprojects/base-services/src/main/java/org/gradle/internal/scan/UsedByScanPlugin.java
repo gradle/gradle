@@ -28,7 +28,7 @@ import java.lang.annotation.Target;
  * @since 4.0
  */
 @Retention(RetentionPolicy.SOURCE)
-@Target({ElementType.METHOD, ElementType.TYPE})
+@Target({ElementType.METHOD, ElementType.TYPE, ElementType.FIELD})
 public @interface UsedByScanPlugin {
 
     /**

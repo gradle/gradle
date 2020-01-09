@@ -57,7 +57,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         result.groupedOutput.task(":buildSrc:compileGroovy").outcome == "FROM-CACHE"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FLAKY)
     def "tasks stay cached after buildSrc with custom Groovy task is rebuilt"() {
         configureCacheForBuildSrc()
         file("buildSrc/src/main/groovy/CustomTask.groovy") << customGroovyTask()
@@ -196,13 +196,13 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         skipped ":customTask"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FLAKY)
     def "cacheable task with multiple output properties with matching cardinality get cached"() {
         buildFile << """
             @CacheableTask
             class CustomTask extends DefaultTask {
                 @OutputFiles Iterable<File> out
-                
+
                 @TaskAction
                 void execute() {
                     out.eachWithIndex { file, index ->
@@ -521,7 +521,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FLAKY)
     def "missing #type from annotation API is not cached"() {
         given:
         file("input.txt") << "data"
@@ -544,7 +544,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
                     project.delete(missing)
                 }
             }
-            
+
             task customTask(type: CustomTask)
         """
 
@@ -642,10 +642,10 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
                     @InputFile
                     @PathSensitive(PathSensitivity.NONE)
                     File inputFile
-    
+
                     @OutputFile
                     File outputFile
-    
+
                     @TaskAction
                     void action() {
                         outputFile.text = inputFile.text
@@ -716,7 +716,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
             "  Additional implementation type was loaded with an unknown classloader (class 'CustomTaskAction')."
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FLAKY)
     def "task stays up-to-date after loaded from cache"() {
         file("input.txt").text = "input"
         buildFile << defineProducerTask()
@@ -790,7 +790,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         skipped ":producer"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FLAKY)
     def "downstream task stays cached when upstream task is loaded from cache"() {
         file("input.txt").text = "input"
         buildFile << defineProducerTask()
@@ -911,7 +911,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
                 task test {
                     def outputFile = file("\${project.buildDir}/output.txt")
                     outputs.cacheIf { true }
-                    outputs.file(outputFile).withPropertyName("outputFile") 
+                    outputs.file(outputFile).withPropertyName("outputFile")
                     doFirst {
                         Thread.sleep(new Random().nextInt(30))
                         outputFile.text = "output"

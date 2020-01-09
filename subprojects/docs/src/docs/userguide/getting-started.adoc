@@ -1,7 +1,0 @@
-// This document is packaged in the binary distribution
-= Getting started with Gradle
-
-Please check the User Manual at `__GRADLE_HOME__/docs/userguide/userguide.html`.
-If it is not included in your distribution, it is also available on the {website}/documentation.html[Gradle web site].
-Typing `gradle help` prints the command line help.
-Typing `gradle tasks` shows all the tasks of a Gradle build.

@@ -16,6 +16,7 @@
 
 package org.gradle.instantexecution
 
+import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.internal.provider.sources.SystemPropertyValueSource
@@ -33,20 +34,20 @@ import org.gradle.instantexecution.serialization.DefaultWriteContext
 import org.gradle.instantexecution.serialization.IsolateOwner
 import org.gradle.instantexecution.serialization.MutableIsolateContext
 import org.gradle.instantexecution.serialization.beans.BeanConstructors
-import org.gradle.instantexecution.serialization.codecs.BuildOperationListenersCodec
 import org.gradle.instantexecution.serialization.codecs.Codecs
 import org.gradle.instantexecution.serialization.codecs.WorkNodeCodec
 import org.gradle.instantexecution.serialization.readCollection
+import org.gradle.instantexecution.serialization.readNonNull
 import org.gradle.instantexecution.serialization.withIsolate
 import org.gradle.instantexecution.serialization.writeCollection
 import org.gradle.internal.build.event.BuildEventListenerRegistryInternal
 import org.gradle.internal.hash.HashUtil
 import org.gradle.internal.operations.BuildOperationExecutor
-import org.gradle.internal.operations.BuildOperationListenerManager
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
+import org.gradle.internal.vfs.VirtualFileSystem
 import org.gradle.tooling.events.OperationCompletionListener
 import org.gradle.util.GradleVersion
 import org.gradle.util.Path
@@ -64,7 +65,8 @@ class DefaultInstantExecution internal constructor(
     private val host: Host,
     private val scopeRegistryListener: InstantExecutionClassLoaderScopeRegistryListener,
     private val beanConstructors: BeanConstructors,
-    private val valueSourceProviderFactory: ValueSourceProviderFactory
+    private val valueSourceProviderFactory: ValueSourceProviderFactory,
+    private val virtualFileSystem: VirtualFileSystem
 ) : InstantExecution {
 
     interface Host {
@@ -147,8 +149,10 @@ class DefaultInstantExecution internal constructor(
 
                 instantExecutionStateFile.createParentDirectories()
 
-                withWriteContextFor(instantExecutionStateFile, report) {
-                    encodeScheduledWork()
+                host.getService(ProjectStateRegistry::class.java).withLenientState {
+                    withWriteContextFor(instantExecutionStateFile, report) {
+                        encodeScheduledWork()
+                    }
                 }
                 withWriteContextFor(instantExecutionFingerprintFile, report) {
                     encodeFingerprint()
@@ -202,8 +206,8 @@ class DefaultInstantExecution internal constructor(
 
         readRelevantProjects(build)
 
-        build.autoApplyPlugins()
         build.registerProjects()
+        build.autoApplyPlugins()
 
         initProjectProvider(build::getProject)
 
@@ -216,7 +220,10 @@ class DefaultInstantExecution internal constructor(
     private
     suspend fun DefaultWriteContext.encodeFingerprint() {
         withHostIsolate {
-            writeCollection(buildLogicInputsCollector!!.obtainedValues)
+            instantExecutionInputs!!.run {
+                writeCollection(inputFiles)
+                writeCollection(obtainedValues)
+            }
         }
     }
 
@@ -224,20 +231,36 @@ class DefaultInstantExecution internal constructor(
     fun checkFingerprint(): InvalidationReason? =
         withReadContextFor(instantExecutionFingerprintFile) {
             withHostIsolate {
-                val obtainedValueCount = readSmallInt()
-                for (i in 0 until obtainedValueCount) {
-                    val obtainedValue = readObtainedValue()
-                    checkFingerprintValueIsUpToDate(obtainedValue)?.let { reason ->
-                        return@withHostIsolate reason
-                    }
-                }
-                null
+                checkFingerprintOfInputFiles()
+                    ?: checkFingerprintOfObtainedValues()
             }
         }
 
     private
-    suspend fun DefaultReadContext.readObtainedValue(): ObtainedValue =
-        read()!!.uncheckedCast()
+    suspend fun DefaultReadContext.checkFingerprintOfInputFiles(): InvalidationReason? {
+        readCollection {
+            val (inputFile, hashCode) = readNonNull<InstantExecutionCacheInputs.InputFile>()
+            if (hashCodeOf(inputFile) != hashCode) {
+                // TODO: log some debug info
+                return "a configuration file has changed"
+            }
+        }
+        return null
+    }
+
+    private
+    suspend fun DefaultReadContext.checkFingerprintOfObtainedValues(): InvalidationReason? {
+        readCollection {
+            val obtainedValue = readNonNull<ObtainedValue>()
+            checkFingerprintValueIsUpToDate(obtainedValue)?.let { reason ->
+                return reason
+            }
+        }
+        return null
+    }
+
+    private
+    fun hashCodeOf(inputFile: File) = virtualFileSystem.hashCodeOf(inputFile)
 
     private
     fun checkFingerprintValueIsUpToDate(obtainedValue: ObtainedValue): InvalidationReason? = obtainedValue.run {
@@ -279,34 +302,22 @@ class DefaultInstantExecution internal constructor(
 
     private
     fun attachBuildLogicInputsCollector() {
-        BuildLogicInputsCollector().also {
-            buildLogicInputsCollector = it
+        InstantExecutionCacheInputs(virtualFileSystem).also {
+            instantExecutionInputs = it
             valueSourceProviderFactory.addListener(it)
         }
     }
 
     private
     fun detachBuildLogicInputsCollector() {
-        buildLogicInputsCollector.let {
+        instantExecutionInputs.let {
             require(it != null)
             valueSourceProviderFactory.removeListener(it)
         }
     }
 
     private
-    var buildLogicInputsCollector: BuildLogicInputsCollector? = null
-
-    private
-    class BuildLogicInputsCollector : ValueSourceProviderFactory.Listener {
-
-        val obtainedValues = mutableListOf<ObtainedValue>()
-
-        override fun <T : Any, P : ValueSourceParameters> valueObtained(
-            obtainedValue: ValueSourceProviderFactory.Listener.ObtainedValue<T, P>
-        ) {
-            obtainedValues.add(obtainedValue.uncheckedCast())
-        }
-    }
+    var instantExecutionInputs: InstantExecutionCacheInputs? = null
 
     private
     fun instantExecutionReport() = InstantExecutionReport(
@@ -382,9 +393,8 @@ class DefaultInstantExecution internal constructor(
             classLoaderHierarchyHasher = service(),
             isolatableFactory = service(),
             valueSnapshotter = service(),
-            fileCollectionFingerprinterRegistry = service(),
             buildServiceRegistry = service(),
-            isolatableSerializerRegistry = service(),
+            managedFactoryRegistry = service(),
             parameterScheme = service(),
             actionScheme = service(),
             attributesFactory = service(),
@@ -396,27 +406,17 @@ class DefaultInstantExecution internal constructor(
     private
     suspend fun DefaultWriteContext.writeGradleState(gradle: Gradle) {
         withGradleIsolate(gradle) {
-            BuildOperationListenersCodec().run {
-                writeBuildOperationListeners(service())
-            }
             val eventListenerRegistry = service<BuildEventListenerRegistryInternal>()
             writeCollection(eventListenerRegistry.subscriptions)
         }
     }
 
-
     private
     suspend fun DefaultReadContext.readGradleState(gradle: Gradle) {
         withGradleIsolate(gradle) {
-            val listeners = BuildOperationListenersCodec().run {
-                readBuildOperationListeners()
-            }
-            service<BuildOperationListenerManager>().let { manager ->
-                listeners.forEach { manager.addListener(it) }
-            }
             val eventListenerRegistry = service<BuildEventListenerRegistryInternal>()
             readCollection {
-                val provider = read() as Provider<OperationCompletionListener>
+                val provider = readNonNull<Provider<OperationCompletionListener>>()
                 eventListenerRegistry.subscribe(provider)
             }
         }
@@ -533,10 +533,6 @@ class DefaultInstantExecution internal constructor(
 
 private
 typealias InvalidationReason = String
-
-
-private
-typealias ObtainedValue = ValueSourceProviderFactory.Listener.ObtainedValue<Any, ValueSourceParameters>
 
 
 inline fun <reified T> DefaultInstantExecution.Host.service(): T =

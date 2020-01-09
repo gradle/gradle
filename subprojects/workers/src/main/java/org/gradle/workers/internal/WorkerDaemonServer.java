@@ -75,19 +75,18 @@ public class WorkerDaemonServer implements WorkerProtocol {
     }
 
     @Override
-    public DefaultWorkResult execute(ActionExecutionSpec spec) {
+    public DefaultWorkResult execute(TransportableActionExecutionSpec<?> spec) {
         try {
-            ServiceRegistry workServices = new WorkerPublicServicesBuilder(new WorkerProjectServices(spec.getBaseDir(), internalServices))
-                .withInternalServicesVisible(spec.isInternalServicesRequired())
-                .build();
-            Worker worker = getIsolatedClassloaderWorker(spec.getClassLoaderStructure(), workServices);
-            return worker.execute(spec);
+            try (WorkerProjectServices internalServices = new WorkerProjectServices(spec.getBaseDir(), this.internalServices)) {
+                WorkerProtocol worker = getIsolatedClassloaderWorker(spec.getClassLoaderStructure(), internalServices);
+                return worker.execute(spec);
+            }
         } catch (Throwable t) {
             return new DefaultWorkResult(true, t);
         }
     }
 
-    private Worker getIsolatedClassloaderWorker(ClassLoaderStructure classLoaderStructure, ServiceRegistry workServices) {
+    private WorkerProtocol getIsolatedClassloaderWorker(ClassLoaderStructure classLoaderStructure, ServiceRegistry workServices) {
         if (classLoaderStructure instanceof FlatClassLoaderStructure) {
             return new FlatClassLoaderWorker(this.getClass().getClassLoader(), workServices, actionExecutionSpecFactory, instantiatorFactory);
         } else {
@@ -135,11 +134,8 @@ public class WorkerDaemonServer implements WorkerProtocol {
     }
 
     static class WorkerProjectServices extends DefaultServiceRegistry {
-        private final File baseDir;
-
         public WorkerProjectServices(File baseDir, ServiceRegistry... parents) {
             super("worker file services for " + baseDir.getAbsolutePath(), parents);
-            this.baseDir = baseDir;
             addProvider(new WorkerSharedProjectScopeServices(baseDir));
         }
 
@@ -147,7 +143,7 @@ public class WorkerDaemonServer implements WorkerProtocol {
             return instantiatorFactory.decorateLenient(this);
         }
 
-        protected ExecFactory createExecFactory(org.gradle.process.internal.ExecFactory execFactory, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, ObjectFactory objectFactory) {
+        protected ExecFactory createExecFactory(ExecFactory execFactory, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, ObjectFactory objectFactory) {
             return execFactory.forContext(fileResolver, fileCollectionFactory, instantiator, objectFactory);
         }
 

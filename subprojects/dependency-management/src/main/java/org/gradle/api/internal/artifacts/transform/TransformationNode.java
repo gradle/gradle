@@ -32,6 +32,7 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.resources.ResourceLock;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -64,6 +65,8 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
         this.buildOperationExecutor = buildOperationExecutor;
         this.transformListener = transformListener;
     }
+
+    public abstract ResolvableArtifact getInputArtifact();
 
     @Nullable
     @Override
@@ -110,7 +113,6 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
     public Set<Node> getFinalizers() {
         return Collections.emptySet();
     }
-
 
     @Override
     public void prepareForExecution() {
@@ -167,7 +169,8 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
             this.artifact = artifact;
         }
 
-        public ResolvableArtifact getArtifact() {
+        @Override
+        public ResolvableArtifact getInputArtifact() {
             return artifact;
         }
 
@@ -212,6 +215,11 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
             this.previousTransformationNode = previousTransformationNode;
         }
 
+        @Override
+        public ResolvableArtifact getInputArtifact() {
+            return previousTransformationNode.getInputArtifact();
+        }
+
         public TransformationNode getPreviousTransformationNode() {
             return previousTransformationNode;
         }
@@ -245,13 +253,16 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
 
     private abstract class ArtifactTransformationStepBuildOperation implements CallableBuildOperation<Try<TransformationSubject>> {
 
+        @UsedByScanPlugin("The string is used for filtering out artifact transform logs in Gradle Enterprise")
+        private static final String TRANSFORMING_PROGRESS_PREFIX = "Transforming ";
+
         @Override
         public final BuildOperationDescriptor.Builder description() {
             String transformerName = transformationStep.getDisplayName();
             String subjectName = describeSubject();
             String basicName = subjectName + " with " + transformerName;
             return BuildOperationDescriptor.displayName("Transform " + basicName)
-                .progressDisplayName("Transforming " + basicName)
+                .progressDisplayName(TRANSFORMING_PROGRESS_PREFIX + basicName)
                 .operationType(BuildOperationCategory.TRANSFORM)
                 .details(new ExecuteScheduledTransformationStepBuildOperationDetails(TransformationNode.this, transformerName, subjectName));
         }

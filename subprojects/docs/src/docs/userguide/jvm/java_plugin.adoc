@@ -33,8 +33,8 @@ To use the Java plugin, include the following in your build script:
 
 .Using the Java plugin
 ====
-include::sample[dir="java/quickstart/groovy", files="build.gradle[tags=use-plugin]"]
-include::sample[dir="java/quickstart/kotlin", files="build.gradle.kts[tags=use-plugin]"]
+include::sample[dir="snippets/java/quickstart/groovy", files="build.gradle[tags=use-plugin]"]
+include::sample[dir="snippets/java/quickstart/kotlin", files="build.gradle.kts[tags=use-plugin]"]
 ====
 
 [[sec:java_tasks]]
@@ -179,8 +179,8 @@ You configure the project layout by configuring the appropriate source set. This
 
 .Custom Java source layout
 ====
-include::sample[dir="java/customizedLayout/groovy", files="build.gradle[tags=define-main]"]
-include::sample[dir="java/customizedLayout/kotlin", files="build.gradle.kts[tags=define-main]"]
+include::sample[dir="snippets/java/customizedLayout/groovy", files="build.gradle[tags=define-main]"]
+include::sample[dir="snippets/java/customizedLayout/kotlin", files="build.gradle.kts[tags=define-main]"]
 ====
 
 [[source_sets]]
@@ -273,24 +273,24 @@ Adding a JAR containing the classes of a source set:
 
 .Assembling a JAR for a source set
 ====
-include::sample[dir="userguide/java/sourceSets/groovy", files="build.gradle[tags=jar]"]
-include::sample[dir="userguide/java/sourceSets/kotlin", files="build.gradle.kts[tags=jar]"]
+include::sample[dir="snippets/userguide/java/sourceSets/groovy", files="build.gradle[tags=jar]"]
+include::sample[dir="snippets/userguide/java/sourceSets/kotlin", files="build.gradle.kts[tags=jar]"]
 ====
 
 Generating Javadoc for a source set:
 
 .Generating the Javadoc for a source set
 ====
-include::sample[dir="userguide/java/sourceSets/groovy", files="build.gradle[tags=javadoc]"]
-include::sample[dir="userguide/java/sourceSets/kotlin", files="build.gradle.kts[tags=javadoc]"]
+include::sample[dir="snippets/userguide/java/sourceSets/groovy", files="build.gradle[tags=javadoc]"]
+include::sample[dir="snippets/userguide/java/sourceSets/kotlin", files="build.gradle.kts[tags=javadoc]"]
 ====
 
 Adding a test suite to run the tests in a source set:
 
 .Running tests in a source set
 ====
-include::sample[dir="userguide/java/sourceSets/groovy", files="build.gradle[tags=test]"]
-include::sample[dir="userguide/java/sourceSets/kotlin", files="build.gradle.kts[tags=test]"]
+include::sample[dir="snippets/userguide/java/sourceSets/groovy", files="build.gradle[tags=test]"]
+include::sample[dir="snippets/userguide/java/sourceSets/kotlin", files="build.gradle.kts[tags=test]"]
 ====
 
 [[sec:java_plugin_and_dependency_management]]
@@ -410,8 +410,8 @@ This allows to configure a number of Java related properties inside a dedicated 
 
 .Using the `java` extension
 ====
-include::sample[dir="userguide/java/basic/groovy",files="build.gradle[tags=java-extension]"]
-include::sample[dir="userguide/java/basic/kotlin",files="build.gradle.kts[tags=java-extension]"]
+include::sample[dir="snippets/userguide/java/basic/groovy",files="build.gradle[tags=java-extension]"]
+include::sample[dir="snippets/userguide/java/basic/kotlin",files="build.gradle.kts[tags=java-extension]"]
 ====
 
 `link:{javadocPath}/org/gradle/api/JavaVersion.html[JavaVersion] sourceCompatibility`::
@@ -784,8 +784,8 @@ Gradle ignores annotation processors on the compile classpath.
 
 .Declaring annotation processors
 ====
-include::sample[dir="java/apt/groovy", files="build.gradle[tags=annotation-processing]"]
-include::sample[dir="java/apt/kotlin", files="build.gradle.kts[tags=annotation-processing]"]
+include::sample[dir="snippets/java/apt/groovy", files="build.gradle[tags=annotation-processing]"]
+include::sample[dir="snippets/java/apt/kotlin", files="build.gradle.kts[tags=annotation-processing]"]
 ====
 
 == Variant aware selection

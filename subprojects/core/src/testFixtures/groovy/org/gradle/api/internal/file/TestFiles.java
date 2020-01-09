@@ -106,6 +106,10 @@ public class TestFiles {
         return new DefaultDeleter(Time.clock()::getCurrentTime, fileSystem()::isSymlink, false);
     }
 
+    public static FileFactory fileFactory() {
+        return new DefaultFilePropertyFactory(resolver(), fileCollectionFactory());
+    }
+
     public static FileOperations fileOperations(File basedDir) {
         return fileOperations(basedDir, null);
     }

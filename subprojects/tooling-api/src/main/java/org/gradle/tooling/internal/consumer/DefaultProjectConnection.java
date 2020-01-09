@@ -23,6 +23,13 @@ import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.TestLauncher;
 import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
+import org.gradle.tooling.internal.consumer.connection.ConsumerAction;
+import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
+import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
+
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 
 class DefaultProjectConnection implements ProjectConnection {
     private final AsyncConsumerActionExecutor connection;
@@ -63,16 +70,47 @@ class DefaultProjectConnection implements ProjectConnection {
         if (!modelType.isInterface()) {
             throw new IllegalArgumentException(String.format("Cannot fetch a model of type '%s' as this type is not an interface.", modelType.getName()));
         }
-        return new DefaultModelBuilder<T>(modelType, connection, parameters);
+        return new DefaultModelBuilder<>(modelType, connection, parameters);
     }
 
     @Override
     public <T> BuildActionExecuter<T> action(final BuildAction<T> buildAction) {
-        return new DefaultBuildActionExecuter<T>(buildAction, connection, parameters);
+        return new DefaultBuildActionExecuter<>(buildAction, connection, parameters);
     }
 
     @Override
     public BuildActionExecuter.Builder action() {
         return new DefaultBuildActionExecuter.Builder(connection, parameters);
+    }
+
+    @Override
+    public void notifyDaemonsAboutChangedPaths(List<Path> changedPaths) {
+        List<String> absolutePaths = new ArrayList<>(changedPaths.size());
+        for (Path changedPath : changedPaths) {
+            if (!changedPath.isAbsolute()) {
+                throw new IllegalArgumentException(String.format("Changed path '%s' is not absolute", changedPath));
+            }
+            absolutePaths.add(changedPath.toString());
+        }
+        ConsumerOperationParameters.Builder operationParamsBuilder = ConsumerOperationParameters.builder();
+        operationParamsBuilder.setCancellationToken(new DefaultCancellationTokenSource().token());
+        operationParamsBuilder.setParameters(parameters);
+        operationParamsBuilder.setEntryPoint("Notify daemons about changed paths API");
+        connection.run(
+            new ConsumerAction<Void>() {
+                @Override
+                public ConsumerOperationParameters getParameters() {
+                    return operationParamsBuilder.build();
+                }
+
+                @Override
+                public Void run(ConsumerConnection connection) {
+                    connection.notifyDaemonsAboutChangedPaths(absolutePaths, getParameters());
+                    return null;
+                }
+            },
+            new ResultHandlerAdapter<>(new BlockingResultHandler<>(Void.class),
+                new ExceptionTransformer(throwable -> String.format("Could not notify daemons about changed paths: %s.", connection.getDisplayName()))
+            ));
     }
 }

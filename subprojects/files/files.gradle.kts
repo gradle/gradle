@@ -17,16 +17,16 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
     `java-library`
+    gradlebuild.`publish-public-libraries`
     gradlebuild.classycle
 }
 
 description = "Base tools to work with files"
 
 dependencies {
-    implementation(project(":pineapple"))
-    implementation(library("jsr305"))
-    implementation(library("guava"))
-    implementation(library("slf4j_api"))
+    implementation(project(":baseAnnotations"))
+    implementation(library("guava")) { version { require(libraryVersion("guava")) } }
+    implementation(library("slf4j_api")) { version { require(libraryVersion("slf4j_api")) } }
 
     testImplementation(project(":native"))
     testImplementation(project(":baseServices")) {

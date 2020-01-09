@@ -158,36 +158,22 @@ fun dehydrateScriptModels(
     scriptModels: Map<File, KotlinBuildScriptModel>
 ): Pair<CommonKotlinDslScriptModel, Map<File, KotlinDslScriptModel>> {
 
-    val commonClassPath = mutableSetOf<File>()
-    val commonSourcePath = mutableSetOf<File>()
-    val commonImplicitImports = mutableSetOf<String>()
-    var first = true
-    scriptModels.values.forEach { model ->
-        if (first) {
-            commonClassPath.addAll(model.classPath)
-            commonSourcePath.addAll(model.sourcePath)
-            commonImplicitImports.addAll(model.implicitImports)
-            first = false
-        } else {
-            commonClassPath.retainAll(model.classPath)
-            commonSourcePath.retainAll(model.sourcePath)
-            commonImplicitImports.retainAll(model.implicitImports)
-        }
-    }
+    val commonClassPath = commonPrefixOf(scriptModels.values.map { it.classPath })
+    val commonSourcePath = commonPrefixOf(scriptModels.values.map { it.sourcePath })
+    val commonImplicitImports = commonPrefixOf(scriptModels.values.map { it.implicitImports })
+
+    val commonModel = CommonKotlinDslScriptModel(commonClassPath, commonSourcePath, commonImplicitImports)
+
     val dehydratedScriptModels = scriptModels.mapValues { (_, model) ->
         StandardKotlinDslScriptModel(
-            model.classPath.minus(commonClassPath),
-            model.sourcePath.minus(commonSourcePath),
-            model.implicitImports.minus(commonImplicitImports),
+            model.classPath.drop(commonClassPath.size),
+            model.sourcePath.drop(commonSourcePath.size),
+            model.implicitImports.drop(commonImplicitImports.size),
             mapEditorReports(model.editorReports),
             model.exceptions
         )
     }
-    val commonModel = CommonKotlinDslScriptModel(
-        commonClassPath.toList(),
-        commonSourcePath.toList(),
-        commonImplicitImports.toList()
-    )
+
     return commonModel to dehydratedScriptModels
 }
 
@@ -245,6 +231,17 @@ data class KotlinDslScriptsParameter(
     var correlationId: String?,
     var scriptFiles: List<File>
 )
+
+
+internal
+fun <T : Any> commonPrefixOf(lists: List<List<T>>): List<T> =
+    lists.minBy { it.size }?.let { maxCommonPrefix ->
+        maxCommonPrefix.indices.asSequence().takeWhile { index ->
+            lists.all { list -> list[index] == maxCommonPrefix[index] }
+        }.lastOrNull()?.let { maxCommonIndex ->
+            maxCommonPrefix.take(maxCommonIndex + 1)
+        }
+    } ?: emptyList()
 
 
 private

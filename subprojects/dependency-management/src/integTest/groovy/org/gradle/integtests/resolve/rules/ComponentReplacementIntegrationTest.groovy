@@ -432,6 +432,16 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         resolvedModules 'org:bar'
     }
 
+    @Issue("gradle/gradle#11569")
+    @ToBeFixedForInstantExecution
+    def "handles replacement in parallel of de-select / re-select events"() {
+        declaredDependencies 'a', 'm'
+        declaredReplacements 'from->to'
+        publishedMavenModules 'a->b', 'm->n->o->p->q->a:2->b->c->from->to'
+        expect:
+        resolvedModules 'a:2', 'b', 'c', 'to', 'm', 'n', 'o', 'p', 'q'
+    }
+
     @Unroll
     @ToBeFixedForInstantExecution
     def "can provide custom replacement reason"() {

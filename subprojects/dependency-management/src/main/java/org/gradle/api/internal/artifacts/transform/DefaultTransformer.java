@@ -54,6 +54,7 @@ import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.instantiation.InstanceFactory;
 import org.gradle.internal.instantiation.InstantiationScheme;
+import org.gradle.internal.isolated.IsolationScheme;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -82,7 +83,7 @@ import java.util.stream.Collectors;
 
 import static org.gradle.internal.reflect.TypeValidationContext.Severity.WARNING;
 
-public class DefaultTransformer extends AbstractTransformer<TransformAction> {
+public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> {
 
     private final TransformParameters parameterObject;
     private final Class<? extends FileNormalizer> fileNormalizer;
@@ -94,15 +95,16 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
     private final FileCollectionFactory fileCollectionFactory;
     private final FileLookup fileLookup;
     private final PropertyWalker parameterPropertyWalker;
+    private final ServiceLookup internalServices;
     private final boolean requiresDependencies;
     private final boolean requiresInputChanges;
-    private final InstanceFactory<? extends TransformAction> instanceFactory;
+    private final InstanceFactory<? extends TransformAction<?>> instanceFactory;
     private final boolean cacheable;
 
     private IsolatedParameters isolatedParameters;
 
     public DefaultTransformer(
-        Class<? extends TransformAction> implementationClass,
+        Class<? extends TransformAction<?>> implementationClass,
         @Nullable TransformParameters parameterObject,
         @Nullable IsolatedParameters isolatedParameters,
         ImmutableAttributes fromAttributes,
@@ -116,7 +118,8 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
         FileCollectionFactory fileCollectionFactory,
         FileLookup fileLookup,
         PropertyWalker parameterPropertyWalker,
-        InstantiationScheme actionInstantiationScheme
+        InstantiationScheme actionInstantiationScheme,
+        ServiceLookup internalServices
     ) {
         super(implementationClass, fromAttributes);
         this.parameterObject = parameterObject;
@@ -130,6 +133,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
         this.fileCollectionFactory = fileCollectionFactory;
         this.fileLookup = fileLookup;
         this.parameterPropertyWalker = parameterPropertyWalker;
+        this.internalServices = internalServices;
         this.instanceFactory = actionInstantiationScheme.forType(implementationClass);
         this.requiresDependencies = instanceFactory.serviceInjectionTriggeredByAnnotation(InputArtifactDependencies.class);
         this.requiresInputChanges = instanceFactory.requiresService(InputChanges.class);
@@ -323,8 +327,15 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
     }
 
     private TransformAction newTransformAction(Provider<FileSystemLocation> inputArtifactProvider, ArtifactTransformDependencies artifactTransformDependencies, @Nullable InputChanges inputChanges) {
-        ServiceLookup services = new TransformServiceLookup(inputArtifactProvider, getIsolatedParameters().getIsolatedParameterObject().isolate(), requiresDependencies ? artifactTransformDependencies : null, inputChanges);
+        TransformParameters parameters = getIsolatedParameters().getIsolatedParameterObject().isolate();
+        ServiceLookup services = new IsolationScheme<>(TransformAction.class, TransformParameters.class, TransformParameters.None.class).servicesForImplementation(parameters, internalServices);
+        services = new TransformServiceLookup(inputArtifactProvider, requiresDependencies ? artifactTransformDependencies : null, inputChanges, services);
         return instanceFactory.newInstance(services);
+    }
+
+    @Nullable
+    public TransformParameters getParameterObject() {
+        return parameterObject;
     }
 
     public IsolatedParameters getIsolatedParameters() {
@@ -335,24 +346,20 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
     }
 
     private static class TransformServiceLookup implements ServiceLookup {
-        private static final Type FILE_SYSTEM_LOCATION_PROVIDER = new TypeToken<Provider<FileSystemLocation>>() {}.getType();
+        private static final Type FILE_SYSTEM_LOCATION_PROVIDER = new TypeToken<Provider<FileSystemLocation>>() {
+        }.getType();
 
         private final ImmutableList<InjectionPoint> injectionPoints;
+        private final ServiceLookup delegate;
 
-        public TransformServiceLookup(Provider<FileSystemLocation> inputFileProvider, @Nullable TransformParameters parameters, @Nullable ArtifactTransformDependencies artifactTransformDependencies, @Nullable InputChanges inputChanges) {
+        public TransformServiceLookup(Provider<FileSystemLocation> inputFileProvider, @Nullable ArtifactTransformDependencies artifactTransformDependencies, @Nullable InputChanges inputChanges, ServiceLookup delegate) {
+            this.delegate = delegate;
             ImmutableList.Builder<InjectionPoint> builder = ImmutableList.builder();
             builder.add(InjectionPoint.injectedByAnnotation(InputArtifact.class, File.class, () -> {
                 DeprecationLogger.nagUserOfDeprecated("Injecting the input artifact of a transform as a File", "Declare the input artifact as Provider<FileSystemLocation> instead.");
                 return inputFileProvider.get().getAsFile();
             }));
             builder.add(InjectionPoint.injectedByAnnotation(InputArtifact.class, FILE_SYSTEM_LOCATION_PROVIDER, () -> inputFileProvider));
-            if (parameters != null) {
-                builder.add(InjectionPoint.injectedByType(parameters.getClass(), () -> parameters));
-            } else {
-                builder.add(InjectionPoint.injectedByType(TransformParameters.None.class, () -> {
-                    throw new UnknownServiceException(TransformParameters.None.class, "Cannot query parameters for artifact transform without parameters.");
-                }));
-            }
             if (artifactTransformDependencies != null) {
                 builder.add(InjectionPoint.injectedByAnnotation(InputArtifactDependencies.class, artifactTransformDependencies::getFiles));
             }
@@ -376,7 +383,11 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
         @Nullable
         @Override
         public Object find(Type serviceType) throws ServiceLookupException {
-            return find(serviceType, null);
+            Object result = find(serviceType, null);
+            if (result != null) {
+                return result;
+            }
+            return delegate.find(serviceType);
         }
 
         @Override
@@ -391,10 +402,10 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
         @Override
         public Object get(Type serviceType, Class<? extends Annotation> annotatedWith) throws UnknownServiceException, ServiceLookupException {
             Object result = find(serviceType, annotatedWith);
-            if (result == null) {
-                throw new UnknownServiceException(serviceType, "No service of type " + serviceType + " available.");
+            if (result != null) {
+                return result;
             }
-            return result;
+            return delegate.get(serviceType, annotatedWith);
         }
 
         private static class InjectionPoint {
@@ -466,10 +477,13 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
      */
     public interface FingerprintTransformInputsOperation extends BuildOperationType<FingerprintTransformInputsOperation.Details, FingerprintTransformInputsOperation.Result> {
         interface Details {
-            Details INSTANCE = new Details() {};
+            Details INSTANCE = new Details() {
+            };
         }
+
         interface Result {
-            Result INSTANCE = new Result() {};
+            Result INSTANCE = new Result() {
+            };
         }
     }
 }

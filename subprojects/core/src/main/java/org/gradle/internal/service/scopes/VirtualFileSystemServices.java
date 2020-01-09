@@ -68,15 +68,20 @@ import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.vfs.AdditiveCacheLocations;
+import org.gradle.internal.vfs.DarwinFileWatcherRegistry;
 import org.gradle.internal.vfs.RoutingVirtualFileSystem;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.internal.vfs.WatchingVirtualFileSystem;
+import org.gradle.internal.vfs.WindowsFileWatcherRegistry;
 import org.gradle.internal.vfs.impl.DefaultVirtualFileSystem;
 import org.gradle.internal.vfs.impl.DefaultWatchingVirtualFileSystem;
-import org.gradle.internal.vfs.watch.impl.JdkFileWatcherRegistryFactory;
+import org.gradle.internal.vfs.watch.FileWatcherRegistryFactory;
+import org.gradle.internal.vfs.watch.impl.JdkFileWatcherRegistry;
+import org.gradle.internal.vfs.watch.impl.NoopFileWatcherRegistry;
 import org.gradle.util.SingleMessageLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -162,16 +167,31 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                 return fileHasher;
             }
 
+            FileWatcherRegistryFactory createFileWatcherRegistryFactory() {
+                OperatingSystem operatingSystem = OperatingSystem.current();
+                if (operatingSystem.isMacOsX()) {
+                    return new DarwinFileWatcherRegistry.Factory();
+                } else if (operatingSystem.isWindows()) {
+                    return new WindowsFileWatcherRegistry.Factory();
+                } else if (operatingSystem.isLinux()) {
+                    // The Linux watcher in the JDK works quite well
+                    return new JdkFileWatcherRegistry.Factory();
+                } else {
+                    return new NoopFileWatcherRegistry.Factory();
+                }
+            }
+
             VirtualFileSystem createVirtualFileSystem(
                 AdditiveCacheLocations additiveCacheLocations,
                 FileHasher hasher,
                 FileSystem fileSystem,
+                FileWatcherRegistryFactory watcherRegistryFactory,
                 ListenerManager listenerManager,
                 Stat stat,
                 StringInterner stringInterner
             ) {
                 WatchingVirtualFileSystem virtualFileSystem = new DefaultWatchingVirtualFileSystem(
-                    new JdkFileWatcherRegistryFactory(),
+                    watcherRegistryFactory,
                     new DefaultVirtualFileSystem(
                         hasher,
                         stringInterner,

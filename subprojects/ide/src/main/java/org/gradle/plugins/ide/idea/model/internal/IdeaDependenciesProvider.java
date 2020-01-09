@@ -34,20 +34,24 @@ import org.gradle.internal.Factory;
 import org.gradle.plugins.ide.idea.model.Dependency;
 import org.gradle.plugins.ide.idea.model.FilePath;
 import org.gradle.plugins.ide.idea.model.IdeaModule;
+import org.gradle.plugins.ide.idea.model.ModuleLibrary;
 import org.gradle.plugins.ide.idea.model.Path;
 import org.gradle.plugins.ide.idea.model.SingleEntryModuleLibrary;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
+import org.gradle.plugins.ide.internal.resolver.GradleApiSourcesResolver;
 import org.gradle.plugins.ide.internal.resolver.IdeDependencySet;
 import org.gradle.plugins.ide.internal.resolver.IdeDependencyVisitor;
 import org.gradle.plugins.ide.internal.resolver.UnresolvedIdeDependencyHandler;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class IdeaDependenciesProvider {
 
@@ -56,11 +60,13 @@ public class IdeaDependenciesProvider {
     private final ModuleDependencyBuilder moduleDependencyBuilder;
     private final IdeaDependenciesOptimizer optimizer;
     private final ProjectComponentIdentifier currentProjectId;
+    private final GradleApiSourcesResolver gradleApiSourcesResolver;
 
-    public IdeaDependenciesProvider(Project project, IdeArtifactRegistry artifactRegistry, ProjectStateRegistry projectRegistry) {
+    public IdeaDependenciesProvider(Project project, IdeArtifactRegistry artifactRegistry, ProjectStateRegistry projectRegistry, GradleApiSourcesResolver gradleApiSourcesResolver) {
         moduleDependencyBuilder = new ModuleDependencyBuilder(artifactRegistry);
         currentProjectId = projectRegistry.stateFor(project).getComponentIdentifier();
         optimizer = new IdeaDependenciesOptimizer();
+        this.gradleApiSourcesResolver = gradleApiSourcesResolver;
     }
 
     public Set<Dependency> provide(final IdeaModule ideaModule) {
@@ -110,7 +116,7 @@ public class IdeaDependenciesProvider {
             @Nullable
             @Override
             public IdeaDependenciesVisitor create() {
-                new IdeDependencySet(handler, plusConfigurations, minusConfigurations).visit(visitor);
+                new IdeDependencySet(handler, plusConfigurations, minusConfigurations, gradleApiSourcesResolver).visit(visitor);
                 return visitor;
             }
         });
@@ -198,6 +204,31 @@ public class IdeaDependenciesProvider {
         @Override
         public void visitFileDependency(ResolvedArtifactResult artifact, boolean testDependency) {
             fileDependencies.add(new SingleEntryModuleLibrary(toPath(ideaModule, artifact.getFile()), scope));
+        }
+
+        @Override
+        public void visitGradleApiDependency(ResolvedArtifactResult artifact, File sources, boolean testDependency) {
+            ModuleLibrary dependency = new ModuleLibrary(
+                Collections.singletonList(toPath(ideaModule, artifact.getFile())),
+                Collections.emptyList(),
+                collectGradleApiSources(sources),
+                Collections.emptySet(),
+                scope
+            );
+            fileDependencies.add(dependency);
+        }
+
+        private List<FilePath> collectGradleApiSources(File sources) {
+            if (sources == null) {
+                return Collections.emptyList();
+            }
+            File[] sourceDirectories = sources.listFiles(File::isDirectory);
+            if (sourceDirectories == null) {
+                return  Collections.emptyList();
+            }
+            return Collections.unmodifiableList(Arrays.stream(sourceDirectories)
+                .map(f -> toPath(ideaModule, f))
+                .collect(Collectors.toList()));
         }
 
         /*

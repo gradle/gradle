@@ -169,6 +169,11 @@ public class DefaultArtifactPom implements ArtifactPom {
         public Date getDate() {
             return null;
         }
+
+        @Override
+        public boolean shouldBePublished() {
+            return true;
+        }
     }
 
     private class MavenArtifact extends AbstractMavenArtifact {

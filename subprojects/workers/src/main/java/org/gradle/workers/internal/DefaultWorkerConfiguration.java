@@ -21,7 +21,7 @@ import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
 import org.gradle.api.internal.DefaultActionConfiguration;
 import org.gradle.process.JavaForkOptions;
-import org.gradle.process.internal.JavaForkOptionsInternal;
+import org.gradle.process.internal.JavaForkOptionsFactory;
 import org.gradle.util.GUtil;
 import org.gradle.workers.ClassLoaderWorkerSpec;
 import org.gradle.workers.ForkMode;
@@ -35,13 +35,14 @@ import java.util.List;
 
 public class DefaultWorkerConfiguration extends DefaultActionConfiguration implements WorkerConfiguration {
     private final ActionConfiguration actionConfiguration = new DefaultActionConfiguration();
-    private final JavaForkOptions forkOptions;
+    private final JavaForkOptionsFactory forkOptionsFactory;
     private IsolationMode isolationMode = IsolationMode.AUTO;
+    private JavaForkOptions forkOptions;
     private String displayName;
     private List<File> classpath = Lists.newArrayList();
 
-    public DefaultWorkerConfiguration(JavaForkOptionsInternal forkOptions) {
-        this.forkOptions = forkOptions;
+    public DefaultWorkerConfiguration(JavaForkOptionsFactory forkOptionsFactory) {
+        this.forkOptionsFactory = forkOptionsFactory;
     }
 
     @Override
@@ -56,11 +57,14 @@ public class DefaultWorkerConfiguration extends DefaultActionConfiguration imple
 
     @Override
     public void forkOptions(Action<? super JavaForkOptions> forkOptionsAction) {
-        forkOptionsAction.execute(forkOptions);
+        forkOptionsAction.execute(getForkOptions());
     }
 
     @Override
     public JavaForkOptions getForkOptions() {
+        if (forkOptions == null) {
+            forkOptions = forkOptionsFactory.newDecoratedJavaForkOptions();
+        }
         return forkOptions;
     }
 

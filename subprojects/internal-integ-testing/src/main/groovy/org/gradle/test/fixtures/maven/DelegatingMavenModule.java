@@ -24,6 +24,7 @@ import org.gradle.test.fixtures.ModuleArtifact;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.test.fixtures.gradle.VariantMetadataSpec;
 
+import java.io.File;
 import java.util.Map;
 
 public abstract class DelegatingMavenModule<T extends MavenModule> implements MavenModule {
@@ -308,6 +309,12 @@ public abstract class DelegatingMavenModule<T extends MavenModule> implements Ma
     @Override
     public T withoutDefaultVariants() {
         backingModule.withoutDefaultVariants();
+        return t();
+    }
+
+    @Override
+    public Module withSignature(@DelegatesTo(value = File.class, strategy = Closure.DELEGATE_FIRST) Closure<?> signer) {
+        backingModule.withSignature(signer);
         return t();
     }
 }

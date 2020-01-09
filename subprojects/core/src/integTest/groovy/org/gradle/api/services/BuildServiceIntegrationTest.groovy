@@ -16,12 +16,29 @@
 
 package org.gradle.api.services
 
+import org.gradle.api.file.FileSystemOperations
+import org.gradle.api.file.ProjectLayout
+import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.ProviderFactory
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputDirectory
+import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.LocalState
+import org.gradle.api.tasks.OutputDirectories
+import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.OutputFile
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.InstantExecutionRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.RequiredFeatures
 import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
+import org.gradle.internal.reflect.Instantiator
+import org.gradle.process.ExecOperations
 import org.junit.runner.RunWith
+import spock.lang.Unroll
+
+import javax.inject.Inject
 
 @RunWith(InstantExecutionRunner)
 class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
@@ -31,7 +48,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
             abstract class Consumer extends DefaultTask {
                 @Internal
                 abstract Property<CountingService> getCounter()
-                
+
                 @TaskAction
                 def go() {
                     counter.get().increment()
@@ -41,7 +58,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
             def provider = gradle.sharedServices.registerIfAbsent("counter", CountingService) {
                 parameters.initial = 10
             }
-            
+
             task first(type: Consumer) {
                 counter = provider
             }
@@ -90,7 +107,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
             def provider = gradle.sharedServices.registerIfAbsent("counter", CountingService) {
                 parameters.initial = 10
             }
-            
+
             task first {
                 doFirst {
                     provider.get().increment()
@@ -131,9 +148,9 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
             def provider = gradle.sharedServices.registerIfAbsent("counter", CountingService) {
                 parameters.initial = 10
             }
-            
+
             def count = provider.map { it.increment() + 10 }
-            
+
             task first {
                 doFirst {
                     println("got value = " + count.get())
@@ -182,7 +199,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
             def provider = gradle.sharedServices.registerIfAbsent("counter", CountingService) {
                 parameters.initial = 10
             }
-            
+
             task count {
                 doFirst {
                     provider.get().increment()
@@ -231,7 +248,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
             def provider = gradle.sharedServices.registerIfAbsent("counter", CountingService) {
                 parameters.initial = 10
             }
-            
+
             task count {
                 doFirst {
                     provider.get().increment()
@@ -289,7 +306,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
                         doFirst {
                             provider.get().increment()
                         }
-                    }                
+                    }
                 }
             }
             subprojects {
@@ -326,7 +343,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
             class CounterConventionPlugin implements Plugin<Project> {
                 void apply(Project project) {
                     project.gradle.sharedServices.registrations.configureEach {
-                        if (parameters instanceof Params) {
+                        if (parameters instanceof CountingParams) {
                             parameters.initial = parameters.initial.get() + 5
                         }
                     }
@@ -377,15 +394,15 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
         serviceImplementation()
         buildFile << """
             def params
-            
+
             def provider = gradle.sharedServices.registerIfAbsent("counter", CountingService) {
                 params = parameters
                 parameters.initial = 10
             }
-            
+
             assert params.initial.get() == 10
             params.initial = 12
-            
+
             task first {
                 doFirst {
                     params.initial = 15 // should have an effect
@@ -428,7 +445,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
         noParametersServiceImplementation()
         buildFile << """
             def provider = gradle.sharedServices.registerIfAbsent("counter", CountingService) {}
-            
+
             task first {
                 doFirst {
                     provider.get().increment()
@@ -459,6 +476,190 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
         outputContains("service: created with value = 0")
         outputContains("service: value is 1")
         outputContains("service: value is 2")
+    }
+
+    def "service can take another service as a parameter"() {
+        serviceImplementation()
+        buildFile << """
+            interface ForwardingParams extends BuildServiceParameters {
+                Property<CountingService> getService()
+            }
+
+            abstract class ForwardingService implements BuildService<ForwardingParams> {
+                void increment() {
+                    println("delegating to counting service")
+                    parameters.service.get().increment()
+                }
+            }
+
+            def countingService = gradle.sharedServices.registerIfAbsent("counter", CountingService) {
+                parameters.initial = 10
+            }
+            def service = gradle.sharedServices.registerIfAbsent("service", ForwardingService) {
+                parameters.service = countingService
+            }
+
+            task first {
+                doFirst {
+                    service.get().increment()
+                }
+            }
+
+            task second {
+                dependsOn first
+                doFirst {
+                    service.get().increment()
+                }
+            }
+        """
+
+        when:
+        run("first", "second")
+
+        then:
+        output.count("delegating to counting service") == 2
+        output.count("service:") == 4
+        outputContains("service: created with value = 10")
+        outputContains("service: value is 11")
+        outputContains("service: value is 12")
+        outputContains("service: closed with value 12")
+
+        when:
+        run("first", "second")
+
+        then:
+        output.count("delegating to counting service") == 2
+        output.count("service:") == 4
+        outputContains("service: created with value = 10")
+        outputContains("service: value is 11")
+        outputContains("service: value is 12")
+        outputContains("service: closed with value 12")
+    }
+
+    @Unroll
+    def "can inject Gradle provided service #serviceType into build service"() {
+        serviceWithInjectedService(serviceType)
+        buildFile << """
+            def provider = gradle.sharedServices.registerIfAbsent("counter", CountingService) {
+            }
+
+            task check {
+                doFirst {
+                    provider.get().increment()
+                }
+            }
+        """
+
+        expect:
+        run("check")
+        run("check")
+
+        where:
+        serviceType << [
+            ExecOperations,
+            FileSystemOperations,
+            ObjectFactory,
+            ProviderFactory,
+        ].collect { it.name }
+    }
+
+    @Unroll
+    def "cannot inject Gradle provided service #serviceType into build service"() {
+        serviceWithInjectedService(serviceType.name)
+        buildFile << """
+            def provider = gradle.sharedServices.registerIfAbsent("counter", CountingService) {
+            }
+
+            task check {
+                doFirst {
+                    provider.get().increment()
+                }
+            }
+        """
+
+        when:
+        fails("check")
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':check'.")
+        failure.assertHasCause("Services of type ${serviceType.simpleName} are not available for injection into instances of type BuildService.")
+
+        where:
+        serviceType << [
+            ProjectLayout, // not isolated
+            Instantiator, // internal
+        ]
+    }
+
+    def "injected FileSystemOperations resolves paths relative to build root directory"() {
+        serviceCopiesFiles()
+        buildFile << """
+            def provider = gradle.sharedServices.registerIfAbsent("copier", CopyingService) {
+            }
+
+            task copy {
+                doFirst {
+                    provider.get().copy("a", "b")
+                }
+            }
+        """
+
+        file("a").createFile()
+        def dest = file("b/a")
+        assert !dest.file
+
+        when:
+        run("copy")
+
+        then:
+        dest.file
+    }
+
+    @Unroll
+    def "task cannot use build service for #annotationType property"() {
+        serviceImplementation()
+        buildFile << """
+            abstract class Consumer extends DefaultTask {
+                @${annotationType}
+                abstract Property<CountingService> getCounter()
+
+                @OutputFile
+                abstract RegularFileProperty getOutputFile()
+
+                @TaskAction
+                def go() {
+                    outputFile.get().asFile.text = counter.get().increment()
+                }
+            }
+
+            def provider = gradle.sharedServices.registerIfAbsent("counter", CountingService) {
+                parameters.initial = 10
+            }
+
+            task broken(type: Consumer) {
+                counter = provider
+                outputFile = layout.buildDirectory.file("out.txt")
+            }
+        """
+
+        expect:
+        fails("broken")
+
+        // The failure is currently very specific to the annotation type
+        // TODO  - fail earlier and add some expectations here
+
+        fails("broken")
+
+        where:
+        annotationType << [
+            Input,
+            InputFile,
+            InputDirectory,
+            InputFiles,
+            OutputDirectory,
+            OutputDirectories,
+            OutputFile,
+            LocalState].collect { it.simpleName }
     }
 
     def "service is stopped even if build fails"() {
@@ -506,7 +707,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
             def provider2 = gradle.sharedServices.registerIfAbsent("counter2", CountingService) {
                 parameters.initial = 10
             }
-            
+
             task first {
                 doFirst {
                     provider1.get().increment()
@@ -558,7 +759,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
             def provider2 = gradle.sharedServices.registerIfAbsent("counter2", CountingService) {
                 parameters.initial = 10
             }
-            
+
             task first {
                 doFirst {
                     provider1.get().increment()
@@ -587,18 +788,18 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
 
     def serviceImplementation() {
         buildFile << """
-            interface Params extends BuildServiceParameters {
+            interface CountingParams extends BuildServiceParameters {
                 Property<Integer> getInitial()
             }
-            
-            abstract class CountingService implements BuildService<Params>, AutoCloseable {
+
+            abstract class CountingService implements BuildService<CountingParams>, AutoCloseable {
                 int value
-                
+
                 CountingService() {
                     value = parameters.initial.get()
                     println("service: created with value = \${value}")
                 }
-                
+
                 synchronized int getInitialValue() { return parameters.initial.get() }
 
                 // Service must be thread-safe
@@ -606,18 +807,18 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
                     value = parameters.initial.get()
                     println("service: value is \${value}")
                 }
-                
+
                 // Service must be thread-safe
                 synchronized int increment() {
                     value++
                     println("service: value is \${value}")
                     return value
                 }
-                
+
                 void close() {
                     println("service: closed with value \${value}")
                 }
-            } 
+            }
         """
     }
 
@@ -625,19 +826,62 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             abstract class CountingService implements BuildService<${BuildServiceParameters.name}.None> {
                 int value
-                
+
                 CountingService() {
                     value = 0
                     println("service: created with value = \${value}")
                 }
-                
+
                 // Service must be thread-safe
                 synchronized int increment() {
                     value++
                     println("service: value is \${value}")
                     return value
                 }
-            } 
+            }
+        """
+    }
+
+    def serviceWithInjectedService(String serviceType) {
+        buildFile << """
+            import ${Inject.name}
+
+            abstract class CountingService implements BuildService<${BuildServiceParameters.name}.None> {
+                int value
+
+                CountingService() {
+                    value = 0
+                    println("service: created with value = \${value}")
+                }
+
+                @Inject
+                abstract ${serviceType} getInjectedService()
+
+                // Service must be thread-safe
+                synchronized int increment() {
+                    assert injectedService != null
+                    value++
+                    return value
+                }
+            }
+        """
+    }
+
+    def serviceCopiesFiles() {
+        buildFile << """
+            import ${Inject.name}
+
+            abstract class CopyingService implements BuildService<${BuildServiceParameters.name}.None> {
+                @Inject
+                abstract FileSystemOperations getFiles()
+
+                void copy(String source, String dest) {
+                    files.copy {
+                        it.from(source)
+                        it.into(dest)
+                    }
+                }
+            }
         """
     }
 
@@ -646,16 +890,16 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
             interface Params extends BuildServiceParameters {
                 Property<Integer> getInitial()
             }
-            
+
             abstract class CountingService implements BuildService<Params> {
                 CountingService() {
                     throw new IOException("broken") // use a checked exception
                 }
-                
+
                 void increment() {
                     throw new IOException("broken") // use a checked exception
                 }
-            } 
+            }
         """
     }
 
@@ -664,18 +908,18 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
             interface Params extends BuildServiceParameters {
                 Property<Integer> getInitial()
             }
-            
+
             abstract class CountingService implements BuildService<Params>, AutoCloseable {
                 CountingService() {
                 }
-                
+
                 void increment() {
                 }
-                
+
                 void close() {
                     throw new IOException("broken") // use a checked exception
                 }
-            } 
+            }
         """
     }
 }

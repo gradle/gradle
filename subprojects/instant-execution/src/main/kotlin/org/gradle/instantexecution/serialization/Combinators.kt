@@ -41,8 +41,8 @@ fun <T> singleton(value: T): Codec<T> =
 
 
 internal
-inline fun <reified T> ownerService() =
-    codec<T>({ }, { readOwnerService() })
+inline fun <reified T> ownerServiceCodec() =
+    codec<T>({ }, { ownerService() })
 
 
 internal
@@ -67,9 +67,14 @@ fun <T> codec(
 }
 
 
-private
-inline fun <reified T> ReadContext.readOwnerService() =
-    isolate.owner.service<T>()
+internal
+inline fun <reified T> ReadContext.ownerService() =
+    ownerService(T::class.java)
+
+
+internal
+fun <T> ReadContext.ownerService(serviceType: Class<T>) =
+    isolate.owner.service(serviceType)
 
 
 internal

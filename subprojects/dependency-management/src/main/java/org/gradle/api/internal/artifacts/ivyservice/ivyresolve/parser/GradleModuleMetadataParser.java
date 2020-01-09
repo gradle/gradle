@@ -60,6 +60,7 @@ import java.util.List;
 import static com.google.gson.stream.JsonToken.BOOLEAN;
 import static com.google.gson.stream.JsonToken.END_ARRAY;
 import static com.google.gson.stream.JsonToken.END_OBJECT;
+import static com.google.gson.stream.JsonToken.NULL;
 import static com.google.gson.stream.JsonToken.NUMBER;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.lang.StringUtils.capitalize;
@@ -216,7 +217,7 @@ public class GradleModuleMetadataParser {
                     dependencyConstraints = consumeDependencyConstraints(reader);
                     break;
                 case "capabilities":
-                    capabilities = consumeCapabilities(reader);
+                    capabilities = consumeCapabilities(reader, true);
                     break;
                 case "available-at":
                     // For now just collect this as another dependency
@@ -323,7 +324,7 @@ public class GradleModuleMetadataParser {
                         attributes = consumeAttributes(reader);
                         break;
                     case "requestedCapabilities":
-                        requestedCapabilities = consumeCapabilities(reader);
+                        requestedCapabilities = consumeCapabilities(reader, false);
                         break;
                     case "endorseStrictVersions":
                         endorseStrictVersions = reader.nextBoolean();
@@ -387,7 +388,7 @@ public class GradleModuleMetadataParser {
         return new DefaultIvyArtifactName(artifactName, type, extension, classifier);
     }
 
-    private List<VariantCapability> consumeCapabilities(JsonReader reader) throws IOException {
+    private List<VariantCapability> consumeCapabilities(JsonReader reader, boolean versionRequired) throws IOException {
         ImmutableList.Builder<VariantCapability> capabilities = ImmutableList.builder();
         reader.beginArray();
         while (reader.peek() != END_ARRAY) {
@@ -406,13 +407,19 @@ public class GradleModuleMetadataParser {
                         name = reader.nextString();
                         break;
                     case "version":
-                        version = reader.nextString();
+                        if (reader.peek() == NULL) {
+                            reader.nextNull();
+                        } else {
+                            version = reader.nextString();
+                        }
                         break;
                 }
             }
             assertDefined(reader, "group", group);
             assertDefined(reader, "name", name);
-            assertDefined(reader, "version", version);
+            if (versionRequired) {
+                assertDefined(reader, "version", version);
+            }
             reader.endObject();
 
             capabilities.add(new VariantCapability(group, name, version));

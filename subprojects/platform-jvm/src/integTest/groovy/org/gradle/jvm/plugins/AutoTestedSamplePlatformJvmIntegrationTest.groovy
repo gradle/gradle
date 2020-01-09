@@ -22,6 +22,7 @@ import org.junit.Test
 class AutoTestedSamplePlatformJvmIntegrationTest extends AbstractAutoTestedSamplesTest {
     @Test
     void runSamples() {
+        executer.noDeprecationChecks()
         runSamplesFrom("subprojects/platform-jvm/src/main")
     }
 }

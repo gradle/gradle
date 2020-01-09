@@ -441,7 +441,7 @@ class IvyFileModule extends AbstractModule implements IvyModule {
                     v.attributes,
                     v.dependencies + dependencies.collect { d ->
                         new DependencySpec(d.organisation, d.module, d.revision, d.prefers, d.strictly,d.rejects, d.exclusions, d.endorseStrictVersions, d.reason, d.attributes,
-                            d.classifier ? new ArtifactSelectorSpec(d.module, 'jar', 'jar', d.classifier) : null)
+                            d.classifier ? new ArtifactSelectorSpec(d.module, 'jar', 'jar', d.classifier) : null, d.requireCapability)
                     },
                     v.dependencyConstraints + dependencyConstraints.collect { d ->
                         new DependencyConstraintSpec(d.organisation, d.module, d.revision, d.prefers, d.strictly, d.rejects, d.reason, d.attributes)
@@ -581,6 +581,7 @@ class IvyFileModule extends AbstractModule implements IvyModule {
     @Override
     protected onPublish(TestFile file) {
         sha1File(file)
+        postPublish(file)
     }
 
     private String getArtifactContent() {

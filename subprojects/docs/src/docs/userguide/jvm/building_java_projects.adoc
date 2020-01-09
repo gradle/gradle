@@ -33,8 +33,8 @@ The simplest build script for a Java project applies the <<java_library_plugin.a
 
 .Applying the Java Library Plugin
 ====
-include::sample[dir="userguide/java/basic/groovy",files="build.gradle[tags=apply-java-plugin]"]
-include::sample[dir="userguide/java/basic/kotlin",files="build.gradle.kts[tags=apply-java-plugin]"]
+include::sample[dir="snippets/userguide/java/basic/groovy",files="build.gradle[tags=apply-java-plugin]"]
+include::sample[dir="snippets/userguide/java/basic/kotlin",files="build.gradle.kts[tags=apply-java-plugin]"]
 ====
 
 By applying the Java Library Plugin, you get a whole host of features:
@@ -124,8 +124,8 @@ The first two are specified in a `dependencies {}` block and the third in a `rep
 
 .Declaring dependencies
 ====
-include::sample[dir="userguide/java/basic/groovy",files="build.gradle[tags=java-dependency-mgmt]"]
-include::sample[dir="userguide/java/basic/kotlin",files="build.gradle.kts[tags=java-dependency-mgmt]"]
+include::sample[dir="snippets/userguide/java/basic/groovy",files="build.gradle[tags=java-dependency-mgmt]"]
+include::sample[dir="snippets/userguide/java/basic/kotlin",files="build.gradle.kts[tags=java-dependency-mgmt]"]
 ====
 
 The Gradle terminology for the three elements is as follows:
@@ -191,16 +191,16 @@ Each source set defines where its source code resides, along with the resources 
 
 .Declaring custom source directories
 ====
-include::sample[dir="userguide/java/customDirs/groovy",files="build.gradle[tags=custom-src-dirs]"]
-include::sample[dir="userguide/java/customDirs/kotlin",files="build.gradle.kts[tags=custom-src-dirs]"]
+include::sample[dir="snippets/userguide/java/customDirs/groovy",files="build.gradle[tags=custom-src-dirs]"]
+include::sample[dir="snippets/userguide/java/customDirs/kotlin",files="build.gradle.kts[tags=custom-src-dirs]"]
 ====
 
 Now Gradle will only search directly in _src_ and _test_ for the respective source code. What if you don't want to override the convention, but simply want to _add_ an extra source directory, perhaps one that contains some third-party source code you want to keep separate? The syntax is similar:
 
 .Declaring custom source directories additively
 ====
-include::sample[dir="userguide/java/customDirs/groovy",files="build.gradle[tags=custom-extra-src-dir]"]
-include::sample[dir="userguide/java/customDirs/kotlin",files="build.gradle.kts[tags=custom-extra-src-dir]"]
+include::sample[dir="snippets/userguide/java/customDirs/groovy",files="build.gradle[tags=custom-extra-src-dir]"]
+include::sample[dir="snippets/userguide/java/customDirs/kotlin",files="build.gradle.kts[tags=custom-extra-src-dir]"]
 ====
 
 Crucially, we're using the _method_ `srcDir()` here to append a directory path, whereas setting the `srcDirs` property replaces any existing values. This is a common convention in Gradle: setting a property replaces values, while the corresponding method appends values.
@@ -215,8 +215,8 @@ For example, if you want to use a separate JVM process for the compiler and prev
 
 .Setting Java compiler options
 ====
-include::sample[dir="userguide/java/basic/groovy",files="build.gradle[tags=java-compiler-options]"]
-include::sample[dir="userguide/java/basic/kotlin",files="build.gradle.kts[tags=java-compiler-options]"]
+include::sample[dir="snippets/userguide/java/basic/groovy",files="build.gradle[tags=java-compiler-options]"]
+include::sample[dir="snippets/userguide/java/basic/kotlin",files="build.gradle.kts[tags=java-compiler-options]"]
 ====
 
 That's also how you can change the verbosity of the compiler, disable debug output in the byte code and configure where the compiler can find annotation processors.
@@ -254,8 +254,8 @@ include::{samplesPath}/java/crossCompilation/groovy/gradle.properties[]
 ----
 
 ====
-include::sample[dir="java/crossCompilation/groovy",files="build.gradle[tags=java-cross-compilation]"]
-include::sample[dir="java/crossCompilation/kotlin",files="build.gradle.kts[tags=java-cross-compilation]"]
+include::sample[dir="snippets/java/crossCompilation/groovy",files="build.gradle[tags=java-cross-compilation]"]
+include::sample[dir="snippets/java/crossCompilation/kotlin",files="build.gradle.kts[tags=java-cross-compilation]"]
 ====
 
 [[sec:custom_java_source_sets]]
@@ -345,16 +345,16 @@ If a publishing plugin is used, these tasks will automatically run during publis
 
 .Configure a project to publish Javadoc and sources
 ====
-include::sample[dir="signing/maven-publish/groovy",files="build.gradle[tags=defining-sources-jar-task]"]
-include::sample[dir="signing/maven-publish/kotlin",files="build.gradle.kts[tags=defining-sources-jar-task]"]
+include::sample[dir="snippets/signing/maven-publish/groovy",files="build.gradle[tags=defining-sources-jar-task]"]
+include::sample[dir="snippets/signing/maven-publish/kotlin",files="build.gradle.kts[tags=defining-sources-jar-task]"]
 ====
 
 If you want to create an 'uber' (AKA 'fat') JAR, then you can use a task definition like this:
 
 .Creating a Java uber or fat JAR
 ====
-include::sample[dir="userguide/files/archivesWithJavaPlugin/groovy",files="build.gradle[tags=create-uber-jar-example]"]
-include::sample[dir="userguide/files/archivesWithJavaPlugin/kotlin",files="build.gradle.kts[tags=create-uber-jar-example]"]
+include::sample[dir="snippets/userguide/files/archivesWithJavaPlugin/groovy",files="build.gradle[tags=create-uber-jar-example]"]
+include::sample[dir="snippets/userguide/files/archivesWithJavaPlugin/kotlin",files="build.gradle.kts[tags=create-uber-jar-example]"]
 ====
 
 See link:{groovyDslPath}/org.gradle.api.tasks.bundling.Jar.html[Jar] for more details on the configuration options available to you.
@@ -372,8 +372,8 @@ Each instance of the `Jar`, `War` and `Ear` tasks has a `manifest` property that
 
 .Customization of MANIFEST.MF
 ====
-include::sample[dir="userguide/tutorial/manifest/groovy",files="build.gradle[tags=add-to-manifest]"]
-include::sample[dir="userguide/tutorial/manifest/kotlin",files="build.gradle.kts[tags=add-to-manifest]"]
+include::sample[dir="snippets/userguide/tutorial/manifest/groovy",files="build.gradle[tags=add-to-manifest]"]
+include::sample[dir="snippets/userguide/tutorial/manifest/kotlin",files="build.gradle.kts[tags=add-to-manifest]"]
 ====
 
 See link:{javadocPath}/org/gradle/api/java/archives/Manifest.html[Manifest] for the configuration options it provides.
@@ -382,16 +382,16 @@ You can also create standalone instances of `Manifest`. One reason for doing so 
 
 .Creating a manifest object.
 ====
-include::sample[dir="userguide/tutorial/manifest/groovy",files="build.gradle[tags=custom-manifest]"]
-include::sample[dir="userguide/tutorial/manifest/kotlin",files="build.gradle.kts[tags=custom-manifest]"]
+include::sample[dir="snippets/userguide/tutorial/manifest/groovy",files="build.gradle[tags=custom-manifest]"]
+include::sample[dir="snippets/userguide/tutorial/manifest/kotlin",files="build.gradle.kts[tags=custom-manifest]"]
 ====
 
 Another option available to you is to merge manifests into a single `Manifest` object. Those source manifests can take the form of a text for or another `Manifest` object. In the following example, the source manifests are all text files except for `sharedManifest`, which is the `Manifest` object from the previous example:
 
 .Separate MANIFEST.MF for a particular archive
 ====
-include::sample[dir="userguide/tutorial/manifest/groovy",files="build.gradle[tags=merge]"]
-include::sample[dir="userguide/tutorial/manifest/kotlin",files="build.gradle.kts[tags=merge]"]
+include::sample[dir="snippets/userguide/tutorial/manifest/groovy",files="build.gradle[tags=merge]"]
+include::sample[dir="snippets/userguide/tutorial/manifest/kotlin",files="build.gradle.kts[tags=merge]"]
 ====
 
 Manifests are merged in the order they are declared in the `from` statement. If the base manifest and the merged manifest both define values for the same key, the merged manifest wins by default. You can fully customize the merge behavior by adding `eachEntry` actions in which you have access to a link:{javadocPath}/org/gradle/api/java/archives/ManifestMergeDetails.html[ManifestMergeDetails] instance for each entry of the resulting manifest. Note that the merge is done lazily, either when generating the JAR or when `Manifest.writeTo()` or `Manifest.getEffectiveManifest()` are called.
@@ -400,8 +400,8 @@ Speaking of `writeTo()`, you can use that to easily write a manifest to disk at 
 
 .Saving a MANIFEST.MF to disk
 ====
-include::sample[dir="userguide/tutorial/manifest/groovy",files="build.gradle[tags=write]"]
-include::sample[dir="userguide/tutorial/manifest/kotlin",files="build.gradle.kts[tags=write]"]
+include::sample[dir="snippets/userguide/tutorial/manifest/groovy",files="build.gradle[tags=write]"]
+include::sample[dir="snippets/userguide/tutorial/manifest/kotlin",files="build.gradle.kts[tags=write]"]
 ====
 
 [[sec:generating_javadocs]]
@@ -415,8 +415,8 @@ As an example of what you can do, imagine you want to use Asciidoc syntax in you
 
 .Using a custom doclet with Javadoc
 ====
-include::sample[dir="userguide/java/basic/groovy",files="build.gradle[tags=using-custom-doclet]"]
-include::sample[dir="userguide/java/basic/kotlin",files="build.gradle.kts[tags=using-custom-doclet]"]
+include::sample[dir="snippets/userguide/java/basic/groovy",files="build.gradle[tags=using-custom-doclet]"]
+include::sample[dir="snippets/userguide/java/basic/kotlin",files="build.gradle.kts[tags=using-custom-doclet]"]
 ====
 
 You don't have to create a configuration for this, but it's an elegant way to handle dependencies that are required for a unique purpose.
@@ -425,8 +425,8 @@ You might also want to create your own Javadoc tasks, for example to generate AP
 
 .Defining a custom Javadoc task
 ====
-include::sample[dir="userguide/java/basic/groovy",files="build.gradle[tags=defining-custom-javadoc-task]"]
-include::sample[dir="userguide/java/basic/kotlin",files="build.gradle.kts[tags=defining-custom-javadoc-task]"]
+include::sample[dir="snippets/userguide/java/basic/groovy",files="build.gradle[tags=defining-custom-javadoc-task]"]
+include::sample[dir="snippets/userguide/java/basic/kotlin",files="build.gradle.kts[tags=defining-custom-javadoc-task]"]
 ====
 
 These are just two non-trivial but common customizations that you might come across.
@@ -513,6 +513,16 @@ This plugin is the exception as it does not apply the Java Plugin.
 
 If you want to leverage the multi language aspect of the JVM, most of what was described here will still apply.
 
-Gradle itself provides <<groovy_plugin.adoc#,Groovy>> and <<scala_plugin.adoc#,Scala>> plugins. Note that these can be further enhanced by combining them with the `java-library` plugin.
+Gradle itself provides <<groovy_plugin.adoc#,Groovy>> and <<scala_plugin.adoc#,Scala>> plugins.
+The plugins automatically apply support for compiling Java code and can be further enhanced by combining them with the `java-library` plugin.
 
-And beyond core Gradle, there are other https://plugins.gradle.org/search?term=jvm[great plugins] for more JVM languages!
+These plugins create a dependency between Groovy/Scala compilation and Java compilation (of source code in tha `java` folder of a source set).
+You can change this default behavior by adjusting the classpath of the involved compile tasks as shown in the following example:
+
+.Changing the classpath of compile tasks
+====
+include::sample[dir="snippets/userguide/tutorial/compileTaskClasspath/groovy",files="build.gradle[tags=compile-task-classpath]"]
+include::sample[dir="snippets/userguide/tutorial/compileTaskClasspath/kotlin",files="build.gradle.kts[tags=compile-task-classpath]"]
+====
+
+Beyond core Gradle, there are other https://plugins.gradle.org/search?term=jvm[great plugins] for more JVM languages!

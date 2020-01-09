@@ -20,19 +20,19 @@ import org.gradle.plugins.signing.signatory.SignatoryProvider
 import spock.lang.Unroll
 
 class ConventionSmokeSpec extends SigningProjectSpec {
-    
+
     def setup() {
         applyPlugin()
     }
-    
+
     def "signing block"() {
         when:
         signing {
             signatories {
-                
+
             }
         }
-        
+
         then:
         notThrown Exception
     }
@@ -42,29 +42,29 @@ class ConventionSmokeSpec extends SigningProjectSpec {
         signing.signatories != null
         signing.signatories instanceof SignatoryProvider
     }
-    
+
     def "signing configuration"() {
         expect:
         signing != null
         signing instanceof SigningExtension
         signing.project == project
     }
-    
+
     def "default signatory with no properties"() {
         expect:
         signing.signatory == null
     }
-    
+
     def "default type"() {
         expect:
         signing.signatureType.extension == "asc"
     }
-    
+
     @Unroll
     def "required has flexible input"() {
         when:
         signing.required = value
-        
+
         then:
         signing.required == required
 
@@ -75,21 +75,21 @@ class ConventionSmokeSpec extends SigningProjectSpec {
         []    | false
         ""    | false
     }
-    
+
     def "can supply a callable as the required value"() {
         given:
         def flag = false
         signing.required { flag }
-        
+
         expect:
         !signing.required
-        
+
         when:
         flag = true
-        
+
         then:
         signing.required
     }
-    
+
 
 }

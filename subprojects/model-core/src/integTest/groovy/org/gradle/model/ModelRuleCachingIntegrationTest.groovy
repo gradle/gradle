@@ -19,6 +19,7 @@ package org.gradle.model
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.longlived.PersistentBuildProcessIntegrationTest
 import org.gradle.model.internal.inspect.ModelRuleExtractor
+import org.gradle.util.GradleVersion
 
 class ModelRuleCachingIntegrationTest extends PersistentBuildProcessIntegrationTest {
 
@@ -28,6 +29,11 @@ class ModelRuleCachingIntegrationTest extends PersistentBuildProcessIntegrationT
             def initialSize = ruleCache.size()
             gradle.buildFinished { println "### extracted new rules: \${ruleCache.size() > initialSize}" }
         """
+    }
+
+    private void expectDeprecationWarnings() {
+        executer.expectDeprecationWarning("The java-lang plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
+        executer.expectDeprecationWarning("The jvm-resources plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
     }
 
     boolean getNewRulesExtracted() {
@@ -43,12 +49,14 @@ class ModelRuleCachingIntegrationTest extends PersistentBuildProcessIntegrationT
         '''
 
         when:
+        expectDeprecationWarnings()
         run()
 
         then:
         newRulesExtracted
 
         when:
+        expectDeprecationWarnings()
         run()
 
         then:

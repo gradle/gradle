@@ -20,6 +20,6 @@ javadoc {
         tags 'deprecated'
         tags 'customtag:t:"Custom Tag:"'
         taglets 'CustomTaglet'
-        tagletPath sourceSets.taglet.java.outputDir
+        tagletPath sourceSets.taglet.java.destinationDirectory.get().asFile
     }
 }

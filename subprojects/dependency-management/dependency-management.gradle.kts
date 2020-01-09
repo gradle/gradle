@@ -22,8 +22,6 @@ plugins {
 }
 
 dependencies {
-    api(library("jsr305"))
-
     implementation(project(":baseServices"))
     implementation(project(":messaging"))
     implementation(project(":native"))
@@ -40,6 +38,7 @@ dependencies {
     implementation(project(":resourcesHttp"))
     implementation(project(":snapshots"))
     implementation(project(":execution"))
+    implementation(project(":security"))
 
     implementation(library("slf4j_api"))
     implementation(library("groovy"))
@@ -82,6 +81,7 @@ dependencies {
     integTestImplementation(testLibrary("jetty")) {
         because("tests use HttpServlet directly")
     }
+    integTestImplementation(testFixtures(project(":security")))
 
     integTestRuntimeOnly(project(":ivy"))
     integTestRuntimeOnly(project(":maven"))
@@ -111,6 +111,7 @@ dependencies {
     testFixturesImplementation(library("guava")) {
         because("Groovy compiler reflects on private field on TextUtil")
     }
+    testFixturesImplementation(library("bouncycastle_pgp"))
     crossVersionTestRuntimeOnly(project(":maven"))
 }
 

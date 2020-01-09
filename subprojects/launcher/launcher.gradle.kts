@@ -17,6 +17,7 @@ dependencies {
     implementation(project(":processServices"))
     implementation(project(":files"))
     implementation(project(":fileCollections"))
+    implementation(project(":snapshots"))
     implementation(project(":persistentCache"))
     implementation(project(":coreApi"))
     implementation(project(":core"))
@@ -79,17 +80,11 @@ gradlebuildJava {
     moduleType = ModuleType.CORE
 }
 
-val configureJar by tasks.registering {
-    doLast {
-        val classpath = listOf(":bootstrap", ":baseServices", ":coreApi", ":core").joinToString(" ") {
-            project(it).tasks.jar.get().archiveFile.get().asFile.name
-        }
-        tasks.jar.get().manifest.attributes("Class-Path" to classpath)
-    }
-}
-
 tasks.jar {
-    dependsOn(configureJar)
+    val classpath = listOf(":bootstrap", ":baseServices", ":coreApi", ":core").joinToString(" ") {
+        project(it).tasks.jar.get().archiveFile.get().asFile.name
+    }
+    manifest.attributes("Class-Path" to classpath)
     manifest.attributes("Main-Class" to "org.gradle.launcher.GradleMain")
 }
 

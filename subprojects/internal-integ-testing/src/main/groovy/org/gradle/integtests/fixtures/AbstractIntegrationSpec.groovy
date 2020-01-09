@@ -417,6 +417,7 @@ class AbstractIntegrationSpec extends Specification {
 
     def createZip(String name, Closure cl) {
         TestFile zipRoot = file("${name}.root")
+        zipRoot.deleteDir()
         TestFile zip = file(name)
         zipRoot.create(cl)
         zipRoot.zipTo(zip)

@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 import accessors.java
-import accessors.javaScript
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
     `java-library`
-    `javascript-base`
     gradlebuild.classycle
 }
 
@@ -28,7 +26,7 @@ val flamegraph by configurations.creating
 configurations.compileOnly { extendsFrom(flamegraph) }
 
 repositories {
-    javaScript.googleApis()
+    googleApisJs()
 }
 
 dependencies {

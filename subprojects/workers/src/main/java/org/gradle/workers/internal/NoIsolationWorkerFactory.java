@@ -19,23 +19,29 @@ package org.gradle.workers.internal;
 import org.gradle.internal.Factory;
 import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.instantiation.InstantiatorFactory;
+import org.gradle.internal.isolated.IsolationScheme;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRef;
-import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.workers.IsolationMode;
+import org.gradle.workers.WorkAction;
+import org.gradle.workers.WorkParameters;
 import org.gradle.workers.WorkerExecutor;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
 
 public class NoIsolationWorkerFactory implements WorkerFactory {
     private final BuildOperationExecutor buildOperationExecutor;
-    private final ServiceRegistry parent;
+    private final ActionExecutionSpecFactory specFactory;
+    private final Worker workerServer;
     private WorkerExecutor workerExecutor;
 
-    public NoIsolationWorkerFactory(BuildOperationExecutor buildOperationExecutor, ServiceRegistry parent) {
+    public NoIsolationWorkerFactory(BuildOperationExecutor buildOperationExecutor, InstantiatorFactory instantiatorFactory, ActionExecutionSpecFactory specFactory, ServiceRegistry internalServices) {
         this.buildOperationExecutor = buildOperationExecutor;
-        this.parent = parent;
+        this.specFactory = specFactory;
+        IsolationScheme<WorkAction, WorkParameters> isolationScheme = new IsolationScheme<>(WorkAction.class, WorkParameters.class, WorkParameters.None.class);
+        workerServer = new DefaultWorkerServer(internalServices, instantiatorFactory, isolationScheme, Collections.singleton(WorkerExecutor.class));
     }
 
     // Attaches the owning WorkerExecutor to this factory
@@ -46,21 +52,18 @@ public class NoIsolationWorkerFactory implements WorkerFactory {
     @Override
     public BuildOperationAwareWorker getWorker(WorkerRequirement workerRequirement) {
         final WorkerExecutor workerExecutor = this.workerExecutor;
-        final ClassLoader contextClassLoader = ((FixedClassLoaderWorkerRequirement)workerRequirement).getContextClassLoader();
+        final ClassLoader contextClassLoader = ((FixedClassLoaderWorkerRequirement) workerRequirement).getContextClassLoader();
         return new AbstractWorker(buildOperationExecutor) {
             @Override
-            public DefaultWorkResult execute(ActionExecutionSpec spec, BuildOperationRef parentBuildOperation) {
+            public DefaultWorkResult execute(IsolatedParametersActionExecutionSpec<?> spec, BuildOperationRef parentBuildOperation) {
                 return executeWrappedInBuildOperation(spec, parentBuildOperation, workSpec -> {
                     DefaultWorkResult result;
                     try {
-                        DefaultServiceRegistry serviceRegistry = new WorkerPublicServicesBuilder(parent).withInternalServicesVisible(workSpec.isInternalServicesRequired()).build();
-                        serviceRegistry.add(WorkerExecutor.class, workerExecutor);
-                        WorkerProtocol workerServer = new DefaultWorkerServer(serviceRegistry, parent.get(InstantiatorFactory.class));
                         result = ClassLoaderUtils.executeInClassloader(contextClassLoader, new Factory<DefaultWorkResult>() {
                             @Nullable
                             @Override
                             public DefaultWorkResult create() {
-                                return workerServer.execute(workSpec);
+                                return workerServer.execute(specFactory.newSimpleSpec(workSpec));
                             }
                         });
                     } finally {

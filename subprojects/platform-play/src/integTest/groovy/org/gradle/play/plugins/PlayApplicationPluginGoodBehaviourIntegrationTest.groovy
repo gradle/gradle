@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.WellBehavedPluginTest
 class PlayApplicationPluginGoodBehaviourIntegrationTest extends WellBehavedPluginTest {
 
     def setup() {
-        executer.expectDeprecationWarnings(3)
+        executer.expectDeprecationWarnings(6)
     }
 
     @Override

@@ -277,7 +277,7 @@ class StandardKotlinScriptEvaluator(
     }
 
     private
-    inner class ScopeBackedCompiledScript(
+    class ScopeBackedCompiledScript(
         private val classLoaderScope: ClassLoaderScope,
         private val childScopeId: String,
         private val location: File,

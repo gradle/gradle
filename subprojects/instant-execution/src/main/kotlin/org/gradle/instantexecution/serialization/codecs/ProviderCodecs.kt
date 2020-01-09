@@ -44,6 +44,7 @@ import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.decodePreservingSharedIdentity
 import org.gradle.instantexecution.serialization.encodePreservingSharedIdentityOf
 import org.gradle.instantexecution.serialization.readList
+import org.gradle.instantexecution.serialization.readNonNull
 import org.gradle.instantexecution.serialization.writeCollection
 
 
@@ -71,7 +72,7 @@ suspend fun WriteContext.writeProvider(value: ProviderInternal<*>) {
 private
 suspend fun ReadContext.readProvider(): ProviderInternal<Any> =
     when (readByte()) {
-        1.toByte() -> read()!!.uncheckedCast()
+        1.toByte() -> readNonNull()
         2.toByte() -> BeanCodec().run { decode() }!!.uncheckedCast()
         else ->
             when (val value = read()) {
@@ -130,7 +131,7 @@ ValueSourceProviderCodec(
 ) : Codec<ValueSourceProvider<*, *>> {
 
     override suspend fun WriteContext.encode(value: ValueSourceProvider<*, *>) {
-        when (val obtainedValue = value.obtainedValueOrNull) {
+        when (value.obtainedValueOrNull) {
             null -> {
                 // source has **NOT** been used as build logic input:
                 // serialize the source
@@ -143,7 +144,7 @@ ValueSourceProviderCodec(
                 // cached state fingerprint.
                 // Currently not necessary due to the unpacking that happens
                 // to the TypeSanitizingProvider put around the ValueSourceProvider.
-                TODO("build logic input")
+                throw IllegalStateException("build logic input")
             }
         }
     }

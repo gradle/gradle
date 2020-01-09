@@ -5,7 +5,7 @@ plugins {
 }
 
 val androidTools by configurations.creating
-configurations.compile { extendsFrom(androidTools) }
+configurations.implementation { extendsFrom(androidTools) }
 
 repositories {
     google()

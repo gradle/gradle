@@ -34,7 +34,6 @@ import static org.hamcrest.CoreMatchers.equalTo
 @TestReproducibleArchives
 class ArchiveIntegrationTest extends AbstractIntegrationSpec {
 
-    @ToBeFixedForInstantExecution
     def canCopyFromAZip() {
         given:
         createZip('test.zip') {
@@ -46,6 +45,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
                 file 'file2.xml'
             }
         }
+
         and:
         buildFile << '''
             task copy(type: Copy) {
@@ -56,8 +56,40 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
 '''
         when:
         run 'copy'
+
         then:
+        result.assertTaskExecuted(":copy")
         file('dest').assertHasDescendants('subdir1/file1.txt', 'subdir2/file2.txt')
+
+        when:
+        run 'copy'
+
+        then:
+        result.assertTasksSkipped(":copy")
+
+        when:
+        createZip('test.zip') {
+            subdir1 {
+                file 'file1.txt'
+            }
+            subdir2 {
+                file 'file2.xml'
+            }
+            file 'file3.txt'
+        }
+
+        run 'copy'
+
+        then:
+        result.assertTasksExecutedAndNotSkipped(":copy")
+        // Copy (intentionally) leaves stuff behind
+        file('dest').assertHasDescendants('subdir1/file1.txt', 'subdir2/file2.txt', 'file3.txt')
+
+        when:
+        run 'copy'
+
+        then:
+        result.assertTasksSkipped(":copy")
     }
 
     def cannotCreateAnEmptyTar() {
@@ -76,7 +108,6 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         file('build/test.tar').assertDoesNotExist()
     }
 
-    @ToBeFixedForInstantExecution
     def canCopyFromATar() {
         given:
         createTar('test.tar') {
@@ -88,6 +119,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
                 file 'file2.xml'
             }
         }
+
         and:
         buildFile << '''
             task copy(type: Copy) {
@@ -98,11 +130,42 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
 '''
         when:
         run 'copy'
+
         then:
+        result.assertTaskExecuted(":copy")
         file('dest').assertHasDescendants('subdir1/file1.txt', 'subdir2/file2.txt')
+
+        when:
+        run 'copy'
+
+        then:
+        result.assertTasksSkipped(":copy")
+
+        when:
+        createTar('test.tar') {
+            subdir1 {
+                file 'file1.txt'
+            }
+            subdir2 {
+                file 'file2.xml'
+            }
+            file 'file3.txt'
+        }
+
+        run 'copy'
+
+        then:
+        result.assertTasksExecutedAndNotSkipped(":copy")
+        // Copy (intentionally) leaves stuff behind
+        file('dest').assertHasDescendants('subdir1/file1.txt', 'subdir2/file2.txt', 'file3.txt')
+
+        when:
+        run 'copy'
+
+        then:
+        result.assertTasksSkipped(":copy")
     }
 
-    @ToBeFixedForInstantExecution
     def "handles gzip compressed tars"() {
         given:
         TestFile tar = file('tar-contents')
@@ -128,7 +191,6 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("GRADLE-3310")
-    @ToBeFixedForInstantExecution
     def "handles gzip compressed tars from resources.gzip"() {
         given:
         TestFile tar = file('tar-contents')
@@ -183,7 +245,6 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         file('dest').assertHasDescendants('someDir/1.txt')
     }
 
-    @ToBeFixedForInstantExecution
     def "handles bzip2 compressed tars"() {
         given:
         TestFile tar = file('tar-contents')
@@ -209,7 +270,6 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("GRADLE-3310")
-    @ToBeFixedForInstantExecution
     def "handles bzip2 compressed tars from resources.bzip2"() {
         given:
         TestFile tar = file('tar-contents')
@@ -254,7 +314,6 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         run 'myTar'
     }
 
-    @ToBeFixedForInstantExecution
     def "can choose compression method for tarTree"() {
         given:
         TestFile tar = file('tar-contents')
@@ -281,7 +340,6 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         file('dest').assertHasDescendants('someDir/1.txt')
     }
 
-    @ToBeFixedForInstantExecution
     def "tarTreeFailsGracefully"() {
         given:
         file('content/some-file.txt').text = "Content"
@@ -622,7 +680,6 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         )
     }
 
-    @ToBeFixedForInstantExecution
     def canMergeArchivesIntoAnotherZip() {
         given:
         createZip('test.zip') {
@@ -668,7 +725,6 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/9673")
-    @ToBeFixedForInstantExecution
     def "can extract #archiveFile with exclusions"() {
         given:
         "$archive"(archiveFile) {
@@ -789,13 +845,13 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         class TaskWithAutomaticDependency extends DefaultTask {
             @InputFile
             final RegularFileProperty inputFile = project.objects.fileProperty()
-            
+
             @TaskAction
             void doNothing() {
                 // does nothing
             }
         }
-        
+
         task tar(type: Tar) {
             from 'dir1'
             archiveBaseName = "test"
@@ -890,7 +946,9 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
 
     private def createTar(String name, Closure cl) {
         TestFile tarRoot = file("${name}.root")
+        tarRoot.deleteDir()
         TestFile tar = file(name)
+        tar.delete()
         tarRoot.create(cl)
         tarRoot.tarTo(tar)
     }

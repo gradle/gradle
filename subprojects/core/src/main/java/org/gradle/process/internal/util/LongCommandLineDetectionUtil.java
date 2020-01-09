@@ -23,7 +23,9 @@ import java.util.List;
 public class LongCommandLineDetectionUtil {
     // See http://msdn.microsoft.com/en-us/library/windows/desktop/ms682425(v=vs.85).aspx
     public static final int MAX_COMMAND_LINE_LENGTH_WINDOWS = 32767;
+    public static final int MAX_COMMAND_LINE_LENGTH_NIX = 2097152;
     private static final String WINDOWS_LONG_COMMAND_EXCEPTION_MESSAGE = "The filename or extension is too long";
+    private static final String NIX_LONG_COMMAND_EXCEPTION_MESSAGE = "error=7, Argument list too long";
 
     public static boolean hasCommandLineExceedMaxLength(String command, List<String> arguments) {
         int commandLineLength = command.length() + arguments.stream().map(String::length).reduce(Integer::sum).orElse(0) + arguments.size();
@@ -31,7 +33,7 @@ public class LongCommandLineDetectionUtil {
     }
 
     private static int getMaxCommandLineLength() {
-        int defaultMax = Integer.MAX_VALUE;
+        int defaultMax = MAX_COMMAND_LINE_LENGTH_NIX;
         if (OperatingSystem.current().isWindows()) {
             defaultMax = MAX_COMMAND_LINE_LENGTH_WINDOWS;
         }
@@ -42,7 +44,7 @@ public class LongCommandLineDetectionUtil {
     public static boolean hasCommandLineExceedMaxLengthException(Throwable failureCause) {
         Throwable cause = failureCause;
         do {
-            if (cause.getMessage().contains(WINDOWS_LONG_COMMAND_EXCEPTION_MESSAGE)) {
+            if (cause.getMessage().contains(WINDOWS_LONG_COMMAND_EXCEPTION_MESSAGE) || cause.getMessage().contains(NIX_LONG_COMMAND_EXCEPTION_MESSAGE)) {
                 return true;
             }
         } while ((cause = cause.getCause()) != null);

@@ -23,7 +23,6 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
 configurations.all {
     artifacts.clear()
 }
-//tasks.remove(jar)
 
 tasks.withType(AbstractArchiveTask).configureEach {
     archiveBaseName = "gradle"
@@ -53,15 +52,6 @@ configurations {
         attributes.attribute(Attribute.of("org.gradle.api", String), "build-receipt")
     }
 
-    gradleSamples {
-        visible = false
-        canBeResolved = true
-        canBeConsumed = false
-        extendsFrom(gradleDocumentation)
-        attributes.attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, "docs"))
-        attributes.attribute(Attribute.of("type", String), "samples")
-    }
-
     gradleFullDocs {
         visible = false
         canBeResolved = true
@@ -81,8 +71,12 @@ configurations {
     }
 
     minimalRuntime {
+        visible = false
+        canBeResolved = false
         canBeConsumed = true
         attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+        attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.LIBRARY))
+        attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling, Bundling.EXTERNAL))
         attributes.attribute(Attribute.of("org.gradle.runtime", String), "minimal")
     }
 }
@@ -136,6 +130,7 @@ ext {
         }
         into('docs') {
             from configurations.gradleFullDocs
+            exclude "samples/**"
         }
     }
 
@@ -144,9 +139,6 @@ ext {
         from('src/toplevel')
         into('docs') {
             from configurations.gradleFullDocs
-            into('samples') {
-                from configurations.gradleSamples
-            }
         }
     }
 }

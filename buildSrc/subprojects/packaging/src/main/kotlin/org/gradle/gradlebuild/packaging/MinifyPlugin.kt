@@ -18,6 +18,8 @@ package org.gradle.gradlebuild.packaging
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.attributes.Bundling
+import org.gradle.api.attributes.Category
 
 import org.gradle.gradlebuild.packaging.Attributes.artifactType
 import org.gradle.gradlebuild.packaging.Attributes.minified
@@ -66,16 +68,17 @@ open class MinifyPlugin : Plugin<Project> {
                     }
                 }
                 configurations.all {
-                    /*
-                     * Some of our projects still depend on matching the default
-                     * configuration. As soon as any attribute is added, the default
-                     * configuration is no longer a valid match. To work around this
-                     * we only add the "minified" attribute in places where we already
-                     * use other attributes.
-                     */
                     afterEvaluate {
-                        if (!attributes.isEmpty) {
+                        // everywhere where we resolve, prefer the minified version
+                        if (isCanBeResolved && !isCanBeConsumed) {
                             attributes.attribute(minified, true)
+                        }
+                        // local projects are already minified
+                        if (isCanBeConsumed && !isCanBeResolved) {
+                            if (attributes.getAttribute(Category.CATEGORY_ATTRIBUTE)?.name == Category.LIBRARY
+                                    && attributes.getAttribute(Bundling.BUNDLING_ATTRIBUTE)?.name == Bundling.EXTERNAL) {
+                                attributes.attribute(minified, true)
+                            }
                         }
                     }
                 }

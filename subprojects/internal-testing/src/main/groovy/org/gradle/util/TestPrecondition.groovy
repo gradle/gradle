@@ -115,6 +115,9 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     JDK11_OR_EARLIER({
         JavaVersion.current() <= JavaVersion.VERSION_11
     }),
+    JDK12_OR_EARLIER({
+        JavaVersion.current() <= JavaVersion.VERSION_12
+    }),
     JDK12_OR_LATER({
         JavaVersion.current() >= JavaVersion.VERSION_12
     }),
@@ -175,7 +178,10 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     }),
     SUPPORTS_TARGETING_JAVA6({ !JDK12_OR_LATER.fulfilled }),
     // Currently mac agents are not that strong so we avoid running high-concurrency tests on them
-    HIGH_PERFORMANCE(NOT_MAC_OS_X)
+    HIGH_PERFORMANCE(NOT_MAC_OS_X),
+    NOT_EC2_AGENT({
+        !InetAddress.getLocalHost().getHostName().startsWith("ip-")
+    })
 
     /**
      * A predicate for testing whether the precondition is fulfilled.

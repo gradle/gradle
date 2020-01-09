@@ -108,7 +108,7 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             task tar(type: Tar) {
                 reproducibleFileOrder = true
-                preserveFileTimestamps = false  
+                preserveFileTimestamps = false
                 compression = '${compression}'
                 from 'dir1', 'dir2', 'dir3'
                 destinationDirectory = buildDir
@@ -142,7 +142,7 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
                 }
                 from('dir1') {
                     into 'dir1'
-                }     
+                }
                 from 'dir1/file13.txt'
                 from 'dir1/file11.txt'
                 destinationDirectory = buildDir
@@ -174,7 +174,6 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
         fileExtension = taskName
     }
 
-    @ToBeFixedForInstantExecution
     def "#taskName can use zipTree and tarTree"() {
         given:
         createTestFiles()
@@ -204,7 +203,7 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
 
                 from zipTree(aZip.archiveFile)
                 from tarTree(aTar.archiveFile)
-                
+
                 dependsOn aZip, aTar
 
                 fileMode = 0644

@@ -2,6 +2,8 @@ import org.gradle.build.BuildReceipt
 import org.gradle.gradlebuild.BuildEnvironment
 import org.gradle.gradlebuild.versioning.DetermineCommitId
 
+import java.text.SimpleDateFormat
+
 if (buildTypes.promotionBuild.active) {
     logger.lifecycle "Invocation tasks: $gradle.startParameter.taskNames\nInvocation properties: $gradle.startParameter.projectProperties"
 }
@@ -24,7 +26,7 @@ if (!project.hasProperty("ignoreIncomingBuildReceipt") && new File(incomingBuild
     ext.buildTimestamp = incomingDistributionsBuildReceipt.buildTimestamp
     println "Using timestamp from incoming build receipt: $buildTimestamp"
 } else {
-    def timestampFormat = new java.text.SimpleDateFormat('yyyyMMddHHmmssZ')
+    def timestampFormat = new SimpleDateFormat('yyyyMMddHHmmssZ')
     timestampFormat.timeZone = TimeZone.getTimeZone("UTC")
     Date buildTime
     if (project.hasProperty("buildTimestamp")) {
@@ -33,7 +35,7 @@ if (!project.hasProperty("ignoreIncomingBuildReceipt") && new File(incomingBuild
         if (BuildEnvironment.isCiServer || ['install', 'installAll'].collectMany { [':' + it, it] }.any { gradle.startParameter.taskNames.contains(it) }) {
             buildTime = new Date()
         } else {
-            def sdf = new java.text.SimpleDateFormat("yyyy-MM-dd");
+            def sdf = new SimpleDateFormat("yyyy-MM-dd");
             Date dateWithoutTime = sdf.parse(sdf.format(new Date()))
             buildTime = dateWithoutTime
         }

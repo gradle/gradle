@@ -203,6 +203,23 @@ class DefaultClasspathFingerprinterTest extends Specification {
         values == ['397fdb436f96f0ebac6c1e147eb1cc51', 'e9fa562dd3fd73bfa315b0f9876c2b6e'] as Set
     }
 
+    def "empty jars are not ignored"() {
+        def emptyJar = file('empty.jar')
+        file('emptyDir').createDir().zipTo(emptyJar)
+        def nonEmptyJar = file('nonEmpty.jar')
+        file('nonEmptyDir').create{
+            file('some-resource').text = 'not-empty'
+        }.zipTo(nonEmptyJar)
+
+        when:
+        def classpathFingerprint = fingerprint(emptyJar, nonEmptyJar)
+        then:
+        classpathFingerprint == [
+            ['empty.jar', '', 'b4ffe6c04c447ca2bf8e1659ba078d13'],
+            ['nonEmpty.jar', '', '02e567c3be8a015bbcad37ec10d32b45']
+        ]
+    }
+
     def fingerprint(TestFile... classpath) {
         virtualFileSystem.invalidateAll()
         def fileCollectionFingerprint = fingerprinter.fingerprint(files(classpath))

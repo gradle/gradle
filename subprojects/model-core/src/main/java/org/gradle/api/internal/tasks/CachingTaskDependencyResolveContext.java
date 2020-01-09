@@ -55,11 +55,12 @@ public class CachingTaskDependencyResolveContext<T> extends AbstractTaskDependen
     private Task task;
 
     public CachingTaskDependencyResolveContext(Collection<? extends WorkDependencyResolver<T>> workResolvers) {
-        this.walker = new CachingDirectedGraphWalker<Object, T>(new TaskGraphImpl(workResolvers));
+        this.walker = new CachingDirectedGraphWalker<>(new TaskGraphImpl(workResolvers));
         this.workResolvers = workResolvers;
     }
 
     public Set<T> getDependencies(@Nullable Task task, Object dependencies) {
+        Preconditions.checkState(this.task == null);
         this.task = task;
         try {
             walker.add(dependencies);
@@ -110,10 +111,14 @@ public class CachingTaskDependencyResolveContext<T> extends AbstractTaskDependen
                 queue.clear();
                 taskDependency.visitDependencies(CachingTaskDependencyResolveContext.this);
                 connectedNodes.addAll(queue);
-            } else if (node instanceof Buildable) {
+                return;
+            }
+            if (node instanceof Buildable) {
                 Buildable buildable = (Buildable) node;
                 connectedNodes.add(buildable.getBuildDependencies());
-            } else if (node instanceof FinalizeAction) {
+                return;
+            }
+            if (node instanceof FinalizeAction) {
                 FinalizeAction finalizeAction = (FinalizeAction) node;
                 TaskDependencyContainer dependencies = finalizeAction.getDependencies();
                 Set<T> deps = new CachingTaskDependencyResolveContext<T>(workResolvers).getDependencies(task, dependencies);
@@ -121,24 +126,16 @@ public class CachingTaskDependencyResolveContext<T> extends AbstractTaskDependen
                     attachFinalizerTo(dep, finalizeAction);
                     values.add(dep);
                 }
-            } else {
-                boolean handled = false;
-                for (WorkDependencyResolver<T> workResolver : workResolvers) {
-                    if (workResolver.resolve(task, node, new Action<T>() {
-                        @Override
-                        public void execute(T resolvedValue) {
-                            values.add(resolvedValue);
-                        }
-                    })) {
-                        handled = true;
-                        break;
-                    }
-                }
-                if (!handled) {
-                    throw new IllegalArgumentException(String.format("Cannot resolve object of unknown type %s to a Task.",
-                        node.getClass().getSimpleName()));
+                return;
+            }
+            for (WorkDependencyResolver<T> workResolver : workResolvers) {
+                if (workResolver.resolve(task, node, values::add)) {
+                    return;
                 }
             }
+            throw new IllegalArgumentException(
+                String.format("Cannot resolve object of unknown type %s to a Task.",
+                    node.getClass().getSimpleName()));
         }
     }
 }

@@ -16,6 +16,9 @@
 
 package org.gradle.workers.internal;
 
+/**
+ * A service that executes isolate work in a (potentially) long-lived process or in-process.
+ */
 public interface WorkerProtocol {
-    DefaultWorkResult execute(ActionExecutionSpec spec);
+    DefaultWorkResult execute(TransportableActionExecutionSpec<?> spec);
 }

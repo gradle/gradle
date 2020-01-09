@@ -127,7 +127,7 @@ public class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc> {
         task.getReports().all(new Action<SingleFileReport>() {
             @Override
             public void execute(final SingleFileReport report) {
-                report.getActivated().convention(project.getProviders().provider(() -> report.getName().equals(extension.getReportFormat())));
+                report.getRequired().convention(project.getProviders().provider(() -> report.getName().equals(extension.getReportFormat())));
                 report.getOutputLocation().convention(project.getLayout().getProjectDirectory().file(project.provider(() -> {
                     String fileSuffix = report.getName().equals("text") ? "txt" : report.getName();
                     return new File(extension.getReportsDir(), baseName + "." + fileSuffix).getAbsolutePath();

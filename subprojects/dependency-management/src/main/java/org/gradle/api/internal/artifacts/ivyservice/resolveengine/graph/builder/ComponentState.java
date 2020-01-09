@@ -134,7 +134,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     }
 
     public void selectAndRestartModule() {
-        module.restart(this);
+        module.replaceWith(this);
     }
 
     @Override

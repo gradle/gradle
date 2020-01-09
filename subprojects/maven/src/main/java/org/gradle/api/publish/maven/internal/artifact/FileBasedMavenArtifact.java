@@ -49,4 +49,9 @@ public class FileBasedMavenArtifact extends AbstractMavenArtifact {
     protected TaskDependencyInternal getDefaultBuildDependencies() {
         return TaskDependencyInternal.EMPTY;
     }
+
+    @Override
+    public boolean shouldBePublished() {
+        return true;
+    }
 }

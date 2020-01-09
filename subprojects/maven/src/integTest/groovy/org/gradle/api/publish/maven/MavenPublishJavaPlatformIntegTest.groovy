@@ -138,6 +138,67 @@ class MavenPublishJavaPlatformIntegTest extends AbstractMavenPublishIntegTest {
     }
 
     @ToBeFixedForInstantExecution
+    def "can define a platform with local projects with customized artifacts"() {
+        given:
+
+        settingsFile << """
+            include "core"
+            include "utils"
+        """
+
+        createBuildScripts("""
+            dependencies {
+                constraints {
+                    api project(":core")
+                    runtime project(":utils")
+                }
+            }
+            subprojects {
+                version = null
+                apply(plugin: 'java-library')
+                apply(plugin: 'maven-publish')
+                publishing {
+                    publications {
+                        maven(MavenPublication) {
+                            group = "custom-group"
+                            artifactId = project.name + "-custom"
+                            version = "1.9"
+                            from components.java
+                        }
+                    }
+                }
+            }
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        from components.javaPlatform
+                    }
+                }
+            }
+""")
+
+        when:
+        run "publish"
+
+        then:
+        javaPlatform.assertPublished()
+        javaPlatform.parsedModuleMetadata.variant("apiElements") {
+            constraint("custom-group:core-custom:1.9")
+            noMoreDependencies()
+        }
+        javaPlatform.parsedModuleMetadata.variant("runtimeElements") {
+            constraint("custom-group:core-custom:1.9")
+            constraint("custom-group:utils-custom:1.9")
+            noMoreDependencies()
+        }
+        javaPlatform.parsedPom.scopes.keySet() == ['no_scope'] as Set
+        javaPlatform.parsedPom.scope('no_scope') {
+            assertNoDependencies()
+            assertDependencyManagement("custom-group:core-custom:1.9", "custom-group:utils-custom:1.9")
+        }
+    }
+
+    @ToBeFixedForInstantExecution
     def "can publish java-platform with resolved versions"() {
         given:
         javaLibrary(mavenRepo.module("org.test", "foo", "1.0")).withModuleMetadata().publish()
@@ -151,9 +212,9 @@ class MavenPublishJavaPlatformIntegTest extends AbstractMavenPublishIntegTest {
                 }
                 api "org.test:foo"
             }
-            
+
             javaPlatform { allowDependencies() }
-            
+
             publishing {
                 publications {
                     maven(MavenPublication) {

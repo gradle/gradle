@@ -20,6 +20,7 @@ package org.gradle.jvm.test;
  *
  * @since 2.11
  */
+@Deprecated
 public interface JUnitTestSuiteSpec extends JvmTestSuiteSpec {
     String getjUnitVersion();
     void setjUnitVersion(String junitVersion);

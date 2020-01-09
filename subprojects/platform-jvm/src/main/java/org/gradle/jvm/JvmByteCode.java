@@ -23,5 +23,6 @@ import org.gradle.platform.base.TransformationFileType;
  * LanguageOutputType marking Jvm byte code.
  * */
 @Incubating
+@Deprecated
  public class JvmByteCode implements TransformationFileType {
 }

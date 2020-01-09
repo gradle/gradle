@@ -116,7 +116,7 @@ class ProfileReportRendererTest extends Specification {
 <td class="numeric">0.700s</td>
 </tr>
 <tr>
-<td>Settings and BuildSrc</td>
+<td>Settings and buildSrc</td>
 <td class="numeric">2.300s</td>
 </tr>
 <tr>

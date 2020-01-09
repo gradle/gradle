@@ -40,7 +40,7 @@ public class GcsResource implements ExternalResourceReadResponse {
 
     @Override
     public InputStream openStream() throws IOException {
-        return gcsClient.getResourceStream(gcsObject);
+        return gcsClient.getResourceStream(uri);
     }
 
     @Override

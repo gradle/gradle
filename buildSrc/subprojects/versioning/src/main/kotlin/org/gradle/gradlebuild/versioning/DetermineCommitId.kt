@@ -92,7 +92,7 @@ open class DetermineCommitId @Inject constructor(
         val execResult = execActionFactory.newExecAction().apply {
             workingDir = rootDir
             isIgnoreExitValue = true
-            commandLine = listOf("git", "log", "-1", "--format=%H")
+            commandLine = listOf("git", "log", "-1", "--format=%H", "--no-show-signature")
             if (OperatingSystem.current().isWindows) {
                 commandLine = listOf("cmd", "/c") + commandLine
             }

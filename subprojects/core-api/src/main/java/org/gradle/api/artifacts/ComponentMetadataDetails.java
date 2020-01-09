@@ -16,6 +16,7 @@
 package org.gradle.api.artifacts;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.attributes.HasConfigurableAttributes;
 
@@ -104,6 +105,20 @@ public interface ComponentMetadataDetails extends ComponentMetadata, HasConfigur
      * @since 6.0
      */
     void addVariant(String name, String base, Action<? super VariantMetadata> action);
+
+    /**
+     * This is the lenient version of {@link #addVariant(String, String, Action)}.
+     * The only difference is that this will do nothing (instead of throwing an error), if the 'base' variant does not exist for a component.
+     * This is particularly useful for rules that are applied to {@link org.gradle.api.artifacts.dsl.ComponentMetadataHandler#all(Class)} components.
+     *
+     * @param name a name for the variant
+     * @param base name of the variant (pom or Gradle module metadata) or configuration (ivy.xml metadata) from which the new variant will be initialized
+     * @param action the action to populate the variant
+     *
+     * @since 6.1
+     */
+    @Incubating
+    void maybeAddVariant(String name, String base, Action<? super VariantMetadata> action);
 
     /**
      * Declares that this component belongs to a virtual platform, which should be

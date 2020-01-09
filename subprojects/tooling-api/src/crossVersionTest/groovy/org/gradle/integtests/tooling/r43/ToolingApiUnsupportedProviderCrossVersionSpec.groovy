@@ -29,7 +29,7 @@ class ToolingApiUnsupportedProviderCrossVersionSpec extends ToolingApiVersionSpe
 
         then:
         GradleConnectionException connectionException = thrown()
-        connectionException.message.contains("Support for builds using Gradle versions older than 2.6 was removed in tooling API version 5.0. You are currently using Gradle version ${targetDist.version.version}. You should upgrade your Gradle build to use Gradle 2.6 or later.")
+        connectionException.message.contains(unsupportedGradleVersion())
     }
 
     @TargetGradleVersion("<2.6")
@@ -39,7 +39,7 @@ class ToolingApiUnsupportedProviderCrossVersionSpec extends ToolingApiVersionSpe
 
         then:
         GradleConnectionException connectionException = thrown()
-        connectionException.message.contains("Support for builds using Gradle versions older than 2.6 was removed in tooling API version 5.0. You are currently using Gradle version ${targetDist.version.version}. You should upgrade your Gradle build to use Gradle 2.6 or later.")
+        connectionException.message.contains(unsupportedGradleVersion())
     }
 
     @TargetGradleVersion("<2.6")
@@ -49,7 +49,7 @@ class ToolingApiUnsupportedProviderCrossVersionSpec extends ToolingApiVersionSpe
 
         then:
         GradleConnectionException connectionException = thrown()
-        connectionException.message.contains("Support for builds using Gradle versions older than 2.6 was removed in tooling API version 5.0. You are currently using Gradle version ${targetDist.version.version}. You should upgrade your Gradle build to use Gradle 2.6 or later.")
+        connectionException.message.contains(unsupportedGradleVersion())
     }
 
     @TargetGradleVersion("<2.6")
@@ -59,6 +59,20 @@ class ToolingApiUnsupportedProviderCrossVersionSpec extends ToolingApiVersionSpe
 
         then:
         GradleConnectionException connectionException = thrown()
-        connectionException.message.contains("Support for builds using Gradle versions older than 2.6 was removed in tooling API version 5.0. You are currently using Gradle version ${targetDist.version.version}. You should upgrade your Gradle build to use Gradle 2.6 or later.")
+        connectionException.message.contains(unsupportedGradleVersion())
+    }
+
+    @TargetGradleVersion("<2.6")
+    def "fail notifying daemons about changed paths for <2.6 providers"() {
+        when:
+        notifyDaemonsAboutChangedPaths()
+
+        then:
+        GradleConnectionException connectionException = thrown()
+        connectionException.message.contains(unsupportedGradleVersion())
+    }
+
+    private static String unsupportedGradleVersion() {
+        "Support for builds using Gradle versions older than 2.6 was removed in tooling API version 5.0. You are currently using Gradle version ${targetDist.version.version}. You should upgrade your Gradle build to use Gradle 2.6 or later."
     }
 }

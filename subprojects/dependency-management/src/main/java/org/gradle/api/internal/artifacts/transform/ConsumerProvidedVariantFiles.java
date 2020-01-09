@@ -16,7 +16,9 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionInternal;
+import org.gradle.internal.DisplayName;
 
 import java.util.Collection;
 
@@ -25,4 +27,8 @@ public interface ConsumerProvidedVariantFiles extends FileCollectionInternal.Sou
      * @return empty list when not scheduled.
      */
     Collection<TransformationNode> getScheduledNodes();
+
+    DisplayName getTargetVariantName();
+
+    ImmutableAttributes getTargetVariantAttributes();
 }

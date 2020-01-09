@@ -34,8 +34,8 @@ Instead, it declares binary dependencies on the libraries produced by `my-utils`
 
 .Dependencies of my-app
 ====
-include::sample[dir="compositeBuilds/basic/groovy",files="my-app/build.gradle[]"]
-include::sample[dir="compositeBuilds/basic/kotlin",files="my-app/build.gradle.kts[]"]
+include::sample[dir="snippets/compositeBuilds/basic/groovy",files="my-app/build.gradle[]"]
+include::sample[dir="snippets/compositeBuilds/basic/kotlin",files="my-app/build.gradle.kts[]"]
 ====
 
 NOTE: The code for this example can be found at **`samples/compositeBuilds/basic`** in the ‘-all’ distribution of Gradle.
@@ -67,16 +67,16 @@ One downside of the above approach is that it requires you to modify an existing
 
 .Declaring a separate composite
 ====
-include::sample[dir="compositeBuilds/basic/groovy",files="composite/settings.gradle[]"]
-include::sample[dir="compositeBuilds/basic/kotlin",files="composite/settings.gradle.kts[]"]
+include::sample[dir="snippets/compositeBuilds/basic/groovy",files="composite/settings.gradle[]"]
+include::sample[dir="snippets/compositeBuilds/basic/kotlin",files="composite/settings.gradle.kts[]"]
 ====
 
 In this scenario, the 'main' build that is executed is the composite, and it doesn't define any useful tasks to execute itself. In order to execute the 'run' task in the 'my-app' build, the composite build must define a delegating task.
 
 .Depending on task from included build
 ====
-include::sample[dir="compositeBuilds/basic/groovy",files="composite/build.gradle[tags=run]"]
-include::sample[dir="compositeBuilds/basic/kotlin",files="composite/build.gradle.kts[tags=run]"]
+include::sample[dir="snippets/compositeBuilds/basic/groovy",files="composite/build.gradle[tags=run]"]
+include::sample[dir="snippets/compositeBuilds/basic/kotlin",files="composite/build.gradle.kts[tags=run]"]
 ====
 
 More details tasks that depend on included build tasks below.
@@ -137,8 +137,8 @@ Take for example a single-project build 'anonymous-library', that produces a jav
 
 .Build that does not declare group attribute
 ====
-include::sample[dir="compositeBuilds/declared-substitution/groovy/anonymous-library",files="build.gradle[]"]
-include::sample[dir="compositeBuilds/declared-substitution/kotlin/anonymous-library",files="build.gradle.kts[]"]
+include::sample[dir="snippets/compositeBuilds/declared-substitution/groovy/anonymous-library",files="build.gradle[]"]
+include::sample[dir="snippets/compositeBuilds/declared-substitution/kotlin/anonymous-library",files="build.gradle.kts[]"]
 ====
 
 When this build is included in a composite, it will attempt to substitute for the dependency module "undefined:anonymous-library" ("undefined" being the default value for `project.group`, and "anonymous-library" being the root project name).
@@ -147,8 +147,8 @@ To use the unpublished library unmodified in a composite build, the composing bu
 
 .Declaring the substitutions for an included build
 ====
-include::sample[dir="compositeBuilds/declared-substitution/groovy/my-app",files="settings.gradle[]"]
-include::sample[dir="compositeBuilds/declared-substitution/kotlin/my-app",files="settings.gradle.kts[]"]
+include::sample[dir="snippets/compositeBuilds/declared-substitution/groovy/my-app",files="settings.gradle[]"]
+include::sample[dir="snippets/compositeBuilds/declared-substitution/kotlin/my-app",files="settings.gradle.kts[]"]
 ====
 
 With this configuration, the "my-app" composite build will substitute any dependency on `org.sample:number-utils` with a dependency on the root project of "anonymous-library".
@@ -188,14 +188,14 @@ Using these APIs, it is possible to declare a dependency on a task in a particul
 
 .Depending on a single task from an included build
 ====
-include::sample[dir="compositeBuilds/basic/groovy",files="composite/build.gradle[tags=run]"]
-include::sample[dir="compositeBuilds/basic/kotlin",files="composite/build.gradle.kts[tags=run]"]
+include::sample[dir="snippets/compositeBuilds/basic/groovy",files="composite/build.gradle[tags=run]"]
+include::sample[dir="snippets/compositeBuilds/basic/kotlin",files="composite/build.gradle.kts[tags=run]"]
 ====
 
 .Depending on a task with path in all included builds
 ====
-include::sample[dir="compositeBuilds/hierarchical-multirepo/groovy",files="build.gradle[tags=publishDeps]"]
-include::sample[dir="compositeBuilds/hierarchical-multirepo/kotlin",files="build.gradle.kts[tags=publishDeps]"]
+include::sample[dir="snippets/compositeBuilds/hierarchical-multirepo/groovy",files="build.gradle[tags=publishDeps]"]
+include::sample[dir="snippets/compositeBuilds/hierarchical-multirepo/kotlin",files="build.gradle.kts[tags=publishDeps]"]
 ====
 
 [[current_limitations_and_future_work]]

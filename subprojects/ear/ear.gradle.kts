@@ -23,6 +23,7 @@ dependencies {
     implementation(project(":baseServices"))
     implementation(project(":logging"))
     implementation(project(":fileCollections"))
+    implementation(project(":execution"))
     implementation(project(":coreApi"))
     implementation(project(":modelCore"))
     implementation(project(":core"))

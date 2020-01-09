@@ -44,7 +44,7 @@ class ExecTest extends AbstractTaskTest {
         1 * execAction.setExecutable("ls")
         1 * execAction.execute() >> new ExpectedExecResult(0)
         execTask.execResult.exitValue == 0
-
+        execTask.executionResult.get().exitValue == 0
     }
 
     def "execute with non-zero exit value and ignore exit value should not throw exception"() {
@@ -54,6 +54,7 @@ class ExecTest extends AbstractTaskTest {
         then:
         1 * execAction.execute() >> new ExpectedExecResult(1)
         execTask.execResult.exitValue == 1
+        execTask.executionResult.get().exitValue == 1
     }
 
     private class ExpectedExecResult implements ExecResult {

@@ -243,4 +243,215 @@ class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecuti
         "isCi.map(String::toBoolean).getOrElse(false)" | "value"
         "isCi.isPresent"                               | "presence"
     }
+
+    def "environment variable used as task and build logic input"() {
+
+        given:
+        def instant = newInstantExecutionFixture()
+        buildKotlinFile """
+
+            abstract class Greet : DefaultTask() {
+
+                @get:Input
+                abstract val greeting: Property<String>
+
+                @TaskAction
+                fun act() {
+                    println(greeting.get().capitalize() + "!")
+                }
+            }
+
+            val greetingVar = providers.environmentVariable("GREETING")
+            if (greetingVar.get().startsWith("hello")) {
+                tasks.register<Greet>("greet") {
+                    greeting.set("hello, hello")
+                }
+            } else {
+                tasks.register<Greet>("greet") {
+                    greeting.set(greetingVar)
+                }
+            }
+        """
+        when:
+        withEnvironmentVars(GREETING: "hi")
+        instantRun("greet")
+
+        then:
+        output.count("Hi!") == 1
+        instant.assertStateStored()
+
+        when:
+        withEnvironmentVars(GREETING: "hi")
+        instantRun("greet")
+
+        then:
+        output.count("Hi!") == 1
+        instant.assertStateLoaded()
+
+        when:
+        withEnvironmentVars(GREETING: "hello")
+        instantRun("greet")
+
+        then:
+        output.count("Hello, hello!") == 1
+        instant.assertStateStored()
+    }
+
+    @Unroll
+    def "file contents #usage used as build logic input"() {
+
+        given:
+        def instant = newInstantExecutionFixture()
+        buildKotlinFile """
+            val ciFile = layout.projectDirectory.file("ci")
+            val isCi = providers.fileContents(ciFile)
+            if ($expression) {
+                tasks.register("run") {
+                    doLast { println("ON CI") }
+                }
+            } else {
+                tasks.register("run") {
+                    doLast { println("NOT CI") }
+                }
+            }
+        """
+
+        when:
+        instantRun "run"
+
+        then:
+        output.count("NOT CI") == 1
+        instant.assertStateStored()
+
+        when:
+        instantRun "run"
+
+        then:
+        output.count("NOT CI") == 1
+        instant.assertStateLoaded()
+
+        when:
+        file("ci").text = "true"
+        instantRun "run"
+
+        then:
+        output.count("ON CI") == 1
+        instant.assertStateStored()
+
+        when: "file is touched but unchanged"
+        file("ci").text = "true"
+        instantRun "run"
+
+        then: "cache is still valid"
+        output.count("ON CI") == 1
+        instant.assertStateLoaded()
+
+        when: "file is changed"
+        file("ci").text = "false"
+        instantRun "run"
+
+        then: "cache is NO longer valid"
+        output.count(usage.endsWith("presence") ? "ON CI" : "NOT CI") == 1
+        instant.assertStateStored()
+
+        where:
+        expression                                                     | usage
+        "isCi.asText.map(String::toBoolean).getOrElse(false)"          | "text"
+        "isCi.asText.isPresent"                                        | "text presence"
+        "isCi.asBytes.map { String(it).toBoolean() }.getOrElse(false)" | "bytes"
+        "isCi.asBytes.isPresent"                                       | "bytes presence"
+    }
+
+    def "mapped file contents used as task input"() {
+
+        given:
+        def instant = newInstantExecutionFixture()
+        buildKotlinFile """
+
+            val threadPoolSizeProvider = providers
+                .fileContents(layout.projectDirectory.file("thread.pool.size"))
+                .asText
+                .map(Integer::valueOf)
+
+            abstract class TaskA : DefaultTask() {
+
+                @get:Input
+                abstract val threadPoolSize: Property<Int>
+
+                @TaskAction
+                fun act() {
+                    println("ThreadPoolSize = " + threadPoolSize.get())
+                }
+            }
+
+            tasks.register<TaskA>("a") {
+                threadPoolSize.set(threadPoolSizeProvider)
+            }
+        """
+
+        when:
+        file("thread.pool.size").text = "4"
+        instantRun("a")
+
+        then:
+        output.count("ThreadPoolSize = 4") == 1
+        instant.assertStateStored()
+
+        when: "the file is changed"
+        file("thread.pool.size").text = "3"
+        instantRun("a")
+
+        then: "the instant execution cache is NOT invalidated"
+        output.count("ThreadPoolSize = 3") == 1
+        instant.assertStateLoaded()
+    }
+
+    @Unroll
+    def "file contents provider used as #usage has no value when underlying file provider has no value"() {
+        given:
+        def instant = newInstantExecutionFixture()
+        buildKotlinFile """
+
+            abstract class Greet : DefaultTask() {
+
+                @get:Input
+                abstract val greeting: Property<String>
+
+                @TaskAction
+                fun act() {
+                    println(greeting.get().capitalize() + "!")
+                }
+            }
+
+            val emptyFileProperty = objects.fileProperty()
+            val fileContents = providers.fileContents(emptyFileProperty).asText
+            val greetingFromFile: $operatorType = fileContents.$operator("hello")
+            tasks.register<Greet>("greet") {
+                greeting.set(greetingFromFile)
+            }
+        """
+
+        when:
+        instantRun("greet")
+
+        then:
+        output.count("Hello!") == 1
+        instant.assertStateStored()
+
+        when:
+        instantRun("greet")
+
+        then:
+        output.count("Hello!") == 1
+        instant.assertStateLoaded()
+
+        where:
+        operator    | operatorType       | usage
+        "getOrElse" | "String"           | "build logic input"
+        "orElse"    | "Provider<String>" | "task input"
+    }
+
+    private void withEnvironmentVars(Map<String, String> environment) {
+        executer.withEnvironmentVars(environment)
+    }
 }

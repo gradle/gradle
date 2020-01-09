@@ -60,7 +60,7 @@ import java.util.zip.ZipInputStream
  */
 @CompileStatic
 @CacheableTask
-class DistributedPerformanceTest extends PerformanceTest {
+abstract class DistributedPerformanceTest extends PerformanceTest {
 
     @Input
     String buildTypeId

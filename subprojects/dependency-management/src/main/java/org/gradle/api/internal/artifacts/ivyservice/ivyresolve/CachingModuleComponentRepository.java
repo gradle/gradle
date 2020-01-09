@@ -321,9 +321,9 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
 
         private void resolveArtifactFromCache(ComponentArtifactMetadata artifact, ModuleSources moduleSources, BuildableArtifactResolveResult result) {
             CachedArtifact cached = moduleArtifactCache.lookup(artifactCacheKey(artifact.getId()));
-            ModuleDescriptorHashModuleSource moduleSource = findCachingModuleSource(moduleSources);
-            final HashCode descriptorHash = moduleSource.getDescriptorHash();
             if (cached != null) {
+                ModuleDescriptorHashModuleSource moduleSource = findCachingModuleSource(moduleSources);
+                final HashCode descriptorHash = moduleSource.getDescriptorHash();
                 long age = timeProvider.getCurrentTime() - cached.getCachedAt();
                 final boolean isChangingModule = moduleSource.isChangingModule();
                 ArtifactIdentifier artifactIdentifier = ((ModuleComponentArtifactMetadata) artifact).toArtifactIdentifier();

@@ -34,7 +34,7 @@ import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.kotlinEapReposi
 @CompileStatic
 abstract class AbstractInstantExecutionAndroidIntegrationTest extends AbstractInstantExecutionIntegrationTest {
 
-    static final String AGP_VERSION = "4.0.0-20191103023549+0100"
+    static final String AGP_VERSION = "4.0.0-20191217200145+0100"
 
     static final String AGP_NIGHTLY_REPOSITORY_DECLARATION = '''
         maven {
@@ -82,6 +82,7 @@ abstract class AbstractInstantExecutionAndroidIntegrationTest extends AbstractIn
         executer.beforeExecute {
             withArgument("-I")
             withArgument(init.path)
+            withArgument("-Pandroid.overrideVersionCheck=true")
         }
 
         // Inject AGP nightly version

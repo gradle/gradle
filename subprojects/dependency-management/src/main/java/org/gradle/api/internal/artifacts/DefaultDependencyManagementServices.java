@@ -58,7 +58,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
-import org.gradle.internal.hash.ChecksumService;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.DependencyVerificationOverride;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.LocalComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalConfigurationMetadataBuilder;
@@ -156,6 +155,7 @@ import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.fingerprint.impl.OutputFileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.overlap.OverlappingOutputDetector;
+import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.instantiation.InstantiatorFactory;
@@ -275,7 +275,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 new CatchExceptionStep<>(
                 new TimeoutStep<>(timeoutHandler,
                 new ResolveInputChangesStep<>(
-                new CleanupOutputsStep<>(deleter,
+                new CleanupOutputsStep<>(deleter, outputChangeListener,
                 new ExecuteStep<>(
             ))))))))))))))));
             // @formatter:on
@@ -402,7 +402,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             ArtifactTransformActionScheme actionScheme,
             FileCollectionFingerprinterRegistry fileCollectionFingerprinterRegistry,
             FileCollectionFactory fileCollectionFactory,
-            FileLookup fileLookup
+            FileLookup fileLookup,
+            ServiceRegistry internalServices
         ) {
             return new DefaultTransformationRegistrationFactory(
                 buildOperationExecutor,
@@ -416,7 +417,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 domainObjectContext,
                 projectStateRegistry,
                 parameterScheme,
-                actionScheme
+                actionScheme,
+                internalServices
             );
         }
 

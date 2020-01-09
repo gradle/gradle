@@ -74,6 +74,9 @@ interface ReadContext : IsolateContext, MutableIsolateContext, Decoder {
 }
 
 
+suspend fun <T : Any> ReadContext.readNonNull() = read()!!.uncheckedCast<T>()
+
+
 interface IsolateContext {
 
     val logger: Logger
@@ -192,7 +195,7 @@ sealed class PropertyTrace {
     fun StringBuilder.appendStringOf(trace: PropertyTrace) {
         when (trace) {
             is Gradle -> {
-                append("Gradle state")
+                append("Gradle runtime")
             }
             is Property -> {
                 append(trace.kind)
@@ -275,11 +278,6 @@ sealed class IsolateOwner {
 }
 
 
-internal
-inline fun <reified T> IsolateOwner.service() =
-    service(T::class.java)
-
-
 interface Isolate {
 
     val owner: IsolateOwner
@@ -305,6 +303,7 @@ interface ReadIsolate : Isolate {
 
 
 interface MutableIsolateContext {
+    fun push(codec: Codec<Any?>)
     fun push(owner: IsolateOwner, codec: Codec<Any?>)
     fun pop()
 }
@@ -325,6 +324,17 @@ inline fun <T : ReadContext, R> T.withImmediateMode(block: T.() -> R): R {
 internal
 inline fun <T : MutableIsolateContext, R> T.withIsolate(owner: IsolateOwner, codec: Codec<Any?>, block: T.() -> R): R {
     push(owner, codec)
+    try {
+        return block()
+    } finally {
+        pop()
+    }
+}
+
+
+internal
+inline fun <T : MutableIsolateContext, R> T.withCodec(codec: Codec<Any?>, block: T.() -> R): R {
+    push(codec)
     try {
         return block()
     } finally {

@@ -16,6 +16,9 @@
 
 package org.gradle.workers.internal
 
+import org.gradle.api.Project
+import org.gradle.api.file.ProjectLayout
+import org.gradle.internal.reflect.Instantiator
 import spock.lang.Unroll
 
 import static org.gradle.workers.fixtures.WorkerExecutorFixture.ISOLATION_MODES
@@ -146,7 +149,7 @@ class WorkerExecutorServicesIntegrationTest extends AbstractWorkerExecutorIntegr
     def "workers can inject ObjectFactory service using #isolationMode isolation"() {
         fixture.workActionThatCreatesFiles.extraFields += """
             org.gradle.api.model.ObjectFactory objectFactory
-            
+
             interface Foo extends Named { }
         """
         fixture.workActionThatCreatesFiles.constructorArgs = "org.gradle.api.model.ObjectFactory objectFactory"
@@ -185,90 +188,6 @@ class WorkerExecutorServicesIntegrationTest extends AbstractWorkerExecutorIntegr
     }
 
     @Unroll
-    def "workers can inject ProjectLayout service using #isolationMode isolation"() {
-        fixture.workActionThatCreatesFiles.extraFields += """
-            org.gradle.api.file.ProjectLayout projectLayout
-        """
-        fixture.workActionThatCreatesFiles.constructorArgs = "org.gradle.api.file.ProjectLayout projectLayout"
-        fixture.workActionThatCreatesFiles.constructorAction = "this.projectLayout = projectLayout"
-        fixture.workActionThatCreatesFiles.action += """
-            projectLayout.projectDirectory.file('foo').asFile.text = 'foo'
-            projectLayout.buildDirectory.file('bar').get().asFile.text = 'bar'
-        """
-        fixture.withWorkActionClassInBuildScript()
-
-        buildFile << """
-            task runInWorker(type: WorkerTask) {
-                isolationMode = $isolationMode
-            }
-        """
-
-        when:
-        succeeds("runInWorker")
-
-        then:
-        assertWorkerExecuted("runInWorker")
-
-        and:
-        file('foo').text == 'foo'
-        file('build/bar').text == 'bar'
-
-        where:
-        isolationMode << ISOLATION_MODES
-    }
-
-    @Unroll
-    def "workers with injected ProjectLayout service always resolve files from the project directory using #isolationMode isolation"() {
-        fixture.workActionThatCreatesFiles.extraFields += """
-            org.gradle.api.file.ProjectLayout projectLayout
-        """
-        fixture.workActionThatCreatesFiles.constructorArgs = "org.gradle.api.file.ProjectLayout projectLayout"
-        fixture.workActionThatCreatesFiles.constructorAction = "this.projectLayout = projectLayout"
-        fixture.workActionThatCreatesFiles.action += """
-            projectLayout.buildDirectory.asFile.get().mkdirs()
-            projectLayout.buildDirectory.file('foo').get().asFile.text = 'foo'
-        """
-        fixture.withWorkActionClassInBuildScript()
-
-        settingsFile << """
-            include ":anotherProject"
-        """
-
-        buildFile << """
-            def rootTask = tasks.create("runInWorker", WorkerTask) {
-                isolationMode = $isolationMode
-            }
-
-            project(":anotherProject") {
-                tasks.create("runInWorker2", WorkerTask) {
-                    dependsOn rootTask
-                    isolationMode = $isolationMode
-                }
-            }
-        """
-
-        when:
-        executer.withWorkerDaemonsExpirationDisabled()
-        succeeds("runInWorker2")
-
-        then:
-        assertWorkerExecuted("runInWorker")
-        assertWorkerExecuted("runInWorker2")
-
-        and:
-        file("build/foo").text == "foo"
-        file("anotherProject/build/foo").text == "foo"
-
-        and:
-        if (isolationMode == "IsolationMode.PROCESS") {
-            assertSameDaemonWasUsed("runInWorker", "runInWorker2")
-        }
-
-        where:
-        isolationMode << ISOLATION_MODES
-    }
-
-    @Unroll
     def "workers can inject ProviderFactory service using #isolationMode isolation"() {
         fixture.workActionThatCreatesFiles.extraFields += """
             org.gradle.api.provider.ProviderFactory providerFactory
@@ -301,7 +220,7 @@ class WorkerExecutorServicesIntegrationTest extends AbstractWorkerExecutorIntegr
         withTestMainParametersAndServices()
 
         fixture.workActionThatCreatesFiles.action += """
-            execOperations.exec { 
+            execOperations.exec {
                 executable org.gradle.internal.jvm.Jvm.current().getJavaExecutable()
                 args '-cp', parameters.classpath.asPath, 'org.gradle.TestMain', parameters.projectDir, parameters.testFile
             }
@@ -341,7 +260,7 @@ class WorkerExecutorServicesIntegrationTest extends AbstractWorkerExecutorIntegr
         withTestMainParametersAndServices()
 
         fixture.workActionThatCreatesFiles.action += """
-            execOperations.javaexec { 
+            execOperations.javaexec {
                 executable org.gradle.internal.jvm.Jvm.current().getJavaExecutable()
                 classpath(parameters.classpath)
                 main 'org.gradle.TestMain'
@@ -378,6 +297,36 @@ class WorkerExecutorServicesIntegrationTest extends AbstractWorkerExecutorIntegr
         isolationMode << ISOLATION_MODES
     }
 
+    @Unroll
+    def "workers cannot inject #forbiddenType with #isolationMode"() {
+        fixture.workActionThatCreatesFiles.constructorArgs = "${forbiddenType.name} service"
+        fixture.workActionThatCreatesFiles.action += """
+            throw new RuntimeException()
+        """
+        fixture.withWorkActionClassInBuildScript()
+
+        buildFile << """
+            task runInWorker(type: WorkerTask) {
+                isolationMode = $isolationMode
+            }
+        """
+
+        expect:
+        fails("runInWorker")
+
+        and:
+        failure.assertHasDescription("Execution failed for task ':runInWorker'.")
+        failure.assertHasCause("Could not create an instance of type TestWorkAction.")
+        failure.assertHasCause("Unable to determine constructor argument #1: missing parameter of type $forbiddenType.simpleName, or no service of type $forbiddenType.simpleName")
+
+        where:
+        [forbiddenType, isolationMode] << [[
+            Project, // Not isolated
+            ProjectLayout, // Not isolated
+            Instantiator, // internal
+        ], ISOLATION_MODES].combinations()
+    }
+
     def withTestMainParametersAndServices() {
         fixture.workActionThatCreatesFiles.extraFields += """
             org.gradle.process.ExecOperations execOperations
@@ -396,7 +345,7 @@ class WorkerExecutorServicesIntegrationTest extends AbstractWorkerExecutorIntegr
             package org.gradle;
 
             import java.io.File;
-            
+
             public class TestMain {
                 public static void main(String[] args) throws Exception {
                     File expectedWorkingDir = new File(args[0]).getCanonicalFile();

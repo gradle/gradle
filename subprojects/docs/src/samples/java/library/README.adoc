@@ -1,21 +1,13 @@
-= Java Library Sample
+NOTE: You can open this sample inside an IDE using the https://www.jetbrains.com/help/idea/gradle.html#gradle_import_project_start[IntelliJ native importer] or https://projects.eclipse.org/projects/tools.buildship[Eclipse Buildship].
 
-ifndef::env-github[]
-[.download]
-- link:{zip-base-file-name}-groovy-dsl.zip[icon:download[] Groovy DSL ZIP]
-- link:{zip-base-file-name}-kotlin-dsl.zip[icon:download[] Kotlin DSL ZIP]
-endif::[]
-
-NOTE: You can open the samples inside an IDE using the https://www.jetbrains.com/help/idea/gradle.html#gradle_import_project_start[IntelliJ native importer] or https://projects.eclipse.org/projects/tools.buildship[Eclipse Buildship].
-
-NOTE: If you are new to Gradle and wish to follow a more detailed tutorial for building Java libraries, we suggest you have an look at the https://guides.gradle.org/building-java-libraries/[Building Java Libraries guide].
+If you are new to Gradle and wish to follow a more detailed tutorial for building Java libraries, we suggest you have an look at the https://guides.gradle.org/building-java-libraries/[Building Java Libraries guide].
 
 This sample shows how a Java library can be built with Gradle.
 The library has no dependencies and the build has minimal configuration.
 
 ====
-include::sample[dir="groovy",files="build.gradle[]"]
-include::sample[dir="kotlin",files="build.gradle.kts[]"]
+include::sample[dir="samples/java-library/groovy",files="build.gradle[]"]
+include::sample[dir="samples/java-library/kotlin",files="build.gradle.kts[]"]
 ====
 
 To build the library:
@@ -34,4 +26,5 @@ BUILD SUCCESSFUL in 1s
 ====
 
 For more information, see link:{userManualPath}/java_library_plugin.html[Java Library Plugin reference chapter].
-You can also get started quickly using the link:{userManualPath}/build_init_plugin.html#sec:java_library[Build Init Plugin].
+
+You can also generate this project locally using link:{userManualPath}/build_init_plugin.html#sec:java_library[`gradle init`].

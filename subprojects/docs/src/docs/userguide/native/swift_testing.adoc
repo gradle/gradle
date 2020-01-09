@@ -86,8 +86,8 @@ Here’s an example of some filters that are applied every time the build runs:
 
 .Filter tests on every build
 ====
-include::sample[dir="userguide/swift/testFiltering/groovy",files="build.gradle[tags=test-filtering]"]
-include::sample[dir="userguide/swift/testFiltering/kotlin",files="build.gradle.kts[tags=test-filtering]"]
+include::sample[dir="snippets/userguide/swift/testFiltering/groovy",files="build.gradle[tags=test-filtering]"]
+include::sample[dir="snippets/userguide/swift/testFiltering/kotlin",files="build.gradle.kts[tags=test-filtering]"]
 ====
 
 For more details and examples of declaring filters in the build script, please see the TestFilter reference.
@@ -142,8 +142,8 @@ Here is a sample which generates a combined report for the unit tests from all s
 
 .Combine test reports from all subprojects
 ====
-include::sample[dir="userguide/swift/testReport/groovy",files="build.gradle[tags=test-report]"]
-include::sample[dir="userguide/swift/testReport/kotlin",files="build.gradle.kts[tags=test-report]"]
+include::sample[dir="snippets/userguide/swift/testReport/groovy",files="build.gradle[tags=test-report]"]
+include::sample[dir="snippets/userguide/swift/testReport/kotlin",files="build.gradle.kts[tags=test-report]"]
 ====
 
 You should note that the link:{groovyDslPath}/org.gradle.api.tasks.testing.TestReport.html[TestReport] type combines the results from multiple test tasks and needs to aggregate the results of individual test classes.

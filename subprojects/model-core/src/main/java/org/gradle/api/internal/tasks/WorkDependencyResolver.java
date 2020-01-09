@@ -41,12 +41,13 @@ public interface WorkDependencyResolver<T> {
                 for (Task dependencyTask : taskDependency.getDependencies(originalTask)) {
                     resolveAction.execute(dependencyTask);
                 }
-            } else if (node instanceof Task) {
-                resolveAction.execute((Task) node);
-            } else {
-                return false;
+                return true;
             }
-            return true;
+            if (node instanceof Task) {
+                resolveAction.execute((Task) node);
+                return true;
+            }
+            return false;
         }
 
         @Override

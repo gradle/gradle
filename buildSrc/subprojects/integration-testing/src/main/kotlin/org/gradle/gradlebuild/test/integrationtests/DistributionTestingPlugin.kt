@@ -16,30 +16,25 @@
 
 package org.gradle.gradlebuild.test.integrationtests
 
+import accessors.base
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.Directory
+import org.gradle.api.file.FileCollection
 import org.gradle.api.file.ProjectLayout
-import org.gradle.api.invocation.Gradle
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.BasePluginConvention
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.Sync
-
-import org.gradle.kotlin.dsl.*
-
-import accessors.base
-import org.gradle.api.file.FileCollection
-import org.gradle.api.model.ObjectFactory
 import org.gradle.gradlebuild.packaging.ShadedJar
-import org.gradle.gradlebuild.testing.integrationtests.cleanup.CleanUpDaemons
+import org.gradle.gradlebuild.testing.integrationtests.cleanup.CleanupExtension
 import org.gradle.internal.classloader.ClasspathHasher
 import org.gradle.internal.classpath.DefaultClassPath
+import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.support.serviceOf
-
-import kotlin.collections.set
-
 import java.io.File
+import kotlin.collections.set
 
 
 class DistributionTestingPlugin : Plugin<Project> {
@@ -54,28 +49,14 @@ class DistributionTestingPlugin : Plugin<Project> {
             setJvmArgsOfTestJvm()
             setSystemPropertiesOfTestJVM(project)
             configureGradleTestEnvironment(rootProject.providers, rootProject.layout, rootProject.base, rootProject.objects)
-            addSetUpAndTearDownActions(gradle)
+            addSetUpAndTearDownActions(project)
         }
     }
 
     private
-    fun DistributionTest.addSetUpAndTearDownActions(gradle: Gradle) {
-        lateinit var daemonListener: Any
-
-        // TODO Why don't we register with the test listener of the test task
-        // We would not need to do late configuration and need to add a global listener
-        // We now add multiple global listeners stepping on each other
-        doFirst {
-            // TODO Refactor to not reach into tasks of another project
-            val cleanUpDaemons: CleanUpDaemons by gradle.rootProject.tasks
-            daemonListener = cleanUpDaemons.newDaemonListener()
-            gradle.addListener(daemonListener)
-        }
-
-        // TODO Remove once we go to task specific listeners.
-        doLast {
-            gradle.removeListener(daemonListener)
-        }
+    fun DistributionTest.addSetUpAndTearDownActions(project: Project) {
+        val cleanupExtension = project.rootProject.extensions.getByType(CleanupExtension::class.java)
+        this.tracker.set(cleanupExtension.tracker)
     }
 
     private

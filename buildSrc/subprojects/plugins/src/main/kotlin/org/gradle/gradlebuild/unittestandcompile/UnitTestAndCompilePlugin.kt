@@ -25,8 +25,16 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.Named
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.attributes.Attribute
+import org.gradle.api.attributes.Category
+import org.gradle.api.attributes.DocsType
+import org.gradle.api.attributes.Usage
 import org.gradle.api.plugins.JavaPluginConvention
+import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.SourceSet
+import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.AbstractCompile
 import org.gradle.api.tasks.compile.CompileOptions
@@ -98,6 +106,7 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
         addDependencies()
         addGeneratedResources(extension)
         configureCompile()
+        configureSourcesVariant()
         configureJarTasks()
         configureTests()
     }
@@ -116,6 +125,29 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
             }
         }
         addCompileAllTask()
+    }
+
+    private
+    fun Project.configureSourcesVariant() {
+        extensions.getByType<JavaPluginExtension>().apply {
+            withSourcesJar()
+        }
+        val implementation by configurations
+        val transitiveSourcesElements: Configuration by configurations.creating {
+            isCanBeResolved = false
+            isCanBeConsumed = true
+            extendsFrom(implementation)
+            attributes {
+                attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
+                attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.DOCUMENTATION))
+                attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType.SOURCES))
+                attribute(Attribute.of("org.gradle.docselements", String::class.java), "sources")
+            }
+            val sourceSet = the<SourceSetContainer>()[SourceSet.MAIN_SOURCE_SET_NAME]
+            sourceSet.java.srcDirs.forEach {
+                outgoing.artifact(it)
+            }
+        }
     }
 
     private
@@ -290,7 +322,11 @@ open class UnitTestAndCompileExtension(val project: Project) {
                 "compileOnly"(platform(project(platformProject)))
                 "testImplementation"(platform(project(platformProject)))
             } else {
-                "implementation"(platform(project(platformProject)))
+                if (pluginManager.hasPlugin("maven-publish") && name != "toolingApi") {
+                    "testImplementation"(platform(project(platformProject)))
+                } else {
+                    "implementation"(platform(project(platformProject)))
+                }
                 pluginManager.withPlugin("java-test-fixtures") {
                     "testFixturesImplementation"(platform(project(platformProject)))
                 }

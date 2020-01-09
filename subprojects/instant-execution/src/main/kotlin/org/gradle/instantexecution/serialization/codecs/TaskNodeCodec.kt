@@ -31,8 +31,6 @@ import org.gradle.api.internal.tasks.properties.InputParameterUtils
 import org.gradle.api.internal.tasks.properties.OutputFilePropertyType
 import org.gradle.api.internal.tasks.properties.PropertyValue
 import org.gradle.api.internal.tasks.properties.PropertyVisitor
-import org.gradle.api.provider.Provider
-import org.gradle.api.services.BuildService
 import org.gradle.api.tasks.FileNormalizer
 import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.execution.plan.TaskNodeFactory
@@ -51,6 +49,7 @@ import org.gradle.instantexecution.serialization.beans.readPropertyValue
 import org.gradle.instantexecution.serialization.beans.writeNextProperty
 import org.gradle.instantexecution.serialization.readCollection
 import org.gradle.instantexecution.serialization.readEnum
+import org.gradle.instantexecution.serialization.readNonNull
 import org.gradle.instantexecution.serialization.withIsolate
 import org.gradle.instantexecution.serialization.withPropertyTrace
 import org.gradle.instantexecution.serialization.writeCollection
@@ -84,7 +83,7 @@ class TaskNodeCodec(
 
     private
     suspend fun WriteContext.writeTask(task: TaskInternal) {
-        val taskType = GeneratedSubclasses.unpack(task.javaClass)
+        val taskType = GeneratedSubclasses.unpackType(task)
         writeClass(taskType)
         writeString(task.project.path)
         writeString(task.name)
@@ -125,7 +124,7 @@ class TaskNodeCodec(
     private
     suspend fun ReadContext.readRegisteredServicesOf(task: TaskInternal) {
         readCollection {
-            task.usesService(read() as Provider<out BuildService<*>>)
+            task.usesService(readNonNull())
         }
     }
 

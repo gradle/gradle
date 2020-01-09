@@ -16,14 +16,18 @@
 
 package org.gradle.instantexecution.serialization.codecs
 
+import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.file.copy.CopySpecInternal
 import org.gradle.api.internal.file.copy.DefaultCopySpec
+import org.gradle.api.tasks.util.PatternSet
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
+import org.gradle.instantexecution.serialization.readList
+import org.gradle.instantexecution.serialization.writeCollection
 import org.gradle.internal.reflect.Instantiator
-import java.io.File
 
 
 internal
@@ -34,24 +38,17 @@ class DefaultCopySpecCodec(
 ) : Codec<DefaultCopySpec> {
 
     override suspend fun WriteContext.encode(value: DefaultCopySpec) {
-        val allSourcePaths = ArrayList<File>()
-        collectSourcePathsFrom(value, allSourcePaths)
-        write(allSourcePaths)
+        write(value.destPath)
+        write(value.resolveSourceFiles())
+        write(value.patterns)
+        writeCollection(value.children)
     }
 
     override suspend fun ReadContext.decode(): DefaultCopySpec {
-        @Suppress("unchecked_cast")
-        val sourceFiles = read() as List<File>
-        val copySpec = DefaultCopySpec(fileResolver, fileCollectionFactory, instantiator)
-        copySpec.from(sourceFiles)
-        return copySpec
-    }
-
-    private
-    fun collectSourcePathsFrom(copySpec: DefaultCopySpec, files: MutableList<File>) {
-        files.addAll(copySpec.resolveSourceFiles())
-        for (child in copySpec.children) {
-            collectSourcePathsFrom(child as DefaultCopySpec, files)
-        }
+        val destPath = read() as String?
+        val sourceFiles = read() as FileCollection
+        val patterns = read() as PatternSet
+        val children = readList() as List<CopySpecInternal>
+        return DefaultCopySpec(fileResolver, fileCollectionFactory, instantiator, destPath, sourceFiles, patterns, children)
     }
 }

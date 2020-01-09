@@ -19,6 +19,7 @@ package org.gradle.instantexecution
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.junit.Rule
+import spock.lang.Unroll
 
 @LeaksFileHandles("TODO: AGP (intentionally) does not get a ‘build finished’ event and so does not close some files")
 class InstantExecutionAndroidIntegrationTest extends AbstractInstantExecutionAndroidIntegrationTest {
@@ -41,48 +42,42 @@ class InstantExecutionAndroidIntegrationTest extends AbstractInstantExecutionAnd
         instantExecution = newInstantExecutionFixture()
     }
 
-    def "android 3.6 minimal build assembleDebug --dry-run"() {
+    @Unroll
+    def "android 3.6 minimal build assembleDebug up-to-date (fromIde=#fromIde)"() {
 
         when:
-        instantRun("assembleDebug", "--dry-run")
+        instantRun("assembleDebug", "-Pandroid.injected.invoked.from.ide=$fromIde")
 
         then:
         instantExecution.assertStateStored()
 
         when:
-        instantRun("assembleDebug", "--dry-run")
+        instantRun("assembleDebug", "-Pandroid.injected.invoked.from.ide=$fromIde")
 
         then:
         instantExecution.assertStateLoaded()
+
+        where:
+        fromIde << [false, true]
     }
 
-    def "android 3.6 minimal build assembleDebug up-to-date"() {
+    @Unroll
+    def "android 3.6 minimal build clean assembleDebug (fromIde=#fromIde)"() {
+
         when:
-        instantRun("assembleDebug")
+        instantRun("assembleDebug", "-Pandroid.injected.invoked.from.ide=$fromIde")
 
         then:
         instantExecution.assertStateStored()
 
         when:
-        instantRun("assembleDebug")
-
-        then:
-        instantExecution.assertStateLoaded()
-    }
-
-    def "android 3.6 minimal build clean assembleDebug"() {
-        when:
-        instantRun("assembleDebug")
-
-        then:
-        instantExecution.assertStateStored()
-
-        when:
-        executer.expectDeprecationWarning("Internal API constructor DefaultDomainObjectSet(Class<T>) has been deprecated. This is scheduled to be removed in Gradle 7.0. Please use ObjectFactory.domainObjectSet(Class<T>) instead.")
         run 'clean'
-        instantRun("assembleDebug")
+        instantRun("assembleDebug", "-Pandroid.injected.invoked.from.ide=$fromIde")
 
         then:
         instantExecution.assertStateLoaded()
+
+        where:
+        fromIde << [false, true]
     }
 }

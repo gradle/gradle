@@ -91,7 +91,7 @@ public class ProfileReportRenderer {
                                     htmlWriter.startElement("td").attribute("class", "numeric").characters(TimeFormatting.formatDurationVeryTerse(model.getElapsedStartup())).endElement();
                                 htmlWriter.endElement();
                                 htmlWriter.startElement("tr");
-                                    htmlWriter.startElement("td").characters("Settings and BuildSrc").endElement();
+                                    htmlWriter.startElement("td").characters("Settings and buildSrc").endElement();
                                     htmlWriter.startElement("td").attribute("class", "numeric").characters(TimeFormatting.formatDurationVeryTerse(model.getElapsedSettings())).endElement();
                                 htmlWriter.endElement();
                                 htmlWriter.startElement("tr");

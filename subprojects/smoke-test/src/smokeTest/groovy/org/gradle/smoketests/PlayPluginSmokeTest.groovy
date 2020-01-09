@@ -32,13 +32,13 @@ class PlayPluginSmokeTest extends AbstractSmokeTest {
             plugins {
                 id 'org.gradle.playframework' version '${TestedVersions.playframework}'
             }
-            
+
             repositories {
                 ${jcenterRepository()}
                 ${RepoScriptBlockUtil.lightbendMavenRepositoryDefinition()}
                 ${RepoScriptBlockUtil.lightbendIvyRepositoryDefinition()}
             }
-            
+
             dependencies {
                 implementation "com.typesafe.play:play-guice_2.12:2.6.15"
                 implementation 'commons-lang:commons-lang:2.6'

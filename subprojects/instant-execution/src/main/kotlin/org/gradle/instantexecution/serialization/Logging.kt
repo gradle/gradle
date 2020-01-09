@@ -71,6 +71,15 @@ fun IsolateContext.logUnsupported(baseType: KClass<*>) {
 }
 
 
+fun IsolateContext.logNotImplemented(baseType: Class<*>) {
+    logPropertyWarning {
+        text("objects of type ")
+        reference(baseType)
+        text(" are not yet supported with instant execution.")
+    }
+}
+
+
 private
 fun IsolateContext.logPropertyWarning(message: StructuredMessageBuilder) {
     val problem = PropertyProblem.Warning(trace, build(message))

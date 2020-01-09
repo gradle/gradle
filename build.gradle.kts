@@ -15,7 +15,6 @@
  */
 
 import org.gradle.build.BuildReceipt
-import org.gradle.build.Install
 import org.gradle.gradlebuild.ProjectGroups.implementationPluginProjects
 import org.gradle.gradlebuild.ProjectGroups.javaProjects
 import org.gradle.gradlebuild.ProjectGroups.kotlinJsProjects
@@ -24,13 +23,26 @@ import org.gradle.gradlebuild.ProjectGroups.publicJavaProjects
 import org.gradle.gradlebuild.UpdateBranchStatus
 import org.gradle.gradlebuild.buildquality.incubation.IncubatingApiAggregateReportTask
 import org.gradle.gradlebuild.buildquality.incubation.IncubatingApiReportTask
+import org.gradle.plugins.install.Install
 
 plugins {
     `java-base`
     gradlebuild.`build-types`
     gradlebuild.`ci-reporting`
     gradlebuild.security
-    id("org.gradle.ci.tag-single-build") version("0.74")
+    gradlebuild.install
+    id("org.gradle.ci.tag-single-build") version ("0.74")
+}
+
+buildscript {
+    dependencies {
+        constraints {
+            classpath("xerces:xercesImpl:2.12.0") {
+                // it's unclear why we don't get this version directly from buildSrc constraints
+                because("Maven Central and JCenter disagree on version 2.9.1 metadata")
+            }
+        }
+    }
 }
 
 defaultTasks("assemble")
@@ -39,14 +51,14 @@ base.archivesBaseName = "gradle"
 
 buildTypes {
     create("compileAllBuild") {
-        tasks(":createBuildReceipt", "compileAll", ":docs:distDocs")
+        tasks(":createBuildReceipt", "compileAll")
         projectProperties("ignoreIncomingBuildReceipt" to true)
     }
 
     create("sanityCheck") {
         tasks(
-            "classes", "doc:checkstyleApi", "codeQuality", "allIncubationReportsZip",
-            "docs:check", "distribution:checkBinaryCompatibility", "javadocAll",
+            "classes", "docs:checkstyleApi", "codeQuality", "allIncubationReportsZip",
+            "docs:check", "distribution:checkBinaryCompatibility", "docs:javadocAll",
             "architectureTest:test", "toolingApi:toolingApiShadedJar")
     }
 
@@ -81,6 +93,11 @@ buildTypes {
     // Run the integration tests using instant execution
     create("instantTest") {
         tasks("instantIntegTest")
+    }
+
+    // Run the integration tests with vfs retention enabled
+    create("vfsRetentionTest") {
+        tasks("vfsRetentionIntegTest")
     }
 
     create("performanceTests") {
@@ -136,7 +153,7 @@ buildTypes {
     create("promotionBuild") {
         tasks(
             "verifyIsProductionBuildEnvironment", "clean", "docs:check",
-            "buildDists", "distributions:integTest", "uploadArchives")
+            "buildDists", "distributions:integTest", "publish")
     }
 
     create("soakTest") {
@@ -163,8 +180,8 @@ allprojects {
             url = uri("https://kotlin.bintray.com/kotlinx/")
         }
         maven {
-            name = "kotlin-eap"
-            url = uri("https://dl.bintray.com/kotlin/kotlin-eap")
+            name = "kotlin-dev"
+            url = uri("https://dl.bintray.com/kotlin/kotlin-dev")
         }
     }
 
@@ -204,9 +221,6 @@ subprojects {
 
     if (project in publicJavaProjects) {
         apply(plugin = "gradlebuild.public-java-projects")
-        if (project.name != "kotlinDslPlugins") {
-            apply(plugin = "gradlebuild.publish-public-libraries")
-        }
     }
 
     apply(from = "$rootDir/gradle/shared-with-buildSrc/code-quality-configuration.gradle.kts")
@@ -322,12 +336,6 @@ configurations {
     }
 }
 
-configurations {
-    all {
-        attributes.attribute(Usage.USAGE_ATTRIBUTE, runtimeUsage)
-    }
-}
-
 extra["allTestRuntimeDependencies"] = testRuntime.allDependencies
 
 dependencies {
@@ -359,35 +367,31 @@ extra["allCoreRuntimeExtensions"] = coreRuntimeExtensions.allDependencies
 
 evaluationDependsOn(":distributions")
 
-val gradle_installPath: Any? = findProperty("gradle_installPath")
-
 tasks.register<Install>("install") {
-    description = "Installs the minimal distribution into directory $gradle_installPath"
+    description = "Installs the minimal distribution"
     group = "build"
     with(distributionImage("binDistImage"))
-    installDirPropertyName = ::gradle_installPath.name
 }
 
 tasks.register<Install>("installAll") {
-    description = "Installs the full distribution into directory $gradle_installPath"
+    description = "Installs the full distribution"
     group = "build"
     with(distributionImage("allDistImage"))
-    installDirPropertyName = ::gradle_installPath.name
 }
 
 tasks.register<UpdateBranchStatus>("updateBranchStatus")
 
 fun distributionImage(named: String) =
-        project(":distributions").property(named) as CopySpec
+    project(":distributions").property(named) as CopySpec
 
 val allIncubationReports = tasks.register<IncubatingApiAggregateReportTask>("allIncubationReports") {
     val allReports = collectAllIncubationReports()
     dependsOn(allReports)
-    reports = allReports.associateBy({ it.title.get()}) { it.textReportFile.asFile.get() }
+    reports = allReports.associateBy({ it.title.get() }) { it.textReportFile.asFile.get() }
 }
 tasks.register<Zip>("allIncubationReportsZip") {
-    destinationDir = file("$buildDir/reports/incubation")
-    baseName = "incubating-apis"
+    destinationDirectory.set(layout.buildDirectory.dir("reports/incubation"))
+    archiveBaseName.set("incubating-apis")
     from(allIncubationReports.get().htmlReportFile)
     from(collectAllIncubationReports().map { it.htmlReportFile })
 }

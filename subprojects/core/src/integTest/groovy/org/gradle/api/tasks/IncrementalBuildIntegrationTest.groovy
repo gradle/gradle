@@ -961,8 +961,10 @@ task generate(type: TransformerTask) {
         writeDirTransformerTask()
         buildFile << """
             def srcDir = file('src')
-            // Note: task mutates inputs _without_ declaring any inputs or outputs
+            // Note: task mutates inputs of transform1 just before transform1 executes
             task src1 {
+                outputs.dir(srcDir)
+                outputs.upToDateWhen { false }
                 doLast {
                     srcDir.mkdirs()
                     new File(srcDir, "src.txt").text = "123"
@@ -973,9 +975,11 @@ task generate(type: TransformerTask) {
                 inputDir = srcDir
                 outputDir = file("out-1")
             }
-            // Note: task mutates inputs _without_ declaring any inputs or outputs
+            // Note: task mutates inputs of transform2 just before transform2 executes
             task src2 {
                 mustRunAfter transform1
+                outputs.dir(srcDir)
+                outputs.upToDateWhen { false }
                 doLast {
                     srcDir.mkdirs()
                     new File(srcDir, "src.txt").text = "abcd"
@@ -1159,10 +1163,10 @@ task generate(type: TransformerTask) {
     def "task is not up-to-date when it has overlapping outputs"() {
         buildFile << """
             apply plugin: 'base'
-            
+
             class CustomTask extends DefaultTask {
                 @OutputDirectory File outputDir = new File(project.buildDir, "output")
-                
+
                 @TaskAction
                 public void generate() {
                     File outputFile = new File(outputDir, "file.txt")
@@ -1237,7 +1241,7 @@ task generate(type: TransformerTask) {
             class TaskWithInputs extends DefaultTask {
                 @Input
                 String input
-            }            
+            }
         """
 
         when:
@@ -1260,7 +1264,7 @@ task generate(type: TransformerTask) {
             inputs.outOfDate { }
         }
     }
-    
+
     task myTask (type: MyTask){
         project.ext.inputDirs.split(',').each { inputs.dir(it) }
         outputs.upToDateWhen { true }
@@ -1288,23 +1292,23 @@ task generate(type: TransformerTask) {
             class MyBaseTask extends DefaultTask {
                 @Input
                 private String getMyPrivateInput() { project.property('private') }
-                
+
                 @OutputFile
                 File getOutput() {
                     new File('build/output.txt')
                 }
-                
+
                 @TaskAction
                 void doStuff() {
                     output.text = getMyPrivateInput()
                 }
             }
-            
+
             class MyTask extends MyBaseTask {
                 @Input
                 private String getMyPrivateInput() { 'only private' }
             }
-            
+
             task myTask(type: MyTask)
         '''
 
@@ -1348,21 +1352,21 @@ task generate(type: TransformerTask) {
             class MyBaseTask extends DefaultTask {
                 @Input
                 private String getMyPrivateInput() { project.property('private') }
-                
+
                 @OutputFile
                 File getOutput() {
                     new File('build/output.txt')
                 }
-                
+
                 @TaskAction
                 void doStuff() {
                     output.text = getMyPrivateInput()
                 }
             }
-            
+
             class MyTask extends MyBaseTask {
             }
-            
+
             task myTask(type: MyTask)
         '''
 
@@ -1388,4 +1392,54 @@ task generate(type: TransformerTask) {
         outputFile.text == 'second'
     }
 
+    @ToBeImplemented
+    @Issue("https://github.com/gradle/gradle/issues/11805")
+    def "Groovy property annotated as @Internal with differently annotated getter emits warning about conflicting annotations"() {
+        def inputFile = file("input.txt")
+        inputFile.text = "original"
+
+        buildFile << """
+            class CustomTask extends DefaultTask {
+                    @Internal
+                    FileCollection classpath
+
+                    @InputFiles
+                    @Classpath
+                    FileCollection getClasspath() {
+                        return classpath
+                    }
+
+                    @OutputFile
+                    File outputFile
+
+                    @TaskAction
+                    void execute() {
+                        outputFile << classpath*.name.join("\\n")
+                    }
+            }
+
+            task custom(type: CustomTask) {
+                classpath = files("input.txt")
+                outputFile = file("build/output.txt")
+            }
+        """
+
+        when:
+        run "custom"
+        then:
+        executedAndNotSkipped ":custom"
+
+        when:
+        run "custom"
+        then:
+        skipped ":custom"
+
+        when:
+        inputFile.text = "changed"
+        run "custom"
+
+        then:
+        // FIXME This should execute instead of being skipped, or emit a warning
+        skipped ":custom"
+    }
 }

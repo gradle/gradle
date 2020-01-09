@@ -19,19 +19,35 @@ package org.gradle.instantexecution.serialization.codecs
 import org.gradle.api.internal.file.DefaultCompositeFileTree
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileCollectionStructureVisitor
+import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.FileTreeInternal
+import org.gradle.api.internal.file.archive.TarFileTree
+import org.gradle.api.internal.file.archive.ZipFileTree
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.file.collections.FileTreeAdapter
 import org.gradle.api.tasks.util.PatternSet
-import org.gradle.instantexecution.extensions.uncheckedCast
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
+import org.gradle.instantexecution.serialization.readNonNull
+import org.gradle.instantexecution.serialization.ownerService
 import java.io.File
 
 
 private
-typealias FileTreeSpec = Pair<File, PatternSet>
+sealed class FileTreeSpec
+
+
+private
+class DirectoryTreeSpec(val file: File, val patterns: PatternSet) : FileTreeSpec()
+
+
+private
+class ZipTreeSpec(val file: File) : FileTreeSpec()
+
+
+private
+class TarTreeSpec(val file: File) : FileTreeSpec()
 
 
 internal
@@ -45,8 +61,12 @@ class FileTreeCodec(
 
     override suspend fun ReadContext.decode(): FileTreeInternal? =
         DefaultCompositeFileTree(
-            read()!!.uncheckedCast<List<FileTreeSpec>>().map {
-                FileTreeAdapter(directoryFileTreeFactory.create(it.first, it.second))
+            readNonNull<List<FileTreeSpec>>().map {
+                when (it) {
+                    is DirectoryTreeSpec -> FileTreeAdapter(directoryFileTreeFactory.create(it.file, it.patterns))
+                    is ZipTreeSpec -> ownerService<FileOperations>().zipTree(it.file) as FileTreeInternal
+                    is TarTreeSpec -> ownerService<FileOperations>().tarTree(it.file) as FileTreeInternal
+                }
             }
         )
 
@@ -68,9 +88,21 @@ class FileTreeCodec(
         override fun visitGenericFileTree(fileTree: FileTreeInternal) = throw UnsupportedOperationException()
 
         override fun visitFileTree(root: File, patterns: PatternSet, fileTree: FileTreeInternal) {
-            roots.add(root to patterns)
+            roots.add(DirectoryTreeSpec(root, patterns))
         }
 
-        override fun visitFileTreeBackedByFile(file: File, fileTree: FileTreeInternal) = throw UnsupportedOperationException()
+        override fun visitFileTreeBackedByFile(file: File, fileTree: FileTreeInternal) {
+            if (fileTree is FileTreeAdapter) {
+                val tree = fileTree.tree
+                if (tree is ZipFileTree) {
+                    roots.add(ZipTreeSpec(tree.backingFile!!))
+                    return
+                } else if (tree is TarFileTree) {
+                    roots.add(TarTreeSpec(tree.backingFile!!))
+                    return
+                }
+            }
+            throw UnsupportedOperationException()
+        }
     }
 }

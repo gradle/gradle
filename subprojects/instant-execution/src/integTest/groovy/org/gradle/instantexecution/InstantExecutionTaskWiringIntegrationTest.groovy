@@ -16,6 +16,7 @@
 
 package org.gradle.instantexecution
 
+
 import org.gradle.api.tasks.TasksWithInputsAndOutputs
 
 class InstantExecutionTaskWiringIntegrationTest extends AbstractInstantExecutionIntegrationTest implements TasksWithInputsAndOutputs {
@@ -31,7 +32,7 @@ class InstantExecutionTaskWiringIntegrationTest extends AbstractInstantExecution
             task transformer(type: InputTask) {
                 inValue = producer.outFile.map { f -> f.asFile.text as Integer }.map { i -> i + 2 }
                 outFile = file("out.txt")
-            } 
+            }
         """
         def input = file("in.txt")
         def output = file("out.txt")
@@ -83,7 +84,7 @@ class InstantExecutionTaskWiringIntegrationTest extends AbstractInstantExecution
             task transformer(type: InputTask) {
                 inValue = producer.outFile.map { f -> f.asFile.text as Integer }.map { i -> [i, i + 2] }
                 outFile = file("out.txt")
-            } 
+            }
         """
         def input = file("in.txt")
         def output = file("out.txt")
@@ -135,7 +136,7 @@ class InstantExecutionTaskWiringIntegrationTest extends AbstractInstantExecution
             task transformer(type: InputTask) {
                 inValue = producer.outFile.map { f -> f.asFile.text as Integer }.map { i -> [a: i, b: i + 2] }
                 outFile = file("out.txt")
-            } 
+            }
         """
         def input = file("in.txt")
         def output = file("out.txt")

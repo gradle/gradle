@@ -21,6 +21,8 @@ import com.google.common.collect.Sets;
 import org.gradle.StartParameter;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.ClassPathRegistry;
+import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.component.DefaultComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
@@ -80,6 +82,8 @@ import org.gradle.api.internal.artifacts.repositories.resolver.DefaultExternalRe
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceAccessor;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
+import org.gradle.api.internal.artifacts.verification.signatures.DefaultSignatureVerificationServiceFactory;
+import org.gradle.api.internal.artifacts.verification.signatures.SignatureVerificationServiceFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.TemporaryFileProvider;
@@ -98,17 +102,22 @@ import org.gradle.api.internal.resources.ApiTextResourceAdapter;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
 import org.gradle.authentication.Authentication;
 import org.gradle.cache.CacheRepository;
+import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.GeneratedGradleJarCache;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.ProducerGuard;
+import org.gradle.initialization.InternalBuildFinishedListener;
 import org.gradle.initialization.ProjectAccessListener;
+import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.PreferJavaRuntimeVariant;
 import org.gradle.internal.component.model.PersistentModuleSource;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.hash.ChecksumService;
+import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
@@ -128,6 +137,7 @@ import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.gradle.internal.resource.local.ivy.LocallyAvailableResourceFinderFactory;
 import org.gradle.internal.resource.transfer.CachingTextUriResourceLoader;
+import org.gradle.internal.resource.transport.http.HttpConnectorFactory;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.typeconversion.NotationParser;
@@ -208,6 +218,7 @@ class DependencyManagementBuildScopeServices {
         );
         return new ModuleSourcesSerializer(codecs);
     }
+
     ModuleRepositoryCacheProvider createModuleRepositoryCacheProvider(BuildCommencedTimeProvider timeProvider, ArtifactCacheLockingManager artifactCacheLockingManager, ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                                                       ArtifactCacheMetadata artifactCacheMetadata, AttributeContainerSerializer attributeContainerSerializer, MavenMutableModuleMetadataFactory mavenMetadataFactory, IvyMutableModuleMetadataFactory ivyMetadataFactory, SimpleMapInterner stringInterner,
                                                                       ArtifactIdentifierFileStore artifactIdentifierFileStore,
@@ -338,8 +349,15 @@ class DependencyManagementBuildScopeServices {
         return new StartParameterResolutionOverride(startParameter);
     }
 
-    DependencyVerificationOverride createDependencyVerificationOverride(StartParameterResolutionOverride startParameterResolutionOverride, BuildOperationExecutor buildOperationExecutor, ChecksumService checksumService) {
-        return startParameterResolutionOverride.dependencyVerificationOverride(buildOperationExecutor, checksumService);
+    DependencyVerificationOverride createDependencyVerificationOverride(StartParameterResolutionOverride startParameterResolutionOverride,
+                                                                        BuildOperationExecutor buildOperationExecutor,
+                                                                        ChecksumService checksumService,
+                                                                        SignatureVerificationServiceFactory signatureVerificationServiceFactory,
+                                                                        DocumentationRegistry documentationRegistry,
+                                                                        ListenerManager listenerManager) {
+        DependencyVerificationOverride override = startParameterResolutionOverride.dependencyVerificationOverride(buildOperationExecutor, checksumService, signatureVerificationServiceFactory, documentationRegistry);
+        registerBuildFinishedHooks(listenerManager, override);
+        return override;
     }
 
     ResolveIvyFactory createResolveIvyFactory(StartParameterResolutionOverride startParameterResolutionOverride, ModuleRepositoryCacheProvider moduleRepositoryCacheProvider,
@@ -448,4 +466,34 @@ class DependencyManagementBuildScopeServices {
         return new ComponentMetadataSupplierRuleExecutor(cacheRepository, cacheDecoratorFactory, snapshotter, timeProvider, suppliedComponentMetadataSerializer);
     }
 
+    SignatureVerificationServiceFactory createSignatureVerificationServiceFactory(CacheRepository cacheRepository,
+                                                                                  InMemoryCacheDecoratorFactory decoratorFactory,
+                                                                                  List<ResourceConnectorFactory> resourceConnectorFactories,
+                                                                                  BuildOperationExecutor buildOperationExecutor,
+                                                                                  BuildCommencedTimeProvider timeProvider,
+                                                                                  FileHasher fileHasher,
+                                                                                  CacheScopeMapping scopeCacheMapping,
+                                                                                  ProjectCacheDir projectCacheDir,
+                                                                                  StartParameter startParameter) {
+        HttpConnectorFactory httpConnectorFactory = null;
+        for (ResourceConnectorFactory factory : resourceConnectorFactories) {
+            if (factory instanceof HttpConnectorFactory) {
+                httpConnectorFactory = (HttpConnectorFactory) factory;
+                break;
+            }
+        }
+        if (httpConnectorFactory == null) {
+            throw new IllegalStateException("Cannot find HttpConnectorFactory");
+        }
+        return new DefaultSignatureVerificationServiceFactory(httpConnectorFactory, cacheRepository, decoratorFactory, buildOperationExecutor, fileHasher, scopeCacheMapping, projectCacheDir, timeProvider, startParameter.isRefreshKeys());
+    }
+
+    private void registerBuildFinishedHooks(ListenerManager listenerManager, DependencyVerificationOverride dependencyVerificationOverride) {
+        listenerManager.addListener(new InternalBuildFinishedListener() {
+            @Override
+            public void buildFinished(GradleInternal build) {
+                dependencyVerificationOverride.buildFinished(build);
+            }
+        });
+    }
 }

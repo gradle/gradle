@@ -38,13 +38,13 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
 
         buildFile << """
             import org.gradle.api.artifacts.transform.TransformParameters
-            
+
             def usage = Attribute.of('usage', String)
             def artifactType = Attribute.of('artifactType', String)
             def extraAttribute = Attribute.of('extra', String)
-                
+
             allprojects {
-            
+
                 dependencies {
                     attributesSchema {
                         attribute(usage)
@@ -56,7 +56,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
                     }
                 }
             }
-            
+
             $fileSizer
         """
     }
@@ -74,10 +74,10 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
                 FileSizer() {
                     println "Creating FileSizer"
                 }
-                
+
                 @InputArtifact
                 abstract Provider<FileSystemLocation> getInputArtifact()
-                
+
                 void transform(TransformOutputs outputs) {
                     def input = inputArtifact.get().asFile
                     def output = outputs.file(input.name + ".txt")
@@ -135,7 +135,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
     def "can use transformations in build script dependencies"() {
         file("buildSrc/src/main/groovy/FileSizer.groovy") << fileSizer
 
-        file("script-with-buildscript-block.gradle") << """   
+        file("script-with-buildscript-block.gradle") << """
             buildscript {
 
                 def artifactType = Attribute.of('artifactType', String)
@@ -148,17 +148,17 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
 
                     classpath 'org.apache.commons:commons-math3:3.6.1'
                 }
-                ${jcenterRepository()} 
+                ${jcenterRepository()}
                 println(
                     configurations.classpath.incoming.artifactView {
                             attributes.attribute(artifactType, "size")
                         }.artifacts.artifactFiles.files
-                )                                   
+                )
                 println(
                     configurations.classpath.incoming.artifactView {
                             attributes.attribute(artifactType, "size")
                         }.artifacts.artifactFiles.files
-                )                                   
+                )
             }
         """
 
@@ -568,11 +568,11 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
 
                 task resolve(type: Copy) {
                     def artifacts = configurations.compile.incoming.artifactView {
-                        attributes { 
-                            it.attribute(artifactType, 'jar') 
-                            it.attribute(Attribute.of('javaVersion', String), '7') 
+                        attributes {
+                            it.attribute(artifactType, 'jar')
+                            it.attribute(Attribute.of('javaVersion', String), '7')
                             it.attribute(Attribute.of('color', String), 'red')
-                        } 
+                        }
                     }.artifacts
                     from artifacts.artifactFiles
                     into "\${buildDir}/libs"
@@ -664,7 +664,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
 
                 dependencies {
                     compile project(':lib')
-                    
+
                     registerTransform(MakeBlueToRedThings) {
                         from.attribute(Attribute.of('color', String), "blue")
                         to.attribute(Attribute.of('color', String), "red")
@@ -674,14 +674,14 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
                         to.attribute(Attribute.of('color', String), "blue")
                     }
                 }
-        
+
                 task resolve(type: Copy) {
                     def artifacts = configurations.compile.incoming.artifactView {
-                        attributes { 
-                            it.attribute(artifactType, 'jar') 
-                            it.attribute(Attribute.of('javaVersion', String), '7') 
+                        attributes {
+                            it.attribute(artifactType, 'jar')
+                            it.attribute(Attribute.of('javaVersion', String), '7')
                             it.attribute(Attribute.of('color', String), 'red')
-                        } 
+                        }
                     }.artifacts
                     from artifacts.artifactFiles
                     into "\${buildDir}/libs"
@@ -757,7 +757,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         buildFile << """
             def f = file("lib.jar")
             f.text = "1234"
- 
+
             dependencies {
                 compile files(f)
                 compile project(':lib')
@@ -817,7 +817,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         buildFile << """
             def f = file("lib.jar")
             f.text = "1234"
- 
+
             dependencies {
                 compile files(f)
             }
@@ -828,11 +828,11 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
                     to.attribute(artifactType, 'identity')
                 }
             }
-            
+
             abstract class IdentityTransform implements TransformAction<TransformParameters.None> {
                 @InputArtifact
                 abstract Provider<FileSystemLocation> getInput()
-                
+
                 void transform(TransformOutputs outputs) {
                     println("Transforming")
                     outputs.file(input)
@@ -886,7 +886,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
                     File outputA = outputs.file(input.name + ".A.txt")
                     assert outputA.parentFile.directory && outputA.parentFile.list().length == 0
                     outputA.text = "Output A"
-            
+
                     File outputB = outputs.file(input.name + ".B.txt")
                     outputB.text = "Output B"
                 }
@@ -985,7 +985,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
                         to.attribute(extraAttribute, 'baz')
                     }
                 }
-    
+
                 task resolve(type: Copy) {
                     def artifacts = configurations.compile.incoming.artifactView {
                         attributes { it.attribute (artifactType, 'transformed') }
@@ -994,7 +994,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
                     into "\${buildDir}/libs"
                 }
             }
-    
+
             abstract class BrokenTransform implements TransformAction<TransformParameters.None> {
                 void transform(TransformOutputs outputs) {
                     throw new AssertionError("should not be used")
@@ -1028,13 +1028,13 @@ Found the following transforms:
     def "user receives reasonable error message when multiple variants can be transformed to produce requested variant"() {
         given:
         buildFile << """
-            def buildType = Attribute.of("buildType", String) 
+            def buildType = Attribute.of("buildType", String)
             def flavor = Attribute.of("flavor", String)
             allprojects {
                 dependencies.attributesSchema.attribute(buildType)
                 dependencies.attributesSchema.attribute(flavor)
             }
- 
+
             project(':lib') {
                 task jar1(type: Jar) {
                     destinationDirectory = buildDir
@@ -1079,11 +1079,11 @@ Found the following transforms:
                         to.attribute(artifactType, 'transformed')
                     }
                 }
-    
+
                 task resolve(type: Copy) {
                     def artifacts = configurations.compile.incoming.artifactView {
-                        attributes { 
-                            attribute(artifactType, 'transformed') 
+                        attributes {
+                            attribute(artifactType, 'transformed')
                         }
                     }.artifacts
                     from artifacts.artifactFiles
@@ -1187,7 +1187,7 @@ Found the following transforms:
                         checkFiles configurations.compile.files
                         checkFiles configurations.compile.incoming.files
                         checkFiles configurations.compile.resolvedConfiguration.files
-                        
+
                         checkFiles configurations.compile.resolvedConfiguration.lenientConfiguration.files
                         checkFiles configurations.compile.resolve()
                         checkFiles configurations.compile.files { true }
@@ -1310,7 +1310,7 @@ Found the following transforms:
                 Hasher() {
                     println "Creating Transform"
                 }
-                
+
                 @InputArtifact
                 abstract Provider<FileSystemLocation> getInputArtifact()
 
@@ -1444,10 +1444,10 @@ Found the following transforms:
             repositories {
                 ivy { url "${ivyHttpRepo.uri}" }
             }
-        
+
             dependencies {
-                compile "test:test:1.3" 
-                compile "test:test-2:0.1" 
+                compile "test:test:1.3"
+                compile "test:test-2:0.1"
             }
         """
 
@@ -1485,13 +1485,13 @@ Found the following transforms:
         given:
         buildFile << """
             ${configurationAndTransform('FileSizer')}
-            
+
             def broken = false
             gradle.taskGraph.whenReady { broken = true }
 
             dependencies {
                 compile files('thing1.jar')
-                compile files { if (broken) { throw new RuntimeException("broken") }; [] } 
+                compile files { if (broken) { throw new RuntimeException("broken") }; [] }
                 compile files('thing2.jar')
             }
         """
@@ -1604,7 +1604,7 @@ Found the following transforms:
                         case FileType.Missing:
                             return """
                                 outputs.${method}('this_file_does_not.exist').delete()
-                                
+
                             """
                         case FileType.Directory:
                             return """
@@ -1709,7 +1709,7 @@ Found the following transforms:
 
             abstract class MyTransform implements TransformAction<TransformParameters.None> {
                 @InputArtifact
-                abstract Provider<FileSystemLocation> getInput() 
+                abstract Provider<FileSystemLocation> getInput()
 
                 void transform(TransformOutputs outputs) {
                     println "Hello?"
@@ -1864,7 +1864,7 @@ Found the following transforms:
             a.text = '123'
             def b = file("broken.jar")
             b.text = '123'
-            def c = file("c.jar")       
+            def c = file("c.jar")
             c.text = '123'
 
             dependencies {
@@ -1944,16 +1944,16 @@ Found the following transforms:
     def "provides useful error message when configuration value cannot be serialized"() {
         when:
         buildFile << """
-            // Not serializable  
+            // Not serializable
             class CustomType {
                 String toString() { return "<custom>" }
             }
 
-            class Custom extends ArtifactTransform { 
+            class Custom extends ArtifactTransform {
                 Custom(CustomType value) { }
                 List<File> transform(File input) { [] }
             }
-            
+
             dependencies {
                 registerTransform {
                     from.attribute(usage, 'any')
@@ -1968,7 +1968,8 @@ Found the following transforms:
         and:
         failure.assertHasDescription("A problem occurred evaluating root project 'root'.")
         failure.assertHasCause("Could not register artifact transform Custom (from {usage=any} to {usage=any})")
-        failure.assertHasCause("Could not serialize value of type 'CustomType'")
+        failure.assertHasCause("Could not isolate value [<custom>] of type Object[]")
+        failure.assertHasCause("Could not serialize value of type CustomType")
     }
 
     @Unroll
@@ -2001,7 +2002,7 @@ Found the following transforms:
                 String toString() { return "<custom>" }
             }
 
-            abstract class Custom implements TransformAction<Parameters> { 
+            abstract class Custom implements TransformAction<Parameters> {
                 interface Parameters extends TransformParameters {
                     @Input
                     CustomType getInput()
@@ -2010,7 +2011,7 @@ Found the following transforms:
 
                 void transform(TransformOutputs outputs) {  }
             }
-            
+
             dependencies {
                 registerTransform(Custom) {
                     from.attribute(artifactType, 'jar')
@@ -2040,7 +2041,7 @@ Found the following transforms:
             failure.assertHasDescription("Execution failed for task ':resolve'.")
             failure.assertThatCause(matchesCannotIsolate)
         }
-        failure.assertHasCause("Could not serialize value of type 'CustomType'")
+        failure.assertHasCause("Could not serialize value of type CustomType")
 
         where:
         scheduled | dependency
@@ -2063,17 +2064,17 @@ Found the following transforms:
                 compile 'test:test:1.3:foo'
                 compile 'test:test:1.3:bar'
             }
-            
+
             /*
-             * This transform creates a name that is independent of 
+             * This transform creates a name that is independent of
              * the original file name, thus losing the classifier that
              * was encoded in it.
-             */ 
+             */
             abstract class NameManglingTransform implements TransformAction<TransformParameters.None> {
                 NameManglingTransform() {
                     println "Creating NameManglingTransform"
                 }
-                
+
                 @InputArtifact
                 abstract Provider<FileSystemLocation> getInputArtifact()
 
@@ -2108,7 +2109,7 @@ Found the following transforms:
                 task lib1(type: Jar) {
                     destinationDirectory = buildDir
                 }
-    
+
                 dependencies {
                     compile files(lib1)
                 }
@@ -2116,14 +2117,14 @@ Found the following transforms:
                     compile file1
                 }
             }
-    
+
             project(':app') {
                 dependencies {
                     compile project(':lib')
                 }
                 ${configurationAndTransform('FileSizer')}
             }
-    
+
             project(':app2') {
                 dependencies {
                     compile project(':lib')
@@ -2156,7 +2157,7 @@ Found the following transforms:
                     compile file1
                 }
             }
-    
+
             project(':app') {
                 dependencies {
                     compile project(':lib')
@@ -2191,7 +2192,7 @@ Found the following transforms:
         def buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
 
         given:
-        buildFile << """                                                                   
+        buildFile << """
             import org.gradle.api.internal.artifacts.transform.ArtifactTransformListener
             import org.gradle.internal.event.ListenerManager
 
@@ -2200,7 +2201,7 @@ Found the following transforms:
                 void beforeTransformerInvocation(Describable transformer, Describable subject) {
                     println "Before transformer \${transformer.displayName} on \${subject.displayName}"
                 }
-                
+
                 @Override
                 void afterTransformerInvocation(Describable transformer, Describable subject) {
                     println "After transformer \${transformer.displayName} on \${subject.displayName}"
@@ -2210,13 +2211,13 @@ Found the following transforms:
             project(":lib") {
                 task jar(type: Jar) {
                     archiveFileName = 'lib.jar'
-                    destinationDirectory = buildDir                    
+                    destinationDirectory = buildDir
                 }
                 artifacts {
                     compile jar
                 }
             }
-            
+
             project(":app") {
                 dependencies {
                     compile project(":lib")
@@ -2246,7 +2247,7 @@ Found the following transforms:
         def buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
 
         given:
-        buildFile << """                                                                   
+        buildFile << """
             import org.gradle.api.internal.artifacts.transform.ArtifactTransformListener
             import org.gradle.internal.event.ListenerManager
 
@@ -2255,7 +2256,7 @@ Found the following transforms:
                 void beforeTransformerInvocation(Describable transformer, Describable subject) {
                     println "Before transformer \${transformer.displayName} on \${subject.displayName}"
                 }
-                
+
                 @Override
                 void afterTransformerInvocation(Describable transformer, Describable subject) {
                     println "After transformer \${transformer.displayName} on \${subject.displayName}"
@@ -2265,13 +2266,13 @@ Found the following transforms:
             project(":lib") {
                 task jar(type: Jar) {
                     archiveFileName = 'lib.jar'
-                    destinationDirectory = buildDir                    
+                    destinationDirectory = buildDir
                 }
                 artifacts {
                     compile jar
                 }
             }
-            
+
             project(":app") {
                 dependencies {
                     compile project(":lib")
