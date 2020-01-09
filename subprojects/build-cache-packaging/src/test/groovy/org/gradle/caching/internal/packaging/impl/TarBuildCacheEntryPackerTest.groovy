@@ -36,8 +36,11 @@ import static org.gradle.internal.file.TreeType.FILE
 
 class TarBuildCacheEntryPackerTest extends AbstractTarBuildCacheEntryPackerSpec {
     @Override
-    protected FileSystem createFileSystem() {
-        TestFiles.fileSystem()
+    protected FilePermissionAccess createFilePermissionAccess() {
+        new FilePermissionAccess() {
+            @Delegate
+            FileSystem fs = TestFiles.fileSystem()
+        }
     }
 
     @Override
