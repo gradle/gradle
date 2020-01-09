@@ -64,6 +64,10 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
         return getSystemPropertyExecuter() == Executer.noDaemon;
     }
 
+    public static boolean isVfsRetention() {
+        return getSystemPropertyExecuter() == Executer.vfsRetention;
+    }
+
     public static boolean isDaemon() {
         return !(isNoDaemon() || isEmbedded());
     }
