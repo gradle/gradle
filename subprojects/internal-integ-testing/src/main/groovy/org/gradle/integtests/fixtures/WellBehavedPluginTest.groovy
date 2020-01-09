@@ -80,10 +80,8 @@ abstract class WellBehavedPluginTest extends AbstractPluginIntegrationTest {
         "CheckstylePluginIntegrationTest",
         "CodeNarcPluginIntegrationTest",
         "PmdPluginIntegrationTest",
-        "WarPluginGoodBehaviourTest",
         "CppLibraryPluginIntegrationTest",
         "CppApplicationPluginIntegrationTest",
-        "SwiftLibraryPluginIntegrationTest",
         "SwiftApplicationPluginIntegrationTest",
         "XcodePluginIntegrationTest",
         "IdeaPluginGoodBehaviourTest"
