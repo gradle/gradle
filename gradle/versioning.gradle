@@ -54,8 +54,6 @@ tasks.register("createBuildReceipt", BuildReceipt) {
     destinationDir = file("${rootProject.buildDir}")
 }
 
-ext.buildReceiptPackage = '/org/gradle/'
-
 version = baseVersion
 
 ext.isSnapshot = false
