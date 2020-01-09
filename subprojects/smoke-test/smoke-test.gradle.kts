@@ -152,5 +152,6 @@ tasks {
     withType<SmokeTest>().configureEach {
         dependsOn(remoteProjects)
         inputs.property("androidHomeIsSet", System.getenv("ANDROID_HOME") != null)
+        inputs.property("gradleBuildJavaHomeIsSet", System.getenv("GRADLE_BUILD_JAVA_HOME") != null)
     }
 }

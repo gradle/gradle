@@ -48,11 +48,12 @@ class GradleBuildInstantExecutionSmokeTest extends AbstractSmokeTest {
     }
 
     private BuildResult instantRun(String... tasks) {
-        def testArgs = [
-            "-Dorg.gradle.unsafe.instant-execution=true",
-            "-PbuildSrcCheck=false"
-        ]
-        return runner(*(tasks + testArgs))
+        def testArgs = ["-Dorg.gradle.unsafe.instant-execution=true"]
+        return run(*(tasks + testArgs))
+    }
+
+    private BuildResult run(String... tasks) {
+        return runner(*(tasks + GRADLE_BUILD_TEST_ARGS))
             .withEnvironment(
                 /// Run the test build without the CI environment variable
                 /// so `buildTimestamp` doesn't change between invocations
@@ -64,4 +65,10 @@ class GradleBuildInstantExecutionSmokeTest extends AbstractSmokeTest {
             )
             .build()
     }
+
+    private static final String[] GRADLE_BUILD_TEST_ARGS = [
+        "-PbuildSrcCheck=false",
+        "-DcompileJavaHome=${System.getenv("GRADLE_BUILD_JAVA_HOME")}",
+        "-DtestJavaHome=${System.getenv("GRADLE_BUILD_JAVA_HOME")}"
+    ]
 }
