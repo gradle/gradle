@@ -382,15 +382,6 @@ public class SingleMessageLogger {
 
     /*------------ Try to avoid using the methods below ----------------*/
 
-    /**
-     * Try to avoid using this nagging method. The other methods use a consistent wording for when things will be removed.
-     */
-    static void nagUserWith(String message) {
-        if (isEnabled()) {
-            nagUserWith(new DeprecationMessage(message, thisWillBeRemovedMessage()));
-        }
-    }
-
     public static void nagUserWith(DeprecationMessage deprecationMessage) {
         if (isEnabled()) {
             nagUserWith(deprecatedFeatureHandler, deprecationMessage.toDeprecatedFeatureUsage(SingleMessageLogger.class));
