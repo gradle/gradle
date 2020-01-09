@@ -43,7 +43,6 @@ import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.plugin.management.PluginManagementSpec;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.DeprecationMessage;
-import org.gradle.util.SingleMessageLogger;
 import org.gradle.vcs.SourceControl;
 
 import javax.inject.Inject;

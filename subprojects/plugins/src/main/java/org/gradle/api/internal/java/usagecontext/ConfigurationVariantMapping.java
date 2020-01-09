@@ -30,7 +30,6 @@ import org.gradle.api.component.ConfigurationVariantDetails;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.component.UsageContext;
 import org.gradle.internal.Actions;
-import org.gradle.internal.featurelifecycle.DeprecatedFeatureUsage;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.DeprecationMessage;
 import org.gradle.util.SingleMessageLogger;
