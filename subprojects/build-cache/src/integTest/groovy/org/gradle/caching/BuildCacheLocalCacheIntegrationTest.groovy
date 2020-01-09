@@ -67,7 +67,7 @@ class BuildCacheLocalCacheIntegrationTest extends AbstractIntegrationSpec {
         executer.beforeExecute { it.withBuildCacheEnabled() }
     }
 
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FLAKY)
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FLAKY)
     def "remote loads are cached locally"() {
         given:
         settingsFile << """
@@ -103,7 +103,7 @@ class BuildCacheLocalCacheIntegrationTest extends AbstractIntegrationSpec {
         cached()
     }
 
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FLAKY)
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FLAKY)
     def "remote loads are not cached locally if local cache is #state"() {
         given:
         settingsFile << """

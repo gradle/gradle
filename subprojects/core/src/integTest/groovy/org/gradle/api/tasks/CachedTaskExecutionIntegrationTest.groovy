@@ -73,7 +73,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         }
     }
 
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FLAKY)
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FLAKY)
     def "no task is re-executed when inputs are unchanged"() {
         when:
         withBuildCache().run "jar"
@@ -160,7 +160,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         withBuildCache().run "run"
     }
 
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FLAKY)
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FLAKY)
     def "tasks get cached when source code changes without changing the compiled output"() {
         when:
         withBuildCache().run "assemble"
@@ -178,7 +178,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         executedAndNotSkipped ":compileJava"
     }
 
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FLAKY)
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FLAKY)
     def "tasks get cached when source code changes back to previous state"() {
         expect:
         withBuildCache().run "jar" assertTaskNotSkipped ":compileJava" assertTaskNotSkipped ":jar"
@@ -447,7 +447,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         !output.contains("Appending input file fingerprints for 'classpath'")
     }
 
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FLAKY)
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FLAKY)
     def "compileJava is not cached if forked executable is used"() {
         buildFile << """
             compileJava.options.fork = true

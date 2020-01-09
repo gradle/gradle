@@ -359,7 +359,7 @@ abstract class AbstractIvyRemoteRepoResolveIntegrationTest extends AbstractInteg
         succeeds('listJars')
     }
 
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_TO_CLEANUP)
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_TO_CLEANUP)
     def "reuses cached details when switching ivy resolve mode"() {
         given:
         buildFile << """

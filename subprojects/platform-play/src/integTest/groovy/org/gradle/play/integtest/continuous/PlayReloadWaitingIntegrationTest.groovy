@@ -33,7 +33,7 @@ class PlayReloadWaitingIntegrationTest extends AbstractPlayReloadIntegrationTest
         addPendingChangesHook()
     }
 
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_TO_CLEANUP)
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_TO_CLEANUP)
     def "waits for app request before building changes"() {
         given:
         def hooksFile = file('hooks.gradle') << """

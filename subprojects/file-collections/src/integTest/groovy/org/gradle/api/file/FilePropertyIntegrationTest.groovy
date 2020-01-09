@@ -323,7 +323,7 @@ task useDirProviderApi {
         failure.assertHasCause("Cannot set the value of extension 'custom' property 'prop' of type org.gradle.api.file.RegularFile using a provider of type org.gradle.api.file.Directory.")
     }
 
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FLAKY)
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FLAKY)
     def "can wire the output file of a task as input to another task using property"() {
         buildFile << """
             class FileOutputTask extends DefaultTask {

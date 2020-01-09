@@ -33,7 +33,7 @@ class GroovySourceIncrementalCompilationIntegrationTest extends AbstractSourceIn
         outputs.recompiledClasses(recompiledClasses)
     }
 
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FLAKY)
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FLAKY)
     def 'rebuild all after loading from cache'() {
         given:
         def a = source "class A {}"

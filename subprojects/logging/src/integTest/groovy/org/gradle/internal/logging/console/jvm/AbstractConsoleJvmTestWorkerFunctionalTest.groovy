@@ -48,7 +48,7 @@ abstract class AbstractConsoleJvmTestWorkerFunctionalTest extends AbstractIntegr
 
     @Unroll
     @ToBeFixedForInstantExecution(
-        value = ToBeFixedForInstantExecution.Skip.LONG_TIMEOUT,
+        skip = ToBeFixedForInstantExecution.Skip.LONG_TIMEOUT,
         bottomSpecs = "ConsoleTestNGTestWorkerFunctionalTest"
     )
     def "shows test class execution #description test class name in work-in-progress area of console for single project build"() {
@@ -80,7 +80,7 @@ abstract class AbstractConsoleJvmTestWorkerFunctionalTest extends AbstractIntegr
 
     @Unroll
     @ToBeFixedForInstantExecution(
-        value = ToBeFixedForInstantExecution.Skip.LONG_TIMEOUT,
+        skip = ToBeFixedForInstantExecution.Skip.LONG_TIMEOUT,
         bottomSpecs = "ConsoleTestNGTestWorkerFunctionalTest"
     )
     def "shows test class execution #description test class name in work-in-progress area of console for multi-project build"() {

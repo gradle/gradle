@@ -32,7 +32,7 @@ import java.lang.annotation.Target;
 @ExtensionAnnotation(ToBeFixedForInstantExecutionExtension.class)
 public @interface ToBeFixedForInstantExecution {
 
-    Skip value() default Skip.DO_NOT_SKIP;
+    Skip skip() default Skip.DO_NOT_SKIP;
 
     String[] bottomSpecs() default {};
 
