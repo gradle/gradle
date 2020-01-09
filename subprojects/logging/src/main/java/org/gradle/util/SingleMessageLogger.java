@@ -201,41 +201,6 @@ public class SingleMessageLogger {
     /**
      * Output format:
      * <p>
-     * The ${methodName} method has been deprecated. This is scheduled to be removed in Gradle X.
-     */
-    public static void nagUserOfDiscontinuedMethod(String methodName) {
-        if (isEnabled()) {
-            nagUserWith(new DeprecationMessage(String.format("The %s method has been deprecated.", methodName), thisWillBeRemovedMessage()));
-        }
-    }
-
-    /**
-     * Output format:
-     * <p>
-     * The ${methodName} method has been deprecated. This is scheduled to be removed in Gradle X. ${advice}
-     */
-    public static void nagUserOfDiscontinuedMethod(String methodName, String advice) {
-        if (isEnabled()) {
-            nagUserWith(new DeprecationMessage(String.format("The %s method has been deprecated.", methodName), thisWillBeRemovedMessage()).withAdvice(advice));
-        }
-    }
-
-    /**
-     * Output format:
-     * <p>
-     * The ${methodName} method has been deprecated. This is scheduled to be removed in Gradle X. ${contextualAdvice} ${advice}
-     */
-    public static void nagUserOfDiscontinuedMethod(String methodName, String advice, String contextualAdvice) {
-        if (isEnabled()) {
-            nagUserWith(new DeprecationMessage(String.format("The %s method has been deprecated.", methodName), thisWillBeRemovedMessage())
-                    .withAdvice(advice)
-                    .withContextualAdvice(contextualAdvice));
-        }
-    }
-
-    /**
-     * Output format:
-     * <p>
      * ${behaviour} This has been deprecated and is scheduled to be removed in Gradle {X}.
      */
     public static void nagUserOfDeprecatedBehaviour(String behaviour) {

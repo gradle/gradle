@@ -32,6 +32,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.api.DefaultTask;
             import org.gradle.api.tasks.TaskAction;
             import org.gradle.util.DeprecationLogger;
+            import org.gradle.internal.deprecation.DeprecationMessage;
 
             public class DeprecatedTask extends DefaultTask {
                 @TaskAction
@@ -41,12 +42,12 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 public static void someFeature() {
-                    DeprecationLogger.nagUserOfDiscontinuedMethod("someFeature()");
+                    DeprecationLogger.nagUserWith(DeprecationMessage.discontinuedMethod("someFeature()"));
                     System.out.println("DeprecatedTask.someFeature() executed.");
                 }
 
                 void otherFeature() {
-                    DeprecationLogger.nagUserOfDiscontinuedMethod("otherFeature()", "Relax. This is just a test.");
+                    DeprecationLogger.nagUserWith(DeprecationMessage.discontinuedMethod("otherFeature()").withAdvice("Relax. This is just a test."));
                     System.out.println("DeprecatedTask.otherFeature() executed.");
                 }
 
@@ -143,7 +144,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             apply plugin: DeprecatedPlugin // line 2
-            
+
             task broken() {
                 doLast {
                     throw new IllegalStateException("Can't do that")

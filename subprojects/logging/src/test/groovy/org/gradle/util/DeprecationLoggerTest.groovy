@@ -164,6 +164,16 @@ class DeprecationLoggerTest extends Specification {
         events[0].message == "The propertyName property has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Please use the replacement property instead."
     }
 
+    def "logs discontinued method message"() {
+        when:
+        DeprecationLogger.nagUserWith(DeprecationMessage.discontinuedMethod("method()").withAdvice("Advice."))
+
+        then:
+        def events = outputEventListener.events
+        events.size() == 1
+        events[0].message == "The method() method has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Advice."
+    }
+
     @Unroll
     def "logs deprecation message for deprecated configuration with #deprecationType deprecation"() {
         given:

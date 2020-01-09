@@ -22,6 +22,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.BasePluginConvention;
 import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
+import org.gradle.internal.deprecation.DeprecationMessage;
 import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
@@ -84,13 +85,13 @@ public class DefaultBasePluginConvention extends BasePluginConvention implements
 
     @Override
     public ProjectInternal getProject() {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("BasePluginConvention.getProject()");
+        DeprecationLogger.nagUserWith(DeprecationMessage.discontinuedMethod("BasePluginConvention.getProject()"));
         return project;
     }
 
     @Override
     public void setProject(ProjectInternal project) {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("BasePluginConvention.setProject()");
+        DeprecationLogger.nagUserWith(DeprecationMessage.discontinuedMethod("BasePluginConvention.setProject()"));
         this.project = project;
     }
 
