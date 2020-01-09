@@ -25,7 +25,6 @@ import org.gradle.kotlin.dsl.*
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
-import java.util.TimeZone
 
 
 class BuildVersionPlugin : Plugin<Project> {
@@ -91,9 +90,7 @@ fun Project.computeBuildTimestamp(): String {
         println("Using timestamp from incoming build receipt: $buildTimestamp")
         return buildTimestamp
     } else {
-        val timestampFormat = SimpleDateFormat("yyyyMMddHHmmssZ").apply {
-            timeZone = TimeZone.getTimeZone("UTC")
-        }
+        val timestampFormat = BuildReceipt.createTimestampDateFormat()
         val buildTimestamp: String? by project
         val buildTime = when {
             buildTimestamp != null -> {
