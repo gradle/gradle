@@ -25,7 +25,7 @@ import static org.gradle.internal.service.scopes.VirtualFileSystemServices.VFS_D
 import static org.gradle.internal.service.scopes.VirtualFileSystemServices.VFS_RETENTION_ENABLED_PROPERTY
 
 // The whole test makes no sense if there isn't a daemon to retain the state.
-@IgnoreIf({ GradleContextualExecuter.noDaemon })
+@IgnoreIf({ GradleContextualExecuter.noDaemon || GradleContextualExecuter.vfsRetention })
 class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {

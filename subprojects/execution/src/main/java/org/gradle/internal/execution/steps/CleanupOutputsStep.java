@@ -93,7 +93,7 @@ public class CleanupOutputsStep<C extends InputChangesContext, R extends Result>
             for (FileCollectionFingerprint fileCollectionFingerprint : previousOutputs.getOutputFileProperties().values()) {
                 try {
                     // Previous outputs can be in a different place than the current outputs
-                    outputChangeListener.beforeOutputChange(fileCollectionFingerprint.getRootHashes().keySet());
+                    outputChangeListener.beforeOutputChange(fileCollectionFingerprint.getRootPaths());
                     cleaner.cleanupOutputs(fileCollectionFingerprint);
                 } catch (IOException e) {
                     throw new UncheckedIOException("Failed to clean up output files for " + work.getDisplayName(), e);
