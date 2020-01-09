@@ -34,6 +34,7 @@ public class DeprecationMessage {
 
     private DeprecatedFeatureUsage.Type usageType = DeprecatedFeatureUsage.Type.USER_CODE_DIRECT;
 
+    // Output: ${summary}. This has been deprecated and is scheduled to be removed in Gradle {X}.
     public static DeprecationMessage thisHasBeenDeprecated(final String summary) {
         return new DeprecationMessage() {
             @Override
@@ -45,6 +46,7 @@ public class DeprecationMessage {
         };
     }
 
+    // Output: ${thing} has been deprecated. This is scheduled to be removed in Gradle {X}.
     public static DeprecationMessage specificThingHasBeenDeprecated(final String thing) {
         return new DeprecationMessage() {
             @Override
@@ -56,10 +58,12 @@ public class DeprecationMessage {
         };
     }
 
+    // Output: ${thing} has been deprecated. This is scheduled to be removed in Gradle {X}.
     public static DeprecationMessage indirectCodeUsageHasBeenDeprecated(String thing) {
         return specificThingHasBeenDeprecated(thing).withIndirectUsage();
     }
 
+    // Output: ${behaviour}. This behaviour has been deprecated and is scheduled to be removed in Gradle {X}.
     public static DeprecationMessage behaviourHasBeenDeprecated(final String behaviour) {
         return new DeprecationMessage() {
             @Override
@@ -71,6 +75,7 @@ public class DeprecationMessage {
         };
     }
 
+    // Output: ${feature} has been deprecated. This is scheduled to be removed in Gradle {X}.
     public static DeprecationMessage deprecatedBuildInvocationFeature(final String feature) {
         return new DeprecationMessage() {
             @Override
@@ -83,6 +88,7 @@ public class DeprecationMessage {
         };
     }
 
+    // Output: The ${parameterName} named parameter has been deprecated. This is scheduled to be removed in Gradle {X}. Please use the ${replacement} named parameter instead.
     public static DeprecationMessage replacedNamedParameter(final String parameterName, final String replacement) {
         return new DeprecationMessage() {
             @Override
@@ -95,6 +101,7 @@ public class DeprecationMessage {
         };
     }
 
+    // Output: The ${propertyName} property has been deprecated. This is scheduled to be removed in Gradle {X}.
     public static DeprecationMessage deprecatedProperty(final String propertyName) {
         return new DeprecationMessage() {
             @Override
@@ -106,6 +113,7 @@ public class DeprecationMessage {
         };
     }
 
+    // Output: The ${propertyName} property has been deprecated. This is scheduled to be removed in Gradle {X}. Please use the ${replacement} property instead.
     public static DeprecationMessage replacedProperty(final String propertyName, final String replacement) {
         return new DeprecationMessage() {
             @Override
@@ -133,6 +141,7 @@ public class DeprecationMessage {
         };
     }
 
+    // Output: The ${methodName} method has been deprecated. This is scheduled to be removed in Gradle {X}.
     public static DeprecationMessage discontinuedMethod(final String methodName) {
         return new DeprecationMessage() {
             @Override
@@ -144,6 +153,7 @@ public class DeprecationMessage {
         };
     }
 
+    // Output: The ${methodName} method has been deprecated. This is scheduled to be removed in Gradle {X}. Please use the ${replacement} method instead.
     public static DeprecationMessage replacedMethod(final String methodName, final String replacement) {
         return new DeprecationMessage() {
             @Override
@@ -156,6 +166,7 @@ public class DeprecationMessage {
         };
     }
 
+    // Output: Using method ${methodName} has been deprecated. This will fail with an error in Gradle {X}.
     public static DeprecationMessage discontinuedMethodInvocation(final String invocation) {
         return new DeprecationMessage() {
             @Override
@@ -168,6 +179,7 @@ public class DeprecationMessage {
     }
 
     // Use for some operation that is not deprecated, but something about the method parameters or state is deprecated.
+    // Output: Using method ${methodName} has been deprecated. This will fail with an error in Gradle {X}. Please use the ${replacement} method instead.
     public static DeprecationMessage replacedMethodInvocation(final String methodName, final String replacement) {
         return new DeprecationMessage() {
             @Override
@@ -181,6 +193,7 @@ public class DeprecationMessage {
     }
 
     // Use for some operation that is not deprecated, but something about the method parameters or state is deprecated.
+    // Output: ${invocation} has been deprecated. This will fail with an error in Gradle {X}.
     public static DeprecationMessage discontinuedInvocation(final String invocation) {
         return new DeprecationMessage() {
             @Override
