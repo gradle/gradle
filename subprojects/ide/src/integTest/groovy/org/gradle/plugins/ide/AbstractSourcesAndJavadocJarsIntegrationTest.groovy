@@ -16,6 +16,7 @@
 package org.gradle.plugins.ide
 
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.HttpArtifact
 import org.gradle.test.fixtures.server.http.HttpServer
@@ -23,6 +24,7 @@ import org.gradle.test.fixtures.server.http.IvyHttpModule
 import org.gradle.test.fixtures.server.http.IvyHttpRepository
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.junit.Rule
+import spock.lang.IgnoreIf
 
 abstract class AbstractSourcesAndJavadocJarsIntegrationTest extends AbstractIdeIntegrationSpec {
     @Rule
@@ -348,6 +350,7 @@ dependencies {
     }
 
     @ToBeFixedForInstantExecution
+    @IgnoreIf({ GradleContextualExecuter.noDaemon })
     def "snapshot sources for gradleApi() are downloaded and attached when not present"() {
         given:
         requireGradleDistribution()
@@ -372,6 +375,7 @@ dependencies {
     }
 
     @ToBeFixedForInstantExecution
+    @IgnoreIf({GradleContextualExecuter.daemon || GradleContextualExecuter.noDaemon})
     def "released version sources for gradleApi() are downloaded and attached when not present"() {
         given:
         requireGradleDistribution()
@@ -397,6 +401,7 @@ dependencies {
     }
 
     @ToBeFixedForInstantExecution
+    @IgnoreIf({ GradleContextualExecuter.noDaemon })
     def "skips gradleApi() sources when not present and not available on remote server"() {
         given:
         requireGradleDistribution()
@@ -423,6 +428,7 @@ dependencies {
     }
 
     @ToBeFixedForInstantExecution
+    @IgnoreIf({ GradleContextualExecuter.noDaemon })
     def "skips gradleApi() sources when not present and remote distribution has unexpected directory structure"() {
         given:
         requireGradleDistribution()
@@ -456,6 +462,7 @@ dependencies {
     }
 
     @ToBeFixedForInstantExecution
+    @IgnoreIf({ GradleContextualExecuter.noDaemon })
     def "does not download gradleApi() sources when sources download is disabled"() {
         given:
         requireGradleDistribution()
@@ -482,6 +489,7 @@ dependencies {
     }
 
     @ToBeFixedForInstantExecution
+    @IgnoreIf({ GradleContextualExecuter.noDaemon })
     def "does not download gradleApi() sources when offline"() {
         given:
         requireGradleDistribution()
