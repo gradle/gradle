@@ -34,6 +34,8 @@ public @interface ToBeFixedForInstantExecution {
 
     Skip value() default Skip.DO_NOT_SKIP;
 
+    String[] bottomSpecs() default {};
+
     /**
      * Reason for skipping a test with instant execution.
      */

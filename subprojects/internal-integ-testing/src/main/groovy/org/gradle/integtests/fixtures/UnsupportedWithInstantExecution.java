@@ -32,4 +32,5 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 @ExtensionAnnotation(UnsupportedWithInstantExecutionExtension.class)
 public @interface UnsupportedWithInstantExecution {
+    String[] bottomSpecs() default {};
 }

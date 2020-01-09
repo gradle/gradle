@@ -32,7 +32,11 @@ class UnsupportedWithInstantExecutionRule implements TestRule {
         if (!GradleContextualExecuter.isInstant() || annotation == null) {
             return base
         }
-        return new SkippingRuleStatement(base)
+        String[] bottomSpecs = annotation.bottomSpecs()
+        if (bottomSpecs.length == 0 || bottomSpecs.any { description.className.endsWith(it) }) {
+            return new SkippingRuleStatement(base)
+        }
+        return base
     }
 
     static class SkippingRuleStatement extends Statement {

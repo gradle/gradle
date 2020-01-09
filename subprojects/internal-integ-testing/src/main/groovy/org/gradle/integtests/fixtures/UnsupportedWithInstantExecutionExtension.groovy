@@ -26,7 +26,10 @@ class UnsupportedWithInstantExecutionExtension extends AbstractAnnotationDrivenE
     @Override
     void visitFeatureAnnotation(UnsupportedWithInstantExecution annotation, FeatureInfo feature) {
         if (GradleContextualExecuter.isInstant()) {
-            feature.skipped = true
+            String[] bottomSpecs = annotation.bottomSpecs()
+            if (bottomSpecs.length == 0 || feature.parent.bottomSpec.name in bottomSpecs) {
+                feature.skipped = true
+            }
         }
     }
 }

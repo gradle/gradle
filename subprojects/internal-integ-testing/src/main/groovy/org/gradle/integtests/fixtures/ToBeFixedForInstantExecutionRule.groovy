@@ -32,10 +32,16 @@ class ToBeFixedForInstantExecutionRule implements TestRule {
         if (!GradleContextualExecuter.isInstant() || annotation == null) {
             return base
         }
-        if (annotation.value() == ToBeFixedForInstantExecution.Skip.DO_NOT_SKIP) {
-            return new ExpectingFailureRuleStatement(base)
+        ToBeFixedForInstantExecution.Skip skip = annotation.value()
+        String[] bottomSpecs = annotation.bottomSpecs()
+        if (bottomSpecs.length == 0 || bottomSpecs.any { description.className.endsWith(it) }) {
+            if (skip == ToBeFixedForInstantExecution.Skip.DO_NOT_SKIP) {
+                return new ExpectingFailureRuleStatement(base)
+            } else {
+                return new UnsupportedWithInstantExecutionRule.SkippingRuleStatement(base)
+            }
         }
-        return new UnsupportedWithInstantExecutionRule.SkippingRuleStatement(base)
+        return base
     }
 
     private static class ExpectingFailureRuleStatement extends Statement {
