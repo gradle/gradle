@@ -165,29 +165,6 @@ public class SingleMessageLogger {
     /**
      * Output format:
      * <p>
-     * Using method ${invocation} has been deprecated. This will fail with an error in Gradle X. ${advice}
-     */
-    public static void nagUserOfDiscontinuedMethodInvocation(String invocation, String advice) {
-        if (isEnabled()) {
-            nagUserWith(new DeprecationMessage(String.format("Using method %s has been deprecated.", invocation), thisWillBecomeAnError()).withAdvice(advice));
-        }
-    }
-
-    /**
-     * Use for some operation that is not deprecated, but something about the method parameters or state is deprecated.
-     * Output format:
-     * <p>
-     * Using method ${invocation} has been deprecated. This will fail with an error in Gradle X.
-     */
-    public static void nagUserOfDiscontinuedInvocation(String invocation) {
-        if (isEnabled()) {
-            nagUserWith(new DeprecationMessage(String.format("%s has been deprecated.", invocation), thisWillBecomeAnError()));
-        }
-    }
-
-    /**
-     * Output format:
-     * <p>
      * ${behaviour} This has been deprecated and is scheduled to be removed in Gradle {X}.
      */
     public static void nagUserOfDeprecatedBehaviour(String behaviour) {

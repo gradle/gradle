@@ -168,6 +168,17 @@ public class DeprecationMessage {
         };
     }
 
+    public static DeprecationMessage discontinuedMethodInvocation(final String invocation) {
+        return new DeprecationMessage() {
+            @Override
+            public DeprecatedFeatureUsage toDeprecatedFeatureUsage(Class<?> calledFrom) {
+                summary(String.format("Using method %s has been deprecated.", invocation));
+                removalDetails(thisWillBecomeAnError());
+                return super.toDeprecatedFeatureUsage(calledFrom);
+            }
+        };
+    }
+
     public DeprecationMessage(String summary, String removalDetails) {
         this.summary = summary;
         this.removalDetails = removalDetails;
