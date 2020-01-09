@@ -803,7 +803,7 @@ or in a `gradle.properties` file:
 
 
 ----
-systemProp.org.gradle.dependency.verification=lenient
+org.gradle.dependency.verification=lenient
 ----
 
 [[sec:trusting-artifacts]]
