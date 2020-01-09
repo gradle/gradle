@@ -321,7 +321,7 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec imple
     }
 
     def "unknown host causes the build cache to be disabled"() {
-        settingsFile << """        
+        settingsFile << """
             buildCache {
                 remote {
                     url = "https://invalid.invalid/"

@@ -27,10 +27,10 @@ class FileCollectionPropertyIntegrationTest extends AbstractIntegrationSpec {
             class SomeTask extends DefaultTask {
                 ${annotation}
                 final SetProperty<RegularFile> prop = project.objects.setProperty(RegularFile)
-                
+
                 @TaskAction
                 void go() {
-                    println "value: " + prop.get() 
+                    println "value: " + prop.get()
                 }
             }
 
@@ -61,10 +61,10 @@ class FileCollectionPropertyIntegrationTest extends AbstractIntegrationSpec {
             class SomeTask extends DefaultTask {
                 @OutputDirectories
                 final SetProperty<Directory> prop = project.objects.setProperty(Directory)
-                
+
                 @TaskAction
                 void go() {
-                    println "value: " + prop.get() 
+                    println "value: " + prop.get()
                 }
             }
 
@@ -92,7 +92,7 @@ class FileCollectionPropertyIntegrationTest extends AbstractIntegrationSpec {
                 final RegularFileProperty inputFile = project.objects.fileProperty()
                 @OutputFile
                 final RegularFileProperty outputFile = project.objects.fileProperty()
-                
+
                 @TaskAction
                 void go() {
                     def file = outputFile.asFile.get()
@@ -105,14 +105,14 @@ class FileCollectionPropertyIntegrationTest extends AbstractIntegrationSpec {
                 final SetProperty<RegularFile> inputFiles = project.objects.setProperty(RegularFile)
                 @OutputFile
                 final RegularFileProperty outputFile = project.objects.fileProperty()
-                
+
                 @TaskAction
                 void go() {
                     def file = outputFile.asFile.get()
                     file.text = inputFiles.get()*.asFile.text.join(',')
                 }
             }
-            
+
             task createFile1(type: FileOutputTask)
             task createFile2(type: FileOutputTask)
             task merge(type: MergeTask) {
@@ -126,7 +126,7 @@ class FileCollectionPropertyIntegrationTest extends AbstractIntegrationSpec {
             createFile1.outputFile = layout.buildDirectory.file("file1.txt")
             createFile2.inputFile = layout.projectDirectory.file("file2-source.txt")
             createFile2.outputFile = layout.buildDirectory.file("file2.txt")
-            
+
             buildDir = "output"
 """
         file("file1-source.txt").text = "file1"
@@ -162,7 +162,7 @@ class FileCollectionPropertyIntegrationTest extends AbstractIntegrationSpec {
                 final RegularFileProperty inputFile = project.objects.fileProperty()
                 @OutputFiles
                 final SetProperty<RegularFile> outputFiles = project.objects.setProperty(RegularFile)
-                
+
                 @TaskAction
                 void go() {
                     def content = inputFile.get().asFile.text
@@ -177,14 +177,14 @@ class FileCollectionPropertyIntegrationTest extends AbstractIntegrationSpec {
                 final SetProperty<RegularFile> inputFiles = project.objects.setProperty(RegularFile)
                 @OutputFile
                 final RegularFileProperty outputFile = project.objects.fileProperty()
-                
+
                 @TaskAction
                 void go() {
                     def file = outputFile.asFile.get()
                     file.text = inputFiles.get()*.asFile.text.join(',')
                 }
             }
-            
+
             task createFiles(type: FileOutputTask)
             task merge(type: MergeTask) {
                 outputFile = layout.buildDirectory.file("merged.txt")
@@ -195,7 +195,7 @@ class FileCollectionPropertyIntegrationTest extends AbstractIntegrationSpec {
             createFiles.inputFile = layout.projectDirectory.file("file-source.txt")
             createFiles.outputFiles.add(layout.buildDirectory.file("file1.txt"))
             createFiles.outputFiles.add(layout.buildDirectory.file("file2.txt"))
-            
+
             buildDir = "output"
 """
         file("file-source.txt").text = "file1"
@@ -370,7 +370,7 @@ class FileCollectionPropertyIntegrationTest extends AbstractIntegrationSpec {
                 final RegularFileProperty inputFile = project.objects.fileProperty()
                 @OutputFile
                 final RegularFileProperty outputFile = project.objects.fileProperty()
-                
+
                 @TaskAction
                 void go() {
                     def file = outputFile.asFile.get()
@@ -383,22 +383,22 @@ class FileCollectionPropertyIntegrationTest extends AbstractIntegrationSpec {
                 final SetProperty<RegularFile> inputFiles = project.objects.setProperty(RegularFile)
                 @OutputFile
                 final RegularFileProperty outputFile = project.objects.fileProperty()
-                
+
                 @TaskAction
                 void go() {
                     def file = outputFile.asFile.get()
                     file.text = inputFiles.get()*.asFile.text.join(',')
                 }
             }
-            
-            def generatedFiles = objects.setProperty(RegularFile) 
-            
+
+            def generatedFiles = objects.setProperty(RegularFile)
+
             task createFile1(type: FileOutputTask)
             generatedFiles.add(createFile1.outputFile)
-            
+
             task createFile2(type: FileOutputTask)
             generatedFiles.add(createFile2.outputFile)
-            
+
             task merge(type: MergeTask) {
                 outputFile = layout.buildDirectory.file("merged.txt")
                 inputFiles = generatedFiles
@@ -409,7 +409,7 @@ class FileCollectionPropertyIntegrationTest extends AbstractIntegrationSpec {
             createFile1.outputFile = layout.buildDirectory.file("file1.txt")
             createFile2.inputFile = layout.projectDirectory.file("file2-source.txt")
             createFile2.outputFile = layout.buildDirectory.file("file2.txt")
-            
+
             buildDir = "output"
 """
         file("file1-source.txt").text = "file1"
@@ -467,14 +467,14 @@ class FileCollectionPropertyIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            def generatedFiles = objects.setProperty(Directory) 
+            def generatedFiles = objects.setProperty(Directory)
 
             task createDir1(type: DirOutputTask)
             generatedFiles.add(createDir1.outputDir)
-            
+
             task createDir2(type: DirOutputTask)
             generatedFiles.add(createDir2.outputDir)
-            
+
             task merge(type: MergeTask) {
                 outputFile = layout.buildDirectory.file("merged.txt")
                 inputDirs = generatedFiles

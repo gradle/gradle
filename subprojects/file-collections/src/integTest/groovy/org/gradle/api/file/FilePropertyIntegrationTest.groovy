@@ -27,13 +27,13 @@ class FilePropertyIntegrationTest extends AbstractIntegrationSpec implements Tas
             class SomeTask extends DefaultTask {
                 @OutputDirectory
                 final DirectoryProperty outputDir = project.objects.directoryProperty()
-                
+
                 @TaskAction
                 void go() {
-                    println "task output dir: " + outputDir.get() 
+                    println "task output dir: " + outputDir.get()
                 }
             }
-            
+
             ext.childDirName = "child"
             def t = tasks.create("show", SomeTask)
             t.outputDir = layout.buildDirectory.dir(providers.provider { childDirName })
@@ -55,13 +55,13 @@ class FilePropertyIntegrationTest extends AbstractIntegrationSpec implements Tas
             class SomeTask extends DefaultTask {
                 @OutputFile
                 final RegularFileProperty outputFile = project.objects.fileProperty()
-                
+
                 @TaskAction
                 void go() {
-                    println "task output file: " + outputFile.get() 
+                    println "task output file: " + outputFile.get()
                 }
             }
-            
+
             ext.childDirName = "child"
             def t = tasks.create("show", SomeTask)
             t.outputFile = layout.buildDirectory.file(providers.provider { childDirName })
@@ -83,7 +83,7 @@ class FilePropertyIntegrationTest extends AbstractIntegrationSpec implements Tas
         buildFile << """
 class SomeExtension {
     final DirectoryProperty prop
-    
+
     @javax.inject.Inject
     SomeExtension(ObjectFactory objects) {
         prop = objects.directoryProperty()
@@ -125,7 +125,7 @@ assert custom.prop.getOrNull() == null
         buildFile << """
 class SomeExtension {
     final RegularFileProperty prop
-    
+
     @javax.inject.Inject
     SomeExtension(ObjectFactory objects) {
         prop = objects.fileProperty()
@@ -166,7 +166,7 @@ assert custom.prop.getOrNull() == null
         buildFile << """
 class SomeExtension {
     final Property<Directory> prop
-    
+
     @javax.inject.Inject
     SomeExtension(ObjectFactory objects) {
         prop = objects.directoryProperty()
@@ -247,7 +247,7 @@ task useFileProviderApi {
         buildFile << """
 class SomeExtension {
     final Property<RegularFile> prop
-    
+
     @javax.inject.Inject
     SomeExtension(ObjectFactory objects) {
         prop = objects.fileProperty()
@@ -331,7 +331,7 @@ task useDirProviderApi {
                 final RegularFileProperty inputFile = project.objects.fileProperty()
                 @OutputFile
                 final RegularFileProperty outputFile = project.objects.fileProperty()
-                
+
                 @TaskAction
                 void go() {
                     def file = outputFile.asFile.get()
@@ -344,7 +344,7 @@ task useDirProviderApi {
                 final RegularFileProperty inputFile = project.objects.fileProperty()
                 @OutputFile
                 final RegularFileProperty outputFile = project.objects.fileProperty()
-                
+
                 @TaskAction
                 void go() {
                     def file = outputFile.asFile.get()
@@ -352,7 +352,7 @@ task useDirProviderApi {
                     file << inputFile.asFile.get().text
                 }
             }
-            
+
             task createFile(type: FileOutputTask)
             task merge(type: MergeTask) {
                 outputFile = layout.buildDirectory.file("merged.txt")
@@ -362,7 +362,7 @@ task useDirProviderApi {
             // Set values lazily
             createFile.inputFile = layout.projectDirectory.file("file-source.txt")
             createFile.outputFile = layout.buildDirectory.file("file.txt")
-            
+
             buildDir = "output"
 """
         file("file-source.txt").text = "file1"
@@ -395,17 +395,17 @@ task useDirProviderApi {
             class SomeTask extends DefaultTask {
                 ${annotation}
                 final RegularFileProperty prop = project.objects.fileProperty()
-                
+
                 @TaskAction
                 void go() {
-                    println "value: " + prop.get() 
+                    println "value: " + prop.get()
                 }
             }
-            
+
             task show(type: SomeTask) {
                 prop = file("in.txt")
                 doFirst {
-                    prop = file("other.txt") 
+                    prop = file("other.txt")
                 }
             }
 """
@@ -430,18 +430,18 @@ task useDirProviderApi {
             class SomeTask extends DefaultTask {
                 ${annotation}
                 final DirectoryProperty prop = project.objects.directoryProperty()
-                
+
                 @TaskAction
                 void go() {
-                    println "value: " + prop.get() 
+                    println "value: " + prop.get()
                 }
             }
-            
+
             task show(type: SomeTask) {
                 prop = file("in.dir")
                 doFirst {
                     prop = file("other.dir")
-                } 
+                }
             }
 """
         file("in.dir").createDir()
@@ -528,7 +528,7 @@ task thing {
                 final RegularFileProperty inputFile = project.objects.fileProperty()
                 @OutputFile
                 final RegularFileProperty outputFile = project.objects.fileProperty()
-                
+
                 @TaskAction
                 void go() {
                     def file = outputFile.asFile.get()
@@ -536,7 +536,7 @@ task thing {
                     file << inputFile.asFile.get().text
                 }
             }
-            
+
             task createFile {
                 ext.outputFile = project.objects.fileProperty()
                 outputs.file(outputFile)
@@ -551,7 +551,7 @@ task thing {
 
             // Set values lazily
             createFile.outputFile.set(layout.buildDirectory.file("file.txt"))
-            
+
             buildDir = "output"
 """
 
@@ -689,40 +689,40 @@ task thing {
                 final RegularFileProperty inputFile = project.objects.fileProperty()
                 @OutputDirectory
                 final DirectoryProperty outputDir = project.objects.directoryProperty()
-                
+
                 @TaskAction
                 void go() {
                     def dir = outputDir.asFile.get()
                     new File(dir, "file.txt").text = inputFile.asFile.get().text
                 }
             }
-            
+
             class FileOutputTask extends DefaultTask {
                 @InputFile
                 final RegularFileProperty inputFile = project.objects.fileProperty()
                 @OutputFile
                 final RegularFileProperty outputFile = project.objects.fileProperty()
-                
+
                 @TaskAction
                 void go() {
                     def file = outputFile.asFile.get()
                     file.text = inputFile.asFile.get().text
                 }
             }
-            
+
             task createDir(type: DirOutputTask)
             task createFile1(type: FileOutputTask)
             task otherTask {
                 ${fileMethod}(createFile1.outputFile)
                 ${dirMethod}(createDir.outputDir.asFileTree)
             }
-            
+
             // Set values lazily
             createDir.inputFile = layout.projectDirectory.file("dir1-source.txt")
             createDir.outputDir = layout.buildDirectory.dir("dir1")
             createFile1.inputFile = layout.projectDirectory.file("file1-source.txt")
             createFile1.outputFile = layout.buildDirectory.file("file1.txt")
-            
+
             buildDir = "output"
 """
         file("dir1-source.txt").text = "dir1"
@@ -746,16 +746,16 @@ task thing {
 class SomeTask extends DefaultTask {
     @Optional @InputFile
     final Property<RegularFile> inFile = project.objects.fileProperty()
-    
+
     @Optional @InputDirectory
     final Property<Directory> inDir = project.objects.directoryProperty()
-    
+
     @Optional @OutputFile
     final Property<RegularFile> outFile = project.objects.fileProperty()
-    
+
     @Optional @OutputDirectory
     final Property<Directory> outDir = project.objects.directoryProperty()
-    
+
     @TaskAction
     def go() { }
 }
@@ -782,33 +782,33 @@ class SomeTask extends DefaultTask {
             class ProducerTask extends DefaultTask {
                 @Optional @OutputFile
                 final Property<RegularFile> outFile = project.objects.fileProperty()
-                
+
                 @TaskAction
                 def go() { }
             }
-            
+
             class NestedBean {
                 NestedBean(RegularFileProperty inputFile) {
                     this.inputFile = inputFile
                 }
-            
+
                 @InputFile
                 final RegularFileProperty inputFile
             }
-            
+
             class ConsumerTask extends DefaultTask {
-            
+
                 @Nested
                 NestedBean bean = new NestedBean(project.objects.fileProperty())
-                
+
                 @Optional
                 @OutputFile
-                final Property<RegularFile> outputFile = project.objects.directoryProperty() 
-                
+                final Property<RegularFile> outputFile = project.objects.directoryProperty()
+
                 @TaskAction
                 def go() { }
             }
-            
+
             task producer(type: ProducerTask)
             task consumer(type: ConsumerTask) {
                 bean.inputFile.set(producer.outFile)

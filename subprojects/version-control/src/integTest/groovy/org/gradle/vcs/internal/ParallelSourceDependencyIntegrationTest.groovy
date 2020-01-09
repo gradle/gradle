@@ -41,8 +41,8 @@ class ParallelSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
                     }
                     tasks.register('resolve') {
                         // Not a dependency, so that cloning happens at execution time (in parallel)
-                        doLast { 
-                            configurations.compile.each { } 
+                        doLast {
+                            configurations.compile.each { }
                         }
                     }
                 }

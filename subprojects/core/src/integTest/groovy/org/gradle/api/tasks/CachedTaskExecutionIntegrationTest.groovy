@@ -312,7 +312,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
 
     @ToBeFixedForInstantExecution
     def "outputs loaded from the cache are snapshotted as outputs"() {
-        buildFile << """ 
+        buildFile << """
             apply plugin: 'base'
 
             task createOutput {
@@ -474,17 +474,17 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
     def "order of resources on classpath does not affect how we calculate the cache key"() {
         buildFile << """
             apply plugin: 'base'
-            
+
             @CacheableTask
             class CustomTask extends DefaultTask {
                 @OutputFile File outputFile = new File(temporaryDir, "output.txt")
                 @Classpath FileCollection classpath = project.fileTree("resources")
-                
+
                 @TaskAction void generate() {
                     outputFile.text = "done"
-                } 
+                }
             }
-            
+
             task cacheable(type: CustomTask)
         """
 

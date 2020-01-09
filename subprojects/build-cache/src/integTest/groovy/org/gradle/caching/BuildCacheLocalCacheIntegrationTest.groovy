@@ -38,13 +38,13 @@ class BuildCacheLocalCacheIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             @CacheableTask
             class CustomTask extends DefaultTask {
-            
+
                 @Input
                 String val = "foo"
-                
+
                 @Input
                 List<String> paths = []
-                 
+
                 @OutputDirectory
                 File dir = project.file("build/dir")
 
@@ -57,7 +57,7 @@ class BuildCacheLocalCacheIntegrationTest extends AbstractIntegrationSpec {
                     }
                 }
             }
-            
+
             apply plugin: "base"
             tasks.create("t", CustomTask).paths << "out1" << "out2"
         """
@@ -120,7 +120,7 @@ class BuildCacheLocalCacheIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         settingsFile << """
-            buildCache { 
+            buildCache {
                 $localCacheConfig
             }
         """
