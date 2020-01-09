@@ -19,6 +19,7 @@ import org.gradle.api.Project;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.resources.TextResource;
+import org.gradle.internal.deprecation.DeprecationMessage;
 import org.gradle.util.SingleMessageLogger;
 
 import java.io.File;
@@ -104,7 +105,7 @@ public class CheckstyleExtension extends CodeQualityExtension {
     @Deprecated
     @ReplacedBy("configDirectory")
     public File getConfigDir() {
-        SingleMessageLogger.nagUserOfReplacedMethod("CheckstyleExtension.getConfigDir()", "CheckstyleExtension.getConfigDirectory()");
+        SingleMessageLogger.nagUserWith(DeprecationMessage.replacedMethod("CheckstyleExtension.getConfigDir()", "CheckstyleExtension.getConfigDirectory()"));
         return configDirectory.get().getAsFile();
     }
 
@@ -117,7 +118,7 @@ public class CheckstyleExtension extends CodeQualityExtension {
      */
     @Deprecated
     public void setConfigDir(File configDir) {
-        SingleMessageLogger.nagUserOfReplacedMethod("CheckstyleExtension.setConfigDir()", "CheckstyleExtension.getConfigDirectory().set()");
+        SingleMessageLogger.nagUserWith(DeprecationMessage.replacedMethod("CheckstyleExtension.setConfigDir()", "CheckstyleExtension.getConfigDirectory().set()"));
         this.configDirectory.set(configDir);
     }
 

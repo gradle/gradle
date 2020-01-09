@@ -144,6 +144,30 @@ public class DeprecationMessage {
         };
     }
 
+    public static DeprecationMessage replacedMethod(final String methodName, final String replacement) {
+        return new DeprecationMessage() {
+            @Override
+            public DeprecatedFeatureUsage toDeprecatedFeatureUsage(Class<?> calledFrom) {
+                summary(String.format("The %s method has been deprecated.", methodName));
+                removalDetails(thisWillBeRemovedMessage());
+                withAdvice(String.format("Please use the %s method instead.", replacement));
+                return super.toDeprecatedFeatureUsage(calledFrom);
+            }
+        };
+    }
+
+    public static DeprecationMessage discontinuedMethodInvocation(final String invocation) {
+        return new DeprecationMessage() {
+            @Override
+            public DeprecatedFeatureUsage toDeprecatedFeatureUsage(Class<?> calledFrom) {
+                summary(String.format("Using method %s has been deprecated.", invocation));
+                removalDetails(thisWillBecomeAnError());
+                return super.toDeprecatedFeatureUsage(calledFrom);
+            }
+        };
+    }
+
+    // Use for some operation that is not deprecated, but something about the method parameters or state is deprecated.
     public static DeprecationMessage replacedMethodInvocation(final String methodName, final String replacement) {
         return new DeprecationMessage() {
             @Override
@@ -162,17 +186,6 @@ public class DeprecationMessage {
             @Override
             public DeprecatedFeatureUsage toDeprecatedFeatureUsage(Class<?> calledFrom) {
                 summary(String.format("%s has been deprecated.", invocation));
-                removalDetails(thisWillBecomeAnError());
-                return super.toDeprecatedFeatureUsage(calledFrom);
-            }
-        };
-    }
-
-    public static DeprecationMessage discontinuedMethodInvocation(final String invocation) {
-        return new DeprecationMessage() {
-            @Override
-            public DeprecatedFeatureUsage toDeprecatedFeatureUsage(Class<?> calledFrom) {
-                summary(String.format("Using method %s has been deprecated.", invocation));
                 removalDetails(thisWillBecomeAnError());
                 return super.toDeprecatedFeatureUsage(calledFrom);
             }

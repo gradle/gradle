@@ -32,6 +32,7 @@ import org.gradle.api.internal.provider.AbstractMappingProvider;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.deprecation.DeprecationMessage;
 import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
@@ -96,7 +97,7 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
 
     @Override
     public ConfigurableFileCollection configurableFiles(Object... files) {
-        DeprecationLogger.nagUserOfReplacedMethod("ProjectLayout.configurableFiles()", "ObjectFactory.fileCollection()");
+        DeprecationLogger.nagUserWith(DeprecationMessage.replacedMethod("ProjectLayout.configurableFiles()", "ObjectFactory.fileCollection()"));
         return fileCollectionFactory.configurableFiles().from(files);
     }
 
