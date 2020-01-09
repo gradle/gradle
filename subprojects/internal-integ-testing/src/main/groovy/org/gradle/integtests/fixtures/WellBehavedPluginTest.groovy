@@ -47,12 +47,11 @@ abstract class WellBehavedPluginTest extends AbstractPluginIntegrationTest {
         "CheckstylePluginIntegrationTest",
         "CodeNarcPluginIntegrationTest",
         "PmdPluginIntegrationTest",
-        "WarPluginGoodBehaviourTest",
         "CppLibraryPluginIntegrationTest",
         "CppApplicationPluginIntegrationTest",
-        "SwiftLibraryPluginIntegrationTest",
         "SwiftApplicationPluginIntegrationTest",
-        "XcodePluginIntegrationTest"
+        "XcodePluginIntegrationTest",
+        "IdeaPluginGoodBehaviourTest"
     ])
     def "can apply plugin unqualified"() {
         given:
@@ -86,7 +85,8 @@ abstract class WellBehavedPluginTest extends AbstractPluginIntegrationTest {
         "CppApplicationPluginIntegrationTest",
         "SwiftLibraryPluginIntegrationTest",
         "SwiftApplicationPluginIntegrationTest",
-        "XcodePluginIntegrationTest"
+        "XcodePluginIntegrationTest",
+        "IdeaPluginGoodBehaviourTest"
     ])
     def "plugin can build with empty project"() {
         given:
