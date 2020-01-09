@@ -17,6 +17,7 @@
 package org.gradle.internal.deprecation;
 
 import com.google.common.base.Joiner;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.internal.featurelifecycle.DeprecatedFeatureUsage;
 
 import java.util.List;
@@ -226,6 +227,71 @@ public class DeprecationMessage {
                 summary(String.format("The %s task has been deprecated.", taskName));
                 removalDetails(thisWillBeRemovedMessage());
                 withAdvice(String.format("Please use the %s task instead.", replacement));
+                return super.toDeprecatedFeatureUsage(calledFrom);
+            }
+        };
+    }
+
+    // Output: The ${toolName} has been deprecated. This is scheduled to be removed in Gradle X. Consider using ${replacement} instead.
+    public static DeprecationMessage toolReplacedWithExternalOne(final String toolName, final String replacement) {
+        return new DeprecationMessage() {
+            @Override
+            public DeprecatedFeatureUsage toDeprecatedFeatureUsage(Class<?> calledFrom) {
+                summary(String.format("The %s has been deprecated.", toolName));
+                removalDetails(thisWillBeRemovedMessage());
+                withAdvice(String.format("Consider using %s instead.", replacement));
+                return super.toDeprecatedFeatureUsage(calledFrom);
+            }
+        };
+    }
+
+    // Output: The ${pluginName} plugin has been deprecated. This is scheduled to be removed in Gradle X. ${advice}
+    public static DeprecationMessage deprecatedPlugin(final String pluginName) {
+        return new DeprecationMessage() {
+            @Override
+            public DeprecatedFeatureUsage toDeprecatedFeatureUsage(Class<?> calledFrom) {
+                summary(String.format("The %s plugin has been deprecated.", pluginName));
+                removalDetails(thisWillBeRemovedMessage());
+                return super.toDeprecatedFeatureUsage(calledFrom);
+            }
+        };
+    }
+
+    // Output: The ${pluginName} plugin has been deprecated. This is scheduled to be removed in Gradle X. Please use the ${replacement} plugin instead.
+    public static DeprecationMessage replacedPlugin(final String pluginName, final String replacement) {
+        return new DeprecationMessage() {
+            @Override
+            public DeprecatedFeatureUsage toDeprecatedFeatureUsage(Class<?> calledFrom) {
+                summary(String.format("The %s plugin has been deprecated.", pluginName));
+                removalDetails(thisWillBeRemovedMessage());
+                withAdvice(String.format("Please use the %s plugin instead.", replacement));
+                return super.toDeprecatedFeatureUsage(calledFrom);
+            }
+        };
+    }
+
+    // Output: The ${pluginName} plugin has been deprecated. This is scheduled to be removed in Gradle X. Consider using the ${replacement} plugin instead.
+    public static DeprecationMessage pluginReplacedWithExternalOne(final String pluginName, final String replacement) {
+        return new DeprecationMessage() {
+            @Override
+            public DeprecatedFeatureUsage toDeprecatedFeatureUsage(Class<?> calledFrom) {
+                summary(String.format("The %s plugin has been deprecated.", pluginName));
+                removalDetails(thisWillBeRemovedMessage());
+                withAdvice(String.format("Consider using the %s plugin instead.", replacement));
+                return super.toDeprecatedFeatureUsage(calledFrom);
+            }
+        };
+    }
+
+    // TODO: start here with documentation embedding
+    // Output: The ${pluginName} plugin has been deprecated. This is scheduled to be removed in Gradle X. Consult the upgrading guide for further information: link-to-user-manual/upgrading_version_${majorVersion}.html#${replacement}
+    public static DeprecationMessage deprecatedPlugin(final String pluginName, final int majorVersion, final String upgradeGuideSection) {
+        return new DeprecationMessage() {
+            @Override
+            public DeprecatedFeatureUsage toDeprecatedFeatureUsage(Class<?> calledFrom) {
+                summary(String.format("The %s plugin has been deprecated.", pluginName));
+                removalDetails(thisWillBeRemovedMessage());
+                withAdvice("Consult the upgrading guide for further information: " + new DocumentationRegistry().getDocumentationFor("upgrading_version_" + majorVersion, upgradeGuideSection));
                 return super.toDeprecatedFeatureUsage(calledFrom);
             }
         };

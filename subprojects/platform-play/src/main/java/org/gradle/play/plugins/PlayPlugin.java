@@ -19,6 +19,8 @@ package org.gradle.play.plugins;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.internal.deprecation.DeprecationMessage;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.util.SingleMessageLogger;
 
 /**
@@ -30,7 +32,7 @@ public class PlayPlugin implements Plugin<Project> {
 
     @Override
     public void apply(final Project project) {
-        SingleMessageLogger.nagUserOfPluginReplacedWithExternalOne("Play", "org.gradle.playframework");
+        DeprecationLogger.nagUserWith(DeprecationMessage.pluginReplacedWithExternalOne("Play", "org.gradle.playframework"));
         project.getPluginManager().apply(PlayApplicationPlugin.class);
         project.getPluginManager().apply(PlayTestPlugin.class);
         project.getPluginManager().apply(PlayJavaScriptPlugin.class);

@@ -234,6 +234,56 @@ class DeprecationLoggerTest extends Specification {
         events[0].message == "The taskName task has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Please use the replacementTask task instead."
     }
 
+    def "logs deprecated tool replaced with external one"() {
+        when:
+        DeprecationLogger.nagUserWith(DeprecationMessage.toolReplacedWithExternalOne("toolName", "replacement"))
+
+        then:
+        def events = outputEventListener.events
+        events.size() == 1
+        events[0].message == "The toolName has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Consider using replacement instead."
+    }
+
+    def "logs replaced plugin message"() {
+        when:
+        DeprecationLogger.nagUserWith(DeprecationMessage.replacedPlugin("pluginName", "replacement"))
+
+        then:
+        def events = outputEventListener.events
+        events.size() == 1
+        events[0].message == "The pluginName plugin has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Please use the replacement plugin instead."
+    }
+
+    def "logs plugin replaced with external one message"() {
+        when:
+        DeprecationLogger.nagUserWith(DeprecationMessage.pluginReplacedWithExternalOne("pluginName", "replacement"))
+
+        then:
+        def events = outputEventListener.events
+        events.size() == 1
+        events[0].message == "The pluginName plugin has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Consider using the replacement plugin instead."
+    }
+
+    def "logs deprecated plugin message"() {
+        when:
+        DeprecationLogger.nagUserWith(DeprecationMessage.deprecatedPlugin("pluginName").withAdvice("Advice."))
+
+        then:
+        def events = outputEventListener.events
+        events.size() == 1
+        events[0].message == "The pluginName plugin has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Advice."
+    }
+
+    def "logs deprecated plugin message with link to upgrade guide"() {
+        when:
+        DeprecationLogger.nagUserWith(DeprecationMessage.deprecatedPlugin("pluginName", 42, "upgradeGuideSection."))
+
+        then:
+        def events = outputEventListener.events
+        events.size() == 1
+        events[0].message == "The pluginName plugin has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_42.html#upgradeGuideSection."
+    }
+
     @Unroll
     def "logs deprecation message for deprecated configuration with #deprecationType deprecation"() {
         given:

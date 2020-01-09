@@ -27,6 +27,7 @@ import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.deprecation.DeprecationMessage;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.scala.tasks.PlatformScalaCompile;
 import org.gradle.model.ModelMap;
@@ -35,7 +36,7 @@ import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
 import org.gradle.play.PlayApplicationBinarySpec;
 import org.gradle.play.internal.PlayApplicationBinarySpecInternal;
-import org.gradle.util.SingleMessageLogger;
+import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 
@@ -49,7 +50,7 @@ public class PlayTestPlugin extends RuleSource {
     @Mutate
     void createTestTasks(ModelMap<Task> tasks, @Path("binaries") ModelMap<PlayApplicationBinarySpecInternal> playBinaries, final PlayPluginConfigurations configurations,
                          final FileResolver fileResolver, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir) {
-        SingleMessageLogger.nagUserOfPluginReplacedWithExternalOne("Play Test", "org.gradle.playframework-test");
+        DeprecationLogger.nagUserWith(DeprecationMessage.pluginReplacedWithExternalOne("Play Test", "org.gradle.playframework-test"));
         for (final PlayApplicationBinarySpecInternal binary : playBinaries) {
             final FileCollection testCompileClasspath = getTestCompileClasspath(binary, configurations);
 

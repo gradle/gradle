@@ -20,12 +20,13 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.plugins.ExtensionAware;
+import org.gradle.internal.deprecation.DeprecationMessage;
 import org.gradle.util.DeprecationLogger;
 
 public class JavaScriptBasePlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
-        DeprecationLogger.nagUserOfDeprecatedPlugin("org.gradle.javascript-base");
+        DeprecationLogger.nagUserWith(DeprecationMessage.deprecatedPlugin("org.gradle.javascript-base"));
         project.getPluginManager().apply(BasePlugin.class);
         project.getExtensions().create(JavaScriptExtension.NAME, JavaScriptExtension.class);
         ((ExtensionAware) project.getRepositories()).getExtensions().create(

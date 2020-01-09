@@ -21,6 +21,7 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.internal.deprecation.DeprecationMessage;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
@@ -38,7 +39,7 @@ import org.gradle.platform.base.TypeBuilder;
 import org.gradle.play.internal.PlayApplicationBinarySpecInternal;
 import org.gradle.play.internal.ScalaSourceCode;
 import org.gradle.play.tasks.RoutesCompile;
-import org.gradle.util.SingleMessageLogger;
+import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -55,7 +56,7 @@ public class PlayRoutesPlugin extends RuleSource {
 
     @ComponentType
     void registerRoutesLanguageType(TypeBuilder<RoutesSourceSet> builder) {
-        SingleMessageLogger.nagUserOfPluginReplacedWithExternalOne("Play Routes", "org.gradle.playframework-routes");
+        DeprecationLogger.nagUserWith(DeprecationMessage.pluginReplacedWithExternalOne("Play Routes", "org.gradle.playframework-routes"));
     }
 
     @Mutate

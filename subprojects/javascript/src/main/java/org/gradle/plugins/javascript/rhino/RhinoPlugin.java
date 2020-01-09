@@ -28,6 +28,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.plugins.ExtensionAware;
+import org.gradle.internal.deprecation.DeprecationMessage;
 import org.gradle.plugins.javascript.base.JavaScriptBasePlugin;
 import org.gradle.plugins.javascript.base.JavaScriptExtension;
 import org.gradle.util.DeprecationLogger;
@@ -37,7 +38,7 @@ import java.util.concurrent.Callable;
 public class RhinoPlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
-        DeprecationLogger.nagUserOfDeprecatedPlugin("org.gradle.rhino");
+        DeprecationLogger.nagUserWith(DeprecationMessage.deprecatedPlugin("org.gradle.rhino"));
         project.getPluginManager().apply(JavaScriptBasePlugin.class);
 
         JavaScriptExtension jsExtension = project.getExtensions().findByType(JavaScriptExtension.class);

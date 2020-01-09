@@ -16,7 +16,6 @@
 
 package org.gradle.util;
 
-import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.internal.Factory;
 import org.gradle.internal.deprecation.DeprecationMessage;
@@ -59,71 +58,6 @@ public class SingleMessageLogger {
 
     public synchronized static void reportSuppressedDeprecations() {
         deprecatedFeatureHandler.reportSuppressedDeprecations();
-    }
-
-    /**
-     * Output format:
-     * <p>
-     * The ${pluginName} plugin has been deprecated. This is scheduled to be removed in Gradle X. Please use the ${replacement} plugin instead.
-     */
-    public static void nagUserOfReplacedPlugin(String pluginName, String replacement) {
-        if (isEnabled()) {
-            nagUserOfDeprecatedPlugin(pluginName, String.format("Please use the %s plugin instead.", replacement));
-        }
-    }
-
-    /**
-     * Output format:
-     * <p>
-     * The ${pluginName} plugin has been deprecated. This is scheduled to be removed in Gradle X. Consider using the ${replacement} plugin instead.
-     */
-    public static void nagUserOfPluginReplacedWithExternalOne(String pluginName, String replacement) {
-        if (isEnabled()) {
-            nagUserOfDeprecatedPlugin(pluginName, String.format("Consider using the %s plugin instead.", replacement));
-        }
-    }
-
-    /**
-     * Output format:
-     * <p>
-     * The ${pluginName} plugin has been deprecated. This is scheduled to be removed in Gradle X.
-     */
-    public static void nagUserOfDeprecatedPlugin(String pluginName) {
-        nagUserOfDeprecatedPlugin(pluginName, null);
-    }
-
-    /**
-     * Output format:
-     * <p>
-     * The ${pluginName} plugin has been deprecated. This is scheduled to be removed in Gradle X. Consult the upgrading guide for further information: link-to-user-manual/upgrading_version_${majorVersion}.html#${replacement}
-     */
-    public static void nagUserOfDeprecatedPlugin(String pluginName, int majorVersion, String upgradeGuideSection) {
-        nagUserOfDeprecatedPlugin(pluginName, "Consult the upgrading guide for further information: " +
-            new DocumentationRegistry().getDocumentationFor("upgrading_version_" + majorVersion, upgradeGuideSection));
-    }
-
-    /**
-     * Output format:
-     * <p>
-     * The ${pluginName} plugin has been deprecated. This is scheduled to be removed in Gradle X. ${advice}
-     */
-    public static void nagUserOfDeprecatedPlugin(String pluginName, @Nullable String advice) {
-        if (isEnabled()) {
-            nagUserWith(new DeprecationMessage(String.format("The %s plugin has been deprecated.", pluginName), thisWillBeRemovedMessage())
-                .withAdvice(advice));
-        }
-    }
-
-    /**
-     * Output format:
-     * <p>
-     * The ${toolName} has been deprecated. This is scheduled to be removed in Gradle X. Consider using ${replacement} instead.
-     */
-    public static void nagUserOfToolReplacedWithExternalOne(String toolName, String replacement) {
-        if (isEnabled()) {
-            nagUserWith(new DeprecationMessage(String.format("The %s has been deprecated.", toolName), thisWillBeRemovedMessage())
-                .withAdvice(String.format("Consider using %s instead.", replacement)));
-        }
     }
 
     /**

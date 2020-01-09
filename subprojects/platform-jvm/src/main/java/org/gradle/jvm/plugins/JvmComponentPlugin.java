@@ -28,6 +28,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
+import org.gradle.internal.deprecation.DeprecationMessage;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JarBinarySpec;
@@ -97,7 +98,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project project) {
-        DeprecationLogger.nagUserOfDeprecatedPlugin("jvm-component", 6, "upgrading_jvm_plugins");
+        DeprecationLogger.nagUserWith(DeprecationMessage.deprecatedPlugin("jvm-component", 6, "upgrading_jvm_plugins"));
     }
 
     @SuppressWarnings("UnusedDeclaration")
