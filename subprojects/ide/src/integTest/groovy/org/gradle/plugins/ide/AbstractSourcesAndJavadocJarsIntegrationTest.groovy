@@ -30,6 +30,8 @@ abstract class AbstractSourcesAndJavadocJarsIntegrationTest extends AbstractIdeI
     @Rule
     HttpServer server
 
+    String groovyAllVersion = "1.3-2.5.8"
+
     def setup() {
         server.start()
         executer.requireOwnGradleUserHomeDir()
@@ -553,6 +555,109 @@ dependencies {
             "submodule1/org/gradle/Test.java",
             "submodule2/org/gradle/Test2.java"
         )
+    }
+
+    @ToBeFixedForInstantExecution
+    def "sources for localGroovy() are downloaded and attached"() {
+        given:
+        def repo = givenGroovyAllExistsInGradleRepo()
+        executer.withEnvironmentVars('GRADLE_LIBS_REPO_OVERRIDE': "$repo.uri/")
+
+        buildScript """
+            apply plugin: "java"
+            apply plugin: "idea"
+            apply plugin: "eclipse"
+
+            dependencies {
+                implementation localGroovy()
+            }
+            """
+
+        when:
+        succeeds ideTask
+
+        then:
+        ideFileContainsEntry("groovy-all-${groovyAllVersion}.jar", ["groovy-all-${groovyAllVersion}-sources.jar"], [])
+    }
+
+    @ToBeFixedForInstantExecution
+    def "sources for localGroovy() are downloaded and attached when using gradleApi()"() {
+        given:
+        def repo = givenGroovyAllExistsInGradleRepo()
+        executer.withEnvironmentVars('GRADLE_LIBS_REPO_OVERRIDE': "$repo.uri/")
+
+        buildScript """
+            apply plugin: "java"
+            apply plugin: "idea"
+            apply plugin: "eclipse"
+
+            dependencies {
+                implementation gradleApi()
+            }
+            """
+
+        when:
+        succeeds ideTask
+
+        then:
+        ideFileContainsEntry("groovy-all-${groovyAllVersion}.jar", ["groovy-all-${groovyAllVersion}-sources.jar"], [])
+    }
+
+    @ToBeFixedForInstantExecution
+    def "does not download localGroovy() sources when sources download is disabled"() {
+        given:
+        executer.withEnvironmentVars('GRADLE_LIBS_REPO_OVERRIDE': "$server.uri/")
+
+        buildScript """
+            apply plugin: "java"
+            apply plugin: "idea"
+            apply plugin: "eclipse"
+
+            dependencies {
+                implementation localGroovy()
+            }
+
+            idea.module.downloadSources = false
+            eclipse.classpath.downloadSources = false
+            """
+
+        when:
+        succeeds ideTask
+
+        then:
+        ideFileContainsNoSourcesAndJavadocEntry()
+    }
+
+    @ToBeFixedForInstantExecution
+    def "does not download localGroovy() sources when offline"() {
+        given:
+        executer.withEnvironmentVars('GRADLE_LIBS_REPO_OVERRIDE': "$server.uri/")
+
+        buildScript """
+            apply plugin: "java"
+            apply plugin: "idea"
+            apply plugin: "eclipse"
+
+            dependencies {
+                implementation localGroovy()
+            }
+            """
+
+        when:
+        args("--offline")
+        succeeds ideTask
+
+        then:
+        ideFileContainsNoSourcesAndJavadocEntry()
+    }
+
+    def givenGroovyAllExistsInGradleRepo() {
+        def repo = mavenHttpRepo
+        def module = repo.module("org.gradle.groovy", "groovy-all", groovyAllVersion)
+        module.artifact(classifier: "sources")
+        module.publish()
+        module.allowAll()
+        return repo
     }
 
     private useIvyRepo(def repo) {

@@ -32,8 +32,14 @@ class EclipseSourcesAndJavadocJarsIntegrationTest extends AbstractSourcesAndJava
         def lib = classpath.lib(jar)
 
         // Eclipse only retains the first source/javadoc file
-        assert lib.sourcePath.endsWith("/${sources.get(0)}")
-        assert lib.javadocLocation.endsWith("/${javadoc.get(0)}!/")
+        if (!sources.isEmpty()) {
+            assert lib.sourcePath != null: "no sources attached"
+            assert lib.sourcePath.endsWith("/${sources.get(0)}")
+        }
+        if (!javadoc.isEmpty()) {
+            assert lib.javadocLocation != null: "no javadoc attached"
+            assert lib.javadocLocation.endsWith("/${javadoc.get(0)}!/")
+        }
     }
 
     @Override
