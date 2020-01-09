@@ -333,7 +333,14 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
         skipped ":b:${language.compileTaskName}"
     }
 
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
+    @ToBeFixedForInstantExecution(bottomSpecs = [
+        "IncrementalJavaCompileAvoidanceAgainstJarIntegrationSpec",
+        "NonIncrementalJavaCompileAvoidanceAgainstJarIntegrationSpec",
+        "IncrementalGroovyCompileAvoidanceAgainstJarIntegrationSpec",
+        "IncrementalGroovyCompileAvoidanceAgainstClassDirIntegrationSpec",
+        "NonIncrementalGroovyCompileAvoidanceAgainstJarIntegrationSpec",
+        "NonIncrementalGroovyCompileAvoidanceAgainstClassDirIntegrationSpec"
+    ])
     def "recompiles when type of implementation class changes"() {
         given:
         buildFile << """
@@ -433,7 +440,14 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
         executedAndNotSkipped ":b:${language.compileTaskName}"
     }
 
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
+    @ToBeFixedForInstantExecution(bottomSpecs = [
+        "IncrementalJavaCompileAvoidanceAgainstJarIntegrationSpec",
+        "NonIncrementalJavaCompileAvoidanceAgainstJarIntegrationSpec",
+        "IncrementalGroovyCompileAvoidanceAgainstJarIntegrationSpec",
+        "IncrementalGroovyCompileAvoidanceAgainstClassDirIntegrationSpec",
+        "NonIncrementalGroovyCompileAvoidanceAgainstJarIntegrationSpec",
+        "NonIncrementalGroovyCompileAvoidanceAgainstClassDirIntegrationSpec"
+    ])
     def "recompiles when generic type signatures of implementation class changes"() {
         given:
         buildFile << """

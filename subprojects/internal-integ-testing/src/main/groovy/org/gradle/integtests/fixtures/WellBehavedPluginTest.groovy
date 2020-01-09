@@ -40,7 +40,20 @@ abstract class WellBehavedPluginTest extends AbstractPluginIntegrationTest {
         return "assemble"
     }
 
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
+    @ToBeFixedForInstantExecution(bottomSpecs = [
+        "HelpTasksPluginIntegrationTest",
+        "JavaGradlePluginPluginIntegrationTest",
+        "ApplicationPluginIntegrationTest",
+        "CheckstylePluginIntegrationTest",
+        "CodeNarcPluginIntegrationTest",
+        "PmdPluginIntegrationTest",
+        "WarPluginGoodBehaviourTest",
+        "CppLibraryPluginIntegrationTest",
+        "CppApplicationPluginIntegrationTest",
+        "SwiftLibraryPluginIntegrationTest",
+        "SwiftApplicationPluginIntegrationTest",
+        "XcodePluginIntegrationTest"
+    ])
     def "can apply plugin unqualified"() {
         given:
         applyPluginUnqualified()
@@ -61,7 +74,20 @@ abstract class WellBehavedPluginTest extends AbstractPluginIntegrationTest {
         !file("build").exists()
     }
 
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
+    @ToBeFixedForInstantExecution(bottomSpecs = [
+        "HelpTasksPluginIntegrationTest",
+        "JavaGradlePluginPluginIntegrationTest",
+        "ApplicationPluginIntegrationTest",
+        "CheckstylePluginIntegrationTest",
+        "CodeNarcPluginIntegrationTest",
+        "PmdPluginIntegrationTest",
+        "WarPluginGoodBehaviourTest",
+        "CppLibraryPluginIntegrationTest",
+        "CppApplicationPluginIntegrationTest",
+        "SwiftLibraryPluginIntegrationTest",
+        "SwiftApplicationPluginIntegrationTest",
+        "XcodePluginIntegrationTest"
+    ])
     def "plugin can build with empty project"() {
         given:
         applyPlugin()
