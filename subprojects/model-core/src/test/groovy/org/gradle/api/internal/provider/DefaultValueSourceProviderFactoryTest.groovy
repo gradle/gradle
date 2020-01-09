@@ -83,7 +83,7 @@ class DefaultValueSourceProviderFactoryTest extends ValueSourceBasedSpec {
         def provider = createProviderOf(EchoValueSource) {}
 
         expect:
-        ((Managed) provider).immutable()
+        ((Managed) provider).isImmutable()
     }
 
     static abstract class EchoValueSource implements ValueSource<String, Parameters> {

@@ -61,7 +61,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     }
 
     @Override
-    public boolean immutable() {
+    public boolean isImmutable() {
         return false;
     }
 
