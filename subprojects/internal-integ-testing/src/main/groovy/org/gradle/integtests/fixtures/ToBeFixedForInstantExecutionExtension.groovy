@@ -38,7 +38,7 @@ class ToBeFixedForInstantExecutionExtension extends AbstractAnnotationDrivenExte
                 if (annotation != null) {
                     if (isEnabledBottomSpec(annotation.bottomSpecs(), { spec.bottomSpec.name == it })) {
                         ToBeFixedForInstantExecution.Skip skip = annotation.skip()
-                        if (skip == ToBeFixedForInstantExecution.Skip.DO_NOT_SKIP) {
+                        if (skip == ToBeFixedForInstantExecution.Skip.DO_NOT_SKIP || skip == ToBeFixedForInstantExecution.Skip.FAILS_TO_CLEANUP) {
                             spec.addListener(new CatchFeatureFailuresRunListener(feature))
                         } else {
                             feature.skipped = true
