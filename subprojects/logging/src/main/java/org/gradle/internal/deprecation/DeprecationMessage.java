@@ -19,13 +19,19 @@ package org.gradle.internal.deprecation;
 import com.google.common.base.Joiner;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.internal.featurelifecycle.DeprecatedFeatureUsage;
+import org.gradle.util.GradleVersion;
 
 import java.util.List;
 
-import static org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler.getRemovalDetails;
-import static org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler.getWillBecomeErrorMessage;
-
 public class DeprecationMessage {
+
+    private static final DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry();
+
+    private static String isScheduledToBeRemovedMessage;
+    private static String willBecomeErrorMessage;
+    private static String thisHasBeenDeprecatedAndIsScheduledToBeRemoved;
+    private static String thisIsScheduledToBeRemoved;
+    private static String thisBehaviourHasBeenDeprecatedAndIsScheduledToBeRemoved;
 
     private String summary;
     private String removalDetails;
@@ -41,7 +47,7 @@ public class DeprecationMessage {
             @Override
             public DeprecatedFeatureUsage toDeprecatedFeatureUsage(Class<?> calledFrom) {
                 summary(summary);
-                removalDetails(String.format("This has been deprecated and %s", getRemovalDetails()));
+                removalDetails(thisHasBeenDeprecatedAndIsScheduledToBeRemoved());
                 return super.toDeprecatedFeatureUsage(calledFrom);
             }
         };
@@ -52,8 +58,8 @@ public class DeprecationMessage {
         return new DeprecationMessage() {
             @Override
             public DeprecatedFeatureUsage toDeprecatedFeatureUsage(Class<?> calledFrom) {
-                summary(String.format("%s has been deprecated.", thing));
-                removalDetails(thisWillBeRemovedMessage());
+                summary(xHasBeenDeprecated(thing));
+                removalDetails(thisIsScheduledToBeRemoved());
                 return super.toDeprecatedFeatureUsage(calledFrom);
             }
         };
@@ -64,26 +70,18 @@ public class DeprecationMessage {
         return specificThingHasBeenDeprecated(thing).withIndirectUsage();
     }
 
+    // Output: ${feature} has been deprecated. This is scheduled to be removed in Gradle {X}.
+    public static DeprecationMessage deprecatedBuildInvocationFeature(String feature) {
+        return specificThingHasBeenDeprecated(feature).withBuildInvocation();
+    }
+
     // Output: ${behaviour}. This behaviour has been deprecated and is scheduled to be removed in Gradle {X}.
     public static DeprecationMessage behaviourHasBeenDeprecated(final String behaviour) {
         return new DeprecationMessage() {
             @Override
             public DeprecatedFeatureUsage toDeprecatedFeatureUsage(Class<?> calledFrom) {
                 summary(behaviour);
-                removalDetails(String.format("This behaviour has been deprecated and %s", getRemovalDetails()));
-                return super.toDeprecatedFeatureUsage(calledFrom);
-            }
-        };
-    }
-
-    // Output: ${feature} has been deprecated. This is scheduled to be removed in Gradle {X}.
-    public static DeprecationMessage deprecatedBuildInvocationFeature(final String feature) {
-        return new DeprecationMessage() {
-            @Override
-            public DeprecatedFeatureUsage toDeprecatedFeatureUsage(Class<?> calledFrom) {
-                summary(String.format("%s has been deprecated.", feature));
-                removalDetails(thisWillBeRemovedMessage());
-                withBuildInvocation();
+                removalDetails(thisBehaviourHasBeenDeprecatedAndIsScheduledToBeRemoved());
                 return super.toDeprecatedFeatureUsage(calledFrom);
             }
         };
@@ -95,7 +93,7 @@ public class DeprecationMessage {
             @Override
             public DeprecatedFeatureUsage toDeprecatedFeatureUsage(Class<?> calledFrom) {
                 summary(String.format("The %s named parameter has been deprecated.", parameterName));
-                removalDetails(thisWillBeRemovedMessage());
+                removalDetails(thisIsScheduledToBeRemoved());
                 withAdvice(String.format("Please use the %s named parameter instead.", replacement));
                 return super.toDeprecatedFeatureUsage(calledFrom);
             }
@@ -107,8 +105,8 @@ public class DeprecationMessage {
         return new DeprecationMessage() {
             @Override
             public DeprecatedFeatureUsage toDeprecatedFeatureUsage(Class<?> calledFrom) {
-                summary(String.format("The %s property has been deprecated.", propertyName));
-                removalDetails(thisWillBeRemovedMessage());
+                summary(propertyHasBeenDeprecated(propertyName));
+                removalDetails(thisIsScheduledToBeRemoved());
                 return super.toDeprecatedFeatureUsage(calledFrom);
             }
         };
@@ -119,8 +117,8 @@ public class DeprecationMessage {
         return new DeprecationMessage() {
             @Override
             public DeprecatedFeatureUsage toDeprecatedFeatureUsage(Class<?> calledFrom) {
-                summary(String.format("The %s property has been deprecated.", propertyName));
-                removalDetails(thisWillBeRemovedMessage());
+                summary(propertyHasBeenDeprecated(propertyName));
+                removalDetails(thisIsScheduledToBeRemoved());
                 withAdvice(String.format("Please use the %s property instead.", replacement));
                 return super.toDeprecatedFeatureUsage(calledFrom);
             }
@@ -132,7 +130,7 @@ public class DeprecationMessage {
             @Override
             public DeprecatedFeatureUsage toDeprecatedFeatureUsage(Class<?> calledFrom) {
                 summary(String.format("The %s configuration has been deprecated for %s.", configurationName, deprecationType.displayName()));
-                removalDetails(getWillBecomeErrorMessage());
+                removalDetails(thisWillBecomeAnError());
                 withAdvice(String.format("Please %s the %s configuration instead.", deprecationType.usage, Joiner.on(" or ").join(replacements)));
                 if (!deprecationType.inUserCode) {
                     withIndirectUsage();
@@ -147,8 +145,8 @@ public class DeprecationMessage {
         return new DeprecationMessage() {
             @Override
             public DeprecatedFeatureUsage toDeprecatedFeatureUsage(Class<?> calledFrom) {
-                summary(String.format("The %s method has been deprecated.", methodName));
-                removalDetails(thisWillBeRemovedMessage());
+                summary(methodHasBeenDeprecated(methodName));
+                removalDetails(thisIsScheduledToBeRemoved());
                 return super.toDeprecatedFeatureUsage(calledFrom);
             }
         };
@@ -159,9 +157,9 @@ public class DeprecationMessage {
         return new DeprecationMessage() {
             @Override
             public DeprecatedFeatureUsage toDeprecatedFeatureUsage(Class<?> calledFrom) {
-                summary(String.format("The %s method has been deprecated.", methodName));
-                removalDetails(thisWillBeRemovedMessage());
-                withAdvice(String.format("Please use the %s method instead.", replacement));
+                summary(methodHasBeenDeprecated(methodName));
+                removalDetails(thisIsScheduledToBeRemoved());
+                withAdvice(pleaseUseThisMethodInstead(replacement));
                 return super.toDeprecatedFeatureUsage(calledFrom);
             }
         };
@@ -172,7 +170,7 @@ public class DeprecationMessage {
         return new DeprecationMessage() {
             @Override
             public DeprecatedFeatureUsage toDeprecatedFeatureUsage(Class<?> calledFrom) {
-                summary(String.format("Using method %s has been deprecated.", invocation));
+                summary(usingMethodHasBeenDeprecated(invocation));
                 removalDetails(thisWillBecomeAnError());
                 return super.toDeprecatedFeatureUsage(calledFrom);
             }
@@ -181,13 +179,13 @@ public class DeprecationMessage {
 
     // Use for some operation that is not deprecated, but something about the method parameters or state is deprecated.
     // Output: Using method ${methodName} has been deprecated. This will fail with an error in Gradle {X}. Please use the ${replacement} method instead.
-    public static DeprecationMessage replacedMethodInvocation(final String methodName, final String replacement) {
+    public static DeprecationMessage replacedMethodInvocation(final String invocation, final String replacement) {
         return new DeprecationMessage() {
             @Override
             public DeprecatedFeatureUsage toDeprecatedFeatureUsage(Class<?> calledFrom) {
-                summary(String.format("Using method %s has been deprecated.", methodName));
+                summary(usingMethodHasBeenDeprecated(invocation));
                 removalDetails(thisWillBecomeAnError());
-                withAdvice(String.format("Please use the %s method instead.", replacement));
+                withAdvice(pleaseUseThisMethodInstead(replacement));
                 return super.toDeprecatedFeatureUsage(calledFrom);
             }
         };
@@ -199,7 +197,7 @@ public class DeprecationMessage {
         return new DeprecationMessage() {
             @Override
             public DeprecatedFeatureUsage toDeprecatedFeatureUsage(Class<?> calledFrom) {
-                summary(String.format("%s has been deprecated.", invocation));
+                summary(xHasBeenDeprecated(invocation));
                 removalDetails(thisWillBecomeAnError());
                 return super.toDeprecatedFeatureUsage(calledFrom);
             }
@@ -212,7 +210,7 @@ public class DeprecationMessage {
             @Override
             public DeprecatedFeatureUsage toDeprecatedFeatureUsage(Class<?> calledFrom) {
                 summary(String.format("The %s task type has been deprecated.", taskName));
-                removalDetails(thisWillBeRemovedMessage());
+                removalDetails(thisIsScheduledToBeRemoved());
                 withAdvice(String.format("Please use the %s instead.", replacement));
                 return super.toDeprecatedFeatureUsage(calledFrom);
             }
@@ -225,7 +223,7 @@ public class DeprecationMessage {
             @Override
             public DeprecatedFeatureUsage toDeprecatedFeatureUsage(Class<?> calledFrom) {
                 summary(String.format("The %s task has been deprecated.", taskName));
-                removalDetails(thisWillBeRemovedMessage());
+                removalDetails(thisIsScheduledToBeRemoved());
                 withAdvice(String.format("Please use the %s task instead.", replacement));
                 return super.toDeprecatedFeatureUsage(calledFrom);
             }
@@ -238,7 +236,7 @@ public class DeprecationMessage {
             @Override
             public DeprecatedFeatureUsage toDeprecatedFeatureUsage(Class<?> calledFrom) {
                 summary(String.format("The %s has been deprecated.", toolName));
-                removalDetails(thisWillBeRemovedMessage());
+                removalDetails(thisIsScheduledToBeRemoved());
                 withAdvice(String.format("Consider using %s instead.", replacement));
                 return super.toDeprecatedFeatureUsage(calledFrom);
             }
@@ -250,8 +248,8 @@ public class DeprecationMessage {
         return new DeprecationMessage() {
             @Override
             public DeprecatedFeatureUsage toDeprecatedFeatureUsage(Class<?> calledFrom) {
-                summary(String.format("The %s plugin has been deprecated.", pluginName));
-                removalDetails(thisWillBeRemovedMessage());
+                summary(pluginHasBeenDeprecated(pluginName));
+                removalDetails(thisIsScheduledToBeRemoved());
                 return super.toDeprecatedFeatureUsage(calledFrom);
             }
         };
@@ -262,8 +260,8 @@ public class DeprecationMessage {
         return new DeprecationMessage() {
             @Override
             public DeprecatedFeatureUsage toDeprecatedFeatureUsage(Class<?> calledFrom) {
-                summary(String.format("The %s plugin has been deprecated.", pluginName));
-                removalDetails(thisWillBeRemovedMessage());
+                summary(pluginHasBeenDeprecated(pluginName));
+                removalDetails(thisIsScheduledToBeRemoved());
                 withAdvice(String.format("Please use the %s plugin instead.", replacement));
                 return super.toDeprecatedFeatureUsage(calledFrom);
             }
@@ -275,8 +273,8 @@ public class DeprecationMessage {
         return new DeprecationMessage() {
             @Override
             public DeprecatedFeatureUsage toDeprecatedFeatureUsage(Class<?> calledFrom) {
-                summary(String.format("The %s plugin has been deprecated.", pluginName));
-                removalDetails(thisWillBeRemovedMessage());
+                summary(pluginHasBeenDeprecated(pluginName));
+                removalDetails(thisIsScheduledToBeRemoved());
                 withAdvice(String.format("Consider using the %s plugin instead.", replacement));
                 return super.toDeprecatedFeatureUsage(calledFrom);
             }
@@ -289,9 +287,9 @@ public class DeprecationMessage {
         return new DeprecationMessage() {
             @Override
             public DeprecatedFeatureUsage toDeprecatedFeatureUsage(Class<?> calledFrom) {
-                summary(String.format("The %s plugin has been deprecated.", pluginName));
-                removalDetails(thisWillBeRemovedMessage());
-                withAdvice("Consult the upgrading guide for further information: " + new DocumentationRegistry().getDocumentationFor("upgrading_version_" + majorVersion, upgradeGuideSection));
+                summary(pluginHasBeenDeprecated(pluginName));
+                removalDetails(thisIsScheduledToBeRemoved());
+                withAdvice("Consult the upgrading guide for further information: " + DOCUMENTATION_REGISTRY.getDocumentationFor("upgrading_version_" + majorVersion, upgradeGuideSection));
                 return super.toDeprecatedFeatureUsage(calledFrom);
             }
         };
@@ -342,12 +340,63 @@ public class DeprecationMessage {
         return new DeprecatedFeatureUsage(summary, removalDetails, advice, contextualAdvice, usageType, calledFrom);
     }
 
-    static String thisWillBeRemovedMessage() {
-        return String.format("This %s", getRemovalDetails());
+    private static String xHasBeenDeprecated(String x) {
+        return String.format("%s has been deprecated.", x);
+    }
+
+    private static String propertyHasBeenDeprecated(String propertyName) {
+        return String.format("The %s property has been deprecated.", propertyName);
+    }
+
+    private static String methodHasBeenDeprecated(String methodName) {
+        return String.format("The %s method has been deprecated.", methodName);
+    }
+
+    private static String pleaseUseThisMethodInstead(String replacement) {
+        return String.format("Please use the %s method instead.", replacement);
+    }
+
+    private static String usingMethodHasBeenDeprecated(String invocation) {
+        return String.format("Using method %s has been deprecated.", invocation);
+    }
+
+    private static String pluginHasBeenDeprecated(String pluginName) {
+        return String.format("The %s plugin has been deprecated.", pluginName);
+    }
+
+    private static String thisBehaviourHasBeenDeprecatedAndIsScheduledToBeRemoved() {
+        if (thisBehaviourHasBeenDeprecatedAndIsScheduledToBeRemoved == null) {
+            thisBehaviourHasBeenDeprecatedAndIsScheduledToBeRemoved = String.format("This behaviour has been deprecated and %s", isScheduledToBeRemoved());
+        }
+        return thisBehaviourHasBeenDeprecatedAndIsScheduledToBeRemoved;
+    }
+
+    private static String thisIsScheduledToBeRemoved() {
+        if (thisIsScheduledToBeRemoved == null) {
+            thisIsScheduledToBeRemoved = String.format("This %s", isScheduledToBeRemoved());
+        }
+        return thisIsScheduledToBeRemoved;
+    }
+
+    private static String thisHasBeenDeprecatedAndIsScheduledToBeRemoved() {
+        if (thisHasBeenDeprecatedAndIsScheduledToBeRemoved == null) {
+            thisHasBeenDeprecatedAndIsScheduledToBeRemoved = String.format("This has been deprecated and %s", isScheduledToBeRemoved());
+        }
+        return thisHasBeenDeprecatedAndIsScheduledToBeRemoved;
+    }
+
+    private static String isScheduledToBeRemoved() {
+        if (isScheduledToBeRemovedMessage == null) {
+            isScheduledToBeRemovedMessage = String.format("is scheduled to be removed in Gradle %s.", GradleVersion.current().getNextMajor().getVersion());
+        }
+        return isScheduledToBeRemovedMessage;
     }
 
     private static String thisWillBecomeAnError() {
-        return getWillBecomeErrorMessage();
+        if (willBecomeErrorMessage == null) {
+            willBecomeErrorMessage = String.format("This will fail with an error in Gradle %s.", GradleVersion.current().getNextMajor().getVersion());
+        }
+        return willBecomeErrorMessage;
     }
 
 }

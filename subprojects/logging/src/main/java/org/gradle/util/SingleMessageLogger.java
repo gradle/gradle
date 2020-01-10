@@ -30,9 +30,6 @@ import org.gradle.internal.featurelifecycle.UsageLocationReporter;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
-import static org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler.getRemovalDetails;
-import static org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler.getWillBecomeErrorMessage;
-
 @ThreadSafe
 public class SingleMessageLogger {
     private static final ThreadLocal<Boolean> ENABLED = new ThreadLocal<Boolean>() {
@@ -107,14 +104,6 @@ public class SingleMessageLogger {
 
     private static boolean isEnabled() {
         return ENABLED.get();
-    }
-
-    private static String thisWillBecomeAnError() {
-        return getWillBecomeErrorMessage();
-    }
-
-    private static String thisWillBeRemovedMessage() {
-        return String.format("This %s", getRemovalDetails());
     }
 
     public static void incubatingFeatureUsed(String incubatingFeature) {
