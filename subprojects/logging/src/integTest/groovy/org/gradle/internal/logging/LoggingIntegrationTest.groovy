@@ -150,25 +150,25 @@ class LoggingIntegrationTest extends AbstractIntegrationTest {
     }}
 
     @Test
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_TO_CLEANUP)
+    @ToBeFixedForInstantExecution
     public void quietLogging() {
         checkOutput(this.&run, logOutput.quiet)
     }
 
     @Test
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_TO_CLEANUP)
+    @ToBeFixedForInstantExecution
     public void lifecycleLogging() {
         checkOutput(this.&run, logOutput.lifecycle)
     }
 
     @Test
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_TO_CLEANUP)
+    @ToBeFixedForInstantExecution
     public void infoLogging() {
         checkOutput(this.&run, logOutput.info)
     }
 
     @Test
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_TO_CLEANUP)
+    @ToBeFixedForInstantExecution
     public void debugLogging() {
         checkOutput(this.&run, logOutput.debug)
     }

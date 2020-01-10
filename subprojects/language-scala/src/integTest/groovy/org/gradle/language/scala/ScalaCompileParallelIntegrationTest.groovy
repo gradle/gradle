@@ -108,7 +108,7 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
     }
 
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_TO_CLEANUP)
+    @ToBeFixedForInstantExecution
     def "multiple independent builds are multi-process safe" () {
         given:
         def projects = (1..MAX_PARALLEL_COMPILERS)

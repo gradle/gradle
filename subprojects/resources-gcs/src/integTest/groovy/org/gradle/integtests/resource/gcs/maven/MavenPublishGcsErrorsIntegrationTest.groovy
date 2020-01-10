@@ -43,7 +43,7 @@ class MavenPublishGcsErrorsIntegrationTest extends AbstractMavenPublishIntegTest
         executer.withArgument("-D${GCS_DISABLE_AUTH_PROPERTY}=true")
     }
 
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_TO_CLEANUP)
+    @ToBeFixedForInstantExecution
     def "should fail with an authentication error"() {
         setup:
         settingsFile << "rootProject.name = '${projectName}'"

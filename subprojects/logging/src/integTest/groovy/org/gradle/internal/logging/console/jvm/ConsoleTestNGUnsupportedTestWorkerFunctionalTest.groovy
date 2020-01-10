@@ -46,7 +46,7 @@ class ConsoleTestNGUnsupportedTestWorkerFunctionalTest extends AbstractIntegrati
         server.start()
     }
 
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_TO_CLEANUP)
+    @ToBeFixedForInstantExecution
     def "omits parallel test execution if TestNG version does not emit class listener events"() {
         given:
         buildFile << testableJavaProject(TESTNG_DEPENDENCY, MAX_WORKERS)

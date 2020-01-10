@@ -38,7 +38,7 @@ class MavenPublishGcsIntegrationTest extends AbstractMavenPublishIntegTest {
         executer.withArgument("-D${GCS_DISABLE_AUTH_PROPERTY}=true")
     }
 
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_TO_CLEANUP)
+    @ToBeFixedForInstantExecution
     def "can publish to a Gcs Maven repository"() {
         given:
         def mavenRepo = new MavenGcsRepository(server, file("repo"), "/maven", "testGcsBucket")

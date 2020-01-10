@@ -59,7 +59,7 @@ class MavenSftpRepoResolveIntegrationTest extends AbstractSftpDependencyResoluti
     }
 
 
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_TO_CLEANUP)
+    @ToBeFixedForInstantExecution
     def "cannot add invalid authentication types for sftp repo"() {
         given:
         def mavenSftpRepo = getMavenSftpRepo()
