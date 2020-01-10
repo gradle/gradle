@@ -19,19 +19,23 @@ package org.gradle.internal.deprecation;
 import com.google.common.base.Joiner;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.internal.featurelifecycle.DeprecatedFeatureUsage;
-import org.gradle.util.GradleVersion;
 
 import java.util.List;
+
+import static org.gradle.internal.deprecation.Messages.methodHasBeenDeprecated;
+import static org.gradle.internal.deprecation.Messages.pleaseUseThisMethodInstead;
+import static org.gradle.internal.deprecation.Messages.pluginHasBeenDeprecated;
+import static org.gradle.internal.deprecation.Messages.propertyHasBeenDeprecated;
+import static org.gradle.internal.deprecation.Messages.thisBehaviourHasBeenDeprecatedAndIsScheduledToBeRemoved;
+import static org.gradle.internal.deprecation.Messages.thisHasBeenDeprecatedAndIsScheduledToBeRemoved;
+import static org.gradle.internal.deprecation.Messages.thisIsScheduledToBeRemoved;
+import static org.gradle.internal.deprecation.Messages.thisWillBecomeAnError;
+import static org.gradle.internal.deprecation.Messages.usingMethodHasBeenDeprecated;
+import static org.gradle.internal.deprecation.Messages.xHasBeenDeprecated;
 
 public class DeprecationMessage {
 
     private static final DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry();
-
-    private static String isScheduledToBeRemovedMessage;
-    private static String willBecomeErrorMessage;
-    private static String thisHasBeenDeprecatedAndIsScheduledToBeRemoved;
-    private static String thisIsScheduledToBeRemoved;
-    private static String thisBehaviourHasBeenDeprecatedAndIsScheduledToBeRemoved;
 
     private String summary;
     private String removalDetails;
@@ -338,65 +342,6 @@ public class DeprecationMessage {
 
     public DeprecatedFeatureUsage toDeprecatedFeatureUsage(Class<?> calledFrom) {
         return new DeprecatedFeatureUsage(summary, removalDetails, advice, contextualAdvice, usageType, calledFrom);
-    }
-
-    private static String xHasBeenDeprecated(String x) {
-        return String.format("%s has been deprecated.", x);
-    }
-
-    private static String propertyHasBeenDeprecated(String propertyName) {
-        return String.format("The %s property has been deprecated.", propertyName);
-    }
-
-    private static String methodHasBeenDeprecated(String methodName) {
-        return String.format("The %s method has been deprecated.", methodName);
-    }
-
-    private static String pleaseUseThisMethodInstead(String replacement) {
-        return String.format("Please use the %s method instead.", replacement);
-    }
-
-    private static String usingMethodHasBeenDeprecated(String invocation) {
-        return String.format("Using method %s has been deprecated.", invocation);
-    }
-
-    private static String pluginHasBeenDeprecated(String pluginName) {
-        return String.format("The %s plugin has been deprecated.", pluginName);
-    }
-
-    private static String thisBehaviourHasBeenDeprecatedAndIsScheduledToBeRemoved() {
-        if (thisBehaviourHasBeenDeprecatedAndIsScheduledToBeRemoved == null) {
-            thisBehaviourHasBeenDeprecatedAndIsScheduledToBeRemoved = String.format("This behaviour has been deprecated and %s", isScheduledToBeRemoved());
-        }
-        return thisBehaviourHasBeenDeprecatedAndIsScheduledToBeRemoved;
-    }
-
-    private static String thisIsScheduledToBeRemoved() {
-        if (thisIsScheduledToBeRemoved == null) {
-            thisIsScheduledToBeRemoved = String.format("This %s", isScheduledToBeRemoved());
-        }
-        return thisIsScheduledToBeRemoved;
-    }
-
-    private static String thisHasBeenDeprecatedAndIsScheduledToBeRemoved() {
-        if (thisHasBeenDeprecatedAndIsScheduledToBeRemoved == null) {
-            thisHasBeenDeprecatedAndIsScheduledToBeRemoved = String.format("This has been deprecated and %s", isScheduledToBeRemoved());
-        }
-        return thisHasBeenDeprecatedAndIsScheduledToBeRemoved;
-    }
-
-    private static String isScheduledToBeRemoved() {
-        if (isScheduledToBeRemovedMessage == null) {
-            isScheduledToBeRemovedMessage = String.format("is scheduled to be removed in Gradle %s.", GradleVersion.current().getNextMajor().getVersion());
-        }
-        return isScheduledToBeRemovedMessage;
-    }
-
-    private static String thisWillBecomeAnError() {
-        if (willBecomeErrorMessage == null) {
-            willBecomeErrorMessage = String.format("This will fail with an error in Gradle %s.", GradleVersion.current().getNextMajor().getVersion());
-        }
-        return willBecomeErrorMessage;
     }
 
 }
