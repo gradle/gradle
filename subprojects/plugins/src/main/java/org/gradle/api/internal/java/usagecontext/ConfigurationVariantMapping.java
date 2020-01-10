@@ -59,7 +59,9 @@ public class ConfigurationVariantMapping {
 
     public void collectUsageContexts(final ImmutableCollection.Builder<UsageContext> outgoing) {
         if (!outgoingConfiguration.isTransitive()) {
-            SingleMessageLogger.nagUserWith(new DeprecationMessage("Publication ignores 'transitive = false' at configuration level.", "")
+            SingleMessageLogger.nagUserWith(new DeprecationMessage.Builder()
+                .withSummary("Publication ignores 'transitive = false' at configuration level.")
+                .withRemovalDetails("")
                 .withAdvice("Consider using 'transitive = false' at the dependency level if you need this to be published.")
                 .withContextualAdvice("")
                 .withIndirectUsage());

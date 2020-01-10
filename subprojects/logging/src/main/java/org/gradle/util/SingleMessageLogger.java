@@ -73,8 +73,9 @@ public class SingleMessageLogger {
         nagUserWith(DeprecationMessage.specificThingHasBeenDeprecated(thing));
     }
 
-    public static void nagUserWith(DeprecationMessage deprecationMessage) {
+    public static void nagUserWith(DeprecationMessage.Builder deprecationMessageBuilder) {
         if (isEnabled()) {
+            DeprecationMessage deprecationMessage = deprecationMessageBuilder.build();
             nagUserWith(deprecatedFeatureHandler, deprecationMessage.toDeprecatedFeatureUsage(SingleMessageLogger.class));
         }
     }

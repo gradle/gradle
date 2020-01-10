@@ -37,307 +37,323 @@ public class DeprecationMessage {
 
     private static final DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry();
 
-    private String summary;
-    private String removalDetails;
-    private String advice;
-    private String contextualAdvice;
-    private String documentationReference;
+    private final String summary;
+    private final String removalDetails;
+    private final String advice;
+    private final String contextualAdvice;
+    private final String documentationReference;
+    private final DeprecatedFeatureUsage.Type usageType;
 
-    private DeprecatedFeatureUsage.Type usageType = DeprecatedFeatureUsage.Type.USER_CODE_DIRECT;
+    public DeprecationMessage(String summary, String removalDetails, String advice, String contextualAdvice, String documentationReference, DeprecatedFeatureUsage.Type usageType) {
+        this.summary = summary;
+        this.removalDetails = removalDetails;
+        this.advice = advice;
+        this.contextualAdvice = contextualAdvice;
+        this.documentationReference = documentationReference;
+        this.usageType = usageType;
+    }
+
+    public static class Builder {
+        private String summary;
+        private String removalDetails;
+        private String advice;
+        private String contextualAdvice;
+        private String documentationReference;
+
+        private DeprecatedFeatureUsage.Type usageType = DeprecatedFeatureUsage.Type.USER_CODE_DIRECT;
+
+        public Builder withSummary(String summary) {
+            this.summary = summary;
+            return this;
+        }
+
+        public Builder withRemovalDetails(String removalDetails) {
+            this.removalDetails = removalDetails;
+            return this;
+        }
+
+        public Builder withAdvice(String advice) {
+            this.advice = advice;
+            return this;
+        }
+
+        public Builder withContextualAdvice(String contextualAdvice) {
+            this.contextualAdvice = contextualAdvice;
+            return this;
+        }
+
+        public Builder withDocumentationReference(String documentationReference) {
+            this.documentationReference = documentationReference;
+            return this;
+        }
+
+        public Builder withIndirectUsage() {
+            this.usageType = DeprecatedFeatureUsage.Type.USER_CODE_INDIRECT;
+            return this;
+        }
+
+        public Builder withBuildInvocation() {
+            this.usageType = DeprecatedFeatureUsage.Type.BUILD_INVOCATION;
+            return this;
+        }
+
+        public DeprecationMessage build() {
+            return new DeprecationMessage(summary, removalDetails, advice, contextualAdvice, documentationReference, usageType);
+        }
+    }
 
     // Output: ${summary}. This has been deprecated and is scheduled to be removed in Gradle {X}.
-    public static DeprecationMessage thisHasBeenDeprecated(final String summary) {
-        return new DeprecationMessage() {
+    public static DeprecationMessage.Builder thisHasBeenDeprecated(final String summary) {
+        return new DeprecationMessage.Builder() {
             @Override
-            public DeprecatedFeatureUsage toDeprecatedFeatureUsage(Class<?> calledFrom) {
-                summary(summary);
-                removalDetails(thisHasBeenDeprecatedAndIsScheduledToBeRemoved());
-                return super.toDeprecatedFeatureUsage(calledFrom);
+            public DeprecationMessage build() {
+                withSummary(summary);
+                withRemovalDetails(thisHasBeenDeprecatedAndIsScheduledToBeRemoved());
+                return super.build();
             }
         };
     }
 
     // Output: ${thing} has been deprecated. This is scheduled to be removed in Gradle {X}.
-    public static DeprecationMessage specificThingHasBeenDeprecated(final String thing) {
-        return new DeprecationMessage() {
+    public static DeprecationMessage.Builder specificThingHasBeenDeprecated(final String thing) {
+        return new DeprecationMessage.Builder() {
             @Override
-            public DeprecatedFeatureUsage toDeprecatedFeatureUsage(Class<?> calledFrom) {
-                summary(xHasBeenDeprecated(thing));
-                removalDetails(thisIsScheduledToBeRemoved());
-                return super.toDeprecatedFeatureUsage(calledFrom);
+            public DeprecationMessage build() {
+                withSummary(xHasBeenDeprecated(thing));
+                withRemovalDetails(thisIsScheduledToBeRemoved());
+                return super.build();
             }
         };
     }
 
     // Output: ${thing} has been deprecated. This is scheduled to be removed in Gradle {X}.
-    public static DeprecationMessage indirectCodeUsageHasBeenDeprecated(String thing) {
+    public static DeprecationMessage.Builder indirectCodeUsageHasBeenDeprecated(String thing) {
         return specificThingHasBeenDeprecated(thing).withIndirectUsage();
     }
 
     // Output: ${feature} has been deprecated. This is scheduled to be removed in Gradle {X}.
-    public static DeprecationMessage deprecatedBuildInvocationFeature(String feature) {
+    public static DeprecationMessage.Builder deprecatedBuildInvocationFeature(String feature) {
         return specificThingHasBeenDeprecated(feature).withBuildInvocation();
     }
 
     // Output: ${behaviour}. This behaviour has been deprecated and is scheduled to be removed in Gradle {X}.
-    public static DeprecationMessage behaviourHasBeenDeprecated(final String behaviour) {
-        return new DeprecationMessage() {
+    public static DeprecationMessage.Builder behaviourHasBeenDeprecated(final String behaviour) {
+        return new DeprecationMessage.Builder() {
             @Override
-            public DeprecatedFeatureUsage toDeprecatedFeatureUsage(Class<?> calledFrom) {
-                summary(behaviour);
-                removalDetails(thisBehaviourHasBeenDeprecatedAndIsScheduledToBeRemoved());
-                return super.toDeprecatedFeatureUsage(calledFrom);
+            public DeprecationMessage build() {
+                withSummary(behaviour);
+                withRemovalDetails(thisBehaviourHasBeenDeprecatedAndIsScheduledToBeRemoved());
+                return super.build();
             }
         };
     }
 
     // Output: The ${parameterName} named parameter has been deprecated. This is scheduled to be removed in Gradle {X}. Please use the ${replacement} named parameter instead.
-    public static DeprecationMessage replacedNamedParameter(final String parameterName, final String replacement) {
-        return new DeprecationMessage() {
+    public static DeprecationMessage.Builder replacedNamedParameter(final String parameterName, final String replacement) {
+        return new DeprecationMessage.Builder() {
             @Override
-            public DeprecatedFeatureUsage toDeprecatedFeatureUsage(Class<?> calledFrom) {
-                summary(String.format("The %s named parameter has been deprecated.", parameterName));
-                removalDetails(thisIsScheduledToBeRemoved());
+            public DeprecationMessage build() {
+                withSummary(String.format("The %s named parameter has been deprecated.", parameterName));
+                withRemovalDetails(thisIsScheduledToBeRemoved());
                 withAdvice(String.format("Please use the %s named parameter instead.", replacement));
-                return super.toDeprecatedFeatureUsage(calledFrom);
+                return super.build();
             }
         };
     }
 
     // Output: The ${propertyName} property has been deprecated. This is scheduled to be removed in Gradle {X}.
-    public static DeprecationMessage deprecatedProperty(final String propertyName) {
-        return new DeprecationMessage() {
+    public static DeprecationMessage.Builder deprecatedProperty(final String propertyName) {
+        return new DeprecationMessage.Builder() {
             @Override
-            public DeprecatedFeatureUsage toDeprecatedFeatureUsage(Class<?> calledFrom) {
-                summary(propertyHasBeenDeprecated(propertyName));
-                removalDetails(thisIsScheduledToBeRemoved());
-                return super.toDeprecatedFeatureUsage(calledFrom);
+            public DeprecationMessage build() {
+                withSummary(propertyHasBeenDeprecated(propertyName));
+                withRemovalDetails(thisIsScheduledToBeRemoved());
+                return super.build();
             }
         };
     }
 
     // Output: The ${propertyName} property has been deprecated. This is scheduled to be removed in Gradle {X}. Please use the ${replacement} property instead.
-    public static DeprecationMessage replacedProperty(final String propertyName, final String replacement) {
-        return new DeprecationMessage() {
+    public static DeprecationMessage.Builder replacedProperty(final String propertyName, final String replacement) {
+        return new DeprecationMessage.Builder() {
             @Override
-            public DeprecatedFeatureUsage toDeprecatedFeatureUsage(Class<?> calledFrom) {
-                summary(propertyHasBeenDeprecated(propertyName));
-                removalDetails(thisIsScheduledToBeRemoved());
+            public DeprecationMessage build() {
+                withSummary(propertyHasBeenDeprecated(propertyName));
+                withRemovalDetails(thisIsScheduledToBeRemoved());
                 withAdvice(String.format("Please use the %s property instead.", replacement));
-                return super.toDeprecatedFeatureUsage(calledFrom);
+                return super.build();
             }
         };
     }
 
-    public static DeprecationMessage replacedConfiguration(final String configurationName, final ConfigurationDeprecationType deprecationType, final List<String> replacements) {
-        return new DeprecationMessage() {
+    public static DeprecationMessage.Builder replacedConfiguration(final String configurationName, final ConfigurationDeprecationType deprecationType, final List<String> replacements) {
+        return new DeprecationMessage.Builder() {
             @Override
-            public DeprecatedFeatureUsage toDeprecatedFeatureUsage(Class<?> calledFrom) {
-                summary(String.format("The %s configuration has been deprecated for %s.", configurationName, deprecationType.displayName()));
-                removalDetails(thisWillBecomeAnError());
+            public DeprecationMessage build() {
+                withSummary(String.format("The %s configuration has been deprecated for %s.", configurationName, deprecationType.displayName()));
+                withRemovalDetails(thisWillBecomeAnError());
                 withAdvice(String.format("Please %s the %s configuration instead.", deprecationType.usage, Joiner.on(" or ").join(replacements)));
                 if (!deprecationType.inUserCode) {
                     withIndirectUsage();
                 }
-                return super.toDeprecatedFeatureUsage(calledFrom);
+                return super.build();
             }
         };
     }
 
     // Output: The ${methodName} method has been deprecated. This is scheduled to be removed in Gradle {X}.
-    public static DeprecationMessage discontinuedMethod(final String methodName) {
-        return new DeprecationMessage() {
+    public static DeprecationMessage.Builder discontinuedMethod(final String methodName) {
+        return new DeprecationMessage.Builder() {
             @Override
-            public DeprecatedFeatureUsage toDeprecatedFeatureUsage(Class<?> calledFrom) {
-                summary(methodHasBeenDeprecated(methodName));
-                removalDetails(thisIsScheduledToBeRemoved());
-                return super.toDeprecatedFeatureUsage(calledFrom);
+            public DeprecationMessage build() {
+                withSummary(methodHasBeenDeprecated(methodName));
+                withRemovalDetails(thisIsScheduledToBeRemoved());
+                return super.build();
             }
         };
     }
 
     // Output: The ${methodName} method has been deprecated. This is scheduled to be removed in Gradle {X}. Please use the ${replacement} method instead.
-    public static DeprecationMessage replacedMethod(final String methodName, final String replacement) {
-        return new DeprecationMessage() {
+    public static DeprecationMessage.Builder replacedMethod(final String methodName, final String replacement) {
+        return new DeprecationMessage.Builder() {
             @Override
-            public DeprecatedFeatureUsage toDeprecatedFeatureUsage(Class<?> calledFrom) {
-                summary(methodHasBeenDeprecated(methodName));
-                removalDetails(thisIsScheduledToBeRemoved());
+            public DeprecationMessage build() {
+                withSummary(methodHasBeenDeprecated(methodName));
+                withRemovalDetails(thisIsScheduledToBeRemoved());
                 withAdvice(pleaseUseThisMethodInstead(replacement));
-                return super.toDeprecatedFeatureUsage(calledFrom);
+                return super.build();
             }
         };
     }
 
     // Output: Using method ${methodName} has been deprecated. This will fail with an error in Gradle {X}.
-    public static DeprecationMessage discontinuedMethodInvocation(final String invocation) {
-        return new DeprecationMessage() {
+    public static DeprecationMessage.Builder discontinuedMethodInvocation(final String invocation) {
+        return new DeprecationMessage.Builder() {
             @Override
-            public DeprecatedFeatureUsage toDeprecatedFeatureUsage(Class<?> calledFrom) {
-                summary(usingMethodHasBeenDeprecated(invocation));
-                removalDetails(thisWillBecomeAnError());
-                return super.toDeprecatedFeatureUsage(calledFrom);
+            public DeprecationMessage build() {
+                withSummary(usingMethodHasBeenDeprecated(invocation));
+                withRemovalDetails(thisWillBecomeAnError());
+                return super.build();
             }
         };
     }
 
     // Use for some operation that is not deprecated, but something about the method parameters or state is deprecated.
     // Output: Using method ${methodName} has been deprecated. This will fail with an error in Gradle {X}. Please use the ${replacement} method instead.
-    public static DeprecationMessage replacedMethodInvocation(final String invocation, final String replacement) {
-        return new DeprecationMessage() {
+    public static DeprecationMessage.Builder replacedMethodInvocation(final String invocation, final String replacement) {
+        return new DeprecationMessage.Builder() {
             @Override
-            public DeprecatedFeatureUsage toDeprecatedFeatureUsage(Class<?> calledFrom) {
-                summary(usingMethodHasBeenDeprecated(invocation));
-                removalDetails(thisWillBecomeAnError());
+            public DeprecationMessage build() {
+                withSummary(usingMethodHasBeenDeprecated(invocation));
+                withRemovalDetails(thisWillBecomeAnError());
                 withAdvice(pleaseUseThisMethodInstead(replacement));
-                return super.toDeprecatedFeatureUsage(calledFrom);
+                return super.build();
             }
         };
     }
 
     // Use for some operation that is not deprecated, but something about the method parameters or state is deprecated.
     // Output: ${invocation} has been deprecated. This will fail with an error in Gradle {X}.
-    public static DeprecationMessage discontinuedInvocation(final String invocation) {
-        return new DeprecationMessage() {
+    public static DeprecationMessage.Builder discontinuedInvocation(final String invocation) {
+        return new DeprecationMessage.Builder() {
             @Override
-            public DeprecatedFeatureUsage toDeprecatedFeatureUsage(Class<?> calledFrom) {
-                summary(xHasBeenDeprecated(invocation));
-                removalDetails(thisWillBecomeAnError());
-                return super.toDeprecatedFeatureUsage(calledFrom);
+            public DeprecationMessage build() {
+                withSummary(xHasBeenDeprecated(invocation));
+                withRemovalDetails(thisWillBecomeAnError());
+                return super.build();
             }
         };
     }
 
     // Output: The ${taskName} task type has been deprecated. This is scheduled to be removed in Gradle X. Please use the ${replacement} instead.
-    public static DeprecationMessage replacedTaskType(final String taskName, final String replacement) {
-        return new DeprecationMessage() {
+    public static DeprecationMessage.Builder replacedTaskType(final String taskName, final String replacement) {
+        return new DeprecationMessage.Builder() {
             @Override
-            public DeprecatedFeatureUsage toDeprecatedFeatureUsage(Class<?> calledFrom) {
-                summary(String.format("The %s task type has been deprecated.", taskName));
-                removalDetails(thisIsScheduledToBeRemoved());
+            public DeprecationMessage build() {
+                withSummary(String.format("The %s task type has been deprecated.", taskName));
+                withRemovalDetails(thisIsScheduledToBeRemoved());
                 withAdvice(String.format("Please use the %s instead.", replacement));
-                return super.toDeprecatedFeatureUsage(calledFrom);
+                return super.build();
             }
         };
     }
 
     // Output: The ${taskName} task has been deprecated. This is scheduled to be removed in Gradle X. Please use the ${replacement} task instead.
-    public static DeprecationMessage replacedTask(final String taskName, final String replacement) {
-        return new DeprecationMessage() {
+    public static DeprecationMessage.Builder replacedTask(final String taskName, final String replacement) {
+        return new DeprecationMessage.Builder() {
             @Override
-            public DeprecatedFeatureUsage toDeprecatedFeatureUsage(Class<?> calledFrom) {
-                summary(String.format("The %s task has been deprecated.", taskName));
-                removalDetails(thisIsScheduledToBeRemoved());
+            public DeprecationMessage build() {
+                withSummary(String.format("The %s task has been deprecated.", taskName));
+                withRemovalDetails(thisIsScheduledToBeRemoved());
                 withAdvice(String.format("Please use the %s task instead.", replacement));
-                return super.toDeprecatedFeatureUsage(calledFrom);
+                return super.build();
             }
         };
     }
 
     // Output: The ${toolName} has been deprecated. This is scheduled to be removed in Gradle X. Consider using ${replacement} instead.
-    public static DeprecationMessage toolReplacedWithExternalOne(final String toolName, final String replacement) {
-        return new DeprecationMessage() {
+    public static DeprecationMessage.Builder toolReplacedWithExternalOne(final String toolName, final String replacement) {
+        return new DeprecationMessage.Builder() {
             @Override
-            public DeprecatedFeatureUsage toDeprecatedFeatureUsage(Class<?> calledFrom) {
-                summary(String.format("The %s has been deprecated.", toolName));
-                removalDetails(thisIsScheduledToBeRemoved());
+            public DeprecationMessage build() {
+                withSummary(String.format("The %s has been deprecated.", toolName));
+                withRemovalDetails(thisIsScheduledToBeRemoved());
                 withAdvice(String.format("Consider using %s instead.", replacement));
-                return super.toDeprecatedFeatureUsage(calledFrom);
+                return super.build();
             }
         };
     }
 
     // Output: The ${pluginName} plugin has been deprecated. This is scheduled to be removed in Gradle X. ${advice}
-    public static DeprecationMessage deprecatedPlugin(final String pluginName) {
-        return new DeprecationMessage() {
+    public static DeprecationMessage.Builder deprecatedPlugin(final String pluginName) {
+        return new DeprecationMessage.Builder() {
             @Override
-            public DeprecatedFeatureUsage toDeprecatedFeatureUsage(Class<?> calledFrom) {
-                summary(pluginHasBeenDeprecated(pluginName));
-                removalDetails(thisIsScheduledToBeRemoved());
-                return super.toDeprecatedFeatureUsage(calledFrom);
+            public DeprecationMessage build() {
+                withSummary(pluginHasBeenDeprecated(pluginName));
+                withRemovalDetails(thisIsScheduledToBeRemoved());
+                return super.build();
             }
         };
     }
 
     // Output: The ${pluginName} plugin has been deprecated. This is scheduled to be removed in Gradle X. Please use the ${replacement} plugin instead.
-    public static DeprecationMessage replacedPlugin(final String pluginName, final String replacement) {
-        return new DeprecationMessage() {
+    public static DeprecationMessage.Builder replacedPlugin(final String pluginName, final String replacement) {
+        return new DeprecationMessage.Builder() {
             @Override
-            public DeprecatedFeatureUsage toDeprecatedFeatureUsage(Class<?> calledFrom) {
-                summary(pluginHasBeenDeprecated(pluginName));
-                removalDetails(thisIsScheduledToBeRemoved());
+            public DeprecationMessage build() {
+                withSummary(pluginHasBeenDeprecated(pluginName));
+                withRemovalDetails(thisIsScheduledToBeRemoved());
                 withAdvice(String.format("Please use the %s plugin instead.", replacement));
-                return super.toDeprecatedFeatureUsage(calledFrom);
+                return super.build();
             }
         };
     }
 
     // Output: The ${pluginName} plugin has been deprecated. This is scheduled to be removed in Gradle X. Consider using the ${replacement} plugin instead.
-    public static DeprecationMessage pluginReplacedWithExternalOne(final String pluginName, final String replacement) {
-        return new DeprecationMessage() {
+    public static DeprecationMessage.Builder pluginReplacedWithExternalOne(final String pluginName, final String replacement) {
+        return new DeprecationMessage.Builder() {
             @Override
-            public DeprecatedFeatureUsage toDeprecatedFeatureUsage(Class<?> calledFrom) {
-                summary(pluginHasBeenDeprecated(pluginName));
-                removalDetails(thisIsScheduledToBeRemoved());
+            public DeprecationMessage build() {
+                withSummary(pluginHasBeenDeprecated(pluginName));
+                withRemovalDetails(thisIsScheduledToBeRemoved());
                 withAdvice(String.format("Consider using the %s plugin instead.", replacement));
-                return super.toDeprecatedFeatureUsage(calledFrom);
+                return super.build();
             }
         };
     }
 
     // TODO: start here with documentation embedding
     // Output: The ${pluginName} plugin has been deprecated. This is scheduled to be removed in Gradle X. Consult the upgrading guide for further information: link-to-user-manual/upgrading_version_${majorVersion}.html#${replacement}
-    public static DeprecationMessage deprecatedPlugin(final String pluginName, final int majorVersion, final String upgradeGuideSection) {
-        return new DeprecationMessage() {
+    public static DeprecationMessage.Builder deprecatedPlugin(final String pluginName, final int majorVersion, final String upgradeGuideSection) {
+        return new DeprecationMessage.Builder() {
             @Override
-            public DeprecatedFeatureUsage toDeprecatedFeatureUsage(Class<?> calledFrom) {
-                summary(pluginHasBeenDeprecated(pluginName));
-                removalDetails(thisIsScheduledToBeRemoved());
+            public DeprecationMessage build() {
+                withSummary(pluginHasBeenDeprecated(pluginName));
+                withRemovalDetails(thisIsScheduledToBeRemoved());
                 withAdvice("Consult the upgrading guide for further information: " + DOCUMENTATION_REGISTRY.getDocumentationFor("upgrading_version_" + majorVersion, upgradeGuideSection));
-                return super.toDeprecatedFeatureUsage(calledFrom);
+                return super.build();
             }
         };
-    }
-
-    public DeprecationMessage(String summary, String removalDetails) {
-        this.summary = summary;
-        this.removalDetails = removalDetails;
-    }
-
-    protected DeprecationMessage() {
-    }
-
-    protected void summary(String summary) {
-        this.summary = summary;
-    }
-
-    protected void removalDetails(String removalDetails) {
-        this.removalDetails = removalDetails;
-    }
-
-    public DeprecationMessage withAdvice(String advice) {
-        this.advice = advice;
-        return this;
-    }
-
-    public DeprecationMessage withContextualAdvice(String contextualAdvice) {
-        this.contextualAdvice = contextualAdvice;
-        return this;
-    }
-
-    public DeprecationMessage withDocumentationReference(String documentationReference) {
-        this.documentationReference = documentationReference;
-        return this;
-    }
-
-    public DeprecationMessage withIndirectUsage() {
-        this.usageType = DeprecatedFeatureUsage.Type.USER_CODE_INDIRECT;
-        return this;
-    }
-
-    public DeprecationMessage withBuildInvocation() {
-        this.usageType = DeprecatedFeatureUsage.Type.BUILD_INVOCATION;
-        return this;
     }
 
     public DeprecatedFeatureUsage toDeprecatedFeatureUsage(Class<?> calledFrom) {
