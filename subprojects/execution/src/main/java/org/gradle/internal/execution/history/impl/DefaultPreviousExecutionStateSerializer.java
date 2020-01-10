@@ -26,8 +26,9 @@ import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
+import org.gradle.internal.snapshot.ImplementationSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
-import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
+import org.gradle.internal.snapshot.impl.ImplementationSnapshotSerializer;
 import org.gradle.internal.snapshot.impl.SnapshotSerializer;
 
 import java.util.Map;
@@ -39,7 +40,7 @@ public class DefaultPreviousExecutionStateSerializer extends AbstractSerializer<
 
     public DefaultPreviousExecutionStateSerializer(Serializer<FileCollectionFingerprint> fileCollectionFingerprintSerializer) {
         this.fileCollectionFingerprintSerializer = fileCollectionFingerprintSerializer;
-        this.implementationSnapshotSerializer = new ImplementationSnapshot.SerializerImpl();
+        this.implementationSnapshotSerializer = new ImplementationSnapshotSerializer();
     }
 
     @Override

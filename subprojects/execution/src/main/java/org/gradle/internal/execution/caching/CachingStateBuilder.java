@@ -17,8 +17,8 @@
 package org.gradle.internal.execution.caching;
 
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.snapshot.ImplementationSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
-import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
 import java.util.Map;
 

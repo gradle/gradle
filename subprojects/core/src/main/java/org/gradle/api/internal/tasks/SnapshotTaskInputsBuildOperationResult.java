@@ -34,7 +34,7 @@ import org.gradle.internal.operations.trace.CustomOperationTraceSerialization;
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
-import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
+import org.gradle.internal.snapshot.ImplementationSnapshot;
 
 import javax.annotation.Nullable;
 import java.util.ArrayDeque;

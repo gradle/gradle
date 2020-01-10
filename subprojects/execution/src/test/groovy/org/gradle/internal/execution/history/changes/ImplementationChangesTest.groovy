@@ -25,7 +25,7 @@ import org.gradle.api.internal.tasks.InputChangesAwareTaskAction
 import org.gradle.internal.Cast
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.snapshot.impl.ImplementationSnapshot
+import org.gradle.internal.snapshot.ImplementationSnapshot
 import spock.lang.Specification
 
 class ImplementationChangesTest extends Specification {
