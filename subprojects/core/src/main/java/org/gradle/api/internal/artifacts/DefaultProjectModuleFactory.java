@@ -16,14 +16,18 @@
 package org.gradle.api.internal.artifacts;
 
 import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.Project;
+import org.gradle.api.internal.project.ProjectIdentifier;
+import org.gradle.api.internal.project.ProjectRegistry;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class DefaultProjectModuleFactory implements ProjectModuleFactory {
@@ -31,8 +35,19 @@ public class DefaultProjectModuleFactory implements ProjectModuleFactory {
         .omitEmptyStrings();
 
     private final Map<Project, Module> projectToModule = Maps.newConcurrentMap();
+    private final Set<String> projectsWithSameName;
 
-    public DefaultProjectModuleFactory() {
+    public DefaultProjectModuleFactory(ProjectRegistry<? extends ProjectIdentifier> registry) {
+        Map<String, Long> uniqueNames = registry.getAllProjects().stream()
+            .map(ProjectIdentifier::getName)
+            .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+        ImmutableSet.Builder<String> builder = new ImmutableSet.Builder<>();
+        uniqueNames.entrySet()
+            .stream()
+            .filter(e -> e.getValue() > 1)
+            .map(Map.Entry::getKey)
+            .forEach(builder::add);
+        projectsWithSameName = builder.build();
     }
 
     private List<Project> findDuplicates(Project project) {
@@ -136,6 +151,7 @@ public class DefaultProjectModuleFactory implements ProjectModuleFactory {
 
     private class DynamicDeduplicatingModuleProjectIdentifier extends AbstractProjectBackedModule {
         private final Project project;
+        private volatile String lazyName;
 
         private DynamicDeduplicatingModuleProjectIdentifier(Project project) {
             super(project);
@@ -144,15 +160,22 @@ public class DefaultProjectModuleFactory implements ProjectModuleFactory {
 
         @Override
         public String getName() {
-            List<Project> duplicates = findDuplicates(project);
-            if (duplicates.isEmpty()) {
-                return project.getName();
+            if (lazyName == null) {
+                computeName();
             }
-            List<String> strings = SPLITTER.splitToList(project.getPath());
-            if (strings.size() <= 1) {
-                return project.getName();
+            return lazyName;
+        }
+
+        private void computeName() {
+            String name = project.getName();
+            if (projectsWithSameName.contains(name)) {
+                List<String> strings = SPLITTER.splitToList(project.getPath());
+                if (strings.size() > 1) {
+                    lazyName = String.join("-", strings.subList(0, strings.size() - 1)) + "-" + name;
+                    return;
+                }
             }
-            return String.join("-", strings.subList(0, strings.size() - 1)) + "-" + project.getName();
+            lazyName = name;
         }
     }
 }

@@ -556,7 +556,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new DefaultBuildInvocationDetails(buildStartedTime);
     }
 
-    protected ProjectModuleFactory createProjectModuleIdentifierFactory() {
-        return new DefaultProjectModuleFactory();
+    protected ProjectModuleFactory createProjectModuleIdentifierFactory(DefaultProjectRegistry<ProjectInternal> projectRegistry) {
+        return new DefaultProjectModuleFactory(projectRegistry);
     }
 }
