@@ -59,6 +59,13 @@ class TarBuildCacheEntryPackerPermissionTest extends AbstractTarBuildCacheEntryP
         0 * _
 
         where:
-        mode << [ "0644", "0755" ]
+        mode << [
+            // Typical private read-write permissions
+            "0644",
+            // Typical executable permissions
+            "0755",
+            // Read-only
+            "444"
+        ]
     }
 }
