@@ -31,7 +31,7 @@ public interface PerformanceFlakinessDataProvider {
      * in the flakiness detection builds divided by the total number of runs of the scenario.
      *
      * <pre>
-     *  SELECT TESTID, AVG(CONVERT(CASEWHEN(DIFFCONFIDENCE > 0.99, 1, 0), DECIMAL)) AS FAILURE_RATE,
+     *  SELECT TESTID, AVG(CONVERT(CASEWHEN(DIFFCONFIDENCE > 0.97, 1, 0), DECIMAL)) AS FAILURE_RATE,
      *  FROM TESTEXECUTION
      *  WHERE (CHANNEL = 'flakiness-detection-master' OR CHANNEL = 'flakiness-detection-release')
      *  GROUP BY TESTID
