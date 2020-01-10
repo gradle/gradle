@@ -1,7 +1,8 @@
 dependencies {
-    implementation(project(":configuration"))
     implementation(project(":build"))
+    implementation(project(":configuration"))
     implementation(project(":kotlinDsl"))
+
     implementation("com.google.guava:guava")
     implementation("org.ow2.asm:asm:7.1")
     implementation("org.ow2.asm:asm-commons:7.1")
