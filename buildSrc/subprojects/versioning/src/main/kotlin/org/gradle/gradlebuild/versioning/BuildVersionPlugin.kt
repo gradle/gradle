@@ -69,13 +69,9 @@ fun Project.setBuildVersionProperties() {
         }
     }
     extra.let { ext ->
-        ext["milestoneNumber"] = milestoneNumber?.toInt()
-        ext["rcNumber"] = rcNumber?.toInt()
-        ext["finalRelease"] = isFinalRelease
-        ext["versionQualifier"] = versionQualifier
-        ext["isSnapshot"] = isSnapshot
         ext["baseVersion"] = baseVersion
         ext["buildTimestamp"] = buildTimestamp
+        ext["isSnapshot"] = isSnapshot
     }
 }
 
