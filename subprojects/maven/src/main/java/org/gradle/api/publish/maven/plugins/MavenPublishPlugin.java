@@ -305,7 +305,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
                         .append(project.getPath())
                         .append(" has the same (groupId, artifactId) as ")
                         .append(projectsWithSameId.stream().map(Project::getPath).collect(Collectors.joining(" and ")))
-                        .append(". It has been assigned an automatic artifact id of ")
+                        .append(". It has been assigned a synthetic artifactId of ")
                         .append(projectBackedModule.getName())
                         .append(" as a workaround, but you should set both the groupId and artifactId of the publication to be safe.");
                     logger.warn(sb.toString());

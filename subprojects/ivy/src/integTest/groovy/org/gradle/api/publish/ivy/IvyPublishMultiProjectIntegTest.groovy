@@ -402,8 +402,8 @@ $append
         }
 
         and:
-        outputContains """Project :b:core has the same (organisation, module name) as :a:core. It has been assigned an automatic module name of b-core as a workaround, but you should set both the organisation and module name of the publication to be safe."""
-        outputContains """Project :a:core has the same (organisation, module name) as :b:core. It has been assigned an automatic module name of a-core as a workaround, but you should set both the organisation and module name of the publication to be safe."""
+        outputContains """Project :b:core has the same (organisation, module name) as :a:core. It has been assigned a synthetic Ivy module name of of b-core as a workaround, but you should set both the organisation and module name of the publication to be safe."""
+        outputContains """Project :a:core has the same (organisation, module name) as :b:core. It has been assigned a synthetic Ivy module name of of a-core as a workaround, but you should set both the organisation and module name of the publication to be safe."""
     }
 
     @ToBeFixedForInstantExecution
@@ -477,8 +477,8 @@ $append
         }
 
         and:
-        outputDoesNotContain "Project :a:core has the same (organisation, module name) as :b:core. It has been assigned an automatic module name of a-core as a workaround, but you should set both the organisation and module name of the publication to be safe."
-        outputDoesNotContain "Project :b:core has the same (organisation, module name) as :a:core. It has been assigned an automatic module name of b-core as a workaround, but you should set both the organisation and module name of the publication to be safe."
+        outputDoesNotContain "Project :a:core has the same (organisation, module name) as :b:core. It has been assigned a synthetic Ivy module name of of a-core as a workaround, but you should set both the organisation and module name of the publication to be safe."
+        outputDoesNotContain "Project :b:core has the same (organisation, module name) as :a:core. It has been assigned a synthetic Ivy module name of of b-core as a workaround, but you should set both the organisation and module name of the publication to be safe."
     }
 
     @ToBeFixedForInstantExecution
@@ -552,8 +552,8 @@ $append
         }
 
         and:
-        outputDoesNotContain "Project :a:core has the same (organisation, module name) as :b:core. It has been assigned an automatic module name of a-core as a workaround, but you should set both the organisation and module name of the publication to be safe."
-        outputDoesNotContain "Project :b:core has the same (organisation, module name) as :a:core. It has been assigned an automatic module name of b-core as a workaround, but you should set both the organisation and module name of the publication to be safe."
+        outputDoesNotContain "Project :a:core has the same (organisation, module name) as :b:core. It has been assigned a synthetic Ivy module name of of a-core as a workaround, but you should set both the organisation and module name of the publication to be safe."
+        outputDoesNotContain "Project :b:core has the same (organisation, module name) as :a:core. It has been assigned a synthetic Ivy module name of of b-core as a workaround, but you should set both the organisation and module name of the publication to be safe."
 
     }
 
