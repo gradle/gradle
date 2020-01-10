@@ -19,7 +19,7 @@ package org.gradle.internal.execution.caching.impl
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory
 import org.gradle.internal.fingerprint.impl.EmptyCurrentFileCollectionFingerprint
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.snapshot.ImplementationSnapshot
+import org.gradle.internal.snapshot.impl.ImplementationSnapshot
 import org.gradle.internal.snapshot.impl.IntegerValueSnapshot
 import org.gradle.internal.snapshot.impl.StringValueSnapshot
 import spock.lang.Specification

@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.snapshot;
+package org.gradle.internal.snapshot.impl;
 
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.snapshot.impl.DefaultImplementationSnapshot;
-import org.gradle.internal.snapshot.impl.LambdaImplementationSnapshot;
-import org.gradle.internal.snapshot.impl.UnknownClassloaderImplementationSnapshot;
+import org.gradle.internal.snapshot.ValueSnapshot;
+import org.gradle.internal.snapshot.ValueSnapshotter;
 
 import javax.annotation.Nullable;
 

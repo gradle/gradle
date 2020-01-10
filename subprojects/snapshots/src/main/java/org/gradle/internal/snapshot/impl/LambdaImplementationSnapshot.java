@@ -18,7 +18,6 @@ package org.gradle.internal.snapshot.impl;
 
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
-import org.gradle.internal.snapshot.ImplementationSnapshot;
 
 import javax.annotation.Nullable;
 

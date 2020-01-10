@@ -19,7 +19,7 @@ package org.gradle.internal.execution.caching.impl;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.snapshot.ImplementationSnapshot;
+import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

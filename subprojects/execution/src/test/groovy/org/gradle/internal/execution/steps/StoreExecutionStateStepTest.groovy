@@ -28,7 +28,7 @@ import org.gradle.internal.execution.history.BeforeExecutionState
 import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.snapshot.ImplementationSnapshot
+import org.gradle.internal.snapshot.impl.ImplementationSnapshot
 
 class StoreExecutionStateStepTest extends StepSpec<BeforeExecutionContext> implements FingerprinterFixture {
     def executionHistoryStore = Mock(ExecutionHistoryStore)

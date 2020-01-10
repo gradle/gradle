@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableSet
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.serialize.InputStreamBackedDecoder
 import org.gradle.internal.serialize.OutputStreamBackedEncoder
-import org.gradle.internal.snapshot.ImplementationSnapshot
 import org.gradle.internal.snapshot.ValueSnapshot
 import spock.lang.Specification
 import spock.lang.Subject

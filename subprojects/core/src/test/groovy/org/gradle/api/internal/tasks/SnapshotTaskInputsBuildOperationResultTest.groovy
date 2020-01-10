@@ -23,7 +23,7 @@ import org.gradle.internal.execution.caching.CachingInputs
 import org.gradle.internal.execution.caching.CachingState
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.snapshot.ImplementationSnapshot
+import org.gradle.internal.snapshot.impl.ImplementationSnapshot
 import spock.lang.Specification
 
 class SnapshotTaskInputsBuildOperationResultTest extends Specification {

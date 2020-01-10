@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.snapshot
+package org.gradle.internal.snapshot.impl
 
 import org.gradle.internal.hash.HashCode
 import spock.lang.Specification

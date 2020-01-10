@@ -21,7 +21,7 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.ImplementationAwareTaskAction;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.reflect.JavaMethod;
-import org.gradle.internal.snapshot.ImplementationSnapshot;
+import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
 import java.lang.reflect.Method;
 
