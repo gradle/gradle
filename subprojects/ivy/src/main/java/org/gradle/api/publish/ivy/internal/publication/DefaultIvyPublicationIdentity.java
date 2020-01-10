@@ -132,7 +132,7 @@ public class DefaultIvyPublicationIdentity implements IvyPublicationIdentity {
                         .append(project.getPath())
                         .append(" has the same (organisation, module name) as ")
                         .append(projectsWithSameId.stream().map(Project::getPath).collect(Collectors.joining(" and ")))
-                        .append(". It has been assigned an automatic module name of ")
+                        .append(". It has been assigned a synthetic Ivy module name of of ")
                         .append(projectBackedModule.getName())
                         .append(" as a workaround, but you should set both the organisation and module name of the publication to be safe.");
                     logger.warn(sb.toString());

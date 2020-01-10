@@ -610,8 +610,8 @@ $append
         }
 
         and:
-        outputContains """Project :a:core has the same (groupId, artifactId) as :b:core. It has been assigned an automatic artifact id of a-core as a workaround, but you should set both the groupId and artifactId of the publication to be safe.
-Project :b:core has the same (groupId, artifactId) as :a:core. It has been assigned an automatic artifact id of b-core as a workaround, but you should set both the groupId and artifactId of the publication to be safe.
+        outputContains """Project :a:core has the same (groupId, artifactId) as :b:core. It has been assigned a synthetic artifactId of a-core as a workaround, but you should set both the groupId and artifactId of the publication to be safe.
+Project :b:core has the same (groupId, artifactId) as :a:core. It has been assigned a synthetic artifactId of b-core as a workaround, but you should set both the groupId and artifactId of the publication to be safe.
 """
     }
 
@@ -688,8 +688,8 @@ Project :b:core has the same (groupId, artifactId) as :a:core. It has been assig
         }
 
         and:
-        outputDoesNotContain """Project :a:core has the same (groupId, artifactId) as :b:core. It has been assigned an automatic artifact id of a-core as a workaround, but you should set both the groupId and artifactId of the publication to be safe.
-Project :b:core has the same (groupId, artifactId) as :a:core. It has been assigned an automatic artifact id of b-core as a workaround, but you should set both the groupId and artifactId of the publication to be safe.
+        outputDoesNotContain """Project :a:core has the same (groupId, artifactId) as :b:core. It has been assigned a synthetic artifactId of a-core as a workaround, but you should set both the groupId and artifactId of the publication to be safe.
+Project :b:core has the same (groupId, artifactId) as :a:core. It has been assigned a synthetic artifactId of b-core as a workaround, but you should set both the groupId and artifactId of the publication to be safe.
 """
     }
 
@@ -766,8 +766,8 @@ Project :b:core has the same (groupId, artifactId) as :a:core. It has been assig
         }
 
         and:
-        outputDoesNotContain """Project :a:core has the same (groupId, artifactId) as :b:core. It has been assigned an automatic artifact id of a-core as a workaround, but you should set both the groupId and artifactId of the publication to be safe.
-Project :b:core has the same (groupId, artifactId) as :a:core. It has been assigned an automatic artifact id of b-core as a workaround, but you should set both the groupId and artifactId of the publication to be safe.
+        outputDoesNotContain """Project :a:core has the same (groupId, artifactId) as :b:core. It has been assigned a synthetic artifactId of a-core as a workaround, but you should set both the groupId and artifactId of the publication to be safe.
+Project :b:core has the same (groupId, artifactId) as :a:core. It has been assigned a synthetic artifactId of b-core as a workaround, but you should set both the groupId and artifactId of the publication to be safe.
 """
     }
 
