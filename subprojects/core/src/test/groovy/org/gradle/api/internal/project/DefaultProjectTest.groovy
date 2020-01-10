@@ -155,7 +155,9 @@ class DefaultProjectTest extends Specification {
     CrossProjectConfigurator crossProjectConfigurator = new BuildOperationCrossProjectConfigurator(buildOperationExecutor)
     ClassLoaderScope baseClassLoaderScope = new RootClassLoaderScope("root", getClass().classLoader, getClass().classLoader, new DummyClassLoaderCache(), Stub(ClassLoaderScopeRegistryListener))
     ClassLoaderScope rootProjectClassLoaderScope = baseClassLoaderScope.createChild("root-project")
-    ProjectModuleFactory moduleFactory = new DefaultProjectModuleFactory()
+    ProjectModuleFactory moduleFactory = new DefaultProjectModuleFactory(Mock(ProjectRegistry) {
+        getAllProjects() >> []
+    })
 
     def setup() {
         rootDir = new File("/path/root").absoluteFile

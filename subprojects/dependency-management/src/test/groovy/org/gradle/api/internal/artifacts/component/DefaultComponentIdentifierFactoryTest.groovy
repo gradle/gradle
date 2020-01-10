@@ -25,6 +25,7 @@ import org.gradle.api.internal.artifacts.DefaultProjectModuleFactory
 import org.gradle.api.internal.artifacts.ProjectModuleFactory
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.ProjectRegistry
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
@@ -34,7 +35,9 @@ import spock.lang.Specification
 class DefaultComponentIdentifierFactoryTest extends Specification {
     def buildIdentity = Mock(BuildState)
     def componentIdentifierFactory = new DefaultComponentIdentifierFactory(buildIdentity)
-    ProjectModuleFactory moduleFactory = new DefaultProjectModuleFactory()
+    ProjectModuleFactory moduleFactory = new DefaultProjectModuleFactory(Mock(ProjectRegistry) {
+        getAllProjects() >> []
+    })
 
     def "can create project component identifier"() {
         given:
