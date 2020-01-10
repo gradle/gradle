@@ -42,6 +42,10 @@ gradlePlugin {
             id = "gradlebuild.incubation-report"
             implementationClass = "org.gradle.gradlebuild.buildquality.incubation.IncubationReportPlugin"
         }
+        register("quickCheck") {
+            id = "gradlebuild.quick-check"
+            implementationClass = "org.gradle.gradlebuild.buildquality.quick.QuickCheckPlugin"
+        }
     }
 }
 

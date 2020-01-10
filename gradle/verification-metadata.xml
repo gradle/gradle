@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<verification-metadata xmlns="https://schema.gradle.org/dependency-verification"
-                       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                       xmlns:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/verification-1.0.xsd">
+<verification-metadata xmlns="https://schema.gradle.org/dependency-verification" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.0.xsd">
    <configuration>
       <verify-metadata>false</verify-metadata>
       <verify-signatures>true</verify-signatures>
@@ -1109,6 +1107,11 @@
       <component group="org.iq80.snappy" name="snappy" version="0.4">
          <artifact name="snappy-0.4.jar">
             <pgp value="9e93db1192cee3d3b581aabb37e9d58ea4598641"/>
+         </artifact>
+      </component>
+      <component group="org.javassist" name="javassist" version="3.24.0-GA">
+         <artifact name="javassist-3.24.0-GA.jar">
+            <pgp value="666a4692ce11b7b3f4eb7b3410066a9707090cf9"/>
          </artifact>
       </component>
       <component group="org.jetbrains" name="annotations" version="13.0">
