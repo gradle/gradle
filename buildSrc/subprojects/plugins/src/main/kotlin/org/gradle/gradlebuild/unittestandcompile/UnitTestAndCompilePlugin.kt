@@ -25,7 +25,6 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.Named
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.artifacts.Configuration
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.Category
 import org.gradle.api.attributes.DocsType
@@ -133,7 +132,8 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
             withSourcesJar()
         }
         val implementation by configurations
-        val transitiveSourcesElements: Configuration by configurations.creating {
+        @Suppress("unused_variable")
+        val transitiveSourcesElements by configurations.creating {
             isCanBeResolved = false
             isCanBeConsumed = true
             extendsFrom(implementation)

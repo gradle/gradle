@@ -7,6 +7,10 @@ dependencies {
 
 gradlePlugin {
     plugins {
+        register("buildVersion") {
+            id = "gradlebuild.build-version"
+            implementationClass = "org.gradle.gradlebuild.versioning.BuildVersionPlugin"
+        }
         register("wrapper") {
             id = "gradlebuild.wrapper"
             implementationClass = "org.gradle.gradlebuild.versioning.WrapperPlugin"
