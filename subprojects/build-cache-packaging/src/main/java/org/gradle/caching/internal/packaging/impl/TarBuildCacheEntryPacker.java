@@ -36,7 +36,6 @@ import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.StreamHasher;
-import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileMetadata;
@@ -91,13 +90,13 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
     private static final ThreadLocal<byte[]> COPY_BUFFERS = ThreadLocal.withInitial(() -> new byte[BUFFER_SIZE]);
 
     private final Deleter deleter;
-    private final FileSystem fileSystem;
+    private final FilePermissionAccess filePermissionAccess;
     private final StreamHasher streamHasher;
     private final Interner<String> stringInterner;
 
-    public TarBuildCacheEntryPacker(Deleter deleter, FileSystem fileSystem, StreamHasher streamHasher, Interner<String> stringInterner) {
+    public TarBuildCacheEntryPacker(Deleter deleter, FilePermissionAccess filePermissionAccess, StreamHasher streamHasher, Interner<String> stringInterner) {
         this.deleter = deleter;
-        this.fileSystem = fileSystem;
+        this.filePermissionAccess = filePermissionAccess;
         this.streamHasher = streamHasher;
         this.stringInterner = stringInterner;
     }
@@ -142,7 +141,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
     }
 
     private long packTree(String name, TreeType type, FileSystemSnapshot snapshots, TarArchiveOutputStream tarOutput) {
-        PackingVisitor packingVisitor = new PackingVisitor(tarOutput, name, type, fileSystem);
+        PackingVisitor packingVisitor = new PackingVisitor(tarOutput, name, type, filePermissionAccess);
         snapshots.accept(packingVisitor);
         return packingVisitor.finish();
     }
@@ -316,7 +315,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
     }
 
     private void chmodUnpackedFile(TarArchiveEntry entry, File file) {
-        fileSystem.chmod(file, entry.getMode() & UnixPermissions.PERM_MASK);
+        filePermissionAccess.chmod(file, entry.getMode() & UnixPermissions.PERM_MASK);
     }
 
     private static String escape(String name) {
@@ -340,17 +339,17 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
         private final TarArchiveOutputStream tarOutput;
         private final String treePath;
         private final String treeRoot;
-        private final FileSystem fileSystem;
+        private final FilePermissionAccess filePermissionAccess;
         private final TreeType type;
 
         private long entries;
 
-        public PackingVisitor(TarArchiveOutputStream tarOutput, String treeName, TreeType type, FileSystem fileSystem) {
+        public PackingVisitor(TarArchiveOutputStream tarOutput, String treeName, TreeType type, FilePermissionAccess filePermissionAccess) {
             this.tarOutput = tarOutput;
             this.treePath = "tree-" + escape(treeName);
             this.treeRoot = treePath + "/";
             this.type = type;
-            this.fileSystem = fileSystem;
+            this.filePermissionAccess = filePermissionAccess;
             this.relativePathStringTracker = new RelativePathStringTracker();
         }
 
@@ -360,7 +359,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
             relativePathStringTracker.enter(directorySnapshot);
             assertCorrectType(isRoot, directorySnapshot);
             String targetPath = getTargetPath(isRoot);
-            int mode = isRoot ? UnixPermissions.DEFAULT_DIR_PERM : fileSystem.getUnixMode(new File(directorySnapshot.getAbsolutePath()));
+            int mode = isRoot ? UnixPermissions.DEFAULT_DIR_PERM : filePermissionAccess.getUnixMode(new File(directorySnapshot.getAbsolutePath()));
             storeDirectoryEntry(targetPath, mode, tarOutput);
             entries++;
             return true;
@@ -379,7 +378,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
             } else {
                 assertCorrectType(isRoot, fileSnapshot);
                 File file = new File(fileSnapshot.getAbsolutePath());
-                int mode = fileSystem.getUnixMode(file);
+                int mode = filePermissionAccess.getUnixMode(file);
                 storeFileEntry(file, targetPath, file.length(), mode, tarOutput);
             }
             relativePathStringTracker.leave();
