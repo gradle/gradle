@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@NonNullApi
+package org.gradle.caching.internal;
 
-package org.gradle.caching.internal
-
-import org.gradle.internal.file.TreeType
-
-class TestCacheableTree {
-    final String name
-    final TreeType type
-    final File root
-
-    TestCacheableTree(String name, TreeType type, File root) {
-        this.name = name
-        this.type = type
-        this.root = root
-    }
-}
+import org.gradle.api.NonNullApi;

@@ -131,6 +131,7 @@ data class CIBuildModel(
         GradleSubproject("baseServices"),
         GradleSubproject("baseServicesGroovy", functionalTests = false),
         GradleSubproject("bootstrap", unitTests = false, functionalTests = false),
+        GradleSubproject("buildCacheBase", unitTests = false, functionalTests = false),
         GradleSubproject("buildCache"),
         GradleSubproject("buildCacheHttp", unitTests = false),
         GradleSubproject("buildCachePackaging", functionalTests = false),

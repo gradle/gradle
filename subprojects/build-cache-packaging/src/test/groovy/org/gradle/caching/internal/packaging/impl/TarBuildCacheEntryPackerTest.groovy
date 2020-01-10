@@ -18,7 +18,6 @@ package org.gradle.caching.internal.packaging.impl
 
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.caching.internal.CacheableEntity
-import org.gradle.caching.internal.TestCacheableTree
 import org.gradle.caching.internal.origin.OriginReader
 import org.gradle.caching.internal.origin.OriginWriter
 import org.gradle.internal.file.Deleter
@@ -31,6 +30,7 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
 
+import static org.gradle.caching.internal.packaging.impl.AbstractTarBuildCacheEntryPackerSpec.TestCacheableTree
 import static org.gradle.internal.file.TreeType.DIRECTORY
 import static org.gradle.internal.file.TreeType.FILE
 

@@ -29,9 +29,9 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
         settingsFile << """
             buildCache {
                 local {
-                    enabled = true 
+                    enabled = true
                     directory = '${cacheDir.absoluteFile.toURI().toString()}'
-                    push = true 
+                    push = true
                 }
             }
         """
@@ -68,15 +68,15 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
             }
             class CustomBuildCache extends AbstractBuildCache {}
             class CustomBuildCacheFactory implements BuildCacheServiceFactory<CustomBuildCache> {
-                @Override BuildCacheService createBuildCacheService(CustomBuildCache configuration, Describer describer) { 
+                @Override BuildCacheService createBuildCacheService(CustomBuildCache configuration, Describer describer) {
                     describer.type('$type').config('directory', '$directory')
-                    new VisibleNoOpBuildCacheService() 
+                    new VisibleNoOpBuildCacheService()
                 }
             }
-            
+
             buildCache {
                 registerBuildCacheService(CustomBuildCache, CustomBuildCacheFactory)
-                
+
                 remote(CustomBuildCache)
             }
         """
@@ -102,29 +102,39 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
         def cacheDir = temporaryFolder.file("cache-dir").createDir()
         def url = "http://localhost:8080/cache/"
         settingsFile << """
-            import org.gradle.caching.internal.NoOpBuildCacheService
+            class NoOpBuildCacheService implements BuildCacheService {
+                @Override
+                boolean load(BuildCacheKey key, BuildCacheEntryReader reader) { false }
+
+                @Override
+                void store(BuildCacheKey key, BuildCacheEntryWriter writer) {}
+
+                @Override
+                void close() {}
+            }
+
             class CustomBuildCache extends AbstractBuildCache {
                 private URI url
                 URI getUrl() {}
                 void setUrl(String url) { this.url = URI.create(url) }
             }
-            
+
             class CustomBuildCacheFactory implements BuildCacheServiceFactory<CustomBuildCache> {
-                @Override BuildCacheService createBuildCacheService(CustomBuildCache configuration, Describer describer) { 
+                @Override BuildCacheService createBuildCacheService(CustomBuildCache configuration, Describer describer) {
                     describer.config('url', '$url')
-                    new NoOpBuildCacheService() 
+                    new NoOpBuildCacheService()
                 }
             }
             buildCache {
                 registerBuildCacheService(CustomBuildCache, CustomBuildCacheFactory)
 
                 local {
-                    enabled = true 
+                    enabled = true
                     directory = '${cacheDir.absoluteFile.toURI().toString()}'
                 }
                 remote(CustomBuildCache) {
-                    enabled = true 
-                    url = "$url"   
+                    enabled = true
+                    url = "$url"
                 }
             }
         """
@@ -149,7 +159,7 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
                 local {
                     enabled = false
                     directory = '${cacheDir.absoluteFile.toURI().toString()}'
-                    push = true 
+                    push = true
                 }
             }
         """

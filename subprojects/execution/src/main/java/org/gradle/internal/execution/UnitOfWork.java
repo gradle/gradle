@@ -17,6 +17,7 @@
 package org.gradle.internal.execution;
 
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.api.Describable;
 import org.gradle.caching.internal.CacheableEntity;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingState;
@@ -36,7 +37,7 @@ import java.time.Duration;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-public interface UnitOfWork extends CacheableEntity {
+public interface UnitOfWork extends CacheableEntity, Describable {
 
     /**
      * Executes the work synchronously.

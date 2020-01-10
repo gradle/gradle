@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,24 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@NonNullApi
+package org.gradle.internal.nativeintegration.network;
 
-package org.gradle.caching.internal;
-
-import org.gradle.api.Describable;
-import org.gradle.internal.file.TreeType;
-
-import java.io.File;
-
-/**
- * An entity that can potentially be stored in the build cache.
- */
-public interface CacheableEntity extends Describable {
-    String getIdentity();
-
-    void visitOutputTrees(CacheableTreeVisitor visitor);
-
-    @FunctionalInterface
-    interface CacheableTreeVisitor {
-        void visitOutputTree(String name, TreeType type, File root);
-    }
-}
+import org.gradle.api.NonNullApi;

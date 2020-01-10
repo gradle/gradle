@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.internal.command
+package org.gradle.caching.internal.controller.impl
 
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
+import groovy.transform.Immutable
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.caching.BuildCacheKey
 import org.gradle.caching.internal.CacheableEntity
-import org.gradle.caching.internal.TestCacheableTree
 import org.gradle.caching.internal.origin.OriginMetadata
 import org.gradle.caching.internal.origin.OriginMetadataFactory
 import org.gradle.caching.internal.origin.OriginReader
@@ -43,12 +43,12 @@ import static org.gradle.internal.file.TreeType.DIRECTORY
 import static org.gradle.internal.file.TreeType.FILE
 
 @CleanupTestDirectory
-class BuildCacheCommandFactoryTest extends Specification {
+class DefaultBuildCacheCommandFactoryTest extends Specification {
     def packer = Mock(BuildCacheEntryPacker)
     def originFactory = Mock(OriginMetadataFactory)
     def virtualFileSystem = Mock(VirtualFileSystem)
     def stringInterner = new StringInterner()
-    def commandFactory = new BuildCacheCommandFactory(packer, originFactory, virtualFileSystem, stringInterner)
+    def commandFactory = new DefaultBuildCacheCommandFactory(packer, originFactory, virtualFileSystem, stringInterner)
 
     def key = Mock(BuildCacheKey)
 
@@ -160,5 +160,12 @@ class BuildCacheCommandFactoryTest extends Specification {
 
     TestCacheableTree prop(String name, TreeType type = FILE, File root = null) {
         new TestCacheableTree(name, type, root)
+    }
+
+    @Immutable(knownImmutableClasses = [File])
+    private static class TestCacheableTree {
+        String name
+        TreeType type
+        File root
     }
 }

@@ -16,10 +16,10 @@
 
 package org.gradle.caching.internal.packaging.impl
 
+import groovy.transform.Immutable
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.caching.internal.CacheableEntity
-import org.gradle.caching.internal.TestCacheableTree
 import org.gradle.caching.internal.origin.OriginReader
 import org.gradle.caching.internal.origin.OriginWriter
 import org.gradle.internal.MutableReference
@@ -122,5 +122,12 @@ abstract class AbstractTarBuildCacheEntryPackerSpec extends Specification {
             fingerprint.set(DefaultCurrentFileCollectionFingerprint.from([snapshot], strategy))
         }
         return fingerprint.get()
+    }
+
+    @Immutable(knownImmutableClasses = [File])
+    static class TestCacheableTree {
+        String name
+        TreeType type
+        File root
     }
 }

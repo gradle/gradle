@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.apache.commons.io.FileUtils;
-import org.gradle.caching.internal.command.BuildCacheCommandFactory;
+import org.gradle.caching.internal.controller.BuildCacheCommandFactory;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.controller.BuildCacheLoadCommand;
 import org.gradle.caching.internal.controller.BuildCacheStoreCommand;
