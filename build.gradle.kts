@@ -134,7 +134,7 @@ buildTypes {
 
     // Used for cross version tests on CI
     create("allVersionsCrossVersionTest") {
-        tasks("allVersionsCrossVersionTests", "integMultiVersionTest")
+        tasks("allVersionsCrossVersionTests")
         projectProperties("testAllVersions" to true)
         projectProperties("useAllDistribution" to true)
     }
