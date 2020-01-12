@@ -1,6 +1,5 @@
 package model
 
-import Gradle_Check.model.GradleSubprojectList
 import common.BuildCache
 import common.JvmCategory
 import common.JvmVendor
@@ -15,6 +14,8 @@ import configurations.Gradleception
 import configurations.SanityCheck
 import configurations.SmokeTests
 import jetbrains.buildServer.configs.kotlin.v2018_2.BuildType
+import jetbrains.buildServer.configs.kotlin.v2018_2.ErrorConsumer
+import jetbrains.buildServer.configs.kotlin.v2018_2.Validatable
 
 enum class StageNames(override val stageName: String, override val description: String, override val uuid: String) : StageName {
     QUICK_FEEDBACK_LINUX_ONLY("Quick Feedback - Linux Only", "Run checks and functional tests (embedded executer, Linux)", "QuickFeedbackLinuxOnly"),
@@ -82,9 +83,7 @@ data class CIBuildModel(
                 TestCoverage(12, TestType.noDaemon, Os.linux, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor),
                 TestCoverage(13, TestType.noDaemon, Os.windows, JvmCategory.MAX_VERSION.version, vendor = JvmCategory.MAX_VERSION.vendor),
                 TestCoverage(14, TestType.platform, Os.macos, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor),
-                TestCoverage(15, TestType.forceRealizeDependencyManagement, Os.linux, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor),
-                TestCoverage(33, TestType.allVersionsIntegMultiVersion, Os.linux, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor),
-                TestCoverage(34, TestType.allVersionsIntegMultiVersion, Os.windows, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor)),
+                TestCoverage(15, TestType.forceRealizeDependencyManagement, Os.linux, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor)),
             performanceTests = listOf(
                 PerformanceTestType.slow)),
         Stage(StageNames.HISTORICAL_PERFORMANCE,
@@ -104,8 +103,7 @@ data class CIBuildModel(
             runsIndependent = true,
             disablesBuildCache = true,
             functionalTests = listOf(
-                TestCoverage(26, TestType.quick, Os.windows, JvmCategory.MAX_VERSION.version, vendor = JvmCategory.MAX_VERSION.vendor))
-        ),
+                TestCoverage(26, TestType.quick, Os.windows, JvmCategory.MAX_VERSION.version, vendor = JvmCategory.MAX_VERSION.vendor))),
         Stage(StageNames.WINDOWS_10_EVALUATION_PLATFORM,
             trigger = Trigger.never,
             runsIndependent = true,
@@ -125,12 +123,11 @@ data class CIBuildModel(
                 TestCoverage(29, TestType.vfsRetention, Os.windows, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor),
                 TestCoverage(30, TestType.vfsRetention, Os.windows, JvmCategory.MAX_VERSION.version, vendor = JvmCategory.MAX_VERSION.vendor),
                 TestCoverage(31, TestType.vfsRetention, Os.macos, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor),
-                TestCoverage(32, TestType.vfsRetention, Os.macos, JvmCategory.MAX_VERSION.version, vendor = JvmCategory.MAX_VERSION.vendor))
-        )
-    ),
-    val subprojects: GradleSubprojectList = GradleSubprojectList(
-        listOf(
-            GradleSubproject("antlr"),
+                TestCoverage(32, TestType.vfsRetention, Os.macos, JvmCategory.MAX_VERSION.version, vendor = JvmCategory.MAX_VERSION.vendor)))
+        ),
+
+    val subProjects: List<GradleSubproject> = listOf(
+        GradleSubproject("antlr"),
         GradleSubproject("baseServices"),
         GradleSubproject("baseServicesGroovy", functionalTests = false),
         GradleSubproject("bootstrap", unitTests = false, functionalTests = false),
@@ -235,17 +232,134 @@ data class CIBuildModel(
         GradleSubproject("internalAndroidPerformanceTesting", unitTests = false, functionalTests = false),
         GradleSubproject("performance", unitTests = false, functionalTests = false),
         GradleSubproject("runtimeApiInfo", unitTests = false, functionalTests = false),
-        GradleSubproject("smokeTest", unitTests = false, functionalTests = false)
+        GradleSubproject("smokeTest", unitTests = false, functionalTests = false))
+) {
+    val buildTypeBuckets: List<BuildTypeBucket>
+
+    init {
+        val subprojectMap = subProjects.map { it.name to it }.toMap()
+        val buckets = mapOf(
+            "resources" to listOf("resources", "resourcesGcs", "resourcesHttp", "resourcesS3", "resourcesSftp"),
+            "platformBase" to listOf("platformBase", "platformJvm", "platformNative"),
+            "bucket1" to listOf("kotlinDslProviderPlugins", "buildCachePackaging", "native", "snapshots", "internalPerformanceTesting", "internalIntegTesting", "execution", "publish", "ear", "languageJvm"),
+            "bucket2" to listOf("baseServices", "processServices", "messaging", "buildProfile", "modelGroovy"),
+            "bucket3" to listOf("javascript", "fileCollections", "buildCache", "toolingNative", "buildCacheHttp"),
+            "bucket4" to listOf("antlr", "languageGroovy", "reporting", "diagnostics", "versionControl"),
+            "bucket5" to listOf("testingBase", "testingNative", "wrapper", "ideNative"),
+            "bucket7" to listOf("jacoco", "idePlay"),
+            "bucket8" to listOf("signing", "ivy"),
+            "bucket9" to listOf("kotlinDsl", "kotlinDslToolingBuilders"),
+            "bucket10" to listOf("modelCore", "ide"),
+            "bucket11" to listOf("codeQuality", "persistentCache")
         )
-    )
-)
+        val largeSubprojects = mapOf(
+            "integTest" to 3,
+            "core" to 4,
+            "dependencyManagement" to 3,
+            "toolingApi" to 2,
+            "samples" to 2,
+            "launcher" to 2,
+            "languageJava" to 2)
+
+        val nonTrivialBuckets = listOf<BuildTypeBucket>(
+            SubprojectBucket(name = "AllUnitTest", subprojects = subProjects.filter { it.hasOnlyUnitTests() })
+        ) + buckets.map { entry ->
+            SubprojectBucket(name = entry.key, subprojects = entry.value.map { subprojectMap.getValue(it) })
+        } + largeSubprojects.map { entry ->
+            SubprojectSplit(subproject = subprojectMap.getValue(entry.key), total = entry.value)
+        }
+        val handledSubprojects = nonTrivialBuckets.flatMap { it.getSubprojectNames() }
+        buildTypeBuckets = nonTrivialBuckets + subProjects.filter { !handledSubprojects.contains(it.name) }
+    }
+}
 
 interface BuildTypeBucket {
-    fun createFunctionalTestsFor(model: CIBuildModel, stage: Stage, testCoverage: TestCoverage): FunctionalTest
+    // TODO: Hacky. We should really be running all the subprojects on macOS
+    // But we're restricting this to just a subset of projects for now
+    // since we only have a small pool of macOS agents
+    fun shouldBeSkipped(testCoverage: TestCoverage): Boolean
+
+    fun containsSlowTests(): Boolean
+    fun shouldBeSkippedInStage(stage: Stage): Boolean
+    fun hasTestsOf(testType: TestType): Boolean
+    fun getSubprojectNames(): List<String>
+
+    fun createFunctionalTestsFor(model: CIBuildModel, stage: Stage, testCoverage: TestCoverage): List<FunctionalTest>
+}
+
+data class SubprojectSplit(val subproject: GradleSubproject, val total: Int) : BuildTypeBucket by subproject, Validatable {
+    override fun validate(consumer: ErrorConsumer) {
+        if (total <= 1) {
+            consumer.consumeError("Split number must be > 1: ${subproject.name} $total!")
+        }
+    }
+
+    private fun getName(number: Int) = if (number == 1) subproject.name else "${subproject.name}_$number"
+
+    override fun createFunctionalTestsFor(model: CIBuildModel, stage: Stage, testCoverage: TestCoverage) =
+        (1..total).map { createFunctionalTestsFor(model, stage, testCoverage, getName(it), "-PtestSplit=$it/$total") }
+
+    private fun createFunctionalTestsFor(model: CIBuildModel, stage: Stage, testCoverage: TestCoverage, name: String, parameter: String): FunctionalTest = FunctionalTest(model,
+        testCoverage.asConfigurationId(model, name),
+        "${testCoverage.asName()} ($name)",
+        "${testCoverage.asName()} for projects $name",
+        testCoverage,
+        stage,
+        listOf(subproject.name),
+        parameter
+    )
+}
+
+data class SubprojectBucket(val name: String, val subprojects: List<GradleSubproject>) : BuildTypeBucket, Validatable {
+    override fun createFunctionalTestsFor(model: CIBuildModel, stage: Stage, testCoverage: TestCoverage): List<FunctionalTest> {
+        val subprojectsForCoverage = subprojects.filter { !it.shouldBeSkipped(testCoverage) }
+        return listOf(
+            FunctionalTest(model, testCoverage.asConfigurationId(model, name),
+                "${testCoverage.asName()} (${subprojectsForCoverage.joinToString(", ") { it.name }})",
+                "${testCoverage.asName()} for ${subprojectsForCoverage.joinToString(", ") { it.name }}",
+                testCoverage,
+                stage,
+                subprojectsForCoverage.map { it.name }
+            )
+        )
+    }
+
+    override fun getSubprojectNames(): List<String> {
+        return subprojects.map { it.name }
+    }
+
+    override fun shouldBeSkippedInStage(stage: Stage) = stage.omitsSlowProjects && subprojects.any { it.containsSlowTests }
+
+    override fun validate(consumer: ErrorConsumer) {
+        if (!hasSameProperties { it.unitTests } ||
+            !hasSameProperties { it.functionalTests } ||
+            !hasSameProperties { it.crossVersionTests }) {
+            consumer.consumeError("All merged subprojects must have same properties: ${subprojects.joinToString(" ") { it.name }}")
+        }
+
+        Os.values().forEach {
+            val intersected = subprojects.intersect(it.ignoredSubprojects)
+            if (intersected.isNotEmpty() && intersected.size != subprojects.size) {
+                consumer.consumeError("Either all subprojects in a bucket are ignored, or none of them are ignored")
+            }
+        }
+    }
+
+    private
+    fun hasSameProperties(predicate: (GradleSubproject) -> Boolean): Boolean {
+        val count = subprojects.count(predicate)
+        return count == 0 || count == subprojects.size
+    }
+
+    override fun shouldBeSkipped(testCoverage: TestCoverage) = subprojects.all { it.shouldBeSkipped(testCoverage) }
+
+    override fun containsSlowTests() = subprojects.any { it.containsSlowTests }
+
+    override fun hasTestsOf(testType: TestType) = subprojects.any { it.hasTestsOf(testType) }
 }
 
 data class GradleSubproject(val name: String, val unitTests: Boolean = true, val functionalTests: Boolean = true, val crossVersionTests: Boolean = false, val containsSlowTests: Boolean = false) : BuildTypeBucket {
-    override fun createFunctionalTestsFor(model: CIBuildModel, stage: Stage, testCoverage: TestCoverage) =
+    override fun createFunctionalTestsFor(model: CIBuildModel, stage: Stage, testCoverage: TestCoverage) = listOf(
         FunctionalTest(model,
             testCoverage.asConfigurationId(model, name),
             "${testCoverage.asName()} ($name)",
@@ -253,13 +367,25 @@ data class GradleSubproject(val name: String, val unitTests: Boolean = true, val
             testCoverage,
             stage,
             listOf(name)
-        )
+        ))
 
-    fun hasTestsOf(testType: TestType) = (unitTests && testType.unitTests) || (functionalTests && testType.functionalTests) || (crossVersionTests && testType.crossVersionTests)
+    override fun getSubprojectNames(): List<String> {
+        return listOf(name)
+    }
+
+    override fun shouldBeSkippedInStage(stage: Stage) = containsSlowTests && stage.omitsSlowProjects
+
+    override fun shouldBeSkipped(testCoverage: TestCoverage) = testCoverage.os.ignoredSubprojects.contains(name)
+
+    override fun containsSlowTests() = containsSlowTests
+
+    override fun hasTestsOf(testType: TestType) = (unitTests && testType.unitTests) || (functionalTests && testType.functionalTests) || (crossVersionTests && testType.crossVersionTests)
 
     fun asDirectoryName(): String {
         return name.replace(Regex("([A-Z])")) { "-" + it.groups[1]!!.value.toLowerCase() }
     }
+
+    fun hasOnlyUnitTests() = unitTests && !functionalTests && !crossVersionTests
 }
 
 interface StageName {
@@ -284,15 +410,15 @@ data class TestCoverage(val uuid: Int, val testType: TestType, val os: Os, val t
     val testCoveragePrefix
         get() = "${testType.name.capitalize()}_$uuid"
 
-    fun asConfigurationId(model: CIBuildModel, subProject: String = ""): String {
+    fun asConfigurationId(model: CIBuildModel, subproject: String = ""): String {
         val prefix = "${testCoveragePrefix}_"
-        val shortenedSubprojectName = shortenSubprojectName(model.projectPrefix, prefix + subProject)
-        return model.projectPrefix + if (subProject.isNotEmpty()) shortenedSubprojectName else "${prefix}0"
+        val shortenedSubprojectName = shortenSubprojectName(model.projectPrefix, prefix + subproject)
+        return model.projectPrefix + if (subproject.isNotEmpty()) shortenedSubprojectName else "${prefix}0"
     }
 
     private
-    fun shortenSubprojectName(prefix: String, subProjectName: String): String {
-        val shortenedSubprojectName = subProjectName.replace("internal", "i").replace("Testing", "T")
+    fun shortenSubprojectName(prefix: String, subprojectName: String): String {
+        val shortenedSubprojectName = subprojectName.replace("internal", "i").replace("Testing", "T")
         if (shortenedSubprojectName.length + prefix.length <= 80) {
             return shortenedSubprojectName
         }
@@ -312,9 +438,7 @@ enum class TestType(val unitTests: Boolean = true, val functionalTests: Boolean 
     // Cross version tests select a small set of versions to cover when run as part of this stage
     quickFeedbackCrossVersion(false, false, true),
     // Cross version tests select all versions to cover when run as part of this stage
-    allVersionsCrossVersion(false, false, true, 240),
-    // run integMultiVersionTest with all version to cover
-    allVersionsIntegMultiVersion(false, true, false),
+    allVersionsCrossVersion(false, true, true, 240),
     parallel(false, true, false),
     noDaemon(false, true, false, 240),
     instant(false, true, false),

@@ -1,6 +1,6 @@
 package projects
 
-import Gradle_Check.model.GradleBuildBucketProvider
+import configurations.FunctionalTest
 import configurations.StagePasses
 import jetbrains.buildServer.configs.kotlin.v2018_2.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.v2018_2.ParameterDisplay
@@ -10,7 +10,7 @@ import jetbrains.buildServer.configs.kotlin.v2018_2.projectFeatures.versionedSet
 import model.CIBuildModel
 import model.Stage
 
-class RootProject(model: CIBuildModel, gradleBuildBucketProvider: GradleBuildBucketProvider) : Project({
+class RootProject(model: CIBuildModel) : Project({
     uuid = model.projectPrefix.removeSuffix("_")
     id = AbsoluteId(uuid)
     parentId = AbsoluteId("Gradle")
@@ -33,8 +33,9 @@ class RootProject(model: CIBuildModel, gradleBuildBucketProvider: GradleBuildBuc
     }
 
     var prevStage: Stage? = null
+    val deferredFunctionalTests = mutableListOf<(Stage) -> List<FunctionalTest>>()
     model.stages.forEach { stage ->
-        val stageProject = StageProject(model, gradleBuildBucketProvider, stage, uuid)
+        val stageProject = StageProject(model, stage, uuid, deferredFunctionalTests)
         val stagePasses = StagePasses(model, stage, prevStage, stageProject)
         buildType(stagePasses)
         subProject(stageProject)
