@@ -138,6 +138,11 @@ buildTypes {
         projectProperties("testAllVersions" to true)
     }
 
+    create("allVersionsIntegMultiVersionTest") {
+        tasks("integMultiVersionTest")
+        projectProperties("testAllVersions" to true)
+    }
+
     create("quickFeedbackCrossVersionTest") {
         tasks("quickFeedbackCrossVersionTests")
     }
