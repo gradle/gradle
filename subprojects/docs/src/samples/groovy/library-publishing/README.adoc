@@ -13,7 +13,7 @@ To publish the library:
 ----
 $ ./gradlew publish
 
-BUILD SUCCESSFUL in 3s
+BUILD SUCCESSFUL
 4 actionable tasks: 4 executed
 $ tree build/publishing-repository
 build/publishing-repository/

@@ -25,7 +25,7 @@ $ ./gradlew :application:run
 > Task :application:run
 Hello, World!
 
-BUILD SUCCESSFUL in 998ms
+BUILD SUCCESSFUL
 6 actionable tasks: 6 executed
 ----
 

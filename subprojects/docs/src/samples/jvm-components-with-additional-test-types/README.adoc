@@ -24,7 +24,7 @@ These additional tests can be executed with the `integrationTest` task or as par
 ----
 $ ./gradlew check
 
-BUILD SUCCESSFUL in 2s
+BUILD SUCCESSFUL
 11 actionable tasks: 11 executed
 ----
 

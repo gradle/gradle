@@ -22,8 +22,8 @@ Running the tests:
 ----
 $ ./gradlew test
 
-BUILD SUCCESSFUL in 7s
-7 actionable tasks: 7 executed
+BUILD SUCCESSFUL
+5 actionable tasks: 5 executed
 ----
 
 For more information, see link:{userManualPath}/java_testing.html[Testing in Java project chapter].

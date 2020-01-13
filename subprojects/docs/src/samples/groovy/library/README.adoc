@@ -16,7 +16,7 @@ To build the library:
 ----
 $ ./gradlew jar
 
-BUILD SUCCESSFUL in 6s
+BUILD SUCCESSFUL
 2 actionable tasks: 2 executed
 ----
 

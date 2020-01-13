@@ -36,7 +36,7 @@ WARNING: Please consider reporting this to the maintainers of org.codehaus.groov
 WARNING: Use --illegal-access=warn to enable warnings of further illegal reflective access operations
 WARNING: All illegal access operations will be denied in a future release
 
-BUILD SUCCESSFUL in 5s
+BUILD SUCCESSFUL
 7 actionable tasks: 7 executed
 ----
 

@@ -28,7 +28,7 @@ $ ./gradlew bootRun
 2019-11-12 22:14:43.820  INFO 1389 --- [           main] o.g.samples.SpringBootDemoApplication    : No active profile set, falling back to default profiles: default
 2019-11-12 22:14:44.108  INFO 1389 --- [           main] o.g.samples.SpringBootDemoApplication    : Started SpringBootDemoApplication in 5.537 seconds (JVM running for 5.8)
 
-BUILD SUCCESSFUL in 6s
+BUILD SUCCESSFUL
 3 actionable tasks: 3 executed
 ----
 

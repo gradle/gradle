@@ -37,6 +37,6 @@ $ ./gradlew greet
 > Task :greet
 Hello, World!
 
-BUILD SUCCESSFUL in 0s
+BUILD SUCCESSFUL
 1 actionable task: 1 executed
 ----
