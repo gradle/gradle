@@ -6,8 +6,8 @@ The Gradle plugin id by which the precompiled script can be referenced is derive
 and optional package declaration.
 
 ====
-include::sample[dir="samples/precompiled-script-plugin/groovy",files="build.gradle[]"]
-include::sample[dir="samples/precompiled-script-plugin/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="groovy",files="build.gradle[]"]
+include::sample[dir="kotlin",files="build.gradle.kts[]"]
 ====
 
 The sample is comprised of two builds:
