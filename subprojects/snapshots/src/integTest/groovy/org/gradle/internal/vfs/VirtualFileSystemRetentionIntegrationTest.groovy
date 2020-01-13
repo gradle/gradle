@@ -34,6 +34,8 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         executer.requireIsolatedDaemons()
     }
 
+    // The `run` task is not yet supported for instant execution.
+    // The next test can be deleted when this test works with instant execution
     @ToBeFixedForInstantExecution
     def "source file changes are recognized"() {
         buildFile << """
@@ -59,6 +61,29 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         then:
         outputContains "Hello VFS!"
         executedAndNotSkipped ":compileJava", ":classes", ":run"
+    }
+
+    // TODO: Delete this test when the `run` task is supported by instant execution, since the coverage is already handled by the test above.
+    def "source file changes are recognized (for instant execution)"() {
+        buildFile << """
+            apply plugin: "application"
+
+            application.mainClassName = "Main"
+        """
+
+        def mainSourceFile = file("src/main/java/Main.java")
+        mainSourceFile.text = sourceFileWithGreeting("Hello World!")
+
+        when:
+        withRetention().run "classes"
+        then:
+        executedAndNotSkipped ":compileJava", ":classes"
+
+        when:
+        mainSourceFile.text = sourceFileWithGreeting("Hello VFS!")
+        withRetention().run "classes"
+        then:
+        executedAndNotSkipped ":compileJava", ":classes"
     }
 
     @ToBeFixedForInstantExecution
@@ -140,6 +165,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         outputContains "Hello from modified settings!"
     }
 
+    // The `run` task is not yet supported for instant execution.
     @ToBeFixedForInstantExecution
     def "source file changes are recognized when retention has just been enabled"() {
         buildFile << """
@@ -165,6 +191,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         executedAndNotSkipped ":compileJava", ":classes", ":run"
     }
 
+    // The `run` task is not yet supported for instant execution.
     @ToBeFixedForInstantExecution
     def "source file changes are recognized when retention has just been disabled"() {
         buildFile << """
@@ -207,7 +234,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         outputDoesNotContain(incubatingMessage)
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution // https://github.com/gradle/instant-execution/issues/165
     def "detects when outputs are removed for tasks without sources"() {
         buildFile << """
             apply plugin: 'base'
@@ -226,23 +253,32 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
                 }
             }
 
+            abstract class Consumer extends DefaultTask {
+                @InputFiles
+                abstract DirectoryProperty getInputDirectory()
+
+                @OutputFile
+                abstract RegularFileProperty getOutputFile()
+
+                @TaskAction
+                void run() {
+                    def input = inputDirectory.file("output.txt").get().asFile
+                    if (input.file) {
+                        outputFile.asFile.get().text = input.text
+                    } else {
+                        outputFile.asFile.get().text = "<empty>"
+                    }
+                }
+            }
+
             task sourceTask(type: Producer) {
                 sources = file("sources")
                 outputDir = file("build/output")
             }
 
-            task consumer {
-                def outputFile = file("build/consumer.txt")
-                inputs.files(sourceTask.outputDir)
-                outputs.file("build/consumer.txt")
-                doLast {
-                    def input = file("build/output/output.txt")
-                    if (input.file) {
-                        outputFile.text = input.text
-                    } else {
-                        outputFile.text = "<empty>"
-                    }
-                }
+            task consumer(type: Consumer) {
+                inputDirectory = sourceTask.outputDir
+                outputFile = file("build/consumer.txt")
             }
         """
 
@@ -265,7 +301,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         outputFile.assertDoesNotExist()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution // https://github.com/gradle/instant-execution/issues/165
     def "detects when stale outputs are removed"() {
         buildFile << """
             apply plugin: 'base'
@@ -298,7 +334,6 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         outputFile.assertExists()
     }
 
-    @ToBeFixedForInstantExecution
     def "detects non-incremental cleanup of incremental tasks"() {
         buildFile << """
             abstract class IncrementalTask extends DefaultTask {
@@ -320,7 +355,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
 
             task incremental(type: IncrementalTask) {
                 sources = file("sources")
-                input = project.property("outputDir")
+                input = providers.systemProperty("outputDir")
                 outputDir = file("build/\${input.get()}")
             }
         """
@@ -328,27 +363,27 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         file("sources/input.txt").text = "input"
 
         when:
-        withRetention().run ":incremental", "-PoutputDir=output1"
+        withRetention().run ":incremental", "-DoutputDir=output1"
         then:
         executedAndNotSkipped(":incremental")
 
         when:
         file("build/output2/overlapping.txt").text = "overlapping"
         waitForChangesToBePickedUp()
-        withRetention().run ":incremental", "-PoutputDir=output2"
+        withRetention().run ":incremental", "-DoutputDir=output2"
         then:
         executedAndNotSkipped(":incremental")
         file("build/output1").assertDoesNotExist()
 
         when:
         waitForChangesToBePickedUp()
-        withRetention().run ":incremental", "-PoutputDir=output1"
+        withRetention().run ":incremental", "-DoutputDir=output1"
         then:
         executedAndNotSkipped(":incremental")
         file("build/output1").assertExists()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution() // https://github.com/gradle/gradle/issues/11818
     def "detects changes to manifest"() {
         buildFile << """
             plugins {
@@ -357,19 +392,21 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
             
             jar {
                 manifest {
-                    attributes('Created-By': project.property("creator"))
+                    attributes('Created-By': providers.systemProperty("creator"))
                 }
             }            
         """
 
         when:
-        withRetention().run "jar", "-Pcreator=first"
+        withRetention().run "jar", "-Dcreator=first"
         then:
+        file("build/tmp/jar/MANIFEST.MF").text.contains("first")
         executedAndNotSkipped(":jar")
 
         when:
-        withRetention().run "jar", "-Pcreator=second"
+        withRetention().run "jar", "-Dcreator=second"
         then:
+        file("build/tmp/jar/MANIFEST.MF").text.contains("second")
         executedAndNotSkipped(":jar")
     }
 
