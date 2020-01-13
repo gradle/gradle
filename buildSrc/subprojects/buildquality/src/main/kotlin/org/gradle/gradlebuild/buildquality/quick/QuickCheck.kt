@@ -20,13 +20,19 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.tasks.TaskAction
+import org.gradle.cache.internal.GeneratedGradleJarCache
 import org.gradle.kotlin.dsl.*
+import org.gradle.kotlin.dsl.experiments.plugins.GradleKotlinDslKtlintConventionPlugin
+import org.gradle.kotlin.dsl.support.serviceOf
+import java.util.concurrent.Callable
+
 
 class QuickCheckPlugin : Plugin<Project> {
     override fun apply(project: Project) {
         project.tasks.register("quickCheck", QuickCheckTask::class.java)
     }
 }
+
 
 abstract class QuickCheckTask() : DefaultTask() {
     @TaskAction
@@ -37,23 +43,35 @@ abstract class QuickCheckTask() : DefaultTask() {
         val changedFiles = getChangedFiles()
 
         project.configurations.create("quickCheck")
-        project.dependencies.add("quickCheck", "com.puppycrawl.tools:checkstyle:8.28")
-        project.dependencies.add("quickCheck", project.dependencies.localGroovy())
-        project.dependencies.add("quickCheck", "org.codenarc:CodeNarc:1.5")
-
-        Check.values().forEach { it.runCheckOn(project, changedFiles) }
+        val checks = Check.values().filter { it.filter(changedFiles).isNotEmpty() }
+        checks.forEach { it.addDependencies(project) }
+        checks.forEach { it.runCheck(project, it.filter(changedFiles)) }
     }
 
     //    A       buildSrc/subprojects/buildquality/src/main/kotlin/org/gradle/gradlebuild/buildquality/quick/QuickCheck.kt
     //    M       gradle.properties
     //    D       gradle/Check.java
-    private fun getChangedFiles(): List<String> =
+    private
+    fun getChangedFiles(): List<String> =
         project.execAndGetStdout("git", "diff", "--cached", "--name-status", "HEAD")
             .lines()
             .map { it.trim() }
             .filter { it.isNotBlank() && !it.startsWith("D") }
             .map { line -> line.replaceFirst("^[A-Z]+\\s+".toRegex(), "") }
 }
+
+
+private
+val rulesetChecksum by lazy {
+    GradleKotlinDslKtlintConventionPlugin::class.java.getResource("gradle-kotlin-dsl-ruleset.md5").readText()
+}
+
+
+private
+val rulesetJar by lazy {
+    GradleKotlinDslKtlintConventionPlugin::class.java.getResource("gradle-kotlin-dsl-ruleset.jar")
+}
+
 
 enum class Check(private val extension: String) {
     JAVA(".java") {
@@ -67,6 +85,10 @@ enum class Check(private val extension: String) {
                 classpath = project.configurations["quickCheck"]
                 systemProperty("config_location", "config/checkstyle")
             }
+        }
+
+        override fun addDependencies(project: Project) {
+            project.dependencies.add("quickCheck", "com.puppycrawl.tools:checkstyle:8.28")
         }
     },
     GROOVY(".groovy") {
@@ -87,23 +109,47 @@ enum class Check(private val extension: String) {
             }
         }
 
-        private fun groupByDir(files: List<String>): Map<String, List<String>> = files.groupBy { filePath ->
+        override fun addDependencies(project: Project) {
+            project.dependencies.add("quickCheck", project.dependencies.localGroovy())
+            project.dependencies.add("quickCheck", "org.codenarc:CodeNarc:1.5")
+        }
+
+        private
+        fun groupByDir(files: List<String>): Map<String, List<String>> = files.groupBy { filePath ->
             val filePathArray = filePath.split("/")
             filePathArray.subList(0, filePathArray.size - 1).joinToString("/")
         }
     },
     KOTLIN(".kt") {
         override fun runCheck(project: Project, filesToBeChecked: List<String>) {
-            // "Need to check with gradle/kotlin-dsl-conventions author how to implement
+            project.javaexec {
+                main = "com.github.shyiko.ktlint.Main"
+                filesToBeChecked.forEach { args(it) }
+                args("--reporter=plain")
+                args("--color")
+                classpath = project.configurations["quickCheck"]
+            }
+        }
+
+        override fun addDependencies(project: Project) {
+            project.dependencies.add("quickCheck", project.files(project.gradleKotlinDslKtlintRulesetJar()))
+//            project.dependencies.add("quickCheck", project.dependencies.kotlin("reflect"))
+            project.dependencies.add("quickCheck", "com.github.shyiko:ktlint:0.30.0") {
+                exclude(group = "com.github.shyiko.ktlint", module = "ktlint-ruleset-standard")
+            }
+        }
+
+        private
+        fun Project.gradleKotlinDslKtlintRulesetJar() = Callable {
+            serviceOf<GeneratedGradleJarCache>().get("ktlint-convention-ruleset-$rulesetChecksum") {
+                outputStream().use { it.write(rulesetJar.readBytes()) }
+            }
         }
     };
 
-    fun runCheckOn(project: Project, changedFiles: List<String>) {
-        val changedFilesWithExtension = changedFiles.filter { it.endsWith(extension) }
-        if (changedFilesWithExtension.isNotEmpty()) {
-            runCheck(project, changedFilesWithExtension);
-        }
-    }
 
     abstract fun runCheck(project: Project, filesToBeChecked: List<String>)
+    abstract fun addDependencies(project: Project)
+
+    fun filter(changedFiles: List<String>) = changedFiles.filter { it.endsWith(extension) }
 }
