@@ -46,17 +46,17 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
     private UsageLocationReporter locationReporter;
 
     private WarningMode warningMode = WarningMode.Summary;
-    private DeprecatedUsageBuildOperationProgressBroadaster buildOperationProgressBroadaster;
+    private DeprecatedUsageBuildOperationProgressBroadcaster buildOperationProgressBroadcaster;
     private GradleException error;
 
     public LoggingDeprecatedFeatureHandler() {
         this.locationReporter = DoNothingReporter.INSTANCE;
     }
 
-    public void init(UsageLocationReporter reporter, WarningMode warningMode, DeprecatedUsageBuildOperationProgressBroadaster buildOperationProgressBroadaster) {
+    public void init(UsageLocationReporter reporter, WarningMode warningMode, DeprecatedUsageBuildOperationProgressBroadcaster buildOperationProgressBroadcaster) {
         this.locationReporter = reporter;
         this.warningMode = warningMode;
-        this.buildOperationProgressBroadaster = buildOperationProgressBroadaster;
+        this.buildOperationProgressBroadcaster = buildOperationProgressBroadcaster;
     }
 
     @Override
@@ -83,13 +83,13 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
     }
 
     private void fireDeprecatedUsageBuildOperationProgress(DeprecatedFeatureUsage usage) {
-        if (buildOperationProgressBroadaster != null) {
-            buildOperationProgressBroadaster.progress(usage);
+        if (buildOperationProgressBroadcaster != null) {
+            buildOperationProgressBroadcaster.progress(usage);
         }
     }
 
     public void reset() {
-        buildOperationProgressBroadaster = null;
+        buildOperationProgressBroadcaster = null;
         messages.clear();
         error = null;
     }
