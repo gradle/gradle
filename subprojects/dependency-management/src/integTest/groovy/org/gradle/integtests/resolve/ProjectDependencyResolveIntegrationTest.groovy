@@ -714,4 +714,39 @@ project(':b') {
             }
         }
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/847")
+    def "can opt-out detection of circular dependencies with projects of same name"() {
+        given:
+        settingsFile << """
+            rootProject.name='duplicates'
+            include 'a:core'
+            include 'b:core'
+        """
+
+        buildFile << """
+            allprojects {
+                apply plugin: 'java-library'
+                group 'org.test'
+                version '1.0'
+            }
+
+            project(':a:core') {
+                dependencies {
+                    implementation project(':b:core')
+                }
+            }
+        """
+
+        def resolve = new ResolveTestFixture(buildFile, "compileClasspath")
+        resolve.prepare()
+
+        when:
+        fails 'a:core:checkDeps', '-Dorg.gradle.dependency.duplicate.project.detection=false'
+
+        then:
+        failure.assertHasDescription """Circular dependency between the following tasks:
+:a:core:compileJava
+\\--- :a:core:compileJava (*)"""
+    }
 }

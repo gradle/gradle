@@ -549,9 +549,8 @@ $append
         """
     }
 
-    @ToBeFixedForInstantExecution
     @Issue("https://github.com/gradle/gradle/issues/847")
-    def "can publish projects with the same name should be considered different when building the graph"() {
+    def "fails publishing projects if they share the same GAV coordinates"() {
         given:
         settingsFile << """
             rootProject.name='duplicates'
@@ -586,33 +585,52 @@ $append
         """
 
         when:
-        succeeds 'publishMavenPublicationToMavenRepo'
-        def project1 = javaLibrary(mavenRepo.module("org.gradle.test", "a-core", "1.0"))
-        def project2 = javaLibrary(mavenRepo.module("org.gradle.test", "b-core", "1.0"))
+        fails 'publishMavenPublicationToMavenRepo'
 
         then:
+        failure.assertHasCause "Project :a:core has the same (groupId, artifactId) as :b:core. You should set both the groupId and artifactId of the publication or opt out by adding the org.gradle.dependency.duplicate.project.detection system property to 'false'."
+    }
+
+    @ToBeFixedForInstantExecution
+    @Issue("https://github.com/gradle/gradle/issues/847")
+    def "fails publishing projects if they share the same GAV coordinates unless detection is disabled"() {
+        given:
+        settingsFile << """
+            rootProject.name='duplicates'
+            include 'a:core'
+            include 'b:core'
+        """
+
+        buildFile << """
+            allprojects {
+                apply plugin: 'java-library'
+                apply plugin: 'maven-publish'
+                group 'org.gradle.test'
+                version '1.0'
+
+                publishing {
+                    repositories {
+                        maven { url "${mavenRepo.uri}" }
+                    }
+                    publications {
+                        maven(MavenPublication) {
+                            from components.java
+                        }
+                    }
+                }
+            }
+
+        """
+
+        when:
+        succeeds 'publishMavenPublicationToMavenRepo', '-Dorg.gradle.dependency.duplicate.project.detection=false'
+        def project1 = javaLibrary(mavenRepo.module("org.gradle.test", "core", "1.0"))
+
+        then:
+        // this tests the current behavior, which is obviously wrong here as the user
+        // didn't overwrite the publication coordinates
         project1.assertPublishedAsJavaModule()
-        project2.assertPublishedAsJavaModule()
-
-        project1.parsedPom.artifactId == 'a-core'
-        project2.parsedPom.artifactId == 'b-core'
-
-        project1.parsedPom.scope("runtime") {
-            assertDependsOn("org.gradle.test:b-core:1.0")
-        }
-
-        project1.parsedModuleMetadata.component.module == 'a-core'
-        project2.parsedModuleMetadata.component.module == 'b-core'
-
-        project1.parsedModuleMetadata.variant("runtimeElements") {
-            dependency("org.gradle.test", "b-core", "1.0")
-            noMoreDependencies()
-        }
-
-        and:
-        outputContains """Project :a:core has the same (groupId, artifactId) as :b:core. It has been assigned a synthetic artifactId of a-core as a workaround, but you should set both the groupId and artifactId of the publication to be safe.
-Project :b:core has the same (groupId, artifactId) as :a:core. It has been assigned a synthetic artifactId of b-core as a workaround, but you should set both the groupId and artifactId of the publication to be safe.
-"""
+        project1.parsedPom.artifactId == 'core'
     }
 
     @ToBeFixedForInstantExecution
@@ -688,9 +706,7 @@ Project :b:core has the same (groupId, artifactId) as :a:core. It has been assig
         }
 
         and:
-        outputDoesNotContain """Project :a:core has the same (groupId, artifactId) as :b:core. It has been assigned a synthetic artifactId of a-core as a workaround, but you should set both the groupId and artifactId of the publication to be safe.
-Project :b:core has the same (groupId, artifactId) as :a:core. It has been assigned a synthetic artifactId of b-core as a workaround, but you should set both the groupId and artifactId of the publication to be safe.
-"""
+        outputDoesNotContain "Project :a:core has the same (groupId, artifactId) as :b:core. You should set both the organisation and module name of the publication or opt out by adding the org.gradle.dependency.duplicate.project.detection system property to 'false'."
     }
 
     @ToBeFixedForInstantExecution
@@ -766,9 +782,7 @@ Project :b:core has the same (groupId, artifactId) as :a:core. It has been assig
         }
 
         and:
-        outputDoesNotContain """Project :a:core has the same (groupId, artifactId) as :b:core. It has been assigned a synthetic artifactId of a-core as a workaround, but you should set both the groupId and artifactId of the publication to be safe.
-Project :b:core has the same (groupId, artifactId) as :a:core. It has been assigned a synthetic artifactId of b-core as a workaround, but you should set both the groupId and artifactId of the publication to be safe.
-"""
+        outputDoesNotContain "Project :a:core has the same (groupId, artifactId) as :b:core. You should set both the organisation and module name of the publication or opt out by adding the org.gradle.dependency.duplicate.project.detection system property to 'false'."
     }
 
 }
