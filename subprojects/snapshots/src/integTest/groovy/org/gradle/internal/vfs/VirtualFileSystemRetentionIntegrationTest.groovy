@@ -34,9 +34,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         executer.requireIsolatedDaemons()
     }
 
-    // The `run` task is not yet supported for instant execution.
-    // The next test can be deleted when this test works with instant execution
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "The `run` task is not yet supported for instant execution. The next test can be deleted when this test works with instant execution")
     def "source file changes are recognized"() {
         buildFile << """
             apply plugin: "application"
@@ -165,8 +163,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         outputContains "Hello from modified settings!"
     }
 
-    // The `run` task is not yet supported for instant execution.
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "The `run` task is not yet supported for instant execution.")
     def "source file changes are recognized when retention has just been enabled"() {
         buildFile << """
             apply plugin: "application"
@@ -191,8 +188,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         executedAndNotSkipped ":compileJava", ":classes", ":run"
     }
 
-    // The `run` task is not yet supported for instant execution.
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "The `run` task is not yet supported for instant execution.")
     def "source file changes are recognized when retention has just been disabled"() {
         buildFile << """
             apply plugin: "application"
@@ -234,7 +230,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         outputDoesNotContain(incubatingMessage)
     }
 
-    @ToBeFixedForInstantExecution // https://github.com/gradle/instant-execution/issues/165
+    @ToBeFixedForInstantExecution(because = "https://github.com/gradle/instant-execution/issues/165")
     def "detects when outputs are removed for tasks without sources"() {
         buildFile << """
             apply plugin: 'base'
@@ -301,7 +297,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         outputFile.assertDoesNotExist()
     }
 
-    @ToBeFixedForInstantExecution // https://github.com/gradle/instant-execution/issues/165
+    @ToBeFixedForInstantExecution(because = "https://github.com/gradle/instant-execution/issues/165")
     def "detects when stale outputs are removed"() {
         buildFile << """
             apply plugin: 'base'
@@ -383,7 +379,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         file("build/output1").assertExists()
     }
 
-    @ToBeFixedForInstantExecution() // https://github.com/gradle/gradle/issues/11818
+    @ToBeFixedForInstantExecution(because = "https://github.com/gradle/gradle/issues/11818")
     def "detects changes to manifest"() {
         buildFile << """
             plugins {
