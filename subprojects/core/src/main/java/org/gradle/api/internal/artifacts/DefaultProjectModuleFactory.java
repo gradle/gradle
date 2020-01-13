@@ -31,11 +31,18 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class DefaultProjectModuleFactory implements ProjectModuleFactory {
+    public static final String DUPLICATE_DETECTION_SYSPROP = "org.gradle.dependency.duplicate.project.detection";
+
     private static final Splitter SPLITTER = Splitter.on(':')
         .omitEmptyStrings();
 
     private final Map<Project, Module> projectToModule = Maps.newConcurrentMap();
     private final Set<String> projectsWithSameName;
+    private final boolean detectDuplicates;
+
+    public static boolean isDuplicateDetectionEnabled() {
+        return Boolean.parseBoolean(System.getProperty(DUPLICATE_DETECTION_SYSPROP, "true"));
+    }
 
     public DefaultProjectModuleFactory(ProjectRegistry<? extends ProjectIdentifier> registry) {
         Map<String, Long> uniqueNames = registry.getAllProjects().stream()
@@ -48,6 +55,7 @@ public class DefaultProjectModuleFactory implements ProjectModuleFactory {
             .map(Map.Entry::getKey)
             .forEach(builder::add);
         projectsWithSameName = builder.build();
+        detectDuplicates = isDuplicateDetectionEnabled();
     }
 
     private List<Project> findDuplicates(Project project) {
@@ -168,7 +176,7 @@ public class DefaultProjectModuleFactory implements ProjectModuleFactory {
 
         private void computeName() {
             String name = project.getName();
-            if (projectsWithSameName.contains(name)) {
+            if (detectDuplicates && projectsWithSameName.contains(name)) {
                 List<String> strings = SPLITTER.splitToList(project.getPath());
                 if (strings.size() > 1) {
                     lazyName = String.join("-", strings.subList(0, strings.size() - 1)) + "-" + name;

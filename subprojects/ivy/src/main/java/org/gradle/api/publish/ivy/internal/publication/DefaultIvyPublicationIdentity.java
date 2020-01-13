@@ -16,11 +16,11 @@
 
 package org.gradle.api.publish.ivy.internal.publication;
 
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.Project;
+import org.gradle.api.internal.artifacts.DefaultProjectModuleFactory;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.ProjectBackedModule;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity;
 
 import javax.annotation.Nullable;
@@ -29,22 +29,19 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 public class DefaultIvyPublicationIdentity implements IvyPublicationIdentity {
-    private final Logger logger;
     private Module delegate;
     private String organisation;
     private String module;
     private String revision;
 
-    public DefaultIvyPublicationIdentity(Module delegate, Logger logger) {
-        this.delegate = safeProjectCoordinatesProvider(delegate, logger);
-        this.logger = logger;
+    public DefaultIvyPublicationIdentity(Module delegate) {
+        this.delegate = safeProjectCoordinatesProvider(delegate);
     }
 
     public DefaultIvyPublicationIdentity(String organisation, String module, String revision) {
         this.organisation = organisation;
         this.module = module;
         this.revision = revision;
-        this.logger = Logging.getLogger(DefaultIvyPublicationIdentity.class);
     }
 
     @Override
@@ -77,21 +74,19 @@ public class DefaultIvyPublicationIdentity implements IvyPublicationIdentity {
         this.revision = revision;
     }
 
-    private Module safeProjectCoordinatesProvider(Module module, Logger logger) {
+    private Module safeProjectCoordinatesProvider(Module module) {
         if (module instanceof ProjectBackedModule) {
-            return new LazyProjectModuleProvider((ProjectBackedModule) module, logger);
+            return new LazyProjectModuleProvider((ProjectBackedModule) module);
         }
         return module;
     }
 
     private static final class LazyProjectModuleProvider implements Module {
         private final ProjectBackedModule projectBackedModule;
-        private final Logger logger;
         private final AtomicBoolean warned = new AtomicBoolean();
 
-        private LazyProjectModuleProvider(ProjectBackedModule module, Logger logger) {
+        private LazyProjectModuleProvider(ProjectBackedModule module) {
             this.projectBackedModule = module;
-            this.logger = logger;
         }
 
         @Nullable
@@ -126,16 +121,15 @@ public class DefaultIvyPublicationIdentity implements IvyPublicationIdentity {
             if (!warned.getAndSet(true)) {
                 Project project = projectBackedModule.getProject();
                 List<Project> projectsWithSameId = projectBackedModule.getProjectsWithSameCoordinates();
-                if (!projectsWithSameId.isEmpty()) {
+                if (!projectsWithSameId.isEmpty() && DefaultProjectModuleFactory.isDuplicateDetectionEnabled()) {
                     StringBuilder sb = new StringBuilder();
                     sb.append("Project ")
                         .append(project.getPath())
                         .append(" has the same (organisation, module name) as ")
                         .append(projectsWithSameId.stream().map(Project::getPath).collect(Collectors.joining(" and ")))
-                        .append(". It has been assigned a synthetic Ivy module name of of ")
-                        .append(projectBackedModule.getName())
-                        .append(" as a workaround, but you should set both the organisation and module name of the publication to be safe.");
-                    logger.warn(sb.toString());
+                        .append(". You should set both the organisation and module name of the publication")
+                        .append(" or opt out by adding the " + DefaultProjectModuleFactory.DUPLICATE_DETECTION_SYSPROP + " system property to 'false'.");
+                    throw new InvalidUserCodeException(sb.toString());
                 }
             }
         }

@@ -343,9 +343,8 @@ $append
         """
     }
 
-    @ToBeFixedForInstantExecution
     @Issue("https://github.com/gradle/gradle/issues/847")
-    def "can publish projects with the same name should be considered different when building the graph"() {
+    def "fails publishing projects which share the same GAV coordinates"() {
         given:
         settingsFile << """
             rootProject.name='duplicates'
@@ -380,30 +379,52 @@ $append
         """
 
         when:
-        succeeds 'publishIvyPublicationToIvyRepo'
-        def project1 = javaLibrary(ivyRepo.module("org.gradle.test", "a-core", "1.0"))
-        def project2 = javaLibrary(ivyRepo.module("org.gradle.test", "b-core", "1.0"))
+        fails 'publishIvyPublicationToIvyRepo'
 
         then:
+        failure.assertHasCause "Project :b:core has the same (organisation, module name) as :a:core. You should set both the organisation and module name of the publication or opt out by adding the org.gradle.dependency.duplicate.project.detection system property to 'false'."
+    }
+
+    @ToBeFixedForInstantExecution
+    @Issue("https://github.com/gradle/gradle/issues/847")
+    def "fails publishing projects if they share the same GAV coordinates unless detection is disabled"() {
+        given:
+        settingsFile << """
+            rootProject.name='duplicates'
+            include 'a:core'
+            include 'b:core'
+        """
+
+        buildFile << """
+            allprojects {
+                apply plugin: 'java-library'
+                apply plugin: 'ivy-publish'
+                group 'org.gradle.test'
+                version '1.0'
+
+                publishing {
+                    repositories {
+                        ivy { url "${ivyRepo.uri}" }
+                    }
+                    publications {
+                        ivy(IvyPublication) {
+                            from components.java
+                        }
+                    }
+                }
+            }
+
+        """
+
+        when:
+        succeeds 'publishIvyPublicationToIvyRepo', '-Dorg.gradle.dependency.duplicate.project.detection=false'
+        def project1 = javaLibrary(ivyRepo.module("org.gradle.test", "core", "1.0"))
+
+        then:
+        // this tests the current behavior, which is obviously wrong here as the user
+        // didn't overwrite the publication coordinates
         project1.assertPublishedAsJavaModule()
-        project2.assertPublishedAsJavaModule()
-
-        project1.parsedIvy.module == 'a-core'
-        project2.parsedIvy.module == 'b-core'
-
-        project1.parsedIvy.assertConfigurationDependsOn("runtime", "org.gradle.test:b-core:1.0")
-
-        project1.parsedModuleMetadata.component.module == 'a-core'
-        project2.parsedModuleMetadata.component.module == 'b-core'
-
-        project1.parsedModuleMetadata.variant("runtimeElements") {
-            dependency("org.gradle.test", "b-core", "1.0")
-            noMoreDependencies()
-        }
-
-        and:
-        outputContains """Project :b:core has the same (organisation, module name) as :a:core. It has been assigned a synthetic Ivy module name of of b-core as a workaround, but you should set both the organisation and module name of the publication to be safe."""
-        outputContains """Project :a:core has the same (organisation, module name) as :b:core. It has been assigned a synthetic Ivy module name of of a-core as a workaround, but you should set both the organisation and module name of the publication to be safe."""
+        project1.parsedIvy.module == 'core'
     }
 
     @ToBeFixedForInstantExecution
@@ -477,8 +498,8 @@ $append
         }
 
         and:
-        outputDoesNotContain "Project :a:core has the same (organisation, module name) as :b:core. It has been assigned a synthetic Ivy module name of of a-core as a workaround, but you should set both the organisation and module name of the publication to be safe."
-        outputDoesNotContain "Project :b:core has the same (organisation, module name) as :a:core. It has been assigned a synthetic Ivy module name of of b-core as a workaround, but you should set both the organisation and module name of the publication to be safe."
+        outputDoesNotContain "Project :a:core has the same (organisation, module name) as :b:core.  You should set both the organisation and module name of the publication or opt out by adding the org.gradle.dependency.duplicate.project.detection system property to 'false'."
+        outputDoesNotContain "Project :b:core has the same (organisation, module name) as :a:core.  You should set both the organisation and module name of the publication or opt out by adding the org.gradle.dependency.duplicate.project.detection system property to 'false'."
     }
 
     @ToBeFixedForInstantExecution
@@ -552,8 +573,8 @@ $append
         }
 
         and:
-        outputDoesNotContain "Project :a:core has the same (organisation, module name) as :b:core. It has been assigned a synthetic Ivy module name of of a-core as a workaround, but you should set both the organisation and module name of the publication to be safe."
-        outputDoesNotContain "Project :b:core has the same (organisation, module name) as :a:core. It has been assigned a synthetic Ivy module name of of b-core as a workaround, but you should set both the organisation and module name of the publication to be safe."
+        outputDoesNotContain "Project :a:core has the same (organisation, module name) as :b:core. You should set both the organisation and module name of the publication or opt out by adding the org.gradle.dependency.duplicate.project.detection system property to 'false'."
+        outputDoesNotContain "Project :b:core has the same (organisation, module name) as :a:core. You should set both the organisation and module name of the publication or opt out by adding the org.gradle.dependency.duplicate.project.detection system property to 'false'."
 
     }
 

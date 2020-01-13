@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.maven.plugins;
 
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.NamedDomainObjectList;
 import org.gradle.api.NamedDomainObjectSet;
@@ -25,12 +26,12 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.internal.artifacts.DefaultProjectModuleFactory;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.ProjectBackedModule;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.logging.Logger;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.JavaPlatformPlugin;
@@ -110,8 +111,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
                 instantiatorFactory.decorateLenient(),
                 fileResolver,
                 project.getPluginManager(),
-                project.getExtensions(),
-                project.getLogger()
+                project.getExtensions()
             ));
             realizePublishingTasksLater(project, extension);
         });
@@ -211,20 +211,17 @@ public class MavenPublishPlugin implements Plugin<Project> {
         private final FileResolver fileResolver;
         private final PluginManager plugins;
         private final ExtensionContainer extensionContainer;
-        private final Logger logger;
 
         private MavenPublicationFactory(DependencyMetaDataProvider dependencyMetaDataProvider,
                                         Instantiator instantiator,
                                         FileResolver fileResolver,
                                         PluginManager plugins,
-                                        ExtensionContainer extensionContainer,
-                                        Logger logger) {
+                                        ExtensionContainer extensionContainer) {
             this.dependencyMetaDataProvider = dependencyMetaDataProvider;
             this.instantiator = instantiator;
             this.fileResolver = fileResolver;
             this.plugins = plugins;
             this.extensionContainer = extensionContainer;
-            this.logger = logger;
         }
 
         @Override
@@ -271,18 +268,16 @@ public class MavenPublishPlugin implements Plugin<Project> {
         }
 
         private LazyProjectNameProvider safeProjectCoordinatesProvider(Module module) {
-            return new LazyProjectNameProvider((ProjectBackedModule) module, logger);
+            return new LazyProjectNameProvider((ProjectBackedModule) module);
         }
     }
 
     private static final class LazyProjectNameProvider {
         private final ProjectBackedModule projectBackedModule;
-        private final Logger logger;
         private final AtomicBoolean warned = new AtomicBoolean();
 
-        private LazyProjectNameProvider(ProjectBackedModule module, Logger logger) {
+        private LazyProjectNameProvider(ProjectBackedModule module) {
             this.projectBackedModule = module;
-            this.logger = logger;
         }
 
         public String getGroup() {
@@ -299,16 +294,15 @@ public class MavenPublishPlugin implements Plugin<Project> {
             if (!warned.getAndSet(true)) {
                 Project project = projectBackedModule.getProject();
                 List<Project> projectsWithSameId = projectBackedModule.getProjectsWithSameCoordinates();
-                if (!projectsWithSameId.isEmpty()) {
+                if (!projectsWithSameId.isEmpty() && DefaultProjectModuleFactory.isDuplicateDetectionEnabled()) {
                     StringBuilder sb = new StringBuilder();
                     sb.append("Project ")
                         .append(project.getPath())
                         .append(" has the same (groupId, artifactId) as ")
                         .append(projectsWithSameId.stream().map(Project::getPath).collect(Collectors.joining(" and ")))
-                        .append(". It has been assigned a synthetic artifactId of ")
-                        .append(projectBackedModule.getName())
-                        .append(" as a workaround, but you should set both the groupId and artifactId of the publication to be safe.");
-                    logger.warn(sb.toString());
+                        .append(". You should set both the groupId and artifactId of the publication")
+                        .append(" or opt out by adding the " + DefaultProjectModuleFactory.DUPLICATE_DETECTION_SYSPROP + " system property to 'false'.");
+                    throw new InvalidUserCodeException(sb.toString());
                 }
             }
         }
