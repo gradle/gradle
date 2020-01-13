@@ -515,48 +515,6 @@ dependencies {
         ideFileContainsGradleApi("gradle-api")
     }
 
-    private void givenGradleSourcesExistInDistribution() {
-        TestFile sourcesDir = gradleDistributionSrcDir()
-        sourcesDir.createFile("submodule1/org/gradle/Test.java")
-        sourcesDir.createFile("submodule2/org/gradle/Test2.java")
-    }
-
-    private void givenSourceDistributionExistsOnRemoteServer(String repository = "distributions-snapshots", String version = distribution.version.version, TestFile zippedSources = gradleSourcesZip()) {
-        String distributionPath = "/$repository/gradle-${version}-src.zip"
-        server.allowGetOrHead(distributionPath, zippedSources)
-        server.allowGetMissing("${distributionPath}.sha1")
-    }
-
-    void assertSourcesDirectoryDoesNotExistInDistribution() {
-        gradleDistributionSrcDir().assertDoesNotExist()
-    }
-
-    private TestFile gradleDistributionSrcDir() {
-        return new TestFile(distribution.gradleHomeDir, "src")
-    }
-
-    private TestFile gradleSourcesZip() {
-        return createZip("gradle-src.zip") {
-            root {
-                subprojects {
-                    submodule1 {
-                        file("/src/main/java/org/gradle/Test.java")
-                    }
-                    submodule2 {
-                        file("/src/main/java/org/gradle/Test2.java")
-                    }
-                }
-            }
-        }
-    }
-
-    static void assertContainsGradleSources(TestFile sourcesDir) {
-        sourcesDir.assertContainsDescendants(
-            "submodule1/org/gradle/Test.java",
-            "submodule2/org/gradle/Test2.java"
-        )
-    }
-
     @ToBeFixedForInstantExecution
     def "sources for localGroovy() are downloaded and attached"() {
         given:
@@ -593,6 +551,30 @@ dependencies {
 
             dependencies {
                 implementation gradleApi()
+            }
+            """
+
+        when:
+        succeeds ideTask
+
+        then:
+        ideFileContainsEntry("groovy-all-${groovyAllVersion}.jar", ["groovy-all-${groovyAllVersion}-sources.jar"], [])
+    }
+
+    @ToBeFixedForInstantExecution
+    def "sources for localGroovy() are downloaded and attached when using gradleTestKit()"() {
+        given:
+        requireGradleDistribution()
+        def repo = givenGroovyAllExistsInGradleRepo()
+        executer.withEnvironmentVars('GRADLE_LIBS_REPO_OVERRIDE': "$repo.uri/")
+
+        buildScript """
+            apply plugin: "java"
+            apply plugin: "idea"
+            apply plugin: "eclipse"
+
+            dependencies {
+                implementation gradleTestKit()
             }
             """
 
@@ -649,6 +631,48 @@ dependencies {
 
         then:
         ideFileContainsNoSourcesAndJavadocEntry()
+    }
+
+    private void givenGradleSourcesExistInDistribution() {
+        TestFile sourcesDir = gradleDistributionSrcDir()
+        sourcesDir.createFile("submodule1/org/gradle/Test.java")
+        sourcesDir.createFile("submodule2/org/gradle/Test2.java")
+    }
+
+    private void givenSourceDistributionExistsOnRemoteServer(String repository = "distributions-snapshots", String version = distribution.version.version, TestFile zippedSources = gradleSourcesZip()) {
+        String distributionPath = "/$repository/gradle-${version}-src.zip"
+        server.allowGetOrHead(distributionPath, zippedSources)
+        server.allowGetMissing("${distributionPath}.sha1")
+    }
+
+    void assertSourcesDirectoryDoesNotExistInDistribution() {
+        gradleDistributionSrcDir().assertDoesNotExist()
+    }
+
+    private TestFile gradleDistributionSrcDir() {
+        return new TestFile(distribution.gradleHomeDir, "src")
+    }
+
+    private TestFile gradleSourcesZip() {
+        return createZip("gradle-src.zip") {
+            root {
+                subprojects {
+                    submodule1 {
+                        file("/src/main/java/org/gradle/Test.java")
+                    }
+                    submodule2 {
+                        file("/src/main/java/org/gradle/Test2.java")
+                    }
+                }
+            }
+        }
+    }
+
+    static void assertContainsGradleSources(TestFile sourcesDir) {
+        sourcesDir.assertContainsDescendants(
+            "submodule1/org/gradle/Test.java",
+            "submodule2/org/gradle/Test2.java"
+        )
     }
 
     def givenGroovyAllExistsInGradleRepo() {
