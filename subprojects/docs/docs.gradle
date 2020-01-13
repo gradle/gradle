@@ -349,7 +349,7 @@ samples {
 }
 
 // TODO: Fix upstream plugin to disable Checkstyle checks for the generated sources
-tasks.named("checkstyleSamplesExemplarFunctionalTest") {
+tasks.named("checkstyleDocsTest") {
     enabled = false
 }
 
