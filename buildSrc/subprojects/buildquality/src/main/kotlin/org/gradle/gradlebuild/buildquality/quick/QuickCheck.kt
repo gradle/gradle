@@ -133,7 +133,6 @@ enum class Check(private val extension: String) {
 
         override fun addDependencies(project: Project) {
             project.dependencies.add("quickCheck", project.files(project.gradleKotlinDslKtlintRulesetJar()))
-//            project.dependencies.add("quickCheck", project.dependencies.kotlin("reflect"))
             project.dependencies.add("quickCheck", "com.github.shyiko:ktlint:0.30.0") {
                 exclude(group = "com.github.shyiko.ktlint", module = "ktlint-ruleset-standard")
             }
