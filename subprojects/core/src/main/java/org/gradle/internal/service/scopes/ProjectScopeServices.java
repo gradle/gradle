@@ -16,7 +16,6 @@
 
 package org.gradle.internal.service.scopes;
 
-import org.gradle.api.Action;
 import org.gradle.api.AntBuilder;
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
@@ -80,7 +79,6 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
-import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.state.DefaultManagedFactoryRegistry;
 import org.gradle.internal.state.ManagedFactoryRegistry;
@@ -101,7 +99,6 @@ import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.util.function.Supplier;
 
 /**
  * Contains the services for a given project.
@@ -114,14 +111,11 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         super(parent);
         this.project = project;
         this.loggingManagerInternalFactory = loggingManagerInternalFactory;
-        register(new Action<ServiceRegistration>() {
-            @Override
-            public void execute(ServiceRegistration registration) {
-                registration.add(DomainObjectContext.class, project);
-                parent.get(DependencyManagementServices.class).addDslServices(registration, project);
-                for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {
-                    pluginServiceRegistry.registerProjectServices(registration);
-                }
+        register(registration -> {
+            registration.add(DomainObjectContext.class, project);
+            parent.get(DependencyManagementServices.class).addDslServices(registration, project);
+            for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {
+                pluginServiceRegistry.registerProjectServices(registration);
             }
         });
         addProvider(new WorkerSharedProjectScopeServices(project.getProjectDir()));
@@ -167,12 +161,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     }
 
     protected TemporaryFileProvider createTemporaryFileProvider() {
-        return new DefaultTemporaryFileProvider(new Factory<File>() {
-            @Override
-            public File create() {
-                return new File(project.getBuildDir(), "tmp");
-            }
-        });
+        return new DefaultTemporaryFileProvider(() -> new File(project.getBuildDir(), "tmp"));
     }
 
     protected Factory<AntBuilder> createAntBuilderFactory() {
@@ -210,12 +199,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     }
 
     protected ProjectFinder createProjectFinder(final BuildStateRegistry buildStateRegistry) {
-        return new DefaultProjectFinder(buildStateRegistry, new Supplier<ProjectInternal>() {
-            @Override
-            public ProjectInternal get() {
-                return project;
-            }
-        });
+        return new DefaultProjectFinder(buildStateRegistry, () -> project);
     }
 
     protected ModelRegistry createModelRegistry(ModelRuleExtractor ruleExtractor) {
@@ -284,11 +268,8 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     }
 
     protected ServiceRegistryFactory createServiceRegistryFactory(final ServiceRegistry services) {
-        return new ServiceRegistryFactory() {
-            @Override
-            public ServiceRegistry createFor(Object domainObject) {
-                throw new UnsupportedOperationException();
-            }
+        return domainObject -> {
+            throw new UnsupportedOperationException();
         };
     }
 

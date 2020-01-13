@@ -23,7 +23,6 @@ import org.gradle.api.file.FileContents
 import org.gradle.build.BuildReceipt
 import org.gradle.gradlebuild.BuildEnvironment
 import org.gradle.kotlin.dsl.*
-import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 
@@ -70,13 +69,9 @@ fun Project.setBuildVersionProperties() {
         }
     }
     extra.let { ext ->
-        ext["milestoneNumber"] = milestoneNumber?.toInt()
-        ext["rcNumber"] = rcNumber?.toInt()
-        ext["finalRelease"] = isFinalRelease
-        ext["versionQualifier"] = versionQualifier
-        ext["isSnapshot"] = isSnapshot
         ext["baseVersion"] = baseVersion
         ext["buildTimestamp"] = buildTimestamp
+        ext["isSnapshot"] = isSnapshot
     }
 }
 
@@ -99,7 +94,7 @@ private
 fun Project.computeBuildTimestamp(): String {
     val ignoreIncomingBuildReceipt: Any? by project
     val incomingBuildReceiptDir = file("incoming-distributions")
-    if (ignoreIncomingBuildReceipt == null && File(incomingBuildReceiptDir, BuildReceipt.BUILD_RECEIPT_FILE_NAME).exists()) {
+    if (ignoreIncomingBuildReceipt == null && BuildReceipt.buildReceiptFileIn(incomingBuildReceiptDir).exists()) {
         val incomingDistributionsBuildReceipt = BuildReceipt.readBuildReceipt(incomingBuildReceiptDir)
         val buildTimestamp = incomingDistributionsBuildReceipt["buildTimestamp"] as String
         println("Using timestamp from incoming build receipt: $buildTimestamp")

@@ -3,13 +3,15 @@ dependencies {
     implementation(project(":build"))
     implementation(project(":configuration"))
     implementation(project(":kotlinDsl"))
-    implementation(project(":versioning"))
     implementation(project(":performance"))
+    implementation(project(":versioning"))
+
     implementation("org.jsoup:jsoup:1.11.3")
     implementation("com.google.guava:guava")
     implementation("org.ow2.asm:asm:7.1")
     implementation("org.ow2.asm:asm-commons:7.1")
     implementation("com.google.code.gson:gson:2.7")
+
     testImplementation("org.junit.jupiter:junit-jupiter-params:5.4.2")
     testImplementation("junit:junit:4.12")
     testImplementation("io.mockk:mockk:1.8.13")

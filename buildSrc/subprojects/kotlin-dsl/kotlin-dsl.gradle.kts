@@ -11,8 +11,8 @@ val kotlinVersion = if (useKotlinEap.get()) {
 
 dependencies {
 
-    implementation(project(":configuration"))
     implementation(project(":build"))
+    implementation(project(":configuration"))
 
     api(kotlin("gradle-plugin", kotlinVersion))
     api(kotlin("stdlib-jdk8", kotlinVersion))
