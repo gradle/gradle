@@ -18,10 +18,10 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.ImmutableSet;
 import org.apache.commons.compress.utils.Lists;
-import org.gradle.api.file.internal.FilePathUtil;
 import org.gradle.internal.Factory;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.IoActions;
+import org.gradle.internal.file.FilePathUtil;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintHashingStrategy;

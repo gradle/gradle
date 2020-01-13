@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.resolve.verification
 
-import org.gradle.api.internal.DocumentationRegistry
+
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.cache.CachingIntegrationFixture
@@ -360,7 +360,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
             return """Dependency verification failed for org:foo:1.0:
   - On artifact foo-1.0-sources.jar (org:foo:1.0) in repository 'maven': checksum is missing from verification metadata.
 
-If the dependency is legit, follow the instructions at ${docsUrl}"""
+If the dependency is legit, you will need to update the gradle/verification-metadata.xml file by following the instructions at ${docsUrl}"""
         }
 
         String message = """Dependency verification failed for configuration ':compileClasspath':
@@ -487,7 +487,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
   - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': checksum is missing from verification metadata.
   - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': checksum is missing from verification metadata.
 
-If the dependency is legit, follow the instructions at ${docsUrl}""")
+If the dependency is legit, you will need to update the gradle/verification-metadata.xml file by following the instructions at ${docsUrl}""")
     }
 
     def "ignores project and file dependencies"() {
@@ -867,7 +867,75 @@ This can indicate that a dependency has been compromised. Please carefully verif
         failure.assertThatCause(containsText("Dependency verification cannot be performed"))
     }
 
-    private static String getDocsUrl() {
-        new DocumentationRegistry().getDocumentationFor("dependency_verification", "sec:troubleshooting-verification")
+    def "can disable verification for specific configurations"() {
+        createMetadataFile {
+            addChecksum("org:foo:1.0", 'sha1', "invalid")
+        }
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo")
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+            configurations.compileClasspath.resolutionStrategy.disableDependencyVerification()
+
+            tasks.register("resolveRuntime") {
+                doLast {
+                    println configurations.runtimeClasspath.files
+                }
+            }
+        """
+
+        when:
+        succeeds ":compileJava"
+
+        then:
+        outputContains "Dependency verification has been disabled for configuration compileClasspath"
+
+        when:
+        fails":resolveRuntime"
+
+        then:
+        failure.assertHasCause("""Dependency verification failed for configuration ':runtimeClasspath':
+  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': expected a 'sha1' checksum of 'invalid' but was '16e066e005a935ac60f06216115436ab97c5da02'
+  - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': checksum is missing from verification metadata.""")
+    }
+
+    @ToBeFixedForInstantExecution
+    def "can disable verification of a detached configuration"() {
+        createMetadataFile {
+            addChecksum("org:foo:1.0", 'sha1', "invalid")
+        }
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo")
+        buildFile << """
+            tasks.register("resolve") {
+                doLast {
+                    def conf = configurations.detachedConfiguration(dependencies.create("org:foo:1.0"))
+                    if (project.hasProperty("disableVerification")) {
+                        conf.resolutionStrategy.disableDependencyVerification()
+                    }
+                    println conf.files
+                }
+            }
+        """
+
+        when:
+        fails":resolve"
+
+        then:
+        failure.assertHasCause("""Dependency verification failed for configuration ':detachedConfiguration1':
+  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': expected a 'sha1' checksum of 'invalid' but was '16e066e005a935ac60f06216115436ab97c5da02'
+  - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': checksum is missing from verification metadata.""")
+
+        when:
+        succeeds ":resolve", "-PdisableVerification=true"
+
+        then:
+        outputContains "Dependency verification has been disabled for configuration detachedConfiguration1"
     }
 }

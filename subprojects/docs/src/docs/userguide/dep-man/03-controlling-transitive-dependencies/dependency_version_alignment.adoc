@@ -23,15 +23,15 @@ Because `vert.x` depends on `jackson-core`, we would actually resolve the follow
 - `jackson-annotation` version `2.9.0` (dependency of `jackson-databind:2.9.5`)
 
 It's easy to end up with a set of versions which do not work well together.
-To fix this, Gradle supports dependency version alignment, which is supported by the concept of platform.
+To fix this, Gradle supports dependency version alignment, which is supported by the concept of platforms.
 A platform represents a set of modules which "work well together".
-Either because they are actually published as a whole (when one of the members of the platform is published, all other modules are also published with the same version), or because someone tested modules and indicates that they work well together (typically, the Spring Platform).
+Either because they are actually published as a whole (when one of the members of the platform is published, all other modules are also published with the same version), or because someone tested the modules and indicates that they work well together (typically, the Spring Platform).
 
 == Aligning versions natively with Gradle
 
 Gradle natively supports alignment of modules produced by Gradle.
 This is a direct consequence of the transitivity of <<dependency_constraints.adoc#sec:adding-constraints-transitive-deps, dependency constraints>>.
-So if you have a multi-project build, and that you wish that consumers get the same version of all your modules, Gradle provides a simple way to do this using the <<java_platform_plugin.adoc#,Java Platform Plugin>>.
+So if you have a multi-project build, and you wish that consumers get the same version of all your modules, Gradle provides a simple way to do this using the <<java_platform_plugin.adoc#,Java Platform Plugin>>.
 
 For example, if you have a project that consists of 3 modules:
 
@@ -44,7 +44,7 @@ And a consumer that declares the following dependencies:
 - `core` version 1.0
 - `lib` version 1.1
 
-then by default resolution would select `core:1.0` and `lib:1.1`, because `lib` has no dependency on `core`.
+Then by default resolution would select `core:1.0` and `lib:1.1`, because `lib` has no dependency on `core`.
 We can fix this by adding a new module in our project, a _platform_, that will add constraints on all the modules of your project:
 
 .The platform module

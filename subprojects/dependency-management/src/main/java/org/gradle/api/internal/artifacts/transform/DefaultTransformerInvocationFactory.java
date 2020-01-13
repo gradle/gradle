@@ -417,11 +417,6 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         }
 
         @Override
-        public boolean shouldCleanupOutputsOnNonIncrementalExecution() {
-            return true;
-        }
-
-        @Override
         public long markExecutionTime() {
             return executionTimer.getElapsedMillis();
         }
@@ -439,11 +434,6 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
             return transformer.isCacheable()
                 ? Optional.empty()
                 : Optional.of(NOT_CACHEABLE);
-        }
-
-        @Override
-        public boolean isAllowedToLoadFromCache() {
-            return true;
         }
 
         @Override

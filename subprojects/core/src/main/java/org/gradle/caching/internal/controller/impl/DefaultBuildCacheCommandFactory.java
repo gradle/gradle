@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.internal.command;
+package org.gradle.caching.internal.controller.impl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Interner;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.CacheableEntity;
+import org.gradle.caching.internal.controller.BuildCacheCommandFactory;
 import org.gradle.caching.internal.controller.BuildCacheLoadCommand;
 import org.gradle.caching.internal.controller.BuildCacheStoreCommand;
 import org.gradle.caching.internal.origin.OriginMetadata;
@@ -43,31 +44,28 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class BuildCacheCommandFactory {
+public class DefaultBuildCacheCommandFactory implements BuildCacheCommandFactory {
 
     private final BuildCacheEntryPacker packer;
     private final OriginMetadataFactory originMetadataFactory;
     private final VirtualFileSystem virtualFileSystem;
     private final Interner<String> stringInterner;
 
-    public BuildCacheCommandFactory(BuildCacheEntryPacker packer, OriginMetadataFactory originMetadataFactory, VirtualFileSystem virtualFileSystem, Interner<String> stringInterner) {
+    public DefaultBuildCacheCommandFactory(BuildCacheEntryPacker packer, OriginMetadataFactory originMetadataFactory, VirtualFileSystem virtualFileSystem, Interner<String> stringInterner) {
         this.packer = packer;
         this.originMetadataFactory = originMetadataFactory;
         this.virtualFileSystem = virtualFileSystem;
         this.stringInterner = stringInterner;
     }
 
+    @Override
     public BuildCacheLoadCommand<LoadMetadata> createLoad(BuildCacheKey cacheKey, CacheableEntity entity) {
         return new LoadCommand(cacheKey, entity);
     }
 
-    public BuildCacheStoreCommand createStore(BuildCacheKey cacheKey, CacheableEntity entity, Map<String, CurrentFileCollectionFingerprint> fingerprints, long executionTime) {
-        return new StoreCommand(cacheKey, entity, fingerprints, executionTime);
-    }
-
-    public interface LoadMetadata {
-        OriginMetadata getOriginMetadata();
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getResultingSnapshots();
+    @Override
+    public BuildCacheStoreCommand createStore(BuildCacheKey cacheKey, CacheableEntity entity, Map<String, ? extends FileSystemSnapshot> snapshots, long executionTime) {
+        return new StoreCommand(cacheKey, entity, snapshots, executionTime);
     }
 
     private class LoadCommand implements BuildCacheLoadCommand<LoadMetadata> {
@@ -157,10 +155,10 @@ public class BuildCacheCommandFactory {
 
         private final BuildCacheKey cacheKey;
         private final CacheableEntity entity;
-        private final Map<String, CurrentFileCollectionFingerprint> fingerprints;
+        private final Map<String, ? extends FileSystemSnapshot> fingerprints;
         private final long executionTime;
 
-        private StoreCommand(BuildCacheKey cacheKey, CacheableEntity entity, Map<String, CurrentFileCollectionFingerprint> fingerprints, long executionTime) {
+        private StoreCommand(BuildCacheKey cacheKey, CacheableEntity entity, Map<String, ? extends FileSystemSnapshot> fingerprints, long executionTime) {
             this.cacheKey = cacheKey;
             this.entity = entity;
             this.fingerprints = fingerprints;

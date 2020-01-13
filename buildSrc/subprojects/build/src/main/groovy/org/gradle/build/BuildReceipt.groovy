@@ -34,13 +34,20 @@ import java.text.SimpleDateFormat
 class BuildReceipt extends DefaultTask {
     public static final String BUILD_RECEIPT_FILE_NAME = 'build-receipt.properties'
 
-    private static final SimpleDateFormat TIMESTAMP_FORMAT = new java.text.SimpleDateFormat('yyyyMMddHHmmssZ')
-    private static final SimpleDateFormat ISO_TIMESTAMP_FORMAT = new java.text.SimpleDateFormat('yyyy-MM-dd HH:mm:ss z')
-    static {
-        TIMESTAMP_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
-        ISO_TIMESTAMP_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
-    }
+    private static final SimpleDateFormat TIMESTAMP_FORMAT = createTimestampDateFormat()
+    private static final SimpleDateFormat ISO_TIMESTAMP_FORMAT = newSimpleDateFormatUTC('yyyy-MM-dd HH:mm:ss z')
+
     private static final String UNKNOWN_TIMESTAMP = "unknown"
+
+    static SimpleDateFormat createTimestampDateFormat() {
+        newSimpleDateFormatUTC('yyyyMMddHHmmssZ')
+    }
+
+    static SimpleDateFormat newSimpleDateFormatUTC(String pattern) {
+        new SimpleDateFormat(pattern).tap {
+            setTimeZone(TimeZone.getTimeZone("UTC"))
+        }
+    }
 
     static Properties readBuildReceipt(File dir) {
         File buildReceiptFile = new File(dir, BUILD_RECEIPT_FILE_NAME)

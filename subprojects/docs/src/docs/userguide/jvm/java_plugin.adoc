@@ -750,8 +750,8 @@ Many popular annotation processors support incremental annotation processing (se
 | link:https://github.com/yanzhenjie/AndServer/issues/152[Open issue]
 | N/A
 
-| Litho
-| link:https://github.com/facebook/litho/issues/482[Open issue]
+| link:https://github.com/facebook/litho[Litho]
+| link:https://github.com/facebook/litho/blob/master/CHANGELOG.md#version-0250[0.25.0]
 | N/A
 
 | link:https://github.com/moxy-community/Moxy/[Moxy]
