@@ -20,17 +20,12 @@ include::sample[dir="kotlin",files="list/build.gradle.kts[]"]
 
 These additional tests can be executed with the `integrationTest` task or as part of lifecycle `check`:
 
-====
-[.testable-sample,dir="groovy"]
-=====
-[.sample-command]
+[listing.terminal]
 ----
 $ ./gradlew check
 
 BUILD SUCCESSFUL in 2s
 11 actionable tasks: 11 executed
 ----
-=====
-====
 
 For more information, see link:{userManualPath}/java_testing.html#sec:configuring_java_integration_tests[section Configuring integration tests in the Testing in Java project chapter].

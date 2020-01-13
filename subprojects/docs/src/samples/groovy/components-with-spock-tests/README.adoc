@@ -18,10 +18,7 @@ include::sample[dir="kotlin",files="list/build.gradle.kts[]"]
 
 Running the tests:
 
-====
-[.testable-sample,dir="groovy"]
-=====
-[.sample-command]
+[terminal.listing]
 ----
 $ ./gradlew test
 
@@ -42,8 +39,6 @@ WARNING: All illegal access operations will be denied in a future release
 BUILD SUCCESSFUL in 5s
 7 actionable tasks: 7 executed
 ----
-=====
-====
 
 For more information, see link:{userManualPath}/java_testing.html[Testing in JVM project chapter].
 

@@ -10,10 +10,7 @@ include::sample[dir="kotlin",files="build.gradle.kts[]"]
 
 To build and run the application:
 
-====
-[.testable-sample,dir="groovy"]
-=====
-[.sample-command]
+[listing.terminal]
 ----
 $ ./gradlew bootRun
 
@@ -34,8 +31,6 @@ $ ./gradlew bootRun
 BUILD SUCCESSFUL in 6s
 3 actionable tasks: 3 executed
 ----
-=====
-====
 
 For more information, we suggest reading link:{userManualPath}getting_started.html[Getting Started with Gradle].
 You can also find https://spring.io/guides[Spring Boot related information inside the guides provided by the Spring team].

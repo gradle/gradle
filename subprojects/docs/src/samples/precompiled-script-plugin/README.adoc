@@ -16,10 +16,7 @@ The sample is comprised of two builds:
 2. The root build is a user of the plugin above. 
 
 Running the task added by the precompiled script plugin:
-====
-[.testable-sample,dir="groovy"]
-=====
-[.sample-command]
+[listing.terminal]
 ----
 $ ./gradlew greet
 
@@ -42,7 +39,4 @@ Hello, World!
 
 BUILD SUCCESSFUL in 0s
 1 actionable task: 1 executed
-
 ----
-=====
-====

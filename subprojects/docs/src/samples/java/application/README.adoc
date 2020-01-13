@@ -12,10 +12,7 @@ include::sample[dir="kotlin",files="build.gradle.kts[]"]
 
 To build and run the application:
 
-====
-[.testable-sample,dir="groovy"]
-=====
-[.sample-command]
+[listing.terminal.sample-command]
 ----
 $ ./gradlew run
 
@@ -25,8 +22,6 @@ Hello, World!
 BUILD SUCCESSFUL in 1s
 2 actionable tasks: 2 executed
 ----
-=====
-====
 
 For more information, see link:{userManualPath}/application_plugin.html[Application Plugin reference chapter].
 

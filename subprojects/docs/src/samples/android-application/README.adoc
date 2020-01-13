@@ -10,10 +10,7 @@ include::sample[dir="kotlin",files="build.gradle.kts[]"]
 
 To build the application:
 
-====
-[.testable-sample,dir="groovy"]
-=====
-[.sample-command]
+[listing.terminal]
 ----
 $ ./gradlew build
 
@@ -31,8 +28,6 @@ See https://docs.gradle.org/5.6.2/userguide/command_line_interface.html#sec:comm
 BUILD SUCCESSFUL in 1m 0s
 55 actionable tasks: 55 executed
 ----
-=====
-====
 
 For more information, we suggest reading link:{userManualPath}/getting_started.html[Getting Started with Gradle].
 You can also find https://developer.android.com/guide[Android development related information inside the guides provided by the Android team].

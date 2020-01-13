@@ -9,10 +9,7 @@ include::sample[dir="kotlin",files="build.gradle.kts[]"]
 
 To publish the library:
 
-====
-[.testable-sample,dir="groovy"]
-=====
-[.sample-command]
+[listing.terminal]
 ----
 $ ./gradlew publish
 
@@ -48,7 +45,5 @@ build/publishing-repository/
 
 5 directories, 20 files
 ----
-=====
-====
 
 For more information, see link:{userManualPath}/groovy_plugin.html[Groovy Plugin reference chapter].
