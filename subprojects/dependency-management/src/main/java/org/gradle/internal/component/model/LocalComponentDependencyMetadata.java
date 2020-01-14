@@ -31,7 +31,7 @@ import org.gradle.internal.component.IncompatibleConfigurationSelectionException
 import org.gradle.internal.deprecation.ConfigurationDeprecationType;
 import org.gradle.internal.deprecation.DeprecationMessage;
 import org.gradle.internal.exceptions.ConfigurationNotConsumableException;
-import org.gradle.util.DeprecationLogger;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.util.GUtil;
 
 import java.util.Collection;

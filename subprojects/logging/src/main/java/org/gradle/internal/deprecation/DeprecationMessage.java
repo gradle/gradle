@@ -97,8 +97,12 @@ public class DeprecationMessage {
             return this;
         }
 
-        public DeprecationMessage build() {
+        DeprecationMessage build() {
             return new DeprecationMessage(summary, removalDetails, advice, contextualAdvice, documentationReference, usageType);
+        }
+
+        public void nagUser() {
+            DeprecationLogger.nagUserWith(this);
         }
     }
 
@@ -106,7 +110,7 @@ public class DeprecationMessage {
     public static DeprecationMessage.Builder thisHasBeenDeprecated(final String summary) {
         return new DeprecationMessage.Builder() {
             @Override
-            public DeprecationMessage build() {
+            DeprecationMessage build() {
                 withSummary(summary);
                 withRemovalDetails(thisHasBeenDeprecatedAndIsScheduledToBeRemoved());
                 return super.build();
@@ -118,7 +122,7 @@ public class DeprecationMessage {
     public static DeprecationMessage.Builder specificThingHasBeenDeprecated(final String thing) {
         return new DeprecationMessage.Builder() {
             @Override
-            public DeprecationMessage build() {
+            DeprecationMessage build() {
                 withSummary(xHasBeenDeprecated(thing));
                 withRemovalDetails(thisIsScheduledToBeRemoved());
                 return super.build();
@@ -140,7 +144,7 @@ public class DeprecationMessage {
     public static DeprecationMessage.Builder behaviourHasBeenDeprecated(final String behaviour) {
         return new DeprecationMessage.Builder() {
             @Override
-            public DeprecationMessage build() {
+            DeprecationMessage build() {
                 withSummary(behaviour);
                 withRemovalDetails(thisBehaviourHasBeenDeprecatedAndIsScheduledToBeRemoved());
                 return super.build();
@@ -152,7 +156,7 @@ public class DeprecationMessage {
     public static DeprecationMessage.Builder replacedNamedParameter(final String parameterName, final String replacement) {
         return new DeprecationMessage.Builder() {
             @Override
-            public DeprecationMessage build() {
+            DeprecationMessage build() {
                 withSummary(String.format("The %s named parameter has been deprecated.", parameterName));
                 withRemovalDetails(thisIsScheduledToBeRemoved());
                 withAdvice(String.format("Please use the %s named parameter instead.", replacement));
@@ -165,7 +169,7 @@ public class DeprecationMessage {
     public static DeprecationMessage.Builder deprecatedProperty(final String propertyName) {
         return new DeprecationMessage.Builder() {
             @Override
-            public DeprecationMessage build() {
+            DeprecationMessage build() {
                 withSummary(propertyHasBeenDeprecated(propertyName));
                 withRemovalDetails(thisIsScheduledToBeRemoved());
                 return super.build();
@@ -177,7 +181,7 @@ public class DeprecationMessage {
     public static DeprecationMessage.Builder replacedProperty(final String propertyName, final String replacement) {
         return new DeprecationMessage.Builder() {
             @Override
-            public DeprecationMessage build() {
+            DeprecationMessage build() {
                 withSummary(propertyHasBeenDeprecated(propertyName));
                 withRemovalDetails(thisIsScheduledToBeRemoved());
                 withAdvice(String.format("Please use the %s property instead.", replacement));
@@ -189,7 +193,7 @@ public class DeprecationMessage {
     public static DeprecationMessage.Builder replacedConfiguration(final String configurationName, final ConfigurationDeprecationType deprecationType, final List<String> replacements) {
         return new DeprecationMessage.Builder() {
             @Override
-            public DeprecationMessage build() {
+            DeprecationMessage build() {
                 withSummary(String.format("The %s configuration has been deprecated for %s.", configurationName, deprecationType.displayName()));
                 withRemovalDetails(thisWillBecomeAnError());
                 withAdvice(String.format("Please %s the %s configuration instead.", deprecationType.usage, Joiner.on(" or ").join(replacements)));
@@ -205,7 +209,7 @@ public class DeprecationMessage {
     public static DeprecationMessage.Builder discontinuedMethod(final String methodName) {
         return new DeprecationMessage.Builder() {
             @Override
-            public DeprecationMessage build() {
+            DeprecationMessage build() {
                 withSummary(methodHasBeenDeprecated(methodName));
                 withRemovalDetails(thisIsScheduledToBeRemoved());
                 return super.build();
@@ -217,7 +221,7 @@ public class DeprecationMessage {
     public static DeprecationMessage.Builder replacedMethod(final String methodName, final String replacement) {
         return new DeprecationMessage.Builder() {
             @Override
-            public DeprecationMessage build() {
+            DeprecationMessage build() {
                 withSummary(methodHasBeenDeprecated(methodName));
                 withRemovalDetails(thisIsScheduledToBeRemoved());
                 withAdvice(pleaseUseThisMethodInstead(replacement));
@@ -230,7 +234,7 @@ public class DeprecationMessage {
     public static DeprecationMessage.Builder discontinuedMethodInvocation(final String invocation) {
         return new DeprecationMessage.Builder() {
             @Override
-            public DeprecationMessage build() {
+            DeprecationMessage build() {
                 withSummary(usingMethodHasBeenDeprecated(invocation));
                 withRemovalDetails(thisWillBecomeAnError());
                 return super.build();
@@ -243,7 +247,7 @@ public class DeprecationMessage {
     public static DeprecationMessage.Builder replacedMethodInvocation(final String invocation, final String replacement) {
         return new DeprecationMessage.Builder() {
             @Override
-            public DeprecationMessage build() {
+            DeprecationMessage build() {
                 withSummary(usingMethodHasBeenDeprecated(invocation));
                 withRemovalDetails(thisWillBecomeAnError());
                 withAdvice(pleaseUseThisMethodInstead(replacement));
@@ -257,7 +261,7 @@ public class DeprecationMessage {
     public static DeprecationMessage.Builder discontinuedInvocation(final String invocation) {
         return new DeprecationMessage.Builder() {
             @Override
-            public DeprecationMessage build() {
+            DeprecationMessage build() {
                 withSummary(xHasBeenDeprecated(invocation));
                 withRemovalDetails(thisWillBecomeAnError());
                 return super.build();
@@ -269,7 +273,7 @@ public class DeprecationMessage {
     public static DeprecationMessage.Builder replacedTaskType(final String taskName, final String replacement) {
         return new DeprecationMessage.Builder() {
             @Override
-            public DeprecationMessage build() {
+            DeprecationMessage build() {
                 withSummary(String.format("The %s task type has been deprecated.", taskName));
                 withRemovalDetails(thisIsScheduledToBeRemoved());
                 withAdvice(String.format("Please use the %s instead.", replacement));
@@ -282,7 +286,7 @@ public class DeprecationMessage {
     public static DeprecationMessage.Builder replacedTask(final String taskName, final String replacement) {
         return new DeprecationMessage.Builder() {
             @Override
-            public DeprecationMessage build() {
+            DeprecationMessage build() {
                 withSummary(String.format("The %s task has been deprecated.", taskName));
                 withRemovalDetails(thisIsScheduledToBeRemoved());
                 withAdvice(String.format("Please use the %s task instead.", replacement));
@@ -295,7 +299,7 @@ public class DeprecationMessage {
     public static DeprecationMessage.Builder toolReplacedWithExternalOne(final String toolName, final String replacement) {
         return new DeprecationMessage.Builder() {
             @Override
-            public DeprecationMessage build() {
+            DeprecationMessage build() {
                 withSummary(String.format("The %s has been deprecated.", toolName));
                 withRemovalDetails(thisIsScheduledToBeRemoved());
                 withAdvice(String.format("Consider using %s instead.", replacement));
@@ -308,7 +312,7 @@ public class DeprecationMessage {
     public static DeprecationMessage.Builder deprecatedPlugin(final String pluginName) {
         return new DeprecationMessage.Builder() {
             @Override
-            public DeprecationMessage build() {
+            DeprecationMessage build() {
                 withSummary(pluginHasBeenDeprecated(pluginName));
                 withRemovalDetails(thisIsScheduledToBeRemoved());
                 return super.build();
@@ -320,7 +324,7 @@ public class DeprecationMessage {
     public static DeprecationMessage.Builder replacedPlugin(final String pluginName, final String replacement) {
         return new DeprecationMessage.Builder() {
             @Override
-            public DeprecationMessage build() {
+            DeprecationMessage build() {
                 withSummary(pluginHasBeenDeprecated(pluginName));
                 withRemovalDetails(thisIsScheduledToBeRemoved());
                 withAdvice(String.format("Please use the %s plugin instead.", replacement));
@@ -333,7 +337,7 @@ public class DeprecationMessage {
     public static DeprecationMessage.Builder pluginReplacedWithExternalOne(final String pluginName, final String replacement) {
         return new DeprecationMessage.Builder() {
             @Override
-            public DeprecationMessage build() {
+            DeprecationMessage build() {
                 withSummary(pluginHasBeenDeprecated(pluginName));
                 withRemovalDetails(thisIsScheduledToBeRemoved());
                 withAdvice(String.format("Consider using the %s plugin instead.", replacement));
@@ -347,7 +351,7 @@ public class DeprecationMessage {
     public static DeprecationMessage.Builder deprecatedPlugin(final String pluginName, final int majorVersion, final String upgradeGuideSection) {
         return new DeprecationMessage.Builder() {
             @Override
-            public DeprecationMessage build() {
+            DeprecationMessage build() {
                 withSummary(pluginHasBeenDeprecated(pluginName));
                 withRemovalDetails(thisIsScheduledToBeRemoved());
                 withAdvice("Consult the upgrading guide for further information: " + DOCUMENTATION_REGISTRY.getDocumentationFor("upgrading_version_" + majorVersion, upgradeGuideSection));

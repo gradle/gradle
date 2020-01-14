@@ -20,7 +20,7 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.resources.TextResource;
 import org.gradle.internal.deprecation.DeprecationMessage;
-import org.gradle.util.DeprecationLogger;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 import java.io.File;
 import java.util.LinkedHashMap;

@@ -22,7 +22,7 @@ import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.Namer;
 import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.util.DeprecationLogger;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.deprecation.DeprecationMessage;
 
 public class FactoryNamedDomainObjectContainer<T> extends AbstractNamedDomainObjectContainer<T> {

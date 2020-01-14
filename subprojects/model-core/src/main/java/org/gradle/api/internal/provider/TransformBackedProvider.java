@@ -19,7 +19,7 @@ package org.gradle.api.internal.provider;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.internal.deprecation.DeprecationMessage;
-import org.gradle.util.DeprecationLogger;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 import java.util.ArrayList;
 import java.util.List;

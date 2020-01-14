@@ -23,7 +23,7 @@ import org.gradle.api.plugins.BasePluginConvention;
 import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.internal.deprecation.DeprecationMessage;
-import org.gradle.util.DeprecationLogger;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 import java.io.File;
 

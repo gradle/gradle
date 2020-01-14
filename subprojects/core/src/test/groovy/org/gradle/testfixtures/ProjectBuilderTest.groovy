@@ -23,7 +23,7 @@ import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.internal.featurelifecycle.DeprecatedUsageBuildOperationProgressBroadcaster
 import org.gradle.internal.featurelifecycle.UsageLocationReporter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.DeprecationLogger
+import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.util.IncubationLogger
 import org.gradle.util.Resources
 import org.junit.Rule

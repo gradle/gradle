@@ -24,7 +24,7 @@ import org.gradle.internal.Describables
 import org.gradle.internal.featurelifecycle.DeprecatedFeatureUsage
 import org.gradle.internal.featurelifecycle.DeprecatedUsageBuildOperationProgressBroadcaster
 import org.gradle.internal.featurelifecycle.UsageLocationReporter
-import org.gradle.util.DeprecationLogger
+import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.util.RedirectStdOutAndErr
 import org.junit.Rule
 import spock.lang.Specification

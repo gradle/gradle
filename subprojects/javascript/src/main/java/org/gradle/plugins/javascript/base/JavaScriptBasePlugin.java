@@ -21,7 +21,7 @@ import org.gradle.api.Project;
 import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.internal.deprecation.DeprecationMessage;
-import org.gradle.util.DeprecationLogger;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 public class JavaScriptBasePlugin implements Plugin<Project> {
     @Override

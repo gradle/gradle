@@ -31,7 +31,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         file('buildSrc/src/main/java/DeprecatedTask.java') << """
             import org.gradle.api.DefaultTask;
             import org.gradle.api.tasks.TaskAction;
-            import org.gradle.util.DeprecationLogger;
+            import org.gradle.internal.deprecation.DeprecationLogger;
             import org.gradle.internal.deprecation.DeprecationMessage;
 
             public class DeprecatedTask extends DefaultTask {
@@ -56,7 +56,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         file('buildSrc/src/main/java/DeprecatedPlugin.java') << """
             import org.gradle.api.Plugin;
             import org.gradle.api.Project;
-            import org.gradle.util.DeprecationLogger;
+            import org.gradle.internal.deprecation.DeprecationLogger;
             import org.gradle.internal.deprecation.DeprecationMessage;
 
             public class DeprecatedPlugin implements Plugin<Project> {
@@ -168,7 +168,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         given:
         def initScript = file("init.gradle") << """
             allprojects {
-                org.gradle.util.DeprecationLogger.nagUserWith(org.gradle.internal.deprecation.DeprecationMessage.pluginReplacedWithExternalOne("DeprecatedPlugin", "Foobar")) // line 2
+                org.gradle.internal.deprecation.DeprecationLogger.nagUserWith(org.gradle.internal.deprecation.DeprecationMessage.pluginReplacedWithExternalOne("DeprecatedPlugin", "Foobar")) // line 2
             }
         """.stripIndent()
 

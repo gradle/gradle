@@ -39,7 +39,7 @@ import org.gradle.platform.base.TypeBuilder;
 import org.gradle.play.internal.PlayApplicationBinarySpecInternal;
 import org.gradle.play.internal.ScalaSourceCode;
 import org.gradle.play.tasks.RoutesCompile;
-import org.gradle.util.DeprecationLogger;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 import java.io.File;
 import java.util.ArrayList;

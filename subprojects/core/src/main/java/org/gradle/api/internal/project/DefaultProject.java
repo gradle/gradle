@@ -119,7 +119,7 @@ import org.gradle.process.JavaExecSpec;
 import org.gradle.util.ClosureBackedAction;
 import org.gradle.util.Configurable;
 import org.gradle.util.ConfigureUtil;
-import org.gradle.util.DeprecationLogger;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;

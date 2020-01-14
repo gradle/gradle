@@ -31,7 +31,7 @@ import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.internal.deprecation.DeprecationMessage;
 import org.gradle.plugins.javascript.base.JavaScriptBasePlugin;
 import org.gradle.plugins.javascript.base.JavaScriptExtension;
-import org.gradle.util.DeprecationLogger;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 import java.util.concurrent.Callable;
 

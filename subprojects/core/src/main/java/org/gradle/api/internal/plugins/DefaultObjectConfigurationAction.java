@@ -31,7 +31,7 @@ import org.gradle.internal.resource.TextResource;
 import org.gradle.internal.resource.TextUriResourceLoader;
 import org.gradle.internal.verifier.HttpRedirectVerifier;
 import org.gradle.internal.verifier.HttpRedirectVerifierFactory;
-import org.gradle.util.DeprecationLogger;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.deprecation.DeprecationMessage;
 import org.gradle.util.GUtil;
 

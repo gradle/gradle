@@ -31,23 +31,23 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
         file('settings.gradle') << "rootProject.name = 'root'"
 
         file('init.gradle') << """
-            org.gradle.util.DeprecationLogger.nagUserWith(org.gradle.internal.deprecation.DeprecationMessage.specificThingHasBeenDeprecated('Init script'));
+            org.gradle.internal.deprecation.DeprecationLogger.nagUserWith(org.gradle.internal.deprecation.DeprecationMessage.specificThingHasBeenDeprecated('Init script'));
         """
 
         file('script.gradle') << """
-            org.gradle.util.DeprecationLogger.nagUserWith(org.gradle.internal.deprecation.DeprecationMessage.specificThingHasBeenDeprecated('Plugin script'));
+            org.gradle.internal.deprecation.DeprecationLogger.nagUserWith(org.gradle.internal.deprecation.DeprecationMessage.specificThingHasBeenDeprecated('Plugin script'));
         """
 
         buildScript """
             apply from: 'script.gradle'
             apply plugin: SomePlugin
 
-            org.gradle.util.DeprecationLogger.nagUserWith(org.gradle.internal.deprecation.DeprecationMessage.deprecatedBuildInvocationFeature('Some invocation feature').withAdvice("Don't do custom invocation."))
-            org.gradle.util.DeprecationLogger.nagUserWith(org.gradle.internal.deprecation.DeprecationMessage.specificThingHasBeenDeprecated('Some indirect deprecation').withAdvice('Some advice.').withIndirectUsage())
+            org.gradle.internal.deprecation.DeprecationLogger.nagUserWith(org.gradle.internal.deprecation.DeprecationMessage.deprecatedBuildInvocationFeature('Some invocation feature').withAdvice("Don't do custom invocation."))
+            org.gradle.internal.deprecation.DeprecationLogger.nagUserWith(org.gradle.internal.deprecation.DeprecationMessage.specificThingHasBeenDeprecated('Some indirect deprecation').withAdvice('Some advice.').withIndirectUsage())
 
             task t(type:SomeTask) {
                 doLast {
-                    org.gradle.util.DeprecationLogger.nagUserWith(new org.gradle.internal.deprecation.DeprecationMessage.Builder()
+                    org.gradle.internal.deprecation.DeprecationLogger.nagUserWith(new org.gradle.internal.deprecation.DeprecationMessage.Builder()
                             .withSummary('Custom Task action will be deprecated.').withRemovalDetails('Custom actions will not be supported in 2 weeks from now.')
                             .withAdvice('Use task type X instead.')
                             .withContextualAdvice("Task ':t' should not have custom actions attached.")
@@ -59,14 +59,14 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
 
             class SomePlugin implements Plugin<Project> {
                 void apply(Project p){
-                    org.gradle.util.DeprecationLogger.nagUserWith(org.gradle.internal.deprecation.DeprecationMessage.specificThingHasBeenDeprecated('Plugin'));
+                    org.gradle.internal.deprecation.DeprecationLogger.nagUserWith(org.gradle.internal.deprecation.DeprecationMessage.specificThingHasBeenDeprecated('Plugin'));
                 }
             }
 
             class SomeTask extends DefaultTask {
                 @TaskAction
                 void someAction(){
-                    org.gradle.util.DeprecationLogger.nagUserWith(org.gradle.internal.deprecation.DeprecationMessage.specificThingHasBeenDeprecated('Typed task'));
+                    org.gradle.internal.deprecation.DeprecationLogger.nagUserWith(org.gradle.internal.deprecation.DeprecationMessage.specificThingHasBeenDeprecated('Typed task'));
                 }
             }
 
@@ -158,7 +158,7 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
     def "emits deprecation warnings as build operation progress events for buildSrc builds"() {
         when:
         file('buildSrc/build.gradle') << """
-            org.gradle.util.DeprecationLogger.nagUserWith(org.gradle.internal.deprecation.DeprecationMessage.specificThingHasBeenDeprecated('BuildSrc script'));
+            org.gradle.internal.deprecation.DeprecationLogger.nagUserWith(org.gradle.internal.deprecation.DeprecationMessage.specificThingHasBeenDeprecated('BuildSrc script'));
         """
 
         and:
@@ -181,11 +181,11 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
     def "emits deprecation warnings as build operation progress events for composite builds"() {
         file('included/settings.gradle') << "rootProject.name = 'included'"
         file('included/build.gradle') << """
-            org.gradle.util.DeprecationLogger.nagUserWith(org.gradle.internal.deprecation.DeprecationMessage.specificThingHasBeenDeprecated('Included build script'));
+            org.gradle.internal.deprecation.DeprecationLogger.nagUserWith(org.gradle.internal.deprecation.DeprecationMessage.specificThingHasBeenDeprecated('Included build script'));
 
             task t {
                 doLast {
-                    org.gradle.util.DeprecationLogger.nagUserWith(org.gradle.internal.deprecation.DeprecationMessage.specificThingHasBeenDeprecated('Included build task'));
+                    org.gradle.internal.deprecation.DeprecationLogger.nagUserWith(org.gradle.internal.deprecation.DeprecationMessage.specificThingHasBeenDeprecated('Included build task'));
                 }
             }
         """

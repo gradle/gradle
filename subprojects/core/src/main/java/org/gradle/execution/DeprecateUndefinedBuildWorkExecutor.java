@@ -21,7 +21,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.internal.deprecation.DeprecationMessage;
 import org.gradle.internal.resource.EmptyFileTextResource;
 import org.gradle.internal.resource.TextResource;
-import org.gradle.util.DeprecationLogger;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 import java.util.Collection;
 

@@ -18,6 +18,7 @@ package org.gradle.util
 
 import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.internal.Factory
+import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.featurelifecycle.DeprecatedUsageBuildOperationProgressBroadcaster
 import org.gradle.internal.featurelifecycle.UsageLocationReporter
 import org.gradle.internal.logging.CollectingTestOutputEventListener

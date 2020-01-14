@@ -32,7 +32,7 @@ import org.gradle.api.internal.component.UsageContext;
 import org.gradle.internal.Actions;
 import org.gradle.internal.deprecation.DeprecationMessage;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.util.DeprecationLogger;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 import java.util.Set;
 

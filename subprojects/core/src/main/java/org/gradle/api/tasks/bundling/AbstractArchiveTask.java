@@ -33,7 +33,7 @@ import org.gradle.api.tasks.OutputFile;
 import org.gradle.internal.deprecation.DeprecationMessage;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.util.DeprecationLogger;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.util.GUtil;
 
 import javax.annotation.Nullable;

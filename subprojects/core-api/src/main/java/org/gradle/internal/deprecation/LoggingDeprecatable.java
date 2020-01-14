@@ -16,8 +16,6 @@
 
 package org.gradle.internal.deprecation;
 
-import org.gradle.util.DeprecationLogger;
-
 import java.util.HashSet;
 import java.util.Set;
 

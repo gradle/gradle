@@ -22,7 +22,7 @@ import org.gradle.api.plugins.quality.Checkstyle
 import org.gradle.api.plugins.quality.CheckstyleReports
 import org.gradle.internal.deprecation.DeprecationMessage
 import org.gradle.internal.logging.ConsoleRenderer
-import org.gradle.util.DeprecationLogger
+import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.util.GFileUtils
 
 abstract class CheckstyleInvoker {

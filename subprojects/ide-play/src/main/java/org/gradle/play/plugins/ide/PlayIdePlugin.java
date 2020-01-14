@@ -23,7 +23,7 @@ import org.gradle.api.Project;
 import org.gradle.api.plugins.AppliedPlugin;
 import org.gradle.internal.deprecation.DeprecationMessage;
 import org.gradle.play.plugins.ide.internal.PlayIdeaPlugin;
-import org.gradle.util.DeprecationLogger;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 /**
  * Plugin for configuring IDE plugins when the project uses the Play Framework component support.

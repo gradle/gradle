@@ -26,7 +26,7 @@ import org.gradle.api.tasks.util.internal.PatternSets;
 import org.gradle.internal.deprecation.DeprecationMessage;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.state.Managed;
-import org.gradle.util.DeprecationLogger;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.util.AbstractSet;

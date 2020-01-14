@@ -47,7 +47,7 @@ import org.gradle.internal.Describables;
 import org.gradle.internal.Factory;
 import org.gradle.internal.deprecation.DeprecationMessage;
 import org.gradle.internal.logging.LoggingManagerInternal;
-import org.gradle.util.DeprecationLogger;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 import javax.inject.Inject;
 

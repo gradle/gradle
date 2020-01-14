@@ -18,7 +18,7 @@ package org.gradle.launcher.daemon.server.exec;
 
 import org.gradle.launcher.daemon.server.api.DaemonCommandAction;
 import org.gradle.launcher.daemon.server.api.DaemonCommandExecution;
-import org.gradle.util.DeprecationLogger;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 public class ResetDeprecationLogger implements DaemonCommandAction {
     @Override
