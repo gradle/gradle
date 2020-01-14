@@ -24,21 +24,9 @@ import java.util.Set;
 
 class LockEntryFilterFactory {
 
-    private static final LockEntryFilter FILTERS_NONE = new LockEntryFilter() {
-        @Override
-        public boolean isSatisfiedBy(ModuleComponentIdentifier element) {
-            return false;
-        }
+    private static final LockEntryFilter FILTERS_NONE = element -> false;
+    private static final LockEntryFilter FILTERS_ALL = element -> true;
 
-    };
-
-    private static final LockEntryFilter FILTERS_ALL = new LockEntryFilter() {
-        @Override
-        public boolean isSatisfiedBy(ModuleComponentIdentifier element) {
-            return true;
-        }
-
-    };
     private static final String WILDCARD_SUFFIX = "*";
     public static final String MODULE_SEPARATOR = ":";
 

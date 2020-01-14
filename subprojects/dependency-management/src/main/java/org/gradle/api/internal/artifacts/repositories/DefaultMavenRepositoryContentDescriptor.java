@@ -39,19 +39,16 @@ class DefaultMavenRepositoryContentDescriptor extends DefaultRepositoryContentDe
     public Action<? super ArtifactResolutionDetails> toContentFilter() {
         Action<? super ArtifactResolutionDetails> filter = super.toContentFilter();
         if (!snapshots || !releases) {
-            Action<? super ArtifactResolutionDetails> action = new Action<ArtifactResolutionDetails>() {
-                @Override
-                public void execute(ArtifactResolutionDetails details) {
-                    if (!details.isVersionListing()) {
-                        String version = details.getComponentId().getVersion();
-                        if (snapshots && !version.endsWith("-SNAPSHOT")) {
-                            details.notFound();
-                            return;
-                        }
-                        if (releases && version.endsWith("-SNAPSHOT")) {
-                            details.notFound();
-                            return;
-                        }
+            Action<? super ArtifactResolutionDetails> action = details -> {
+                if (!details.isVersionListing()) {
+                    String version = details.getComponentId().getVersion();
+                    if (snapshots && !version.endsWith("-SNAPSHOT")) {
+                        details.notFound();
+                        return;
+                    }
+                    if (releases && version.endsWith("-SNAPSHOT")) {
+                        details.notFound();
+                        return;
                     }
                 }
             };

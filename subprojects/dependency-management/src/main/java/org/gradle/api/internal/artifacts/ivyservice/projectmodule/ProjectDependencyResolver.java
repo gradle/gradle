@@ -144,15 +144,12 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
         if (isProjectModule(artifact.getComponentId())) {
             final LocalComponentArtifactMetadata projectArtifact = (LocalComponentArtifactMetadata) artifact;
             ProjectComponentIdentifier projectId = (ProjectComponentIdentifier) artifact.getComponentId();
-            projectStateRegistry.stateFor(projectId).withMutableState(new Runnable() {
-                @Override
-                public void run() {
-                    File localArtifactFile = projectArtifact.getFile();
-                    if (localArtifactFile != null) {
-                        result.resolved(localArtifactFile);
-                    } else {
-                        result.notFound(projectArtifact.getId());
-                    }
+            projectStateRegistry.stateFor(projectId).withMutableState(() -> {
+                File localArtifactFile = projectArtifact.getFile();
+                if (localArtifactFile != null) {
+                    result.resolved(localArtifactFile);
+                } else {
+                    result.notFound(projectArtifact.getId());
                 }
             });
         }

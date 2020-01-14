@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
-import org.gradle.api.Action;
 import org.gradle.api.Named;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
@@ -70,15 +69,10 @@ class ResolveConfigurationResolutionBuildOperationResult implements ResolveConfi
         Map<String, Object> model = new HashMap<String, Object>();
         model.put("resolvedDependenciesCount", getRootComponent().getDependencies().size());
         final Map<String, Map<String, String>> components = Maps.newHashMap();
-        resolutionResult.allComponents(new Action<ResolvedComponentResult>() {
-            @Override
-            public void execute(ResolvedComponentResult component) {
-                components.put(
-                    component.getId().getDisplayName(),
-                    Collections.singletonMap("repoName", ((ResolvedComponentResultInternal) component).getRepositoryName())
-                );
-            }
-        });
+        resolutionResult.allComponents(component -> components.put(
+            component.getId().getDisplayName(),
+            Collections.singletonMap("repoName", ((ResolvedComponentResultInternal) component).getRepositoryName())
+        ));
         model.put("components", components);
         ImmutableList.Builder<Object> requestedAttributesBuilder = new ImmutableList.Builder<Object>();
         for (Attribute<?> att : requestedAttributes.keySet()) {

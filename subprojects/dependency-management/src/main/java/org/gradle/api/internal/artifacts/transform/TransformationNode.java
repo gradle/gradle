@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.Action;
+import org.gradle.api.Describable;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
@@ -236,8 +237,8 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
                 @Override
                 protected String describeSubject() {
                     return previousTransformationNode.getTransformedSubject()
-                        .map(subject -> subject.getDisplayName())
-                        .getOrMapFailure(failure -> failure.getMessage());
+                        .map(Describable::getDisplayName)
+                        .getOrMapFailure(Throwable::getMessage);
                 }
             });
         }
@@ -273,7 +274,7 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
         public Try<TransformationSubject> call(BuildOperationContext context) {
             Try<TransformationSubject> transformedSubject = transform();
             context.setResult(ExecuteScheduledTransformationStepBuildOperationType.RESULT);
-            transformedSubject.getFailure().ifPresent(failure -> context.failed(failure));
+            transformedSubject.getFailure().ifPresent(context::failed);
             return transformedSubject;
         }
 

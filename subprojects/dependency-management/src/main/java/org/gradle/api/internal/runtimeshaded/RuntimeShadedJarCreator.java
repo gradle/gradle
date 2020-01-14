@@ -26,10 +26,10 @@ import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.archive.ZipCopyAction;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
-import org.gradle.internal.classanalysis.AsmConstants;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.classanalysis.AsmConstants;
 import org.gradle.internal.installation.GradleRuntimeShadedJarDetector;
 import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.internal.logging.progress.ProgressLogger;
@@ -57,16 +57,17 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
+
 import static java.util.Arrays.asList;
 
 class RuntimeShadedJarCreator {
@@ -186,12 +187,7 @@ class RuntimeShadedJarCreator {
 
         // We need to sort here since the file order obtained from the filesystem
         // can change between machines and we always want to have the same shaded jars.
-        Collections.sort(fileVisitDetails, new Comparator<FileVisitDetails>() {
-            @Override
-            public int compare(FileVisitDetails o1, FileVisitDetails o2) {
-                return o1.getPath().compareTo(o2.getPath());
-            }
-        });
+        Collections.sort(fileVisitDetails, (o1, o2) -> o1.getPath().compareTo(o2.getPath()));
 
         for (FileVisitDetails details : fileVisitDetails) {
             try {
@@ -282,13 +278,13 @@ class RuntimeShadedJarCreator {
     }
 
     private String[] slashesToPeriods(String... slashClassNames) {
-        return asList(slashClassNames).stream().filter(clsName -> clsName != null)
+        return asList(slashClassNames).stream().filter(Objects::nonNull)
             .map(clsName ->  clsName.replace('/', '.')).map(String::trim)
             .toArray(String[]::new);
     }
 
     private String[] periodsToSlashes(String... periodClassNames) {
-        return asList(periodClassNames).stream().filter(clsName -> clsName != null)
+        return asList(periodClassNames).stream().filter(Objects::nonNull)
             .map(clsName ->  clsName.replace('.', '/'))
             .toArray(String[]::new);
     }
@@ -456,8 +452,10 @@ class RuntimeShadedJarCreator {
     }
 
     private String[] maybeRelocateResources(String... resources) {
-        return asList(resources).stream().filter(resource -> resource != null)
-            .map(resource ->  remapper.maybeRelocateResource(resource)).filter(resource -> resource != null)
+        return asList(resources).stream()
+            .filter(Objects::nonNull)
+            .map(remapper::maybeRelocateResource)
+            .filter(Objects::nonNull)
             .toArray(String[]::new);
     }
 

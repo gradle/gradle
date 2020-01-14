@@ -23,12 +23,7 @@ import org.gradle.api.invocation.Gradle;
 import java.io.File;
 
 public interface DependencyVerificationOverride {
-    DependencyVerificationOverride NO_VERIFICATION = new DependencyVerificationOverride() {
-        @Override
-        public ModuleComponentRepository overrideDependencyVerification(ModuleComponentRepository original, String resolveContextName, ResolutionStrategyInternal resolutionStrategy) {
-            return original;
-        }
-    };
+    DependencyVerificationOverride NO_VERIFICATION = (original, resolveContextName, resolutionStrategy) -> original;
     String VERIFICATION_METADATA_XML = "verification-metadata.xml";
     String VERIFICATION_KEYRING_GPG = "verification-keyring.gpg";
     String VERIFICATION_KEYRING_DRYRUN_GPG = "verification-keyring-dryrun.gpg";

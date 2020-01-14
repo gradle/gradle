@@ -219,46 +219,56 @@ class DependencyManagementBuildScopeServices {
         return new ModuleSourcesSerializer(codecs);
     }
 
-    ModuleRepositoryCacheProvider createModuleRepositoryCacheProvider(BuildCommencedTimeProvider timeProvider, ArtifactCacheLockingManager artifactCacheLockingManager, ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                                                                      ArtifactCacheMetadata artifactCacheMetadata, AttributeContainerSerializer attributeContainerSerializer, MavenMutableModuleMetadataFactory mavenMetadataFactory, IvyMutableModuleMetadataFactory ivyMetadataFactory, SimpleMapInterner stringInterner,
+    ModuleRepositoryCacheProvider createModuleRepositoryCacheProvider(BuildCommencedTimeProvider timeProvider,
+                                                                      ArtifactCacheLockingManager artifactCacheLockingManager,
+                                                                      ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+                                                                      ArtifactCacheMetadata artifactCacheMetadata,
+                                                                      AttributeContainerSerializer attributeContainerSerializer,
+                                                                      MavenMutableModuleMetadataFactory mavenMetadataFactory,
+                                                                      IvyMutableModuleMetadataFactory ivyMetadataFactory,
+                                                                      SimpleMapInterner stringInterner,
                                                                       ArtifactIdentifierFileStore artifactIdentifierFileStore,
                                                                       ModuleSourcesSerializer moduleSourcesSerializer,
                                                                       ChecksumService checksumService) {
-        ModuleRepositoryCaches caches = new ModuleRepositoryCaches(
-            new InMemoryModuleVersionsCache(timeProvider, new DefaultModuleVersionsCache(
-                timeProvider,
-                artifactCacheLockingManager,
-                moduleIdentifierFactory)),
-            new InMemoryModuleMetadataCache(timeProvider, new PersistentModuleMetadataCache(
-                timeProvider,
-                artifactCacheLockingManager,
-                artifactCacheMetadata,
-                moduleIdentifierFactory,
-                attributeContainerSerializer,
-                mavenMetadataFactory,
-                ivyMetadataFactory,
-                stringInterner,
-                moduleSourcesSerializer,
-                checksumService)),
-            new InMemoryModuleArtifactsCache(timeProvider, new DefaultModuleArtifactsCache(
-                timeProvider,
-                artifactCacheLockingManager
-            )),
-            new InMemoryModuleArtifactCache(timeProvider, new DefaultModuleArtifactCache(
-                "module-artifact",
-                timeProvider,
-                artifactCacheLockingManager,
-                artifactIdentifierFileStore.getFileAccessTracker(),
-                artifactCacheMetadata.getCacheDir().toPath()
-            ))
+        DefaultModuleVersionsCache moduleVersionsCache = new DefaultModuleVersionsCache(
+            timeProvider,
+            artifactCacheLockingManager,
+            moduleIdentifierFactory);
+        PersistentModuleMetadataCache persistentModuleMetadataCache = new PersistentModuleMetadataCache(
+            timeProvider,
+            artifactCacheLockingManager,
+            artifactCacheMetadata,
+            moduleIdentifierFactory,
+            attributeContainerSerializer,
+            mavenMetadataFactory,
+            ivyMetadataFactory,
+            stringInterner,
+            moduleSourcesSerializer,
+            checksumService);
+        DefaultModuleArtifactsCache moduleArtifactsCache = new DefaultModuleArtifactsCache(
+            timeProvider,
+            artifactCacheLockingManager
         );
-        ModuleRepositoryCaches inMemoryCaches = new ModuleRepositoryCaches(
+        DefaultModuleArtifactCache moduleArtifactCache = new DefaultModuleArtifactCache(
+            "module-artifact",
+            timeProvider,
+            artifactCacheLockingManager,
+            artifactIdentifierFileStore.getFileAccessTracker(),
+            artifactCacheMetadata.getCacheDir().toPath()
+        );
+        ModuleRepositoryCaches persistentCaches = new ModuleRepositoryCaches(
+            new InMemoryModuleVersionsCache(timeProvider, moduleVersionsCache),
+            new InMemoryModuleMetadataCache(timeProvider, persistentModuleMetadataCache),
+            new InMemoryModuleArtifactsCache(timeProvider, moduleArtifactsCache),
+            new InMemoryModuleArtifactCache(timeProvider, moduleArtifactCache)
+        );
+        ModuleRepositoryCaches inMemoryOnlyCaches = new ModuleRepositoryCaches(
             new InMemoryModuleVersionsCache(timeProvider),
             new InMemoryModuleMetadataCache(timeProvider),
             new InMemoryModuleArtifactsCache(timeProvider),
             new InMemoryModuleArtifactCache(timeProvider)
         );
-        return new ModuleRepositoryCacheProvider(caches, inMemoryCaches);
+        return new ModuleRepositoryCacheProvider(persistentCaches, inMemoryOnlyCaches);
     }
 
     ByUrlCachedExternalResourceIndex createArtifactUrlCachedResolutionIndex(BuildCommencedTimeProvider timeProvider, ArtifactCacheLockingManager artifactCacheLockingManager, ExternalResourceFileStore externalResourceFileStore, ArtifactCacheMetadata artifactCacheMetadata) {

@@ -170,12 +170,7 @@ public class StartParameterResolutionOverride {
 
     public ExternalResourceCachePolicy overrideExternalResourceCachePolicy(ExternalResourceCachePolicy original) {
         if (startParameter.isOffline()) {
-            return new ExternalResourceCachePolicy() {
-                @Override
-                public boolean mustRefreshExternalResource(long ageMillis) {
-                    return false;
-                }
-            };
+            return ageMillis -> false;
         }
         return original;
     }

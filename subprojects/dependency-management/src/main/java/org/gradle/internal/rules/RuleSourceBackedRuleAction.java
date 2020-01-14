@@ -46,12 +46,7 @@ public class RuleSourceBackedRuleAction<R, T> implements RuleAction<T> {
 
     public static <R, T> RuleSourceBackedRuleAction<R, T> create(ModelType<T> subjectType, R ruleSourceInstance) {
         ModelType<R> ruleSourceType = ModelType.typeOf(ruleSourceInstance);
-        List<Method> mutateMethods = findAllMethods(ruleSourceType.getConcreteClass(), new Spec<Method>() {
-            @Override
-            public boolean isSatisfiedBy(Method element) {
-                return element.isAnnotationPresent(Mutate.class);
-            }
-        });
+        List<Method> mutateMethods = findAllMethods(ruleSourceType.getConcreteClass(), element -> element.isAnnotationPresent(Mutate.class));
         FormattingValidationProblemCollector problemsFormatter = new FormattingValidationProblemCollector("rule source", ruleSourceType);
         RuleSourceValidationProblemCollector problems = new DefaultRuleSourceValidationProblemCollector(problemsFormatter);
 
@@ -119,13 +114,8 @@ public class RuleSourceBackedRuleAction<R, T> implements RuleAction<T> {
     private static List<Method> findAllMethodsInternal(Class<?> target, Spec<Method> predicate, MultiMap<String, Method> seen, List<Method> collector, boolean stopAtFirst) {
         for (final Method method : target.getDeclaredMethods()) {
             List<Method> seenWithName = seen.get(method.getName());
-            Method override = CollectionUtils.findFirst(seenWithName, new Spec<Method>() {
-                @Override
-                public boolean isSatisfiedBy(Method potentionOverride) {
-                    return potentionOverride.getName().equals(method.getName())
-                        && Arrays.equals(potentionOverride.getParameterTypes(), method.getParameterTypes());
-                }
-            });
+            Method override = CollectionUtils.findFirst(seenWithName, potentionOverride -> potentionOverride.getName().equals(method.getName())
+                && Arrays.equals(potentionOverride.getParameterTypes(), method.getParameterTypes()));
 
 
             if (override == null) {

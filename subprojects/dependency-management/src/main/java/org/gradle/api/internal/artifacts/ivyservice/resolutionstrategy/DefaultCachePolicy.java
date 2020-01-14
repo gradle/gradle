@@ -71,85 +71,43 @@ public class DefaultCachePolicy implements CachePolicy {
 
     @Override
     public void setOffline() {
-        eachDependency(new Action<DependencyResolutionControl>() {
-            @Override
-            public void execute(DependencyResolutionControl dependencyResolutionControl) {
-                dependencyResolutionControl.useCachedResult();
-            }
-        });
-        eachModule(new Action<ModuleResolutionControl>() {
-            @Override
-            public void execute(ModuleResolutionControl moduleResolutionControl) {
-                moduleResolutionControl.useCachedResult();
-            }
-        });
-        eachArtifact(new Action<ArtifactResolutionControl>() {
-            @Override
-            public void execute(ArtifactResolutionControl artifactResolutionControl) {
-                artifactResolutionControl.useCachedResult();
-            }
-        });
+        eachDependency(ResolutionControl::useCachedResult);
+        eachModule(ResolutionControl::useCachedResult);
+        eachArtifact(ResolutionControl::useCachedResult);
     }
 
     @Override
     public void setRefreshDependencies() {
-        eachDependency(new Action<DependencyResolutionControl>() {
-            @Override
-            public void execute(DependencyResolutionControl dependencyResolutionControl) {
-                dependencyResolutionControl.cacheFor(0, TimeUnit.SECONDS);
-            }
-        });
-        eachModule(new Action<ModuleResolutionControl>() {
-            @Override
-            public void execute(ModuleResolutionControl moduleResolutionControl) {
-                moduleResolutionControl.cacheFor(0, TimeUnit.SECONDS);
-            }
-        });
-        eachArtifact(new Action<ArtifactResolutionControl>() {
-            @Override
-            public void execute(ArtifactResolutionControl artifactResolutionControl) {
-                artifactResolutionControl.cacheFor(0, TimeUnit.SECONDS);
-            }
-        });
+        eachDependency(dependencyResolutionControl -> dependencyResolutionControl.cacheFor(0, TimeUnit.SECONDS));
+        eachModule(moduleResolutionControl -> moduleResolutionControl.cacheFor(0, TimeUnit.SECONDS));
+        eachArtifact(artifactResolutionControl -> artifactResolutionControl.cacheFor(0, TimeUnit.SECONDS));
     }
 
     public void cacheDynamicVersionsFor(final int value, final TimeUnit unit) {
-        eachDependency(new Action<DependencyResolutionControl>() {
-            @Override
-            public void execute(DependencyResolutionControl dependencyResolutionControl) {
-                if (!dependencyResolutionControl.getCachedResult().isEmpty()) {
-                    dependencyResolutionControl.cacheFor(value, unit);
-                }
+        eachDependency(dependencyResolutionControl -> {
+            if (!dependencyResolutionControl.getCachedResult().isEmpty()) {
+                dependencyResolutionControl.cacheFor(value, unit);
             }
         });
     }
 
     public void cacheChangingModulesFor(final int value, final TimeUnit units) {
-        eachModule(new Action<ModuleResolutionControl>() {
-            @Override
-            public void execute(ModuleResolutionControl moduleResolutionControl) {
-                if (moduleResolutionControl.isChanging()) {
-                    moduleResolutionControl.cacheFor(value, units);
-                }
+        eachModule(moduleResolutionControl -> {
+            if (moduleResolutionControl.isChanging()) {
+                moduleResolutionControl.cacheFor(value, units);
             }
         });
-        eachArtifact(new Action<ArtifactResolutionControl>() {
-            @Override
-            public void execute(ArtifactResolutionControl artifactResolutionControl) {
-                if (artifactResolutionControl.belongsToChangingModule()) {
-                    artifactResolutionControl.cacheFor(value, units);
-                }
+        eachArtifact(artifactResolutionControl -> {
+            if (artifactResolutionControl.belongsToChangingModule()) {
+                artifactResolutionControl.cacheFor(value, units);
             }
         });
     }
 
     private void cacheMissingArtifactsFor(final int value, final TimeUnit units) {
-        eachArtifact(new Action<ArtifactResolutionControl>() {
-            @Override
-            public void execute(ArtifactResolutionControl artifactResolutionControl) {
-                if (artifactResolutionControl.getCachedResult() == null) {
-                    artifactResolutionControl.cacheFor(value, units);
-                }
+        eachArtifact(artifactResolutionControl -> {
+            if (artifactResolutionControl.getCachedResult() == null) {
+                artifactResolutionControl.cacheFor(value, units);
             }
         });
     }

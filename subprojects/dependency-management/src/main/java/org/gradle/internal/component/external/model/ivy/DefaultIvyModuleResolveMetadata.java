@@ -19,7 +19,6 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
@@ -139,14 +138,11 @@ public class DefaultIvyModuleResolveMetadata extends AbstractLazyModuleComponent
 
     @Override
     public IvyModuleResolveMetadata withDynamicConstraintVersions() {
-        List<IvyDependencyDescriptor> transformed = CollectionUtils.collect(getDependencies(), new Transformer<IvyDependencyDescriptor, IvyDependencyDescriptor>() {
-            @Override
-            public IvyDependencyDescriptor transform(IvyDependencyDescriptor dependency) {
-                ModuleComponentSelector selector = dependency.getSelector();
-                    String dynamicConstraintVersion = dependency.getDynamicConstraintVersion();
-                    ModuleComponentSelector newSelector = DefaultModuleComponentSelector.newSelector(selector.getModuleIdentifier(), dynamicConstraintVersion);
-                    return dependency.withRequested(newSelector);
-            }
+        List<IvyDependencyDescriptor> transformed = CollectionUtils.collect(getDependencies(), dependency -> {
+            ModuleComponentSelector selector = dependency.getSelector();
+                String dynamicConstraintVersion = dependency.getDynamicConstraintVersion();
+                ModuleComponentSelector newSelector = DefaultModuleComponentSelector.newSelector(selector.getModuleIdentifier(), dynamicConstraintVersion);
+                return dependency.withRequested(newSelector);
         });
         return this.withDependencies(transformed);
     }

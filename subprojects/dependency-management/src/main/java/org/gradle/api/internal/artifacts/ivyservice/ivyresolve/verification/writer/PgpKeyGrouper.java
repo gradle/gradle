@@ -145,7 +145,7 @@ class PgpKeyGrouper {
     // For example given ["org.foo", "org.foo.bar", "org.foo.baz"] it will group using "org.foo.*"
     static List<List<String>> tryComputeCommonPrefixes(List<String> groups) {
         List<List<String>> splitGroups = groups.stream()
-            .map(group -> GROUP_SPLITTER.splitToList(group))
+            .map(GROUP_SPLITTER::splitToList)
             .sorted(Comparator.comparing(List::size))
             .collect(Collectors.toList());
         List<String> shortest = splitGroups.get(0);
