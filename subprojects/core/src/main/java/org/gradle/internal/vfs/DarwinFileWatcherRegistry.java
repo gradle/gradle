@@ -16,6 +16,7 @@
 
 package org.gradle.internal.vfs;
 
+import com.google.common.collect.ImmutableSet;
 import net.rubygrapefruit.platform.Native;
 import net.rubygrapefruit.platform.internal.jni.OsxFileEventFunctions;
 import org.gradle.internal.vfs.impl.WatcherEvent;
@@ -25,6 +26,7 @@ import org.gradle.internal.vfs.watch.WatchRootUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Set;
@@ -50,10 +52,27 @@ public class DarwinFileWatcherRegistry extends AbstractEventDrivenFileWatcherReg
     public static class Factory implements FileWatcherRegistryFactory {
         @Override
         public FileWatcherRegistry startWatching(SnapshotHierarchy snapshotHierarchy, Predicate<String> watchFilter, Collection<String> mustWatchDirectories) {
-            Set<String> directories = WatchRootUtil.resolveDirectoriesToWatch(snapshotHierarchy, watchFilter, mustWatchDirectories);
+            Set<String> mustWatchDirectoryPrefixes = ImmutableSet.copyOf(
+                mustWatchDirectories.stream()
+                    .map(path -> path + File.separator)
+                    ::iterator
+            );
+            Set<String> directories = WatchRootUtil.resolveDirectoriesToWatch(
+                snapshotHierarchy,
+                path -> watchFilter.test(path) || startsWithAnyPrefix(path, mustWatchDirectoryPrefixes),
+                mustWatchDirectories);
             Set<Path> watchRoots = WatchRootUtil.resolveRootsToWatch(directories);
             LOGGER.warn("Watching {} directory hierarchies to track changes between builds in {} directories", watchRoots.size(), directories.size());
             return new DarwinFileWatcherRegistry(watchRoots);
+        }
+
+        private static boolean startsWithAnyPrefix(String path, Set<String> prefixes) {
+            for (String prefix : prefixes) {
+                if (path.startsWith(prefix)) {
+                    return true;
+                }
+            }
+            return false;
         }
     }
 }
