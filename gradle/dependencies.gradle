@@ -17,7 +17,7 @@
 ext {
     libraries = [:]
     groovyVersion = '2.5.8'
-    kotlinVersion = '1.3.61'
+    kotlinVersion = '1.3.70-eap-42'
 }
 
 // TODO This must match the version number in code-quality-configuration.gradle.kts

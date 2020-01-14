@@ -115,6 +115,7 @@
             <trusting group="org.junit.platform"/>
          </trusted-key>
          <trusted-key id="ff986d345395d4ad1dc48137bb6fd5ad91d01857" group="org.seleniumhq.selenium"/>
+         <trusted-key id="1fa37fbe4453c1073e7ef61d6449005f96bc97a3" group="de.undercouch"/>
       </trusted-keys>
    </configuration>
    <components>
