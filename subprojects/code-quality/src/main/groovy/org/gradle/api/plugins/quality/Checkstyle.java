@@ -44,7 +44,6 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.VerificationTask;
 import org.gradle.internal.deprecation.DeprecationMessage;
 import org.gradle.util.ClosureBackedAction;
-import org.gradle.internal.deprecation.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -249,7 +248,7 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
     // @ReplacedBy("configDirectory")
     public File getConfigDir() {
         // TODO: The annotations need to be moved to the new property
-        DeprecationLogger.nagUserWith(DeprecationMessage.replacedMethod("Checkstyle.getConfigDir()", "Checkstyle.getConfigDirectory()"));
+        DeprecationMessage.replacedMethod("Checkstyle.getConfigDir()", "Checkstyle.getConfigDirectory()").nagUser();
         File configDir = getConfigDirectory().getAsFile().getOrNull();
         if (configDir != null && configDir.exists()) {
             return configDir;
@@ -266,7 +265,7 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
      */
     @Deprecated
     public void setConfigDir(Provider<File> configDir) {
-        DeprecationLogger.nagUserWith(DeprecationMessage.replacedMethod("Checkstyle.setConfigDir()", "Checkstyle.getConfigDirectory().set()"));
+        DeprecationMessage.replacedMethod("Checkstyle.setConfigDir()", "Checkstyle.getConfigDirectory().set()").nagUser();
         this.configDirectory.set(getProject().getLayout().dir(configDir));
     }
 

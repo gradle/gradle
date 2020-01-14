@@ -61,20 +61,13 @@ public class DeprecationLogger {
      **/
     public static void nagUserOfDeprecatedBehaviour(String behaviour) {
         if (isEnabled()) {
-            nagUserWith(DeprecationMessage.behaviourHasBeenDeprecated(behaviour));
+            DeprecationMessage.behaviourHasBeenDeprecated(behaviour).nagUser();
         }
     }
 
     // used in performance test - do not use in new code
     public static void nagUserOfDeprecated(String thing) {
-        nagUserWith(DeprecationMessage.specificThingHasBeenDeprecated(thing));
-    }
-
-    public static void nagUserWith(DeprecationMessage.Builder deprecationMessageBuilder) {
-        if (isEnabled()) {
-            DeprecationMessage deprecationMessage = deprecationMessageBuilder.build();
-            nagUserWith(deprecationMessage.toDeprecatedFeatureUsage(DeprecationLogger.class));
-        }
+        DeprecationMessage.specificThingHasBeenDeprecated(thing).nagUser();
     }
 
     static void nagUserWith(DeprecationMessage.Builder deprecationMessageBuilder, Class<?> calledFrom) {

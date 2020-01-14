@@ -25,7 +25,6 @@ import org.gradle.api.internal.collections.IterationOrderRetainingSetElementSour
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.ImmutableActionSet;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.deprecation.DeprecationMessage;
 
 import java.util.LinkedHashSet;
@@ -37,13 +36,14 @@ public class DefaultDomainObjectSet<T> extends DefaultDomainObjectCollection<T> 
 
     /**
      * This internal constructor is used by the 'com.android.application' plugin which we test as part of our ci pipeline.
-     * */
+     */
     @Deprecated
     public DefaultDomainObjectSet(Class<? extends T> type) {
         super(type, new IterationOrderRetainingSetElementSource<T>(), CollectionCallbackActionDecorator.NOOP);
-        DeprecationLogger.nagUserWith(DeprecationMessage
+        DeprecationMessage
             .specificThingHasBeenDeprecated("Internal API constructor DefaultDomainObjectSet(Class<T>)")
-            .withAdvice("Please use ObjectFactory.domainObjectSet(Class<T>) instead."));
+            .withAdvice("Please use ObjectFactory.domainObjectSet(Class<T>) instead.")
+            .nagUser();
     }
 
     public DefaultDomainObjectSet(Class<? extends T> type, CollectionCallbackActionDecorator decorator) {

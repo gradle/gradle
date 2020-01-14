@@ -62,7 +62,6 @@ import org.gradle.play.internal.distribution.DefaultPlayDistribution;
 import org.gradle.play.internal.distribution.DefaultPlayDistributionContainer;
 import org.gradle.play.internal.platform.PlayMajorVersion;
 import org.gradle.play.platform.PlayPlatform;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.util.GUtil;
 
 import java.io.File;
@@ -85,7 +84,7 @@ public class PlayDistributionPlugin extends RuleSource {
 
     @Model
     PlayDistributionContainer distributions(Instantiator instantiator, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
-        DeprecationLogger.nagUserWith(DeprecationMessage.pluginReplacedWithExternalOne("Play Distribution", "org.gradle.playframework-distribution"));
+        DeprecationMessage.pluginReplacedWithExternalOne("Play Distribution", "org.gradle.playframework-distribution").nagUser();
         return new DefaultPlayDistributionContainer(instantiator, collectionCallbackActionDecorator);
     }
 

@@ -46,6 +46,7 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.internal.deprecation.DeprecationMessage;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
@@ -54,8 +55,6 @@ import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.CompilerUtil;
-import org.gradle.internal.deprecation.DeprecationLogger;
-import org.gradle.internal.deprecation.DeprecationMessage;
 import org.gradle.work.Incremental;
 import org.gradle.work.InputChanges;
 
@@ -143,9 +142,9 @@ public class JavaCompile extends AbstractCompile {
     @Deprecated
     @TaskAction
     protected void compile(@SuppressWarnings("deprecation") org.gradle.api.tasks.incremental.IncrementalTaskInputs inputs) {
-        DeprecationLogger.nagUserWith(DeprecationMessage
-            .specificThingHasBeenDeprecated("Extending the JavaCompile task")
-            .withAdvice("Configure the task instead."));
+        DeprecationMessage.specificThingHasBeenDeprecated("Extending the JavaCompile task")
+            .withAdvice("Configure the task instead.")
+            .nagUser();
         compile((InputChanges) inputs);
     }
 

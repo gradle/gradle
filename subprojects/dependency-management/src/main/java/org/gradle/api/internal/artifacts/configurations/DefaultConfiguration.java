@@ -119,7 +119,6 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.ConfigureUtil;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.util.Path;
 import org.gradle.util.WrapUtil;
 
@@ -584,7 +583,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             } else {
                 // We don't have mutable access to the project, so we throw a deprecation warning and then continue with
                 // lenient locking.
-                DeprecationLogger.nagUserWith(DeprecationMessage.behaviourHasBeenDeprecated("The configuration " + identityPath.toString() + " was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a different project.  See " + documentationRegistry.getDocumentationFor("viewing_debugging_dependencies", "sub:resolving-unsafe-configuration-resolution-errors") + " for more details."));
+                DeprecationMessage.behaviourHasBeenDeprecated("The configuration " + identityPath.toString() + " was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a different project.  See " + documentationRegistry.getDocumentationFor("viewing_debugging_dependencies", "sub:resolving-unsafe-configuration-resolution-errors") + " for more details.")
+                    .nagUser();
                 owner.getModel().withLenientState(() -> resolveExclusively(requestedState));
             }
         } else {
@@ -594,7 +594,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private void warnIfConfigurationIsDeprecatedForResolving() {
         if (resolutionAlternatives != null) {
-            DeprecationLogger.nagUserWith(DeprecationMessage.replacedConfiguration(this.name, ConfigurationDeprecationType.RESOLUTION, resolutionAlternatives));
+            DeprecationMessage.replacedConfiguration(this.name, ConfigurationDeprecationType.RESOLUTION, resolutionAlternatives).nagUser();
         }
     }
 

@@ -36,8 +36,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModu
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyModuleDescriptorConverter;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyXmlModuleDescriptorParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
-import org.gradle.internal.deprecation.DeprecationMessage;
-import org.gradle.internal.hash.ChecksumService;
 import org.gradle.api.internal.artifacts.repositories.descriptor.IvyRepositoryDescriptor;
 import org.gradle.api.internal.artifacts.repositories.descriptor.RepositoryDescriptor;
 import org.gradle.api.internal.artifacts.repositories.layout.AbstractRepositoryLayout;
@@ -65,6 +63,8 @@ import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ivy.MutableIvyModuleResolveMetadata;
+import org.gradle.internal.deprecation.DeprecationMessage;
+import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.reflect.Instantiator;
@@ -72,7 +72,6 @@ import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.gradle.util.ConfigureUtil;
-import org.gradle.internal.deprecation.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.net.URI;
@@ -250,7 +249,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         }
         if (metadataSources.ivyDescriptor) {
             DefaultIvyDescriptorMetadataSource ivyDescriptorMetadataSource = new DefaultIvyDescriptorMetadataSource(IvyMetadataArtifactProvider.INSTANCE, createIvyDescriptorParser(), fileResourceRepository, checksumService);
-            if(metadataSources.ignoreGradleMetadataRedirection) {
+            if (metadataSources.ignoreGradleMetadataRedirection) {
                 sources.add(ivyDescriptorMetadataSource);
             } else {
                 sources.add(new RedirectingGradleMetadataModuleMetadataSource(ivyDescriptorMetadataSource, gradleModuleMetadataSource));
@@ -283,13 +282,13 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         }
         for (String pattern : additionalPatternsLayout.artifactPatterns) {
             URI baseUri = new ResolvedPattern(pattern, fileResolver).baseUri;
-            if (baseUri!=null) {
+            if (baseUri != null) {
                 builder.add(baseUri);
             }
         }
         for (String pattern : additionalPatternsLayout.ivyPatterns) {
             URI baseUri = new ResolvedPattern(pattern, fileResolver).baseUri;
-            if (baseUri!=null) {
+            if (baseUri != null) {
                 builder.add(baseUri);
             }
         }
@@ -352,13 +351,13 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
 
     @Override
     public void layout(String layoutName, Closure config) {
-        DeprecationLogger.nagUserWith(DeprecationMessage.replacedMethod("IvyArtifactRepository.layout(String, Closure)", "IvyArtifactRepository.patternLayout(Action)"));
+        DeprecationMessage.replacedMethod("IvyArtifactRepository.layout(String, Closure)", "IvyArtifactRepository.patternLayout(Action)").nagUser();
         internalLayout(layoutName, ConfigureUtil.<RepositoryLayout>configureUsing(config));
     }
 
     @Override
     public void layout(String layoutName, Action<? extends RepositoryLayout> config) {
-        DeprecationLogger.nagUserWith(DeprecationMessage.replacedMethod("IvyArtifactRepository.layout(String, Action)", "IvyArtifactRepository.patternLayout(Action)"));
+        DeprecationMessage.replacedMethod("IvyArtifactRepository.layout(String, Action)", "IvyArtifactRepository.patternLayout(Action)").nagUser();
         internalLayout(layoutName, config);
     }
 

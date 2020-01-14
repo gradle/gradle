@@ -35,9 +35,8 @@ import org.gradle.initialization.UserHomeInitScriptFinder;
 import org.gradle.internal.DefaultTaskExecutionRequest;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.concurrent.DefaultParallelismConfiguration;
-import org.gradle.internal.logging.DefaultLoggingConfiguration;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.deprecation.DeprecationMessage;
+import org.gradle.internal.logging.DefaultLoggingConfiguration;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -306,7 +305,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * @return this
      */
     public StartParameter useEmptySettings() {
-        DeprecationLogger.nagUserWith(DeprecationMessage.specificThingHasBeenDeprecated("StartParameter#useEmptySettings()"));
+        DeprecationMessage.specificThingHasBeenDeprecated("StartParameter#useEmptySettings()").nagUser();
         doUseEmptySettings();
         return this;
     }
@@ -323,7 +322,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * @return Whether to use empty settings or not.
      */
     public boolean isUseEmptySettings() {
-        DeprecationLogger.nagUserWith(DeprecationMessage.specificThingHasBeenDeprecated("StartParameter#isUseEmptySettings()"));
+        DeprecationMessage.specificThingHasBeenDeprecated("StartParameter#isUseEmptySettings()").nagUser();
         return useEmptySettings;
     }
 
@@ -414,12 +413,12 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     }
 
     public boolean isSearchUpwards() {
-        DeprecationLogger.nagUserWith(DeprecationMessage.specificThingHasBeenDeprecated("StartParameter#isSearchUpwards()"));
+        DeprecationMessage.specificThingHasBeenDeprecated("StartParameter#isSearchUpwards()").nagUser();
         return searchUpwards;
     }
 
     public void setSearchUpwards(boolean searchUpwards) {
-        DeprecationLogger.nagUserWith(DeprecationMessage.specificThingHasBeenDeprecated("StartParameter#setSearchUpwards(boolean)"));
+        DeprecationMessage.specificThingHasBeenDeprecated("StartParameter#setSearchUpwards(boolean)").nagUser();
         this.searchUpwards = searchUpwards;
     }
 

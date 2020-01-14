@@ -80,6 +80,7 @@ import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.deprecation.DeprecationMessage;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.extensibility.ExtensibleDynamicObject;
@@ -119,7 +120,6 @@ import org.gradle.process.JavaExecSpec;
 import org.gradle.util.ClosureBackedAction;
 import org.gradle.util.Configurable;
 import org.gradle.util.ConfigureUtil;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
@@ -1018,8 +1018,8 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     private void maybeNagDeprecationOfAfterEvaluateAfterProjectIsEvaluated(String methodPrototype) {
         if (!state.isUnconfigured() && !state.isConfiguring()) {
-            DeprecationLogger.nagUserWith(DeprecationMessage.discontinuedMethodInvocation("Project#" + methodPrototype + " when the project is already evaluated")
-                .withAdvice(getAdviceOnDeprecationOfAfterEvaluateAfterProjectIsEvaluated()));
+            DeprecationMessage.discontinuedMethodInvocation("Project#" + methodPrototype + " when the project is already evaluated")
+                .withAdvice(getAdviceOnDeprecationOfAfterEvaluateAfterProjectIsEvaluated()).nagUser();
         }
     }
 

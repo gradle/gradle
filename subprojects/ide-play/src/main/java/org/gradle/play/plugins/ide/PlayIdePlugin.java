@@ -23,7 +23,6 @@ import org.gradle.api.Project;
 import org.gradle.api.plugins.AppliedPlugin;
 import org.gradle.internal.deprecation.DeprecationMessage;
 import org.gradle.play.plugins.ide.internal.PlayIdeaPlugin;
-import org.gradle.internal.deprecation.DeprecationLogger;
 
 /**
  * Plugin for configuring IDE plugins when the project uses the Play Framework component support.
@@ -35,7 +34,7 @@ import org.gradle.internal.deprecation.DeprecationLogger;
 public class PlayIdePlugin implements Plugin<Project> {
     @Override
     public void apply(final Project project) {
-        DeprecationLogger.nagUserWith(DeprecationMessage.pluginReplacedWithExternalOne("Play Ide", "org.gradle.playframework-ide"));
+        DeprecationMessage.pluginReplacedWithExternalOne("Play Ide", "org.gradle.playframework-ide").nagUser();
         project.getPluginManager().withPlugin("idea", new Action<AppliedPlugin>() {
             @Override
             public void execute(AppliedPlugin appliedPlugin) {

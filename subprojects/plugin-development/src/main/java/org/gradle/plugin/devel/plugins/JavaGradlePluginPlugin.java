@@ -53,7 +53,6 @@ import org.gradle.plugin.devel.tasks.ValidatePlugins;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.internal.DefaultPluginId;
 import org.gradle.plugin.use.resolve.internal.local.PluginPublication;
-import org.gradle.internal.deprecation.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -270,7 +269,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
     }
 
     private static void nagAboutDeprecatedValidateTaskPropertiesTask() {
-        DeprecationLogger.nagUserWith(DeprecationMessage.replacedTask(VALIDATE_TASK_PROPERTIES_TASK_NAME, VALIDATE_PLUGINS_TASK_NAME));
+        DeprecationMessage.replacedTask(VALIDATE_TASK_PROPERTIES_TASK_NAME, VALIDATE_PLUGINS_TASK_NAME).nagUser();
     }
 
     /**

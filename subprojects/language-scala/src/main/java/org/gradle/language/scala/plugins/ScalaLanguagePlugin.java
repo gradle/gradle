@@ -47,7 +47,6 @@ import org.gradle.model.RuleSource;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.ComponentType;
 import org.gradle.platform.base.TypeBuilder;
-import org.gradle.internal.deprecation.DeprecationLogger;
 
 import java.util.Collections;
 import java.util.Map;
@@ -65,7 +64,7 @@ public class ScalaLanguagePlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project project) {
-        DeprecationLogger.nagUserWith(DeprecationMessage.deprecatedPlugin("scala-lang", 6, "upgrading_jvm_plugins"));
+        DeprecationMessage.deprecatedPlugin("scala-lang", 6, "upgrading_jvm_plugins").nagUser();
         project.getPluginManager().apply(ComponentModelBasePlugin.class);
         project.getPluginManager().apply(JvmResourcesPlugin.class);
     }

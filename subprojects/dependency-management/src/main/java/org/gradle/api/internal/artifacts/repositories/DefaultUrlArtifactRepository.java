@@ -20,10 +20,9 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.UrlArtifactRepository;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.internal.deprecation.DeprecationMessage;
 import org.gradle.internal.verifier.HttpRedirectVerifier;
 import org.gradle.internal.verifier.HttpRedirectVerifierFactory;
-import org.gradle.internal.deprecation.DeprecationLogger;
-import org.gradle.internal.deprecation.DeprecationMessage;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -94,7 +93,7 @@ public class DefaultUrlArtifactRepository implements UrlArtifactRepository {
     }
 
     private void nagUserOfInsecureProtocol() {
-        DeprecationLogger.nagUserWith(DeprecationMessage
+        DeprecationMessage
             .specificThingHasBeenDeprecated("Using insecure protocols with repositories")
             .withAdvice(String.format(
                 "Switch %s repository '%s' to a secure protocol (like HTTPS) or allow insecure protocols, see %s.",
@@ -102,7 +101,7 @@ public class DefaultUrlArtifactRepository implements UrlArtifactRepository {
                 displayNameSupplier.get(),
                 allowInsecureProtocolHelpLink()
                 )
-            ));
+            ).nagUser();
     }
 
     private void nagUserOfInsecureRedirect(@Nullable URI redirectFrom, URI redirectLocation) {
@@ -114,14 +113,15 @@ public class DefaultUrlArtifactRepository implements UrlArtifactRepository {
                 redirectLocation
             );
         }
-        DeprecationLogger.nagUserWith(DeprecationMessage
+        DeprecationMessage
             .specificThingHasBeenDeprecated("Following insecure redirects")
             .withAdvice(String.format(
                 "Switch %s repository '%s' to redirect to a secure protocol (like HTTPS) or allow insecure protocols, see %s.",
                 repositoryType,
                 displayNameSupplier.get(),
                 allowInsecureProtocolHelpLink()))
-            .withContextualAdvice(contextualAdvice));
+            .withContextualAdvice(contextualAdvice)
+            .nagUser();
     }
 
     HttpRedirectVerifier createRedirectVerifier() {

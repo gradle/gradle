@@ -25,9 +25,8 @@ import org.gradle.api.internal.collections.IndexedElementSource;
 import org.gradle.api.internal.collections.ListElementSource;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
-import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.deprecation.DeprecationMessage;
+import org.gradle.internal.reflect.Instantiator;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -46,9 +45,10 @@ public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCol
     @Deprecated
     public DefaultNamedDomainObjectList(Class<T> type, Instantiator instantiator, Namer<? super T> namer) {
         super(type, new ListElementSource<T>(), instantiator, namer, CollectionCallbackActionDecorator.NOOP);
-        DeprecationLogger.nagUserWith(DeprecationMessage
+        DeprecationMessage
             .specificThingHasBeenDeprecated("Internal API constructor DefaultNamedDomainObjectList(Class<T>, Instantiator, Namer<T>)")
-            .withAdvice("Please use ObjectFactory.namedDomainObjectList(Class<T>) instead."));
+            .withAdvice("Please use ObjectFactory.namedDomainObjectList(Class<T>) instead.")
+            .nagUser();
     }
 
     public DefaultNamedDomainObjectList(Class<T> type, Instantiator instantiator, Namer<? super T> namer, CollectionCallbackActionDecorator decorator) {

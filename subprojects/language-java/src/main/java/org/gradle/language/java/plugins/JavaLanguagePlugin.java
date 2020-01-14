@@ -61,7 +61,6 @@ import org.gradle.platform.base.ComponentType;
 import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.TypeBuilder;
 import org.gradle.platform.base.internal.BinarySpecInternal;
-import org.gradle.internal.deprecation.DeprecationLogger;
 
 import java.io.File;
 import java.util.Collections;
@@ -84,7 +83,7 @@ public class JavaLanguagePlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project project) {
-        DeprecationLogger.nagUserWith(DeprecationMessage.deprecatedPlugin("java-lang", 6, "upgrading_jvm_plugins"));
+        DeprecationMessage.deprecatedPlugin("java-lang", 6, "upgrading_jvm_plugins").nagUser();
         project.getPluginManager().apply(ComponentModelBasePlugin.class);
         project.getPluginManager().apply(JvmResourcesPlugin.class);
     }

@@ -37,7 +37,6 @@ import org.gradle.model.RuleSource;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.ComponentType;
 import org.gradle.platform.base.TypeBuilder;
-import org.gradle.internal.deprecation.DeprecationLogger;
 
 import java.util.Collections;
 import java.util.Map;
@@ -53,7 +52,7 @@ public class JvmResourcesPlugin implements Plugin<Project> {
 
     @Override
     public void apply(final Project project) {
-        DeprecationLogger.nagUserWith(DeprecationMessage.deprecatedPlugin("jvm-resources", 6, "upgrading_jvm_plugins"));
+        DeprecationMessage.deprecatedPlugin("jvm-resources", 6, "upgrading_jvm_plugins").nagUser();
         project.getPluginManager().apply(ComponentModelBasePlugin.class);
     }
 
@@ -119,6 +118,7 @@ public class JvmResourcesPlugin implements Plugin<Project> {
                 }
             };
         }
+
         @Override
         public boolean applyToBinary(BinarySpec binary) {
             return binary instanceof WithJvmAssembly;

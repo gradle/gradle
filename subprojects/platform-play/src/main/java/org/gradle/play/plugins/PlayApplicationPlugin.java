@@ -73,7 +73,6 @@ import org.gradle.play.internal.platform.PlayPlatformInternal;
 import org.gradle.play.internal.toolchain.PlayToolChainInternal;
 import org.gradle.play.platform.PlayPlatform;
 import org.gradle.play.tasks.PlayRun;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.util.VersionNumber;
 
 import java.io.File;
@@ -90,7 +89,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project project) {
-        DeprecationLogger.nagUserWith(DeprecationMessage.pluginReplacedWithExternalOne("Play Application", "org.gradle.playframework-application"));
+        DeprecationMessage.pluginReplacedWithExternalOne("Play Application", "org.gradle.playframework-application").nagUser();
         project.getPluginManager().apply(JavaLanguagePlugin.class);
         project.getPluginManager().apply(ScalaLanguagePlugin.class);
         project.getPluginManager().apply(PlayTwirlPlugin.class);

@@ -33,14 +33,13 @@ import org.gradle.internal.deprecation.DeprecationMessage;
 import org.gradle.plugins.javascript.base.JavaScriptExtension;
 import org.gradle.plugins.javascript.rhino.RhinoExtension;
 import org.gradle.plugins.javascript.rhino.RhinoPlugin;
-import org.gradle.internal.deprecation.DeprecationLogger;
 
 import java.util.concurrent.Callable;
 
 public class CoffeeScriptBasePlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
-        DeprecationLogger.nagUserWith(DeprecationMessage.deprecatedPlugin("org.gradle.coffeescript-base"));
+        DeprecationMessage.deprecatedPlugin("org.gradle.coffeescript-base").nagUser();
         project.getPluginManager().apply(RhinoPlugin.class);
 
         JavaScriptExtension jsExtension = project.getExtensions().getByType(JavaScriptExtension.class);

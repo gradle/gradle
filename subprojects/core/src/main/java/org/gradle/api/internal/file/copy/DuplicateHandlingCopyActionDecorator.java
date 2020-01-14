@@ -20,7 +20,6 @@ import org.gradle.api.file.DuplicateFileCopyingException;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.deprecation.DeprecationMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,9 +46,10 @@ public class DuplicateHandlingCopyActionDecorator implements CopyAction {
 
                 if (!visitedFiles.add(details.getRelativePath())) {
                     if (details.isDefaultDuplicatesStrategy()) {
-                        DeprecationLogger.nagUserWith(DeprecationMessage.indirectCodeUsageHasBeenDeprecated("Copying or archiving duplicate paths with the default duplicates strategy")
+                        DeprecationMessage.indirectCodeUsageHasBeenDeprecated("Copying or archiving duplicate paths with the default duplicates strategy")
                             .withAdvice("Explicitly set the duplicates strategy to 'DuplicatesStrategy.INCLUDE' if you want to allow duplicate paths.")
-                            .withContextualAdvice("Duplicate path: \"" + details.getRelativePath() + "\"."));
+                            .withContextualAdvice("Duplicate path: \"" + details.getRelativePath() + "\".")
+                            .nagUser();
                     }
                     if (strategy == DuplicatesStrategy.EXCLUDE) {
                         return;

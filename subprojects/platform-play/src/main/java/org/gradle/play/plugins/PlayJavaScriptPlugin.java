@@ -42,7 +42,6 @@ import org.gradle.play.PlayApplicationSpec;
 import org.gradle.play.internal.JavaScriptSourceCode;
 import org.gradle.play.internal.PlayApplicationBinarySpecInternal;
 import org.gradle.play.tasks.JavaScriptMinify;
-import org.gradle.internal.deprecation.DeprecationLogger;
 
 import java.io.File;
 import java.util.Collections;
@@ -57,7 +56,7 @@ import java.util.Map;
 public class PlayJavaScriptPlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
-        DeprecationLogger.nagUserWith(DeprecationMessage.pluginReplacedWithExternalOne("Play JavaScript", "org.gradle.playframework-javascript"));
+        DeprecationMessage.pluginReplacedWithExternalOne("Play JavaScript", "org.gradle.playframework-javascript").nagUser();
         project.getPluginManager().apply(ComponentModelBasePlugin.class);
     }
 

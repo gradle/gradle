@@ -19,12 +19,12 @@ package org.gradle.util
 import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.internal.Factory
 import org.gradle.internal.deprecation.DeprecationLogger
+import org.gradle.internal.deprecation.DeprecationMessage
 import org.gradle.internal.featurelifecycle.DeprecatedUsageBuildOperationProgressBroadcaster
 import org.gradle.internal.featurelifecycle.UsageLocationReporter
 import org.gradle.internal.logging.CollectingTestOutputEventListener
 import org.gradle.internal.logging.ConfigureLogging
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
-import org.gradle.internal.deprecation.DeprecationMessage
 import org.junit.Rule
 import spock.lang.Subject
 
@@ -44,8 +44,8 @@ class DeprecationLoggerTest extends ConcurrentSpec {
 
     def "logs deprecation warning once until reset"() {
         when:
-        DeprecationLogger.nagUserWith(DeprecationMessage.specificThingHasBeenDeprecated("nag"))
-        DeprecationLogger.nagUserWith(DeprecationMessage.specificThingHasBeenDeprecated("nag"))
+        DeprecationMessage.specificThingHasBeenDeprecated("nag").nagUser()
+        DeprecationMessage.specificThingHasBeenDeprecated("nag").nagUser()
 
         then:
         def events = outputEventListener.events
@@ -54,7 +54,7 @@ class DeprecationLoggerTest extends ConcurrentSpec {
 
         when:
         DeprecationLogger.reset()
-        DeprecationLogger.nagUserWith(DeprecationMessage.specificThingHasBeenDeprecated("nag"))
+        DeprecationMessage.specificThingHasBeenDeprecated("nag").nagUser()
 
         then:
         events.size() == 2
@@ -74,7 +74,7 @@ class DeprecationLoggerTest extends ConcurrentSpec {
 
         and:
         1 * factory.create() >> {
-            DeprecationLogger.nagUserWith(DeprecationMessage.specificThingHasBeenDeprecated("nag"))
+            DeprecationMessage.specificThingHasBeenDeprecated("nag").nagUser()
             return "result"
         }
         0 * _
@@ -103,13 +103,13 @@ class DeprecationLoggerTest extends ConcurrentSpec {
         async {
             start {
                 thread.blockUntil.disabled
-                DeprecationLogger.nagUserWith(DeprecationMessage.specificThingHasBeenDeprecated("nag"))
+                DeprecationMessage.specificThingHasBeenDeprecated("nag").nagUser()
                 instant.logged
             }
             start {
                 DeprecationLogger.whileDisabled {
                     instant.disabled
-                    DeprecationLogger.nagUserWith(DeprecationMessage.specificThingHasBeenDeprecated("ignored"))
+                    DeprecationMessage.specificThingHasBeenDeprecated("ignored").nagUser()
                     thread.blockUntil.logged
                 }
             }
@@ -126,9 +126,9 @@ class DeprecationLoggerTest extends ConcurrentSpec {
         def major = GradleVersion.current().nextMajor
 
         when:
-        DeprecationLogger.nagUserWith(DeprecationMessage
-            .specificThingHasBeenDeprecated("foo")
-            .withAdvice("bar."));
+        DeprecationMessage.specificThingHasBeenDeprecated("foo")
+            .withAdvice("bar.")
+            .nagUser();
 
         then:
         def events = outputEventListener.events

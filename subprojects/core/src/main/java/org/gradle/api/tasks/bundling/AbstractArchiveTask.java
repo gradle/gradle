@@ -33,7 +33,6 @@ import org.gradle.api.tasks.OutputFile;
 import org.gradle.internal.deprecation.DeprecationMessage;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.util.GUtil;
 
 import javax.annotation.Nullable;
@@ -121,7 +120,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      */
     @Deprecated
     public void setArchiveName(String name) {
-        DeprecationLogger.nagUserWith(DeprecationMessage.replacedProperty("archiveName", "archiveFileName"));
+        DeprecationMessage.replacedProperty("archiveName", "archiveFileName").nagUser();
         archiveName.convention(name);
         archiveName.set(name);
     }
@@ -183,7 +182,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     @Deprecated
     @ReplacedBy("destinationDirectory")
     public File getDestinationDir() {
-        DeprecationLogger.nagUserWith(DeprecationMessage.replacedProperty("destinationDir", "destinationDirectory"));
+        DeprecationMessage.replacedProperty("destinationDir", "destinationDirectory").nagUser();
         return archiveDestinationDirectory.getAsFile().get();
     }
 
@@ -194,7 +193,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      */
     @Deprecated
     public void setDestinationDir(File destinationDir) {
-        DeprecationLogger.nagUserWith(DeprecationMessage.replacedProperty("destinationDir", "destinationDirectory"));
+        DeprecationMessage.replacedProperty("destinationDir", "destinationDirectory").nagUser();
         archiveDestinationDirectory.set(getProject().file(destinationDir));
     }
 
@@ -218,7 +217,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     @Deprecated
     @ReplacedBy("archiveBaseName")
     public String getBaseName() {
-        DeprecationLogger.nagUserWith(DeprecationMessage.replacedProperty("baseName", "archiveBaseName"));
+        DeprecationMessage.replacedProperty("baseName", "archiveBaseName").nagUser();
         return archiveBaseName.getOrNull();
     }
 
@@ -229,7 +228,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      */
     @Deprecated
     public void setBaseName(@Nullable String baseName) {
-        DeprecationLogger.nagUserWith(DeprecationMessage.replacedProperty("baseName", "archiveBaseName"));
+        DeprecationMessage.replacedProperty("baseName", "archiveBaseName").nagUser();
         archiveBaseName.convention(baseName);
         archiveBaseName.set(baseName);
     }
@@ -255,7 +254,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     @Deprecated
     @ReplacedBy("archiveAppendix")
     public String getAppendix() {
-        DeprecationLogger.nagUserWith(DeprecationMessage.replacedProperty("appendix", "archiveAppendix"));
+        DeprecationMessage.replacedProperty("appendix", "archiveAppendix").nagUser();
         return archiveAppendix.getOrNull();
     }
 
@@ -293,7 +292,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     @Deprecated
     @ReplacedBy("archiveVersion")
     public String getVersion() {
-        DeprecationLogger.nagUserWith(DeprecationMessage.replacedProperty("version", "archiveVersion"));
+        DeprecationMessage.replacedProperty("version", "archiveVersion").nagUser();
         return archiveVersion.getOrNull();
     }
 
@@ -304,7 +303,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      */
     @Deprecated
     public void setVersion(@Nullable String version) {
-        DeprecationLogger.nagUserWith(DeprecationMessage.replacedProperty("version", "archiveVersion"));
+        DeprecationMessage.replacedProperty("version", "archiveVersion").nagUser();
         archiveVersion.convention(version);
         archiveVersion.set(version);
     }
@@ -322,13 +321,14 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
 
     /**
      * Returns the extension part of the archive name.
+     *
      * @deprecated Use {@link #getArchiveExtension()}
      */
     @Nullable
     @Deprecated
     @ReplacedBy("archiveExtension")
     public String getExtension() {
-        DeprecationLogger.nagUserWith(DeprecationMessage.replacedProperty("extension", "archiveExtension"));
+        DeprecationMessage.replacedProperty("extension", "archiveExtension").nagUser();
         return archiveExtension.getOrNull();
     }
 
@@ -339,13 +339,14 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      */
     @Deprecated
     public void setExtension(@Nullable String extension) {
-        DeprecationLogger.nagUserWith(DeprecationMessage.replacedProperty("extension", "archiveExtension"));
+        DeprecationMessage.replacedProperty("extension", "archiveExtension").nagUser();
         archiveExtension.convention(extension);
         archiveExtension.set(extension);
     }
 
     /**
      * Returns the extension part of the archive name.
+     *
      * @since 5.1
      */
     @Internal("Represented as part of archiveFile")
@@ -363,7 +364,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     @Deprecated
     @ReplacedBy("archiveClassifier")
     public String getClassifier() {
-        DeprecationLogger.nagUserWith(DeprecationMessage.replacedProperty("classifier", "archiveClassifier"));
+        DeprecationMessage.replacedProperty("classifier", "archiveClassifier").nagUser();
         return archiveClassifier.getOrNull();
     }
 
@@ -384,7 +385,6 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * Returns the classifier part of the archive name, if any.
      *
      * @return The classifier. Internal property may be null.
-     *
      * @since 5.1
      */
     @Internal("Represented as part of archiveFile")
@@ -443,8 +443,8 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * If <tt>false</tt> this ensures that archive entries have the same time for builds between different machines, Java versions and operating systems.
      * </p>
      *
-     * @since 3.4
      * @return <tt>true</tt> if file timestamps should be preserved for archive entries
+     * @since 3.4
      */
     @Input
     public boolean isPreserveFileTimestamps() {
@@ -457,8 +457,8 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * If <tt>false</tt> this ensures that archive entries have the same time for builds between different machines, Java versions and operating systems.
      * </p>
      *
-     * @since 3.4
      * @param preserveFileTimestamps <tt>true</tt> if file timestamps should be preserved for archive entries
+     * @since 3.4
      */
     public void setPreserveFileTimestamps(boolean preserveFileTimestamps) {
         archivePreserveFileTimestamps.set(preserveFileTimestamps);
@@ -472,13 +472,14 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * This helps Gradle reliably produce byte-for-byte reproducible archives.
      * </p>
      *
-     * @since 3.4
      * @return <tt>true</tt> if the files should read from disk in a reproducible order.
+     * @since 3.4
      */
     @Input
     public boolean isReproducibleFileOrder() {
         return archiveReproducibleFileOrder.get();
     }
+
     /**
      * Specifies whether to enforce a reproducible file order when reading files from directories.
      * <p>
@@ -487,8 +488,8 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * This helps Gradle reliably produce byte-for-byte reproducible archives.
      * </p>
      *
-     * @since 3.4
      * @param reproducibleFileOrder <tt>true</tt> if the files should read from disk in a reproducible order.
+     * @since 3.4
      */
     public void setReproducibleFileOrder(boolean reproducibleFileOrder) {
         archiveReproducibleFileOrder.set(reproducibleFileOrder);
