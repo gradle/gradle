@@ -18,15 +18,17 @@ package org.gradle.internal.vfs;
 
 import net.rubygrapefruit.platform.Native;
 import net.rubygrapefruit.platform.internal.jni.WindowsFileEventFunctions;
-import org.gradle.internal.vfs.impl.WatchRootUtil;
 import org.gradle.internal.vfs.impl.WatcherEvent;
 import org.gradle.internal.vfs.watch.FileWatcherRegistry;
 import org.gradle.internal.vfs.watch.FileWatcherRegistryFactory;
+import org.gradle.internal.vfs.watch.WatchRootUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class WindowsFileWatcherRegistry extends AbstractEventDrivenFileWatcherRegistry {
@@ -44,7 +46,8 @@ public class WindowsFileWatcherRegistry extends AbstractEventDrivenFileWatcherRe
 
     public static class Factory implements FileWatcherRegistryFactory {
         @Override
-        public FileWatcherRegistry startWatching(Set<Path> directories) {
+        public FileWatcherRegistry startWatching(SnapshotHierarchy snapshotHierarchy, Predicate<String> watchFilter, Collection<String> mustWatchDirectories) {
+            Set<String> directories = WatchRootUtil.resolveDirectoriesToWatch(snapshotHierarchy, watchFilter, mustWatchDirectories);
             Set<Path> watchRoots = WatchRootUtil.resolveRootsToWatch(directories);
             LOGGER.warn("Watching {} directory hierarchies to track changes between builds in {} directories", watchRoots.size(), directories.size());
             return new WindowsFileWatcherRegistry(watchRoots);

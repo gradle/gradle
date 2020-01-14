@@ -22,6 +22,7 @@ import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemNode;
 import org.gradle.internal.snapshot.MetadataSnapshot;
 import org.gradle.internal.snapshot.VfsRelativePath;
+import org.gradle.internal.vfs.SnapshotHierarchy;
 
 import java.util.Optional;
 

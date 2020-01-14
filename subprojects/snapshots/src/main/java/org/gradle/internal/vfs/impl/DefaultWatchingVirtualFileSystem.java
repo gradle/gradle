@@ -16,7 +16,6 @@
 
 package org.gradle.internal.vfs.impl;
 
-import org.gradle.internal.file.FileType;
 import org.gradle.internal.vfs.WatchingVirtualFileSystem;
 import org.gradle.internal.vfs.watch.FileWatcherRegistry;
 import org.gradle.internal.vfs.watch.FileWatcherRegistryFactory;
@@ -25,13 +24,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
@@ -40,14 +35,14 @@ public class DefaultWatchingVirtualFileSystem extends AbstractDelegatingVirtualF
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultWatchingVirtualFileSystem.class);
 
     private final FileWatcherRegistryFactory watcherRegistryFactory;
-    private final Predicate<Path> watchFilter;
+    private final Predicate<String> watchFilter;
 
     private FileWatcherRegistry watchRegistry;
 
     public DefaultWatchingVirtualFileSystem(
         FileWatcherRegistryFactory watcherRegistryFactory,
         AbstractVirtualFileSystem delegate,
-        Predicate<Path> watchFilter
+        Predicate<String> watchFilter
     ) {
         super(delegate);
         this.watcherRegistryFactory = watcherRegistryFactory;
@@ -55,71 +50,19 @@ public class DefaultWatchingVirtualFileSystem extends AbstractDelegatingVirtualF
     }
 
     @Override
-    public void startWatching(Collection<Path> mustWatchDirectories) {
+    public void startWatching(Collection<String> mustWatchDirectories) {
         if (watchRegistry != null) {
             throw new IllegalStateException("Watch service already started");
         }
         try {
-            Set<Path> watchedDirectories = new HashSet<>(mustWatchDirectories);
             long startTime = System.currentTimeMillis();
-            getRoot().visitSnapshots(snapshot -> {
-                Path path = Paths.get(snapshot.getAbsolutePath());
-
-                // We don't watch things that shouldn't be watched
-                if (!watchFilter.test(path)) {
-                    return;
-                }
-
-                // For existing files and directories we watch the parent directory,
-                // so we learn if the entry itself disappears or gets modified.
-                // In case of a missing file we need to find the closest existing
-                // ancestor to watch so we can learn if the missing file respawns.
-                Path ancestorToWatch;
-                switch (snapshot.getType()) {
-                    case RegularFile:
-                    case Directory:
-                        ancestorToWatch = path.getParent();
-                        break;
-                    case Missing:
-                        ancestorToWatch = findFirstExistingAncestor(path);
-                        break;
-                    default:
-                        throw new AssertionError();
-                }
-                watchedDirectories.add(ancestorToWatch);
-
-                // For directory entries we watch the directory itself,
-                // so we learn about new children spawning. If the directory
-                // has children, it would be watched through them already.
-                // This is here to make sure we also watch empty directories.
-                if (snapshot.getType() == FileType.Directory) {
-                    watchedDirectories.add(path);
-                }
-            });
-            long endTime = System.currentTimeMillis();
-            LOGGER.warn("Spent {} ms figuring out what to watch", endTime - startTime);
-            startTime = endTime;
-            watchRegistry = watcherRegistryFactory.startWatching(watchedDirectories);
-            LOGGER.warn("Spent {} ms watching {} directories for file system events", System.currentTimeMillis() - startTime, watchedDirectories.size());
+            watchRegistry = watcherRegistryFactory.startWatching(getRoot(), watchFilter, mustWatchDirectories);
+            long endTime = System.currentTimeMillis() - startTime;
+            LOGGER.warn("Spent {} ms registering watches for file system events", endTime);
         } catch (Exception ex) {
             LOGGER.error("Couldn't create watch service, not tracking changes between builds", ex);
             invalidateAll();
             close();
-        }
-    }
-
-    private static Path findFirstExistingAncestor(Path path) {
-        Path candidate = path;
-        while (true) {
-            candidate = candidate.getParent();
-            if (candidate == null) {
-                // TODO Can this happen on Windows when a SUBST'd drive is unregistered?
-                throw new IllegalStateException("Couldn't find existing ancestor for " + path);
-            }
-            // TODO Use the VFS to find the ancestor instead
-            if (Files.isDirectory(candidate)) {
-                return candidate;
-            }
         }
     }
 

@@ -16,12 +16,11 @@
 
 package org.gradle.internal.vfs.impl
 
+import org.gradle.internal.vfs.watch.WatchRootUtil
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Specification
 import spock.lang.Unroll
-
-import java.nio.file.Paths
 
 @Unroll
 class WatchRootUtilTest extends Specification {
@@ -62,7 +61,7 @@ class WatchRootUtilTest extends Specification {
     }
 
     private static List<String> resolveRecursiveRoots(List<String> directories) {
-        WatchRootUtil.resolveRootsToWatch(directories.collect { Paths.get(it) } as Set)
+        WatchRootUtil.resolveRootsToWatch(directories as Set)
             .collect { it.toString() }
             .sort()
     }
