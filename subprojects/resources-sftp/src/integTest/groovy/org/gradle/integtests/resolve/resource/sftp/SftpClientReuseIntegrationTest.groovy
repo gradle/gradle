@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve.resource.sftp
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.fixtures.server.sftp.SFTPServer
 import org.junit.Rule
@@ -26,7 +25,6 @@ class SftpClientReuseIntegrationTest extends AbstractIntegrationSpec {
     @Rule final SFTPServer sftpServer = new SFTPServer(temporaryFolder)
     @Rule final BlockingHttpServer coordinator = new BlockingHttpServer()
 
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_TO_CLEANUP)
     def "does not attempt to reuse a client that has been disconnected"() {
         coordinator.start()
 

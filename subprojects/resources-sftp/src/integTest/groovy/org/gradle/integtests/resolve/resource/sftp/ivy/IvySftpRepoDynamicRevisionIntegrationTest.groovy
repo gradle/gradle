@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.resolve.resource.sftp.AbstractSftpDependencyResolutionTest
 
 class IvySftpRepoDynamicRevisionIntegrationTest extends AbstractSftpDependencyResolutionTest {
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_TO_CLEANUP)
+    @ToBeFixedForInstantExecution
     def "uses latest version from version range and latest status"() {
         given:
         buildFile << """

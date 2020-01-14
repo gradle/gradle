@@ -36,7 +36,7 @@ class MavenPublishS3IntegrationTest extends AbstractMavenPublishIntegTest {
         .withArgument("-Daws.secretKey=someSecret");
     }
 
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_TO_CLEANUP)
+    @ToBeFixedForInstantExecution
     def "can publish to a S3 Maven repository"() {
         given:
         def mavenRepo = new MavenS3Repository(server, file("repo"), "/maven", "tests3Bucket")
@@ -82,7 +82,7 @@ publishing {
     }
 
 
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_TO_CLEANUP)
+    @ToBeFixedForInstantExecution
     def "can publish to a S3 Maven repository with IAM"() {
         given:
         def mavenRepo = new MavenS3Repository(server, file("repo"), "/maven", "tests3Bucket")

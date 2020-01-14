@@ -44,7 +44,7 @@ class IvyGcsRepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveInteg
         result = executer.withTasks(*tasks).run()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_TO_CLEANUP)
     def "cannot add invalid authentication types for gcs repo"() {
         given:
         def remoteIvyRepo = server.getRemoteIvyRepo()
