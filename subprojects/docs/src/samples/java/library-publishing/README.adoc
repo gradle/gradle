@@ -47,6 +47,4 @@ build/publishing-repository
 5 directories, 20 files
 ----
 
-
-
 For more information, see link:{userManualPath}/java_library_plugin.html[Java Library Plugin reference chapter].
