@@ -218,16 +218,6 @@ class DeprecationMessagesTest extends Specification {
         events[0].message == "Using method method() has been deprecated. This will fail with an error in Gradle ${NEXT_GRADLE_VERSION}. Advice."
     }
 
-    def "logs replaced task type"() {
-        when:
-        DeprecationMessage.replacedTaskType("taskName", "replacementTask").nagUser()
-
-        then:
-        def events = outputEventListener.events
-        events.size() == 1
-        events[0].message == "The taskName task type has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Please use the replacementTask instead."
-    }
-
     def "logs replaced task"() {
         when:
         DeprecationLogger.deprecateTask("taskName").replaceWith("replacementTask").nagUser()

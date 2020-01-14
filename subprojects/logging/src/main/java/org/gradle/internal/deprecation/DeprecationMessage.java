@@ -106,6 +106,34 @@ public class DeprecationMessage {
 
     }
 
+    public static abstract class DeprecationWithReplacementBuilder extends Builder {
+        private final String subject;
+        private String replacement;
+
+        DeprecationWithReplacementBuilder(String subject) {
+            this.subject = subject;
+        }
+
+        public DeprecationWithReplacementBuilder replaceWith(String replacement) {
+            this.replacement = replacement;
+            return this;
+        }
+
+        protected abstract String formatSummary(String subject);
+
+        protected abstract String formatAdvice(String replacement);
+
+        @Override
+        DeprecationMessage build() {
+            withSummary(formatSummary(subject));
+            withRemovalDetails(thisIsScheduledToBeRemoved());
+            if (replacement != null) {
+                withAdvice(formatAdvice(replacement));
+            }
+            return super.build();
+        }
+    }
+
     // Output: ${summary}. This has been deprecated and is scheduled to be removed in Gradle {X}.
     public static DeprecationMessage.Builder thisHasBeenDeprecated(final String summary) {
         return new DeprecationMessage.Builder() {
@@ -165,28 +193,20 @@ public class DeprecationMessage {
         };
     }
 
-    public static class DeprecatePropertyBuilder extends Builder {
-        private final String property;
-        private String replacement;
+    public static class DeprecatePropertyBuilder extends DeprecationWithReplacementBuilder {
 
         DeprecatePropertyBuilder(String property) {
-            this.property = property;
-        }
-
-        // Output: The ${property} property has been deprecated. This is scheduled to be removed in Gradle {X}. Please use the ${replacement} property instead.
-        public DeprecatePropertyBuilder replaceWith(String replacement) {
-            this.replacement = replacement;
-            return this;
+            super(property);
         }
 
         @Override
-        DeprecationMessage build() {
-            withSummary(propertyHasBeenDeprecated(property));
-            withRemovalDetails(thisIsScheduledToBeRemoved());
-            if (replacement != null) {
-                withAdvice(String.format("Please use the %s property instead.", replacement));
-            }
-            return super.build();
+        protected String formatSummary(String property) {
+            return propertyHasBeenDeprecated(property);
+        }
+
+        @Override
+        protected String formatAdvice(String replacement) {
+            return String.format("Please use the %s property instead.", replacement);
         }
     }
 
@@ -205,28 +225,20 @@ public class DeprecationMessage {
         };
     }
 
-    public static class DeprecateMethodBuilder extends Builder {
-        private final String method;
-        private String replacement;
+    public static class DeprecateMethodBuilder extends DeprecationWithReplacementBuilder {
 
         DeprecateMethodBuilder(String method) {
-            this.method = method;
-        }
-
-        // Output: The ${method} method has been deprecated. This is scheduled to be removed in Gradle {X}. Please use the ${replacement} method instead.
-        public DeprecateMethodBuilder replaceWith(String replacement) {
-            this.replacement = replacement;
-            return this;
+            super(method);
         }
 
         @Override
-        DeprecationMessage build() {
-            withSummary(String.format("The %s method has been deprecated.", method));
-            withRemovalDetails(thisIsScheduledToBeRemoved());
-            if (replacement != null) {
-                withAdvice(pleaseUseThisMethodInstead(replacement));
-            }
-            return super.build();
+        protected String formatSummary(String method) {
+            return String.format("The %s method has been deprecated.", method);
+        }
+
+        @Override
+        protected String formatAdvice(String replacement) {
+            return pleaseUseThisMethodInstead(replacement);
         }
     }
 
@@ -269,41 +281,19 @@ public class DeprecationMessage {
         };
     }
 
-    // Output: The ${taskName} task type has been deprecated. This is scheduled to be removed in Gradle X. Please use the ${replacement} instead.
-    public static DeprecationMessage.Builder replacedTaskType(final String taskName, final String replacement) {
-        return new DeprecationMessage.Builder() {
-            @Override
-            DeprecationMessage build() {
-                withSummary(String.format("The %s task type has been deprecated.", taskName));
-                withRemovalDetails(thisIsScheduledToBeRemoved());
-                withAdvice(String.format("Please use the %s instead.", replacement));
-                return super.build();
-            }
-        };
-    }
-
-    public static class DeprecateTaskBuilder extends Builder {
-        private final String task;
-        private String replacement;
-
+    public static class DeprecateTaskBuilder extends DeprecationWithReplacementBuilder {
         DeprecateTaskBuilder(String task) {
-            this.task = task;
-        }
-
-        // Output: The ${taskName} task has been deprecated. This is scheduled to be removed in Gradle X. Please use the ${replacement} task instead.
-        public DeprecateTaskBuilder replaceWith(String replacement) {
-            this.replacement = replacement;
-            return this;
+            super(task);
         }
 
         @Override
-        DeprecationMessage build() {
-            withSummary(String.format("The %s task has been deprecated.", task));
-            withRemovalDetails(thisIsScheduledToBeRemoved());
-            if (replacement != null) {
-                withAdvice(String.format("Please use the %s task instead.", replacement));
-            }
-            return super.build();
+        protected String formatSummary(String task) {
+            return String.format("The %s task has been deprecated.", task);
+        }
+
+        @Override
+        protected String formatAdvice(String replacement) {
+            return String.format("Please use the %s task instead.", replacement);
         }
     }
 
