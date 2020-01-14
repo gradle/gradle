@@ -21,7 +21,7 @@ import org.gradle.play.integtest.fixtures.PlayMultiVersionRunApplicationIntegrat
 
 abstract class PlayBinaryApplicationIntegrationTest extends PlayMultiVersionRunApplicationIntegrationTest {
 
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
+    @ToBeFixedForInstantExecution(bottomSpecs = "PlayCompositeBuildIntegrationTest")
     def "can build play app binary"() {
         when:
         succeeds("assemble")
