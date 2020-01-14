@@ -73,17 +73,19 @@ public class DefaultWatchingVirtualFileSystem extends AbstractDelegatingVirtualF
                 // so we learn if the entry itself disappears or gets modified.
                 // In case of a missing file we need to find the closest existing
                 // ancestor to watch so we can learn if the missing file respawns.
-                Path ancestor = path;
-                while (true) {
-                    ancestor = ancestor.getParent();
-                    if (ancestor == null) {
+                Path ancestorToWatch;
+                switch (snapshot.getType()) {
+                    case RegularFile:
+                    case Directory:
+                        ancestorToWatch = path.getParent();
                         break;
-                    }
-                    if (Files.isDirectory(ancestor)) {
-                        watchedDirectories.add(ancestor);
+                    case Missing:
+                        ancestorToWatch = findFirstExistingAncestor(path);
                         break;
-                    }
+                    default:
+                        throw new AssertionError();
                 }
+                watchedDirectories.add(ancestorToWatch);
 
                 // For directory entries we watch the directory itself,
                 // so we learn about new children spawning. If the directory
@@ -93,12 +95,30 @@ public class DefaultWatchingVirtualFileSystem extends AbstractDelegatingVirtualF
                     watchedDirectories.add(path);
                 }
             });
+            long endTime = System.currentTimeMillis();
+            LOGGER.warn("Spent {} ms figuring out what to watch", endTime - startTime);
+            startTime = endTime;
             watchRegistry = watcherRegistryFactory.startWatching(watchedDirectories);
             LOGGER.warn("Spent {} ms watching {} directories for file system events", System.currentTimeMillis() - startTime, watchedDirectories.size());
         } catch (Exception ex) {
             LOGGER.error("Couldn't create watch service, not tracking changes between builds", ex);
             invalidateAll();
             close();
+        }
+    }
+
+    private static Path findFirstExistingAncestor(Path path) {
+        Path candidate = path;
+        while (true) {
+            candidate = candidate.getParent();
+            if (candidate == null) {
+                // TODO Can this happen on Windows when a SUBST'd drive is unregistered?
+                throw new IllegalStateException("Couldn't find existing ancestor for " + path);
+            }
+            // TODO Use the VFS to find the ancestor instead
+            if (Files.isDirectory(candidate)) {
+                return candidate;
+            }
         }
     }
 
