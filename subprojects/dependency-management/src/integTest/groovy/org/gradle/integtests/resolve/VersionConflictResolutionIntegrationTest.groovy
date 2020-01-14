@@ -1889,6 +1889,7 @@ project(':sub') {
     }
 
     @Issue("gradle/gradle#11844")
+    @spock.lang.Ignore
     @ToBeFixedForInstantExecution
     def 'does not fail serialization in recursive error case'() {
         // org:lib:1.0 -> org:between:1.0 -> org:lib:1.1
