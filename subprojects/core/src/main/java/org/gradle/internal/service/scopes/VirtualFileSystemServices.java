@@ -233,8 +233,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                                     .stream()
                                     .map(File::getAbsolutePath)
                                     .collect(Collectors.toList()),
-                                () -> {
-                                }
+                                () -> {}
                             );
                         }
                     } else {

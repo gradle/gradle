@@ -60,6 +60,7 @@ public class DefaultWatchingVirtualFileSystem extends AbstractDelegatingVirtualF
         }
         try {
             Set<Path> watchedDirectories = new HashSet<>();
+            long startTime = System.currentTimeMillis();
             getRoot().visitSnapshots(snapshot -> {
                 Path path = Paths.get(snapshot.getAbsolutePath());
 
@@ -93,6 +94,7 @@ public class DefaultWatchingVirtualFileSystem extends AbstractDelegatingVirtualF
                 }
             });
             watchRegistry = watcherRegistryFactory.startWatching(watchedDirectories);
+            LOGGER.warn("Spent {} ms watching {} directories for file system events", System.currentTimeMillis() - startTime, watchedDirectories.size());
         } catch (Exception ex) {
             LOGGER.error("Couldn't create watch service, not tracking changes between builds", ex);
             invalidateAll();
@@ -109,6 +111,7 @@ public class DefaultWatchingVirtualFileSystem extends AbstractDelegatingVirtualF
         AtomicInteger count = new AtomicInteger();
         AtomicBoolean unknownEventEncountered = new AtomicBoolean();
         try {
+            long startTime = System.currentTimeMillis();
             watchRegistry.stopWatching(new FileWatcherRegistry.ChangeHandler() {
                 @Override
                 public void handleChange(FileWatcherRegistry.Type type, Path path) {
@@ -127,6 +130,7 @@ public class DefaultWatchingVirtualFileSystem extends AbstractDelegatingVirtualF
             if (!unknownEventEncountered.get()) {
                 LOGGER.warn("Received {} file system events since last build", count);
             }
+            LOGGER.warn("Spent {} ms processing file system events since last build", System.currentTimeMillis() - startTime);
         } catch (IOException ex) {
             LOGGER.error("Couldn't fetch file changes, dropping VFS state", ex);
             invalidateAll();
