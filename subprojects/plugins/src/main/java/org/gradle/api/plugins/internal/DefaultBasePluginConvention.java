@@ -22,7 +22,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.BasePluginConvention;
 import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
-import org.gradle.internal.deprecation.DeprecationMessage;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 import java.io.File;
 
@@ -61,7 +61,7 @@ public class DefaultBasePluginConvention extends BasePluginConvention implements
     @Override
     @Deprecated
     public File getDistsDir() {
-        DeprecationMessage.replacedMethod("distsDir", "distsDirectory").nagUser();
+        DeprecationLogger.deprecateMethod("distsDir").replaceWith("distsDirectory").nagUser();
         return getDistsDirectory().get().getAsFile();
     }
 
@@ -73,7 +73,7 @@ public class DefaultBasePluginConvention extends BasePluginConvention implements
     @Override
     @Deprecated
     public File getLibsDir() {
-        DeprecationMessage.replacedMethod("libsDir", "libsDirectory").nagUser();
+        DeprecationLogger.deprecateMethod("libsDir").replaceWith("libsDirectory").nagUser();
         return getLibsDirectory().get().getAsFile();
     }
 
@@ -84,13 +84,13 @@ public class DefaultBasePluginConvention extends BasePluginConvention implements
 
     @Override
     public ProjectInternal getProject() {
-        DeprecationMessage.discontinuedMethod("BasePluginConvention.getProject()").nagUser();
+        DeprecationLogger.deprecateMethod("BasePluginConvention.getProject()").nagUser();
         return project;
     }
 
     @Override
     public void setProject(ProjectInternal project) {
-        DeprecationMessage.discontinuedMethod("BasePluginConvention.setProject()").nagUser();
+        DeprecationLogger.deprecateMethod("BasePluginConvention.setProject()").nagUser();
         this.project = project;
     }
 

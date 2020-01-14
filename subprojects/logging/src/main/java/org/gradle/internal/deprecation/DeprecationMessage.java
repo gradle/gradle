@@ -170,12 +170,12 @@ public class DeprecationMessage {
         private final String property;
         private String replacement;
 
-        // Output: The ${propertyName} property has been deprecated. This is scheduled to be removed in Gradle {X}.
+        // Output: The ${property} property has been deprecated. This is scheduled to be removed in Gradle {X}.
         DeprecatePropertyBuilder(String property) {
             this.property = property;
         }
 
-        // Output: The ${propertyName} property has been deprecated. This is scheduled to be removed in Gradle {X}. Please use the ${replacement} property instead.
+        // Output: The ${property} property has been deprecated. This is scheduled to be removed in Gradle {X}. Please use the ${replacement} property instead.
         public DeprecatePropertyBuilder replaceWith(String replacement) {
             this.replacement = replacement;
             return this;
@@ -207,29 +207,30 @@ public class DeprecationMessage {
         };
     }
 
-    // Output: The ${methodName} method has been deprecated. This is scheduled to be removed in Gradle {X}.
-    public static DeprecationMessage.Builder discontinuedMethod(final String methodName) {
-        return new DeprecationMessage.Builder() {
-            @Override
-            DeprecationMessage build() {
-                withSummary(methodHasBeenDeprecated(methodName));
-                withRemovalDetails(thisIsScheduledToBeRemoved());
-                return super.build();
-            }
-        };
-    }
+    public static class DeprecateMethodBuilder extends Builder {
+        private final String method;
+        private String replacement;
 
-    // Output: The ${methodName} method has been deprecated. This is scheduled to be removed in Gradle {X}. Please use the ${replacement} method instead.
-    public static DeprecationMessage.Builder replacedMethod(final String methodName, final String replacement) {
-        return new DeprecationMessage.Builder() {
-            @Override
-            DeprecationMessage build() {
-                withSummary(methodHasBeenDeprecated(methodName));
-                withRemovalDetails(thisIsScheduledToBeRemoved());
+        // Output: The ${method} method has been deprecated. This is scheduled to be removed in Gradle {X}.
+        DeprecateMethodBuilder(String method) {
+            this.method = method;
+        }
+
+        // Output: The ${method} method has been deprecated. This is scheduled to be removed in Gradle {X}. Please use the ${replacement} method instead.
+        public DeprecateMethodBuilder replaceWith(String replacement) {
+            this.replacement = replacement;
+            return this;
+        }
+
+        @Override
+        DeprecationMessage build() {
+            withSummary(methodHasBeenDeprecated(method));
+            withRemovalDetails(thisIsScheduledToBeRemoved());
+            if (replacement != null) {
                 withAdvice(pleaseUseThisMethodInstead(replacement));
-                return super.build();
             }
-        };
+            return super.build();
+        }
     }
 
     // Output: Using method ${methodName} has been deprecated. This will fail with an error in Gradle {X}.

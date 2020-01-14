@@ -58,6 +58,10 @@ public class DeprecationLogger {
         return new DeprecationMessage.DeprecatePropertyBuilder(property);
     }
 
+    public static DeprecationMessage.DeprecateMethodBuilder deprecateMethod(String method) {
+        return new DeprecationMessage.DeprecateMethodBuilder(method);
+    }
+
     /**
      * Output format:
      * <p>

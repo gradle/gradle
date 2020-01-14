@@ -63,7 +63,7 @@ import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ivy.MutableIvyModuleResolveMetadata;
-import org.gradle.internal.deprecation.DeprecationMessage;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
@@ -351,13 +351,13 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
 
     @Override
     public void layout(String layoutName, Closure config) {
-        DeprecationMessage.replacedMethod("IvyArtifactRepository.layout(String, Closure)", "IvyArtifactRepository.patternLayout(Action)").nagUser();
+        DeprecationLogger.deprecateMethod("IvyArtifactRepository.layout(String, Closure)").replaceWith("IvyArtifactRepository.patternLayout(Action)").nagUser();
         internalLayout(layoutName, ConfigureUtil.<RepositoryLayout>configureUsing(config));
     }
 
     @Override
     public void layout(String layoutName, Action<? extends RepositoryLayout> config) {
-        DeprecationMessage.replacedMethod("IvyArtifactRepository.layout(String, Action)", "IvyArtifactRepository.patternLayout(Action)").nagUser();
+        DeprecationLogger.deprecateMethod("IvyArtifactRepository.layout(String, Action)").replaceWith("IvyArtifactRepository.patternLayout(Action)").nagUser();
         internalLayout(layoutName, config);
     }
 

@@ -32,6 +32,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.api.DefaultTask;
             import org.gradle.api.tasks.TaskAction;
             import org.gradle.internal.deprecation.DeprecationMessage;
+            import org.gradle.internal.deprecation.DeprecationLogger;
 
             public class DeprecatedTask extends DefaultTask {
                 @TaskAction
@@ -41,12 +42,12 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 public static void someFeature() {
-                    DeprecationMessage.discontinuedMethod("someFeature()").nagUser();
+                    DeprecationLogger.deprecateMethod("someFeature()").nagUser();
                     System.out.println("DeprecatedTask.someFeature() executed.");
                 }
 
                 void otherFeature() {
-                    DeprecationMessage.discontinuedMethod("otherFeature()").withAdvice("Relax. This is just a test.").nagUser();
+                    DeprecationLogger.deprecateMethod("otherFeature()").withAdvice("Relax. This is just a test.").nagUser();
                     System.out.println("DeprecatedTask.otherFeature() executed.");
                 }
 
