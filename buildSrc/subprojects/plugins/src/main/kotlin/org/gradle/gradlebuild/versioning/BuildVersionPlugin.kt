@@ -16,13 +16,17 @@
 
 package org.gradle.gradlebuild.versioning
 
+import org.gradle.StartParameter
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.FileContents
+import org.gradle.api.logging.Logger
 import org.gradle.build.BuildReceipt
 import org.gradle.gradlebuild.BuildEnvironment
 import org.gradle.kotlin.dsl.*
+import org.gradle.plugins.buildtypes.BuildType
 import java.text.SimpleDateFormat
 import java.util.Date
 
@@ -34,6 +38,12 @@ class BuildVersionPlugin : Plugin<Project> {
 
 private
 fun Project.setBuildVersionProperties() {
+
+    val isPromotionBuild = isPromotionBuild()
+    if (isPromotionBuild) {
+        logger.logStartParameter(gradle.startParameter)
+    }
+
     val finalRelease: Any? by project
     val rcNumber: String? by project
     val milestoneNumber: String? by project
@@ -71,8 +81,35 @@ fun Project.setBuildVersionProperties() {
 
     project.version = versionNumber
 
+    registerBuildReceiptTask(
+        versionNumber,
+        baseVersion,
+        isSnapshot,
+        buildTimestamp
+    )
+
+    if (isPromotionBuild) {
+        logger.logBuildVersion(versionNumber, baseVersion, buildTimestamp, isSnapshot)
+    }
+
+    extra.let { ext ->
+        ext["baseVersion"] = baseVersion
+        ext["buildTimestamp"] = buildTimestamp
+        ext["isSnapshot"] = isSnapshot
+    }
+}
+
+
+private
+fun Project.registerBuildReceiptTask(
+    versionNumber: String,
+    baseVersion: String,
+    isSnapshot: Boolean,
+    buildTimestamp: String
+) {
     tasks {
         val determineCommitId by registering(DetermineCommitId::class)
+
         @Suppress("unused_variable")
         val createBuildReceipt by registering(BuildReceipt::class) {
             this.versionNumber.set(versionNumber)
@@ -83,11 +120,35 @@ fun Project.setBuildVersionProperties() {
             this.destinationDir = rootProject.buildDir
         }
     }
+}
 
-    extra.let { ext ->
-        ext["baseVersion"] = baseVersion
-        ext["buildTimestamp"] = buildTimestamp
-        ext["isSnapshot"] = isSnapshot
+
+private
+fun Logger.logStartParameter(startParameter: StartParameter) {
+    lifecycle(
+        "Invocation tasks: ${startParameter.taskNames}\n" +
+            "Invocation properties: ${startParameter.projectProperties}"
+    )
+}
+
+
+private
+fun Logger.logBuildVersion(
+    versionNumber: String,
+    baseVersion: String,
+    buildTimestamp: String,
+    isSnapshot: Boolean
+) {
+    lifecycle(
+        "Version: $versionNumber " +
+            "(base version: $baseVersion," +
+            " timestamp: $buildTimestamp," +
+            " snapshot: $isSnapshot)"
+    )
+    if (BuildEnvironment.isCiServer) {
+        lifecycle(
+            "##teamcity[buildStatus text='{build.status.text}, Promoted version $versionNumber']"
+        )
     }
 }
 
@@ -145,3 +206,13 @@ private
 fun Date.withoutTime(): Date = SimpleDateFormat("yyyy-MM-dd").run {
     parse(format(this@withoutTime))
 }
+
+
+private
+fun Project.isPromotionBuild(): Boolean =
+    buildTypes["promotionBuild"].active
+
+
+private
+val Project.buildTypes: NamedDomainObjectContainer<BuildType>
+    get() = the()

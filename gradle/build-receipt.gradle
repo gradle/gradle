@@ -1,9 +1,0 @@
-import org.gradle.gradlebuild.BuildEnvironment
-
-if (buildTypes.promotionBuild.active) {
-    logger.lifecycle "Invocation tasks: $gradle.startParameter.taskNames\nInvocation properties: $gradle.startParameter.projectProperties"
-    logger.lifecycle "Version: $version (base version: $baseVersion, timestamp: $buildTimestamp, snapshot: $isSnapshot)"
-    if (BuildEnvironment.isCiServer) {
-        logger.lifecycle "##teamcity[buildStatus text='{build.status.text}, Promoted version ${version}']"
-    }
-}

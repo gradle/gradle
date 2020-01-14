@@ -23,6 +23,10 @@ gradlePlugin {
             id = "gradlebuild.build-types"
             implementationClass = "org.gradle.plugins.buildtypes.BuildTypesPlugin"
         }
+        register("buildVersion") {
+            id = "gradlebuild.build-version"
+            implementationClass = "org.gradle.gradlebuild.versioning.BuildVersionPlugin"
+        }
         register("performanceTest") {
             id = "gradlebuild.performance-test"
             implementationClass = "org.gradle.plugins.performance.PerformanceTestPlugin"
