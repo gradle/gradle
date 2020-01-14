@@ -34,24 +34,24 @@ class BuildVersionPlugin : Plugin<Project> {
 
 private
 fun Project.setBuildVersionProperties() {
-    val milestoneNumber: String? by project
-    val rcNumber: String? by project
     val finalRelease: Any? by project
-    val versionQualifier: String? by project
-    if ((milestoneNumber != null && rcNumber != null) ||
-        (rcNumber != null && finalRelease != null) ||
-        (milestoneNumber != null && finalRelease != null)) {
+    val rcNumber: String? by project
+    val milestoneNumber: String? by project
+    if ((finalRelease != null && rcNumber != null) ||
+        (finalRelease != null && milestoneNumber != null) ||
+        (rcNumber != null && milestoneNumber != null)) {
         throw InvalidUserDataException(
             "Cannot set any combination of milestoneNumber, rcNumber and finalRelease " +
                 "at the same time"
         )
     }
 
+    val versionQualifier: String? by project
     val isSnapshot = finalRelease == null && rcNumber == null && milestoneNumber == null
     val isFinalRelease = finalRelease != null
     val baseVersion = rootProject.trimmedContentsOfFile("version.txt")
     val buildTimestamp = computeBuildTimestamp()
-    project.version = when {
+    val versionNumber = when {
         isFinalRelease -> {
             baseVersion
         }
@@ -68,6 +68,22 @@ fun Project.setBuildVersionProperties() {
             "$baseVersion-$buildTimestamp"
         }
     }
+
+    project.version = versionNumber
+
+    tasks {
+        val determineCommitId by registering(DetermineCommitId::class)
+        @Suppress("unused_variable")
+        val createBuildReceipt by registering(BuildReceipt::class) {
+            this.versionNumber.set(versionNumber)
+            this.baseVersion.set(baseVersion)
+            this.isSnapshot.set(isSnapshot)
+            this.buildTimestampFrom(provider { buildTimestamp })
+            this.commitId.set(determineCommitId.flatMap { it.determinedCommitId })
+            this.destinationDir = rootProject.buildDir
+        }
+    }
+
     extra.let { ext ->
         ext["baseVersion"] = baseVersion
         ext["buildTimestamp"] = buildTimestamp

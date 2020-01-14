@@ -1,23 +1,7 @@
-import org.gradle.build.BuildReceipt
 import org.gradle.gradlebuild.BuildEnvironment
-import org.gradle.gradlebuild.versioning.DetermineCommitId
 
 if (buildTypes.promotionBuild.active) {
     logger.lifecycle "Invocation tasks: $gradle.startParameter.taskNames\nInvocation properties: $gradle.startParameter.projectProperties"
-}
-
-def determineCommitId = tasks.register("determineCommitId", DetermineCommitId)
-
-tasks.register("createBuildReceipt", BuildReceipt) {
-    versionNumber.set(provider { rootProject.version })
-    baseVersion.set(provider { rootProject.baseVersion })
-    snapshot.set(provider { rootProject.isSnapshot })
-    buildTimestampFrom(provider { rootProject.buildTimestamp })
-    commitId.set(determineCommitId.flatMap { it.determinedCommitId })
-    destinationDir = file("${rootProject.buildDir}")
-}
-
-if (buildTypes.promotionBuild.active) {
     logger.lifecycle "Version: $version (base version: $baseVersion, timestamp: $buildTimestamp, snapshot: $isSnapshot)"
     if (BuildEnvironment.isCiServer) {
         logger.lifecycle "##teamcity[buildStatus text='{build.status.text}, Promoted version ${version}']"
