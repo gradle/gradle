@@ -31,7 +31,7 @@ public class IncubationLogger {
         incubatingFeatureHandler.reset();
     }
 
-    public static void incubatingFeatureUsed(String incubatingFeature) {
+    public static synchronized void incubatingFeatureUsed(String incubatingFeature) {
         incubatingFeatureHandler.featureUsed(new IncubatingFeatureUsage(incubatingFeature, IncubationLogger.class));
     }
 

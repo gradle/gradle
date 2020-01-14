@@ -18,6 +18,7 @@ package org.gradle.util;
 import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.internal.Factory;
 import org.gradle.internal.deprecation.DeprecationMessage;
+import org.gradle.internal.featurelifecycle.DeprecatedFeatureUsage;
 import org.gradle.internal.featurelifecycle.DeprecatedUsageBuildOperationProgressBroadcaster;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.featurelifecycle.UsageLocationReporter;
@@ -73,7 +74,7 @@ public class DeprecationLogger {
     public static void nagUserWith(DeprecationMessage.Builder deprecationMessageBuilder) {
         if (isEnabled()) {
             DeprecationMessage deprecationMessage = deprecationMessageBuilder.build();
-            deprecatedFeatureHandler.featureUsed(deprecationMessage.toDeprecatedFeatureUsage(DeprecationLogger.class));
+            nagUserWith(deprecationMessage.toDeprecatedFeatureUsage(DeprecationLogger.class));
         }
     }
 
@@ -100,4 +101,7 @@ public class DeprecationLogger {
         return ENABLED.get();
     }
 
+    private synchronized static void nagUserWith(DeprecatedFeatureUsage usage) {
+        deprecatedFeatureHandler.featureUsed(usage);
+    }
 }
