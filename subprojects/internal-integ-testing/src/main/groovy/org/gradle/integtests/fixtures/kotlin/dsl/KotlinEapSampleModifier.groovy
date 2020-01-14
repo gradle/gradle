@@ -17,9 +17,12 @@
 package org.gradle.integtests.fixtures.kotlin.dsl
 
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
+import org.gradle.samples.model.Command
 import org.gradle.samples.model.Sample
 import org.gradle.samples.test.runner.SampleModifier
 import org.gradle.test.fixtures.dsl.GradleDsl
+
+import static org.gradle.integtests.fixtures.kotlin.dsl.KotlinEapRepoUtil.createKotlinEapInitScript
 
 
 /**
@@ -29,26 +32,41 @@ import org.gradle.test.fixtures.dsl.GradleDsl
  */
 class KotlinEapSampleModifier implements SampleModifier {
 
+    private File initScript = createKotlinEapInitScript()
+
     @Override
     Sample modify(Sample sample) {
-        def execDirs = sample.commands
-            .findAll { it.executable == "gradle" }
-            .collect { command ->
-                command.executionSubdirectory
+        if (sample.getId().contains("usePluginsInInitScripts")) {
+            // usePluginsInInitScripts asserts using https://repo.gradle.org/gradle/repo
+            return sample;
+        }
+        List<Command> commands = sample.commands
+        List<Command> modifiedCommands = []
+        List<File> buildSrcKotlinBuildScripts = []
+        for (Command command : commands) {
+            if (command.executable == "gradle") {
+                List<String> args = new ArrayList<>(command.args)
+                args.add("--init-script")
+                args.add(initScript.absolutePath)
+                modifiedCommands.add(command.toBuilder().setArgs(args).build())
+                def execDir = command.executionSubdirectory
                     ? new File(sample.projectDir, command.executionSubdirectory)
                     : sample.projectDir
+                def buildSrcKotlinBuildScript = new File(execDir, "buildSrc/build.gradle.kts")
+                if (buildSrcKotlinBuildScript.file) {
+                    buildSrcKotlinBuildScripts.add(buildSrcKotlinBuildScript)
+                }
+            } else {
+                modifiedCommands.add(command)
             }
-            .unique()
-        for (File execDir : execDirs) {
-            def buildSrcBuildScript = new File(execDir, "buildSrc/build.gradle.kts")
-            if (buildSrcBuildScript.file) {
-                buildSrcBuildScript << """
+        }
+        for (File buildSrcBuildScript : buildSrcKotlinBuildScripts.unique()) {
+            buildSrcBuildScript << """
                     repositories {
                         ${RepoScriptBlockUtil.kotlinEapRepositoryDefinition(GradleDsl.KOTLIN)}
                     }
                 """.stripIndent()
-            }
         }
-        return sample
+        return new Sample(sample.id, sample.projectDir, modifiedCommands);
     }
 }

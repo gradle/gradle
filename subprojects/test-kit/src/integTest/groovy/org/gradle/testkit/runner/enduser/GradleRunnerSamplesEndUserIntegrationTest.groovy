@@ -27,6 +27,7 @@ import org.gradle.util.Requires
 import org.junit.Rule
 import spock.lang.Unroll
 
+import static org.gradle.integtests.fixtures.kotlin.dsl.KotlinEapRepoUtil.createKotlinEapInitScript
 import static org.gradle.util.TestPrecondition.JDK8_OR_EARLIER
 import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 import static org.gradle.util.TestPrecondition.ONLINE
@@ -49,6 +50,7 @@ class GradleRunnerSamplesEndUserIntegrationTest extends BaseTestKitEndUserIntegr
     def "junitQuickstart with #dsl dsl"() {
         expect:
         executer.inDirectory(sample.dir.file(dsl))
+        executer.usingInitScript(createKotlinEapInitScript())
         succeeds "check"
 
         where:

@@ -24,6 +24,7 @@ import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinScriptModelCrossVersionTest
 
 import org.hamcrest.Matcher
+import spock.lang.Ignore
 
 import static org.hamcrest.CoreMatchers.allOf
 import static org.hamcrest.CoreMatchers.equalTo
@@ -482,6 +483,7 @@ class KotlinBuildScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCr
         )
     }
 
+    @Ignore("Kotlin EAP doesn't have sources")
     def "sourcePath includes plugins classpath sources resolved against project"() {
 
         expect:
