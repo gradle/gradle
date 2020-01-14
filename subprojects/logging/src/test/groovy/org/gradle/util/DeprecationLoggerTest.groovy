@@ -19,7 +19,7 @@ package org.gradle.util
 import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.internal.deprecation.ConfigurationDeprecationType
 import org.gradle.internal.deprecation.DeprecationMessage
-import org.gradle.internal.featurelifecycle.DeprecatedUsageBuildOperationProgressBroadaster
+import org.gradle.internal.featurelifecycle.DeprecatedUsageBuildOperationProgressBroadcaster
 import org.gradle.internal.featurelifecycle.UsageLocationReporter
 import org.gradle.internal.logging.CollectingTestOutputEventListener
 import org.gradle.internal.logging.ConfigureLogging
@@ -36,7 +36,7 @@ class DeprecationLoggerTest extends Specification {
     static final String NEXT_GRADLE_VERSION = GradleVersion.current().nextMajor.version;
 
     def setup() {
-        SingleMessageLogger.init(Mock(UsageLocationReporter), WarningMode.All, Mock(DeprecatedUsageBuildOperationProgressBroadaster))
+        SingleMessageLogger.init(Mock(UsageLocationReporter), WarningMode.All, Mock(DeprecatedUsageBuildOperationProgressBroadcaster))
     }
 
     def cleanup() {

@@ -20,7 +20,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.logging.configuration.WarningMode
-import org.gradle.internal.featurelifecycle.DeprecatedUsageBuildOperationProgressBroadaster
+import org.gradle.internal.featurelifecycle.DeprecatedUsageBuildOperationProgressBroadcaster
 import org.gradle.internal.featurelifecycle.UsageLocationReporter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Resources
@@ -175,7 +175,7 @@ class ProjectBuilderTest extends Specification {
 
     def "does not emit deprecation warning when using the builder() method"() {
         given:
-        def broadcaster = Mock(DeprecatedUsageBuildOperationProgressBroadaster)
+        def broadcaster = Mock(DeprecatedUsageBuildOperationProgressBroadcaster)
         SingleMessageLogger.init(Mock(UsageLocationReporter), WarningMode.None, broadcaster)
 
         when:
