@@ -80,6 +80,61 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
         operation().result.excludedTaskPaths == []
     }
 
+    @ToBeFixedForInstantExecution
+    def "task plan is exposed"() {
+        settingsFile << """
+        include "a"
+        include "b"
+        include "a:c"
+        """
+
+        buildFile << """
+            allprojects {
+                task otherTask
+                task someTask
+                someTask.dependsOn otherTask
+            }
+        """
+        when:
+        succeeds('someTask')
+
+        then:
+        operation().result.taskPlan.task.taskPath == [':otherTask', ':someTask', ':a:otherTask', ':a:someTask', ':b:otherTask', ':b:someTask', ':a:c:otherTask', ':a:c:someTask']
+    }
+
+    @ToBeFixedForInstantExecution
+    def "captures full plan details"() {
+        settingsFile << """
+        """
+
+        buildFile << """
+                task independentTask
+                task otherTask
+                task anotherTask
+                task firstTask
+                task secondTask
+                task lastTask
+                task someTask
+
+                someTask.dependsOn anotherTask
+                someTask.dependsOn otherTask
+                someTask.mustRunAfter firstTask
+                someTask.shouldRunAfter secondTask
+                someTask.finalizedBy lastTask
+        """
+        when:
+        succeeds('independentTask', 'someTask')
+
+        then:
+        operation().result.taskPlan.task.taskPath == [":independentTask", ":anotherTask", ":otherTask", ":someTask", ":lastTask"]
+        operation().result.taskPlan[3].task.taskPath == ":someTask"
+        operation().result.taskPlan[3].dependencies.taskPath as Set == [":otherTask", ":anotherTask"] as Set
+        operation().result.taskPlan[3].finalizedBy.taskPath == [":lastTask"]
+        operation().result.taskPlan[3].mustRunAfter.taskPath == [":firstTask"]
+        operation().result.taskPlan[3].shouldRunAfter.taskPath == [":secondTask"]
+    }
+
+
     def "errors in calculating task graph are exposed"() {
         when:
         fails('someNonexistent')
@@ -98,9 +153,9 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
 
         buildFile << """
             apply plugin:'java'
-            
+
             dependencies {
-                implementation "org.acme:b:1.0"            
+                implementation "org.acme:b:1.0"
             }
         """
 

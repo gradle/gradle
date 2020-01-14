@@ -21,13 +21,20 @@ import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.project.taskfactory.TaskIdentity;
+import org.gradle.execution.plan.Node;
+import org.gradle.execution.plan.TaskNode;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType;
+import org.gradle.internal.taskgraph.PlannedTask;
+import org.gradle.util.CollectionUtils;
 
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -67,6 +74,41 @@ public class BuildOperatingFiringTaskExecutionPreparer implements TaskExecutionP
                     return toTaskPaths(taskGraph.getFilteredTasks());
                 }
 
+                @Override
+                public List<PlannedTask> getTaskPlan() {
+                    List<Node> scheduledWork = taskGraph.getScheduledWork();
+                    Set<DefaultPlannedTask> taskPlan = toPlannedTasks(scheduledWork);
+                    return new ArrayList(taskPlan);
+                }
+
+                private Set<DefaultPlannedTask> toPlannedTasks(List<Node> scheduledWork) {
+                    Set<DefaultPlannedTask> plannedTasks = new LinkedHashSet<>();
+                    for (Node node : scheduledWork) {
+                        if (node instanceof TaskNode) {
+                            TaskNode taskNode = (TaskNode) node;
+                            plannedTasks.add(toPlannedTask(taskNode));
+                        }
+                    }
+
+                    return plannedTasks;
+                }
+
+                private DefaultPlannedTask toPlannedTask(TaskNode taskNode) {
+                    TaskIdentity<?> taskIdentity = taskNode.getTask().getTaskIdentity();
+                    return new DefaultPlannedTask(taskIdentity,
+                        transformToIdentities(taskNode.getDependencySuccessors()),
+                        transformToIdentities(taskNode.getMustSuccessors()),
+                        transformToIdentities(taskNode.getShouldSuccessors()),
+                        transformToIdentities(taskNode.getFinalizers()));
+                }
+
+                private List<TaskIdentity> transformToIdentities(Set<Node> dependencyPredecessors) {
+                    return new ArrayList(CollectionUtils.collect(
+                        CollectionUtils.filter(dependencyPredecessors, node -> node instanceof TaskNode),
+                        node -> ((TaskNode) node).getTask().getTaskIdentity())
+                    );
+                }
+
                 private List<String> toTaskPaths(Set<Task> tasks) {
                     return ImmutableSortedSet.copyOf(Collections2.transform(tasks, new Function<Task, String>() {
                         @Override
@@ -77,6 +119,7 @@ public class BuildOperatingFiringTaskExecutionPreparer implements TaskExecutionP
                 }
             });
         }
+
 
         TaskExecutionGraphInternal populateTaskGraph() {
             delegate.prepareForTaskExecution(gradle);

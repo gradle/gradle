@@ -56,6 +56,11 @@ public final class CalculateTaskGraphBuildOperationType implements BuildOperatio
          * Never contains duplicates.
          */
         List<String> getExcludedTaskPaths();
+
+        /**
+         * Capturing task execution plan details.
+         */
+        List<PlannedTask> getTaskPlan();
     }
 
     private CalculateTaskGraphBuildOperationType() {
