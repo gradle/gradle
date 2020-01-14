@@ -18,7 +18,7 @@ package org.gradle.api.distribution.internal;
 import org.gradle.api.Action;
 import org.gradle.api.distribution.Distribution;
 import org.gradle.api.file.CopySpec;
-import org.gradle.internal.deprecation.DeprecationMessage;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 import javax.inject.Inject;
 
@@ -42,13 +42,13 @@ public abstract class DefaultDistribution implements Distribution {
 
     @Override
     public String getBaseName() {
-        DeprecationMessage.replacedProperty("baseName", "distributionBaseName").nagUser();
+        DeprecationLogger.deprecateProperty("baseName").replaceWith("distributionBaseName").nagUser();
         return getDistributionBaseName().getOrNull();
     }
 
     @Override
     public void setBaseName(String baseName) {
-        DeprecationMessage.replacedProperty("baseName", "distributionBaseName").nagUser();
+        DeprecationLogger.deprecateProperty("baseName").replaceWith("distributionBaseName").nagUser();
         getDistributionBaseName().set(baseName);
         getDistributionBaseName().convention(baseName);
     }

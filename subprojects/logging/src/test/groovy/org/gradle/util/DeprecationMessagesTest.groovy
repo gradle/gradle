@@ -152,7 +152,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs deprecated property message"() {
         when:
-        DeprecationMessage.deprecatedProperty("propertyName").withAdvice("Advice.").nagUser()
+        DeprecationLogger.deprecateProperty("propertyName").withAdvice("Advice.").nagUser()
 
         then:
         def events = outputEventListener.events
@@ -162,7 +162,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs deprecated and replaced property message"() {
         when:
-        DeprecationMessage.replacedProperty("propertyName", "replacement").nagUser()
+        DeprecationLogger.deprecateProperty("propertyName").replaceWith("replacement").nagUser()
 
         then:
         def events = outputEventListener.events

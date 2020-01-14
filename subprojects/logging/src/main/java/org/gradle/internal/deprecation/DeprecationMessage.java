@@ -166,29 +166,30 @@ public class DeprecationMessage {
         };
     }
 
-    // Output: The ${propertyName} property has been deprecated. This is scheduled to be removed in Gradle {X}.
-    public static DeprecationMessage.Builder deprecatedProperty(final String propertyName) {
-        return new DeprecationMessage.Builder() {
-            @Override
-            DeprecationMessage build() {
-                withSummary(propertyHasBeenDeprecated(propertyName));
-                withRemovalDetails(thisIsScheduledToBeRemoved());
-                return super.build();
-            }
-        };
-    }
+    public static class DeprecatePropertyBuilder extends Builder {
+        private final String property;
+        private String replacement;
 
-    // Output: The ${propertyName} property has been deprecated. This is scheduled to be removed in Gradle {X}. Please use the ${replacement} property instead.
-    public static DeprecationMessage.Builder replacedProperty(final String propertyName, final String replacement) {
-        return new DeprecationMessage.Builder() {
-            @Override
-            DeprecationMessage build() {
-                withSummary(propertyHasBeenDeprecated(propertyName));
-                withRemovalDetails(thisIsScheduledToBeRemoved());
+        // Output: The ${propertyName} property has been deprecated. This is scheduled to be removed in Gradle {X}.
+        DeprecatePropertyBuilder(String property) {
+            this.property = property;
+        }
+
+        // Output: The ${propertyName} property has been deprecated. This is scheduled to be removed in Gradle {X}. Please use the ${replacement} property instead.
+        public DeprecatePropertyBuilder replaceWith(String replacement) {
+            this.replacement = replacement;
+            return this;
+        }
+
+        @Override
+        DeprecationMessage build() {
+            withSummary(propertyHasBeenDeprecated(property));
+            withRemovalDetails(thisIsScheduledToBeRemoved());
+            if (replacement != null) {
                 withAdvice(String.format("Please use the %s property instead.", replacement));
-                return super.build();
             }
-        };
+            return super.build();
+        }
     }
 
     public static DeprecationMessage.Builder replacedConfiguration(final String configurationName, final ConfigurationDeprecationType deprecationType, final List<String> replacements) {

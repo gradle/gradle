@@ -54,6 +54,10 @@ public class DeprecationLogger {
         return deprecatedFeatureHandler.getDeprecationFailure();
     }
 
+    public static DeprecationMessage.DeprecatePropertyBuilder deprecateProperty(String property) {
+        return new DeprecationMessage.DeprecatePropertyBuilder(property);
+    }
+
     /**
      * Output format:
      * <p>
