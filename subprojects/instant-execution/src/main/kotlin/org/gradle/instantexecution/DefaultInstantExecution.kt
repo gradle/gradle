@@ -485,12 +485,19 @@ class DefaultInstantExecution internal constructor(
 
     private
     val instantExecutionStateFile by lazy {
-        val currentGradleVersion = GradleVersion.current().version
-        val cacheDir = File(host.rootDir, ".instant-execution-state/$currentGradleVersion").absoluteFile
+        val cacheDir = absoluteFile(".instant-execution-state/${currentGradleVersion()}")
         val baseName = compactMD5For(host.requestedTaskNames)
         val cacheFileName = "$baseName.bin"
         File(cacheDir, cacheFileName)
     }
+
+    private
+    fun currentGradleVersion(): String =
+        GradleVersion.current().version
+
+    private
+    fun absoluteFile(path: String) =
+        File(host.rootDir, path).absoluteFile
 
     private
     val reportOutputDir by lazy {
@@ -502,12 +509,16 @@ class DefaultInstantExecution internal constructor(
     // Skip instant execution for buildSrc for now. Should instead collect up the inputs of its tasks and treat as task graph cache inputs
     private
     val isInstantExecutionEnabled: Boolean by lazy {
-        systemProperty(SystemProperties.isEnabled)?.toBoolean() ?: false && !host.currentBuild.buildSrc
+        systemProperty(SystemProperties.isEnabled)?.toBoolean() ?: false
+            && !host.currentBuild.buildSrc
     }
 
     private
     val instantExecutionLogLevel: LogLevel
-        get() = if (systemProperty(SystemProperties.isQuiet)?.toBoolean() == true) LogLevel.INFO else LogLevel.LIFECYCLE
+        get() = when (systemProperty(SystemProperties.isQuiet)?.toBoolean()) {
+            true -> LogLevel.INFO
+            else -> LogLevel.LIFECYCLE
+        }
 
     private
     fun maxProblems(): Int =

@@ -1,14 +1,15 @@
 dependencies {
-    implementation(project(":buildPlatform"))
     implementation(project(":binaryCompatibility"))
+    implementation(project(":buildPlatform"))
     implementation(project(":cleanup"))
     implementation(project(":configuration"))
     implementation(project(":docs"))
-    implementation(project(":kotlinDsl"))
-    implementation(project(":profiling"))
     implementation(project(":integrationTesting"))
-    implementation(project(":plugins"))
+    implementation(project(":kotlinDsl"))
     implementation(project(":performance"))
+    implementation(project(":plugins"))
+    implementation(project(":profiling"))
+
     implementation("org.owasp:dependency-check-gradle:3.1.0")
     implementation("org.codenarc:CodeNarc:1.0") {
         exclude(group = "org.codehaus.groovy")

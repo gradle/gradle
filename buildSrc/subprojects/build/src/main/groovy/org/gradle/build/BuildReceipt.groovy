@@ -50,7 +50,7 @@ class BuildReceipt extends DefaultTask {
     }
 
     static Properties readBuildReceipt(File dir) {
-        File buildReceiptFile = new File(dir, BUILD_RECEIPT_FILE_NAME)
+        File buildReceiptFile = buildReceiptFileIn(dir)
         if (!buildReceiptFile.exists()) {
             throw new GradleException("Can't read build receipt file '$buildReceiptFile' as it doesn't exist")
         }
@@ -59,6 +59,10 @@ class BuildReceipt extends DefaultTask {
             p.load(it)
             p
         }
+    }
+
+    static File buildReceiptFileIn(File dir) {
+        new File(dir, BUILD_RECEIPT_FILE_NAME)
     }
 
     private final ObjectFactory objects
@@ -91,7 +95,7 @@ class BuildReceipt extends DefaultTask {
     @OutputFile
     File getReceiptFile() {
         assert destinationDir != null
-        new File(destinationDir, BUILD_RECEIPT_FILE_NAME)
+        buildReceiptFileIn(destinationDir)
     }
 
     @TaskAction

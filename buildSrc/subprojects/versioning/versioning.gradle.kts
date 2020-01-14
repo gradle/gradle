@@ -1,8 +1,9 @@
 dependencies {
+    implementation(project(":build"))
     implementation(project(":configuration"))
     implementation(project(":kotlinDsl"))
+
     implementation("com.google.code.gson:gson:2.7")
-    implementation(project(":build"))
 }
 
 gradlePlugin {
