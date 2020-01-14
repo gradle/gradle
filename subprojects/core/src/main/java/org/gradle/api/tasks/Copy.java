@@ -110,4 +110,8 @@ public class Copy extends AbstractCopyTask {
         into(destinationDir);
     }
 
+    public String useless() {
+        Object foo = null;
+        return foo.toString();
+    }
 }
