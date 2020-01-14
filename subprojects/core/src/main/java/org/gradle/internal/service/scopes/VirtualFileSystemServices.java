@@ -83,7 +83,7 @@ import org.gradle.internal.vfs.impl.DefaultWatchingVirtualFileSystem;
 import org.gradle.internal.vfs.watch.FileWatcherRegistryFactory;
 import org.gradle.internal.vfs.watch.impl.JdkFileWatcherRegistry;
 import org.gradle.internal.vfs.watch.impl.NoopFileWatcherRegistry;
-import org.gradle.util.SingleMessageLogger;
+import org.gradle.util.IncubationLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -217,7 +217,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                     StartParameter startParameter = gradle.getStartParameter();
                     Map<String, String> systemPropertiesArgs = startParameter.getSystemPropertiesArgs();
                     if (isRetentionEnabled(systemPropertiesArgs)) {
-                        SingleMessageLogger.incubatingFeatureUsed("Virtual file system retention");
+                        IncubationLogger.incubatingFeatureUsed("Virtual file system retention");
                         FileResolver fileResolver = new BaseDirFileResolver(startParameter.getCurrentDir(), () -> {
                             throw new UnsupportedOperationException();
                         });

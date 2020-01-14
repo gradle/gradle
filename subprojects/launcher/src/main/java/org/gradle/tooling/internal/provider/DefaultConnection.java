@@ -63,6 +63,7 @@ import org.gradle.tooling.internal.provider.connection.ProviderOperationParamete
 import org.gradle.tooling.internal.provider.test.ProviderInternalTestExecutionRequest;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GradleVersion;
+import org.gradle.util.IncubationLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -270,6 +271,7 @@ public class DefaultConnection implements ConnectionVersion4, InternalConnection
         ProviderOperationParameters parameters = adapter.builder(ProviderOperationParameters.class).mixInTo(ProviderOperationParameters.class, BuildLogLevelMixIn.class).build(buildParameters);
 
         DeprecationLogger.reset();
+        IncubationLogger.reset();
         return parameters;
     }
 

@@ -77,6 +77,7 @@ import org.gradle.util.CollectionUtils;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
+import org.gradle.util.IncubationLogger;
 import org.hamcrest.Matcher;
 
 import java.io.ByteArrayOutputStream;
@@ -144,6 +145,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
     @Override
     public GradleExecuter reset() {
         DeprecationLogger.reset();
+        IncubationLogger.reset();
         return super.reset();
     }
 

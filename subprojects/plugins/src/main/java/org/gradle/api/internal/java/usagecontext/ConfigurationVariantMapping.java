@@ -30,9 +30,9 @@ import org.gradle.api.component.ConfigurationVariantDetails;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.component.UsageContext;
 import org.gradle.internal.Actions;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.deprecation.DeprecationMessage;
-import org.gradle.util.SingleMessageLogger;
+import org.gradle.internal.reflect.Instantiator;
+import org.gradle.util.DeprecationLogger;
 
 import java.util.Set;
 
@@ -59,7 +59,7 @@ public class ConfigurationVariantMapping {
 
     public void collectUsageContexts(final ImmutableCollection.Builder<UsageContext> outgoing) {
         if (!outgoingConfiguration.isTransitive()) {
-            SingleMessageLogger.nagUserWith(new DeprecationMessage.Builder()
+            DeprecationLogger.nagUserWith(new DeprecationMessage.Builder()
                 .withSummary("Publication ignores 'transitive = false' at configuration level.")
                 .withRemovalDetails("")
                 .withAdvice("Consider using 'transitive = false' at the dependency level if you need this to be published.")
