@@ -18,8 +18,8 @@ package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.caching.BuildCacheKey;
-import org.gradle.caching.internal.command.BuildCacheCommandFactory;
-import org.gradle.caching.internal.command.BuildCacheCommandFactory.LoadMetadata;
+import org.gradle.caching.internal.controller.BuildCacheCommandFactory;
+import org.gradle.caching.internal.controller.BuildCacheCommandFactory.LoadMetadata;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Try;

@@ -606,33 +606,6 @@ afterEvaluate {
         failure.assertHasCause("Module version 'org.test:b1:1.0' is not unique in composite: can be provided by [project :buildB:b1, project :buildC:b1].")
     }
 
-    def "reports failure to resolve dependencies when substitution is ambiguous within single participant"() {
-        given:
-        buildB
-        def buildC = multiProjectBuild("buildC", ['c1', 'c2']);
-        buildC.settingsFile << """
-            include ':nested:c1'
-"""
-        buildC.buildFile << """
-            allprojects {
-                apply plugin: 'java'
-            }
-"""
-        includedBuilds << buildC
-
-        buildA.buildFile << """
-            dependencies {
-                implementation "org.test:c1:1.0"
-            }
-"""
-
-        when:
-        checkDependenciesFails()
-
-        then:
-        failure.assertHasCause("Module version 'org.test:c1:1.0' is not unique in composite: can be provided by [project :buildC:c1, project :buildC:nested:c1].")
-    }
-
     def "reports failure to resolve dependencies when transitive dependency substitution is ambiguous"() {
         given:
         transitiveDependencyIsAmbiguous("'org.test:b1:2.0'")
@@ -747,22 +720,22 @@ afterEvaluate {
                 maven { url '$mavenRepo.uri' }
             }
 
-            configurations { 
-                buildInputs 
+            configurations {
+                buildInputs
                 create('default')
             }
-            
+
             dependencies {
                 buildInputs "org.test:test:1.2"
             }
-            
+
             task buildOutputs {
                 inputs.files configurations.buildInputs
                 doLast {
                     configurations.buildInputs.each { }
                 }
             }
-            
+
             artifacts {
                 "default" file: file("out.jar"), builtBy: buildOutputs
             }

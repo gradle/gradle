@@ -47,7 +47,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
     final Clock clock = Mock(Clock)
     final BuildOperationListener buildOperationListener = Mock()
     final CurrentBuildOperationRef currentBuildOperationRef = new CurrentBuildOperationRef()
-    final DeprecatedUsageBuildOperationProgressBroadaster progressBroadcaster = new DeprecatedUsageBuildOperationProgressBroadaster(clock, buildOperationListener, currentBuildOperationRef)
+    final DeprecatedUsageBuildOperationProgressBroadcaster progressBroadcaster = new DeprecatedUsageBuildOperationProgressBroadcaster(clock, buildOperationListener, currentBuildOperationRef)
 
     def setup() {
         handler.init(locationReporter, WarningMode.All, progressBroadcaster)

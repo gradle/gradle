@@ -70,7 +70,7 @@ public class DefaultEmptySourceTaskSkipper implements EmptySourceTaskSkipper {
                 );
                 for (FileCollectionFingerprint outputFingerprints : outputFileSnapshots.values()) {
                     try {
-                        outputChangeListener.beforeOutputChange(outputFingerprints.getRootHashes().keySet());
+                        outputChangeListener.beforeOutputChange(outputFingerprints.getRootPaths());
                         outputsCleaner.cleanupOutputs(outputFingerprints);
                     } catch (IOException e) {
                         throw new UncheckedIOException(e);

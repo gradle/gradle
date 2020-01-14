@@ -56,7 +56,9 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         instantRun "help"
 
         then:
-        firstRunOutput == result.normalizedOutput.replace('Reusing instant execution cache. This is not guaranteed to work in any way.', '')
+        firstRunOutput == result.normalizedOutput
+            .replace('Reusing instant execution cache. This is not guaranteed to work in any way.', '')
+            .replaceAll('Received \\d* file system events since last build\n', '')
     }
 
     def "restores some details of the project structure"() {

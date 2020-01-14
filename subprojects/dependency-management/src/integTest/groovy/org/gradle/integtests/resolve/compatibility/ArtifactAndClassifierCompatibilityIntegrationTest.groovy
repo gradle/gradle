@@ -16,6 +16,8 @@
 package org.gradle.integtests.resolve.compatibility
 
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
+import org.gradle.util.ToBeImplemented
+import spock.lang.Issue
 
 class ArtifactAndClassifierCompatibilityIntegrationTest extends AbstractModuleDependencyResolveTest {
 
@@ -166,5 +168,123 @@ class ArtifactAndClassifierCompatibilityIntegrationTest extends AbstractModuleDe
                 }
             }
         }
+    }
+
+    @Issue("gradle/gradle#11825")
+    @ToBeImplemented
+    def "dependency on both classifier and regular jar of a given module"() {
+        given:
+        repository {
+            'org:foo:1.0' {
+                dependsOn(group: 'org', artifact:'bar', version:'1.0', classifier:'classy')
+                dependsOn(group: 'org', artifact:'bar', version:'1.0')
+            }
+            'org:bar:1.0' {
+                withModule {
+                    undeclaredArtifact(type: 'jar', classifier: 'classy')
+                }
+                withoutGradleMetadata()
+            }
+        }
+
+        and:
+        buildFile << """
+            dependencies {
+                conf 'org:foo:1.0'
+            }
+        """
+
+        // This flag and its use has to be removed to have the right behavior with GMM
+        and:
+        def metadataPublished = isGradleMetadataPublished()
+
+        when:
+        repositoryInteractions {
+            'org:foo:1.0' {
+                expectResolve()
+            }
+            'org:bar:1.0' {
+                expectGetMetadata()
+                if (!metadataPublished) {
+                    expectGetArtifact()
+                }
+                expectGetArtifact(classifier: 'classy')
+            }
+        }
+        succeeds "checkDep"
+
+        then:
+        resolve.expectGraph {
+            root(':', ':test:') {
+                module("org:foo:1.0") {
+                    module("org:bar:1.0") {
+                        if (!metadataPublished) {
+                            artifact([:])
+                        }
+                        artifact(classifier: 'classy')
+                    }
+                }
+            }
+        }
+    }
+
+    @Issue("gradle/gradle#11825")
+    @ToBeImplemented
+    def "dependency on different classifiers of a given module"() {
+        given:
+        repository {
+            'org:foo:1.0' {
+                dependsOn(group: 'org', artifact:'bar', version:'1.0', classifier:'classy')
+                dependsOn(group: 'org', artifact:'bar', version:'1.0', classifier:'other')
+            }
+            'org:bar:1.0' {
+                withModule {
+                    undeclaredArtifact(type: 'jar', classifier: 'classy')
+                    undeclaredArtifact(type: 'jar', classifier: 'other')
+                }
+                withoutGradleMetadata()
+            }
+        }
+
+        and:
+        buildFile << """
+            dependencies {
+                conf 'org:foo:1.0'
+            }
+        """
+
+        // This flag and its use has to be removed to have the right behavior with GMM
+        and:
+        def metadataPublished = isGradleMetadataPublished()
+
+        when:
+        repositoryInteractions {
+            'org:foo:1.0' {
+                expectResolve()
+            }
+            'org:bar:1.0' {
+                expectGetMetadata()
+                if (!metadataPublished) {
+                    expectGetArtifact(classifier: 'other')
+                }
+                expectGetArtifact(classifier: 'classy')
+            }
+        }
+        succeeds "checkDep"
+
+        then:
+        resolve.expectGraph {
+            root(':', ':test:') {
+                module("org:foo:1.0") {
+                    module("org:bar:1.0") {
+                        if (!metadataPublished) {
+                            artifact(classifier: 'other')
+                        }
+                        artifact(classifier: 'classy')
+                    }
+                }
+            }
+        }
+
     }
 }

@@ -25,13 +25,21 @@ import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
 import org.gradle.api.internal.artifacts.transform.UnzipTransform;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
+import org.gradle.api.artifacts.result.ArtifactResolutionResult;
+import org.gradle.api.artifacts.result.ArtifactResult;
+import org.gradle.api.artifacts.result.ComponentArtifactsResult;
+import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleInstallation;
 import org.gradle.util.GradleVersion;
+import org.gradle.jvm.JvmLibrary;
+import org.gradle.language.base.artifact.SourcesArtifact;
 
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Collections;
 
 public class DefaultGradleApiSourcesResolver implements GradleApiSourcesResolver {
 
@@ -39,6 +47,9 @@ public class DefaultGradleApiSourcesResolver implements GradleApiSourcesResolver
 
     private static final String GRADLE_REPO_URL = "https://services.gradle.org/";
     private static final String GRADLE_REPO_URL_OVERRIDE_VAR = "GRADLE_REPO_OVERRIDE";
+
+    private static final String GRADLE_LIBS_REPO_URL = "https://repo.gradle.org/gradle/list/libs-releases";
+    private static final String GRADLE_LIBS_REPO_OVERRIDE_VAR = "GRADLE_LIBS_REPO_OVERRIDE";
 
     private final Project project;
 
@@ -68,6 +79,18 @@ public class DefaultGradleApiSourcesResolver implements GradleApiSourcesResolver
         } catch (DefaultLenientConfiguration.ArtifactResolveException e) {
             LOGGER.warn("Could not fetch Gradle sources distribution: " + e.getCause().getMessage());
             return null;
+        }
+    }
+
+    @Override
+    public File resolveLocalGroovySources(String jarName) {
+        String version = jarName.replace("groovy-all-", "").replace(".jar", "");
+
+        MavenArtifactRepository repository = addGradleLibsRepository();
+        try {
+            return downloadLocalGroovySources(version);
+        } finally {
+            project.getRepositories().remove(repository);
         }
     }
 
@@ -135,4 +158,31 @@ public class DefaultGradleApiSourcesResolver implements GradleApiSourcesResolver
         return gradleVersion.isSnapshot() ? "distributions-snapshots" : "distributions";
     }
 
+    private File downloadLocalGroovySources(String version) {
+        ArtifactResolutionResult result = project.getDependencies().createArtifactResolutionQuery()
+            .forModule("org.gradle.groovy", "groovy-all", version)
+            .withArtifacts(JvmLibrary.class, Collections.singletonList(SourcesArtifact.class))
+            .execute();
+
+        for (ComponentArtifactsResult artifactsResult : result.getResolvedComponents()) {
+            for (ArtifactResult artifactResult : artifactsResult.getArtifacts(SourcesArtifact.class)) {
+                if (artifactResult instanceof ResolvedArtifactResult) {
+                    return ((ResolvedArtifactResult) artifactResult).getFile();
+                }
+            }
+        }
+        return null;
+    }
+
+    private MavenArtifactRepository addGradleLibsRepository() {
+        return project.getRepositories().maven(a -> {
+            a.setName("Gradle Libs");
+            a.setUrl(gradleLibsRepoUrl());
+        });
+    }
+
+    private static String gradleLibsRepoUrl() {
+        String repoOverride = System.getenv(GRADLE_LIBS_REPO_OVERRIDE_VAR);
+        return repoOverride != null ? repoOverride : GRADLE_LIBS_REPO_URL;
+    }
 }

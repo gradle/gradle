@@ -222,9 +222,12 @@ public class IdeaDependenciesProvider {
             if (sources == null) {
                 return Collections.emptyList();
             }
+            if (sources.isFile()) {
+                return Collections.singletonList(toPath(ideaModule, sources));
+            }
             File[] sourceDirectories = sources.listFiles(File::isDirectory);
             if (sourceDirectories == null) {
-                return  Collections.emptyList();
+                return Collections.emptyList();
             }
             return Collections.unmodifiableList(Arrays.stream(sourceDirectories)
                 .map(f -> toPath(ideaModule, f))

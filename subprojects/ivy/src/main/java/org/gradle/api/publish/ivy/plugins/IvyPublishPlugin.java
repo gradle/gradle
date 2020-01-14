@@ -88,7 +88,8 @@ public class IvyPublishPlugin implements Plugin<Project> {
                 objectFactory,
                 fileResolver,
                 project.getPluginManager(),
-                project.getExtensions()));
+                project.getExtensions()
+            ));
             createTasksLater(project, extension, project.getLayout().getBuildDirectory());
         });
     }
@@ -202,5 +203,4 @@ public class IvyPublishPlugin implements Plugin<Project> {
             });
         }
     }
-
 }

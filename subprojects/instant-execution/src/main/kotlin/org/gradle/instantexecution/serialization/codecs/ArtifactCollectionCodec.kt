@@ -52,6 +52,7 @@ class ArtifactCollectionCodec(private val fileCollectionFactory: FileCollectionF
 
     override suspend fun ReadContext.decode(): ArtifactCollectionInternal {
         val elements = readList().uncheckedCast<List<Any>>()
+        @Suppress("implicit_cast_to_any")
         val files = fileCollectionFactory.resolving(elements.map {
             when (it) {
                 is ResolvedArtifactResult -> it.file
@@ -66,7 +67,11 @@ class ArtifactCollectionCodec(private val fileCollectionFactory: FileCollectionF
 
 
 internal
-class ConsumerProvidedVariantSpec(val node: TransformationNode, val variantDisplayName: DisplayName, val variantAttributes: ImmutableAttributes)
+class ConsumerProvidedVariantSpec(
+    val node: TransformationNode,
+    val variantDisplayName: DisplayName,
+    val variantAttributes: ImmutableAttributes
+)
 
 
 internal
@@ -74,13 +79,12 @@ class CollectingArtifactVisitor : ArtifactVisitor {
     val elements = mutableListOf<Any>()
     val failures = mutableListOf<Throwable>()
 
-    override fun prepareForVisit(source: FileCollectionInternal.Source): FileCollectionStructureVisitor.VisitType {
+    override fun prepareForVisit(source: FileCollectionInternal.Source): FileCollectionStructureVisitor.VisitType =
         if (source is ConsumerProvidedVariantFiles && source.scheduledNodes.isNotEmpty()) {
-            return FileCollectionStructureVisitor.VisitType.NoContents
+            FileCollectionStructureVisitor.VisitType.NoContents
         } else {
-            return FileCollectionStructureVisitor.VisitType.Visit
+            FileCollectionStructureVisitor.VisitType.Visit
         }
-    }
 
     override fun requireArtifactFiles(): Boolean {
         return true
@@ -97,7 +101,13 @@ class CollectingArtifactVisitor : ArtifactVisitor {
     override fun endVisitCollection(source: FileCollectionInternal.Source) {
         if (source is ConsumerProvidedVariantFiles && source.scheduledNodes.isNotEmpty()) {
             for (node in source.scheduledNodes) {
-                elements.add(ConsumerProvidedVariantSpec(node, source.targetVariantName, source.targetVariantAttributes))
+                elements.add(
+                    ConsumerProvidedVariantSpec(
+                        node,
+                        source.targetVariantName,
+                        source.targetVariantAttributes
+                    )
+                )
             }
         }
     }
@@ -114,7 +124,7 @@ class FixedArtifactCollection(
     override fun getFailures() = failures
 
     override fun iterator(): MutableIterator<ResolvedArtifactResult> =
-        getArtifacts().iterator()
+        artifacts.iterator()
 
     override fun getArtifactFiles() = artifactFiles
 

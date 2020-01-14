@@ -43,6 +43,8 @@ public @interface ToBeFixedForInstantExecution {
      */
     String[] bottomSpecs() default {};
 
+    String because() default "";
+
     /**
      * Reason for skipping a test with instant execution.
      */

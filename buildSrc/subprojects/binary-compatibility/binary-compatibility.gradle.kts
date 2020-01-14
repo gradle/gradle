@@ -3,6 +3,7 @@ dependencies {
 
     implementation(project(":buildPlatform"))
     implementation(project(":kotlinDsl"))
+
     implementation("com.google.code.gson:gson:2.8.2")
     implementation("org.javassist:javassist:3.23.0-GA")
     implementation("com.github.javaparser:javaparser-core")

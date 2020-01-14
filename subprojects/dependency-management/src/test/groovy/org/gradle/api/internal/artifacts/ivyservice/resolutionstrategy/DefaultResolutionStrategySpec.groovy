@@ -310,4 +310,20 @@ class DefaultResolutionStrategySpec extends Specification {
         then:
         strategy.dependencyLockingProvider.is( NoOpDependencyLockingProvider.instance)
     }
+
+    def "copies dependency verification state"() {
+        when:
+        strategy.disableDependencyVerification()
+
+        then:
+        !strategy.dependencyVerificationEnabled
+        !strategy.copy().dependencyVerificationEnabled
+
+        when:
+        strategy.enableDependencyVerification()
+
+        then:
+        strategy.dependencyVerificationEnabled
+        strategy.copy().dependencyVerificationEnabled
+    }
 }

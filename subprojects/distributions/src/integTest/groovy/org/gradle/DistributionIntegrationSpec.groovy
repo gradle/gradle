@@ -45,10 +45,10 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
     abstract String getDistributionLabel()
 
     /**
-     * Change this whenever you add or remove a new subproject.
+     * Change this whenever you add or remove subprojects.
      */
     int getCoreLibJarsCount() {
-        32
+        33
     }
 
     /**
