@@ -18,7 +18,7 @@ include::sample[dir="kotlin",files="list/build.gradle.kts[]"]
 
 Running the tests:
 
-[terminal.listing]
+[listing.terminal]
 ----
 $ ./gradlew test
 
