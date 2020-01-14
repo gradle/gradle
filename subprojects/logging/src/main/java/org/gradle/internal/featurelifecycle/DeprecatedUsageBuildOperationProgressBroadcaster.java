@@ -22,14 +22,14 @@ import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationProgressEvent;
 import org.gradle.internal.time.Clock;
 
-public class DeprecatedUsageBuildOperationProgressBroadaster {
+public class DeprecatedUsageBuildOperationProgressBroadcaster {
 
     private final Clock clock;
     private final BuildOperationListener listener;
 
     private final CurrentBuildOperationRef currentBuildOperationRef;
 
-    public DeprecatedUsageBuildOperationProgressBroadaster(Clock clock, BuildOperationListener listener, CurrentBuildOperationRef currentBuildOperationRef) {
+    public DeprecatedUsageBuildOperationProgressBroadcaster(Clock clock, BuildOperationListener listener, CurrentBuildOperationRef currentBuildOperationRef) {
         this.clock = clock;
         this.listener = listener;
         this.currentBuildOperationRef = currentBuildOperationRef;

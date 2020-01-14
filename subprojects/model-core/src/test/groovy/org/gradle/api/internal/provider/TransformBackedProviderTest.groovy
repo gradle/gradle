@@ -22,7 +22,7 @@ import org.gradle.api.provider.Property
 import org.gradle.api.tasks.TaskState
 import org.gradle.internal.Describables
 import org.gradle.internal.featurelifecycle.DeprecatedFeatureUsage
-import org.gradle.internal.featurelifecycle.DeprecatedUsageBuildOperationProgressBroadaster
+import org.gradle.internal.featurelifecycle.DeprecatedUsageBuildOperationProgressBroadcaster
 import org.gradle.internal.featurelifecycle.UsageLocationReporter
 import org.gradle.util.DeprecationLogger
 import org.gradle.util.RedirectStdOutAndErr
@@ -32,7 +32,7 @@ import spock.lang.Specification
 class TransformBackedProviderTest extends Specification {
     @Rule
     RedirectStdOutAndErr outputs = new RedirectStdOutAndErr()
-    def broadcaster = Mock(DeprecatedUsageBuildOperationProgressBroadaster)
+    def broadcaster = Mock(DeprecatedUsageBuildOperationProgressBroadcaster)
 
     def setup() {
         DeprecationLogger.reset()
