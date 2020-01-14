@@ -16,12 +16,7 @@
 package org.gradle.util;
 
 
-public class DeprecationLogger {
-
-    // Here for backwards compatibility with performance test: DeprecationCreationPerformanceTest
-    // When rebaselining, update the test to use org.gradle.internal.deprecation.DeprecationLogger directly
-    public static void nagUserOfDeprecated(String thing) {
-        org.gradle.internal.deprecation.DeprecationLogger.nagUserOfDeprecated(thing);
-    }
-
+// Used by https://plugins.gradle.org/plugin/nebula.dependency-recommender 9.0.1
+// https://github.com/nebula-plugins/nebula-project-plugin/commit/5f56397384328e24c506b0e2b395d1634dbf600f
+public class SingleMessageLogger extends org.gradle.internal.deprecation.DeprecationLogger {
 }
