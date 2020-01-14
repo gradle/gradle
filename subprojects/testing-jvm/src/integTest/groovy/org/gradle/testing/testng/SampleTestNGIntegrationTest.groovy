@@ -35,7 +35,7 @@ public class SampleTestNGIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test @UsesSample('testing/testng/suitexmlbuilder')
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_TO_CLEANUP)
     public void suiteXmlBuilder() {
         executer.inDirectory(sample.dir).withTasks('clean', 'test').run()
 
@@ -46,7 +46,7 @@ public class SampleTestNGIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test @UsesSample('testing/testng/java-passing')
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_TO_CLEANUP)
     public void javaPassing() {
         executer.inDirectory(sample.dir).withTasks('clean', 'test').run()
 

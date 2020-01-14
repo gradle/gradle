@@ -139,7 +139,7 @@ task retrieve(type: Sync) {
 
         buildFile << """
 buildscript {
-      
+
     ${mavenGcsRepoDsl()}
     repositories.all {
         metadataSources {

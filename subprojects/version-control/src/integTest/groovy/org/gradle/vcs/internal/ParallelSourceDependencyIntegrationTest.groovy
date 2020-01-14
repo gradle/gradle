@@ -66,7 +66,7 @@ class ParallelSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
         repo.createLightWeightTag('1.2')
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_TO_CLEANUP)
     def "can populate into same dir in parallel"() {
         given:
         settingsFile << """
@@ -100,7 +100,7 @@ class ParallelSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
         succeeds('resolve', '--parallel', '--max-workers=4')
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_TO_CLEANUP)
     def "can populate from multiple Gradle invocations in parallel"() {
         given:
         settingsFile << """
