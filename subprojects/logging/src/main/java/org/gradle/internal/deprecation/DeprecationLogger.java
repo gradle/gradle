@@ -77,12 +77,12 @@ public class DeprecationLogger {
         }
     }
 
-   /* private static void nagUserWith(DeprecationBuilder builder) {
+    static void nagUserWith(DeprecationMessage.Builder deprecationMessageBuilder, Class<?> calledFrom) {
         if (isEnabled()) {
-            DeprecationMessage deprecationMessage = builder.build();
-            nagUserWith(deprecationMessage.toDeprecatedFeatureUsage(DeprecationLogger.class));
+            DeprecationMessage deprecationMessage = deprecationMessageBuilder.build();
+            nagUserWith(deprecationMessage.toDeprecatedFeatureUsage(calledFrom));
         }
-    }*/
+    }
 
     @Nullable
     public static <T> T whileDisabled(Factory<T> factory) {

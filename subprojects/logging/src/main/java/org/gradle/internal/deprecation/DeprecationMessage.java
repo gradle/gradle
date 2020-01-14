@@ -97,13 +97,14 @@ public class DeprecationMessage {
             return this;
         }
 
+        public void nagUser() {
+            DeprecationLogger.nagUserWith(this, DeprecationMessage.Builder.class);
+        }
+
         DeprecationMessage build() {
             return new DeprecationMessage(summary, removalDetails, advice, contextualAdvice, documentationReference, usageType);
         }
 
-        public void nagUser() {
-            DeprecationLogger.nagUserWith(this);
-        }
     }
 
     // Output: ${summary}. This has been deprecated and is scheduled to be removed in Gradle {X}.

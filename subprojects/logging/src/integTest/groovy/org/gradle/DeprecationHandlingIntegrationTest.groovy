@@ -31,23 +31,22 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         file('buildSrc/src/main/java/DeprecatedTask.java') << """
             import org.gradle.api.DefaultTask;
             import org.gradle.api.tasks.TaskAction;
-            import org.gradle.internal.deprecation.DeprecationLogger;
             import org.gradle.internal.deprecation.DeprecationMessage;
 
             public class DeprecatedTask extends DefaultTask {
                 @TaskAction
                 void causeDeprecationWarning() {
-                    DeprecationLogger.nagUserWith(DeprecationMessage.replacedTask("deprecated", "foobar"));
+                    DeprecationMessage.replacedTask("deprecated", "foobar").nagUser();
                     System.out.println("DeprecatedTask.causeDeprecationWarning() executed.");
                 }
 
                 public static void someFeature() {
-                    DeprecationLogger.nagUserWith(DeprecationMessage.discontinuedMethod("someFeature()"));
+                    DeprecationMessage.discontinuedMethod("someFeature()").nagUser();
                     System.out.println("DeprecatedTask.someFeature() executed.");
                 }
 
                 void otherFeature() {
-                    DeprecationLogger.nagUserWith(DeprecationMessage.discontinuedMethod("otherFeature()").withAdvice("Relax. This is just a test."));
+                    DeprecationMessage.discontinuedMethod("otherFeature()").withAdvice("Relax. This is just a test.").nagUser();
                     System.out.println("DeprecatedTask.otherFeature() executed.");
                 }
 
@@ -56,13 +55,12 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         file('buildSrc/src/main/java/DeprecatedPlugin.java') << """
             import org.gradle.api.Plugin;
             import org.gradle.api.Project;
-            import org.gradle.internal.deprecation.DeprecationLogger;
             import org.gradle.internal.deprecation.DeprecationMessage;
 
             public class DeprecatedPlugin implements Plugin<Project> {
                 @Override
                 public void apply(Project project) {
-                    DeprecationLogger.nagUserWith(DeprecationMessage.pluginReplacedWithExternalOne("DeprecatedPlugin", "Foobar"));
+                    DeprecationMessage.pluginReplacedWithExternalOne("DeprecatedPlugin", "Foobar").nagUser();
                     project.getTasks().create("deprecated", DeprecatedTask.class);
                 }
             }
@@ -168,7 +166,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         given:
         def initScript = file("init.gradle") << """
             allprojects {
-                org.gradle.internal.deprecation.DeprecationLogger.nagUserWith(org.gradle.internal.deprecation.DeprecationMessage.pluginReplacedWithExternalOne("DeprecatedPlugin", "Foobar")) // line 2
+                org.gradle.internal.deprecation.DeprecationMessage.pluginReplacedWithExternalOne("DeprecatedPlugin", "Foobar").nagUser() // line 2
             }
         """.stripIndent()
 

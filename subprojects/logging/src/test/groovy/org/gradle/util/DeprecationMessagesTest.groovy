@@ -46,7 +46,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs deprecation message"() {
         when:
-        DeprecationLogger.nagUserWith(new DeprecationMessage.Builder().withSummary("summary").withRemovalDetails("removal"))
+        new DeprecationMessage.Builder().withSummary("summary").withRemovalDetails("removal").nagUser()
 
         then:
         def events = outputEventListener.events
@@ -56,8 +56,9 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs deprecation message with advice"() {
         when:
-        DeprecationLogger.nagUserWith(new DeprecationMessage.Builder().withSummary("summary").withRemovalDetails("removal")
-            .withAdvice("advice"))
+        new DeprecationMessage.Builder().withSummary("summary").withRemovalDetails("removal")
+            .withAdvice("advice")
+            .nagUser()
 
         then:
         def events = outputEventListener.events
@@ -67,8 +68,9 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs deprecation message with contextual advice"() {
         when:
-        DeprecationLogger.nagUserWith(new DeprecationMessage.Builder().withSummary("summary").withRemovalDetails("removal")
-            .withContextualAdvice("contextualAdvice"))
+        new DeprecationMessage.Builder().withSummary("summary").withRemovalDetails("removal")
+            .withContextualAdvice("contextualAdvice")
+            .nagUser()
 
         then:
         def events = outputEventListener.events
@@ -78,8 +80,9 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs deprecation message with advice and contextual advice"() {
         when:
-        DeprecationLogger.nagUserWith(new DeprecationMessage.Builder().withSummary("summary").withRemovalDetails("removal")
-            .withAdvice("advice").withContextualAdvice("contextualAdvice"))
+        new DeprecationMessage.Builder().withSummary("summary").withRemovalDetails("removal")
+            .withAdvice("advice").withContextualAdvice("contextualAdvice")
+            .nagUser()
 
         then:
         def events = outputEventListener.events
@@ -89,7 +92,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs generic deprecation message"() {
         when:
-        DeprecationLogger.nagUserWith(DeprecationMessage.thisHasBeenDeprecated("Summary.").withAdvice("Advice."));
+        DeprecationMessage.thisHasBeenDeprecated("Summary.").withAdvice("Advice.").nagUser()
 
         then:
         def events = outputEventListener.events
@@ -99,7 +102,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs generic deprecation message for specific thing"() {
         when:
-        DeprecationLogger.nagUserWith(DeprecationMessage.specificThingHasBeenDeprecated("Something"))
+        DeprecationMessage.specificThingHasBeenDeprecated("Something").nagUser()
 
         then:
         def events = outputEventListener.events
@@ -119,7 +122,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs deprecated indirect user code cause message"() {
         when:
-        DeprecationLogger.nagUserWith(DeprecationMessage.specificThingHasBeenDeprecated("Something").withAdvice("Advice.").withContextualAdvice("Contextual advice."))
+        DeprecationMessage.specificThingHasBeenDeprecated("Something").withAdvice("Advice.").withContextualAdvice("Contextual advice.").nagUser()
 
         then:
         def events = outputEventListener.events
@@ -129,7 +132,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs deprecated build invocation message"() {
         when:
-        DeprecationLogger.nagUserWith(DeprecationMessage.deprecatedBuildInvocationFeature("Feature").withAdvice("Advice."))
+        DeprecationMessage.deprecatedBuildInvocationFeature("Feature").withAdvice("Advice.").nagUser()
 
         then:
         def events = outputEventListener.events
@@ -139,7 +142,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs deprecated and replaced parameter usage message"() {
         when:
-        DeprecationLogger.nagUserWith(DeprecationMessage.replacedNamedParameter("paramName", "replacement"))
+        DeprecationMessage.replacedNamedParameter("paramName", "replacement").nagUser()
 
         then:
         def events = outputEventListener.events
@@ -149,7 +152,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs deprecated property message"() {
         when:
-        DeprecationLogger.nagUserWith(DeprecationMessage.deprecatedProperty("propertyName").withAdvice("Advice."))
+        DeprecationMessage.deprecatedProperty("propertyName").withAdvice("Advice.").nagUser()
 
         then:
         def events = outputEventListener.events
@@ -159,7 +162,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs deprecated and replaced property message"() {
         when:
-        DeprecationLogger.nagUserWith(DeprecationMessage.replacedProperty("propertyName", "replacement"))
+        DeprecationMessage.replacedProperty("propertyName", "replacement").nagUser()
 
         then:
         def events = outputEventListener.events
@@ -169,7 +172,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs discontinued method message"() {
         when:
-        DeprecationLogger.nagUserWith(DeprecationMessage.discontinuedMethod("method()").withAdvice("Advice."))
+        DeprecationMessage.discontinuedMethod("method()").withAdvice("Advice.").nagUser()
 
         then:
         def events = outputEventListener.events
@@ -179,7 +182,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs discontinued invocation message"() {
         when:
-        DeprecationLogger.nagUserWith(DeprecationMessage.discontinuedInvocation("method()"))
+        DeprecationMessage.discontinuedInvocation("method()").nagUser()
 
         then:
         def events = outputEventListener.events
@@ -189,7 +192,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs replaced method invocation message"() {
         when:
-        DeprecationLogger.nagUserWith(DeprecationMessage.replacedMethodInvocation("method()", "replacementMethod()"))
+        DeprecationMessage.replacedMethodInvocation("method()", "replacementMethod()").nagUser()
 
         then:
         def events = outputEventListener.events
@@ -199,7 +202,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs discontinued method invocation message"() {
         when:
-        DeprecationLogger.nagUserWith(DeprecationMessage.discontinuedMethodInvocation("method()").withAdvice("Advice."))
+        DeprecationMessage.discontinuedMethodInvocation("method()").withAdvice("Advice.").nagUser()
 
         then:
         def events = outputEventListener.events
@@ -209,7 +212,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs replaced method message"() {
         when:
-        DeprecationLogger.nagUserWith(DeprecationMessage.replacedMethod("method()", "replacementMethod()"))
+        DeprecationMessage.replacedMethod("method()", "replacementMethod()").nagUser()
 
         then:
         def events = outputEventListener.events
@@ -219,7 +222,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs replaced task type"() {
         when:
-        DeprecationLogger.nagUserWith(DeprecationMessage.replacedTaskType("taskName", "replacementTask"))
+        DeprecationMessage.replacedTaskType("taskName", "replacementTask").nagUser()
 
         then:
         def events = outputEventListener.events
@@ -229,7 +232,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs replaced task"() {
         when:
-        DeprecationLogger.nagUserWith(DeprecationMessage.replacedTask("taskName", "replacementTask"))
+        DeprecationMessage.replacedTask("taskName", "replacementTask").nagUser()
 
         then:
         def events = outputEventListener.events
@@ -239,7 +242,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs deprecated tool replaced with external one"() {
         when:
-        DeprecationLogger.nagUserWith(DeprecationMessage.toolReplacedWithExternalOne("toolName", "replacement"))
+        DeprecationMessage.toolReplacedWithExternalOne("toolName", "replacement").nagUser()
 
         then:
         def events = outputEventListener.events
@@ -249,7 +252,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs replaced plugin message"() {
         when:
-        DeprecationLogger.nagUserWith(DeprecationMessage.replacedPlugin("pluginName", "replacement"))
+        DeprecationMessage.replacedPlugin("pluginName", "replacement").nagUser()
 
         then:
         def events = outputEventListener.events
@@ -259,7 +262,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs plugin replaced with external one message"() {
         when:
-        DeprecationLogger.nagUserWith(DeprecationMessage.pluginReplacedWithExternalOne("pluginName", "replacement"))
+        DeprecationMessage.pluginReplacedWithExternalOne("pluginName", "replacement").nagUser()
 
         then:
         def events = outputEventListener.events
@@ -269,7 +272,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs deprecated plugin message"() {
         when:
-        DeprecationLogger.nagUserWith(DeprecationMessage.deprecatedPlugin("pluginName").withAdvice("Advice."))
+        DeprecationMessage.deprecatedPlugin("pluginName").withAdvice("Advice.").nagUser()
 
         then:
         def events = outputEventListener.events
@@ -279,7 +282,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs deprecated plugin message with link to upgrade guide"() {
         when:
-        DeprecationLogger.nagUserWith(DeprecationMessage.deprecatedPlugin("pluginName", 42, "upgradeGuideSection."))
+        DeprecationMessage.deprecatedPlugin("pluginName", 42, "upgradeGuideSection.").nagUser()
 
         then:
         def events = outputEventListener.events
@@ -290,7 +293,7 @@ class DeprecationMessagesTest extends Specification {
     @Unroll
     def "logs deprecation message for deprecated configuration with #deprecationType deprecation"() {
         given:
-        DeprecationLogger.nagUserWith(DeprecationMessage.replacedConfiguration("ConfigurationType", deprecationType, ['r1', 'r2', 'r3']))
+        DeprecationMessage.replacedConfiguration("ConfigurationType", deprecationType, ['r1', 'r2', 'r3']).nagUser()
         def events = outputEventListener.events
 
         expect:
