@@ -54,18 +54,25 @@ public class DeprecationLogger {
         return deprecatedFeatureHandler.getDeprecationFailure();
     }
 
+    // Output: The ${property} property has been deprecated. This is scheduled to be removed in Gradle X.
     public static DeprecationMessage.DeprecatePropertyBuilder deprecateProperty(String property) {
         return new DeprecationMessage.DeprecatePropertyBuilder(property);
     }
 
+    // Output: The ${method} method has been deprecated. This is scheduled to be removed in Gradle X.
     public static DeprecationMessage.DeprecateMethodBuilder deprecateMethod(String method) {
         return new DeprecationMessage.DeprecateMethodBuilder(method);
+    }
+
+    // Output: The ${taskName} task has been deprecated. This is scheduled to be removed in Gradle X.
+    public static DeprecationMessage.DeprecateTaskBuilder deprecateTask(String task) {
+        return new DeprecationMessage.DeprecateTaskBuilder(task);
     }
 
     /**
      * Output format:
      * <p>
-     * ${behaviour} This has been deprecated and is scheduled to be removed in Gradle {X}.
+     * ${behaviour} This has been deprecated and is scheduled to be removed in Gradle X.
      **/
     public static void nagUserOfDeprecatedBehaviour(String behaviour) {
         if (isEnabled()) {

@@ -14,16 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.util
+package org.gradle.internal.deprecation
 
 import org.gradle.api.logging.configuration.WarningMode
-import org.gradle.internal.deprecation.ConfigurationDeprecationType
-import org.gradle.internal.deprecation.DeprecationLogger
-import org.gradle.internal.deprecation.DeprecationMessage
 import org.gradle.internal.featurelifecycle.DeprecatedUsageBuildOperationProgressBroadcaster
 import org.gradle.internal.featurelifecycle.UsageLocationReporter
 import org.gradle.internal.logging.CollectingTestOutputEventListener
 import org.gradle.internal.logging.ConfigureLogging
+import org.gradle.util.GradleVersion
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -232,7 +230,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs replaced task"() {
         when:
-        DeprecationMessage.replacedTask("taskName", "replacementTask").nagUser()
+        DeprecationLogger.deprecateTask("taskName").replaceWith("replacementTask").nagUser()
 
         then:
         def events = outputEventListener.events

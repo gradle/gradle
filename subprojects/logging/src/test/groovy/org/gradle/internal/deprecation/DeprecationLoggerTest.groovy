@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.util
+package org.gradle.internal.deprecation
 
 import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.internal.Factory
-import org.gradle.internal.deprecation.DeprecationLogger
-import org.gradle.internal.deprecation.DeprecationMessage
 import org.gradle.internal.featurelifecycle.DeprecatedUsageBuildOperationProgressBroadcaster
 import org.gradle.internal.featurelifecycle.UsageLocationReporter
 import org.gradle.internal.logging.CollectingTestOutputEventListener
 import org.gradle.internal.logging.ConfigureLogging
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
+import org.gradle.util.GradleVersion
 import org.junit.Rule
 import spock.lang.Subject
 

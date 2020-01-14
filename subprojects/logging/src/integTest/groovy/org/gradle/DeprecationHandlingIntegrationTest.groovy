@@ -31,13 +31,12 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         file('buildSrc/src/main/java/DeprecatedTask.java') << """
             import org.gradle.api.DefaultTask;
             import org.gradle.api.tasks.TaskAction;
-            import org.gradle.internal.deprecation.DeprecationMessage;
             import org.gradle.internal.deprecation.DeprecationLogger;
 
             public class DeprecatedTask extends DefaultTask {
                 @TaskAction
                 void causeDeprecationWarning() {
-                    DeprecationMessage.replacedTask("deprecated", "foobar").nagUser();
+                    DeprecationLogger.deprecateTask("deprecated").replaceWith("foobar").nagUser();
                     System.out.println("DeprecatedTask.causeDeprecationWarning() executed.");
                 }
 

@@ -22,7 +22,6 @@ import org.gradle.internal.featurelifecycle.DeprecatedFeatureUsage;
 
 import java.util.List;
 
-import static org.gradle.internal.deprecation.Messages.methodHasBeenDeprecated;
 import static org.gradle.internal.deprecation.Messages.pleaseUseThisMethodInstead;
 import static org.gradle.internal.deprecation.Messages.pluginHasBeenDeprecated;
 import static org.gradle.internal.deprecation.Messages.propertyHasBeenDeprecated;
@@ -170,7 +169,6 @@ public class DeprecationMessage {
         private final String property;
         private String replacement;
 
-        // Output: The ${property} property has been deprecated. This is scheduled to be removed in Gradle {X}.
         DeprecatePropertyBuilder(String property) {
             this.property = property;
         }
@@ -211,7 +209,6 @@ public class DeprecationMessage {
         private final String method;
         private String replacement;
 
-        // Output: The ${method} method has been deprecated. This is scheduled to be removed in Gradle {X}.
         DeprecateMethodBuilder(String method) {
             this.method = method;
         }
@@ -224,7 +221,7 @@ public class DeprecationMessage {
 
         @Override
         DeprecationMessage build() {
-            withSummary(methodHasBeenDeprecated(method));
+            withSummary(String.format("The %s method has been deprecated.", method));
             withRemovalDetails(thisIsScheduledToBeRemoved());
             if (replacement != null) {
                 withAdvice(pleaseUseThisMethodInstead(replacement));
@@ -285,17 +282,29 @@ public class DeprecationMessage {
         };
     }
 
-    // Output: The ${taskName} task has been deprecated. This is scheduled to be removed in Gradle X. Please use the ${replacement} task instead.
-    public static DeprecationMessage.Builder replacedTask(final String taskName, final String replacement) {
-        return new DeprecationMessage.Builder() {
-            @Override
-            DeprecationMessage build() {
-                withSummary(String.format("The %s task has been deprecated.", taskName));
-                withRemovalDetails(thisIsScheduledToBeRemoved());
+    public static class DeprecateTaskBuilder extends Builder {
+        private final String task;
+        private String replacement;
+
+        DeprecateTaskBuilder(String task) {
+            this.task = task;
+        }
+
+        // Output: The ${taskName} task has been deprecated. This is scheduled to be removed in Gradle X. Please use the ${replacement} task instead.
+        public DeprecateTaskBuilder replaceWith(String replacement) {
+            this.replacement = replacement;
+            return this;
+        }
+
+        @Override
+        DeprecationMessage build() {
+            withSummary(String.format("The %s task has been deprecated.", task));
+            withRemovalDetails(thisIsScheduledToBeRemoved());
+            if (replacement != null) {
                 withAdvice(String.format("Please use the %s task instead.", replacement));
-                return super.build();
             }
-        };
+            return super.build();
+        }
     }
 
     // Output: The ${toolName} has been deprecated. This is scheduled to be removed in Gradle X. Consider using ${replacement} instead.

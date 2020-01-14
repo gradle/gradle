@@ -35,10 +35,6 @@ final class Messages {
         return String.format("The %s property has been deprecated.", propertyName);
     }
 
-    static String methodHasBeenDeprecated(String methodName) {
-        return String.format("The %s method has been deprecated.", methodName);
-    }
-
     static String pleaseUseThisMethodInstead(String replacement) {
         return String.format("Please use the %s method instead.", replacement);
     }
