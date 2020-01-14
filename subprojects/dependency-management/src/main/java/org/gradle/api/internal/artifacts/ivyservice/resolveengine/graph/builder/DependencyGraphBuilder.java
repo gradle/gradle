@@ -57,8 +57,6 @@ import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.id.LongIdGenerator;
 import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.operations.BuildOperationQueue;
-import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
@@ -339,12 +337,9 @@ public class DependencyGraphBuilder {
         if (requiringDownload != null && requiringDownload.size() > 1) {
             final ImmutableList<ComponentState> toDownloadInParallel = ImmutableList.copyOf(requiringDownload);
             LOGGER.debug("Submitting {} metadata files to resolve in parallel for {}", toDownloadInParallel.size(), node);
-            buildOperationExecutor.runAll(new Action<BuildOperationQueue<RunnableBuildOperation>>() {
-                @Override
-                public void execute(BuildOperationQueue<RunnableBuildOperation> buildOperationQueue) {
-                    for (final ComponentState componentState : toDownloadInParallel) {
-                        buildOperationQueue.add(new DownloadMetadataOperation(componentState));
-                    }
+            buildOperationExecutor.runAll(buildOperationQueue -> {
+                for (final ComponentState componentState : toDownloadInParallel) {
+                    buildOperationQueue.add(new DownloadMetadataOperation(componentState));
                 }
             });
         }

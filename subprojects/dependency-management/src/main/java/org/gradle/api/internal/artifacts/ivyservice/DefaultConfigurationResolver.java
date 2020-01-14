@@ -75,12 +75,7 @@ import java.util.List;
 import java.util.Set;
 
 public class DefaultConfigurationResolver implements ConfigurationResolver {
-    private static final Spec<DependencyMetadata> IS_LOCAL_EDGE = new Spec<DependencyMetadata>() {
-        @Override
-        public boolean isSatisfiedBy(DependencyMetadata element) {
-            return element instanceof DslOriginDependencyMetadata && ((DslOriginDependencyMetadata) element).getSource() instanceof ProjectDependency;
-        }
-    };
+    private static final Spec<DependencyMetadata> IS_LOCAL_EDGE = element -> element instanceof DslOriginDependencyMetadata && ((DslOriginDependencyMetadata) element).getSource() instanceof ProjectDependency;
     private final ArtifactDependencyResolver resolver;
     private final RepositoryHandler repositories;
     private final GlobalDependencyResolutionRules metadataHandler;

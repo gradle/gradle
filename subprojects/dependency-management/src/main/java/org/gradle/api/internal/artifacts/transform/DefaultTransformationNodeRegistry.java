@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.transform;
 import com.google.common.base.Equivalence;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
-import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
@@ -79,12 +78,7 @@ public class DefaultTransformationNodeRegistry implements TransformationNodeRegi
 
     private static List<Equivalence.Wrapper<TransformationStep>> unpackTransformation(Transformation transformation) {
         final ImmutableList.Builder<Equivalence.Wrapper<TransformationStep>> builder = ImmutableList.builder();
-        transformation.visitTransformationSteps(new Action<TransformationStep>() {
-            @Override
-            public void execute(TransformationStep transformation) {
-                builder.add(TransformationStep.FOR_SCHEDULING.wrap(transformation));
-            }
-        });
+        transformation.visitTransformationSteps(transformation1 -> builder.add(TransformationStep.FOR_SCHEDULING.wrap(transformation1)));
         return builder.build();
     }
 

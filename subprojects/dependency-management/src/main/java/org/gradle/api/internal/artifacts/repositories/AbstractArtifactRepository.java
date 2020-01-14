@@ -160,11 +160,8 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
 
 
     private static <T> InstantiatingAction<T> createRuleAction(final Instantiator instantiator, final ConfigurableRule<T> rule) {
-        return new InstantiatingAction<T>(DefaultConfigurableRules.of(rule), instantiator, new InstantiatingAction.ExceptionHandler<T>() {
-            @Override
-            public void handleException(T target, Throwable throwable) {
-                throw UncheckedException.throwAsUncheckedException(throwable);
-            }
+        return new InstantiatingAction<T>(DefaultConfigurableRules.of(rule), instantiator, (target, throwable) -> {
+            throw UncheckedException.throwAsUncheckedException(throwable);
         });
     }
 }

@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 import com.google.common.collect.Lists;
 import org.apache.commons.io.IOUtils;
 import org.apache.ivy.core.IvyPatternHelper;
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
@@ -52,7 +51,11 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomDomParser.*;
+import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomDomParser.AddDTDFilterInputStream;
+import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomDomParser.getAllChilds;
+import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomDomParser.getFirstChildElement;
+import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomDomParser.getFirstChildText;
+import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomDomParser.getTextContent;
 
 /**
  * Copied from org.apache.ivy.plugins.parser.m2.PomReader.
@@ -137,14 +140,11 @@ public class PomReader implements PomParent {
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         setPomProperties(childPomProperties);
         final String systemId = resource.getFile().toURI().toASCIIString();
-        Document pomDomDoc = resource.withContent(new Transformer<Document, InputStream>() {
-            @Override
-            public Document transform(InputStream inputStream) {
-                try {
-                    return parseToDom(inputStream, systemId);
-                } catch (Exception e) {
-                    throw new MetaDataParseException("POM", resource, e);
-                }
+        Document pomDomDoc = resource.withContent(inputStream -> {
+            try {
+                return parseToDom(inputStream, systemId);
+            } catch (Exception e) {
+                throw new MetaDataParseException("POM", resource, e);
             }
         }).getResult();
         projectElement = pomDomDoc.getDocumentElement();

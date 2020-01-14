@@ -50,12 +50,7 @@ public class DefaultResolutionResult implements ResolutionResult {
     @Override
     public Set<? extends DependencyResult> getAllDependencies() {
         final Set<DependencyResult> out = new LinkedHashSet<DependencyResult>();
-        allDependencies(new Action<DependencyResult>() {
-            @Override
-            public void execute(DependencyResult dep) {
-                out.add(dep);
-            }
-        });
+        allDependencies(out::add);
         return out;
     }
 
