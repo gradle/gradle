@@ -149,7 +149,7 @@ class DefaultInstantExecution internal constructor(
 
                 instantExecutionStateFile.createParentDirectories()
 
-                host.getService(ProjectStateRegistry::class.java).withLenientState {
+                service<ProjectStateRegistry>().withLenientState {
                     withWriteContextFor(instantExecutionStateFile, report) {
                         encodeScheduledWork()
                     }
