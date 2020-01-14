@@ -66,8 +66,8 @@ public class RegularFileSnapshot extends AbstractCompleteFileSystemLocationSnaps
     }
 
     @Override
-    public void accept(NodeVisitor visitor) {
-        visitor.visitNode(this);
+    public void accept(NodeVisitor visitor, boolean parentIsComplete) {
+        visitor.visitNode(this, !parentIsComplete);
     }
 
     @Override

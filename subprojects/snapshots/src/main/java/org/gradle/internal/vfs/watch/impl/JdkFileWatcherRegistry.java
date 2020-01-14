@@ -17,15 +17,16 @@
 package org.gradle.internal.vfs.watch.impl;
 
 import com.sun.nio.file.SensitivityWatchEventModifier;
+import org.gradle.internal.file.FileType;
 import org.gradle.internal.vfs.SnapshotHierarchy;
 import org.gradle.internal.vfs.watch.FileWatcherRegistry;
 import org.gradle.internal.vfs.watch.FileWatcherRegistryFactory;
-import org.gradle.internal.vfs.watch.WatchRootUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.FileSystems;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.WatchEvent;
@@ -34,6 +35,7 @@ import java.nio.file.WatchService;
 import java.util.Collection;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
@@ -45,11 +47,11 @@ public class JdkFileWatcherRegistry implements FileWatcherRegistry {
 
     private final WatchService watchService;
 
-    public JdkFileWatcherRegistry(WatchService watchService, Iterable<String> watchRoots) throws IOException {
+    public JdkFileWatcherRegistry(WatchService watchService, Iterable<Path> watchRoots) throws IOException {
         this.watchService = watchService;
-        for (String watchRoot : watchRoots) {
+        for (Path watchRoot : watchRoots) {
             LOGGER.debug("Started watching {}", watchRoot);
-            Paths.get(watchRoot).register(watchService,
+            watchRoot.register(watchService,
                 new WatchEvent.Kind[]{ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY, OVERFLOW},
                 SensitivityWatchEventModifier.HIGH);
         }
@@ -103,9 +105,72 @@ public class JdkFileWatcherRegistry implements FileWatcherRegistry {
         @Override
         public FileWatcherRegistry startWatching(SnapshotHierarchy root, Predicate<String> watchFilter, Collection<String> mustWatchDirectories) throws IOException {
             WatchService watchService = FileSystems.getDefault().newWatchService();
-            Set<String> directories = WatchRootUtil.resolveDirectoriesToWatch(root, watchFilter, mustWatchDirectories);
+            Set<Path> directories = resolveDirectoriesToWatch(root, watchFilter, mustWatchDirectories);
             LOGGER.warn("Watching {} directories to track changes between builds", directories.size());
             return new JdkFileWatcherRegistry(watchService, directories);
+        }
+    }
+
+    public static Set<Path> resolveDirectoriesToWatch(SnapshotHierarchy root, Predicate<String> watchFilter, Collection<String> mustWatchDirectories) {
+        Set<Path> watchedDirectories = mustWatchDirectories.stream().map(Paths::get).collect(Collectors.toSet());
+        root.visitSnapshots((snapshot, rootOfCompleteHierarchy) -> {
+            // We don't watch things that shouldn't be watched
+            if (!watchFilter.test(snapshot.getAbsolutePath())) {
+                return;
+            }
+
+            Path path = Paths.get(snapshot.getAbsolutePath());
+
+            // For directory entries we watch the directory itself,
+            // so we learn about new children spawning. If the directory
+            // has children, it would be watched through them already.
+            // This is here to make sure we also watch empty directories.
+            if (snapshot.getType() == FileType.Directory) {
+                watchedDirectories.add(path);
+            }
+
+            // For paths, where the parent is also a complete directory snapshot,
+            // we already will be watching the parent directory.
+            // So no need to search for it.
+            if (!rootOfCompleteHierarchy) {
+                return;
+            }
+
+            // For existing files and directories we watch the parent directory,
+            // so we learn if the entry itself disappears or gets modified.
+            // In case of a missing file we need to find the closest existing
+            // ancestor to watch so we can learn if the missing file respawns.
+            Path ancestorToWatch;
+            switch (snapshot.getType()) {
+                case RegularFile:
+                case Directory:
+                    ancestorToWatch = path.getParent();
+                    break;
+                case Missing:
+                    ancestorToWatch = findFirstExistingAncestor(path);
+                    break;
+                default:
+                    throw new AssertionError();
+            }
+            watchedDirectories.add(ancestorToWatch);
+
+        });
+        return watchedDirectories;
+    }
+
+
+    private static Path findFirstExistingAncestor(Path path) {
+        Path candidate = path;
+        while (true) {
+            candidate = candidate.getParent();
+            if (candidate == null) {
+                // TODO Can this happen on Windows when a SUBST'd drive is unregistered?
+                throw new IllegalStateException("Couldn't find existing ancestor for " + path);
+            }
+            // TODO Use the VFS to find the ancestor instead
+            if (Files.isDirectory(candidate)) {
+                return candidate;
+            }
         }
     }
 }

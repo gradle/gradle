@@ -56,7 +56,7 @@ public class WatchRootUtil {
 
     public static Set<String> resolveDirectoriesToWatch(SnapshotHierarchy root, Predicate<String> watchFilter, Collection<String> mustWatchDirectories) {
         Set<String> watchedDirectories = new HashSet<>(mustWatchDirectories);
-        root.visitSnapshots(snapshot -> {
+        root.visitSnapshots((snapshot, rootOfCompleteHierarchy) -> {
             // We don't watch things that shouldn't be watched
             if (!watchFilter.test(snapshot.getAbsolutePath())) {
                 return;

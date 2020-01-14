@@ -120,8 +120,8 @@ public abstract class AbstractCompleteFileSystemLocationSnapshot implements Comp
         }
 
         @Override
-        public void accept(NodeVisitor visitor) {
-            delegate.accept(visitor);
+        public void accept(NodeVisitor visitor, boolean parentIsComplete) {
+            delegate.accept(visitor, false);
         }
     }
 }

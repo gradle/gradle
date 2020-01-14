@@ -64,6 +64,6 @@ public interface SnapshotHierarchy {
     void visitSnapshots(SnapshotVisitor snapshotVisitor);
 
     interface SnapshotVisitor {
-        void visitSnapshot(CompleteFileSystemLocationSnapshot snapshot);
+        void visitSnapshot(CompleteFileSystemLocationSnapshot snapshot, boolean rootOfCompleteHierarchy);
     }
 }
