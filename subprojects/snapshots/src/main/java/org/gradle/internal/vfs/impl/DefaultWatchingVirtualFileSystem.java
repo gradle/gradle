@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -54,12 +55,12 @@ public class DefaultWatchingVirtualFileSystem extends AbstractDelegatingVirtualF
     }
 
     @Override
-    public void startWatching() {
+    public void startWatching(Collection<Path> mustWatchDirectories) {
         if (watchRegistry != null) {
             throw new IllegalStateException("Watch service already started");
         }
         try {
-            Set<Path> watchedDirectories = new HashSet<>();
+            Set<Path> watchedDirectories = new HashSet<>(mustWatchDirectories);
             long startTime = System.currentTimeMillis();
             getRoot().visitSnapshots(snapshot -> {
                 Path path = Paths.get(snapshot.getAbsolutePath());
