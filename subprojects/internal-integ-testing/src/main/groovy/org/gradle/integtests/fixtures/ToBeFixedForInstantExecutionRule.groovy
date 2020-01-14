@@ -21,7 +21,7 @@ import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
 
-import static org.gradle.integtests.fixtures.ToBeFixedForInstantExecutionExtension.isAllBottomSpecs
+import static org.gradle.integtests.fixtures.ToBeFixedForInstantExecutionExtension.isEnabledBottomSpec
 
 /**
  * JUnit Rule supporting the {@link ToBeFixedForInstantExecution} annotation.
@@ -34,7 +34,7 @@ class ToBeFixedForInstantExecutionRule implements TestRule {
         if (!GradleContextualExecuter.isInstant() || annotation == null) {
             return base
         }
-        if (isAllBottomSpecs(annotation) || annotation.bottomSpecs().any { description.className.endsWith(".$it") }) {
+        if (isEnabledBottomSpec(annotation.bottomSpecs(), { description.className.endsWith(".$it") })) {
             ToBeFixedForInstantExecution.Skip skip = annotation.skip()
             if (skip == ToBeFixedForInstantExecution.Skip.DO_NOT_SKIP) {
                 return new ExpectingFailureRuleStatement(base)

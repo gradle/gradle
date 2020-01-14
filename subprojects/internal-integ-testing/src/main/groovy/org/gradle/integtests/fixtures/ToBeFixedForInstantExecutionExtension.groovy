@@ -25,6 +25,8 @@ import org.spockframework.runtime.model.FeatureInfo
 import org.spockframework.runtime.model.IterationInfo
 import org.spockframework.runtime.model.SpecInfo
 
+import java.util.function.Predicate
+
 
 class ToBeFixedForInstantExecutionExtension extends AbstractAnnotationDrivenExtension<ToBeFixedForInstantExecution> {
 
@@ -34,7 +36,7 @@ class ToBeFixedForInstantExecutionExtension extends AbstractAnnotationDrivenExte
             spec.allFeatures.each { feature ->
                 def annotation = feature.featureMethod.reflection.getAnnotation(ToBeFixedForInstantExecution)
                 if (annotation != null) {
-                    if (isAllBottomSpecs(annotation) || spec.bottomSpec.name in annotation.bottomSpecs()) {
+                    if (isEnabledBottomSpec(annotation.bottomSpecs(), { spec.bottomSpec.name == it })) {
                         ToBeFixedForInstantExecution.Skip skip = annotation.skip()
                         if (skip == ToBeFixedForInstantExecution.Skip.DO_NOT_SKIP) {
                             spec.addListener(new CatchFeatureFailuresRunListener(feature))
@@ -47,8 +49,8 @@ class ToBeFixedForInstantExecutionExtension extends AbstractAnnotationDrivenExte
         }
     }
 
-    static boolean isAllBottomSpecs(ToBeFixedForInstantExecution annotation) {
-        return annotation.bottomSpecs().length == 0
+    static boolean isEnabledBottomSpec(String[] bottomSpecs, Predicate<String> specNamePredicate) {
+        return bottomSpecs.length == 0 || bottomSpecs.any { specNamePredicate.test(it) }
     }
 
     @Override

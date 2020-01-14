@@ -20,14 +20,15 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.spockframework.runtime.extension.AbstractAnnotationDrivenExtension
 import org.spockframework.runtime.model.FeatureInfo
 
+import static org.gradle.integtests.fixtures.ToBeFixedForInstantExecutionExtension.isEnabledBottomSpec
+
 
 class UnsupportedWithInstantExecutionExtension extends AbstractAnnotationDrivenExtension<UnsupportedWithInstantExecution> {
 
     @Override
     void visitFeatureAnnotation(UnsupportedWithInstantExecution annotation, FeatureInfo feature) {
         if (GradleContextualExecuter.isInstant()) {
-            String[] bottomSpecs = annotation.bottomSpecs()
-            if (bottomSpecs.length == 0 || feature.parent.bottomSpec.name in bottomSpecs) {
+            if (isEnabledBottomSpec(annotation.bottomSpecs(), { feature.parent.bottomSpec.name == it })) {
                 feature.skipped = true
             }
         }
