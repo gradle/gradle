@@ -40,7 +40,19 @@ abstract class WellBehavedPluginTest extends AbstractPluginIntegrationTest {
         return "assemble"
     }
 
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
+    @ToBeFixedForInstantExecution(bottomSpecs = [
+        "HelpTasksPluginIntegrationTest",
+        "JavaGradlePluginPluginIntegrationTest",
+        "ApplicationPluginIntegrationTest",
+        "CheckstylePluginIntegrationTest",
+        "CodeNarcPluginIntegrationTest",
+        "PmdPluginIntegrationTest",
+        "CppLibraryPluginIntegrationTest",
+        "CppApplicationPluginIntegrationTest",
+        "SwiftApplicationPluginIntegrationTest",
+        "XcodePluginIntegrationTest",
+        "IdeaPluginGoodBehaviourTest"
+    ])
     def "can apply plugin unqualified"() {
         given:
         applyPluginUnqualified()
@@ -61,7 +73,19 @@ abstract class WellBehavedPluginTest extends AbstractPluginIntegrationTest {
         !file("build").exists()
     }
 
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
+    @ToBeFixedForInstantExecution(bottomSpecs = [
+        "HelpTasksPluginIntegrationTest",
+        "JavaGradlePluginPluginIntegrationTest",
+        "ApplicationPluginIntegrationTest",
+        "CheckstylePluginIntegrationTest",
+        "CodeNarcPluginIntegrationTest",
+        "PmdPluginIntegrationTest",
+        "CppLibraryPluginIntegrationTest",
+        "CppApplicationPluginIntegrationTest",
+        "SwiftApplicationPluginIntegrationTest",
+        "XcodePluginIntegrationTest",
+        "IdeaPluginGoodBehaviourTest"
+    ])
     def "plugin can build with empty project"() {
         given:
         applyPlugin()
@@ -98,10 +122,10 @@ abstract class WellBehavedPluginTest extends AbstractPluginIntegrationTest {
             tasks.configureEach {
                 configuredTasks << it
             }
-            
+
             gradle.buildFinished {
                 def configuredTaskPaths = configuredTasks*.path
-                
+
                 assert configuredTaskPaths == [':help']
             }
         """

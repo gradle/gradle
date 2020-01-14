@@ -60,7 +60,7 @@ abstract class AbstractJvmLanguageIncrementalBuildIntegrationTest extends Abstra
         executer.expectDeprecationWarning("The jvm-resources plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
     }
 
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
+    @ToBeFixedForInstantExecution(bottomSpecs = "JavaLanguageIncrementalBuildIntegrationTest")
     def "builds jar"() {
         when:
         expectDeprecationWarnings()

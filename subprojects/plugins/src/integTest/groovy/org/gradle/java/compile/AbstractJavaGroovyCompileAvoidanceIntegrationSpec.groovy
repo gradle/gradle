@@ -61,7 +61,7 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
         buildFile << """
             allprojects {
                 tasks.withType(AbstractCompile) {
-                    options.incremental = ${isIncremental()} 
+                    options.incremental = ${isIncremental()}
                 }
             }
         """
@@ -83,7 +83,7 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
                 configurations.apiElements.outgoing.variants {
                     classes {
                         attributes.attribute(USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API_CLASSES))
-                        artifact file: ${language.compileTaskName}.destinationDir, builtBy: ${language.compileTaskName} 
+                        artifact file: ${language.compileTaskName}.destinationDir, builtBy: ${language.compileTaskName}
                         artifact file: emptyDirs.destinationDir, builtBy: emptyDirs
                         artifact file: processResources.destinationDir, builtBy: processResources
                     }
@@ -104,7 +104,7 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
         """
         def sourceFile = file("a/src/main/${language.name}/ToolImpl.${language.name}")
         sourceFile << """
-            public class ToolImpl { 
+            public class ToolImpl {
                 private String thing() { return null; }
                 private ToolImpl t = this;
             }
@@ -123,7 +123,7 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
         when:
         // change signatures
         sourceFile.text = """
-            public class ToolImpl { 
+            public class ToolImpl {
                 private Number thing() { return null; }
                 private Object t = this;
             }
@@ -137,7 +137,7 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
         when:
         // add private elements
         sourceFile.text = """
-            public class ToolImpl { 
+            public class ToolImpl {
                 private Number thing() { return null; }
                 private Object t = this;
                 private static void someMethod() {}
@@ -153,7 +153,7 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
         when:
         // remove private elements
         sourceFile.text = """
-            public class ToolImpl { 
+            public class ToolImpl {
             }
         """
 
@@ -165,8 +165,8 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
         when:
         // add public method, should change
         sourceFile.text = """
-            public class ToolImpl { 
-                public void execute() { String s = toString(); } 
+            public class ToolImpl {
+                public void execute() { String s = toString(); }
             }
         """
 
@@ -177,9 +177,9 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
         when:
         // add public field, should change
         sourceFile.text = """
-            public class ToolImpl { 
-                public static ToolImpl instance; 
-                public void execute() { String s = toString(); } 
+            public class ToolImpl {
+                public static ToolImpl instance;
+                public void execute() { String s = toString(); }
             }
         """
 
@@ -190,11 +190,11 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
         when:
         // add public constructor, should change
         sourceFile.text = """
-            public class ToolImpl { 
+            public class ToolImpl {
                 public ToolImpl() {}
                 public ToolImpl(String s) {}
-                public static ToolImpl instance; 
-                public void execute() { String s = toString(); } 
+                public static ToolImpl instance;
+                public void execute() { String s = toString(); }
             }
         """
 
@@ -333,7 +333,14 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
         skipped ":b:${language.compileTaskName}"
     }
 
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
+    @ToBeFixedForInstantExecution(bottomSpecs = [
+        "IncrementalJavaCompileAvoidanceAgainstJarIntegrationSpec",
+        "NonIncrementalJavaCompileAvoidanceAgainstJarIntegrationSpec",
+        "IncrementalGroovyCompileAvoidanceAgainstJarIntegrationSpec",
+        "IncrementalGroovyCompileAvoidanceAgainstClassDirIntegrationSpec",
+        "NonIncrementalGroovyCompileAvoidanceAgainstJarIntegrationSpec",
+        "NonIncrementalGroovyCompileAvoidanceAgainstClassDirIntegrationSpec"
+    ])
     def "recompiles when type of implementation class changes"() {
         given:
         buildFile << """
@@ -433,7 +440,14 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
         executedAndNotSkipped ":b:${language.compileTaskName}"
     }
 
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
+    @ToBeFixedForInstantExecution(bottomSpecs = [
+        "IncrementalJavaCompileAvoidanceAgainstJarIntegrationSpec",
+        "NonIncrementalJavaCompileAvoidanceAgainstJarIntegrationSpec",
+        "IncrementalGroovyCompileAvoidanceAgainstJarIntegrationSpec",
+        "IncrementalGroovyCompileAvoidanceAgainstClassDirIntegrationSpec",
+        "NonIncrementalGroovyCompileAvoidanceAgainstJarIntegrationSpec",
+        "NonIncrementalGroovyCompileAvoidanceAgainstClassDirIntegrationSpec"
+    ])
     def "recompiles when generic type signatures of implementation class changes"() {
         given:
         buildFile << """
@@ -619,14 +633,14 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
         """
 
         file("a/src/main/${language.name}/A.${language.name}") << """
-            public class A extends B { 
-                void a() { 
-                    b(); 
-                    String c = c(); 
-                } 
-                @Override String c() { 
-                    return null; 
-                } 
+            public class A extends B {
+                void a() {
+                    b();
+                    String c = c();
+                }
+                @Override String c() {
+                    return null;
+                }
             }
         """
         file("b/src/main/${language.name}/B.${language.name}") << "public class B extends C { void b() { d(); } }"
@@ -677,13 +691,13 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
         """
 
         file("a/src/main/${language.name}/A.${language.name}") << """
-            public class A extends B { 
-                void a() { 
-                    b(); 
-                } 
-                @Override String d() { 
-                    return null; 
-                } 
+            public class A extends B {
+                void a() {
+                    b();
+                }
+                @Override String d() {
+                    return null;
+                }
             }
         """
         file("b/src/main/${language.name}/B.${language.name}") << "public class B extends C { void b() {} }"
