@@ -140,15 +140,8 @@ public class DeprecationLogger {
         return new DeprecationMessage.ConfigurationDeprecationTypeSelector(configuration);
     }
 
-    /**
-     * Output format:
-     * <p>
-     * ${behaviour} This has been deprecated and is scheduled to be removed in Gradle X.
-     **/
     public static void nagUserOfDeprecatedBehaviour(String behaviour) {
-        if (isEnabled()) {
-            DeprecationLogger.deprecateBehaviour(behaviour).nagUser();
-        }
+        DeprecationLogger.deprecateBehaviour(behaviour).nagUser();
     }
 
     // used in performance test - do not use in new code
