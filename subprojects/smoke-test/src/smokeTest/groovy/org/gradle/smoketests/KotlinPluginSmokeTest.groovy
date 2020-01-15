@@ -24,6 +24,8 @@ import org.gradle.testkit.runner.GradleRunner
 import org.gradle.util.Requires
 import spock.lang.Unroll
 
+import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepositoryDefinition
+import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.kotlinEapRepositoryDefinition
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 
@@ -136,7 +138,10 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
         buildFile << """
             buildscript {
                 ext.kotlin_version = '$kotlinVersion'
-                repositories { mavenCentral() }
+                repositories {
+                    ${mavenCentralRepositoryDefinition()}
+                    ${kotlinEapRepositoryDefinition()}
+                }
                 dependencies {
                     classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
                 }
@@ -145,7 +150,8 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
             apply plugin: 'groovy'
 
             repositories {
-                mavenCentral()
+                ${mavenCentralRepositoryDefinition()}
+                ${kotlinEapRepositoryDefinition()}
             }
 
             tasks.named('compileGroovy') {
