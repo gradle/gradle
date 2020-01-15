@@ -190,12 +190,12 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs discontinued invocation message"() {
         when:
-        DeprecationMessage.discontinuedInvocation("method()").nagUser()
+        DeprecationLogger.deprecateAction("Some action").nagUser()
 
         then:
         def events = outputEventListener.events
         events.size() == 1
-        events[0].message == "method() has been deprecated. This will fail with an error in Gradle ${NEXT_GRADLE_VERSION}."
+        events[0].message == "Some action has been deprecated. This will fail with an error in Gradle ${NEXT_GRADLE_VERSION}."
     }
 
     def "logs deprecated method invocation message"() {

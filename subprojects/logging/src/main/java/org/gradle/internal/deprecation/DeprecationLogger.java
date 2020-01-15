@@ -25,6 +25,10 @@ import org.gradle.internal.featurelifecycle.UsageLocationReporter;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
+import static org.gradle.internal.deprecation.Messages.thisBehaviourHasBeenDeprecatedAndIsScheduledToBeRemoved;
+import static org.gradle.internal.deprecation.Messages.thisWillBecomeAnError;
+import static org.gradle.internal.deprecation.Messages.xHasBeenDeprecated;
+
 @ThreadSafe
 public class DeprecationLogger {
 
@@ -52,6 +56,31 @@ public class DeprecationLogger {
     @Nullable
     public static Throwable getDeprecationFailure() {
         return deprecatedFeatureHandler.getDeprecationFailure();
+    }
+
+    // Output: ${action} has been deprecated. This will fail with an error in Gradle X.
+    public static DeprecationMessage.Builder deprecateAction(final String action) {
+        return new DeprecationMessage.Builder() {
+            @Override
+            DeprecationMessage build() {
+                withSummary(xHasBeenDeprecated(action));
+                withRemovalDetails(thisWillBecomeAnError());
+                return super.build();
+            }
+        };
+    }
+
+    // TODO: invocation of this method embeds documentation in summary. A good start for extracting documentation model
+    // Output: ${behaviour}. This behaviour has been deprecated and is scheduled to be removed in Gradle X.
+    public static DeprecationMessage.Builder deprecateBehaviour(final String behaviour) {
+        return new DeprecationMessage.Builder() {
+            @Override
+            DeprecationMessage build() {
+                withSummary(behaviour);
+                withRemovalDetails(thisBehaviourHasBeenDeprecatedAndIsScheduledToBeRemoved());
+                return super.build();
+            }
+        };
     }
 
     // Output: The ${property} property has been deprecated. This is scheduled to be removed in Gradle X.
@@ -95,7 +124,7 @@ public class DeprecationLogger {
      **/
     public static void nagUserOfDeprecatedBehaviour(String behaviour) {
         if (isEnabled()) {
-            DeprecationMessage.behaviourHasBeenDeprecated(behaviour).nagUser();
+            DeprecationLogger.deprecateBehaviour(behaviour).nagUser();
         }
     }
 

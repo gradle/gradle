@@ -23,7 +23,6 @@ import org.gradle.internal.featurelifecycle.DeprecatedFeatureUsage;
 import java.util.List;
 
 import static org.gradle.internal.deprecation.Messages.pleaseUseThisMethodInstead;
-import static org.gradle.internal.deprecation.Messages.thisBehaviourHasBeenDeprecatedAndIsScheduledToBeRemoved;
 import static org.gradle.internal.deprecation.Messages.thisHasBeenDeprecatedAndIsScheduledToBeRemoved;
 import static org.gradle.internal.deprecation.Messages.thisIsScheduledToBeRemoved;
 import static org.gradle.internal.deprecation.Messages.thisWillBecomeAnError;
@@ -135,7 +134,7 @@ public class DeprecationMessage {
         }
     }
 
-    // Output: ${summary}. This has been deprecated and is scheduled to be removed in Gradle {X}.
+    // Output: ${summary}. This has been deprecated and is scheduled to be removed in Gradle X.
     public static DeprecationMessage.Builder thisHasBeenDeprecated(final String summary) {
         return new DeprecationMessage.Builder() {
             @Override
@@ -147,7 +146,7 @@ public class DeprecationMessage {
         };
     }
 
-    // Output: ${thing} has been deprecated. This is scheduled to be removed in Gradle {X}.
+    // Output: ${thing} has been deprecated. This is scheduled to be removed in Gradle X.
     public static DeprecationMessage.Builder specificThingHasBeenDeprecated(final String thing) {
         return new DeprecationMessage.Builder() {
             @Override
@@ -159,26 +158,14 @@ public class DeprecationMessage {
         };
     }
 
-    // Output: ${thing} has been deprecated. This is scheduled to be removed in Gradle {X}.
-    public static DeprecationMessage.Builder indirectCodeUsageHasBeenDeprecated(String thing) {
-        return specificThingHasBeenDeprecated(thing).withIndirectUsage();
+    // Output: ${feature} has been deprecated. This is scheduled to be removed in Gradle X.
+    public static DeprecationMessage.Builder indirectCodeUsageHasBeenDeprecated(String feature) {
+        return specificThingHasBeenDeprecated(feature).withIndirectUsage();
     }
 
-    // Output: ${feature} has been deprecated. This is scheduled to be removed in Gradle {X}.
+    // Output: ${feature} has been deprecated. This is scheduled to be removed in Gradle X.
     public static DeprecationMessage.Builder deprecatedBuildInvocationFeature(String feature) {
         return specificThingHasBeenDeprecated(feature).withBuildInvocation();
-    }
-
-    // Output: ${behaviour}. This behaviour has been deprecated and is scheduled to be removed in Gradle {X}.
-    public static DeprecationMessage.Builder behaviourHasBeenDeprecated(final String behaviour) {
-        return new DeprecationMessage.Builder() {
-            @Override
-            DeprecationMessage build() {
-                withSummary(behaviour);
-                withRemovalDetails(thisBehaviourHasBeenDeprecatedAndIsScheduledToBeRemoved());
-                return super.build();
-            }
-        };
     }
 
     public static class DeprecateNamedParameterBuilder extends DeprecationWithReplacementBuilder<String> {
@@ -279,19 +266,6 @@ public class DeprecationMessage {
         protected String removalDetails() {
             return thisWillBecomeAnError();
         }
-    }
-
-    // Use for some operation that is not deprecated, but something about the method parameters or state is deprecated.
-    // Output: ${invocation} has been deprecated. This will fail with an error in Gradle {X}.
-    public static DeprecationMessage.Builder discontinuedInvocation(final String invocation) {
-        return new DeprecationMessage.Builder() {
-            @Override
-            DeprecationMessage build() {
-                withSummary(xHasBeenDeprecated(invocation));
-                withRemovalDetails(thisWillBecomeAnError());
-                return super.build();
-            }
-        };
     }
 
     public static class DeprecateTaskBuilder extends DeprecationWithReplacementBuilder<String> {

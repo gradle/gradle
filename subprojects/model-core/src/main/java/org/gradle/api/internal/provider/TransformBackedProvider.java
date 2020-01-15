@@ -18,7 +18,7 @@ package org.gradle.api.internal.provider;
 
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
-import org.gradle.internal.deprecation.DeprecationMessage;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,7 +45,7 @@ public class TransformBackedProvider<OUT, IN> extends AbstractMappingProvider<OU
     protected void beforeRead() {
         for (Task producer : getProducerTasks()) {
             if (!producer.getState().getExecuted()) {
-                DeprecationMessage.discontinuedInvocation(String.format("Querying the mapped value of %s before %s has completed", getProvider(), producer)).nagUser();
+                DeprecationLogger.deprecateAction(String.format("Querying the mapped value of %s before %s has completed", getProvider(), producer)).nagUser();
                 break; // Only report one producer
             }
         }
