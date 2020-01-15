@@ -111,7 +111,6 @@ public class Copy extends AbstractCopyTask {
     }
 
     public String useless() {
-        Object foo = null;
-        return foo.toString();
+        return "foobar";
     }
 }
