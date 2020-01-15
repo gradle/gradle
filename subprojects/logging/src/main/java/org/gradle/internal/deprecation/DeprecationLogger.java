@@ -26,7 +26,6 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 import static org.gradle.internal.deprecation.Messages.thisBehaviourHasBeenDeprecatedAndIsScheduledToBeRemoved;
-import static org.gradle.internal.deprecation.Messages.thisHasBeenDeprecatedAndIsScheduledToBeRemoved;
 import static org.gradle.internal.deprecation.Messages.thisIsScheduledToBeRemoved;
 import static org.gradle.internal.deprecation.Messages.thisWillBecomeAnError;
 import static org.gradle.internal.deprecation.Messages.xHasBeenDeprecated;
@@ -60,19 +59,7 @@ public class DeprecationLogger {
         return deprecatedFeatureHandler.getDeprecationFailure();
     }
 
-    // Output: ${summary}. This has been deprecated and is scheduled to be removed in Gradle X.
-    public static DeprecationMessage.Builder thisHasBeenDeprecated(final String summary) {
-        return new DeprecationMessage.Builder() {
-            @Override
-            DeprecationMessage build() {
-                withSummary(summary);
-                withRemovalDetails(thisHasBeenDeprecatedAndIsScheduledToBeRemoved());
-                return super.build();
-            }
-        };
-    }
-
-    // Output: ${thing} has been deprecated. This is scheduled to be removed in Gradle X.
+    // Output: ${feature} has been deprecated. This is scheduled to be removed in Gradle X.
     public static DeprecationMessage.Builder deprecate(final String feature) {
         return new DeprecationMessage.Builder() {
             @Override
@@ -94,18 +81,6 @@ public class DeprecationLogger {
         return deprecate(feature).withBuildInvocation();
     }
 
-    // Output: ${action} has been deprecated. This will fail with an error in Gradle X.
-    public static DeprecationMessage.Builder deprecateAction(final String action) {
-        return new DeprecationMessage.Builder() {
-            @Override
-            DeprecationMessage build() {
-                withSummary(xHasBeenDeprecated(action));
-                withRemovalDetails(thisWillBecomeAnError());
-                return super.build();
-            }
-        };
-    }
-
     // TODO: invocation of this method embeds documentation in summary. A good start for extracting documentation model
     // Output: ${behaviour}. This behaviour has been deprecated and is scheduled to be removed in Gradle X.
     public static DeprecationMessage.Builder deprecateBehaviour(final String behaviour) {
@@ -114,6 +89,18 @@ public class DeprecationLogger {
             DeprecationMessage build() {
                 withSummary(behaviour);
                 withRemovalDetails(thisBehaviourHasBeenDeprecatedAndIsScheduledToBeRemoved());
+                return super.build();
+            }
+        };
+    }
+
+    // Output: ${action} has been deprecated. This will fail with an error in Gradle X.
+    public static DeprecationMessage.Builder deprecateAction(final String action) {
+        return new DeprecationMessage.Builder() {
+            @Override
+            DeprecationMessage build() {
+                withSummary(xHasBeenDeprecated(action));
+                withRemovalDetails(thisWillBecomeAnError());
                 return super.build();
             }
         };

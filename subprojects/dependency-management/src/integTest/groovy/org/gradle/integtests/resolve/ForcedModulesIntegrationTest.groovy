@@ -284,7 +284,7 @@ project(':tool') {
         expect:
         executer.expectDeprecationWarning()
         run("tool:dependencies")
-        outputContains("Using force on a dependency is not recommended. This has been deprecated and is scheduled to be removed in Gradle 7.0. Consider using strict version constraints instead (version { strictly ... } })")
+        outputContains("Using force on a dependency has been deprecated. This is scheduled to be removed in Gradle 7.0. Consider using strict version constraints instead (version { strictly ... } })")
     }
 
     void "can force the version of a direct dependency"() {
@@ -382,12 +382,12 @@ task checkDeps {
             configurations {
                 conf
             }
-        
+
             def d1 = project.dependencies.create("org:foo:1.1")
             def d2 = project.dependencies.create("org:foo:1.0")
             def d3 = project.dependencies.create("org:foo:1.0")
             ${forced}.force = true
-            
+
             dependencies {
                 conf d1
                 conf d2

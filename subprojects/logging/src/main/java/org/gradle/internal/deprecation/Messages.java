@@ -21,7 +21,6 @@ import org.gradle.util.GradleVersion;
 final class Messages {
     private static String isScheduledToBeRemovedMessage;
     private static String willBecomeErrorMessage;
-    private static String thisHasBeenDeprecatedAndIsScheduledToBeRemoved;
     private static String thisIsScheduledToBeRemoved;
     private static String thisBehaviourHasBeenDeprecatedAndIsScheduledToBeRemoved;
 
@@ -48,13 +47,6 @@ final class Messages {
             thisIsScheduledToBeRemoved = String.format("This %s", isScheduledToBeRemoved());
         }
         return thisIsScheduledToBeRemoved;
-    }
-
-    static String thisHasBeenDeprecatedAndIsScheduledToBeRemoved() {
-        if (thisHasBeenDeprecatedAndIsScheduledToBeRemoved == null) {
-            thisHasBeenDeprecatedAndIsScheduledToBeRemoved = String.format("This has been deprecated and %s", isScheduledToBeRemoved());
-        }
-        return thisHasBeenDeprecatedAndIsScheduledToBeRemoved;
     }
 
     static String isScheduledToBeRemoved() {

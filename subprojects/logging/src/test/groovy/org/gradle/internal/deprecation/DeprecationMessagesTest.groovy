@@ -87,16 +87,6 @@ class DeprecationMessagesTest extends Specification {
         events[0].message == 'summary removal contextualAdvice advice'
     }
 
-    def "logs generic deprecation message"() {
-        when:
-        DeprecationLogger.thisHasBeenDeprecated("Summary.").withAdvice("Advice.").nagUser()
-
-        then:
-        def events = outputEventListener.events
-        events.size() == 1
-        events[0].message == "Summary. This has been deprecated and is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Advice."
-    }
-
     def "logs generic deprecation message for specific thing"() {
         when:
         DeprecationLogger.deprecate("Something").nagUser()
