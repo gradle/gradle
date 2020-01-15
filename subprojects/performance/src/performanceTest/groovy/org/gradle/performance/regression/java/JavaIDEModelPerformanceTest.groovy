@@ -27,7 +27,7 @@ import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_
 
 class JavaIDEModelPerformanceTest extends AbstractToolingApiCrossVersionPerformanceTest {
 
-    private static final BASELINE_VERSION = "5.7-20190812220043+0000"
+    private static final BASELINE_VERSION = "6.2-20200114230021+0000"
 
     @Unroll
     def "get IDE model on #testProject for Eclipse"() {
