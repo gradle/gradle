@@ -354,6 +354,10 @@ tasks.named("checkstyleSamplesExemplarFunctionalTest") {
     enabled = false
 }
 
+tasks.named("generateWrapperForSamples") {
+    gradleVersion = project.version
+}
+
 // Publications for the docs subproject:
 
 configurations {
