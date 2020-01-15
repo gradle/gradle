@@ -23,13 +23,10 @@ import org.gradle.internal.featurelifecycle.DeprecatedFeatureUsage;
 import java.util.List;
 
 import static org.gradle.internal.deprecation.Messages.pleaseUseThisMethodInstead;
-import static org.gradle.internal.deprecation.Messages.pluginHasBeenDeprecated;
-import static org.gradle.internal.deprecation.Messages.propertyHasBeenDeprecated;
 import static org.gradle.internal.deprecation.Messages.thisBehaviourHasBeenDeprecatedAndIsScheduledToBeRemoved;
 import static org.gradle.internal.deprecation.Messages.thisHasBeenDeprecatedAndIsScheduledToBeRemoved;
 import static org.gradle.internal.deprecation.Messages.thisIsScheduledToBeRemoved;
 import static org.gradle.internal.deprecation.Messages.thisWillBecomeAnError;
-import static org.gradle.internal.deprecation.Messages.usingMethodHasBeenDeprecated;
 import static org.gradle.internal.deprecation.Messages.xHasBeenDeprecated;
 
 public class DeprecationMessage {
@@ -209,7 +206,7 @@ public class DeprecationMessage {
 
         @Override
         protected String formatSummary(String property) {
-            return propertyHasBeenDeprecated(property);
+            return String.format("The %s property has been deprecated.", property);
         }
 
         @Override
@@ -258,7 +255,7 @@ public class DeprecationMessage {
 
         @Override
         protected String formatSummary(String invocation) {
-            return usingMethodHasBeenDeprecated(invocation);
+            return String.format("Using method %s has been deprecated.", invocation);
         }
 
         @Override
@@ -301,19 +298,6 @@ public class DeprecationMessage {
         }
     }
 
-    // Output: The ${toolName} has been deprecated. This is scheduled to be removed in Gradle X. Consider using ${replacement} instead.
-    public static DeprecationMessage.Builder toolReplacedWithExternalOne(final String toolName, final String replacement) {
-        return new DeprecationMessage.Builder() {
-            @Override
-            DeprecationMessage build() {
-                withSummary(String.format("The %s has been deprecated.", toolName));
-                withRemovalDetails(thisIsScheduledToBeRemoved());
-                withAdvice(String.format("Consider using %s instead.", replacement));
-                return super.build();
-            }
-        };
-    }
-
     public static class DeprecatePluginBuilder extends DeprecationWithReplacementBuilder {
 
         private boolean externalReplacement = false;
@@ -324,7 +308,7 @@ public class DeprecationMessage {
 
         @Override
         protected String formatSummary(String plugin) {
-            return pluginHasBeenDeprecated(plugin);
+            return String.format("The %s plugin has been deprecated.", plugin);
         }
 
         @Override

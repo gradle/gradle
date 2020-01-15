@@ -25,26 +25,15 @@ final class Messages {
     private static String thisIsScheduledToBeRemoved;
     private static String thisBehaviourHasBeenDeprecatedAndIsScheduledToBeRemoved;
 
-    private Messages() {}
+    private Messages() {
+    }
 
     static String xHasBeenDeprecated(String x) {
         return String.format("%s has been deprecated.", x);
     }
 
-    static String propertyHasBeenDeprecated(String propertyName) {
-        return String.format("The %s property has been deprecated.", propertyName);
-    }
-
     static String pleaseUseThisMethodInstead(String replacement) {
         return String.format("Please use the %s method instead.", replacement);
-    }
-
-    static String usingMethodHasBeenDeprecated(String invocation) {
-        return String.format("Using method %s has been deprecated.", invocation);
-    }
-
-    static String pluginHasBeenDeprecated(String pluginName) {
-        return String.format("The %s plugin has been deprecated.", pluginName);
     }
 
     static String thisBehaviourHasBeenDeprecatedAndIsScheduledToBeRemoved() {

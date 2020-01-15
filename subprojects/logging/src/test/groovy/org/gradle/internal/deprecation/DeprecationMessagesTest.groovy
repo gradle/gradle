@@ -228,16 +228,6 @@ class DeprecationMessagesTest extends Specification {
         events[0].message == "The taskName task has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Please use the replacementTask task instead."
     }
 
-    def "logs deprecated tool replaced with external one"() {
-        when:
-        DeprecationMessage.toolReplacedWithExternalOne("toolName", "replacement").nagUser()
-
-        then:
-        def events = outputEventListener.events
-        events.size() == 1
-        events[0].message == "The toolName has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Consider using replacement instead."
-    }
-
     def "logs plugin replaced with external one message"() {
         when:
         DeprecationLogger.deprecatePlugin("pluginName").replaceWithExternalPlugin("replacement").nagUser()
