@@ -1111,6 +1111,11 @@
             <pgp value="9e93db1192cee3d3b581aabb37e9d58ea4598641"/>
          </artifact>
       </component>
+      <component group="org.javassist" name="javassist" version="3.24.0-GA">
+         <artifact name="javassist-3.24.0-GA.jar">
+            <pgp value="666a4692ce11b7b3f4eb7b3410066a9707090cf9"/>
+         </artifact>
+      </component>
       <component group="org.jetbrains" name="annotations" version="13.0">
          <artifact name="annotations-13.0.jar">
             <pgp value="2e3a1affe42b5f53af19f780bcf4173966770193"/>
