@@ -48,7 +48,7 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
 
             task t(type:SomeTask) {
                 doLast {
-                    new org.gradle.internal.deprecation.DeprecationMessage.Builder()
+                    new org.gradle.internal.deprecation.DeprecationMessageBuilder()
                             .withSummary('Custom Task action will be deprecated.').withRemovalDetails('Custom actions will not be supported in 2 weeks from now.')
                             .withAdvice('Use task type X instead.')
                             .withContextualAdvice("Task ':t' should not have custom actions attached.")
