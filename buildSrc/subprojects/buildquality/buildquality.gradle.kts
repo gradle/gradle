@@ -15,6 +15,7 @@ dependencies {
         exclude(group = "org.codehaus.groovy")
     }
     implementation("com.github.javaparser:javaparser-symbol-solver-core")
+    implementation("org.gradle.kotlin:gradle-kotlin-dsl-conventions:0.4.1")
 }
 
 gradlePlugin {
@@ -42,6 +43,10 @@ gradlePlugin {
         register("incubationReport") {
             id = "gradlebuild.incubation-report"
             implementationClass = "org.gradle.gradlebuild.buildquality.incubation.IncubationReportPlugin"
+        }
+        register("quickCheck") {
+            id = "gradlebuild.quick-check"
+            implementationClass = "org.gradle.gradlebuild.buildquality.quick.QuickCheckPlugin"
         }
     }
 }

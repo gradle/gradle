@@ -38,7 +38,7 @@ class MavenPublishSftpIntegrationTest extends AbstractMavenPublishIntegTest {
         }
     }
 
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_TO_CLEANUP)
+    @ToBeFixedForInstantExecution
     def "can publish to a SFTP repository"() {
         given:
         def mavenSftpRepo = getMavenSftpRepo()

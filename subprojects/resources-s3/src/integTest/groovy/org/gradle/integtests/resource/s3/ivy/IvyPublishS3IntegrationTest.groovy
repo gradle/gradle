@@ -32,7 +32,7 @@ class IvyPublishS3IntegrationTest extends AbstractIvyPublishIntegTest {
         executer.withArgument("-Dorg.gradle.s3.endpoint=${server.getUri()}")
     }
 
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_TO_CLEANUP)
+    @ToBeFixedForInstantExecution
     def "can publish to an S3 Ivy repository"() {
         given:
         def ivyRepo = server.remoteIvyRepo
