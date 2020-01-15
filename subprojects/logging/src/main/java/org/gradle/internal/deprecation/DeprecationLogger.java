@@ -59,6 +59,11 @@ public class DeprecationLogger {
         return new DeprecationMessage.DeprecatePropertyBuilder(property);
     }
 
+    // Output: The ${parameterName} named parameter has been deprecated. This is scheduled to be removed in Gradle {X}. Please use the ${replacement} named parameter instead.
+    public static DeprecationMessage.DeprecateNamedParameterBuilder deprecateNamedParameter(String parameter) {
+        return new DeprecationMessage.DeprecateNamedParameterBuilder(parameter);
+    }
+
     // Output: The ${method} method has been deprecated. This is scheduled to be removed in Gradle X.
     public static DeprecationMessage.DeprecateMethodBuilder deprecateMethod(String method) {
         return new DeprecationMessage.DeprecateMethodBuilder(method);

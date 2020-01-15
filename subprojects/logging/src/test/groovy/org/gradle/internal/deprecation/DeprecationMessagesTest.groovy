@@ -32,7 +32,7 @@ class DeprecationMessagesTest extends Specification {
     @Rule
     final ConfigureLogging logging = new ConfigureLogging(outputEventListener)
 
-    static final String NEXT_GRADLE_VERSION = GradleVersion.current().nextMajor.version;
+    static final String NEXT_GRADLE_VERSION = GradleVersion.current().nextMajor.version
 
     def setup() {
         DeprecationLogger.init(Mock(UsageLocationReporter), WarningMode.All, Mock(DeprecatedUsageBuildOperationProgressBroadcaster))
@@ -140,7 +140,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs deprecated and replaced parameter usage message"() {
         when:
-        DeprecationMessage.replacedNamedParameter("paramName", "replacement").nagUser()
+        DeprecationLogger.deprecateNamedParameter("paramName").replaceWith("replacement").nagUser()
 
         then:
         def events = outputEventListener.events

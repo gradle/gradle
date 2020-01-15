@@ -180,17 +180,21 @@ public class DeprecationMessage {
         };
     }
 
-    // Output: The ${parameterName} named parameter has been deprecated. This is scheduled to be removed in Gradle {X}. Please use the ${replacement} named parameter instead.
-    public static DeprecationMessage.Builder replacedNamedParameter(final String parameterName, final String replacement) {
-        return new DeprecationMessage.Builder() {
-            @Override
-            DeprecationMessage build() {
-                withSummary(String.format("The %s named parameter has been deprecated.", parameterName));
-                withRemovalDetails(thisIsScheduledToBeRemoved());
-                withAdvice(String.format("Please use the %s named parameter instead.", replacement));
-                return super.build();
-            }
-        };
+    public static class DeprecateNamedParameterBuilder extends DeprecationWithReplacementBuilder {
+
+        DeprecateNamedParameterBuilder(String parameter) {
+            super(parameter);
+        }
+
+        @Override
+        protected String formatSummary(String parameter) {
+            return String.format("The %s named parameter has been deprecated.", parameter);
+        }
+
+        @Override
+        protected String formatAdvice(String replacement) {
+            return String.format("Please use the %s named parameter instead.", replacement);
+        }
     }
 
     public static class DeprecatePropertyBuilder extends DeprecationWithReplacementBuilder {
