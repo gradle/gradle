@@ -89,6 +89,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -233,8 +234,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                                     .stream()
                                     .map(File::getAbsolutePath)
                                     .collect(Collectors.toList()),
-                                () -> {
-                                }
+                                () -> {}
                             );
                         }
                     } else {
@@ -246,7 +246,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                 @Override
                 public void beforeComplete(GradleInternal gradle) {
                     if (isRetentionEnabled(gradle.getStartParameter().getSystemPropertiesArgs())) {
-                        virtualFileSystem.startWatching();
+                        virtualFileSystem.startWatching(Collections.singleton(gradle.getRootProject().getProjectDir().toPath()));
                     } else {
                         virtualFileSystem.invalidateAll();
                     }
