@@ -314,42 +314,29 @@ public class DeprecationMessage {
         };
     }
 
-    // Output: The ${pluginName} plugin has been deprecated. This is scheduled to be removed in Gradle X. ${advice}
-    public static DeprecationMessage.Builder deprecatedPlugin(final String pluginName) {
-        return new DeprecationMessage.Builder() {
-            @Override
-            DeprecationMessage build() {
-                withSummary(pluginHasBeenDeprecated(pluginName));
-                withRemovalDetails(thisIsScheduledToBeRemoved());
-                return super.build();
-            }
-        };
-    }
+    public static class DeprecatePluginBuilder extends DeprecationWithReplacementBuilder {
 
-    // Output: The ${pluginName} plugin has been deprecated. This is scheduled to be removed in Gradle X. Please use the ${replacement} plugin instead.
-    public static DeprecationMessage.Builder replacedPlugin(final String pluginName, final String replacement) {
-        return new DeprecationMessage.Builder() {
-            @Override
-            DeprecationMessage build() {
-                withSummary(pluginHasBeenDeprecated(pluginName));
-                withRemovalDetails(thisIsScheduledToBeRemoved());
-                withAdvice(String.format("Please use the %s plugin instead.", replacement));
-                return super.build();
-            }
-        };
-    }
+        private boolean externalReplacement = false;
 
-    // Output: The ${pluginName} plugin has been deprecated. This is scheduled to be removed in Gradle X. Consider using the ${replacement} plugin instead.
-    public static DeprecationMessage.Builder pluginReplacedWithExternalOne(final String pluginName, final String replacement) {
-        return new DeprecationMessage.Builder() {
-            @Override
-            DeprecationMessage build() {
-                withSummary(pluginHasBeenDeprecated(pluginName));
-                withRemovalDetails(thisIsScheduledToBeRemoved());
-                withAdvice(String.format("Consider using the %s plugin instead.", replacement));
-                return super.build();
-            }
-        };
+        DeprecatePluginBuilder(String plugin) {
+            super(plugin);
+        }
+
+        @Override
+        protected String formatSummary(String plugin) {
+            return pluginHasBeenDeprecated(plugin);
+        }
+
+        @Override
+        protected String formatAdvice(String replacement) {
+            return externalReplacement ? String.format("Consider using the %s plugin instead.", replacement) : String.format("Please use the %s plugin instead.", replacement);
+        }
+
+        public Builder replaceWithExternalPlugin(String replacement) {
+            this.externalReplacement = true;
+            return replaceWith(replacement);
+        }
+
     }
 
     // TODO: start here with documentation embedding

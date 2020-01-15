@@ -22,7 +22,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.specs.Spec;
-import org.gradle.internal.deprecation.DeprecationMessage;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
@@ -62,7 +62,7 @@ public class PlayTwirlPlugin extends RuleSource {
 
     @ComponentType
     void registerTwirlLanguageType(TypeBuilder<TwirlSourceSet> builder) {
-        DeprecationMessage.pluginReplacedWithExternalOne("Play Twirl", "org.gradle.playframework-twirl").nagUser();
+        DeprecationLogger.deprecatePlugin("Play Twirl").replaceWithExternalPlugin("org.gradle.playframework-twirl").nagUser();
         builder.defaultImplementation(DefaultTwirlSourceSet.class);
     }
 

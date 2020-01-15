@@ -23,7 +23,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.internal.deprecation.DeprecationMessage;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
@@ -73,7 +73,7 @@ public class PlayCoffeeScriptPlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project target) {
-        DeprecationMessage.pluginReplacedWithExternalOne("Play CoffeeScript", "org.gradle.playframework").nagUser();
+        DeprecationLogger.deprecatePlugin("Play CoffeeScript").replaceWithExternalPlugin("org.gradle.playframework").nagUser();
         target.getPluginManager().apply(ComponentModelBasePlugin.class);
     }
 

@@ -21,7 +21,7 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.internal.deprecation.DeprecationMessage;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
@@ -55,7 +55,7 @@ public class PlayRoutesPlugin extends RuleSource {
 
     @ComponentType
     void registerRoutesLanguageType(TypeBuilder<RoutesSourceSet> builder) {
-        DeprecationMessage.pluginReplacedWithExternalOne("Play Routes", "org.gradle.playframework-routes").nagUser();
+        DeprecationLogger.deprecatePlugin("Play Routes").replaceWithExternalPlugin("org.gradle.playframework-routes").nagUser();
     }
 
     @Mutate

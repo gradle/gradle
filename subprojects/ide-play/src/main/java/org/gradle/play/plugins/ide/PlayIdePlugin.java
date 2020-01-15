@@ -21,7 +21,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.plugins.AppliedPlugin;
-import org.gradle.internal.deprecation.DeprecationMessage;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.play.plugins.ide.internal.PlayIdeaPlugin;
 
 /**
@@ -34,7 +34,7 @@ import org.gradle.play.plugins.ide.internal.PlayIdeaPlugin;
 public class PlayIdePlugin implements Plugin<Project> {
     @Override
     public void apply(final Project project) {
-        DeprecationMessage.pluginReplacedWithExternalOne("Play Ide", "org.gradle.playframework-ide").nagUser();
+        DeprecationLogger.deprecatePlugin("Play Ide").replaceWithExternalPlugin("org.gradle.playframework-ide").nagUser();
         project.getPluginManager().withPlugin("idea", new Action<AppliedPlugin>() {
             @Override
             public void execute(AppliedPlugin appliedPlugin) {

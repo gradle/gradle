@@ -59,7 +59,7 @@ public class DeprecationLogger {
         return new DeprecationMessage.DeprecatePropertyBuilder(property);
     }
 
-    // Output: The ${parameterName} named parameter has been deprecated. This is scheduled to be removed in Gradle {X}. Please use the ${replacement} named parameter instead.
+    // Output: The ${parameter} named parameter has been deprecated. This is scheduled to be removed in Gradle {X}. Please use the ${replacement} named parameter instead.
     public static DeprecationMessage.DeprecateNamedParameterBuilder deprecateNamedParameter(String parameter) {
         return new DeprecationMessage.DeprecateNamedParameterBuilder(parameter);
     }
@@ -69,14 +69,19 @@ public class DeprecationLogger {
         return new DeprecationMessage.DeprecateMethodBuilder(method);
     }
 
-    // Output: Using method ${methodName} has been deprecated. This will fail with an error in Gradle {X}.
+    // Output: Using method ${invocation} has been deprecated. This will fail with an error in Gradle X.
     public static DeprecationMessage.DeprecateInvocationBuilder deprecateInvocation(String invocation) {
         return new DeprecationMessage.DeprecateInvocationBuilder(invocation);
     }
 
-    // Output: The ${taskName} task has been deprecated. This is scheduled to be removed in Gradle X.
+    // Output: The ${task} task has been deprecated. This is scheduled to be removed in Gradle X.
     public static DeprecationMessage.DeprecateTaskBuilder deprecateTask(String task) {
         return new DeprecationMessage.DeprecateTaskBuilder(task);
+    }
+
+    // Output: The ${plugin} plugin has been deprecated. This is scheduled to be removed in Gradle X.
+    public static DeprecationMessage.DeprecatePluginBuilder deprecatePlugin(String plugin) {
+        return new DeprecationMessage.DeprecatePluginBuilder(plugin);
     }
 
     /**

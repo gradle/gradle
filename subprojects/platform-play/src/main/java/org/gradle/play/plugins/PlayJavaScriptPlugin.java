@@ -22,7 +22,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.internal.deprecation.DeprecationMessage;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
@@ -56,7 +56,7 @@ import java.util.Map;
 public class PlayJavaScriptPlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
-        DeprecationMessage.pluginReplacedWithExternalOne("Play JavaScript", "org.gradle.playframework-javascript").nagUser();
+        DeprecationLogger.deprecatePlugin("Play JavaScript").replaceWithExternalPlugin("org.gradle.playframework-javascript").nagUser();
         project.getPluginManager().apply(ComponentModelBasePlugin.class);
     }
 

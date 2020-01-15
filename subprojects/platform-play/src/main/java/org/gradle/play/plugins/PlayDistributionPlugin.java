@@ -43,7 +43,7 @@ import org.gradle.api.tasks.application.CreateStartScripts;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.api.tasks.bundling.Tar;
 import org.gradle.api.tasks.bundling.Zip;
-import org.gradle.internal.deprecation.DeprecationMessage;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.tasks.Jar;
@@ -84,7 +84,7 @@ public class PlayDistributionPlugin extends RuleSource {
 
     @Model
     PlayDistributionContainer distributions(Instantiator instantiator, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
-        DeprecationMessage.pluginReplacedWithExternalOne("Play Distribution", "org.gradle.playframework-distribution").nagUser();
+        DeprecationLogger.deprecatePlugin("Play Distribution").replaceWithExternalPlugin("org.gradle.playframework-distribution").nagUser();
         return new DefaultPlayDistributionContainer(instantiator, collectionCallbackActionDecorator);
     }
 

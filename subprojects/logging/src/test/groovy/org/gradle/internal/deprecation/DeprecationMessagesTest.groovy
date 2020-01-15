@@ -238,19 +238,9 @@ class DeprecationMessagesTest extends Specification {
         events[0].message == "The toolName has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Consider using replacement instead."
     }
 
-    def "logs replaced plugin message"() {
-        when:
-        DeprecationMessage.replacedPlugin("pluginName", "replacement").nagUser()
-
-        then:
-        def events = outputEventListener.events
-        events.size() == 1
-        events[0].message == "The pluginName plugin has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Please use the replacement plugin instead."
-    }
-
     def "logs plugin replaced with external one message"() {
         when:
-        DeprecationMessage.pluginReplacedWithExternalOne("pluginName", "replacement").nagUser()
+        DeprecationLogger.deprecatePlugin("pluginName").replaceWithExternalPlugin("replacement").nagUser()
 
         then:
         def events = outputEventListener.events
@@ -260,12 +250,22 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs deprecated plugin message"() {
         when:
-        DeprecationMessage.deprecatedPlugin("pluginName").withAdvice("Advice.").nagUser()
+        DeprecationLogger.deprecatePlugin("pluginName").withAdvice("Advice.").nagUser()
 
         then:
         def events = outputEventListener.events
         events.size() == 1
         events[0].message == "The pluginName plugin has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Advice."
+    }
+
+    def "logs replaced plugin message"() {
+        when:
+        DeprecationLogger.deprecatePlugin("pluginName").replaceWith("replacement").nagUser()
+
+        then:
+        def events = outputEventListener.events
+        events.size() == 1
+        events[0].message == "The pluginName plugin has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Please use the replacement plugin instead."
     }
 
     def "logs deprecated plugin message with link to upgrade guide"() {
