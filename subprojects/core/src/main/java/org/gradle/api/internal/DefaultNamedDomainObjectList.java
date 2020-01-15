@@ -45,9 +45,8 @@ public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCol
     @Deprecated
     public DefaultNamedDomainObjectList(Class<T> type, Instantiator instantiator, Namer<? super T> namer) {
         super(type, new ListElementSource<T>(), instantiator, namer, CollectionCallbackActionDecorator.NOOP);
-        DeprecationLogger
-            .deprecate("Internal API constructor DefaultNamedDomainObjectList(Class<T>, Instantiator, Namer<T>)")
-            .withAdvice("Please use ObjectFactory.namedDomainObjectList(Class<T>) instead.")
+        DeprecationLogger.deprecateInternalApi("constructor DefaultNamedDomainObjectList(Class<T>, Instantiator, Namer<T>)")
+            .replaceWith("ObjectFactory.namedDomainObjectList(Class<T>)")
             .nagUser();
     }
 

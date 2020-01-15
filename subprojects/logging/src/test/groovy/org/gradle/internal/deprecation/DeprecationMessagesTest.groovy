@@ -265,7 +265,6 @@ class DeprecationMessagesTest extends Specification {
         def events = outputEventListener.events
         events.size() == 1
         events[0].message == "The ConfigurationType configuration has been deprecated for artifact declaration. This will fail with an error in Gradle ${NEXT_GRADLE_VERSION}. Please use the r1 or r2 or r3 configuration instead."
-
     }
 
     def "logs configuration deprecation message for consumption"() {
@@ -276,7 +275,6 @@ class DeprecationMessagesTest extends Specification {
         def events = outputEventListener.events
         events.size() == 1
         events[0].message == "The ConfigurationType configuration has been deprecated for consumption. This will fail with an error in Gradle ${NEXT_GRADLE_VERSION}. Please use attributes to consume the r1 or r2 or r3 configuration instead."
-
     }
 
     def "logs configuration deprecation message for dependency declaration"() {
@@ -287,7 +285,6 @@ class DeprecationMessagesTest extends Specification {
         def events = outputEventListener.events
         events.size() == 1
         events[0].message == "The ConfigurationType configuration has been deprecated for dependency declaration. This will fail with an error in Gradle ${NEXT_GRADLE_VERSION}. Please use the r1 or r2 or r3 configuration instead."
-
     }
 
     def "logs configuration deprecation message for resolution"() {
@@ -298,7 +295,17 @@ class DeprecationMessagesTest extends Specification {
         def events = outputEventListener.events
         events.size() == 1
         events[0].message == "The ConfigurationType configuration has been deprecated for resolution. This will fail with an error in Gradle ${NEXT_GRADLE_VERSION}. Please resolve the r1 or r2 or r3 configuration instead."
-
     }
 
+    def "logs internal API deprecation message"() {
+        when:
+        DeprecationLogger.deprecateInternalApi("constructor DefaultPolymorphicDomainObjectContainer(Class<T>, Instantiator)")
+            .replaceWith("ObjectFactory.polymorphicDomainObjectContainer(Class<T>)")
+            .nagUser()
+
+        then:
+        def events = outputEventListener.events
+        events.size() == 1
+        events[0].message == "Internal API constructor DefaultPolymorphicDomainObjectContainer(Class<T>, Instantiator) has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Please use ObjectFactory.polymorphicDomainObjectContainer(Class<T>) instead."
+    }
 }

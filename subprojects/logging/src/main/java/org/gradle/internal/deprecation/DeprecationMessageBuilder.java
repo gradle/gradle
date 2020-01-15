@@ -281,4 +281,20 @@ public class DeprecationMessageBuilder {
             return withAdvice("Consult the upgrading guide for further information: " + DOCUMENTATION_REGISTRY.getDocumentationFor("upgrading_version_" + majorVersion, upgradeGuideSection));
         }
     }
+
+    public static class DeprecateInternalApi extends WithReplacement<String> {
+        DeprecateInternalApi(String api) {
+            super(api);
+        }
+
+        @Override
+        protected String formatSummary(String api) {
+            return String.format("Internal API %s has been deprecated.", api);
+        }
+
+        @Override
+        protected String formatAdvice(String replacement) {
+            return String.format("Please use %s instead.", replacement);
+        }
+    }
 }

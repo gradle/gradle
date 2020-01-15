@@ -41,9 +41,8 @@ public class DefaultNamedDomainObjectSet<T> extends DefaultNamedDomainObjectColl
     @Deprecated
     public DefaultNamedDomainObjectSet(Class<? extends T> type, Instantiator instantiator) {
         this(type, instantiator, CollectionCallbackActionDecorator.NOOP);
-        DeprecationLogger
-            .deprecate("Internal API constructor DefaultNamedDomainObjectSet(Class<T>, Instantiator, Namer<T>)")
-            .withAdvice("Please use ObjectFactory.namedDomainObjectSet(Class<T>) instead.")
+        DeprecationLogger.deprecateInternalApi("constructor DefaultNamedDomainObjectSet(Class<T>, Instantiator, Namer<T>)")
+            .replaceWith("ObjectFactory.namedDomainObjectSet(Class<T>)")
             .nagUser();
     }
 

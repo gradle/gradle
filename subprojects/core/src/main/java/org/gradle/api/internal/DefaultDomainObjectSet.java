@@ -40,9 +40,8 @@ public class DefaultDomainObjectSet<T> extends DefaultDomainObjectCollection<T> 
     @Deprecated
     public DefaultDomainObjectSet(Class<? extends T> type) {
         super(type, new IterationOrderRetainingSetElementSource<T>(), CollectionCallbackActionDecorator.NOOP);
-        DeprecationLogger
-            .deprecate("Internal API constructor DefaultDomainObjectSet(Class<T>)")
-            .withAdvice("Please use ObjectFactory.domainObjectSet(Class<T>) instead.")
+        DeprecationLogger.deprecateInternalApi("constructor DefaultDomainObjectSet(Class<T>)")
+            .replaceWith("ObjectFactory.domainObjectSet(Class<T>)")
             .nagUser();
     }
 

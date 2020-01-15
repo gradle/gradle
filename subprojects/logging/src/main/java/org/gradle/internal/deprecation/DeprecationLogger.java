@@ -136,6 +136,11 @@ public class DeprecationLogger {
         return new DeprecationMessageBuilder.DeprecatePlugin(plugin);
     }
 
+    // Output: Internal API ${api} has been deprecated. This is scheduled to be removed in Gradle X.
+    public static DeprecationMessageBuilder.DeprecateInternalApi deprecateInternalApi(String api) {
+        return new DeprecationMessageBuilder.DeprecateInternalApi(api);
+    }
+
     public static DeprecationMessageBuilder.ConfigurationDeprecationTypeSelector deprecateConfiguration(String configuration) {
         return new DeprecationMessageBuilder.ConfigurationDeprecationTypeSelector(configuration);
     }
