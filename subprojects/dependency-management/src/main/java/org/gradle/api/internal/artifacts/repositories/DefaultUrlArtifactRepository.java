@@ -120,7 +120,7 @@ public class DefaultUrlArtifactRepository implements UrlArtifactRepository {
                 repositoryType,
                 displayNameSupplier.get(),
                 allowInsecureProtocolHelpLink()))
-            .withContextualAdvice(contextualAdvice)
+            .withContext(contextualAdvice)
             .nagUser();
     }
 

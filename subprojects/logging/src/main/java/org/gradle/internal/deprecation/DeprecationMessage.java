@@ -23,21 +23,21 @@ class DeprecationMessage {
     private final String summary;
     private final String removalDetails;
     private final String advice;
-    private final String contextualAdvice;
+    private final String context;
     private final String documentationReference;
     private final DeprecatedFeatureUsage.Type usageType;
 
-    DeprecationMessage(String summary, String removalDetails, String advice, String contextualAdvice, String documentationReference, DeprecatedFeatureUsage.Type usageType) {
+    DeprecationMessage(String summary, String removalDetails, String advice, String context, String documentationReference, DeprecatedFeatureUsage.Type usageType) {
         this.summary = summary;
         this.removalDetails = removalDetails;
         this.advice = advice;
-        this.contextualAdvice = contextualAdvice;
+        this.context = context;
         this.documentationReference = documentationReference;
         this.usageType = usageType;
     }
 
     DeprecatedFeatureUsage toDeprecatedFeatureUsage(Class<?> calledFrom) {
-        return new DeprecatedFeatureUsage(summary, removalDetails, advice, contextualAdvice, usageType, calledFrom);
+        return new DeprecatedFeatureUsage(summary, removalDetails, advice, context, usageType, calledFrom);
     }
 
 }

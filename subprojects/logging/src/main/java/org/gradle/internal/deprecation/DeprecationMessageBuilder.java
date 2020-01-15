@@ -33,7 +33,7 @@ public class DeprecationMessageBuilder {
     private String summary;
     private String removalDetails;
     private String advice;
-    private String contextualAdvice;
+    private String context;
     private String documentationReference;
 
     private DeprecatedFeatureUsage.Type usageType = DeprecatedFeatureUsage.Type.USER_CODE_DIRECT;
@@ -53,8 +53,8 @@ public class DeprecationMessageBuilder {
         return this;
     }
 
-    public DeprecationMessageBuilder withContextualAdvice(String contextualAdvice) {
-        this.contextualAdvice = contextualAdvice;
+    public DeprecationMessageBuilder withContext(String context) {
+        this.context = context;
         return this;
     }
 
@@ -78,7 +78,7 @@ public class DeprecationMessageBuilder {
     }
 
     DeprecationMessage build() {
-        return new DeprecationMessage(summary, removalDetails, advice, contextualAdvice, documentationReference, usageType);
+        return new DeprecationMessage(summary, removalDetails, advice, context, documentationReference, usageType);
     }
 
     public static abstract class WithReplacement<T> extends DeprecationMessageBuilder {

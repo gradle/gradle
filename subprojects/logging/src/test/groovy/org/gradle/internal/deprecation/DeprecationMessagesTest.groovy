@@ -66,7 +66,7 @@ class DeprecationMessagesTest extends Specification {
     def "logs deprecation message with contextual advice"() {
         when:
         new DeprecationMessageBuilder().withSummary("summary").withRemovalDetails("removal")
-            .withContextualAdvice("contextualAdvice")
+            .withContext("contextualAdvice")
             .nagUser()
 
         then:
@@ -78,7 +78,7 @@ class DeprecationMessagesTest extends Specification {
     def "logs deprecation message with advice and contextual advice"() {
         when:
         new DeprecationMessageBuilder().withSummary("summary").withRemovalDetails("removal")
-            .withAdvice("advice").withContextualAdvice("contextualAdvice")
+            .withAdvice("advice").withContext("contextualAdvice")
             .nagUser()
 
         then:
@@ -109,7 +109,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs deprecated indirect user code cause message"() {
         when:
-        DeprecationLogger.deprecate("Something").withAdvice("Advice.").withContextualAdvice("Contextual advice.").nagUser()
+        DeprecationLogger.deprecate("Something").withAdvice("Advice.").withContext("Contextual advice.").nagUser()
 
         then:
         def events = outputEventListener.events

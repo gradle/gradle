@@ -62,7 +62,6 @@ public class ConfigurationVariantMapping {
                 .withSummary("Publication ignores 'transitive = false' at configuration level.")
                 .withRemovalDetails("")
                 .withAdvice("Consider using 'transitive = false' at the dependency level if you need this to be published.")
-                .withContextualAdvice("")
                 .withIndirectUsage()
                 .nagUser();
         }
