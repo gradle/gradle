@@ -103,22 +103,22 @@ public class DeprecationMessage {
 
     }
 
-    public static abstract class DeprecationWithReplacementBuilder extends Builder {
+    public static abstract class DeprecationWithReplacementBuilder<T> extends Builder {
         private final String subject;
-        private String replacement;
+        private T replacement;
 
         DeprecationWithReplacementBuilder(String subject) {
             this.subject = subject;
         }
 
-        public DeprecationWithReplacementBuilder replaceWith(String replacement) {
+        public DeprecationWithReplacementBuilder<T> replaceWith(T replacement) {
             this.replacement = replacement;
             return this;
         }
 
         protected abstract String formatSummary(String subject);
 
-        protected abstract String formatAdvice(String replacement);
+        protected abstract String formatAdvice(T replacement);
 
         protected String removalDetails() {
             return thisIsScheduledToBeRemoved();
@@ -181,7 +181,7 @@ public class DeprecationMessage {
         };
     }
 
-    public static class DeprecateNamedParameterBuilder extends DeprecationWithReplacementBuilder {
+    public static class DeprecateNamedParameterBuilder extends DeprecationWithReplacementBuilder<String> {
 
         DeprecateNamedParameterBuilder(String parameter) {
             super(parameter);
@@ -198,7 +198,7 @@ public class DeprecationMessage {
         }
     }
 
-    public static class DeprecatePropertyBuilder extends DeprecationWithReplacementBuilder {
+    public static class DeprecatePropertyBuilder extends DeprecationWithReplacementBuilder<String> {
 
         DeprecatePropertyBuilder(String property) {
             super(property);
@@ -215,22 +215,34 @@ public class DeprecationMessage {
         }
     }
 
-    public static DeprecationMessage.Builder replacedConfiguration(final String configurationName, final ConfigurationDeprecationType deprecationType, final List<String> replacements) {
-        return new DeprecationMessage.Builder() {
-            @Override
-            DeprecationMessage build() {
-                withSummary(String.format("The %s configuration has been deprecated for %s.", configurationName, deprecationType.displayName()));
-                withRemovalDetails(thisWillBecomeAnError());
-                withAdvice(String.format("Please %s the %s configuration instead.", deprecationType.usage, Joiner.on(" or ").join(replacements)));
-                if (!deprecationType.inUserCode) {
-                    withIndirectUsage();
-                }
-                return super.build();
+    public static class DeprecateConfigurationBuilder extends DeprecationWithReplacementBuilder<List<String>> {
+        private final ConfigurationDeprecationType deprecationType;
+
+        DeprecateConfigurationBuilder(String configuration, ConfigurationDeprecationType deprecationType) {
+            super(configuration);
+            this.deprecationType = deprecationType;
+            if (!deprecationType.inUserCode) {
+                withIndirectUsage();
             }
-        };
+        }
+
+        @Override
+        protected String formatSummary(String configuration) {
+            return String.format("The %s configuration has been deprecated for %s.", configuration, deprecationType.displayName());
+        }
+
+        @Override
+        protected String formatAdvice(List<String> replacements) {
+            return String.format("Please %s the %s configuration instead.", deprecationType.usage, Joiner.on(" or ").join(replacements));
+        }
+
+        @Override
+        protected String removalDetails() {
+            return thisWillBecomeAnError();
+        }
     }
 
-    public static class DeprecateMethodBuilder extends DeprecationWithReplacementBuilder {
+    public static class DeprecateMethodBuilder extends DeprecationWithReplacementBuilder<String> {
 
         DeprecateMethodBuilder(String method) {
             super(method);
@@ -247,7 +259,7 @@ public class DeprecationMessage {
         }
     }
 
-    public static class DeprecateInvocationBuilder extends DeprecationWithReplacementBuilder {
+    public static class DeprecateInvocationBuilder extends DeprecationWithReplacementBuilder<String> {
 
         DeprecateInvocationBuilder(String invocation) {
             super(invocation);
@@ -282,7 +294,7 @@ public class DeprecationMessage {
         };
     }
 
-    public static class DeprecateTaskBuilder extends DeprecationWithReplacementBuilder {
+    public static class DeprecateTaskBuilder extends DeprecationWithReplacementBuilder<String> {
         DeprecateTaskBuilder(String task) {
             super(task);
         }
@@ -298,7 +310,7 @@ public class DeprecationMessage {
         }
     }
 
-    public static class DeprecatePluginBuilder extends DeprecationWithReplacementBuilder {
+    public static class DeprecatePluginBuilder extends DeprecationWithReplacementBuilder<String> {
 
         private boolean externalReplacement = false;
 

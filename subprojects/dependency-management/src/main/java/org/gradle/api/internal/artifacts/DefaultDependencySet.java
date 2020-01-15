@@ -29,7 +29,7 @@ import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Actions;
 import org.gradle.internal.deprecation.ConfigurationDeprecationType;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
-import org.gradle.internal.deprecation.DeprecationMessage;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 import java.util.Collection;
 import java.util.List;
@@ -72,7 +72,7 @@ public class DefaultDependencySet extends DelegatingDomainObjectSet<Dependency> 
     private void warnIfConfigurationIsDeprecated() {
         List<String> alternatives = ((DeprecatableConfiguration) clientConfiguration).getDeclarationAlternatives();
         if (alternatives != null) {
-            DeprecationMessage.replacedConfiguration(clientConfiguration.getName(), ConfigurationDeprecationType.DEPENDENCY_DECLARATION, alternatives).nagUser();
+            DeprecationLogger.deprecateConfiguration(clientConfiguration.getName(), ConfigurationDeprecationType.DEPENDENCY_DECLARATION).replaceWith(alternatives).nagUser();
         }
     }
 

@@ -108,6 +108,7 @@ import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.concurrent.GradleThread;
 import org.gradle.internal.deprecation.ConfigurationDeprecationType;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.deprecation.DeprecationMessage;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
@@ -594,7 +595,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private void warnIfConfigurationIsDeprecatedForResolving() {
         if (resolutionAlternatives != null) {
-            DeprecationMessage.replacedConfiguration(this.name, ConfigurationDeprecationType.RESOLUTION, resolutionAlternatives).nagUser();
+            DeprecationLogger.deprecateConfiguration(this.name, ConfigurationDeprecationType.RESOLUTION).replaceWith(resolutionAlternatives).nagUser();
         }
     }
 

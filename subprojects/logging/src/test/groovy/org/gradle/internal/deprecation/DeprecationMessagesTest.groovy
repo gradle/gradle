@@ -271,7 +271,7 @@ class DeprecationMessagesTest extends Specification {
     @Unroll
     def "logs deprecation message for deprecated configuration with #deprecationType deprecation"() {
         given:
-        DeprecationMessage.replacedConfiguration("ConfigurationType", deprecationType, ['r1', 'r2', 'r3']).nagUser()
+        DeprecationLogger.deprecateConfiguration("ConfigurationType", deprecationType).replaceWith(['r1', 'r2', 'r3']).nagUser()
         def events = outputEventListener.events
 
         expect:
