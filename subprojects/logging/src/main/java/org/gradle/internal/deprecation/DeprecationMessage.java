@@ -123,10 +123,14 @@ public class DeprecationMessage {
 
         protected abstract String formatAdvice(String replacement);
 
+        protected String removalDetails() {
+            return thisIsScheduledToBeRemoved();
+        }
+
         @Override
         DeprecationMessage build() {
             withSummary(formatSummary(subject));
-            withRemovalDetails(thisIsScheduledToBeRemoved());
+            withRemovalDetails(removalDetails());
             if (replacement != null) {
                 withAdvice(formatAdvice(replacement));
             }
@@ -246,30 +250,26 @@ public class DeprecationMessage {
         }
     }
 
-    // Output: Using method ${methodName} has been deprecated. This will fail with an error in Gradle {X}.
-    public static DeprecationMessage.Builder discontinuedMethodInvocation(final String invocation) {
-        return new DeprecationMessage.Builder() {
-            @Override
-            DeprecationMessage build() {
-                withSummary(usingMethodHasBeenDeprecated(invocation));
-                withRemovalDetails(thisWillBecomeAnError());
-                return super.build();
-            }
-        };
-    }
+    public static class DeprecateInvocationBuilder extends DeprecationWithReplacementBuilder {
 
-    // Use for some operation that is not deprecated, but something about the method parameters or state is deprecated.
-    // Output: Using method ${methodName} has been deprecated. This will fail with an error in Gradle {X}. Please use the ${replacement} method instead.
-    public static DeprecationMessage.Builder replacedMethodInvocation(final String invocation, final String replacement) {
-        return new DeprecationMessage.Builder() {
-            @Override
-            DeprecationMessage build() {
-                withSummary(usingMethodHasBeenDeprecated(invocation));
-                withRemovalDetails(thisWillBecomeAnError());
-                withAdvice(pleaseUseThisMethodInstead(replacement));
-                return super.build();
-            }
-        };
+        DeprecateInvocationBuilder(String invocation) {
+            super(invocation);
+        }
+
+        @Override
+        protected String formatSummary(String invocation) {
+            return usingMethodHasBeenDeprecated(invocation);
+        }
+
+        @Override
+        protected String formatAdvice(String replacement) {
+            return pleaseUseThisMethodInstead(replacement);
+        }
+
+        @Override
+        protected String removalDetails() {
+            return thisWillBecomeAnError();
+        }
     }
 
     // Use for some operation that is not deprecated, but something about the method parameters or state is deprecated.

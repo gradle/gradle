@@ -69,6 +69,11 @@ public class DeprecationLogger {
         return new DeprecationMessage.DeprecateMethodBuilder(method);
     }
 
+    // Output: Using method ${methodName} has been deprecated. This will fail with an error in Gradle {X}.
+    public static DeprecationMessage.DeprecateInvocationBuilder deprecateInvocation(String invocation) {
+        return new DeprecationMessage.DeprecateInvocationBuilder(invocation);
+    }
+
     // Output: The ${taskName} task has been deprecated. This is scheduled to be removed in Gradle X.
     public static DeprecationMessage.DeprecateTaskBuilder deprecateTask(String task) {
         return new DeprecationMessage.DeprecateTaskBuilder(task);

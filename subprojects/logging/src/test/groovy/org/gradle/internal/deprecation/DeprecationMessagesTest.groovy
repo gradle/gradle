@@ -198,24 +198,24 @@ class DeprecationMessagesTest extends Specification {
         events[0].message == "method() has been deprecated. This will fail with an error in Gradle ${NEXT_GRADLE_VERSION}."
     }
 
-    def "logs replaced method invocation message"() {
+    def "logs deprecated method invocation message"() {
         when:
-        DeprecationMessage.replacedMethodInvocation("method()", "replacementMethod()").nagUser()
-
-        then:
-        def events = outputEventListener.events
-        events.size() == 1
-        events[0].message == "Using method method() has been deprecated. This will fail with an error in Gradle ${NEXT_GRADLE_VERSION}. Please use the replacementMethod() method instead."
-    }
-
-    def "logs discontinued method invocation message"() {
-        when:
-        DeprecationMessage.discontinuedMethodInvocation("method()").withAdvice("Advice.").nagUser()
+        DeprecationLogger.deprecateInvocation("method()").withAdvice("Advice.").nagUser()
 
         then:
         def events = outputEventListener.events
         events.size() == 1
         events[0].message == "Using method method() has been deprecated. This will fail with an error in Gradle ${NEXT_GRADLE_VERSION}. Advice."
+    }
+
+    def "logs replaced method invocation message"() {
+        when:
+        DeprecationLogger.deprecateInvocation("method()").replaceWith("replacementMethod()").nagUser()
+
+        then:
+        def events = outputEventListener.events
+        events.size() == 1
+        events[0].message == "Using method method() has been deprecated. This will fail with an error in Gradle ${NEXT_GRADLE_VERSION}. Please use the replacementMethod() method instead."
     }
 
     def "logs replaced task"() {
