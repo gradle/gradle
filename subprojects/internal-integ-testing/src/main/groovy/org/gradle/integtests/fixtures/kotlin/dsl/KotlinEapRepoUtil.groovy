@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.fixtures.kotlin.dsl
 
+import groovy.io.FileType
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.test.fixtures.file.TestFile
@@ -33,6 +34,24 @@ class KotlinEapRepoUtil {
         executer.beforeExecute {
             it.withArguments("-I", eapRepoInit.canonicalPath)
         }
+    }
+
+    static void withKotlinEapRepoInAllKotlinBuildSrc(File rootDir) {
+        rootDir.traverse(type: FileType.FILES, nameFilter: ~/build\.gradle\.kts/) { script ->
+            if(script.parentFile.name == 'buildSrc') {
+                withKotlinEapRepoInKotlinBuildSrc(script.parentFile.parentFile)
+            }
+        }
+    }
+
+    static void withKotlinEapRepoInKotlinBuildSrc(File rootDir) {
+        def buildSrcBuildScript = new File(rootDir, "buildSrc/build.gradle.kts")
+        assert buildSrcBuildScript.isFile()
+        buildSrcBuildScript.text = buildSrcBuildScript.text + """
+            repositories {
+                ${RepoScriptBlockUtil.kotlinEapRepositoryDefinition()}
+            }
+        """
     }
 
     static File createKotlinEapInitScript() {
