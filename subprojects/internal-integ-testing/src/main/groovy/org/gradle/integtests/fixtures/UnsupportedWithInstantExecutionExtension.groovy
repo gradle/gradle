@@ -18,6 +18,8 @@ package org.gradle.integtests.fixtures
 
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.spockframework.runtime.extension.AbstractAnnotationDrivenExtension
+import org.spockframework.runtime.extension.IMethodInterceptor
+import org.spockframework.runtime.extension.IMethodInvocation
 import org.spockframework.runtime.model.FeatureInfo
 
 import static org.gradle.integtests.fixtures.ToBeFixedForInstantExecutionExtension.isEnabledBottomSpec
@@ -28,8 +30,10 @@ class UnsupportedWithInstantExecutionExtension extends AbstractAnnotationDrivenE
     @Override
     void visitFeatureAnnotation(UnsupportedWithInstantExecution annotation, FeatureInfo feature) {
         if (GradleContextualExecuter.isInstant()) {
-            if (isEnabledBottomSpec(annotation.bottomSpecs(), { feature.parent.bottomSpec.name == it })) {
+            if (isAllIterations(annotation.iterationMatchers()) && isEnabledBottomSpec(annotation.bottomSpecs(), { feature.parent.bottomSpec.name == it })) {
                 feature.skipped = true
+            } else {
+                feature.iterationInterceptors.add(new IterationMatchingMethodInterceptor(annotation.iterationMatchers()))
             }
         }
     }
@@ -40,5 +44,24 @@ class UnsupportedWithInstantExecutionExtension extends AbstractAnnotationDrivenE
 
     private static boolean isAllIterations(String[] iterationMatchers) {
         return iterationMatchers.length == 0
+    }
+
+    private static class IterationMatchingMethodInterceptor implements IMethodInterceptor {
+
+        private final String[] iterationMatchers
+
+        IterationMatchingMethodInterceptor(String[] iterationMatchers) {
+            this.iterationMatchers = iterationMatchers
+        }
+
+        @Override
+        void intercept(IMethodInvocation invocation) throws Throwable {
+            if (!iterationMatches(iterationMatchers, invocation.iteration.name)) {
+                invocation.proceed()
+            } else {
+                // This will show up in test reports, necessary because we can't mark the test as skipped
+                println("Skipping test @${UnsupportedWithInstantExecution.simpleName}")
+            }
+        }
     }
 }
