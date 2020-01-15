@@ -105,18 +105,7 @@ public class Sign extends DefaultTask implements SignatureSpec {
     }
 
     private void signArtifact(final PublicationArtifact publicationArtifact) {
-        if (publicationArtifactCanBeSigned(publicationArtifact)) {
-            addSignature(new Signature(publicationArtifact, publicationArtifact::getFile, null, null, this, this));
-        } else {
-            addSignature(new InvalidSignature(publicationArtifact, publicationArtifact::getFile, this));
-        }
-    }
-
-    private boolean publicationArtifactCanBeSigned(PublicationArtifact publicationArtifact) {
-        if (publicationArtifact.getFile().getName().equals("module.json")) {
-            return !String.valueOf(getProject().getVersion()).endsWith("-SNAPSHOT");
-        }
-        return true;
+        addSignature(new Signature(publicationArtifact, publicationArtifact::getFile, null, null, this, this));
     }
 
     /**
