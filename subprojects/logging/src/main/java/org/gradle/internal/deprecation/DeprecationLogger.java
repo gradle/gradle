@@ -140,10 +140,6 @@ public class DeprecationLogger {
         return new DeprecationMessage.ConfigurationDeprecationTypeSelector(configuration);
     }
 
-    public static void nagUserOfDeprecatedBehaviour(String behaviour) {
-        deprecateBehaviour(behaviour).nagUser();
-    }
-
     static void nagUserWith(DeprecationMessage.Builder deprecationMessageBuilder, Class<?> calledFrom) {
         if (isEnabled()) {
             DeprecationMessage deprecationMessage = deprecationMessageBuilder.build();

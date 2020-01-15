@@ -99,7 +99,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs deprecated behaviour message"() {
         when:
-        DeprecationLogger.nagUserOfDeprecatedBehaviour("Some behaviour.")
+        DeprecationLogger.deprecateBehaviour("Some behaviour.").nagUser()
 
         then:
         def events = outputEventListener.events
