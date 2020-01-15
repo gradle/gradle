@@ -62,6 +62,21 @@ public class WatchRootUtil {
                 return;
             }
 
+            // For directory entries we watch the directory itself,
+            // so we learn about new children spawning. If the directory
+            // has children, it would be watched through them already.
+            // This is here to make sure we also watch empty directories.
+            if (snapshot.getType() == FileType.Directory) {
+                watchedDirectories.add(snapshot.getAbsolutePath());
+            }
+
+            // For paths, where the parent is also a complete directory snapshot,
+            // we already will be watching the parent directory.
+            // So no need to search for it.
+            if (!rootOfCompleteHierarchy) {
+                return;
+            }
+
             Path path = Paths.get(snapshot.getAbsolutePath());
 
             // For existing files and directories we watch the parent directory,
@@ -81,14 +96,6 @@ public class WatchRootUtil {
                     throw new AssertionError();
             }
             watchedDirectories.add(ancestorToWatch.toString());
-
-            // For directory entries we watch the directory itself,
-            // so we learn about new children spawning. If the directory
-            // has children, it would be watched through them already.
-            // This is here to make sure we also watch empty directories.
-            if (snapshot.getType() == FileType.Directory) {
-                watchedDirectories.add(snapshot.getAbsolutePath());
-            }
         });
         return watchedDirectories;
     }
