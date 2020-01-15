@@ -141,12 +141,7 @@ public class DeprecationLogger {
     }
 
     public static void nagUserOfDeprecatedBehaviour(String behaviour) {
-        DeprecationLogger.deprecateBehaviour(behaviour).nagUser();
-    }
-
-    // used in performance test - do not use in new code
-    public static void nagUserOfDeprecated(String thing) {
-        deprecate(thing).nagUser();
+        deprecateBehaviour(behaviour).nagUser();
     }
 
     static void nagUserWith(DeprecationMessage.Builder deprecationMessageBuilder, Class<?> calledFrom) {

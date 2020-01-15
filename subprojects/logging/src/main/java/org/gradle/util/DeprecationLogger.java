@@ -19,9 +19,9 @@ package org.gradle.util;
 public class DeprecationLogger {
 
     // Here for backwards compatibility with performance test: DeprecationCreationPerformanceTest
-    // When rebaselining, update the test to use org.gradle.internal.deprecation.DeprecationLogger directly
+    // When rebaselining, update the test to use org.gradle.internal.deprecation.DeprecationLogger.deprecate(thing).nagUser() directly
     public static void nagUserOfDeprecated(String thing) {
-        org.gradle.internal.deprecation.DeprecationLogger.nagUserOfDeprecated(thing);
+        org.gradle.internal.deprecation.DeprecationLogger.deprecate(thing).nagUser();
     }
 
 }
