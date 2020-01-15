@@ -20,7 +20,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.UrlArtifactRepository;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.internal.deprecation.DeprecationMessage;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.verifier.HttpRedirectVerifier;
 import org.gradle.internal.verifier.HttpRedirectVerifierFactory;
 
@@ -93,8 +93,8 @@ public class DefaultUrlArtifactRepository implements UrlArtifactRepository {
     }
 
     private void nagUserOfInsecureProtocol() {
-        DeprecationMessage
-            .specificThingHasBeenDeprecated("Using insecure protocols with repositories")
+        DeprecationLogger
+            .deprecate("Using insecure protocols with repositories")
             .withAdvice(String.format(
                 "Switch %s repository '%s' to a secure protocol (like HTTPS) or allow insecure protocols, see %s.",
                 repositoryType,
@@ -113,8 +113,8 @@ public class DefaultUrlArtifactRepository implements UrlArtifactRepository {
                 redirectLocation
             );
         }
-        DeprecationMessage
-            .specificThingHasBeenDeprecated("Following insecure redirects")
+        DeprecationLogger
+            .deprecate("Following insecure redirects")
             .withAdvice(String.format(
                 "Switch %s repository '%s' to redirect to a secure protocol (like HTTPS) or allow insecure protocols, see %s.",
                 repositoryType,

@@ -25,7 +25,7 @@ import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.http.HttpBuildCache;
 import org.gradle.caching.http.HttpBuildCacheCredentials;
 import org.gradle.internal.authentication.DefaultBasicAuthentication;
-import org.gradle.internal.deprecation.DeprecationMessage;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.resource.transport.http.DefaultHttpSettings;
 import org.gradle.internal.resource.transport.http.HttpClientHelper;
 import org.gradle.internal.resource.transport.http.SslContextFactory;
@@ -109,8 +109,8 @@ public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFac
                 allowInsecureProtocol,
                 () -> {
                     String helpLink = documentationRegistry.getDslRefForProperty(HttpBuildCache.class, "allowInsecureProtocol");
-                    DeprecationMessage
-                        .specificThingHasBeenDeprecated("Using insecure protocols with remote build cache")
+                    DeprecationLogger
+                        .deprecate("Using insecure protocols with remote build cache")
                         .withAdvice(String.format("Switch remote build cache to a secure protocol (like HTTPS) or allow insecure protocols, see %s.", helpLink))
                         .nagUser();
                 },

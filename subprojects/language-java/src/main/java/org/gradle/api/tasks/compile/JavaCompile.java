@@ -46,7 +46,7 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.internal.deprecation.DeprecationMessage;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
@@ -142,7 +142,7 @@ public class JavaCompile extends AbstractCompile {
     @Deprecated
     @TaskAction
     protected void compile(@SuppressWarnings("deprecation") org.gradle.api.tasks.incremental.IncrementalTaskInputs inputs) {
-        DeprecationMessage.specificThingHasBeenDeprecated("Extending the JavaCompile task")
+        DeprecationLogger.deprecate("Extending the JavaCompile task")
             .withAdvice("Configure the task instead.")
             .nagUser();
         compile((InputChanges) inputs);

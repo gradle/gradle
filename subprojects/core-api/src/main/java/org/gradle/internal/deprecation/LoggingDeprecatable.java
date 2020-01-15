@@ -36,7 +36,7 @@ public class LoggingDeprecatable implements Deprecatable {
     @Override
     public void checkDeprecation() {
         for (String deprecation : deprecations) {
-            DeprecationMessage.deprecatedBuildInvocationFeature(deprecation).nagUser();
+            DeprecationLogger.deprecateBuildInvocationFeature(deprecation).nagUser();
         }
     }
 

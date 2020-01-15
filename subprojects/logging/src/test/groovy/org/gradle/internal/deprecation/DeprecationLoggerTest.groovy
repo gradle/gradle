@@ -43,8 +43,8 @@ class DeprecationLoggerTest extends ConcurrentSpec {
 
     def "logs deprecation warning once until reset"() {
         when:
-        DeprecationMessage.specificThingHasBeenDeprecated("nag").nagUser()
-        DeprecationMessage.specificThingHasBeenDeprecated("nag").nagUser()
+        DeprecationLogger.deprecate("nag").nagUser()
+        DeprecationLogger.deprecate("nag").nagUser()
 
         then:
         def events = outputEventListener.events
@@ -53,7 +53,7 @@ class DeprecationLoggerTest extends ConcurrentSpec {
 
         when:
         DeprecationLogger.reset()
-        DeprecationMessage.specificThingHasBeenDeprecated("nag").nagUser()
+        DeprecationLogger.deprecate("nag").nagUser()
 
         then:
         events.size() == 2
@@ -73,7 +73,7 @@ class DeprecationLoggerTest extends ConcurrentSpec {
 
         and:
         1 * factory.create() >> {
-            DeprecationMessage.specificThingHasBeenDeprecated("nag").nagUser()
+            DeprecationLogger.deprecate("nag").nagUser()
             return "result"
         }
         0 * _
@@ -102,13 +102,13 @@ class DeprecationLoggerTest extends ConcurrentSpec {
         async {
             start {
                 thread.blockUntil.disabled
-                DeprecationMessage.specificThingHasBeenDeprecated("nag").nagUser()
+                DeprecationLogger.deprecate("nag").nagUser()
                 instant.logged
             }
             start {
                 DeprecationLogger.whileDisabled {
                     instant.disabled
-                    DeprecationMessage.specificThingHasBeenDeprecated("ignored").nagUser()
+                    DeprecationLogger.deprecate("ignored").nagUser()
                     thread.blockUntil.logged
                 }
             }
@@ -125,7 +125,7 @@ class DeprecationLoggerTest extends ConcurrentSpec {
         def major = GradleVersion.current().nextMajor
 
         when:
-        DeprecationMessage.specificThingHasBeenDeprecated("foo")
+        DeprecationLogger.deprecate("foo")
             .withAdvice("bar.")
             .nagUser();
 

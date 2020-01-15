@@ -90,7 +90,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs generic deprecation message"() {
         when:
-        DeprecationMessage.thisHasBeenDeprecated("Summary.").withAdvice("Advice.").nagUser()
+        DeprecationLogger.thisHasBeenDeprecated("Summary.").withAdvice("Advice.").nagUser()
 
         then:
         def events = outputEventListener.events
@@ -100,7 +100,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs generic deprecation message for specific thing"() {
         when:
-        DeprecationMessage.specificThingHasBeenDeprecated("Something").nagUser()
+        DeprecationLogger.deprecate("Something").nagUser()
 
         then:
         def events = outputEventListener.events
@@ -120,7 +120,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs deprecated indirect user code cause message"() {
         when:
-        DeprecationMessage.specificThingHasBeenDeprecated("Something").withAdvice("Advice.").withContextualAdvice("Contextual advice.").nagUser()
+        DeprecationLogger.deprecate("Something").withAdvice("Advice.").withContextualAdvice("Contextual advice.").nagUser()
 
         then:
         def events = outputEventListener.events
@@ -130,7 +130,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs deprecated build invocation message"() {
         when:
-        DeprecationMessage.deprecatedBuildInvocationFeature("Feature").withAdvice("Advice.").nagUser()
+        DeprecationLogger.deprecateBuildInvocationFeature("Feature").withAdvice("Advice.").nagUser()
 
         then:
         def events = outputEventListener.events

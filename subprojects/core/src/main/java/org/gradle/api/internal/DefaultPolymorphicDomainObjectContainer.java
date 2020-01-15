@@ -22,7 +22,7 @@ import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.Namer;
 import org.gradle.internal.Cast;
-import org.gradle.internal.deprecation.DeprecationMessage;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.internal.core.NamedEntityInstantiator;
 
@@ -43,8 +43,8 @@ public class DefaultPolymorphicDomainObjectContainer<T> extends AbstractPolymorp
     @Deprecated
     public DefaultPolymorphicDomainObjectContainer(Class<T> type, Instantiator instantiator) {
         this(type, instantiator, Named.Namer.forType(type), CollectionCallbackActionDecorator.NOOP);
-        DeprecationMessage
-            .specificThingHasBeenDeprecated("Internal API constructor DefaultPolymorphicDomainObjectContainer(Class<T>, Instantiator)")
+        DeprecationLogger
+            .deprecate("Internal API constructor DefaultPolymorphicDomainObjectContainer(Class<T>, Instantiator)")
             .withAdvice("Please use ObjectFactory.polymorphicDomainObjectContainer(Class<T>) instead.")
             .nagUser();
     }

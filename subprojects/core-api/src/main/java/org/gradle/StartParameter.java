@@ -35,7 +35,7 @@ import org.gradle.initialization.UserHomeInitScriptFinder;
 import org.gradle.internal.DefaultTaskExecutionRequest;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.concurrent.DefaultParallelismConfiguration;
-import org.gradle.internal.deprecation.DeprecationMessage;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.logging.DefaultLoggingConfiguration;
 
 import javax.annotation.Nullable;
@@ -305,7 +305,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * @return this
      */
     public StartParameter useEmptySettings() {
-        DeprecationMessage.specificThingHasBeenDeprecated("StartParameter#useEmptySettings()").nagUser();
+        DeprecationLogger.deprecate("StartParameter#useEmptySettings()").nagUser();
         doUseEmptySettings();
         return this;
     }
@@ -322,7 +322,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * @return Whether to use empty settings or not.
      */
     public boolean isUseEmptySettings() {
-        DeprecationMessage.specificThingHasBeenDeprecated("StartParameter#isUseEmptySettings()").nagUser();
+        DeprecationLogger.deprecate("StartParameter#isUseEmptySettings()").nagUser();
         return useEmptySettings;
     }
 
@@ -413,12 +413,12 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     }
 
     public boolean isSearchUpwards() {
-        DeprecationMessage.specificThingHasBeenDeprecated("StartParameter#isSearchUpwards()").nagUser();
+        DeprecationLogger.deprecate("StartParameter#isSearchUpwards()").nagUser();
         return searchUpwards;
     }
 
     public void setSearchUpwards(boolean searchUpwards) {
-        DeprecationMessage.specificThingHasBeenDeprecated("StartParameter#setSearchUpwards(boolean)").nagUser();
+        DeprecationLogger.deprecate("StartParameter#setSearchUpwards(boolean)").nagUser();
         this.searchUpwards = searchUpwards;
     }
 

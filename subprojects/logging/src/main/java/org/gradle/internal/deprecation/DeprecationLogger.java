@@ -26,6 +26,8 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 import static org.gradle.internal.deprecation.Messages.thisBehaviourHasBeenDeprecatedAndIsScheduledToBeRemoved;
+import static org.gradle.internal.deprecation.Messages.thisHasBeenDeprecatedAndIsScheduledToBeRemoved;
+import static org.gradle.internal.deprecation.Messages.thisIsScheduledToBeRemoved;
 import static org.gradle.internal.deprecation.Messages.thisWillBecomeAnError;
 import static org.gradle.internal.deprecation.Messages.xHasBeenDeprecated;
 
@@ -56,6 +58,40 @@ public class DeprecationLogger {
     @Nullable
     public static Throwable getDeprecationFailure() {
         return deprecatedFeatureHandler.getDeprecationFailure();
+    }
+
+    // Output: ${summary}. This has been deprecated and is scheduled to be removed in Gradle X.
+    public static DeprecationMessage.Builder thisHasBeenDeprecated(final String summary) {
+        return new DeprecationMessage.Builder() {
+            @Override
+            DeprecationMessage build() {
+                withSummary(summary);
+                withRemovalDetails(thisHasBeenDeprecatedAndIsScheduledToBeRemoved());
+                return super.build();
+            }
+        };
+    }
+
+    // Output: ${thing} has been deprecated. This is scheduled to be removed in Gradle X.
+    public static DeprecationMessage.Builder deprecate(final String feature) {
+        return new DeprecationMessage.Builder() {
+            @Override
+            DeprecationMessage build() {
+                withSummary(xHasBeenDeprecated(feature));
+                withRemovalDetails(thisIsScheduledToBeRemoved());
+                return super.build();
+            }
+        };
+    }
+
+    // Output: ${feature} has been deprecated. This is scheduled to be removed in Gradle X.
+    public static DeprecationMessage.Builder deprecateIndirectUsage(String feature) {
+        return deprecate(feature).withIndirectUsage();
+    }
+
+    // Output: ${feature} has been deprecated. This is scheduled to be removed in Gradle X.
+    public static DeprecationMessage.Builder deprecateBuildInvocationFeature(String feature) {
+        return deprecate(feature).withBuildInvocation();
     }
 
     // Output: ${action} has been deprecated. This will fail with an error in Gradle X.
@@ -130,7 +166,7 @@ public class DeprecationLogger {
 
     // used in performance test - do not use in new code
     public static void nagUserOfDeprecated(String thing) {
-        DeprecationMessage.specificThingHasBeenDeprecated(thing).nagUser();
+        deprecate(thing).nagUser();
     }
 
     static void nagUserWith(DeprecationMessage.Builder deprecationMessageBuilder, Class<?> calledFrom) {

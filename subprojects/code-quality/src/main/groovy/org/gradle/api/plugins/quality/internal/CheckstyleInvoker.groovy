@@ -20,7 +20,7 @@ import org.gradle.api.GradleException
 import org.gradle.api.file.FileCollection
 import org.gradle.api.plugins.quality.Checkstyle
 import org.gradle.api.plugins.quality.CheckstyleReports
-import org.gradle.internal.deprecation.DeprecationMessage
+import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.logging.ConsoleRenderer
 import org.gradle.util.GFileUtils
 
@@ -77,7 +77,7 @@ abstract class CheckstyleInvoker {
                     // User provided their own config_loc
                     def userProvidedConfigLoc = configProperties[CONFIG_LOC_PROPERTY]
                     if (userProvidedConfigLoc) {
-                        DeprecationMessage.indirectCodeUsageHasBeenDeprecated("Adding 'config_loc' to checkstyle.configProperties")
+                        DeprecationLogger.deprecateIndirectUsage("Adding 'config_loc' to checkstyle.configProperties")
                             .withAdvice("This property is now ignored and the value of configDirectory is always used for 'config_loc'.")
                             .nagUser()
                     }

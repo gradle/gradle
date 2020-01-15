@@ -37,7 +37,7 @@ import org.gradle.caching.configuration.BuildCacheConfiguration;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Actions;
-import org.gradle.internal.deprecation.DeprecationMessage;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.resource.TextUriResourceLoader;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
@@ -341,8 +341,8 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
         if (feature.isActive()) {
             services.get(FeaturePreviews.class).enableFeature(feature);
         } else {
-            DeprecationMessage
-                .specificThingHasBeenDeprecated("enableFeaturePreview('" + feature.name() + "')")
+            DeprecationLogger
+                .deprecate("enableFeaturePreview('" + feature.name() + "')")
                 .withAdvice("The feature flag is no longer relevant, please remove it from your settings file.")
                 .nagUser();
         }
