@@ -313,8 +313,8 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         method                 | config                                           | message
-        "local(Class)"         | "local(DirectoryBuildCache).enabled = false"     | "The BuildCacheConfiguration.local(Class) method has been deprecated. This is scheduled to be removed in Gradle 7.0. Use getLocal() instead."
-        "local(Class, Action)" | "local(DirectoryBuildCache) { enabled = false }" | "The BuildCacheConfiguration.local(Class, Action) method has been deprecated. This is scheduled to be removed in Gradle 7.0. Use local(Action) instead."
+        "local(Class)"         | "local(DirectoryBuildCache).enabled = false"     | "The BuildCacheConfiguration.local(Class) method has been deprecated. This is scheduled to be removed in Gradle 7.0. Please use the getLocal() method instead."
+        "local(Class, Action)" | "local(DirectoryBuildCache) { enabled = false }" | "The BuildCacheConfiguration.local(Class, Action) method has been deprecated. This is scheduled to be removed in Gradle 7.0. Please use the local(Action) method instead."
     }
 
     private static String customTaskCode() {
