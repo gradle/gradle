@@ -63,7 +63,7 @@ public class DefaultTransformOutputs implements TransformOutputsInternal {
 
     @Override
     public File dir(Object path) {
-        File outputDir = resolveAndRegister(path, location -> GFileUtils.mkdirs(location));
+        File outputDir = resolveAndRegister(path, GFileUtils::mkdirs);
         outputDirectories.add(outputDir);
         return outputDir;
     }

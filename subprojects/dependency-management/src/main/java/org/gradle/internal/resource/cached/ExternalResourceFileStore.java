@@ -41,12 +41,7 @@ public class ExternalResourceFileStore extends GroupedAndNamedUniqueFileStore<St
         }
     };
 
-    private static final Namer<String> NAMER = new Namer<String>() {
-        @Override
-        public String determineName(String s) {
-            return StringUtils.substringAfterLast(s, "/");
-        }
-    };
+    private static final Namer<String> NAMER = s -> StringUtils.substringAfterLast(s, "/");
 
     public ExternalResourceFileStore(File baseDir, TemporaryFileProvider tmpProvider, FileAccessTimeJournal fileAccessTimeJournal, ChecksumService checksumService) {
         super(baseDir, tmpProvider, fileAccessTimeJournal, GROUPER, NAMER, checksumService);

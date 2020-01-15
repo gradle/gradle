@@ -24,12 +24,7 @@ import org.gradle.internal.component.model.DependencyMetadata;
  * is going to be different) or a failure.
  */
 public interface DependencySubstitutionApplicator {
-    DependencySubstitutionApplicator NO_OP = new DependencySubstitutionApplicator() {
-        @Override
-        public SubstitutionResult apply(DependencyMetadata dependency) {
-            return SubstitutionResult.of(new DefaultDependencySubstitution(dependency.getSelector()));
-        }
-    };
+    DependencySubstitutionApplicator NO_OP = dependency -> SubstitutionResult.of(new DefaultDependencySubstitution(dependency.getSelector()));
 
     SubstitutionResult apply(DependencyMetadata dependency);
 

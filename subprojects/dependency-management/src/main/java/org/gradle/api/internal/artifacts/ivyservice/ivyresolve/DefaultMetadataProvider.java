@@ -49,12 +49,7 @@ import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolv
 import java.util.List;
 
 class DefaultMetadataProvider implements MetadataProvider {
-    private final static Transformer<ComponentMetadata, BuildableComponentMetadataSupplierDetails> TO_COMPONENT_METADATA = new Transformer<ComponentMetadata, BuildableComponentMetadataSupplierDetails>() {
-        @Override
-        public ComponentMetadata transform(BuildableComponentMetadataSupplierDetails details) {
-            return details.getExecutionResult();
-        }
-    };
+    private final static Transformer<ComponentMetadata, BuildableComponentMetadataSupplierDetails> TO_COMPONENT_METADATA = BuildableComponentMetadataSupplierDetails::getExecutionResult;
     private final ModuleComponentResolveState resolveState;
     private BuildableModuleComponentMetaDataResolveResult cachedResult;
     private ComponentMetadata cachedComponentMetadata;
@@ -98,12 +93,9 @@ class DefaultMetadataProvider implements MetadataProvider {
     private ComponentMetadata getComponentMetadataFromSupplier(InstantiatingAction<ComponentMetadataSupplierDetails> componentMetadataSupplier) {
         ComponentMetadata metadata;
         ModuleVersionIdentifier id = DefaultModuleVersionIdentifier.newId(resolveState.getId());
-        metadata = resolveState.getComponentMetadataSupplierExecutor().execute(id, componentMetadataSupplier, TO_COMPONENT_METADATA, new Transformer<BuildableComponentMetadataSupplierDetails, ModuleVersionIdentifier>() {
-            @Override
-            public BuildableComponentMetadataSupplierDetails transform(ModuleVersionIdentifier id) {
-                final SimpleComponentMetadataBuilder builder = new SimpleComponentMetadataBuilder(id, resolveState.getAttributesFactory());
-                return new BuildableComponentMetadataSupplierDetails(builder);
-            }
+        metadata = resolveState.getComponentMetadataSupplierExecutor().execute(id, componentMetadataSupplier, TO_COMPONENT_METADATA, id1 -> {
+            final SimpleComponentMetadataBuilder builder = new SimpleComponentMetadataBuilder(id1, resolveState.getAttributesFactory());
+            return new BuildableComponentMetadataSupplierDetails(builder);
         }, resolveState.getCachePolicy());
         return metadata;
     }

@@ -71,12 +71,9 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
 
     private final static boolean FORCE_REALIZE = Boolean.getBoolean("org.gradle.integtest.force.realize.metadata");
 
-    private static final Transformer<ModuleComponentResolveMetadata, WrappingComponentMetadataContext> DETAILS_TO_RESULT = new Transformer<ModuleComponentResolveMetadata, WrappingComponentMetadataContext>() {
-        @Override
-        public ModuleComponentResolveMetadata transform(WrappingComponentMetadataContext componentMetadataContext) {
-            ModuleComponentResolveMetadata metadata = componentMetadataContext.getMutableMetadata().asImmutable();
-            return realizeMetadata(metadata);
-        }
+    private static final Transformer<ModuleComponentResolveMetadata, WrappingComponentMetadataContext> DETAILS_TO_RESULT = componentMetadataContext -> {
+        ModuleComponentResolveMetadata metadata = componentMetadataContext.getMutableMetadata().asImmutable();
+        return realizeMetadata(metadata);
     };
 
     private ModuleComponentResolveMetadata maybeForceRealisation(ModuleComponentResolveMetadata metadata) {
@@ -239,12 +236,7 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
     private ModuleComponentResolveMetadata processClassRuleWithCaching(InstantiatingAction<ComponentMetadataContext> action, final ModuleComponentResolveMetadata metadata, MetadataResolutionContext metadataResolutionContext) {
         try {
             return ruleExecutor.execute(metadata, action, DETAILS_TO_RESULT,
-                new Transformer<WrappingComponentMetadataContext, ModuleComponentResolveMetadata>() {
-                    @Override
-                    public WrappingComponentMetadataContext transform(ModuleComponentResolveMetadata moduleVersionIdentifier) {
-                        return new WrappingComponentMetadataContext(metadata, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser, componentIdentifierNotationParser, platformSupport);
-                    }
-                }, metadataResolutionContext.getCachePolicy());
+                moduleVersionIdentifier -> new WrappingComponentMetadataContext(metadata, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser, componentIdentifierNotationParser, platformSupport), metadataResolutionContext.getCachePolicy());
         } catch (InvalidUserCodeException e) {
             throw e;
         } catch (Exception e) {

@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.apache.ivy.Ivy;
-import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.PublishException;
 import org.gradle.api.internal.artifacts.ArtifactPublisher;
@@ -37,11 +35,8 @@ public class IvyContextualArtifactPublisher implements ArtifactPublisher {
 
     @Override
     public void publish(final Iterable<? extends PublicationAwareRepository> repositories, final Module module, final Configuration configuration, final File descriptor) throws PublishException {
-        ivyContextManager.withIvy(new Action<Ivy>() {
-            @Override
-            public void execute(Ivy ivy) {
-                delegate.publish(repositories, module, configuration, descriptor);
-            }
+        ivyContextManager.withIvy(ivy -> {
+            delegate.publish(repositories, module, configuration, descriptor);
         });
     }
 }
