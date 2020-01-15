@@ -60,7 +60,7 @@ class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
 
     @Test
     @LeaksFileHandles("Kotlin Compiler Daemon working directory")
-    @UnsupportedWithInstantExecution
+    @UnsupportedWithInstantExecution(iterationMatchers = [".*\\[1\\.3\\.[3-6].*"])
     fun `kotlin-dsl plugin in buildSrc and production code using kotlin-gradle-plugin `() {
 
         requireGradleDistributionOnEmbeddedExecuter()
