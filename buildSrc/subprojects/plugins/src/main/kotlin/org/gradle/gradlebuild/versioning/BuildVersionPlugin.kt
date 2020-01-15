@@ -32,12 +32,15 @@ import java.util.Date
 
 
 class BuildVersionPlugin : Plugin<Project> {
-    override fun apply(project: Project) = project.setBuildVersionProperties()
+    override fun apply(project: Project) {
+        require(project === project.rootProject)
+        project.setBuildVersion()
+    }
 }
 
 
 private
-fun Project.setBuildVersionProperties() {
+fun Project.setBuildVersion() {
 
     val isPromotionBuild = isPromotionBuild()
     if (isPromotionBuild) {
@@ -81,22 +84,16 @@ fun Project.setBuildVersionProperties() {
 
     project.version = versionNumber
 
-    registerBuildReceiptTask(
-        versionNumber,
-        baseVersion,
-        isSnapshot,
-        buildTimestamp
-    )
+    registerBuildReceiptTask(versionNumber, baseVersion, isSnapshot, buildTimestamp)
 
     if (isPromotionBuild) {
-        logger.logBuildVersion(versionNumber, baseVersion, buildTimestamp, isSnapshot)
+        logger.logBuildVersion(versionNumber, baseVersion, isSnapshot, buildTimestamp)
     }
 
-    extra.let { ext ->
-        ext["baseVersion"] = baseVersion
-        ext["buildTimestamp"] = buildTimestamp
-        ext["isSnapshot"] = isSnapshot
-    }
+    extensions.add(
+        "buildVersion",
+        BuildVersion(baseVersion, isSnapshot)
+    )
 }
 
 
@@ -136,8 +133,8 @@ private
 fun Logger.logBuildVersion(
     versionNumber: String,
     baseVersion: String,
-    buildTimestamp: String,
-    isSnapshot: Boolean
+    isSnapshot: Boolean,
+    buildTimestamp: String
 ) {
     lifecycle(
         "Version: $versionNumber " +
@@ -214,5 +211,5 @@ fun Project.isPromotionBuild(): Boolean =
 
 
 private
-val Project.buildTypes: NamedDomainObjectContainer<BuildType>
-    get() = the()
+val Project.buildTypes
+    get() = extensions.getByName<NamedDomainObjectContainer<BuildType>>("buildTypes")
