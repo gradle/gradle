@@ -270,12 +270,12 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs deprecated plugin message with link to upgrade guide"() {
         when:
-        DeprecationMessage.deprecatedPlugin("pluginName", 42, "upgradeGuideSection.").nagUser()
+        DeprecationLogger.deprecatePlugin("pluginName").withUpgradeGuideSection(42, "upgradeGuideSection").nagUser()
 
         then:
         def events = outputEventListener.events
         events.size() == 1
-        events[0].message == "The pluginName plugin has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_42.html#upgradeGuideSection."
+        events[0].message == "The pluginName plugin has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_42.html#upgradeGuideSection"
     }
 
     @Unroll

@@ -30,7 +30,7 @@ import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.Transformers;
 import org.gradle.internal.build.BuildState;
-import org.gradle.internal.deprecation.DeprecationMessage;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JvmByteCode;
@@ -83,7 +83,7 @@ public class JavaLanguagePlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project project) {
-        DeprecationMessage.deprecatedPlugin("java-lang", 6, "upgrading_jvm_plugins").nagUser();
+        DeprecationLogger.deprecatePlugin("java-lang").withUpgradeGuideSection(6, "upgrading_jvm_plugins").nagUser();
         project.getPluginManager().apply(ComponentModelBasePlugin.class);
         project.getPluginManager().apply(JvmResourcesPlugin.class);
     }

@@ -22,7 +22,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
-import org.gradle.internal.deprecation.DeprecationMessage;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JvmByteCode;
 import org.gradle.jvm.internal.JvmAssembly;
@@ -64,7 +64,7 @@ public class ScalaLanguagePlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project project) {
-        DeprecationMessage.deprecatedPlugin("scala-lang", 6, "upgrading_jvm_plugins").nagUser();
+        DeprecationLogger.deprecatePlugin("scala-lang").withUpgradeGuideSection(6, "upgrading_jvm_plugins").nagUser();
         project.getPluginManager().apply(ComponentModelBasePlugin.class);
         project.getPluginManager().apply(JvmResourcesPlugin.class);
     }

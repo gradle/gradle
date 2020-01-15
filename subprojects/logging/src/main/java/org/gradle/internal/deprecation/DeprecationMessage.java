@@ -337,20 +337,10 @@ public class DeprecationMessage {
             return replaceWith(replacement);
         }
 
-    }
-
-    // TODO: start here with documentation embedding
-    // Output: The ${pluginName} plugin has been deprecated. This is scheduled to be removed in Gradle X. Consult the upgrading guide for further information: link-to-user-manual/upgrading_version_${majorVersion}.html#${replacement}
-    public static DeprecationMessage.Builder deprecatedPlugin(final String pluginName, final int majorVersion, final String upgradeGuideSection) {
-        return new DeprecationMessage.Builder() {
-            @Override
-            DeprecationMessage build() {
-                withSummary(pluginHasBeenDeprecated(pluginName));
-                withRemovalDetails(thisIsScheduledToBeRemoved());
-                withAdvice("Consult the upgrading guide for further information: " + DOCUMENTATION_REGISTRY.getDocumentationFor("upgrading_version_" + majorVersion, upgradeGuideSection));
-                return super.build();
-            }
-        };
+        public Builder withUpgradeGuideSection(int majorVersion, String upgradeGuideSection) {
+            // TODO: this is how it works with current implementation. Start here with extracting deprecation documentation model
+            return withAdvice("Consult the upgrading guide for further information: " + DOCUMENTATION_REGISTRY.getDocumentationFor("upgrading_version_" + majorVersion, upgradeGuideSection));
+        }
     }
 
     public DeprecatedFeatureUsage toDeprecatedFeatureUsage(Class<?> calledFrom) {
