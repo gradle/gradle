@@ -24,7 +24,6 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.internal.Actions;
-import org.gradle.internal.deprecation.ConfigurationDeprecationType;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
@@ -64,7 +63,7 @@ public class DefaultArtifactHandler implements ArtifactHandler, MethodMixIn {
 
     private void warnIfConfigurationIsDeprecated(DeprecatableConfiguration configuration) {
         if (configuration.isFullyDeprecated()) {
-            DeprecationLogger.deprecateConfiguration(configuration.getName(), ConfigurationDeprecationType.ARTIFACT_DECLARATION)
+            DeprecationLogger.deprecateConfiguration(configuration.getName()).forArtifactDeclaration()
                 .replaceWith(GUtil.flattenElements(configuration.getDeclarationAlternatives(), configuration.getConsumptionAlternatives()))
                 .nagUser();
         }

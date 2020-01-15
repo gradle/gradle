@@ -166,6 +166,30 @@ public class DeprecationMessage {
         }
     }
 
+    public static class ConfigurationDeprecationTypeSelector {
+        private final String configuration;
+
+        ConfigurationDeprecationTypeSelector(String configuration) {
+            this.configuration = configuration;
+        }
+
+        public DeprecateConfigurationBuilder forArtifactDeclaration() {
+            return new DeprecateConfigurationBuilder(configuration, ConfigurationDeprecationType.ARTIFACT_DECLARATION);
+        }
+
+        public DeprecateConfigurationBuilder forConsumption() {
+            return new DeprecateConfigurationBuilder(configuration, ConfigurationDeprecationType.CONSUMPTION);
+        }
+
+        public DeprecateConfigurationBuilder forDependencyDeclaration() {
+            return new DeprecateConfigurationBuilder(configuration, ConfigurationDeprecationType.DEPENDENCY_DECLARATION);
+        }
+
+        public DeprecateConfigurationBuilder forResolution() {
+            return new DeprecateConfigurationBuilder(configuration, ConfigurationDeprecationType.RESOLUTION);
+        }
+    }
+
     public static class DeprecateConfigurationBuilder extends DeprecationWithReplacementBuilder<List<String>> {
         private final ConfigurationDeprecationType deprecationType;
 

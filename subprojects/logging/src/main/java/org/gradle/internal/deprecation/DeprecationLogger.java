@@ -149,8 +149,8 @@ public class DeprecationLogger {
         return new DeprecationMessage.DeprecatePluginBuilder(plugin);
     }
 
-    public static DeprecationMessage.DeprecateConfigurationBuilder deprecateConfiguration(String configuration, ConfigurationDeprecationType deprecationType) {
-        return new DeprecationMessage.DeprecateConfigurationBuilder(configuration, deprecationType);
+    public static DeprecationMessage.ConfigurationDeprecationTypeSelector deprecateConfiguration(String configuration) {
+        return new DeprecationMessage.ConfigurationDeprecationTypeSelector(configuration);
     }
 
     /**

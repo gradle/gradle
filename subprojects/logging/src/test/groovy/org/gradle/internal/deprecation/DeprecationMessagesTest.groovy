@@ -24,7 +24,6 @@ import org.gradle.internal.logging.ConfigureLogging
 import org.gradle.util.GradleVersion
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class DeprecationMessagesTest extends Specification {
 
@@ -268,22 +267,48 @@ class DeprecationMessagesTest extends Specification {
         events[0].message == "The pluginName plugin has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_42.html#upgradeGuideSection"
     }
 
-    @Unroll
-    def "logs deprecation message for deprecated configuration with #deprecationType deprecation"() {
-        given:
-        DeprecationLogger.deprecateConfiguration("ConfigurationType", deprecationType).replaceWith(['r1', 'r2', 'r3']).nagUser()
+    def "logs configuration deprecation message for artifact declaration"() {
+        when:
+        DeprecationLogger.deprecateConfiguration("ConfigurationType").forArtifactDeclaration().replaceWith(['r1', 'r2', 'r3']).nagUser()
+
+        then:
         def events = outputEventListener.events
-
-        expect:
         events.size() == 1
-        events[0].message == expectedMessage
+        events[0].message == "The ConfigurationType configuration has been deprecated for artifact declaration. This will fail with an error in Gradle ${NEXT_GRADLE_VERSION}. Please use the r1 or r2 or r3 configuration instead."
 
-        where:
-        deprecationType                                     | expectedMessage
-        ConfigurationDeprecationType.ARTIFACT_DECLARATION   | "The ConfigurationType configuration has been deprecated for artifact declaration. This will fail with an error in Gradle ${NEXT_GRADLE_VERSION}. Please use the r1 or r2 or r3 configuration instead."
-        ConfigurationDeprecationType.CONSUMPTION            | "The ConfigurationType configuration has been deprecated for consumption. This will fail with an error in Gradle ${NEXT_GRADLE_VERSION}. Please use attributes to consume the r1 or r2 or r3 configuration instead."
-        ConfigurationDeprecationType.DEPENDENCY_DECLARATION | "The ConfigurationType configuration has been deprecated for dependency declaration. This will fail with an error in Gradle ${NEXT_GRADLE_VERSION}. Please use the r1 or r2 or r3 configuration instead."
-        ConfigurationDeprecationType.RESOLUTION             | "The ConfigurationType configuration has been deprecated for resolution. This will fail with an error in Gradle ${NEXT_GRADLE_VERSION}. Please resolve the r1 or r2 or r3 configuration instead."
+    }
+
+    def "logs configuration deprecation message for consumption"() {
+        when:
+        DeprecationLogger.deprecateConfiguration("ConfigurationType").forConsumption().replaceWith(['r1', 'r2', 'r3']).nagUser()
+
+        then:
+        def events = outputEventListener.events
+        events.size() == 1
+        events[0].message == "The ConfigurationType configuration has been deprecated for consumption. This will fail with an error in Gradle ${NEXT_GRADLE_VERSION}. Please use attributes to consume the r1 or r2 or r3 configuration instead."
+
+    }
+
+    def "logs configuration deprecation message for dependency declaration"() {
+        when:
+        DeprecationLogger.deprecateConfiguration("ConfigurationType").forDependencyDeclaration().replaceWith(['r1', 'r2', 'r3']).nagUser()
+
+        then:
+        def events = outputEventListener.events
+        events.size() == 1
+        events[0].message == "The ConfigurationType configuration has been deprecated for dependency declaration. This will fail with an error in Gradle ${NEXT_GRADLE_VERSION}. Please use the r1 or r2 or r3 configuration instead."
+
+    }
+
+    def "logs configuration deprecation message for resolution"() {
+        when:
+        DeprecationLogger.deprecateConfiguration("ConfigurationType").forResolution().replaceWith(['r1', 'r2', 'r3']).nagUser()
+
+        then:
+        def events = outputEventListener.events
+        events.size() == 1
+        events[0].message == "The ConfigurationType configuration has been deprecated for resolution. This will fail with an error in Gradle ${NEXT_GRADLE_VERSION}. Please resolve the r1 or r2 or r3 configuration instead."
+
     }
 
 }
