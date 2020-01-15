@@ -36,8 +36,10 @@ class KotlinEapSampleModifier implements SampleModifier {
 
     @Override
     Sample modify(Sample sample) {
-        if (sample.getId().contains("usePluginsInInitScripts")) {
-            // usePluginsInInitScripts asserts using https://repo.gradle.org/gradle/repo
+        // usePluginsInInitScripts asserts using https://repo.gradle.org/gradle/repo
+        // initScriptConfiguration asserts the set of repositories
+        List<String> skipped = ['usePluginsInInitScripts', 'initScriptConfiguration']
+        if (skipped.any { sample.id.contains(it) }) {
             return sample;
         }
         List<Command> commands = sample.commands
