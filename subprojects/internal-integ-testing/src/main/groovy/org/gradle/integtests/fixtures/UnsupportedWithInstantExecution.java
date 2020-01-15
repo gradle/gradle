@@ -32,5 +32,12 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 @ExtensionAnnotation(UnsupportedWithInstantExecutionExtension.class)
 public @interface UnsupportedWithInstantExecution {
+
     String[] bottomSpecs() default {};
+
+    /**
+     * Declare regular expressions matching the iteration name.
+     * Defaults to an empty array, meaning this annotation applies to all iterations of the annotated feature.
+     */
+    String[] iterationMatchers() default {};
 }

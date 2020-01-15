@@ -22,6 +22,7 @@ import org.junit.runner.Description
 import org.junit.runners.model.Statement
 
 import static org.gradle.integtests.fixtures.ToBeFixedForInstantExecutionExtension.isEnabledBottomSpec
+import static org.gradle.integtests.fixtures.UnsupportedWithInstantExecutionExtension.iterationMatches
 import static org.junit.Assume.assumeFalse
 
 
@@ -33,7 +34,9 @@ class UnsupportedWithInstantExecutionRule implements TestRule {
         if (!GradleContextualExecuter.isInstant() || annotation == null) {
             return base
         }
-        if (isEnabledBottomSpec(annotation.bottomSpecs(), { description.className.endsWith(".$it") })) {
+        def enabledBottomSpec = isEnabledBottomSpec(annotation.bottomSpecs(), { description.className.endsWith(".$it") })
+        def enabledIteration = iterationMatches(annotation.iterationMatchers(), description.methodName)
+        if (enabledBottomSpec && enabledIteration) {
             return new SkippingRuleStatement(base)
         }
         return base

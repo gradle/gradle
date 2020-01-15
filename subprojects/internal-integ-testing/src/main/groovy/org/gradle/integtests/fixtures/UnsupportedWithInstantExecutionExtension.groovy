@@ -33,4 +33,12 @@ class UnsupportedWithInstantExecutionExtension extends AbstractAnnotationDrivenE
             }
         }
     }
+
+    static boolean iterationMatches(String[] iterationMatchers, String iterationName) {
+        return isAllIterations(iterationMatchers) || iterationMatchers.any { iterationName.matches(it) }
+    }
+
+    private static boolean isAllIterations(String[] iterationMatchers) {
+        return iterationMatchers.length == 0
+    }
 }
