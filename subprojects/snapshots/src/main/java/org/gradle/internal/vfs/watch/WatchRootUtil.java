@@ -54,6 +54,17 @@ public class WatchRootUtil {
         return roots;
     }
 
+    /**
+     * Resolves the directories to watch from a snapshot hierarchy - the current state of the VFS.
+     *
+     * The directories to watch are
+     * - roots of completed directory snapshots
+     * - parents of complete snapshots
+     * - the first existing parent directory for a missing file snapshot
+     *
+     * @param watchFilter returns true for paths which shouldn't be watched
+     * @param mustWatchDirectories directories which always should be watched. Will be part of the result.
+     */
     public static Set<String> resolveDirectoriesToWatch(SnapshotHierarchy root, Predicate<String> watchFilter, Collection<String> mustWatchDirectories) {
         Set<String> watchedDirectories = new HashSet<>(mustWatchDirectories);
         root.visitSnapshots((snapshot, rootOfCompleteHierarchy) -> {
