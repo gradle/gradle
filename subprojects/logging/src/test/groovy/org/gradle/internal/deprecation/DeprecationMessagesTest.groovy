@@ -16,6 +16,7 @@
 
 package org.gradle.internal.deprecation
 
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.internal.featurelifecycle.DeprecatedUsageBuildOperationProgressBroadcaster
 import org.gradle.internal.featurelifecycle.UsageLocationReporter
@@ -27,11 +28,13 @@ import spock.lang.Specification
 
 class DeprecationMessagesTest extends Specification {
 
-    final CollectingTestOutputEventListener outputEventListener = new CollectingTestOutputEventListener()
-    @Rule
-    final ConfigureLogging logging = new ConfigureLogging(outputEventListener)
+    private static final String NEXT_GRADLE_VERSION = GradleVersion.current().nextMajor.version
+    private static final DOCUMENTATION_REGISTRY = new DocumentationRegistry()
 
-    static final String NEXT_GRADLE_VERSION = GradleVersion.current().nextMajor.version
+    private final CollectingTestOutputEventListener outputEventListener = new CollectingTestOutputEventListener()
+
+    @Rule
+    private final ConfigureLogging logging = new ConfigureLogging(outputEventListener)
 
     def setup() {
         DeprecationLogger.init(Mock(UsageLocationReporter), WarningMode.All, Mock(DeprecatedUsageBuildOperationProgressBroadcaster))
@@ -332,5 +335,18 @@ class DeprecationMessagesTest extends Specification {
         def events = outputEventListener.events
         events.size() == 1
         events[0].message == "Publication ignores 'transitive = false' at configuration level. Consider using 'transitive = false' at the dependency level if you need this to be published."
+    }
+
+    def "logs documentation reference"() {
+        when:
+        DeprecationLogger.deprecateBehaviour("Some behaviour.")
+            .guidedBy("viewing_debugging_dependencies", "sub:resolving-unsafe-configuration-resolution-errors")
+            .nagUser()
+
+        then:
+        def events = outputEventListener.events
+        events.size() == 1
+        def expectedDocumentationUrl = DOCUMENTATION_REGISTRY.getDocumentationFor("viewing_debugging_dependencies", "sub:resolving-unsafe-configuration-resolution-errors")
+        events[0].message == "Some behaviour. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. See ${expectedDocumentationUrl} for more details."
     }
 }

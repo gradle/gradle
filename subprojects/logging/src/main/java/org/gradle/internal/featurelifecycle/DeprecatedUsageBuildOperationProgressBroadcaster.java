@@ -16,6 +16,7 @@
 
 package org.gradle.internal.featurelifecycle;
 
+import org.gradle.internal.deprecation.DeprecatedFeatureUsage;
 import org.gradle.internal.operations.BuildOperationListener;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.OperationIdentifier;

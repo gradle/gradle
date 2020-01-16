@@ -18,7 +18,6 @@ package org.gradle.internal.deprecation;
 
 import com.google.common.base.Joiner;
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.internal.featurelifecycle.DeprecatedFeatureUsage;
 
 import java.util.List;
 
@@ -34,7 +33,8 @@ public class DeprecationMessageBuilder {
     private String removalDetails;
     private String context;
     private String advice;
-    private String documentationReference;
+
+    private DocumentationReference documentationReference = DocumentationReference.NO_DOCUMENTATION;
 
     private DeprecatedFeatureUsage.Type usageType = DeprecatedFeatureUsage.Type.USER_CODE_DIRECT;
 
@@ -51,8 +51,8 @@ public class DeprecationMessageBuilder {
         return this;
     }
 
-    public DeprecationMessageBuilder withDocumentationReference(String documentationReference) {
-        this.documentationReference = documentationReference;
+    public DeprecationMessageBuilder guidedBy(String documentationId, String section) {
+        this.documentationReference = DocumentationReference.create(documentationId, section);
         return this;
     }
 

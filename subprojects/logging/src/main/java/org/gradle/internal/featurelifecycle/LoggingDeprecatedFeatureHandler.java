@@ -20,6 +20,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.deprecation.DeprecatedFeatureUsage;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
 import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;

@@ -16,18 +16,16 @@
 
 package org.gradle.internal.deprecation;
 
-import org.gradle.internal.featurelifecycle.DeprecatedFeatureUsage;
-
 class DeprecationMessage {
 
     private final String summary;
     private final String removalDetails;
     private final String advice;
     private final String context;
-    private final String documentationReference;
+    private final DocumentationReference documentationReference;
     private final DeprecatedFeatureUsage.Type usageType;
 
-    DeprecationMessage(String summary, String removalDetails, String advice, String context, String documentationReference, DeprecatedFeatureUsage.Type usageType) {
+    DeprecationMessage(String summary, String removalDetails, String advice, String context, DocumentationReference documentationReference, DeprecatedFeatureUsage.Type usageType) {
         this.summary = summary;
         this.removalDetails = removalDetails;
         this.advice = advice;
@@ -37,7 +35,7 @@ class DeprecationMessage {
     }
 
     DeprecatedFeatureUsage toDeprecatedFeatureUsage(Class<?> calledFrom) {
-        return new DeprecatedFeatureUsage(summary, removalDetails, advice, context, usageType, calledFrom);
+        return new DeprecatedFeatureUsage(summary, removalDetails, advice, context, documentationReference, usageType, calledFrom);
     }
 
 }
