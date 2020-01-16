@@ -19,7 +19,6 @@ package org.gradle.internal.resource.transfer;
 import com.google.common.io.Files;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.ExternalResourceCachePolicy;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.cache.internal.ProducerGuard;
@@ -58,18 +57,23 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
     private final CachedExternalResourceIndex<String> cachedExternalResourceIndex;
     private final BuildCommencedTimeProvider timeProvider;
     private final TemporaryFileProvider temporaryFileProvider;
-    private final ArtifactCacheLockingManager artifactCacheLockingManager;
     private final ExternalResourceCachePolicy externalResourceCachePolicy;
     private final ProducerGuard<ExternalResourceName> producerGuard;
     private final FileResourceRepository fileResourceRepository;
     private final ChecksumService checksumService;
 
-    public DefaultCacheAwareExternalResourceAccessor(ExternalResourceRepository delegate, CachedExternalResourceIndex<String> cachedExternalResourceIndex, BuildCommencedTimeProvider timeProvider, TemporaryFileProvider temporaryFileProvider, ArtifactCacheLockingManager artifactCacheLockingManager, ExternalResourceCachePolicy externalResourceCachePolicy, ProducerGuard<ExternalResourceName> producerGuard, FileResourceRepository fileResourceRepository, ChecksumService checksumService) {
+    public DefaultCacheAwareExternalResourceAccessor(ExternalResourceRepository delegate,
+                                                     CachedExternalResourceIndex<String> cachedExternalResourceIndex,
+                                                     BuildCommencedTimeProvider timeProvider,
+                                                     TemporaryFileProvider temporaryFileProvider,
+                                                     ExternalResourceCachePolicy externalResourceCachePolicy,
+                                                     ProducerGuard<ExternalResourceName> producerGuard,
+                                                     FileResourceRepository fileResourceRepository,
+                                                     ChecksumService checksumService) {
         this.delegate = delegate;
         this.cachedExternalResourceIndex = cachedExternalResourceIndex;
         this.timeProvider = timeProvider;
         this.temporaryFileProvider = temporaryFileProvider;
-        this.artifactCacheLockingManager = artifactCacheLockingManager;
         this.externalResourceCachePolicy = externalResourceCachePolicy;
         this.producerGuard = producerGuard;
         this.fileResourceRepository = fileResourceRepository;
@@ -209,12 +213,10 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
     }
 
     private LocallyAvailableExternalResource moveIntoCache(final ExternalResourceName source, final File destination, final ResourceFileStore fileStore, final ExternalResourceMetaData metaData) {
-        return artifactCacheLockingManager.useCache(() -> {
-            LocallyAvailableResource cachedResource = fileStore.moveIntoCache(destination);
-            File fileInFileStore = cachedResource.getFile();
-            cachedExternalResourceIndex.store(source.toString(), fileInFileStore, metaData);
-            return fileResourceRepository.resource(fileInFileStore, source.getUri(), metaData);
-        });
+        LocallyAvailableResource cachedResource = fileStore.moveIntoCache(destination);
+        File fileInFileStore = cachedResource.getFile();
+        cachedExternalResourceIndex.store(source.toString(), fileInFileStore, metaData);
+        return fileResourceRepository.resource(fileInFileStore, source.getUri(), metaData);
     }
 
     private long getAgeMillis(BuildCommencedTimeProvider timeProvider, CachedExternalResource cached) {

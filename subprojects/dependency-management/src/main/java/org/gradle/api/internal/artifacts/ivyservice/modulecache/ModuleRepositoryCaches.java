@@ -15,17 +15,17 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.AbstractArtifactsCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.ModuleArtifactCache;
-import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.ModuleArtifactsCache;
-import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.ModuleVersionsCache;
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.AbstractModuleVersionsCache;
 
 public class ModuleRepositoryCaches {
-    public final ModuleVersionsCache moduleVersionsCache;
-    public final ModuleMetadataCache moduleMetadataCache;
-    public final ModuleArtifactsCache moduleArtifactsCache;
+    public final AbstractModuleVersionsCache moduleVersionsCache;
+    public final AbstractModuleMetadataCache moduleMetadataCache;
+    public final AbstractArtifactsCache moduleArtifactsCache;
     public final ModuleArtifactCache moduleArtifactCache;
 
-    public ModuleRepositoryCaches(ModuleVersionsCache moduleVersionsCache, ModuleMetadataCache moduleMetadataCache, ModuleArtifactsCache moduleArtifactsCache, ModuleArtifactCache moduleArtifactCache) {
+    public ModuleRepositoryCaches(AbstractModuleVersionsCache moduleVersionsCache, AbstractModuleMetadataCache moduleMetadataCache, AbstractArtifactsCache moduleArtifactsCache, ModuleArtifactCache moduleArtifactCache) {
         this.moduleVersionsCache = moduleVersionsCache;
         this.moduleMetadataCache = moduleMetadataCache;
         this.moduleArtifactsCache = moduleArtifactsCache;
