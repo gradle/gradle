@@ -52,6 +52,12 @@ class GradleBuildInstantExecutionSmokeTest extends AbstractSmokeTest {
             "-Dorg.gradle.unsafe.instant-execution=true",
             "-PbuildSrcCheck=false"
         ]
-        return runner(*(tasks + testArgs)).build()
+        return runner(*(tasks + testArgs))
+            .withEnvironment(
+                new HashMap(System.getenv()).tap {
+                    remove("CI")
+                }
+            )
+            .build()
     }
 }
