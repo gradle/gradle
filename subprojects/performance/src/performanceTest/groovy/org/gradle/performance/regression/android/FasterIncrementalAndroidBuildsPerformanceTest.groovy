@@ -36,6 +36,7 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
     def "faster incremental build on #testProject (build comparison)"() {
         given:
         runner.testGroup = "incremental android changes"
+        def defaultArgs = ["-Dorg.gradle.workers.max=8", "--no-build-cache", "--no-scan"]
 
         // Kotlin is not supported for instant execution
         def optimizations = testProject == SANTA_TRACKER_KOTLIN
@@ -54,13 +55,13 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
             runner.buildSpec {
                 testProject.configureForNonAbiChange(it)
                 passChangedFile(it, testProject)
-                invocation.args(*enabledOptimizations*.argument)
+                invocation.args(*defaultArgs, *enabledOptimizations*.argument)
                 displayName("non abi change (${name})")
             }
             runner.buildSpec {
                 testProject.configureForAbiChange(it)
                 passChangedFile(it, testProject)
-                invocation.args(*enabledOptimizations*.argument)
+                invocation.args(*defaultArgs, *enabledOptimizations*.argument)
                 displayName("abi change (${name})")
             }
         }
