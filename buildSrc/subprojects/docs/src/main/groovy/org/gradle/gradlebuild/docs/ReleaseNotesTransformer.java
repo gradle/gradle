@@ -100,8 +100,8 @@ public class ReleaseNotesTransformer extends FilterReader {
     }
 
     private void addJavascriptToHead(Document document) {
-        appendFileContentsTo(document.head(), "<script type='text/javascript'>", releaseNotesJavascript, "</script>");
         appendFileContentsTo(document.head(), "<script type='text/javascript'>", jquery, "</script>");
+        appendFileContentsTo(document.head(), "<script type='text/javascript'>", releaseNotesJavascript, "</script>");
     }
 
     private void addCssToHead(Document document) {
