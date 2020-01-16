@@ -24,8 +24,11 @@ class DeprecatedFeatureUsageTest extends Specification {
 
     @Unroll
     def "formats messages"() {
+        given:
+        def featureUsage = new DeprecatedFeatureUsage(summary, removalDetails, advice, contextualAdvice, documentationReference, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT, getClass())
+
         expect:
-        new DeprecatedFeatureUsage(summary, removalDetails, advice, contextualAdvice, documentationReference, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT, getClass()).formattedMessage() == expected
+        featureUsage.formattedMessage() == expected
 
         where:
         summary   | removalDetails   | advice   | contextualAdvice   | documentationReference                      | expected
@@ -35,13 +38,17 @@ class DeprecatedFeatureUsageTest extends Specification {
         "summary" | "removalDetails" | "advice" | "contextualAdvice" | DocumentationReference.create("foo", "bar") | "summary removalDetails contextualAdvice advice See https://docs.gradle.org/${GradleVersion.current().version}/userguide/foo.html#bar for more details."
     }
 
-    def "formats message with documentation reference"() {
-        when:
-        def documentationReference = DocumentationReference.create("foo", "bar")
-        def deprecatedFeatureUsage = new DeprecatedFeatureUsage("summary", "removalDetails", "advice", "contextualAdvice", documentationReference, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT, getClass())
+    def "returns documentation url"() {
+        given:
+        def featureUsage = new DeprecatedFeatureUsage("summary", "removalDetails", "advice", "contextualAdvice", documentationReference, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT, getClass())
 
-        then:
-        deprecatedFeatureUsage.formattedMessage() == "summary removalDetails contextualAdvice advice ${documentationReference.consultDocumentationMessage()}"
+        expect:
+        featureUsage.getDocumentationUrl() == expected
+
+        where:
+        documentationReference                         | expected
+        DocumentationReference.NO_DOCUMENTATION        | null
+        DocumentationReference.create("foo", "bar")    | "https://docs.gradle.org/${GradleVersion.current().version}/userguide/foo.html#bar"
+        DocumentationReference.upgradeGuide(42, "bar") | "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_42.html#bar"
     }
-
 }

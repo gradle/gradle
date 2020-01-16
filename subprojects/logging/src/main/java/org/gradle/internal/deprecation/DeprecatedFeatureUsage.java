@@ -118,6 +118,11 @@ public class DeprecatedFeatureUsage extends FeatureUsage {
         return contextualAdvice;
     }
 
+    @Nullable
+    public String getDocumentationUrl() {
+        return documentationReference.documentationUrl();
+    }
+
     public DeprecatedFeatureUsage.Type getType() {
         return type;
     }
