@@ -71,7 +71,7 @@ class WatchRootUtilTest extends Specification {
         when:
         def directoriesToWatch = resolveDirectoriesToWatch(hierarchy, prefix)
         then:
-        directoriesToWatch == (expectedDirectoriesToWatch.collect { "${prefix}${it}".toString() } as Set)
+        normalizeLineSeparators(directoriesToWatch) == (expectedDirectoriesToWatch.collect { "${prefix}${it}".toString() } as Set)
 
         where:
         hierarchy  | expectedDirectoriesToWatch
@@ -131,5 +131,9 @@ class WatchRootUtilTest extends Specification {
         WatchRootUtil.resolveRootsToWatch(directories as Set)
             .collect { it.toString() }
             .sort()
+    }
+
+    private static Set<String> normalizeLineSeparators(Set<String> paths) {
+        return paths*.replace(File.separatorChar, '/' as char) as Set
     }
 }
