@@ -16,6 +16,7 @@
 
 package org.gradle.internal.deprecation
 
+import org.gradle.util.GradleVersion
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -27,10 +28,11 @@ class DeprecatedFeatureUsageTest extends Specification {
         new DeprecatedFeatureUsage(summary, removalDetails, advice, contextualAdvice, documentationReference, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT, getClass()).formattedMessage() == expected
 
         where:
-        expected                                         | summary   | removalDetails   | advice   | contextualAdvice   | documentationReference
-        "summary removalDetails"                         | "summary" | "removalDetails" | null     | null               | DocumentationReference.NO_DOCUMENTATION
-        "summary removalDetails advice"                  | "summary" | "removalDetails" | "advice" | null               | DocumentationReference.NO_DOCUMENTATION
-        "summary removalDetails contextualAdvice advice" | "summary" | "removalDetails" | "advice" | "contextualAdvice" | DocumentationReference.NO_DOCUMENTATION
+        summary   | removalDetails   | advice   | contextualAdvice   | documentationReference                      | expected
+        "summary" | "removalDetails" | null     | null               | DocumentationReference.NO_DOCUMENTATION     | "summary removalDetails"
+        "summary" | "removalDetails" | "advice" | null               | DocumentationReference.NO_DOCUMENTATION     | "summary removalDetails advice"
+        "summary" | "removalDetails" | "advice" | "contextualAdvice" | DocumentationReference.NO_DOCUMENTATION     | "summary removalDetails contextualAdvice advice"
+        "summary" | "removalDetails" | "advice" | "contextualAdvice" | DocumentationReference.create("foo", "bar") | "summary removalDetails contextualAdvice advice See https://docs.gradle.org/${GradleVersion.current().version}/userguide/foo.html#bar for more details."
     }
 
     def "formats message with documentation reference"() {
