@@ -48,8 +48,8 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
 
             task t(type:SomeTask) {
                 doLast {
-                    new org.gradle.internal.deprecation.DeprecationMessageBuilder()
-                            .withSummary('Custom Task action will be deprecated.').withRemovalDetails('Custom actions will not be supported in 2 weeks from now.')
+                    org.gradle.internal.deprecation.DeprecationLogger
+                            .deprecate('Custom Task action')
                             .withAdvice('Use task type X instead.')
                             .withContext("Task ':t' should not have custom actions attached.")
                             .nagUser()
@@ -124,8 +124,8 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
         scriptPluginDeprecation.details.stackTrace[0].lineNumber == 2
 
         def taskDoLastDeprecation = operations.only("Execute doLast {} action for :t").progress.find {it.hasDetailsOfType(DeprecatedUsageProgressDetails)}
-        taskDoLastDeprecation.details.summary == 'Custom Task action will be deprecated.'
-        taskDoLastDeprecation.details.removalDetails == 'Custom actions will not be supported in 2 weeks from now.'
+        taskDoLastDeprecation.details.summary == 'Custom Task action has been deprecated.'
+        taskDoLastDeprecation.details.removalDetails == 'This is scheduled to be removed in Gradle 7.0.'
         taskDoLastDeprecation.details.advice == 'Use task type X instead.'
         taskDoLastDeprecation.details.contextualAdvice == "Task ':t' should not have custom actions attached."
         taskDoLastDeprecation.details.type == 'USER_CODE_DIRECT'

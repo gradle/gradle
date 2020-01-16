@@ -308,4 +308,31 @@ class DeprecationMessagesTest extends Specification {
         events.size() == 1
         events[0].message == "Internal API constructor DefaultPolymorphicDomainObjectContainer(Class<T>, Instantiator) has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Please use ObjectFactory.polymorphicDomainObjectContainer(Class<T>) instead."
     }
+
+    def "can not overwrite advice when replacing"() {
+        when:
+        DeprecationLogger.deprecateInternalApi("constructor DefaultPolymorphicDomainObjectContainer(Class<T>, Instantiator)")
+            .replaceWith("ObjectFactory.polymorphicDomainObjectContainer(Class<T>)")
+            .withAdvice("foobar")
+            .nagUser()
+
+        then:
+        def events = outputEventListener.events
+        events.size() == 1
+        events[0].message == "Internal API constructor DefaultPolymorphicDomainObjectContainer(Class<T>, Instantiator) has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Please use ObjectFactory.polymorphicDomainObjectContainer(Class<T>) instead."
+    }
+
+    def "logs deprecation without scheduled removal"() {
+        when:
+        DeprecationLogger.deprecateBehaviour("Publication ignores 'transitive = false' at configuration level.")
+            .withAdvice("Consider using 'transitive = false' at the dependency level if you need this to be published.")
+            .withoutScheduledRemoval()
+            .withIndirectUsage()
+            .nagUser()
+
+        then:
+        def events = outputEventListener.events
+        events.size() == 1
+        events[0].message == "Publication ignores 'transitive = false' at configuration level. Consider using 'transitive = false' at the dependency level if you need this to be published."
+    }
 }

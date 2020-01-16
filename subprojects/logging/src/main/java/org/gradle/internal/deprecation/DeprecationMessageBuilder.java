@@ -22,6 +22,7 @@ import org.gradle.internal.featurelifecycle.DeprecatedFeatureUsage;
 
 import java.util.List;
 
+import static com.google.common.base.MoreObjects.firstNonNull;
 import static org.gradle.internal.deprecation.Messages.pleaseUseThisMethodInstead;
 import static org.gradle.internal.deprecation.Messages.thisIsScheduledToBeRemoved;
 import static org.gradle.internal.deprecation.Messages.thisWillBecomeAnError;
@@ -38,14 +39,7 @@ public class DeprecationMessageBuilder {
 
     private DeprecatedFeatureUsage.Type usageType = DeprecatedFeatureUsage.Type.USER_CODE_DIRECT;
 
-    public DeprecationMessageBuilder withSummary(String summary) {
-        this.summary = summary;
-        return this;
-    }
-
-    public DeprecationMessageBuilder withRemovalDetails(String removalDetails) {
-        this.removalDetails = removalDetails;
-        return this;
+    DeprecationMessageBuilder() {
     }
 
     public DeprecationMessageBuilder withAdvice(String advice) {
@@ -68,13 +62,28 @@ public class DeprecationMessageBuilder {
         return this;
     }
 
-    public DeprecationMessageBuilder withBuildInvocation() {
-        this.usageType = DeprecatedFeatureUsage.Type.BUILD_INVOCATION;
+    public DeprecationMessageBuilder withoutScheduledRemoval() {
+        this.removalDetails = "";
         return this;
     }
 
     public void nagUser() {
         DeprecationLogger.nagUserWith(this, DeprecationMessageBuilder.class);
+    }
+
+    DeprecationMessageBuilder withBuildInvocation() {
+        this.usageType = DeprecatedFeatureUsage.Type.BUILD_INVOCATION;
+        return this;
+    }
+
+    DeprecationMessageBuilder withSummary(String summary) {
+        this.summary = summary;
+        return this;
+    }
+
+    DeprecationMessageBuilder withRemovalDetails(String removalDetails) {
+        this.removalDetails = firstNonNull(this.removalDetails, removalDetails);
+        return this;
     }
 
     DeprecationMessage build() {
