@@ -24,7 +24,7 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.collections.ImmutableFileCollection
-import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore
+import org.gradle.api.internal.filestore.DefaultArtifactIdentifierFileStore
 import org.gradle.api.model.ObjectFactory
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
 import org.gradle.internal.instantiation.InstantiatorFactory
@@ -39,7 +39,7 @@ class DefaultFlatDirArtifactRepositoryTest extends Specification {
     final RepositoryTransport repositoryTransport = Mock()
     final RepositoryTransportFactory transportFactory = Mock()
     final LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder = Mock()
-    final ArtifactIdentifierFileStore artifactIdentifierFileStore = Stub()
+    final DefaultArtifactIdentifierFileStore artifactIdentifierFileStore = Stub()
     final ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock()
     final IvyMutableModuleMetadataFactory metadataFactory = DependencyManagementTestUtil.ivyMetadataFactory()
 
