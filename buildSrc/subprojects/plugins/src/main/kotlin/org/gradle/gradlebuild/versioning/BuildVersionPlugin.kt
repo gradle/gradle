@@ -278,6 +278,7 @@ val Project.buildTypes
 
 
 // TODO: move to ProviderFactory and make it a build logic input
+private
 fun Project.gradleProperty(propertyName: String): Provider<Any> =
     provider { findProperty(propertyName) }
 
@@ -287,5 +288,6 @@ fun Project.gradleProperty(propertyName: String): Provider<Any> =
  * and `false` otherwise. The returned [Provider] always has a value.
  * @see Provider.isPresent
  */
+private
 fun <T> Provider<T>.presence(): Provider<Boolean> =
     map { true }.orElse(false)
