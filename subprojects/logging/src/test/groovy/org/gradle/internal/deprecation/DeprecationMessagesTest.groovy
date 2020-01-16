@@ -324,10 +324,8 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs deprecation without scheduled removal"() {
         when:
-        DeprecationLogger.deprecateBehaviour("Publication ignores 'transitive = false' at configuration level.")
+        DeprecationLogger.warnOfChangedBehaviour("Publication ignores 'transitive = false' at configuration level.")
             .withAdvice("Consider using 'transitive = false' at the dependency level if you need this to be published.")
-            .withoutScheduledRemoval()
-            .withIndirectUsage()
             .nagUser()
 
         then:

@@ -22,7 +22,6 @@ import org.gradle.internal.featurelifecycle.DeprecatedFeatureUsage;
 
 import java.util.List;
 
-import static com.google.common.base.MoreObjects.firstNonNull;
 import static org.gradle.internal.deprecation.Messages.pleaseUseThisMethodInstead;
 import static org.gradle.internal.deprecation.Messages.thisIsScheduledToBeRemoved;
 import static org.gradle.internal.deprecation.Messages.thisWillBecomeAnError;
@@ -33,8 +32,8 @@ public class DeprecationMessageBuilder {
 
     private String summary;
     private String removalDetails;
-    private String advice;
     private String context;
+    private String advice;
     private String documentationReference;
 
     private DeprecatedFeatureUsage.Type usageType = DeprecatedFeatureUsage.Type.USER_CODE_DIRECT;
@@ -42,13 +41,13 @@ public class DeprecationMessageBuilder {
     DeprecationMessageBuilder() {
     }
 
-    public DeprecationMessageBuilder withAdvice(String advice) {
-        this.advice = advice;
+    public DeprecationMessageBuilder withContext(String context) {
+        this.context = context;
         return this;
     }
 
-    public DeprecationMessageBuilder withContext(String context) {
-        this.context = context;
+    public DeprecationMessageBuilder withAdvice(String advice) {
+        this.advice = advice;
         return this;
     }
 
@@ -57,18 +56,13 @@ public class DeprecationMessageBuilder {
         return this;
     }
 
-    public DeprecationMessageBuilder withIndirectUsage() {
-        this.usageType = DeprecatedFeatureUsage.Type.USER_CODE_INDIRECT;
-        return this;
-    }
-
-    public DeprecationMessageBuilder withoutScheduledRemoval() {
-        this.removalDetails = "";
-        return this;
-    }
-
     public void nagUser() {
         DeprecationLogger.nagUserWith(this, DeprecationMessageBuilder.class);
+    }
+
+    DeprecationMessageBuilder withIndirectUsage() {
+        this.usageType = DeprecatedFeatureUsage.Type.USER_CODE_INDIRECT;
+        return this;
     }
 
     DeprecationMessageBuilder withBuildInvocation() {
@@ -82,7 +76,7 @@ public class DeprecationMessageBuilder {
     }
 
     DeprecationMessageBuilder withRemovalDetails(String removalDetails) {
-        this.removalDetails = firstNonNull(this.removalDetails, removalDetails);
+        this.removalDetails = removalDetails;
         return this;
     }
 
@@ -103,11 +97,11 @@ public class DeprecationMessageBuilder {
             return this;
         }
 
-        protected abstract String formatSummary(String subject);
+        abstract String formatSummary(String subject);
 
-        protected abstract String formatAdvice(T replacement);
+        abstract String formatAdvice(T replacement);
 
-        protected String removalDetails() {
+        String removalDetails() {
             return thisIsScheduledToBeRemoved();
         }
 
@@ -129,12 +123,12 @@ public class DeprecationMessageBuilder {
         }
 
         @Override
-        protected String formatSummary(String parameter) {
+        String formatSummary(String parameter) {
             return String.format("The %s named parameter has been deprecated.", parameter);
         }
 
         @Override
-        protected String formatAdvice(String replacement) {
+        String formatAdvice(String replacement) {
             return String.format("Please use the %s named parameter instead.", replacement);
         }
     }
@@ -146,12 +140,12 @@ public class DeprecationMessageBuilder {
         }
 
         @Override
-        protected String formatSummary(String property) {
+        String formatSummary(String property) {
             return String.format("The %s property has been deprecated.", property);
         }
 
         @Override
-        protected String formatAdvice(String replacement) {
+        String formatAdvice(String replacement) {
             return String.format("Please use the %s property instead.", replacement);
         }
     }
@@ -192,17 +186,17 @@ public class DeprecationMessageBuilder {
         }
 
         @Override
-        protected String formatSummary(String configuration) {
+        String formatSummary(String configuration) {
             return String.format("The %s configuration has been deprecated for %s.", configuration, deprecationType.displayName());
         }
 
         @Override
-        protected String formatAdvice(List<String> replacements) {
+        String formatAdvice(List<String> replacements) {
             return String.format("Please %s the %s configuration instead.", deprecationType.usage, Joiner.on(" or ").join(replacements));
         }
 
         @Override
-        protected String removalDetails() {
+        String removalDetails() {
             return thisWillBecomeAnError();
         }
     }
@@ -214,12 +208,12 @@ public class DeprecationMessageBuilder {
         }
 
         @Override
-        protected String formatSummary(String method) {
+        String formatSummary(String method) {
             return String.format("The %s method has been deprecated.", method);
         }
 
         @Override
-        protected String formatAdvice(String replacement) {
+        String formatAdvice(String replacement) {
             return pleaseUseThisMethodInstead(replacement);
         }
     }
@@ -231,17 +225,17 @@ public class DeprecationMessageBuilder {
         }
 
         @Override
-        protected String formatSummary(String invocation) {
+        String formatSummary(String invocation) {
             return String.format("Using method %s has been deprecated.", invocation);
         }
 
         @Override
-        protected String formatAdvice(String replacement) {
+        String formatAdvice(String replacement) {
             return pleaseUseThisMethodInstead(replacement);
         }
 
         @Override
-        protected String removalDetails() {
+        String removalDetails() {
             return thisWillBecomeAnError();
         }
     }
@@ -252,12 +246,12 @@ public class DeprecationMessageBuilder {
         }
 
         @Override
-        protected String formatSummary(String task) {
+        String formatSummary(String task) {
             return String.format("The %s task has been deprecated.", task);
         }
 
         @Override
-        protected String formatAdvice(String replacement) {
+        String formatAdvice(String replacement) {
             return String.format("Please use the %s task instead.", replacement);
         }
     }
@@ -271,12 +265,12 @@ public class DeprecationMessageBuilder {
         }
 
         @Override
-        protected String formatSummary(String plugin) {
+        String formatSummary(String plugin) {
             return String.format("The %s plugin has been deprecated.", plugin);
         }
 
         @Override
-        protected String formatAdvice(String replacement) {
+        String formatAdvice(String replacement) {
             return externalReplacement ? String.format("Consider using the %s plugin instead.", replacement) : String.format("Please use the %s plugin instead.", replacement);
         }
 
@@ -297,12 +291,12 @@ public class DeprecationMessageBuilder {
         }
 
         @Override
-        protected String formatSummary(String api) {
+        String formatSummary(String api) {
             return String.format("Internal API %s has been deprecated.", api);
         }
 
         @Override
-        protected String formatAdvice(String replacement) {
+        String formatAdvice(String replacement) {
             return String.format("Please use %s instead.", replacement);
         }
     }

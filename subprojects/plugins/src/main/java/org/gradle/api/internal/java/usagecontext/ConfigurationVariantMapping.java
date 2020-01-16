@@ -58,10 +58,8 @@ public class ConfigurationVariantMapping {
 
     public void collectUsageContexts(final ImmutableCollection.Builder<UsageContext> outgoing) {
         if (!outgoingConfiguration.isTransitive()) {
-            DeprecationLogger.deprecateBehaviour("Publication ignores 'transitive = false' at configuration level.")
+            DeprecationLogger.warnOfChangedBehaviour("Publication ignores 'transitive = false' at configuration level.")
                 .withAdvice("Consider using 'transitive = false' at the dependency level if you need this to be published.")
-                .withoutScheduledRemoval()
-                .withIndirectUsage()
                 .nagUser();
         }
         Set<String> seen = Sets.newHashSet();

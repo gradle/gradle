@@ -94,6 +94,18 @@ public class DeprecationLogger {
         };
     }
 
+    public static DeprecationMessageBuilder warnOfChangedBehaviour(final String behaviour)  {
+        return new DeprecationMessageBuilder() {
+            @Override
+            DeprecationMessage build() {
+                withSummary(behaviour);
+                withRemovalDetails("");
+                withIndirectUsage();
+                return super.build();
+            }
+        };
+    }
+
     // Output: ${action} has been deprecated. This will fail with an error in Gradle X.
     public static DeprecationMessageBuilder deprecateAction(final String action) {
         return new DeprecationMessageBuilder() {
