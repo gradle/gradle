@@ -23,6 +23,10 @@ import org.gradle.performance.categories.PerformanceExperiment
 import org.gradle.performance.fixture.BuildExperimentSpec
 import org.gradle.performance.fixture.GradleBuildExperimentSpec
 import org.gradle.performance.regression.java.JavaInstantExecutionPerformanceTest
+import org.gradle.profiler.InvocationSettings
+import org.gradle.profiler.mutations.AbstractCleanupMutator
+import org.gradle.profiler.mutations.ClearInstantExecutionStateMutator
+import org.gradle.profiler.mutations.ClearProjectCacheMutator
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
@@ -80,6 +84,12 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
         if (builder instanceof GradleBuildExperimentSpec.GradleBuilder) {
             builder.invocation.args(AndroidGradlePluginVersions.OVERRIDE_VERSION_CHECK)
             builder.invocation.useToolingApi()
+            builder.addBuildMutator { InvocationSettings invocationSettings ->
+                new ClearInstantExecutionStateMutator(invocationSettings.projectDir, AbstractCleanupMutator.CleanupSchedule.SCENARIO)
+            }
+            builder.addBuildMutator { InvocationSettings invocationSettings ->
+                new ClearProjectCacheMutator(invocationSettings.projectDir, AbstractCleanupMutator.CleanupSchedule.SCENARIO)
+            }
         }
     }
 
