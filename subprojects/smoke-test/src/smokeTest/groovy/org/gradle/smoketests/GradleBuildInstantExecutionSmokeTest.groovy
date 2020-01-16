@@ -54,6 +54,10 @@ class GradleBuildInstantExecutionSmokeTest extends AbstractSmokeTest {
         ]
         return runner(*(tasks + testArgs))
             .withEnvironment(
+                /// Run the test build without the CI environment variable
+                /// so `buildTimestamp` doesn't change between invocations
+                /// (which would invalidate the instant execution cache).
+                /// See BuildVersionPlugin in buildSrc.
                 new HashMap(System.getenv()).tap {
                     remove("CI")
                 }
