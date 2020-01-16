@@ -20,10 +20,16 @@ import com.google.common.base.Preconditions;
 import org.gradle.api.internal.DocumentationRegistry;
 
 abstract class DocumentationReference {
+    private static final DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry();
+
     static final DocumentationReference NO_DOCUMENTATION = new NullDocumentationReference();
 
     static DocumentationReference create(String id, String section) {
         return new DefaultDocumentationReference(id, section);
+    }
+
+    public static DocumentationReference upgradeGuide(int majorVersion, String upgradeGuideSection) {
+        return new UpgradeGuideDocumentationReference(majorVersion, upgradeGuideSection);
     }
 
     abstract String documentationUrl();
@@ -32,9 +38,10 @@ abstract class DocumentationReference {
         return String.format("See %s for more details.", documentationUrl());
     }
 
-     private static class NullDocumentationReference extends DocumentationReference {
+    private static class NullDocumentationReference extends DocumentationReference {
 
-        private NullDocumentationReference() {}
+        private NullDocumentationReference() {
+        }
 
         @Override
         String documentationUrl() {
@@ -48,9 +55,6 @@ abstract class DocumentationReference {
     }
 
     private static class DefaultDocumentationReference extends DocumentationReference {
-
-        private static final DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry();
-
         private final String id;
         private final String section;
 
@@ -65,6 +69,26 @@ abstract class DocumentationReference {
                 return DOCUMENTATION_REGISTRY.getDocumentationFor(id, section);
             }
             return DOCUMENTATION_REGISTRY.getDocumentationFor(id);
+        }
+    }
+
+    private static class UpgradeGuideDocumentationReference extends DocumentationReference {
+        private final int majorVersion;
+        private final String section;
+
+        private UpgradeGuideDocumentationReference(int majorVersion, String section) {
+            this.majorVersion = majorVersion;
+            this.section = Preconditions.checkNotNull(section);
+        }
+
+        @Override
+        String documentationUrl() {
+            return DOCUMENTATION_REGISTRY.getDocumentationFor("upgrading_version_" + majorVersion, section);
+        }
+
+        @Override
+        String consultDocumentationMessage() {
+            return "Consult the upgrading guide for further information: " + documentationUrl();
         }
     }
 }

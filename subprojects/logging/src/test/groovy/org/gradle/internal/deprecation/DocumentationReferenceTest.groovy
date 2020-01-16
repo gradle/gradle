@@ -55,4 +55,22 @@ class DocumentationReferenceTest extends Specification {
         then:
         thrown NullPointerException
     }
+
+    def "creates upgrade guide reference"() {
+        when:
+        def documentationReference = DocumentationReference.upgradeGuide(11, "section")
+
+        then:
+        def expectedUrl = DOCUMENTATION_REGISTRY.getDocumentationFor("upgrading_version_11", "section")
+        documentationReference.documentationUrl() == expectedUrl
+        documentationReference.consultDocumentationMessage() == "Consult the upgrading guide for further information: ${expectedUrl}"
+    }
+
+    def "can not create upgrade guide reference with null section"() {
+        when:
+        DocumentationReference.upgradeGuide(42, null)
+
+        then:
+        thrown NullPointerException
+    }
 }
