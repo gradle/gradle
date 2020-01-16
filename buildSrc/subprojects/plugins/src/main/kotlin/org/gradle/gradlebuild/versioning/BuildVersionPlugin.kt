@@ -31,6 +31,7 @@ import org.gradle.api.tasks.Optional
 import org.gradle.build.BuildReceipt
 import org.gradle.gradlebuild.BuildEnvironment
 import org.gradle.gradlebuild.BuildEnvironment.CI_ENVIRONMENT_VARIABLE
+import org.gradle.internal.Cast
 import org.gradle.kotlin.dsl.*
 import org.gradle.plugins.buildtypes.BuildType
 import java.text.SimpleDateFormat
@@ -70,7 +71,7 @@ fun Project.setBuildVersion() {
     val isFinalRelease = finalRelease != null
     val baseVersion = rootProject.trimmedContentsOfFile("version.txt")
 
-    val buildTimestamp = computeBuildTimestamp()
+    val buildTimestamp = buildTimestamp()
     val versionNumber = when {
         isFinalRelease -> {
             baseVersion
@@ -163,7 +164,7 @@ fun Logger.logBuildVersion(
  */
 private
 fun Project.trimmedContentsOfFile(path: String): String =
-    fileContentsOf(path).asText.map { it.trim() }.get()
+    fileContentsOf(path).asText.get().trim()
 
 
 private
@@ -172,47 +173,52 @@ fun Project.fileContentsOf(path: String): FileContents =
 
 
 private
-fun Project.computeBuildTimestamp(): Provider<String> {
-    val ignoreIncomingBuildReceipt =
-        gradleProperty("ignoreIncomingBuildReceipt")
-            .presence()
-    val incomingBuildReceiptFile =
-        layout.projectDirectory
-            .dir("incoming-distributions")
-            .file(BuildReceipt.BUILD_RECEIPT_FILE_NAME)
-    val buildReceiptFileContents =
-        providers.fileContents(incomingBuildReceiptFile)
-            .asText
-    val buildTimestampFromGradleProperty =
-        gradleProperty("buildTimestamp")
-            .map { it as String }
-    val isCiServer =
-        providers.environmentVariable(CI_ENVIRONMENT_VARIABLE)
-            .presence()
-    val isRunningInstallTask =
-        provider {
-            isRunningInstallTask()
-        }
-    return providers.of(BuildTimestampValueSource::class) {
+fun Project.buildTimestamp(): Provider<String> =
+    providers.of(BuildTimestampValueSource::class) {
         parameters {
-            this.ignoreIncomingBuildReceipt.set(ignoreIncomingBuildReceipt)
-            this.buildReceiptFileContents.set(buildReceiptFileContents)
-            this.buildTimestampFromGradleProperty.set(buildTimestampFromGradleProperty)
-            this.runningOnCi.set(isCiServer)
-            this.runningInstallTask.set(isRunningInstallTask)
+            buildTimestampFromBuildReceipt.set(
+                buildTimestampFromBuildReceipt()
+            )
+            buildTimestampFromGradleProperty.set(
+                gradleProperty("buildTimestamp")
+                    .uncheckedCast<Provider<String>>()
+            )
+            runningOnCi.set(
+                providers.environmentVariable(CI_ENVIRONMENT_VARIABLE)
+                    .presence()
+            )
+            runningInstallTask.set(provider {
+                isRunningInstallTask()
+            })
         }
     }
-}
+
+
+private
+fun Project.buildTimestampFromBuildReceipt(): Provider<String> =
+    providers.of(BuildTimestampFromBuildReceipt::class) {
+        parameters {
+            ignoreIncomingBuildReceipt.set(
+                gradleProperty("ignoreIncomingBuildReceipt")
+                    .presence()
+            )
+            buildReceiptFileContents.set(
+                layout.projectDirectory
+                    .dir("incoming-distributions")
+                    .file(BuildReceipt.BUILD_RECEIPT_FILE_NAME)
+                    .let(providers::fileContents)
+                    .asText
+            )
+        }
+    }
 
 
 abstract class BuildTimestampValueSource : ValueSource<String, BuildTimestampValueSource.Parameters> {
 
     interface Parameters : ValueSourceParameters {
 
-        val ignoreIncomingBuildReceipt: Property<Boolean>
-
         @get:Optional
-        val buildReceiptFileContents: Property<String>
+        val buildTimestampFromBuildReceipt: Property<String>
 
         @get:Optional
         val buildTimestampFromGradleProperty: Property<String>
@@ -224,23 +230,17 @@ abstract class BuildTimestampValueSource : ValueSource<String, BuildTimestampVal
 
     override fun obtain(): String? = parameters.run {
 
-        // TODO: group these two properties into a single buildTimestampFromBuildReceipt one
-        val incomingBuildReceiptString =
-            if (ignoreIncomingBuildReceipt.get()) null
-            else buildReceiptFileContents.orNull
-
-        if (incomingBuildReceiptString != null) {
-            val incomingDistributionsBuildReceipt = BuildReceipt.readBuildReceiptFromString(incomingBuildReceiptString)
-            val buildTimestamp = incomingDistributionsBuildReceipt["buildTimestamp"] as String
-            println("Using timestamp from incoming build receipt: $buildTimestamp")
-            return buildTimestamp
+        val buildTimestampFromReceipt = buildTimestampFromBuildReceipt.orNull
+        if (buildTimestampFromReceipt != null) {
+            println("Using timestamp from incoming build receipt: $buildTimestampFromReceipt")
+            return buildTimestampFromReceipt
         }
 
         val timestampFormat = BuildReceipt.createTimestampDateFormat()
-        val buildTimestamp = buildTimestampFromGradleProperty.orNull
+        val buildTimestampFromProperty = buildTimestampFromGradleProperty.orNull
         val buildTime = when {
-            buildTimestamp != null -> {
-                timestampFormat.parse(buildTimestamp)
+            buildTimestampFromProperty != null -> {
+                timestampFormat.parse(buildTimestampFromProperty)
             }
             runningInstallTask.get() || runningOnCi.get() -> {
                 Date()
@@ -251,6 +251,31 @@ abstract class BuildTimestampValueSource : ValueSource<String, BuildTimestampVal
         }
         return timestampFormat.format(buildTime)
     }
+}
+
+
+abstract class BuildTimestampFromBuildReceipt : ValueSource<String, BuildTimestampFromBuildReceipt.Parameters> {
+
+    interface Parameters : ValueSourceParameters {
+
+        val ignoreIncomingBuildReceipt: Property<Boolean>
+
+        @get:Optional
+        val buildReceiptFileContents: Property<String>
+    }
+
+    override fun obtain(): String? = parameters.run {
+        buildReceiptString()
+            ?.let(BuildReceipt::readBuildReceiptFromString)
+            ?.let { buildReceipt ->
+                buildReceipt["buildTimestamp"] as String
+            }
+    }
+
+    private
+    fun Parameters.buildReceiptString(): String? =
+        if (ignoreIncomingBuildReceipt.get()) null
+        else buildReceiptFileContents.orNull
 }
 
 
@@ -291,3 +316,8 @@ fun Project.gradleProperty(propertyName: String): Provider<Any> =
 private
 fun <T> Provider<T>.presence(): Provider<Boolean> =
     map { true }.orElse(false)
+
+
+private
+fun <T> Any.uncheckedCast(): T =
+    Cast.uncheckedNonnullCast(this)
