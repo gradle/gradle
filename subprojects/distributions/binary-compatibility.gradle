@@ -113,6 +113,9 @@ dependencies {
     currentClasspath ProjectGroups.INSTANCE.getPublicProjects(project)
 }
 
+def buildVersion = rootProject.buildVersion
+def baseVersion = buildVersion.baseVersion
+def isSnapshot = buildVersion.isSnapshot
 def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", JapicmpTask) {
     dependsOn ProjectGroups.INSTANCE.getPublicProjects(project).jar
 

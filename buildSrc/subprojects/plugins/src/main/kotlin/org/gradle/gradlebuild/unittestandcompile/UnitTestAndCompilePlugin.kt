@@ -45,6 +45,7 @@ import org.gradle.gradlebuild.BuildEnvironment
 import org.gradle.gradlebuild.BuildEnvironment.agentNum
 import org.gradle.gradlebuild.java.AvailableJavaInstallationsPlugin
 import org.gradle.gradlebuild.java.JavaInstallation
+import org.gradle.gradlebuild.versioning.buildVersion
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.kotlin.dsl.*
 import org.gradle.plugins.ide.idea.IdeaPlugin
@@ -206,7 +207,7 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
     private
     fun Project.configureJarTasks() {
         tasks.withType<Jar>().configureEach {
-            val baseVersion: String by rootProject.extra
+            val baseVersion = rootProject.buildVersion.baseVersion
             archiveVersion.set(baseVersion)
             manifest.attributes(mapOf(
                 Attributes.Name.IMPLEMENTATION_TITLE.toString() to "Gradle",

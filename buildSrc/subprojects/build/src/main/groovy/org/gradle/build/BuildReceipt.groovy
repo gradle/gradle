@@ -83,7 +83,7 @@ class BuildReceipt extends DefaultTask {
     final Property<String> commitId = objects.property(String)
 
     @Input
-    final Property<Boolean> snapshot = objects.property(Boolean)
+    final Property<Boolean> isSnapshot = objects.property(Boolean)
 
     @Input
     @Optional
@@ -104,7 +104,7 @@ class BuildReceipt extends DefaultTask {
             commitId: commitId.getOrElse("HEAD"),
             versionNumber: versionNumber.get(),
             baseVersion: baseVersion.get(),
-            isSnapshot: String.valueOf(snapshot.get()),
+            isSnapshot: String.valueOf(isSnapshot.get()),
             buildTimestamp: getBuildTimestampAsString(),
             buildTimestampIso: getBuildTimestampAsIsoString(),
         ]
