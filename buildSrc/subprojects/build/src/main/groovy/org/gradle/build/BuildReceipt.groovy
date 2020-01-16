@@ -61,6 +61,10 @@ class BuildReceipt extends DefaultTask {
         }
     }
 
+    static Properties readBuildReceiptFromString(String buildReceipt) {
+        new Properties().tap { load(new StringReader(buildReceipt)) }
+    }
+
     static File buildReceiptFileIn(File dir) {
         new File(dir, BUILD_RECEIPT_FILE_NAME)
     }

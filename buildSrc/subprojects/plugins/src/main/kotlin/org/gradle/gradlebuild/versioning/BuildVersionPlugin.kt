@@ -23,8 +23,14 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.FileContents
 import org.gradle.api.logging.Logger
+import org.gradle.api.provider.Property
+import org.gradle.api.provider.Provider
+import org.gradle.api.provider.ValueSource
+import org.gradle.api.provider.ValueSourceParameters
+import org.gradle.api.tasks.Optional
 import org.gradle.build.BuildReceipt
 import org.gradle.gradlebuild.BuildEnvironment
+import org.gradle.gradlebuild.BuildEnvironment.CI_ENVIRONMENT_VARIABLE
 import org.gradle.kotlin.dsl.*
 import org.gradle.plugins.buildtypes.BuildType
 import java.text.SimpleDateFormat
@@ -63,6 +69,7 @@ fun Project.setBuildVersion() {
     val isSnapshot = finalRelease == null && rcNumber == null && milestoneNumber == null
     val isFinalRelease = finalRelease != null
     val baseVersion = rootProject.trimmedContentsOfFile("version.txt")
+
     val buildTimestamp = computeBuildTimestamp()
     val versionNumber = when {
         isFinalRelease -> {
@@ -75,10 +82,10 @@ fun Project.setBuildVersion() {
             "$baseVersion-milestone-$milestoneNumber"
         }
         versionQualifier != null -> {
-            "$baseVersion-$versionQualifier-$buildTimestamp"
+            "$baseVersion-$versionQualifier-${buildTimestamp.get()}"
         }
         else -> {
-            "$baseVersion-$buildTimestamp"
+            "$baseVersion-${buildTimestamp.get()}"
         }
     }
 
@@ -87,7 +94,7 @@ fun Project.setBuildVersion() {
     registerBuildReceiptTask(versionNumber, baseVersion, isSnapshot, buildTimestamp)
 
     if (isPromotionBuild) {
-        logger.logBuildVersion(versionNumber, baseVersion, isSnapshot, buildTimestamp)
+        logger.logBuildVersion(versionNumber, baseVersion, isSnapshot, buildTimestamp.get())
     }
 
     extensions.add(
@@ -102,7 +109,7 @@ fun Project.registerBuildReceiptTask(
     versionNumber: String,
     baseVersion: String,
     isSnapshot: Boolean,
-    buildTimestamp: String
+    buildTimestamp: Provider<String>
 ) {
     tasks {
         val determineCommitId by registering(DetermineCommitId::class)
@@ -112,7 +119,7 @@ fun Project.registerBuildReceiptTask(
             this.versionNumber.set(versionNumber)
             this.baseVersion.set(baseVersion)
             this.isSnapshot.set(isSnapshot)
-            this.buildTimestampFrom(provider { buildTimestamp })
+            this.buildTimestampFrom(buildTimestamp)
             this.commitId.set(determineCommitId.flatMap { it.determinedCommitId })
             this.destinationDir = rootProject.buildDir
         }
@@ -165,22 +172,77 @@ fun Project.fileContentsOf(path: String): FileContents =
 
 
 private
-fun Project.computeBuildTimestamp(): String {
-    val ignoreIncomingBuildReceipt: Any? by project
-    val incomingBuildReceiptDir = file("incoming-distributions")
-    if (ignoreIncomingBuildReceipt == null && BuildReceipt.buildReceiptFileIn(incomingBuildReceiptDir).exists()) {
-        val incomingDistributionsBuildReceipt = BuildReceipt.readBuildReceipt(incomingBuildReceiptDir)
-        val buildTimestamp = incomingDistributionsBuildReceipt["buildTimestamp"] as String
-        println("Using timestamp from incoming build receipt: $buildTimestamp")
-        return buildTimestamp
-    } else {
+fun Project.computeBuildTimestamp(): Provider<String> {
+    val ignoreIncomingBuildReceipt =
+        gradleProperty("ignoreIncomingBuildReceipt")
+            .presence()
+    val incomingBuildReceiptFile =
+        layout.projectDirectory
+            .dir("incoming-distributions")
+            .file(BuildReceipt.BUILD_RECEIPT_FILE_NAME)
+    val buildReceiptFileContents =
+        providers.fileContents(incomingBuildReceiptFile)
+            .asText
+    val buildTimestampFromGradleProperty =
+        gradleProperty("buildTimestamp")
+            .map { it as String }
+    val isCiServer =
+        providers.environmentVariable(CI_ENVIRONMENT_VARIABLE)
+            .presence()
+    val isRunningInstallTask =
+        provider {
+            isRunningInstallTask()
+        }
+    return providers.of(BuildTimestampValueSource::class) {
+        parameters {
+            this.ignoreIncomingBuildReceipt.set(ignoreIncomingBuildReceipt)
+            this.buildReceiptFileContents.set(buildReceiptFileContents)
+            this.buildTimestampFromGradleProperty.set(buildTimestampFromGradleProperty)
+            this.runningOnCi.set(isCiServer)
+            this.runningInstallTask.set(isRunningInstallTask)
+        }
+    }
+}
+
+
+abstract class BuildTimestampValueSource : ValueSource<String, BuildTimestampValueSource.Parameters> {
+
+    interface Parameters : ValueSourceParameters {
+
+        val ignoreIncomingBuildReceipt: Property<Boolean>
+
+        @get:Optional
+        val buildReceiptFileContents: Property<String>
+
+        @get:Optional
+        val buildTimestampFromGradleProperty: Property<String>
+
+        val runningOnCi: Property<Boolean>
+
+        val runningInstallTask: Property<Boolean>
+    }
+
+    override fun obtain(): String? = parameters.run {
+
+        // TODO: group these two properties into a single buildTimestampFromBuildReceipt one
+        val incomingBuildReceiptString =
+            if (ignoreIncomingBuildReceipt.get()) null
+            else buildReceiptFileContents.orNull
+
+        if (incomingBuildReceiptString != null) {
+            val incomingDistributionsBuildReceipt = BuildReceipt.readBuildReceiptFromString(incomingBuildReceiptString)
+            val buildTimestamp = incomingDistributionsBuildReceipt["buildTimestamp"] as String
+            println("Using timestamp from incoming build receipt: $buildTimestamp")
+            return buildTimestamp
+        }
+
         val timestampFormat = BuildReceipt.createTimestampDateFormat()
-        val buildTimestamp: String? by project
+        val buildTimestamp = buildTimestampFromGradleProperty.orNull
         val buildTime = when {
             buildTimestamp != null -> {
                 timestampFormat.parse(buildTimestamp)
             }
-            BuildEnvironment.isCiServer || isRunningInstallTask() -> {
+            ciServer.get() || runningInstallTask.get() -> {
                 Date()
             }
             else -> {
@@ -213,3 +275,17 @@ fun Project.isPromotionBuild(): Boolean =
 private
 val Project.buildTypes
     get() = extensions.getByName<NamedDomainObjectContainer<BuildType>>("buildTypes")
+
+
+// TODO: move to ProviderFactory and make it a build logic input
+fun Project.gradleProperty(propertyName: String): Provider<Any> =
+    provider { findProperty(propertyName) }
+
+
+/**
+ * Creates a [Provider] that returns `true` when this [Provider] has a value
+ * and `false` otherwise. The returned [Provider] always has a value.
+ * @see Provider.isPresent
+ */
+fun <T> Provider<T>.presence(): Provider<Boolean> =
+    map { true }.orElse(false)
