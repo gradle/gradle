@@ -242,7 +242,7 @@ abstract class BuildTimestampValueSource : ValueSource<String, BuildTimestampVal
             buildTimestamp != null -> {
                 timestampFormat.parse(buildTimestamp)
             }
-            ciServer.get() || runningInstallTask.get() -> {
+            runningInstallTask.get() || runningOnCi.get() -> {
                 Date()
             }
             else -> {
