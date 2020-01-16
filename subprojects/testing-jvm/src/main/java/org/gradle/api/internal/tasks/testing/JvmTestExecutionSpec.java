@@ -24,6 +24,7 @@ import org.gradle.util.Path;
 
 import java.io.File;
 import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 
 @UsedByScanPlugin("test-distribution")
@@ -40,15 +41,16 @@ public class JvmTestExecutionSpec implements TestExecutionSpec {
     private final JavaForkOptions javaForkOptions;
     private final int maxParallelForks;
     private final Set<String> previousFailedTestClasses;
+    private final Map<String, Long> previousTestClassDurations;
 
     /**
      * Required by test-retry-gradle-plugin <= 1.1.3
      */
     public JvmTestExecutionSpec(TestFramework testFramework, Iterable<? extends File> classpath, FileTree candidateClassFiles, boolean scanForTestClasses, FileCollection testClassesDirs, String path, Path identityPath, long forkEvery, JavaForkOptions javaForkOptions, int maxParallelForks, Set<String> previousFailedTestClasses) {
-        this(testFramework, classpath, Collections.<File>emptyList(), candidateClassFiles, scanForTestClasses, testClassesDirs, path, identityPath, forkEvery, javaForkOptions, maxParallelForks, previousFailedTestClasses);
+        this(testFramework, classpath, Collections.<File>emptyList(), candidateClassFiles, scanForTestClasses, testClassesDirs, path, identityPath, forkEvery, javaForkOptions, maxParallelForks, previousFailedTestClasses, Collections.<String, Long>emptyMap());
     }
 
-    public JvmTestExecutionSpec(TestFramework testFramework, Iterable<? extends File> classpath, Iterable<? extends File>  modulePath, FileTree candidateClassFiles, boolean scanForTestClasses, FileCollection testClassesDirs, String path, Path identityPath, long forkEvery, JavaForkOptions javaForkOptions, int maxParallelForks, Set<String> previousFailedTestClasses) {
+    public JvmTestExecutionSpec(TestFramework testFramework, Iterable<? extends File> classpath, Iterable<? extends File>  modulePath, FileTree candidateClassFiles, boolean scanForTestClasses, FileCollection testClassesDirs, String path, Path identityPath, long forkEvery, JavaForkOptions javaForkOptions, int maxParallelForks, Set<String> previousFailedTestClasses, Map<String, Long> previousTestClassDurations) {
         this.testFramework = testFramework;
         this.classpath = classpath;
         this.modulePath = modulePath;
@@ -61,6 +63,7 @@ public class JvmTestExecutionSpec implements TestExecutionSpec {
         this.javaForkOptions = javaForkOptions;
         this.maxParallelForks = maxParallelForks;
         this.previousFailedTestClasses = previousFailedTestClasses;
+        this.previousTestClassDurations = previousTestClassDurations;
     }
 
     public TestFramework getTestFramework() {
@@ -116,5 +119,9 @@ public class JvmTestExecutionSpec implements TestExecutionSpec {
 
     public Set<String> getPreviousFailedTestClasses() {
         return previousFailedTestClasses;
+    }
+
+    public Map<String, Long> getPreviousTestClassDurations() {
+        return previousTestClassDurations;
     }
 }
