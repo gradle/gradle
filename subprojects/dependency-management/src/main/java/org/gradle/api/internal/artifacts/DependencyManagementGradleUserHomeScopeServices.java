@@ -33,14 +33,28 @@ import org.gradle.internal.execution.history.ExecutionHistoryCacheAccess;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.impl.DefaultExecutionHistoryStore;
 import org.gradle.internal.file.FileAccessTimeJournal;
+import org.gradle.internal.service.ServiceRegistry;
 
 public class DependencyManagementGradleUserHomeScopeServices {
 
+    DefaultArtifactCaches.WritableArtifactCacheLockingParameters createWritableArtifactCacheLockingParameters(FileAccessTimeJournal fileAccessTimeJournal, UsedGradleVersions usedGradleVersions) {
+        return new DefaultArtifactCaches.WritableArtifactCacheLockingParameters() {
+            @Override
+            public FileAccessTimeJournal getFileAccessTimeJournal() {
+                return fileAccessTimeJournal;
+            }
+
+            @Override
+            public UsedGradleVersions getUsedGradleVersions() {
+                return usedGradleVersions;
+            }
+        };
+    }
+
     ArtifactCachesProvider createArtifactCaches(CacheScopeMapping cacheScopeMapping,
                                                 CacheRepository cacheRepository,
-                                                FileAccessTimeJournal fileAccessTimeJournal,
-                                                UsedGradleVersions usedGradleVersions) {
-        return new DefaultArtifactCaches(cacheScopeMapping, cacheRepository, fileAccessTimeJournal, usedGradleVersions);
+                                                ServiceRegistry registry) {
+        return new DefaultArtifactCaches(cacheScopeMapping, cacheRepository, () -> registry.get(DefaultArtifactCaches.WritableArtifactCacheLockingParameters.class));
     }
 
     ExecutionHistoryCacheAccess createExecutionHistoryCacheAccess(CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
@@ -55,7 +69,7 @@ public class DependencyManagementGradleUserHomeScopeServices {
         return new ImmutableTransformationWorkspaceProvider(artifactCaches.getWritableCacheMetadata().getTransformsStoreDirectory(), cacheRepository, fileAccessTimeJournal, executionHistoryStore);
     }
 
-    ImmutableCachingTransformationWorkspaceProvider createCachingTransformerWorkspaceProvider(ImmutableTransformationWorkspaceProvider immutableTransformationWorkspaceProvider, ListenerManager listenerManager) {
+    ImmutableCachingTransformationWorkspaceProvider createCachingTransformerWorkspaceProvider(ImmutableTransformationWorkspaceProvider immutableTransformationWorkspaceProvider, ListenerManager listenerManager, ArtifactCachesProvider artifactCachesProvider) {
         ImmutableCachingTransformationWorkspaceProvider cachingWorkspaceProvider = new ImmutableCachingTransformationWorkspaceProvider(immutableTransformationWorkspaceProvider);
         listenerManager.addListener(new RootBuildLifecycleListener() {
             @Override
@@ -64,6 +78,9 @@ public class DependencyManagementGradleUserHomeScopeServices {
 
             @Override
             public void beforeComplete(GradleInternal gradle) {
+                artifactCachesProvider.getWritableCacheLockingManager().useCache(() -> {
+                    // forces cleanup even if cache wasn't used
+                });
                 cachingWorkspaceProvider.clearInMemoryCache();
             }
         });
