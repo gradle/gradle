@@ -22,7 +22,7 @@ import java.util.Optional;
 import java.util.function.BiFunction;
 
 public interface ArtifactCachesProvider extends Closeable, AdditiveCache {
-    String READONLY_CACHE_PROPERTY = "org.gradle.readonly.dependency.cache.path";
+    String READONLY_CACHE_ENV_VAR = "GRADLE_RO_DEP_CACHE";
 
     ArtifactCacheMetadata getWritableCacheMetadata();
     Optional<ArtifactCacheMetadata> getReadOnlyCacheMetadata();
