@@ -78,6 +78,10 @@ open class DependenciesMetadataRulesPlugin : Plugin<Project> {
                 // Test dependencies - minify: remove unused transitive dependencies
                 withLibraryDependencies("org.gradle.org.littleshoot:littleproxy", DependencyRemovalByNameRule::class,
                     setOf("barchart-udt-bundle", "guava", "commons-cli"))
+
+                // Gradle profiler should use the bundled tooling API
+                withLibraryDependencies("org.gradle.profiler:gradle-profiler", DependencyRemovalByNameRule::class,
+                    setOf("gradle-tooling-api"))
             }
         }
     }
