@@ -20,10 +20,14 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.provider.MapProperty;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.Sync;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
+import org.gradle.gradlebuild.versioning.BuildVersion;
+import org.gradle.internal.Cast;
+import org.jetbrains.annotations.NotNull;
 
 import java.nio.charset.Charset;
 
@@ -66,8 +70,9 @@ public class GradleReleaseNotesPlugin implements Plugin<Project> {
             task.getReleaseNotesJavascriptFile().convention(extension.getReleaseNotes().getReleaseNotesJsFile());
             task.getJquery().from(extension.getReleaseNotes().getJquery());
 
-            task.getReplacementTokens().put("version", project.provider(() -> String.valueOf(project.getVersion())));
-            task.getReplacementTokens().put("baseVersion", project.provider(() -> String.valueOf(project.getRootProject().getExtensions().getExtraProperties().get("baseVersion"))));
+            MapProperty<String, String> replacementTokens = task.getReplacementTokens();
+            replacementTokens.put("version", project.provider(() -> String.valueOf(project.getVersion())));
+            replacementTokens.put("baseVersion", project.provider(() -> baseVersionOf(project)));
 
             task.getDestinationFile().convention(extension.getStagingRoot().file("release-notes/release-notes.html"));
         });
@@ -85,6 +90,17 @@ public class GradleReleaseNotesPlugin implements Plugin<Project> {
             releaseNotes.getReleaseNotesJsFile().convention(extension.getSourceRoot().file("release/content/script.js"));
             releaseNotes.getJquery().from(jquery);
         });
+    }
+
+    private String baseVersionOf(Project project) {
+        return buildVersionOf(project).getBaseVersion();
+    }
+
+    @NotNull
+    private BuildVersion buildVersionOf(Project project) {
+        return Cast.uncheckedNonnullCast(
+            project.getRootProject().getExtensions().getByName("buildVersion")
+        );
     }
 
     private void generateReleaseFeatures(Project project, TaskContainer tasks, GradleDocumentationExtension extension) {
