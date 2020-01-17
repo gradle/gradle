@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.util
+package org.gradle.internal.deprecation
 
 import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.internal.Factory
@@ -23,27 +23,28 @@ import org.gradle.internal.featurelifecycle.UsageLocationReporter
 import org.gradle.internal.logging.CollectingTestOutputEventListener
 import org.gradle.internal.logging.ConfigureLogging
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
+import org.gradle.util.GradleVersion
 import org.junit.Rule
 import spock.lang.Subject
 
-@Subject(SingleMessageLogger)
-class SingleMessageLoggerTest extends ConcurrentSpec {
+@Subject(DeprecationLogger)
+class DeprecationLoggerTest extends ConcurrentSpec {
     final CollectingTestOutputEventListener outputEventListener = new CollectingTestOutputEventListener()
     @Rule
     final ConfigureLogging logging = new ConfigureLogging(outputEventListener)
 
     def setup() {
-        SingleMessageLogger.init(Mock(UsageLocationReporter), WarningMode.All, Mock(DeprecatedUsageBuildOperationProgressBroadcaster))
+        DeprecationLogger.init(Mock(UsageLocationReporter), WarningMode.All, Mock(DeprecatedUsageBuildOperationProgressBroadcaster))
     }
 
     def cleanup() {
-        SingleMessageLogger.reset()
+        DeprecationLogger.reset()
     }
 
     def "logs deprecation warning once until reset"() {
         when:
-        SingleMessageLogger.nagUserWith("nag")
-        SingleMessageLogger.nagUserWith("nag")
+        DeprecationLogger.deprecate("nag").nagUser()
+        DeprecationLogger.deprecate("nag").nagUser()
 
         then:
         def events = outputEventListener.events
@@ -51,8 +52,8 @@ class SingleMessageLoggerTest extends ConcurrentSpec {
         events[0].message.startsWith('nag')
 
         when:
-        SingleMessageLogger.reset()
-        SingleMessageLogger.nagUserWith("nag")
+        DeprecationLogger.reset()
+        DeprecationLogger.deprecate("nag").nagUser()
 
         then:
         events.size() == 2
@@ -65,14 +66,14 @@ class SingleMessageLoggerTest extends ConcurrentSpec {
         Factory<String> factory = Mock(Factory)
 
         when:
-        def result = SingleMessageLogger.whileDisabled(factory)
+        def result = DeprecationLogger.whileDisabled(factory)
 
         then:
         result == 'result'
 
         and:
         1 * factory.create() >> {
-            SingleMessageLogger.nagUserWith("nag")
+            DeprecationLogger.deprecate("nag").nagUser()
             return "result"
         }
         0 * _
@@ -86,7 +87,7 @@ class SingleMessageLoggerTest extends ConcurrentSpec {
         def action = Mock(Runnable)
 
         when:
-        SingleMessageLogger.whileDisabled(action)
+        DeprecationLogger.whileDisabled(action)
 
         then:
         1 * action.run()
@@ -101,13 +102,13 @@ class SingleMessageLoggerTest extends ConcurrentSpec {
         async {
             start {
                 thread.blockUntil.disabled
-                SingleMessageLogger.nagUserWith("nag")
+                DeprecationLogger.deprecate("nag").nagUser()
                 instant.logged
             }
             start {
-                SingleMessageLogger.whileDisabled {
+                DeprecationLogger.whileDisabled {
                     instant.disabled
-                    SingleMessageLogger.nagUserWith("ignored")
+                    DeprecationLogger.deprecate("ignored").nagUser()
                     thread.blockUntil.logged
                 }
             }
@@ -124,7 +125,9 @@ class SingleMessageLoggerTest extends ConcurrentSpec {
         def major = GradleVersion.current().nextMajor
 
         when:
-        SingleMessageLogger.nagUserOfDeprecated("foo", "bar.")
+        DeprecationLogger.deprecate("foo")
+            .withAdvice("bar.")
+            .nagUser();
 
         then:
         def events = outputEventListener.events

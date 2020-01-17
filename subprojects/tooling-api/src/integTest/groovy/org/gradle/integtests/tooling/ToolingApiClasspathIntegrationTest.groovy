@@ -30,7 +30,7 @@ class ToolingApiClasspathIntegrationTest extends AbstractIntegrationSpec {
         then:
         resolve.classpath.size() == 2
         resolve.classpath.any {it.name ==~ /slf4j-api-.*\.jar/}
-        resolve.classpath.find { it.name ==~ /gradle-tooling-api.*\.jar/ }.size() < 1.86 * 1024 * 1024
+        resolve.classpath.find { it.name ==~ /gradle-tooling-api.*\.jar/ }.size() < 1.88 * 1024 * 1024
 
         cleanup:
         resolver.stop()

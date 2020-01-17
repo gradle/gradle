@@ -32,7 +32,7 @@ import org.gradle.internal.invocation.BuildController;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.Clock;
-import org.gradle.util.SingleMessageLogger;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 import java.util.List;
 
@@ -62,7 +62,7 @@ public class BuildOutcomeReportingBuildActionRunner implements BuildActionRunner
 
         Result result = delegate.run(action, buildController);
 
-        Throwable failure = SingleMessageLogger.getDeprecationFailure();
+        Throwable failure = DeprecationLogger.getDeprecationFailure();
         if (failure != null) {
             // Replace result if we fail on warning
             result = computeUpdatedResult(result, failure);

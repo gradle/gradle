@@ -59,8 +59,8 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.file.Deleter;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.language.base.internal.compile.Compiler;
-import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GFileUtils;
+import org.gradle.util.IncubationLogger;
 import org.gradle.work.ChangeType;
 import org.gradle.work.FileChange;
 import org.gradle.work.Incremental;
@@ -198,7 +198,7 @@ public class GroovyCompile extends AbstractCompile {
 
     private void warnIfCompileAvoidanceEnabled() {
         if (experimentalCompilationAvoidanceEnabled()) {
-            DeprecationLogger.incubatingFeatureUsed("Groovy compilation avoidance");
+            IncubationLogger.incubatingFeatureUsed("Groovy compilation avoidance");
         }
     }
 

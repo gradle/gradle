@@ -13,15 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.util;
 
+package org.gradle.internal.deprecation;
 
-public class DeprecationLogger {
+public enum ConfigurationDeprecationType {
+    DEPENDENCY_DECLARATION("use", true),
+    CONSUMPTION("use attributes to consume", false),
+    RESOLUTION("resolve", true),
+    ARTIFACT_DECLARATION("use", true);
 
-    // Here for backwards compatibility with performance test: DeprecationCreationPerformanceTest
-    // When rebaselining, update the test to use org.gradle.internal.deprecation.DeprecationLogger.deprecate(thing).nagUser() directly
-    public static void nagUserOfDeprecated(String thing) {
-        org.gradle.internal.deprecation.DeprecationLogger.deprecate(thing).nagUser();
+    public final String usage;
+    public final boolean inUserCode;
+
+    ConfigurationDeprecationType(String usage, boolean inUserCode) {
+        this.usage = usage;
+        this.inUserCode = inUserCode;
     }
 
+    public String displayName() {
+        return name().toLowerCase().replace('_', ' ');
+    }
 }

@@ -39,7 +39,6 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
     private static final Logger LOGGER = LoggerFactory.getLogger(LoggingDeprecatedFeatureHandler.class);
     private static final String ELEMENT_PREFIX = "\tat ";
     private static final String RUN_WITH_STACKTRACE_INFO = "\t(Run with --stacktrace to get the full stack trace of this deprecation warning.)";
-    private static String deprecationMessage;
     private static boolean traceLoggingEnabled;
 
     private final Set<String> messages = new HashSet<String>();
@@ -167,20 +166,6 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
             return traceLoggingEnabled;
         }
         return Boolean.parseBoolean(value);
-    }
-
-    private static String initDeprecationMessage() {
-        String messageBase = "is scheduled to be removed in";
-        String when = String.format("Gradle %s", GradleVersion.current().getNextMajor().getVersion());
-
-        return String.format("%s %s.", messageBase, when);
-    }
-
-    public static String getRemovalDetails() {
-        if (deprecationMessage == null) {
-            deprecationMessage = initDeprecationMessage();
-        }
-        return deprecationMessage;
     }
 
     public GradleException getDeprecationFailure() {

@@ -30,9 +30,8 @@ import org.gradle.api.component.ConfigurationVariantDetails;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.component.UsageContext;
 import org.gradle.internal.Actions;
-import org.gradle.internal.featurelifecycle.DeprecatedFeatureUsage;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.util.SingleMessageLogger;
 
 import java.util.Set;
 
@@ -59,7 +58,9 @@ public class ConfigurationVariantMapping {
 
     public void collectUsageContexts(final ImmutableCollection.Builder<UsageContext> outgoing) {
         if (!outgoingConfiguration.isTransitive()) {
-            SingleMessageLogger.nagUserWith("Publication ignores 'transitive = false' at configuration level.", "", "Consider using 'transitive = false' at the dependency level if you need this to be published.", "", DeprecatedFeatureUsage.Type.USER_CODE_INDIRECT);
+            DeprecationLogger.warnOfChangedBehaviour("Publication ignores 'transitive = false' at configuration level.")
+                .withAdvice("Consider using 'transitive = false' at the dependency level if you need this to be published.")
+                .nagUser();
         }
         Set<String> seen = Sets.newHashSet();
         ConfigurationVariant defaultConfigurationVariant = instantiator.newInstance(DefaultConfigurationVariant.class, outgoingConfiguration);
@@ -159,7 +160,7 @@ public class ConfigurationVariantMapping {
             if ("compile".equals(scope) || "runtime".equals(scope)) {
                 return scope;
             }
-            throw new InvalidUserCodeException("Invalid Maven scope '"+scope+"'. You must choose between 'compile' and 'runtime'");
+            throw new InvalidUserCodeException("Invalid Maven scope '" + scope + "'. You must choose between 'compile' and 'runtime'");
         }
 
         @Override

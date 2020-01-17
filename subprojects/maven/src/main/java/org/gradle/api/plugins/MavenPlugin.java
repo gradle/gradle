@@ -45,8 +45,8 @@ import org.gradle.api.tasks.Upload;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.internal.Describables;
 import org.gradle.internal.Factory;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.logging.LoggingManagerInternal;
-import org.gradle.util.DeprecationLogger;
 
 import javax.inject.Inject;
 
@@ -93,20 +93,20 @@ public class MavenPlugin implements Plugin<ProjectInternal> {
     @Override
     public void apply(final ProjectInternal project) {
         this.project = project;
-        DeprecationLogger.nagUserOfReplacedPlugin("maven", "maven-publish");
+        DeprecationLogger.deprecatePlugin("maven").replaceWith("maven-publish").nagUser();
         project.getPluginManager().apply(BasePlugin.class);
 
         MavenFactory mavenFactory = project.getServices().get(MavenFactory.class);
         final MavenPluginConvention pluginConvention = addConventionObject(project, mavenFactory);
         final DefaultDeployerFactory deployerFactory = new DefaultDeployerFactory(
-                mavenFactory,
-                loggingManagerFactory,
-                fileResolver,
-                pluginConvention,
-                project.getConfigurations(),
-                pluginConvention.getConf2ScopeMappings(),
-                mavenSettingsProvider,
-                mavenRepositoryLocator);
+            mavenFactory,
+            loggingManagerFactory,
+            fileResolver,
+            pluginConvention,
+            project.getConfigurations(),
+            pluginConvention.getConf2ScopeMappings(),
+            mavenSettingsProvider,
+            mavenRepositoryLocator);
 
         configureUploadTasks(deployerFactory);
         configureUploadArchivesTask();
@@ -159,9 +159,9 @@ public class MavenPlugin implements Plugin<ProjectInternal> {
                 for (MavenResolver resolver : uploadArchives.getRepositories().withType(MavenResolver.class)) {
                     MavenPom pom = resolver.getPom();
                     ModuleVersionIdentifier publicationId = moduleIdentifierFactory.moduleWithVersion(
-                            pom.getGroupId().equals(MavenProject.EMPTY_PROJECT_GROUP_ID) ? module.getGroup() : pom.getGroupId(),
-                            pom.getArtifactId().equals(MavenProject.EMPTY_PROJECT_ARTIFACT_ID) ? module.getName() : pom.getArtifactId(),
-                            pom.getVersion().equals(MavenProject.EMPTY_PROJECT_VERSION) ? module.getVersion() : pom.getVersion()
+                        pom.getGroupId().equals(MavenProject.EMPTY_PROJECT_GROUP_ID) ? module.getGroup() : pom.getGroupId(),
+                        pom.getArtifactId().equals(MavenProject.EMPTY_PROJECT_ARTIFACT_ID) ? module.getName() : pom.getArtifactId(),
+                        pom.getVersion().equals(MavenProject.EMPTY_PROJECT_VERSION) ? module.getVersion() : pom.getVersion()
                     );
                     publicationRegistry.registerPublication(project, new DefaultProjectPublication(Describables.withTypeAndName("Maven repository", resolver.getName()), publicationId, true));
                 }
@@ -178,29 +178,29 @@ public class MavenPlugin implements Plugin<ProjectInternal> {
 
     private void configureJavaScopeMappings(ConfigurationContainer configurations, Conf2ScopeMappingContainer mavenScopeMappings) {
         mavenScopeMappings.addMapping(COMPILE_PRIORITY, configurations.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME),
-                Conf2ScopeMappingContainer.COMPILE);
+            Conf2ScopeMappingContainer.COMPILE);
         mavenScopeMappings.addMapping(RUNTIME_PRIORITY, configurations.getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME),
-                Conf2ScopeMappingContainer.RUNTIME);
+            Conf2ScopeMappingContainer.RUNTIME);
         mavenScopeMappings.addMapping(RUNTIME_PRIORITY, configurations.getByName(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME),
-                Conf2ScopeMappingContainer.RUNTIME);
+            Conf2ScopeMappingContainer.RUNTIME);
         mavenScopeMappings.addMapping(TEST_COMPILE_PRIORITY, configurations.getByName(JavaPlugin.TEST_COMPILE_CONFIGURATION_NAME),
-                Conf2ScopeMappingContainer.TEST);
+            Conf2ScopeMappingContainer.TEST);
         mavenScopeMappings.addMapping(TEST_RUNTIME_PRIORITY, configurations.getByName(JavaPlugin.TEST_RUNTIME_CONFIGURATION_NAME),
-                Conf2ScopeMappingContainer.TEST);
+            Conf2ScopeMappingContainer.TEST);
         mavenScopeMappings.addMapping(TEST_RUNTIME_PRIORITY, configurations.getByName(JavaPlugin.TEST_IMPLEMENTATION_CONFIGURATION_NAME),
-                Conf2ScopeMappingContainer.TEST);
+            Conf2ScopeMappingContainer.TEST);
     }
 
     private void configureJavaLibraryScopeMappings(ConfigurationContainer configurations, Conf2ScopeMappingContainer mavenScopeMappings) {
         mavenScopeMappings.addMapping(COMPILE_PRIORITY, configurations.getByName(JavaPlugin.API_CONFIGURATION_NAME),
-                Conf2ScopeMappingContainer.COMPILE);
+            Conf2ScopeMappingContainer.COMPILE);
     }
 
     private void configureWarScopeMappings(ConfigurationContainer configurations, Conf2ScopeMappingContainer mavenScopeMappings) {
         mavenScopeMappings.addMapping(PROVIDED_COMPILE_PRIORITY, configurations.getByName(WarPlugin.PROVIDED_COMPILE_CONFIGURATION_NAME),
-                Conf2ScopeMappingContainer.PROVIDED);
+            Conf2ScopeMappingContainer.PROVIDED);
         mavenScopeMappings.addMapping(PROVIDED_RUNTIME_PRIORITY, configurations.getByName(WarPlugin.PROVIDED_RUNTIME_CONFIGURATION_NAME),
-                Conf2ScopeMappingContainer.PROVIDED);
+            Conf2ScopeMappingContainer.PROVIDED);
     }
 
     private void configureInstall(Project project) {

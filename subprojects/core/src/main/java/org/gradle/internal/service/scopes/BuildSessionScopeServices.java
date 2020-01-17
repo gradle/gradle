@@ -175,7 +175,7 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return execFactory.forContext(fileResolver, fileCollectionFactory, instantiator, buildCancellationToken, objectFactory);
     }
 
-    DeprecatedUsageBuildOperationProgressBroadcaster createDeprecatedUsageBuildOperationProgressBroadaster(
+    DeprecatedUsageBuildOperationProgressBroadcaster createDeprecatedUsageBuildOperationProgressBroadcaster(
         Clock clock,
         BuildOperationListenerManager buildOperationListenerManager,
         CurrentBuildOperationRef currentBuildOperationRef

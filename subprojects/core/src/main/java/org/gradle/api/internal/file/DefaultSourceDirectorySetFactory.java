@@ -17,7 +17,7 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.util.DeprecationLogger;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 public class DefaultSourceDirectorySetFactory implements SourceDirectorySetFactory {
     private final ObjectFactory objectFactory;
@@ -28,13 +28,19 @@ public class DefaultSourceDirectorySetFactory implements SourceDirectorySetFacto
 
     @Override
     public DefaultSourceDirectorySet create(String name) {
-        DeprecationLogger.nagUserOfDeprecated("SourceDirectorySetFactory", "Please use the ObjectFactory service to create instances of SourceDirectorySet instead.");
+        DeprecationLogger
+            .deprecate("SourceDirectorySetFactory")
+            .withAdvice("Please use the ObjectFactory service to create instances of SourceDirectorySet instead.")
+            .nagUser();
         return (DefaultSourceDirectorySet) objectFactory.sourceDirectorySet(name, name);
     }
 
     @Override
     public DefaultSourceDirectorySet create(String name, String displayName) {
-        DeprecationLogger.nagUserOfDeprecated("SourceDirectorySetFactory", "Please use the ObjectFactory service to create instances of SourceDirectorySet instead.");
+        DeprecationLogger
+            .deprecate("SourceDirectorySetFactory")
+            .withAdvice("Please use the ObjectFactory service to create instances of SourceDirectorySet instead.")
+            .nagUser();
         return (DefaultSourceDirectorySet) objectFactory.sourceDirectorySet(name, displayName);
     }
 }

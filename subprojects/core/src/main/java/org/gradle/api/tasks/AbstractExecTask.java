@@ -375,7 +375,7 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     @Nullable
     public ExecResult getExecResult() {
         // TODO: Once getExecutionResult is stable, make this deprecated
-        // DeprecationLogger.nagUserOfReplacedMethod("AbstractExecTask.getExecResult()", "AbstractExecTask.getExecutionResult()");
+        // DeprecationLogger.deprecateMethod("AbstractExecTask.getExecResult()").replaceWith("AbstractExecTask.getExecutionResult()").nagUser();
         return execResult.getOrNull();
     }
 

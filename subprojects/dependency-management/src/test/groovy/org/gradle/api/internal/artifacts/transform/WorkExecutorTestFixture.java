@@ -41,7 +41,7 @@ import org.gradle.internal.service.scopes.ExecutionGradleServices;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.vfs.VirtualFileSystem;
-import org.gradle.util.DeprecationLogger;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 import java.io.File;
 import java.io.IOException;
@@ -160,7 +160,7 @@ public class WorkExecutorTestFixture {
             outputFilesRepository,
             new DefaultOverlappingOutputDetector(),
             new DefaultTimeoutHandler(null),
-            DeprecationLogger::nagUserOfDeprecatedBehaviour,
+            behaviour -> DeprecationLogger.deprecateBehaviour(behaviour).nagUser(),
             valueSnapshotter
         );
     }

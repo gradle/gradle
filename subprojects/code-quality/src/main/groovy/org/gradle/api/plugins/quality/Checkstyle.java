@@ -42,8 +42,8 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.VerificationTask;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.util.ClosureBackedAction;
-import org.gradle.util.SingleMessageLogger;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -248,7 +248,7 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
     // @ReplacedBy("configDirectory")
     public File getConfigDir() {
         // TODO: The annotations need to be moved to the new property
-        SingleMessageLogger.nagUserOfReplacedMethod("Checkstyle.getConfigDir()", "Checkstyle.getConfigDirectory()");
+        DeprecationLogger.deprecateMethod("Checkstyle.getConfigDir()").replaceWith("Checkstyle.getConfigDirectory()").nagUser();
         File configDir = getConfigDirectory().getAsFile().getOrNull();
         if (configDir != null && configDir.exists()) {
             return configDir;
@@ -265,7 +265,7 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
      */
     @Deprecated
     public void setConfigDir(Provider<File> configDir) {
-        SingleMessageLogger.nagUserOfReplacedMethod("Checkstyle.setConfigDir()", "Checkstyle.getConfigDirectory().set()");
+        DeprecationLogger.deprecateMethod("Checkstyle.setConfigDir()").replaceWith("Checkstyle.getConfigDirectory().set()").nagUser();
         this.configDirectory.set(getProject().getLayout().dir(configDir));
     }
 

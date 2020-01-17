@@ -26,7 +26,7 @@ import org.gradle.api.artifacts.MutableVersionConstraint;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ModuleVersionSelectorStrictSpec;
-import org.gradle.util.DeprecationLogger;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 public abstract class AbstractExternalModuleDependency extends AbstractModuleDependency implements ExternalModuleDependency {
     private final ModuleIdentifier moduleIdentifier;
@@ -86,7 +86,9 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
     public ExternalModuleDependency setForce(boolean force) {
         validateMutation(this.force, force);
         if (force) {
-            DeprecationLogger.nagUserOfDeprecatedThing("Using force on a dependency is not recommended.", "Consider using strict version constraints instead (version { strictly ... } })");
+            DeprecationLogger.deprecate("Using force on a dependency")
+                .withAdvice("Consider using strict version constraints instead (version { strictly ... } })")
+                .nagUser();
         }
         this.force = force;
         return this;
