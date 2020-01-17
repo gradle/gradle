@@ -16,6 +16,8 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.Transformer;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
@@ -39,6 +41,8 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
  * write operations use the regular locking mechanism (file or in-process).
  */
 public class ReadOnlyArtifactCacheLockingManager implements ArtifactCacheLockingManager, Closeable {
+    private final static Logger LOGGER = Logging.getLogger(ReadOnlyArtifactCacheLockingManager.class);
+
     private final PersistentCache cache;
 
     public ReadOnlyArtifactCacheLockingManager(CacheRepository cacheRepository,
@@ -81,7 +85,7 @@ public class ReadOnlyArtifactCacheLockingManager implements ArtifactCacheLocking
         String cacheFileInMetaDataStore = CacheLayout.META_DATA.getKey() + "/" + cacheName;
         PersistentIndexedCacheParameters<K, V> parameters = PersistentIndexedCacheParameters.of(cacheFileInMetaDataStore, keySerializer, valueSerializer);
         if (cache.cacheExists(parameters)) {
-            return new TransparentCacheLockingPersistentCache<>(cache.createCache(parameters));
+            return new TransparentCacheLockingPersistentCache<>(new FailSafePersistentCache<>(cache.createCache(parameters)));
         }
         return new EmptyCache<>();
     }
@@ -106,6 +110,61 @@ public class ReadOnlyArtifactCacheLockingManager implements ArtifactCacheLocking
         @Override
         public void remove(K key) {
             throw new UnsupportedOperationException();
+        }
+    }
+
+    private static class FailSafePersistentCache<K, V> implements PersistentIndexedCache<K, V> {
+        private final PersistentIndexedCache<K, V> delegate;
+        private boolean failed;
+
+        private FailSafePersistentCache(PersistentIndexedCache<K, V> delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        @Nullable
+        public V get(K key) {
+            return failSafe(() -> delegate.get(key));
+        }
+
+        @Override
+        public V get(K key, Transformer<? extends V, ? super K> producer) {
+            return failSafe(() -> delegate.get(key, producer));
+        }
+
+        @Override
+        public void put(K key, V value) {
+            failSafe(() -> delegate.put(key, value));
+        }
+
+        @Override
+        public void remove(K key) {
+            failSafe(() -> delegate.remove(key));
+        }
+
+        private <T> T failSafe(Factory<T> operation) {
+            if (failed) {
+                return null;
+            }
+            try {
+                return operation.create();
+            } catch (Exception ex) {
+                failed = true;
+                LOGGER.debug("Error accessing read-only cache", ex);
+            }
+            return null;
+        }
+
+        private void failSafe(Runnable operation) {
+            if (failed) {
+                return;
+            }
+            try {
+                operation.run();
+            } catch (Exception ex) {
+                failed = true;
+                LOGGER.debug("Error accessing read-only cache", ex);
+            }
         }
     }
 

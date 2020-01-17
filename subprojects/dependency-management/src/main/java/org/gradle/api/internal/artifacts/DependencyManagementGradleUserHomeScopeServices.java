@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.artifacts;
 
+import org.gradle.BuildAdapter;
+import org.gradle.BuildResult;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCachesProvider;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultArtifactCaches;
@@ -53,8 +55,18 @@ public class DependencyManagementGradleUserHomeScopeServices {
 
     ArtifactCachesProvider createArtifactCaches(CacheScopeMapping cacheScopeMapping,
                                                 CacheRepository cacheRepository,
-                                                ServiceRegistry registry) {
-        return new DefaultArtifactCaches(cacheScopeMapping, cacheRepository, () -> registry.get(DefaultArtifactCaches.WritableArtifactCacheLockingParameters.class));
+                                                ServiceRegistry registry,
+                                                ListenerManager listenerManager) {
+        DefaultArtifactCaches artifactCachesProvider = new DefaultArtifactCaches(cacheScopeMapping, cacheRepository, () -> registry.get(DefaultArtifactCaches.WritableArtifactCacheLockingParameters.class));
+        listenerManager.addListener(new BuildAdapter() {
+            @Override
+            public void buildFinished(BuildResult result) {
+                artifactCachesProvider.getWritableCacheLockingManager().useCache(() -> {
+                    // forces cleanup even if cache wasn't used
+                });
+            }
+        });
+        return artifactCachesProvider;
     }
 
     ExecutionHistoryCacheAccess createExecutionHistoryCacheAccess(CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
@@ -69,7 +81,7 @@ public class DependencyManagementGradleUserHomeScopeServices {
         return new ImmutableTransformationWorkspaceProvider(artifactCaches.getWritableCacheMetadata().getTransformsStoreDirectory(), cacheRepository, fileAccessTimeJournal, executionHistoryStore);
     }
 
-    ImmutableCachingTransformationWorkspaceProvider createCachingTransformerWorkspaceProvider(ImmutableTransformationWorkspaceProvider immutableTransformationWorkspaceProvider, ListenerManager listenerManager, ArtifactCachesProvider artifactCachesProvider) {
+    ImmutableCachingTransformationWorkspaceProvider createCachingTransformerWorkspaceProvider(ImmutableTransformationWorkspaceProvider immutableTransformationWorkspaceProvider, ListenerManager listenerManager) {
         ImmutableCachingTransformationWorkspaceProvider cachingWorkspaceProvider = new ImmutableCachingTransformationWorkspaceProvider(immutableTransformationWorkspaceProvider);
         listenerManager.addListener(new RootBuildLifecycleListener() {
             @Override
@@ -78,12 +90,10 @@ public class DependencyManagementGradleUserHomeScopeServices {
 
             @Override
             public void beforeComplete(GradleInternal gradle) {
-                artifactCachesProvider.getWritableCacheLockingManager().useCache(() -> {
-                    // forces cleanup even if cache wasn't used
-                });
                 cachingWorkspaceProvider.clearInMemoryCache();
             }
         });
         return cachingWorkspaceProvider;
     }
+
 }

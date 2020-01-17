@@ -19,18 +19,25 @@ import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.nio.file.Path;
 
 public class TwoStageByUrlCachedExternalResourceIndex implements CachedExternalResourceIndex<String> {
+    private final Path readOnlyCachePath;
     private final CachedExternalResourceIndex<String> readOnlyCache;
     private final CachedExternalResourceIndex<String> writableCache;
 
-    public TwoStageByUrlCachedExternalResourceIndex(CachedExternalResourceIndex<String> readOnlyCache, CachedExternalResourceIndex<String> writableCache) {
+    public TwoStageByUrlCachedExternalResourceIndex(Path readOnlyCachePath, CachedExternalResourceIndex<String> readOnlyCache, CachedExternalResourceIndex<String> writableCache) {
+        this.readOnlyCachePath = readOnlyCachePath;
         this.readOnlyCache = readOnlyCache;
         this.writableCache = writableCache;
     }
 
     @Override
     public void store(String key, File artifactFile, @Nullable ExternalResourceMetaData metaData) {
+        if (artifactFile.toPath().startsWith(readOnlyCachePath)) {
+            // skip writing because the file comes from the RO cache
+            return;
+        }
         writableCache.store(key, artifactFile, metaData);
     }
 
