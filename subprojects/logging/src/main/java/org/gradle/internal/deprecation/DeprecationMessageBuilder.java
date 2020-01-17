@@ -53,6 +53,11 @@ public class DeprecationMessageBuilder {
         return this;
     }
 
+    public DeprecationMessageBuilder guidedBy(String documentationId) {
+        this.documentationReference = DocumentationReference.create(documentationId);
+        return this;
+    }
+
     public DeprecationMessageBuilder withUpgradeGuideSection(int majorVersion, String upgradeGuideSection) {
         this.documentationReference = DocumentationReference.upgradeGuide(majorVersion, upgradeGuideSection);
         return this;

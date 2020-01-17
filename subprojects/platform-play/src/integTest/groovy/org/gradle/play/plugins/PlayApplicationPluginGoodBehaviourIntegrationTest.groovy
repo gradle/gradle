@@ -17,6 +17,7 @@
 package org.gradle.play.plugins
 
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
+import org.gradle.util.GradleVersion
 
 class PlayApplicationPluginGoodBehaviourIntegrationTest extends WellBehavedPluginTest {
 
@@ -33,13 +34,14 @@ class PlayApplicationPluginGoodBehaviourIntegrationTest extends WellBehavedPlugi
     def "emits deprecation warning"() {
         given:
         applyPlugin()
+        def documentationLink = "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/play_plugin.html for more details."
 
         when:
         succeeds("help")
 
         then:
-        outputContains("The Play Application plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consider using the org.gradle.playframework-application plugin instead.")
-        outputContains("The Play Twirl plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consider using the org.gradle.playframework-twirl plugin instead.")
-        outputContains("The Play Routes plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consider using the org.gradle.playframework-routes plugin instead.")
+        outputContains("The Play Application plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consider using the org.gradle.playframework-application plugin instead. ${documentationLink}")
+        outputContains("The Play Twirl plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consider using the org.gradle.playframework-twirl plugin instead. ${documentationLink}")
+        outputContains("The Play Routes plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consider using the org.gradle.playframework-routes plugin instead. ${documentationLink}")
     }
 }

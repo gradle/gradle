@@ -28,6 +28,10 @@ abstract class DocumentationReference {
         return new DefaultDocumentationReference(id, section);
     }
 
+    static DocumentationReference create(String id) {
+        return new DefaultDocumentationReference(id, null);
+    }
+
     public static DocumentationReference upgradeGuide(int majorVersion, String upgradeGuideSection) {
         return new UpgradeGuideDocumentationReference(majorVersion, upgradeGuideSection);
     }
