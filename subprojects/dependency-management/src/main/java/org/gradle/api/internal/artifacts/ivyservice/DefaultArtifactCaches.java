@@ -20,13 +20,12 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.UsedGradleVersions;
 import org.gradle.internal.file.FileAccessTimeJournal;
-import org.gradle.internal.vfs.AdditiveCache;
 
 import java.io.File;
 import java.util.List;
 import java.util.Optional;
 
-public class DefaultArtifactCaches implements ArtifactCachesProvider, AdditiveCache {
+public class DefaultArtifactCaches implements ArtifactCachesProvider {
     private final DefaultArtifactCacheMetadata writableCacheMetadata;
     private final DefaultArtifactCacheMetadata readOnlyCacheMetadata;
     private final WritableArtifactCacheLockingManager writableArtifactCacheLockingManager;
