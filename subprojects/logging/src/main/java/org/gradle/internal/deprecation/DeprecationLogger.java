@@ -39,23 +39,23 @@ public class DeprecationLogger {
         }
     };
 
-    private static LoggingDeprecatedFeatureHandler deprecatedFeatureHandler = new LoggingDeprecatedFeatureHandler();
+    private static final LoggingDeprecatedFeatureHandler DEPRECATED_FEATURE_HANDLER = new LoggingDeprecatedFeatureHandler();
 
     public synchronized static void init(UsageLocationReporter reporter, WarningMode warningMode, DeprecatedUsageBuildOperationProgressBroadcaster buildOperationProgressBroadcaster) {
-        deprecatedFeatureHandler.init(reporter, warningMode, buildOperationProgressBroadcaster);
+        DEPRECATED_FEATURE_HANDLER.init(reporter, warningMode, buildOperationProgressBroadcaster);
     }
 
     public synchronized static void reset() {
-        deprecatedFeatureHandler.reset();
+        DEPRECATED_FEATURE_HANDLER.reset();
     }
 
     public synchronized static void reportSuppressedDeprecations() {
-        deprecatedFeatureHandler.reportSuppressedDeprecations();
+        DEPRECATED_FEATURE_HANDLER.reportSuppressedDeprecations();
     }
 
     @Nullable
     public static Throwable getDeprecationFailure() {
-        return deprecatedFeatureHandler.getDeprecationFailure();
+        return DEPRECATED_FEATURE_HANDLER.getDeprecationFailure();
     }
 
     // Output: ${feature} has been deprecated. This is scheduled to be removed in Gradle X.
@@ -186,6 +186,6 @@ public class DeprecationLogger {
     }
 
     private synchronized static void nagUserWith(DeprecatedFeatureUsage usage) {
-        deprecatedFeatureHandler.featureUsed(usage);
+        DEPRECATED_FEATURE_HANDLER.featureUsed(usage);
     }
 }

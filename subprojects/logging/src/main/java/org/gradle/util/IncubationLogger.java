@@ -25,14 +25,14 @@ import javax.annotation.concurrent.ThreadSafe;
 public class IncubationLogger {
     public static final String INCUBATION_MESSAGE = "%s is an incubating feature.";
 
-    private static LoggingIncubatingFeatureHandler incubatingFeatureHandler = new LoggingIncubatingFeatureHandler();
+    private static final LoggingIncubatingFeatureHandler INCUBATING_FEATURE_HANDLER = new LoggingIncubatingFeatureHandler();
 
     public synchronized static void reset() {
-        incubatingFeatureHandler.reset();
+        INCUBATING_FEATURE_HANDLER.reset();
     }
 
     public static synchronized void incubatingFeatureUsed(String incubatingFeature) {
-        incubatingFeatureHandler.featureUsed(new IncubatingFeatureUsage(incubatingFeature, IncubationLogger.class));
+        INCUBATING_FEATURE_HANDLER.featureUsed(new IncubatingFeatureUsage(incubatingFeature, IncubationLogger.class));
     }
 
 }
