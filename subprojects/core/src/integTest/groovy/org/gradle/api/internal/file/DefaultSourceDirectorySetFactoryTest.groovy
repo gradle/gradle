@@ -55,12 +55,9 @@ class DefaultSourceDirectorySetFactoryTest extends AbstractIntegrationSpec {
             }
         """
 
-        when:
-        executer.expectDeprecationWarning()
+        expect:
+        executer.expectDeprecationWarning('Internal API SourceDirectorySetFactory has been deprecated. This is scheduled to be removed in Gradle 7.0. Please use the ObjectFactory service to create instances of SourceDirectorySet instead.')
         run 'deprecation'
-
-        then:
-        outputContains('Internal API SourceDirectorySetFactory has been deprecated. This is scheduled to be removed in Gradle 7.0. Please use the ObjectFactory service to create instances of SourceDirectorySet instead.')
 
         where:
         deprecatedMethodCall << ['create("name")', 'create("name", "displayName")']
