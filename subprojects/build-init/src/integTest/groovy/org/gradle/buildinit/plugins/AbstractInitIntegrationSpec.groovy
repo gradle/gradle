@@ -20,6 +20,7 @@ import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.kotlin.dsl.KotlinEapRepoUtil
 import org.gradle.test.fixtures.file.TestFile
 
 class AbstractInitIntegrationSpec extends AbstractIntegrationSpec {
@@ -30,6 +31,10 @@ class AbstractInitIntegrationSpec extends AbstractIntegrationSpec {
         executer.beforeExecute {
             executer.inDirectory(targetDir)
             executer.ignoreMissingSettingsFile()
+        }
+        def initScript = KotlinEapRepoUtil.createKotlinEapInitScript()
+        executer.beforeExecute {
+            executer.usingInitScript(initScript)
         }
     }
 

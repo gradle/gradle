@@ -63,6 +63,14 @@ class KotlinEapRepoUtil {
 
     private static String kotlinEapRepoInitScript() {
         return """
+            settingsEvaluated {
+                it.pluginManagement {
+                    it.repositories {
+                        gradlePluginPortal()
+                        ${RepoScriptBlockUtil.kotlinEapRepositoryDefinition()}
+                    }
+                }
+            }
             allprojects {
                 repositories {
                     ${RepoScriptBlockUtil.kotlinEapRepositoryDefinition()}
