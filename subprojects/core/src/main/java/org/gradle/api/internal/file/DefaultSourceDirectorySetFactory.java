@@ -28,19 +28,19 @@ public class DefaultSourceDirectorySetFactory implements SourceDirectorySetFacto
 
     @Override
     public DefaultSourceDirectorySet create(String name) {
-        DeprecationLogger
-            .deprecate("SourceDirectorySetFactory")
-            .withAdvice("Please use the ObjectFactory service to create instances of SourceDirectorySet instead.")
-            .nagUser();
+        deprecate();
         return (DefaultSourceDirectorySet) objectFactory.sourceDirectorySet(name, name);
     }
 
     @Override
     public DefaultSourceDirectorySet create(String name, String displayName) {
-        DeprecationLogger
-            .deprecate("SourceDirectorySetFactory")
-            .withAdvice("Please use the ObjectFactory service to create instances of SourceDirectorySet instead.")
-            .nagUser();
+        deprecate();
         return (DefaultSourceDirectorySet) objectFactory.sourceDirectorySet(name, displayName);
+    }
+
+    private static void deprecate() {
+        DeprecationLogger.deprecateInternalApi("SourceDirectorySetFactory")
+            .replaceWith("the ObjectFactory service to create instances of SourceDirectorySet")
+            .nagUser();
     }
 }
