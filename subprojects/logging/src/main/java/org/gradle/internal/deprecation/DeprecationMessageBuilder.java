@@ -18,21 +18,21 @@ package org.gradle.internal.deprecation;
 
 import com.google.common.base.Joiner;
 
+import javax.annotation.CheckReturnValue;
 import java.util.List;
 
 import static org.gradle.internal.deprecation.Messages.pleaseUseThisMethodInstead;
 import static org.gradle.internal.deprecation.Messages.thisIsScheduledToBeRemoved;
 import static org.gradle.internal.deprecation.Messages.thisWillBecomeAnError;
 
+@CheckReturnValue
 public class DeprecationMessageBuilder {
 
     private String summary;
     private String removalDetails;
     private String context;
     private String advice;
-
     private DocumentationReference documentationReference = DocumentationReference.NO_DOCUMENTATION;
-
     private DeprecatedFeatureUsage.Type usageType = DeprecatedFeatureUsage.Type.USER_CODE_DIRECT;
 
     DeprecationMessageBuilder() {
@@ -62,24 +62,24 @@ public class DeprecationMessageBuilder {
         DeprecationLogger.nagUserWith(this, DeprecationMessageBuilder.class);
     }
 
-    DeprecationMessageBuilder withIndirectUsage() {
+    void setIndirectUsage() {
         this.usageType = DeprecatedFeatureUsage.Type.USER_CODE_INDIRECT;
-        return this;
     }
 
-    DeprecationMessageBuilder withBuildInvocation() {
+    void setBuildInvocationUsage() {
         this.usageType = DeprecatedFeatureUsage.Type.BUILD_INVOCATION;
-        return this;
     }
 
-    DeprecationMessageBuilder withSummary(String summary) {
+    void setSummary(String summary) {
         this.summary = summary;
-        return this;
     }
 
-    DeprecationMessageBuilder withRemovalDetails(String removalDetails) {
+    void setAdvice(String advice) {
+        this.advice = advice;
+    }
+
+    void setRemovalDetails(String removalDetails) {
         this.removalDetails = removalDetails;
-        return this;
     }
 
     DeprecationMessage build() {
@@ -109,10 +109,10 @@ public class DeprecationMessageBuilder {
 
         @Override
         DeprecationMessage build() {
-            withSummary(formatSummary(subject));
-            withRemovalDetails(removalDetails());
+            setSummary(formatSummary(subject));
+            setRemovalDetails(removalDetails());
             if (replacement != null) {
-                withAdvice(formatAdvice(replacement));
+                setAdvice(formatAdvice(replacement));
             }
             return super.build();
         }
@@ -159,18 +159,22 @@ public class DeprecationMessageBuilder {
             this.configuration = configuration;
         }
 
+        @CheckReturnValue
         public DeprecateConfiguration forArtifactDeclaration() {
             return new DeprecateConfiguration(configuration, ConfigurationDeprecationType.ARTIFACT_DECLARATION);
         }
 
+        @CheckReturnValue
         public DeprecateConfiguration forConsumption() {
             return new DeprecateConfiguration(configuration, ConfigurationDeprecationType.CONSUMPTION);
         }
 
+        @CheckReturnValue
         public DeprecateConfiguration forDependencyDeclaration() {
             return new DeprecateConfiguration(configuration, ConfigurationDeprecationType.DEPENDENCY_DECLARATION);
         }
 
+        @CheckReturnValue
         public DeprecateConfiguration forResolution() {
             return new DeprecateConfiguration(configuration, ConfigurationDeprecationType.RESOLUTION);
         }
@@ -183,7 +187,7 @@ public class DeprecationMessageBuilder {
             super(configuration);
             this.deprecationType = deprecationType;
             if (!deprecationType.inUserCode) {
-                withIndirectUsage();
+                setIndirectUsage();
             }
         }
 
