@@ -16,6 +16,8 @@
 
 package org.gradle.internal.featurelifecycle;
 
+import org.gradle.internal.deprecation.DeprecatedFeatureUsage;
+
 import java.util.List;
 
 public class DefaultDeprecatedUsageProgressDetails implements DeprecatedUsageProgressDetails {

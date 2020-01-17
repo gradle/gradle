@@ -17,7 +17,6 @@ package org.gradle.internal.deprecation;
 
 import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.internal.Factory;
-import org.gradle.internal.featurelifecycle.DeprecatedFeatureUsage;
 import org.gradle.internal.featurelifecycle.DeprecatedUsageBuildOperationProgressBroadcaster;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.featurelifecycle.UsageLocationReporter;
@@ -81,7 +80,6 @@ public class DeprecationLogger {
         return deprecate(feature).withBuildInvocation();
     }
 
-    // TODO: invocation of this method embeds documentation in summary. A good start for extracting documentation model
     // Output: ${behaviour}. This behaviour has been deprecated and is scheduled to be removed in Gradle X.
     public static DeprecationMessageBuilder deprecateBehaviour(final String behaviour) {
         return new DeprecationMessageBuilder() {
@@ -94,7 +92,7 @@ public class DeprecationLogger {
         };
     }
 
-    public static DeprecationMessageBuilder warnOfChangedBehaviour(final String behaviour)  {
+    public static DeprecationMessageBuilder warnOfChangedBehaviour(final String behaviour) {
         return new DeprecationMessageBuilder() {
             @Override
             DeprecationMessage build() {
