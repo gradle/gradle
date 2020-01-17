@@ -17,6 +17,7 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
     `java-library`
+    gradlebuild.`publish-public-libraries`
     gradlebuild.classycle
 }
 
@@ -31,11 +32,9 @@ dependencies {
     implementation(project(":files"))
     implementation(project(":snapshots"))
 
-    implementation(library("slf4j_api"))
-    implementation(library("guava"))
-    implementation(library("inject"))
-    implementation(library("commons_compress"))
-    implementation(library("commons_io"))
+    implementation(library("guava")) { version { require(libraryVersion("guava")) } }
+    implementation(library("commons_compress")) { version { require(libraryVersion("commons_compress")) } }
+    implementation(library("commons_io")) { version { require(libraryVersion("commons_io")) } }
 
     testImplementation(project(":processServices"))
     testImplementation(project(":fileCollections"))
