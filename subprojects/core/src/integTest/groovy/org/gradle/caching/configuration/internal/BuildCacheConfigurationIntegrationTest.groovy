@@ -242,7 +242,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         executer.withBuildCacheEnabled()
         succeeds("customTask")
         then:
-        outputContains("Task output caching is enabled, but no build caches are configured or enabled.")
+        outputContains("Using the build cache is enabled, but no build caches are configured or enabled.")
 
         and:
         localBuildCache.empty
