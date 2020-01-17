@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.featurelifecycle;
+package org.gradle.internal.deprecation;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang.StringUtils;
+import org.gradle.internal.featurelifecycle.FeatureUsage;
 
 import javax.annotation.Nullable;
 
@@ -27,6 +27,7 @@ public class DeprecatedFeatureUsage extends FeatureUsage {
     private final String removalDetails;
     private final String advice;
     private final String contextualAdvice;
+    private final DocumentationReference documentationReference;
 
     private final Type type;
 
@@ -35,6 +36,7 @@ public class DeprecatedFeatureUsage extends FeatureUsage {
         String removalDetails,
         @Nullable String advice,
         @Nullable String contextualAdvice,
+        DocumentationReference documentationReference,
         Type type,
         Class<?> calledFrom
     ) {
@@ -43,14 +45,15 @@ public class DeprecatedFeatureUsage extends FeatureUsage {
         this.advice = advice;
         this.contextualAdvice = contextualAdvice;
         this.type = Preconditions.checkNotNull(type);
+        this.documentationReference = Preconditions.checkNotNull(documentationReference);
     }
 
-    @VisibleForTesting
     DeprecatedFeatureUsage(DeprecatedFeatureUsage usage, Exception traceException) {
         super(usage.getSummary(), usage.getCalledFrom(), traceException);
         this.removalDetails = usage.removalDetails;
         this.advice = usage.advice;
         this.contextualAdvice = usage.contextualAdvice;
+        this.documentationReference = usage.documentationReference;
         this.type = usage.type;
     }
 
@@ -115,6 +118,11 @@ public class DeprecatedFeatureUsage extends FeatureUsage {
         return contextualAdvice;
     }
 
+    @Nullable
+    public String getDocumentationUrl() {
+        return documentationReference.documentationUrl();
+    }
+
     public DeprecatedFeatureUsage.Type getType() {
         return type;
     }
@@ -125,6 +133,7 @@ public class DeprecatedFeatureUsage extends FeatureUsage {
         append(outputBuilder, removalDetails);
         append(outputBuilder, contextualAdvice);
         append(outputBuilder, advice);
+        append(outputBuilder, documentationReference.consultDocumentationMessage());
         return outputBuilder.toString();
     }
 

@@ -16,6 +16,7 @@
 
 package org.gradle.internal.featurelifecycle;
 
+import org.gradle.internal.deprecation.DeprecatedFeatureUsage;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 import javax.annotation.Nullable;

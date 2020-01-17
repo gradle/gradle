@@ -17,8 +17,6 @@
 package org.gradle.internal.deprecation;
 
 import com.google.common.base.Joiner;
-import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.internal.featurelifecycle.DeprecatedFeatureUsage;
 
 import java.util.List;
 
@@ -28,13 +26,12 @@ import static org.gradle.internal.deprecation.Messages.thisWillBecomeAnError;
 
 public class DeprecationMessageBuilder {
 
-    private static final DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry();
-
     private String summary;
     private String removalDetails;
     private String context;
     private String advice;
-    private String documentationReference;
+
+    private DocumentationReference documentationReference = DocumentationReference.NO_DOCUMENTATION;
 
     private DeprecatedFeatureUsage.Type usageType = DeprecatedFeatureUsage.Type.USER_CODE_DIRECT;
 
@@ -51,8 +48,13 @@ public class DeprecationMessageBuilder {
         return this;
     }
 
-    public DeprecationMessageBuilder withDocumentationReference(String documentationReference) {
-        this.documentationReference = documentationReference;
+    public DeprecationMessageBuilder guidedBy(String documentationId, String section) {
+        this.documentationReference = DocumentationReference.create(documentationId, section);
+        return this;
+    }
+
+    public DeprecationMessageBuilder withUpgradeGuideSection(int majorVersion, String upgradeGuideSection) {
+        this.documentationReference = DocumentationReference.upgradeGuide(majorVersion, upgradeGuideSection);
         return this;
     }
 
@@ -277,11 +279,6 @@ public class DeprecationMessageBuilder {
         public DeprecationMessageBuilder replaceWithExternalPlugin(String replacement) {
             this.externalReplacement = true;
             return replaceWith(replacement);
-        }
-
-        public DeprecationMessageBuilder withUpgradeGuideSection(int majorVersion, String upgradeGuideSection) {
-            // TODO: this is how it works with current implementation. Start here with extracting deprecation documentation model
-            return withAdvice("Consult the upgrading guide for further information: " + DOCUMENTATION_REGISTRY.getDocumentationFor("upgrading_version_" + majorVersion, upgradeGuideSection));
         }
     }
 
