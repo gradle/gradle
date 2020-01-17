@@ -18,7 +18,7 @@ include::sample[dir="kotlin",files="utilities/build.gradle.kts[]"]
 
 To build the projects, you simply need to build the application:
 
-[listing.terminal]
+[listing.terminal.sample-command]
 ----
 $ ./gradlew :application:run
 

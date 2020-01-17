@@ -20,7 +20,7 @@ include::sample[dir="kotlin",files="list/build.gradle.kts[]"]
 
 These additional tests can be executed with the `integrationTest` task or as part of lifecycle `check`:
 
-[listing.terminal]
+[listing.terminal.sample-command]
 ----
 $ ./gradlew check
 

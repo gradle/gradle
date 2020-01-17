@@ -10,7 +10,7 @@ include::sample[dir="kotlin",files="build.gradle.kts[]"]
 
 To build and run the application:
 
-[listing.terminal]
+[listing.terminal.sample-command]
 ----
 $ ./gradlew run
 
