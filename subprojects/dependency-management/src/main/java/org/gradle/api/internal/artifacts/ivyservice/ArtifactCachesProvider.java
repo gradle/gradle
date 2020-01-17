@@ -15,11 +15,13 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
+import org.gradle.internal.vfs.AdditiveCache;
+
 import java.io.Closeable;
 import java.util.Optional;
 import java.util.function.BiFunction;
 
-public interface ArtifactCachesProvider extends Closeable {
+public interface ArtifactCachesProvider extends Closeable, AdditiveCache {
     String READONLY_CACHE_PROPERTY = "org.gradle.readonly.dependency.cache.path";
 
     ArtifactCacheMetadata getWritableCacheMetadata();
