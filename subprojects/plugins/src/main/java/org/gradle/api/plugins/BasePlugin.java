@@ -133,7 +133,7 @@ public class BasePlugin implements Plugin<Project> {
                 AtomicBoolean usesMaven = new AtomicBoolean();
                 project.getPluginManager().withPlugin("maven", p -> usesMaven.set(true));
                 uploadArchives.doFirst(task -> DeprecationLogger
-                    .deprecate("The " + UPLOAD_ARCHIVES_TASK_NAME + " task")
+                    .deprecateTask(UPLOAD_ARCHIVES_TASK_NAME)
                     .withAdvice("Use the " + (usesMaven.get() ? "'maven-publish'" : "'ivy-publish'") + " plugin instead")
                     .nagUser());
                 boolean hasIvyRepo = !uploadArchives.getRepositories().withType(IvyArtifactRepository.class).isEmpty();
