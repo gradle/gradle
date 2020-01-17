@@ -305,7 +305,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * @return this
      */
     public StartParameter useEmptySettings() {
-        DeprecationLogger.deprecate("StartParameter#useEmptySettings()").nagUser();
+        DeprecationLogger.deprecateMethod("StartParameter#useEmptySettings()").nagUser();
         doUseEmptySettings();
         return this;
     }
@@ -322,7 +322,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * @return Whether to use empty settings or not.
      */
     public boolean isUseEmptySettings() {
-        DeprecationLogger.deprecate("StartParameter#isUseEmptySettings()").nagUser();
+        DeprecationLogger.deprecateMethod("StartParameter#isUseEmptySettings()").nagUser();
         return useEmptySettings;
     }
 
@@ -413,12 +413,12 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     }
 
     public boolean isSearchUpwards() {
-        DeprecationLogger.deprecate("StartParameter#isSearchUpwards()").nagUser();
+        DeprecationLogger.deprecateMethod("StartParameter#isSearchUpwards()").nagUser();
         return searchUpwards;
     }
 
     public void setSearchUpwards(boolean searchUpwards) {
-        DeprecationLogger.deprecate("StartParameter#setSearchUpwards(boolean)").nagUser();
+        DeprecationLogger.deprecateMethod("StartParameter#setSearchUpwards(boolean)").nagUser();
         this.searchUpwards = searchUpwards;
     }
 
