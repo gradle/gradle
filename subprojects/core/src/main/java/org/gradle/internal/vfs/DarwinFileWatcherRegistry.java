@@ -51,10 +51,10 @@ public class DarwinFileWatcherRegistry extends AbstractEventDrivenFileWatcherReg
 
     public static class Factory implements FileWatcherRegistryFactory {
         @Override
-        public FileWatcherRegistry startWatching(SnapshotHierarchy snapshotHierarchy, Predicate<String> watchFilter, Collection<String> mustWatchDirectories) {
+        public FileWatcherRegistry startWatching(SnapshotHierarchy snapshotHierarchy, Predicate<String> watchFilter, Collection<File> mustWatchDirectories) {
             Set<String> mustWatchDirectoryPrefixes = ImmutableSet.copyOf(
                 mustWatchDirectories.stream()
-                    .map(path -> path + File.separator)
+                    .map(path -> path.getAbsolutePath() + File.separator)
                     ::iterator
             );
             Set<String> directories = WatchRootUtil.resolveDirectoriesToWatch(

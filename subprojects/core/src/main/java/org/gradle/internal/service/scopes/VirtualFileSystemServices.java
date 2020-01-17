@@ -246,7 +246,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                 @Override
                 public void beforeComplete(GradleInternal gradle) {
                     if (isRetentionEnabled(gradle.getStartParameter().getSystemPropertiesArgs())) {
-                        virtualFileSystem.startWatching(Collections.singleton(gradle.getRootProject().getProjectDir().getAbsolutePath()));
+                        virtualFileSystem.startWatching(Collections.singleton(gradle.getRootProject().getProjectDir()));
                     } else {
                         virtualFileSystem.invalidateAll();
                     }

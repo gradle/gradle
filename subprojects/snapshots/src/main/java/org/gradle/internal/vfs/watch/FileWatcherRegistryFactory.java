@@ -18,10 +18,11 @@ package org.gradle.internal.vfs.watch;
 
 import org.gradle.internal.vfs.SnapshotHierarchy;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.function.Predicate;
 
 public interface FileWatcherRegistryFactory {
-    FileWatcherRegistry startWatching(SnapshotHierarchy snapshotHierarchy, Predicate<String> watchFilter, Collection<String> mustWatchDirectories) throws IOException;
+    FileWatcherRegistry startWatching(SnapshotHierarchy snapshotHierarchy, Predicate<String> watchFilter, Collection<File> mustWatchDirectories) throws IOException;
 }

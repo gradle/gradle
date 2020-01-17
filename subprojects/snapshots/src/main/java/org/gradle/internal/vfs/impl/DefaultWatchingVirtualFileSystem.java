@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collection;
@@ -50,7 +51,7 @@ public class DefaultWatchingVirtualFileSystem extends AbstractDelegatingVirtualF
     }
 
     @Override
-    public void startWatching(Collection<String> mustWatchDirectories) {
+    public void startWatching(Collection<File> mustWatchDirectories) {
         if (watchRegistry != null) {
             throw new IllegalStateException("Watch service already started");
         }

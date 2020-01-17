@@ -22,6 +22,7 @@ import org.gradle.internal.vfs.watch.FileWatcherRegistryFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.function.Predicate;
 
@@ -41,7 +42,7 @@ public class NoopFileWatcherRegistry implements FileWatcherRegistry {
 
     public static class Factory implements FileWatcherRegistryFactory {
         @Override
-        public FileWatcherRegistry startWatching(SnapshotHierarchy snapshotHierarchy, Predicate<String> watchFilter, Collection<String> mustWatchDirectories) {
+        public FileWatcherRegistry startWatching(SnapshotHierarchy snapshotHierarchy, Predicate<String> watchFilter, Collection<File> mustWatchDirectories) {
             LOGGER.warn("VFS retention is enabled but file watching is not supported for this platform");
             return INSTANCE;
         }

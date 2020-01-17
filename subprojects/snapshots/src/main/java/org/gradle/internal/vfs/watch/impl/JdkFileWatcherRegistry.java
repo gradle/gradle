@@ -24,6 +24,7 @@ import org.gradle.internal.vfs.watch.WatchRootUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
@@ -102,7 +103,7 @@ public class JdkFileWatcherRegistry implements FileWatcherRegistry {
 
     public static class Factory implements FileWatcherRegistryFactory {
         @Override
-        public FileWatcherRegistry startWatching(SnapshotHierarchy root, Predicate<String> watchFilter, Collection<String> mustWatchDirectories) throws IOException {
+        public FileWatcherRegistry startWatching(SnapshotHierarchy root, Predicate<String> watchFilter, Collection<File> mustWatchDirectories) throws IOException {
             WatchService watchService = FileSystems.getDefault().newWatchService();
             Set<Path> directories = WatchRootUtil.resolveDirectoriesToWatch(root, watchFilter, mustWatchDirectories).stream()
                 .map(Paths::get)

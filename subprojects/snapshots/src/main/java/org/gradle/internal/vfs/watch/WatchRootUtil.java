@@ -19,6 +19,7 @@ package org.gradle.internal.vfs.watch;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.vfs.SnapshotHierarchy;
 
+import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -27,6 +28,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public class WatchRootUtil {
     /**
@@ -65,8 +67,10 @@ public class WatchRootUtil {
      * @param watchFilter returns true for paths which shouldn't be watched
      * @param mustWatchDirectories directories which always should be watched. Will be part of the result.
      */
-    public static Set<String> resolveDirectoriesToWatch(SnapshotHierarchy root, Predicate<String> watchFilter, Collection<String> mustWatchDirectories) {
-        Set<String> watchedDirectories = new HashSet<>(mustWatchDirectories);
+    public static Set<String> resolveDirectoriesToWatch(SnapshotHierarchy root, Predicate<String> watchFilter, Collection<File> mustWatchDirectories) {
+        Set<String> watchedDirectories = mustWatchDirectories.stream()
+            .map(File::getAbsolutePath)
+            .collect(Collectors.toSet());
         root.visitSnapshots((snapshot, rootOfCompleteHierarchy) -> {
             // We don't watch things that shouldn't be watched
             if (!watchFilter.test(snapshot.getAbsolutePath())) {
