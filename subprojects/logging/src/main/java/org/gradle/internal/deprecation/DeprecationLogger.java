@@ -58,7 +58,9 @@ public class DeprecationLogger {
         return DEPRECATED_FEATURE_HANDLER.getDeprecationFailure();
     }
 
-    // Output: ${feature} has been deprecated. This is scheduled to be removed in Gradle X.
+    /**
+     * Output: ${feature} has been deprecated. This is scheduled to be removed in Gradle X.
+     */
     public static DeprecationMessageBuilder deprecate(final String feature) {
         return new DeprecationMessageBuilder() {
             @Override
@@ -70,17 +72,23 @@ public class DeprecationLogger {
         };
     }
 
-    // Output: ${feature} has been deprecated. This is scheduled to be removed in Gradle X.
+    /**
+     * Output: ${feature} has been deprecated. This is scheduled to be removed in Gradle X.
+     */
     public static DeprecationMessageBuilder deprecateIndirectUsage(String feature) {
         return deprecate(feature).withIndirectUsage();
     }
 
-    // Output: ${feature} has been deprecated. This is scheduled to be removed in Gradle X.
+    /**
+     * Output: ${feature} has been deprecated. This is scheduled to be removed in Gradle X.
+     */
     public static DeprecationMessageBuilder deprecateBuildInvocationFeature(String feature) {
         return deprecate(feature).withBuildInvocation();
     }
 
-    // Output: ${behaviour}. This behaviour has been deprecated and is scheduled to be removed in Gradle X.
+    /**
+     * Output: ${behaviour}. This behaviour has been deprecated and is scheduled to be removed in Gradle X.
+     */
     public static DeprecationMessageBuilder deprecateBehaviour(final String behaviour) {
         return new DeprecationMessageBuilder() {
             @Override
@@ -92,6 +100,9 @@ public class DeprecationLogger {
         };
     }
 
+    /**
+     * Output: ${behaviour}
+     */
     public static DeprecationMessageBuilder warnOfChangedBehaviour(final String behaviour) {
         return new DeprecationMessageBuilder() {
             @Override
@@ -104,7 +115,9 @@ public class DeprecationLogger {
         };
     }
 
-    // Output: ${action} has been deprecated. This will fail with an error in Gradle X.
+    /**
+     * Output: ${action} has been deprecated. This will fail with an error in Gradle X.
+     */
     public static DeprecationMessageBuilder deprecateAction(final String action) {
         return new DeprecationMessageBuilder() {
             @Override
@@ -116,43 +129,60 @@ public class DeprecationLogger {
         };
     }
 
-    // Output: The ${property} property has been deprecated. This is scheduled to be removed in Gradle X.
+    /**
+     * Output: The ${property} property has been deprecated. This is scheduled to be removed in Gradle X.
+     */
     public static DeprecationMessageBuilder.DeprecateProperty deprecateProperty(String property) {
         return new DeprecationMessageBuilder.DeprecateProperty(property);
     }
 
-    // Output: The ${parameter} named parameter has been deprecated. This is scheduled to be removed in Gradle X.
+    /**
+     * Output: The ${parameter} named parameter has been deprecated. This is scheduled to be removed in Gradle X.
+     */
     public static DeprecationMessageBuilder.DeprecateNamedParameter deprecateNamedParameter(String parameter) {
         return new DeprecationMessageBuilder.DeprecateNamedParameter(parameter);
     }
 
-    // Output: The ${method} method has been deprecated. This is scheduled to be removed in Gradle X.
+    /**
+     * Output: The ${method} method has been deprecated. This is scheduled to be removed in Gradle X.
+     */
     public static DeprecationMessageBuilder.DeprecateMethod deprecateMethod(String method) {
         return new DeprecationMessageBuilder.DeprecateMethod(method);
     }
 
-    // Output: Using method ${invocation} has been deprecated. This will fail with an error in Gradle X.
+    /**
+     * Output: Using method ${invocation} has been deprecated. This will fail with an error in Gradle X.
+     */
     public static DeprecationMessageBuilder.DeprecateInvocation deprecateInvocation(String invocation) {
         return new DeprecationMessageBuilder.DeprecateInvocation(invocation);
     }
 
-    // Output: The ${task} task has been deprecated. This is scheduled to be removed in Gradle X.
+    /**
+     * Output: The ${task} task has been deprecated. This is scheduled to be removed in Gradle X.
+     */
     public static DeprecationMessageBuilder.DeprecateTask deprecateTask(String task) {
         return new DeprecationMessageBuilder.DeprecateTask(task);
     }
 
-    // Output: The ${plugin} plugin has been deprecated. This is scheduled to be removed in Gradle X.
+    /**
+     * Output: The ${plugin} plugin has been deprecated. This is scheduled to be removed in Gradle X.
+     */
     public static DeprecationMessageBuilder.DeprecatePlugin deprecatePlugin(String plugin) {
         return new DeprecationMessageBuilder.DeprecatePlugin(plugin);
     }
 
-    // Output: Internal API ${api} has been deprecated. This is scheduled to be removed in Gradle X.
+    /**
+     * Output: Internal API ${api} has been deprecated. This is scheduled to be removed in Gradle X.
+     */
     public static DeprecationMessageBuilder.DeprecateInternalApi deprecateInternalApi(String api) {
         return new DeprecationMessageBuilder.DeprecateInternalApi(api);
     }
 
-    public static DeprecationMessageBuilder.ConfigurationDeprecationTypeSelector deprecateConfiguration(String configuration) {
-        return new DeprecationMessageBuilder.ConfigurationDeprecationTypeSelector(configuration);
+    /**
+     * Output: The ${configurationType} configuration has been deprecated for ${declarationType}. This will fail with an error in Gradle X.
+     */
+    public static DeprecationMessageBuilder.ConfigurationDeprecationTypeSelector deprecateConfiguration(String configurationType) {
+        return new DeprecationMessageBuilder.ConfigurationDeprecationTypeSelector(configurationType);
     }
 
     static void nagUserWith(DeprecationMessageBuilder deprecationMessageBuilder, Class<?> calledFrom) {
