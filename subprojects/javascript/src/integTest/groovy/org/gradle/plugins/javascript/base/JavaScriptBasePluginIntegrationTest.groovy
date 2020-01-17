@@ -17,6 +17,7 @@
 package org.gradle.plugins.javascript.base
 
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
+import org.gradle.util.GradleVersion
 
 import static org.gradle.plugins.javascript.base.JavaScriptBasePluginTestFixtures.addGoogleRepoScript
 import static org.gradle.plugins.javascript.base.JavaScriptBasePluginTestFixtures.addGradlePublicJsRepoScript
@@ -30,7 +31,8 @@ class JavaScriptBasePluginIntegrationTest extends WellBehavedPluginTest {
 
     def setup() {
         applyPlugin()
-        executer.expectDeprecationWarning("The org.gradle.${pluginName} plugin has been deprecated. This is scheduled to be removed in Gradle 7.0.")
+        executer.expectDeprecationWarning("The org.gradle.${pluginName} plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#deprecated_plugins")
     }
 
     def "can download from googles repo"() {
