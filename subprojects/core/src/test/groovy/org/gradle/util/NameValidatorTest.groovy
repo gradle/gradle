@@ -52,7 +52,7 @@ class NameValidatorTest extends Specification {
     ]
 
     def cleanup() {
-        SingleMessageLogger.reset()
+        IncubationLogger.reset()
     }
 
     @Unroll

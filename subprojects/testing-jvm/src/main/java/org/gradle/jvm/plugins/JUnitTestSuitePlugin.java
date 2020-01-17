@@ -18,6 +18,7 @@ package org.gradle.jvm.plugins;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.jvm.test.JUnitTestSuiteBinarySpec;
 import org.gradle.jvm.test.JUnitTestSuiteSpec;
 import org.gradle.jvm.test.JvmTestSuiteSpec;
@@ -40,7 +41,6 @@ import org.gradle.platform.base.internal.DefaultModuleDependencySpec;
 import org.gradle.platform.base.internal.HasIntermediateOutputsComponentSpec;
 import org.gradle.platform.base.internal.PlatformResolvers;
 import org.gradle.testing.base.plugins.TestingModelBasePlugin;
-import org.gradle.util.DeprecationLogger;
 
 /**
  * This plugin adds support for execution of JUnit test suites to the Java software model.
@@ -53,7 +53,7 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project project) {
-        DeprecationLogger.nagUserOfDeprecatedPlugin("junit-test-suite", 6, "upgrading_jvm_plugins");
+        DeprecationLogger.deprecatePlugin("junit-test-suite").withUpgradeGuideSection(6, "upgrading_jvm_plugins").nagUser();
         project.getPluginManager().apply(TestingModelBasePlugin.class);
         project.getPluginManager().apply(JvmComponentPlugin.class);
         project.getPluginManager().apply(JvmTestSuiteBasePlugin.class);

@@ -55,7 +55,7 @@ import org.gradle.internal.resource.ReadableContent;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.transfer.ExternalResourceConnector;
 import org.gradle.internal.resource.transfer.ExternalResourceReadResponse;
-import org.gradle.util.SingleMessageLogger;
+import org.gradle.util.IncubationLogger;
 
 import javax.annotation.Nullable;
 import java.io.Closeable;
@@ -93,7 +93,7 @@ public class StartParameterResolutionOverride {
         File currentDir = startParameter.getCurrentDir();
         List<String> checksums = startParameter.getWriteDependencyVerifications();
         if (!checksums.isEmpty()) {
-            SingleMessageLogger.incubatingFeatureUsed("Dependency verification");
+            IncubationLogger.incubatingFeatureUsed("Dependency verification");
             return DisablingVerificationOverride.of(
                 new WriteDependencyVerificationFile(currentDir, buildOperationExecutor, checksums, checksumService, signatureVerificationServiceFactory, startParameter.isDryRun(), startParameter.isExportKeys())
             );
@@ -104,7 +104,7 @@ public class StartParameterResolutionOverride {
                 if (startParameter.getDependencyVerificationMode() == DependencyVerificationMode.OFF) {
                     return DependencyVerificationOverride.NO_VERIFICATION;
                 }
-                SingleMessageLogger.incubatingFeatureUsed("Dependency verification");
+                IncubationLogger.incubatingFeatureUsed("Dependency verification");
                 try {
                     return DisablingVerificationOverride.of(
                         new ChecksumAndSignatureVerificationOverride(buildOperationExecutor, startParameter.getGradleUserHomeDir(), verificationsFile, keyringsFile, checksumService, signatureVerificationServiceFactory, startParameter.getDependencyVerificationMode(), documentationRegistry)

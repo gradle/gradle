@@ -25,8 +25,8 @@ import org.gradle.caching.configuration.BuildCache;
 import org.gradle.caching.local.DirectoryBuildCache;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.util.DeprecationLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,13 +56,13 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
 
     @Override
     public <T extends DirectoryBuildCache> T local(Class<T> type) {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("BuildCacheConfiguration.local(Class)", "Use getLocal() instead.");
+        DeprecationLogger.deprecateMethod("BuildCacheConfiguration.local(Class)").replaceWith("getLocal()").nagUser();
         return localInternal(type, Actions.doNothing());
     }
 
     @Override
     public <T extends DirectoryBuildCache> T local(Class<T> type, Action<? super T> configuration) {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("BuildCacheConfiguration.local(Class, Action)", "Use local(Action) instead.");
+        DeprecationLogger.deprecateMethod("BuildCacheConfiguration.local(Class, Action)").replaceWith("local(Action)").nagUser();
         return localInternal(type, configuration);
     }
 

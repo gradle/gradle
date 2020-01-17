@@ -23,7 +23,7 @@ import org.gradle.initialization.ModelConfigurationListener;
 import org.gradle.initialization.ProjectsEvaluatedNotifier;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.util.SingleMessageLogger;
+import org.gradle.util.IncubationLogger;
 
 public class DefaultProjectsPreparer implements ProjectsPreparer {
     private final BuildLoader buildLoader;
@@ -69,7 +69,7 @@ public class DefaultProjectsPreparer implements ProjectsPreparer {
         StartParameter startParameter = gradle.getStartParameter();
 
         if (startParameter.isConfigureOnDemand()) {
-            SingleMessageLogger.incubatingFeatureUsed("Configuration on demand");
+            IncubationLogger.incubatingFeatureUsed("Configuration on demand");
         }
     }
 }

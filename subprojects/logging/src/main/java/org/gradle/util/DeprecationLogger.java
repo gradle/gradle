@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,5 +15,13 @@
  */
 package org.gradle.util;
 
-public class DeprecationLogger extends SingleMessageLogger {
+
+public class DeprecationLogger {
+
+    // Here for backwards compatibility with performance test: DeprecationCreationPerformanceTest
+    // When rebaselining, update the test to use org.gradle.internal.deprecation.DeprecationLogger.deprecate(thing).nagUser() directly
+    public static void nagUserOfDeprecated(String thing) {
+        org.gradle.internal.deprecation.DeprecationLogger.deprecate(thing).nagUser();
+    }
+
 }

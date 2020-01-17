@@ -16,7 +16,7 @@
   -->
 <verification-metadata xmlns="https://schema.gradle.org/dependency-verification"
                        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                       xmlns:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/verification-1.0.xsd">
+                       xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/verification-1.0.xsd">
     <configuration>
         <verify-metadata>false</verify-metadata>
         <verify-signatures>true</verify-signatures>

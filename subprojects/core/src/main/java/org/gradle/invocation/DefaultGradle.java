@@ -50,6 +50,7 @@ import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.PublicBuildPath;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.installation.CurrentGradleInstallation;
@@ -59,7 +60,6 @@ import org.gradle.internal.scan.config.BuildScanConfigInit;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
-import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.Path;
 
@@ -300,13 +300,13 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
 
     @Override
     public void buildStarted(Closure closure) {
-        DeprecationLogger.nagUserOfDeprecated("Gradle#buildStarted(Closure)");
+        DeprecationLogger.deprecate("Gradle#buildStarted(Closure)").nagUser();
         buildListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("buildStarted", closure));
     }
 
     @Override
     public void buildStarted(Action<? super Gradle> action) {
-        DeprecationLogger.nagUserOfDeprecated("Gradle#buildStarted(Action)");
+        DeprecationLogger.deprecate("Gradle#buildStarted(Action)").nagUser();
         buildListenerBroadcast.add("buildStarted", action);
     }
 
@@ -401,7 +401,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     private void nagBuildStartedDeprecationIfOverriden(Class<? extends BuildListener> buildListenerClass) {
         try {
             if (!ImmutableSet.of(BuildAdapter.class, InternalBuildAdapter.class).contains(buildListenerClass.getMethod("buildStarted", Gradle.class).getDeclaringClass())) {
-                DeprecationLogger.nagUserOfDeprecated("BuildListener#buildStarted(Gradle)");
+                DeprecationLogger.deprecate("BuildListener#buildStarted(Gradle)").nagUser();
             }
         } catch (NoSuchMethodException e) {
             assert false; // There's always a method named buildStarted

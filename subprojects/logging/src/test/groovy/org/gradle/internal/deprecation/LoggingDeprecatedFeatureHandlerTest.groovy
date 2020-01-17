@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.featurelifecycle
+package org.gradle.internal.deprecation
 
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.configuration.WarningMode
+import org.gradle.internal.featurelifecycle.DeprecatedUsageBuildOperationProgressBroadcaster
+import org.gradle.internal.featurelifecycle.DeprecatedUsageProgressDetails
+import org.gradle.internal.featurelifecycle.FeatureUsage
+import org.gradle.internal.featurelifecycle.FeatureUsageTest
+import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler
+import org.gradle.internal.featurelifecycle.UsageLocationReporter
 import org.gradle.internal.logging.CollectingTestOutputEventListener
 import org.gradle.internal.logging.ConfigureLogging
 import org.gradle.internal.operations.BuildOperationListener
@@ -25,12 +31,11 @@ import org.gradle.internal.operations.CurrentBuildOperationRef
 import org.gradle.internal.operations.DefaultBuildOperationRef
 import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.operations.OperationProgressEvent
-import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.time.Clock
-import spock.lang.Specification
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.TextUtil
 import org.junit.Rule
+import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
@@ -43,7 +48,6 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
     SetSystemProperties systemProperties = new SetSystemProperties()
     final locationReporter = Mock(UsageLocationReporter)
     final handler = new LoggingDeprecatedFeatureHandler()
-    final TestBuildOperationExecutor buildOperationExecutor = new TestBuildOperationExecutor()
     final Clock clock = Mock(Clock)
     final BuildOperationListener buildOperationListener = Mock()
     final CurrentBuildOperationRef currentBuildOperationRef = new CurrentBuildOperationRef()
@@ -278,7 +282,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         System.setProperty(deprecationTracePropertyName, 'true')
 
         when:
-        handler.featureUsed(new DeprecatedFeatureUsage(new DeprecatedFeatureUsage('fake', "removal", null, null, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT, FeatureUsageTest), mockTraceRootException(fakeStackTrace)))
+        handler.featureUsed(new DeprecatedFeatureUsage(new DeprecatedFeatureUsage('fake', "removal", null, null, DocumentationReference.NO_DOCUMENTATION, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT, FeatureUsageTest), mockTraceRootException(fakeStackTrace)))
         def events = outputEventListener.events
 
         then:
@@ -304,7 +308,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         System.setProperty(deprecationTracePropertyName, '' + deprecationTraceProperty)
 
         when:
-        handler.featureUsed(new DeprecatedFeatureUsage('fake', "removal", null, null, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT, FeatureUsageTest))
+        handler.featureUsed(new DeprecatedFeatureUsage('fake', "removal", null, null, DocumentationReference.NO_DOCUMENTATION, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT, FeatureUsageTest))
         def events = outputEventListener.events
 
         then:
@@ -405,6 +409,6 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
     }
 
     private static DeprecatedFeatureUsage deprecatedFeatureUsage(String summary, Class<?> calledFrom = LoggingDeprecatedFeatureHandlerTest) {
-        new DeprecatedFeatureUsage(summary, "removal", null, null, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT, calledFrom)
+        new DeprecatedFeatureUsage(summary, "removal", null, null, DocumentationReference.NO_DOCUMENTATION, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT, calledFrom)
     }
 }

@@ -29,6 +29,7 @@ import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ReportingBasePlugin;
 import org.gradle.internal.Factory;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.plugins.javascript.base.JavaScriptExtension;
 import org.gradle.plugins.javascript.envjs.browser.BrowserEvaluate;
 import org.gradle.plugins.javascript.envjs.internal.EnvJsBrowserEvaluator;
@@ -37,7 +38,6 @@ import org.gradle.plugins.javascript.rhino.RhinoPlugin;
 import org.gradle.plugins.javascript.rhino.worker.internal.DefaultRhinoWorkerHandleFactory;
 import org.gradle.plugins.javascript.rhino.worker.internal.RhinoWorkerHandleFactory;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
-import org.gradle.util.DeprecationLogger;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -53,7 +53,7 @@ public class EnvJsPlugin implements Plugin<Project> {
 
     @Override
     public void apply(final Project project) {
-        DeprecationLogger.nagUserOfDeprecatedPlugin("org.gradle.envjs");
+        DeprecationLogger.deprecatePlugin("org.gradle.envjs").nagUser();
         project.getPluginManager().apply(RhinoPlugin.class);
         project.getPluginManager().apply(ReportingBasePlugin.class);
 

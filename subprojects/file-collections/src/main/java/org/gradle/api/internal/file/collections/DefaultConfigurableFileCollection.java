@@ -23,9 +23,9 @@ import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.util.internal.PatternSets;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.state.Managed;
-import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.util.AbstractSet;
@@ -147,7 +147,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         } else if (disallowChanges) {
             throw new IllegalStateException("The value for " + displayNameForThisCollection() + " cannot be changed.");
         } else if (state == State.Final) {
-            DeprecationLogger.nagUserOfDiscontinuedInvocation("Changing the value for a FileCollection with a final value");
+            DeprecationLogger.deprecateAction("Changing the value for a FileCollection with a final value").nagUser();
             return false;
         } else {
             return true;

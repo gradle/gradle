@@ -28,8 +28,8 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.IncompatibleConfigurationSelectionException;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.exceptions.ConfigurationNotConsumableException;
-import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
 
 import java.util.Collection;
@@ -82,7 +82,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         this.selector = selector;
         this.moduleConfiguration = moduleConfiguration;
         this.moduleAttributes = moduleAttributes;
-        this.dependencyAttributes = ((AttributeContainerInternal)dependencyAttributes).asImmutable();
+        this.dependencyAttributes = ((AttributeContainerInternal) dependencyAttributes).asImmutable();
         this.dependencyConfiguration = dependencyConfiguration;
         this.artifactNames = asImmutable(artifactNames);
         this.excludes = excludes;
@@ -127,8 +127,8 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
      * Choose a single target configuration based on: a) the consumer attributes, b) the target configuration name and c) the target component
      *
      * Use attribute matching to choose a single variant when:
-     *   - The target configuration name is not specified AND
-     *   - Either: we have consumer attributes OR the target component has variants.
+     * - The target configuration name is not specified AND
+     * - Either: we have consumer attributes OR the target component has variants.
      *
      * Otherwise, revert to legacy selection of target configuration.
      *
@@ -166,7 +166,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         }
         List<String> consumptionAlternatives = toConfiguration.getConsumptionAlternatives();
         if (consumptionAlternatives != null) {
-            DeprecationLogger.nagUserOfReplacedConfiguration(toConfiguration.getName(), DeprecationLogger.ConfigurationDeprecationType.CONSUMPTION, consumptionAlternatives);
+            DeprecationLogger.deprecateConfiguration(toConfiguration.getName()).forConsumption().replaceWith(consumptionAlternatives).nagUser();
         }
     }
 

@@ -20,6 +20,7 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.internal.JvmAssembly;
 import org.gradle.jvm.internal.WithJvmAssembly;
@@ -36,7 +37,6 @@ import org.gradle.model.RuleSource;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.ComponentType;
 import org.gradle.platform.base.TypeBuilder;
-import org.gradle.util.DeprecationLogger;
 
 import java.util.Collections;
 import java.util.Map;
@@ -52,7 +52,7 @@ public class JvmResourcesPlugin implements Plugin<Project> {
 
     @Override
     public void apply(final Project project) {
-        DeprecationLogger.nagUserOfDeprecatedPlugin("jvm-resources", 6, "upgrading_jvm_plugins");
+        DeprecationLogger.deprecatePlugin("jvm-resources").withUpgradeGuideSection(6, "upgrading_jvm_plugins").nagUser();
         project.getPluginManager().apply(ComponentModelBasePlugin.class);
     }
 
@@ -118,6 +118,7 @@ public class JvmResourcesPlugin implements Plugin<Project> {
                 }
             };
         }
+
         @Override
         public boolean applyToBinary(BinarySpec binary) {
             return binary instanceof WithJvmAssembly;
