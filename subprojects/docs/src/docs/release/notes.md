@@ -11,7 +11,8 @@ We would like to thank the following community contributors to this release of G
 [Thomas Iguchi](https://github.com/tiguchi),
 [Vladimir Sitnikov](https://github.com/vlsi/),
 [Peter Stöckli](https://github.com/p-),
-and [Sebastian Schuberth](https://github.com/sschuberth).
+[Sebastian Schuberth](https://github.com/sschuberth),
+and [Roberto Perez Alcolea](https://github.com/rpalcolea).
 
 ## Upgrade Instructions
 
