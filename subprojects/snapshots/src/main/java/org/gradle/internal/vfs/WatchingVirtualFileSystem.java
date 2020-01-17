@@ -16,7 +16,7 @@
 
 package org.gradle.internal.vfs;
 
-import java.nio.file.Path;
+import java.io.File;
 import java.util.Collection;
 
 /**
@@ -27,8 +27,10 @@ public interface WatchingVirtualFileSystem extends VirtualFileSystem {
 
     /**
      * Start watching the known areas of the file system for changes.
+     *
+     * @param mustWatchDirectories directories that always should be watched even when not part of the VFS.
      */
-    void startWatching(Collection<Path> mustWatchDirectories);
+    void startWatching(Collection<File> mustWatchDirectories);
 
     /**
      * Stop watching the known areas of the file system, and invalidate

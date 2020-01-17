@@ -32,6 +32,7 @@ import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.gradle.internal.snapshot.SnapshottingFilter;
 import org.gradle.internal.snapshot.impl.DirectorySnapshotter;
 import org.gradle.internal.snapshot.impl.FileSystemSnapshotFilter;
+import org.gradle.internal.vfs.SnapshotHierarchy;
 
 import java.io.File;
 import java.util.Optional;

@@ -16,6 +16,7 @@
 
 package org.gradle.internal.vfs.impl;
 
+import org.gradle.internal.vfs.SnapshotHierarchy;
 import org.gradle.internal.vfs.VirtualFileSystem;
 
 abstract public class AbstractVirtualFileSystem implements VirtualFileSystem {
