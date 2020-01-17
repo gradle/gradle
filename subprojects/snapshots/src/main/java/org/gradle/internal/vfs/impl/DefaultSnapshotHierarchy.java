@@ -88,11 +88,14 @@ public class DefaultSnapshotHierarchy implements SnapshotHierarchy {
 
     @Override
     public void visitSnapshots(SnapshotVisitor snapshotVisitor) {
-        rootNode.accept((node, parent) -> node.getSnapshot().ifPresent(snapshot -> {
-            if (snapshot instanceof CompleteFileSystemLocationSnapshot) {
-                snapshotVisitor.visitSnapshot((CompleteFileSystemLocationSnapshot) snapshot, !(parent instanceof CompleteFileSystemLocationSnapshot));
-            }
-        }), null);
+        rootNode.accept(
+            (node, parent) -> node.getSnapshot().ifPresent(snapshot -> {
+                if (snapshot instanceof CompleteFileSystemLocationSnapshot) {
+                    snapshotVisitor.visitSnapshot((CompleteFileSystemLocationSnapshot) snapshot, !(parent instanceof CompleteFileSystemLocationSnapshot));
+                }
+            }),
+            null
+        );
     }
 
     private enum EmptySnapshotHierarchy implements SnapshotHierarchy {
