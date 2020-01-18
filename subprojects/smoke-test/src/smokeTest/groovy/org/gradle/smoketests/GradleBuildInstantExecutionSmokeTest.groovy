@@ -52,6 +52,16 @@ class GradleBuildInstantExecutionSmokeTest extends AbstractSmokeTest {
             "-Dorg.gradle.unsafe.instant-execution=true",
             "-PbuildSrcCheck=false"
         ]
-        return runner(*(tasks + testArgs)).build()
+        return runner(*(tasks + testArgs))
+            .withEnvironment(
+                /// Run the test build without the CI environment variable
+                /// so `buildTimestamp` doesn't change between invocations
+                /// (which would invalidate the instant execution cache).
+                /// See BuildVersionPlugin in buildSrc.
+                new HashMap(System.getenv()).tap {
+                    remove("CI")
+                }
+            )
+            .build()
     }
 }
