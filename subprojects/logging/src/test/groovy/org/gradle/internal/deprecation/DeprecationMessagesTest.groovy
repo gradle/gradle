@@ -45,8 +45,13 @@ class DeprecationMessagesTest extends Specification {
     }
 
     def "logs deprecation message"() {
+        given:
+        def deprecationMessage = new DeprecationMessageBuilder()
+        deprecationMessage.setSummary("summary")
+        deprecationMessage.setRemovalDetails("removal")
+
         when:
-        new DeprecationMessageBuilder().withSummary("summary").withRemovalDetails("removal").nagUser()
+        deprecationMessage.nagUser()
 
         then:
         def events = outputEventListener.events
@@ -55,10 +60,14 @@ class DeprecationMessagesTest extends Specification {
     }
 
     def "logs deprecation message with advice"() {
+        given:
+        def deprecationMessage = new DeprecationMessageBuilder()
+        deprecationMessage.setSummary("summary")
+        deprecationMessage.setRemovalDetails("removal")
+        deprecationMessage.withAdvice("advice")
+
         when:
-        new DeprecationMessageBuilder().withSummary("summary").withRemovalDetails("removal")
-            .withAdvice("advice")
-            .nagUser()
+        deprecationMessage.nagUser()
 
         then:
         def events = outputEventListener.events
@@ -67,10 +76,14 @@ class DeprecationMessagesTest extends Specification {
     }
 
     def "logs deprecation message with contextual advice"() {
+        given:
+        def deprecationMessage = new DeprecationMessageBuilder()
+        deprecationMessage.setSummary("summary")
+        deprecationMessage.setRemovalDetails("removal")
+        deprecationMessage.withContext("contextualAdvice")
+
         when:
-        new DeprecationMessageBuilder().withSummary("summary").withRemovalDetails("removal")
-            .withContext("contextualAdvice")
-            .nagUser()
+        deprecationMessage.nagUser()
 
         then:
         def events = outputEventListener.events
@@ -79,10 +92,15 @@ class DeprecationMessagesTest extends Specification {
     }
 
     def "logs deprecation message with advice and contextual advice"() {
+        given:
+        def deprecationMessage = new DeprecationMessageBuilder()
+        deprecationMessage.setSummary("summary")
+        deprecationMessage.setRemovalDetails("removal")
+        deprecationMessage.withAdvice("advice")
+        deprecationMessage.withContext("contextualAdvice")
+
         when:
-        new DeprecationMessageBuilder().withSummary("summary").withRemovalDetails("removal")
-            .withAdvice("advice").withContext("contextualAdvice")
-            .nagUser()
+        deprecationMessage.nagUser()
 
         then:
         def events = outputEventListener.events
