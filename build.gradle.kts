@@ -20,6 +20,7 @@ import org.gradle.gradlebuild.ProjectGroups.javaProjects
 import org.gradle.gradlebuild.ProjectGroups.kotlinJsProjects
 import org.gradle.gradlebuild.ProjectGroups.pluginProjects
 import org.gradle.gradlebuild.ProjectGroups.publicJavaProjects
+import org.gradle.gradlebuild.UpdateAgpVersions
 import org.gradle.gradlebuild.UpdateBranchStatus
 import org.gradle.gradlebuild.buildquality.incubation.IncubatingApiAggregateReportTask
 import org.gradle.gradlebuild.buildquality.incubation.IncubatingApiReportTask
@@ -381,6 +382,12 @@ tasks.register<Install>("installAll") {
 }
 
 tasks.register<UpdateBranchStatus>("updateBranchStatus")
+
+tasks.register<UpdateAgpVersions>("updateAgpVersions") {
+    comment.set(" Generated - Update by running `./gradlew updateAgpVersions`")
+    minimumSupportedMinor.set("3.4")
+    propertiesFile.set(layout.projectDirectory.file("gradle/dependency-management/agp-versions.properties"))
+}
 
 fun distributionImage(named: String) =
     project(":distributions").property(named) as CopySpec
