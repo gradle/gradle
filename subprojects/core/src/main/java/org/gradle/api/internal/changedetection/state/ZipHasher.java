@@ -17,6 +17,7 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.io.ByteStreams;
 import org.apache.commons.compress.utils.Lists;
 import org.gradle.api.internal.file.archive.FileZipInput;
 import org.gradle.api.internal.file.archive.StreamZipInput;
@@ -38,10 +39,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
+import java.util.TreeSet;
+import java.util.jar.Attributes;
+import java.util.jar.Manifest;
+import java.util.stream.Collectors;
 
 public class ZipHasher implements RegularFileHasher, ConfigurableNormalizer {
 
@@ -57,12 +67,24 @@ public class ZipHasher implements RegularFileHasher, ConfigurableNormalizer {
         return false;
     }
 
+    public static boolean isManifestFile(final String name) {
+        return name.equals("META-INF/MANIFEST.MF");
+    }
+
+    public static boolean isManifestPropertyFile(final String name) {
+        return name.startsWith("META-INF/") && name.endsWith(".properties");
+    }
+
     private final ResourceHasher resourceHasher;
     private final ResourceFilter resourceFilter;
+    private final ResourceEntryFilter attributeResourceFilter;
+    private final ResourceEntryFilter propertyResourceFilter;
 
-    public ZipHasher(ResourceHasher resourceHasher, ResourceFilter resourceFilter) {
+    public ZipHasher(ResourceHasher resourceHasher, ResourceFilter resourceFilter, ResourceEntryFilter manifestAttributeResourceFilter, ResourceEntryFilter manifestPropertyResourceFilter) {
         this.resourceHasher = resourceHasher;
         this.resourceFilter = resourceFilter;
+        this.attributeResourceFilter = manifestAttributeResourceFilter;
+        this.propertyResourceFilter = manifestPropertyResourceFilter;
     }
 
     @Nullable
@@ -76,6 +98,8 @@ public class ZipHasher implements RegularFileHasher, ConfigurableNormalizer {
         hasher.putString(getClass().getName());
         resourceHasher.appendConfigurationToHasher(hasher);
         resourceFilter.appendConfigurationToHasher(hasher);
+        attributeResourceFilter.appendConfigurationToHasher(hasher);
+        propertyResourceFilter.appendConfigurationToHasher(hasher);
     }
 
     @Nullable
@@ -93,19 +117,24 @@ public class ZipHasher implements RegularFileHasher, ConfigurableNormalizer {
         }
     }
 
+    private HashCode hashMalformedZip(RegularFileSnapshot zipFileSnapshot, Exception e) {
+        LOGGER.debug("Malformed archive '{}'. Falling back to full content hash instead of entry hashing.", zipFileSnapshot.getName(), e);
+        return zipFileSnapshot.getHash();
+    }
+
     private List<FileSystemLocationFingerprint> fingerprintZipEntries(String zipFile) throws IOException {
         ZipInput input = null;
         try {
             input = FileZipInput.create(new File(zipFile));
             List<FileSystemLocationFingerprint> fingerprints = Lists.newArrayList();
-            fingerprintZipEntries("", fingerprints, input);
+            fingerprintZipEntries("", zipFile, fingerprints, input);
             return fingerprints;
         } finally {
             IoActions.closeQuietly(input);
         }
     }
 
-    private void fingerprintZipEntries(String parentName, List<FileSystemLocationFingerprint> fingerprints, ZipInput input) throws IOException {
+    private void fingerprintZipEntries(String parentName, String rootParentName, List<FileSystemLocationFingerprint> fingerprints, ZipInput input) throws IOException {
         fingerprints.add(newZipMarker(parentName));
         for (ZipEntry zipEntry : input) {
             ZipEntryRelativePath relativePath = new ZipEntryRelativePath(zipEntry);
@@ -114,14 +143,111 @@ public class ZipHasher implements RegularFileHasher, ConfigurableNormalizer {
             }
             String fullName = parentName.isEmpty() ? zipEntry.getName() : parentName + "/" + zipEntry.getName();
             if (isZipFile(zipEntry.getName())) {
-                fingerprintZipEntries(fullName, fingerprints, new StreamZipInput(zipEntry.getInputStream()));
+                fingerprintZipEntries(fullName, rootParentName, fingerprints, new StreamZipInput(zipEntry.getInputStream()));
+            } else if (isManifestFile(zipEntry.getName())) {
+                fingerprintZipEntryContentWithFallback(rootParentName, fingerprints, zipEntry, fullName, this::hashManifest);
+            } else if (isManifestPropertyFile(zipEntry.getName())) {
+                fingerprintZipEntryContentWithFallback(rootParentName, fingerprints, zipEntry, fullName, this::hashProperties);
             } else {
-                HashCode hash = resourceHasher.hash(zipEntry);
-                if (hash != null) {
-                    fingerprints.add(new DefaultFileSystemLocationFingerprint(fullName, FileType.RegularFile, hash));
-                }
+                fingerprintZipEntry(zipEntry, fullName, fingerprints);
             }
         }
+    }
+
+    private void fingerprintZipEntry(ZipEntry zipEntry, String fullName, List<FileSystemLocationFingerprint> fingerprints) throws IOException {
+        HashCode hash = resourceHasher.hash(zipEntry);
+        if (hash != null) {
+            fingerprints.add(new DefaultFileSystemLocationFingerprint(fullName, FileType.RegularFile, hash));
+        }
+    }
+
+    private void fingerprintZipEntryContentWithFallback(String rootParentName, List<FileSystemLocationFingerprint> fingerprints, ZipEntry zipEntry, String fullName, ByteContentHasher hasher) throws IOException {
+        // JdkZipEntry can be backed by a stream, so we assume that getInputStream is a single shot and read the manifest to a byte array so we can fallback should content hashing fail
+        byte[] entryBytes = ByteStreams.toByteArray(zipEntry.getInputStream());
+        try {
+            HashCode hash = hasher.hash(entryBytes);
+            if (hash != null) {
+                fingerprints.add(new DefaultFileSystemLocationFingerprint(fullName, FileType.RegularFile, hash));
+            }
+        } catch (Exception e) {
+            LOGGER.warn("Could not load fingerprint " + rootParentName + ". Falling back to regular fingerprinting", e);
+            ZipEntry manifestZipEntry = new ZipEntry() {
+                @Override
+                public boolean isDirectory() {
+                    return false;
+                }
+
+                @Override
+                public String getName() {
+                    return zipEntry.getName();
+                }
+
+                @Override
+                public InputStream getInputStream() {
+                    return new ByteArrayInputStream(entryBytes);
+                }
+
+                @Override
+                public byte[] getContent() {
+                    return entryBytes;
+                }
+
+                @Override
+                public int size() {
+                    return entryBytes.length;
+                }
+            };
+            fingerprintZipEntry(manifestZipEntry, fullName, fingerprints);
+        }
+    }
+
+    private HashCode hashManifest(byte[] entryBytes) throws IOException {
+        Manifest manifest = new Manifest(new ByteArrayInputStream(entryBytes));
+        Hasher hasher = Hashing.newHasher();
+        Attributes mainAttributes = manifest.getMainAttributes();
+        hashManifestAttributes(mainAttributes, "main", hasher);
+        Map<String, Attributes> entries = manifest.getEntries();
+        Set<String> names = new TreeSet<>(manifest.getEntries().keySet());
+        for (String name : names) {
+            hashManifestAttributes(entries.get(name), name, hasher);
+        }
+        return hasher.hash();
+    }
+
+    private void hashManifestAttributes(Attributes attributes, String name, Hasher hasher) {
+        List<MapEntry> entries = attributes
+            .entrySet()
+            .stream()
+            .map(MapEntry::new)
+            .map(MapEntry::withLowercaseKey)
+            .filter(entry -> !attributeResourceFilter.shouldBeIgnored(entry.key))
+            .sorted()
+            .collect(Collectors.toList());
+        // Short-circuiting when there's no matching entries allows empty manifest sections to be ignored
+        // that allows an manifest without those sections to hash identically to the one with effectively empty sections
+        if (!entries.isEmpty()) {
+            hasher.putString(name);
+            for (MapEntry entry : entries) {
+                hasher.putString(entry.key);
+                hasher.putString(entry.value);
+            }
+        }
+    }
+
+    private @Nullable HashCode hashProperties(byte[] entryBytes) throws IOException {
+        Hasher hasher = Hashing.newHasher();
+        Properties properties = new Properties();
+        properties.load(new ByteArrayInputStream(entryBytes));
+        properties.entrySet()
+            .stream()
+            .map(MapEntry::new)
+            .filter(entry -> !propertyResourceFilter.shouldBeIgnored(entry.key))
+            .sorted()
+            .forEach( entry -> {
+                hasher.putString(entry.key);
+                hasher.putString(entry.value);
+            });
+        return hasher.hash();
     }
 
     private DefaultFileSystemLocationFingerprint newZipMarker(String relativePath) {
@@ -129,7 +255,6 @@ public class ZipHasher implements RegularFileHasher, ConfigurableNormalizer {
     }
 
     private static class ZipEntryRelativePath implements Factory<String[]> {
-
         private final ZipEntry zipEntry;
 
         private ZipEntryRelativePath(ZipEntry zipEntry) {
@@ -142,8 +267,35 @@ public class ZipHasher implements RegularFileHasher, ConfigurableNormalizer {
         }
     }
 
-    private HashCode hashMalformedZip(RegularFileSnapshot zipFileSnapshot, Exception e) {
-        LOGGER.debug("Malformed archive '{}'. Falling back to full content hash instead of entry hashing.", zipFileSnapshot.getName(), e);
-        return zipFileSnapshot.getHash();
+    private static class MapEntry implements Factory<String[]>, Comparable<MapEntry> {
+        private final String key;
+        private final String value;
+
+        public MapEntry(Map.Entry<Object, Object> entry) {
+            this(String.valueOf(entry.getKey()), String.valueOf(entry.getValue()));
+        }
+
+        private MapEntry(String key, String value) {
+            this.key = key;
+            this.value = value;
+        }
+
+        public MapEntry withLowercaseKey() {
+            return new MapEntry(key.toLowerCase(Locale.ROOT), value);
+        }
+
+        @Override
+        public String[] create() {
+            return new String[]{key};
+        }
+
+        @Override
+        public int compareTo(MapEntry o) {
+            return key.compareTo(o.key);
+        }
+    }
+
+    private interface ByteContentHasher {
+        @Nullable HashCode hash(byte[] bytes) throws IOException;
     }
 }

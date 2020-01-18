@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state
 
+import com.google.common.collect.ImmutableSet
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.snapshot.FileMetadata
 import org.gradle.internal.snapshot.RegularFileSnapshot
@@ -24,12 +25,20 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
+import java.util.jar.Attributes
+import java.util.jar.JarEntry
+import java.util.jar.JarOutputStream
+import java.util.jar.Manifest
+
 class ZipHasherTest extends Specification {
 
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
-    ZipHasher zipHasher = new ZipHasher(new RuntimeClasspathResourceHasher(), ResourceFilter.FILTER_NOTHING)
+    ResourceEntryFilter manifestResourceFilter = new IgnoringResourceEntryFilter(ImmutableSet.copyOf("created-by"))
+    ResourceEntryFilter propertyResourceFilter = new IgnoringResourceEntryFilter(ImmutableSet.copyOf("created-by"))
+    ZipHasher zipHasher = new ZipHasher(new RuntimeClasspathResourceHasher(), ResourceFilter.FILTER_NOTHING, ResourceEntryFilter.FILTER_NOTHING, ResourceEntryFilter.FILTER_NOTHING)
+    ZipHasher ignoringZipHasher = new ZipHasher(new RuntimeClasspathResourceHasher(), ResourceFilter.FILTER_NOTHING, manifestResourceFilter, propertyResourceFilter)
 
     def "adding an empty jar inside another jar changes the hashcode"() {
         given:
@@ -71,6 +80,197 @@ class ZipHasherTest extends Specification {
 
         expect:
         hash1 != hash2
+    }
+
+    def "changing manifest attributes changes the hashcode"() {
+        given:
+        def jarfile = tmpDir.file("test.jar")
+        createJarWithAttributes(jarfile, ["Implementation-Version": "1.0.0"])
+
+        def jarfile2 = tmpDir.file("test2.jar")
+        createJarWithAttributes(jarfile2, ["Implementation-Version": "1.0.1"])
+
+        def hash1 = zipHasher.hash(snapshot(jarfile))
+        def hash2 = zipHasher.hash(snapshot(jarfile2))
+
+        expect:
+        hash1 != hash2
+    }
+
+    def "manifest attributes are ignored"() {
+        given:
+        def jarfile = tmpDir.file("test.jar")
+        createJarWithAttributes(jarfile, ["Created-By": "1.8.0_232-b18 (Azul Systems, Inc.)"])
+
+        def hash1 = zipHasher.hash(snapshot(jarfile))
+        def hash2 = ignoringZipHasher.hash(snapshot(jarfile))
+
+        expect:
+        hash1 != hash2
+    }
+
+    def "manifest attributes are case insensitive"() {
+        given:
+        def jarfile = tmpDir.file("test.jar")
+        createJarWithAttributes(jarfile, ["Created-By": "1.8.0_232-b18 (Azul Systems, Inc.)"])
+
+        def jarfile2 = tmpDir.file("test2.jar")
+        createJarWithAttributes(jarfile2, ["created-by": "1.8.0_232-b18 (Azul Systems, Inc.)"])
+
+        when:
+
+        def hash1 = zipHasher.hash(snapshot(jarfile))
+        def hash2 = zipHasher.hash(snapshot(jarfile2))
+
+        then:
+        hash1 == hash2
+
+        when:
+        def hash3 = ignoringZipHasher.hash(snapshot(jarfile))
+        def hash4 = ignoringZipHasher.hash(snapshot(jarfile2))
+
+        then:
+        hash3 == hash4
+    }
+
+    def "manifest attributes are section order insensitive"() {
+        given:
+        def jarfile = tmpDir.file("test.jar")
+        def manifest = new Manifest()
+        def attributes = manifest.getMainAttributes()
+        attributes.put(Attributes.Name.MANIFEST_VERSION, "1.0")
+        attributes.put(new Attributes.Name("Created-By"), "1.8.0_232-b18 (Azul Systems, Inc.)")
+        attributes.put(Attributes.Name.IMPLEMENTATION_VERSION, "1.0")
+
+        def apiAttributes = new Attributes()
+        apiAttributes.putValue("Sealed", "true")
+        def baseAttributes = new Attributes()
+        baseAttributes.putValue("Sealed", "true")
+
+        manifest.entries.put("org/gradle/api", apiAttributes)
+        manifest.entries.put("org/gradle/base", baseAttributes)
+
+        JarOutputStream jarOutput = new JarOutputStream(jarfile.newOutputStream(), manifest);
+        jarOutput.close()
+
+        def jarfile2 = tmpDir.file("test2.jar")
+        manifest = new Manifest()
+        attributes = manifest.getMainAttributes()
+        attributes.put(Attributes.Name.MANIFEST_VERSION, "1.0")
+        attributes.put(Attributes.Name.IMPLEMENTATION_VERSION, "1.0")
+        attributes.put(new Attributes.Name("Created-By"), "1.8.0_232-b18 (Azul Systems, Inc.)")
+
+        manifest.entries.put("org/gradle/base", baseAttributes)
+        manifest.entries.put("org/gradle/api", apiAttributes)
+
+        jarOutput = new JarOutputStream(jarfile2.newOutputStream(), manifest);
+        jarOutput.close()
+
+        def hash1 = zipHasher.hash(snapshot(jarfile))
+        def hash2 = zipHasher.hash(snapshot(jarfile2))
+
+        expect:
+        hash1 == hash2
+    }
+
+    def "manifest section is ignored if all attributes are ignored"() {
+        given:
+        def jarfile = tmpDir.file("test.jar")
+        def manifest = new Manifest()
+        def attributes = manifest.getMainAttributes()
+        attributes.put(Attributes.Name.MANIFEST_VERSION, "1.0")
+
+        def apiAttributes = new Attributes()
+        apiAttributes.putValue("Created-By", "1.8.0_232-b18 (Azul Systems, Inc.)")
+        def baseAttributes = new Attributes()
+        baseAttributes.putValue("Created-By", "1.8.0_232-b18 (Azul Systems, Inc.)")
+
+        manifest.entries.put("org/gradle/api", apiAttributes)
+        manifest.entries.put("org/gradle/base", baseAttributes)
+
+        JarOutputStream jarOutput = new JarOutputStream(jarfile.newOutputStream(), manifest);
+        jarOutput.close()
+
+        def jarfile2 = tmpDir.file("test2.jar")
+        createJarWithAttributes(jarfile2, [:])
+
+        def hash1 = ignoringZipHasher.hash(snapshot(jarfile))
+        def hash2 = ignoringZipHasher.hash(snapshot(jarfile2))
+
+        expect:
+        hash1 == hash2
+    }
+
+    def "changing manifest properties changes the hashcode"() {
+        given:
+        def jarfile = tmpDir.file("test.jar")
+        createJarWithBuildInfo(jarfile, ["implementation-version": "1.0.0"])
+
+        def jarfile2 = tmpDir.file("test2.jar")
+        createJarWithBuildInfo(jarfile2, ["implementation-version": "1.0.1"])
+
+        def hash1 = ignoringZipHasher.hash(snapshot(jarfile))
+        def hash2 = ignoringZipHasher.hash(snapshot(jarfile2))
+
+        expect:
+        hash1 != hash2
+    }
+
+    def "manifest properties are case sensitive"() {
+        given:
+        def jarfile = tmpDir.file("test.jar")
+        createJarWithBuildInfo(jarfile, ["Created-By": "1.8.0_232-b18 (Azul Systems, Inc.)"])
+
+        def jarfile2 = tmpDir.file("test2.jar")
+        createJarWithBuildInfo(jarfile2, ["created-by": "1.8.0_232-b18 (Azul Systems, Inc.)"])
+
+        def hash1 = zipHasher.hash(snapshot(jarfile))
+        def hash2 = zipHasher.hash(snapshot(jarfile2))
+
+        expect:
+        hash1 != hash2
+    }
+
+    def "manifest properties are normalized and ignored"() {
+        given:
+        def jarfile = tmpDir.file("test.jar")
+        createJarWithBuildInfo(jarfile, ["created-by": "1.8.0_232-b18 (Azul Systems, Inc.)", "foo": "true"], "Build information 1.0")
+
+        def jarfile2 = tmpDir.file("test2.jar")
+        createJarWithBuildInfo(jarfile2, ["created-by": "1.8.0_232-b15 (Azul Systems, Inc.)", "foo": "true"], "Build information 1.1")
+
+        def hash1 = ignoringZipHasher.hash(snapshot(jarfile))
+        def hash2 = ignoringZipHasher.hash(snapshot(jarfile2))
+
+        expect:
+        hash1 == hash2
+    }
+
+    def createJarWithAttributes(TestFile jarfile, Map<String, String> attributes) {
+        def manifest = new Manifest()
+        def mainAttributes = manifest.getMainAttributes()
+        mainAttributes.put(Attributes.Name.MANIFEST_VERSION, "1.0")
+        attributes.each { name, value ->
+            mainAttributes.put(new Attributes.Name(name), value)
+        }
+        new JarOutputStream(jarfile.newOutputStream(), manifest).close()
+    }
+
+    def createJarWithBuildInfo(TestFile jarfile, Map<String, String> props, String comments = "Build information") {
+        def manifest = new Manifest()
+        def attributes = manifest.getMainAttributes()
+        attributes.put(Attributes.Name.MANIFEST_VERSION, "1.0")
+
+        def properties = new Properties()
+        props.each { name, value ->
+            properties.put(name, value)
+        }
+
+        def jarOutput = new JarOutputStream(jarfile.newOutputStream(), manifest);
+        def jarEntry = new JarEntry("META-INF/build-info.properties")
+        jarOutput.putNextEntry(jarEntry)
+        properties.store(jarOutput, comments)
+        jarOutput.close()
     }
 
     private static RegularFileSnapshot snapshot(TestFile file) {

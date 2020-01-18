@@ -192,7 +192,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         return new DefaultClasspathFingerprinter(
             resourceSnapshotterCacheService,
             fileCollectionSnapshotter,
-            inputNormalizationHandler.getRuntimeClasspath().getResourceFilter(),
+            inputNormalizationHandler.getRuntimeClasspath().getResourceFilters(),
             stringInterner
         );
     }
