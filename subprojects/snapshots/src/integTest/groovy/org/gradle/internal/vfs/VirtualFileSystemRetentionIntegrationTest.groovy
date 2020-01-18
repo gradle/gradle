@@ -79,6 +79,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
 
         when:
         mainSourceFile.text = sourceFileWithGreeting("Hello VFS!")
+        waitForChangesToBePickedUp()
         withRetention().run "classes"
         then:
         executedAndNotSkipped ":compileJava", ":classes"
@@ -239,10 +240,10 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
                 @InputDirectory
                 @SkipWhenEmpty
                 abstract DirectoryProperty getSources()
-                
+
                 @OutputDirectory
                 abstract DirectoryProperty getOutputDir()
-                
+
                 @TaskAction
                 void listSources() {
                     outputDir.file("output.txt").get().asFile.text = sources.get().asFile.list().join("\\n")
@@ -301,14 +302,14 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
     def "detects when stale outputs are removed"() {
         buildFile << """
             apply plugin: 'base'
-            
+
             task producer {
                 inputs.files("input.txt")
                 outputs.file("build/output.txt")
                 doLast {
                     file("build/output.txt").text = file("input.txt").text
                 }
-            }            
+            }
         """
 
         file("input.txt").text = "input"
@@ -339,14 +340,14 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
 
                 @Input
                 abstract Property<String> getInput()
-                
+
                 @OutputDirectory
                 abstract DirectoryProperty getOutputDir()
-                
+
                 @TaskAction
                 void processChanges(InputChanges changes) {
                     outputDir.file("output.txt").get().asFile.text = input.get()
-                }                
+                }
             }
 
             task incremental(type: IncrementalTask) {
@@ -385,12 +386,12 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
             plugins {
                 id 'java'
             }
-            
+
             jar {
                 manifest {
                     attributes('Created-By': providers.systemProperty("creator"))
                 }
-            }            
+            }
         """
 
         when:

@@ -19,6 +19,7 @@ package org.gradle.internal.snapshot;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 
+import javax.annotation.Nullable;
 import java.util.Optional;
 
 /**
@@ -66,8 +67,8 @@ public class RegularFileSnapshot extends AbstractCompleteFileSystemLocationSnaps
     }
 
     @Override
-    public void accept(NodeVisitor visitor) {
-        visitor.visitNode(this);
+    public void accept(NodeVisitor visitor, @Nullable FileSystemNode parent) {
+        visitor.visitNode(this, parent);
     }
 
     @Override

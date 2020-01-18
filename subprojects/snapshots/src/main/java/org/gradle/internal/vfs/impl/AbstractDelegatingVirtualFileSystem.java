@@ -19,6 +19,7 @@ package org.gradle.internal.vfs.impl;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.SnapshottingFilter;
+import org.gradle.internal.vfs.SnapshotHierarchy;
 
 import java.util.Optional;
 import java.util.function.Consumer;

@@ -196,7 +196,6 @@ allprojects {
 apply(plugin = "gradlebuild.cleanup")
 apply(plugin = "gradlebuild.buildscan")
 apply(plugin = "gradlebuild.build-version")
-apply(from = "gradle/build-receipt.gradle")
 apply(from = "gradle/dependencies.gradle")
 apply(plugin = "gradlebuild.minify")
 apply(from = "gradle/test-dependencies.gradle")

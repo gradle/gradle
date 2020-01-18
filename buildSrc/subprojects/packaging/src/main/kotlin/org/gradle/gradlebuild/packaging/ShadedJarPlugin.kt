@@ -34,6 +34,7 @@ import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.gradlebuild.packaging.Attributes.artifactType
 import org.gradle.gradlebuild.packaging.Attributes.minified
+import org.gradle.gradlebuild.versioning.buildVersion
 import org.gradle.kotlin.dsl.*
 import java.io.File
 
@@ -141,7 +142,7 @@ open class ShadedJarPlugin : Plugin<Project> {
 
         return tasks.register("${project.name}ShadedJar", ShadedJar::class) {
             dependsOn(jar)
-            jarFile.set(layout.buildDirectory.file("shaded-jar/${base.archivesBaseName}-shaded-${rootProject.extra["baseVersion"]}.jar"))
+            jarFile.set(layout.buildDirectory.file("shaded-jar/${base.archivesBaseName}-shaded-$baseVersion.jar"))
             classTreesConfiguration.from(configurationToShade.artifactViewForType(classTreesType))
             entryPointsConfiguration.from(configurationToShade.artifactViewForType(entryPointsType))
             relocatedClassesConfiguration.from(configurationToShade.artifactViewForType(relocatedClassesType))
@@ -149,6 +150,10 @@ open class ShadedJarPlugin : Plugin<Project> {
             buildReceiptFile.set(shadedJarExtension.buildReceiptFile)
         }
     }
+
+    private
+    val Project.baseVersion
+        get() = rootProject.buildVersion.baseVersion
 
     private
     fun Project.addInstallShadedJarTask(shadedJarTask: TaskProvider<ShadedJar>) {

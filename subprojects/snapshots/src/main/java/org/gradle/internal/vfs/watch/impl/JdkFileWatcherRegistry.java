@@ -17,18 +17,25 @@
 package org.gradle.internal.vfs.watch.impl;
 
 import com.sun.nio.file.SensitivityWatchEventModifier;
+import org.gradle.internal.vfs.SnapshotHierarchy;
 import org.gradle.internal.vfs.watch.FileWatcherRegistry;
 import org.gradle.internal.vfs.watch.FileWatcherRegistryFactory;
+import org.gradle.internal.vfs.watch.WatchRootUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
+import java.util.Collection;
 import java.util.Set;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
@@ -96,8 +103,11 @@ public class JdkFileWatcherRegistry implements FileWatcherRegistry {
 
     public static class Factory implements FileWatcherRegistryFactory {
         @Override
-        public FileWatcherRegistry startWatching(Set<Path> directories) throws IOException {
+        public FileWatcherRegistry startWatching(SnapshotHierarchy root, Predicate<String> watchFilter, Collection<File> mustWatchDirectories) throws IOException {
             WatchService watchService = FileSystems.getDefault().newWatchService();
+            Set<Path> directories = WatchRootUtil.resolveDirectoriesToWatch(root, watchFilter, mustWatchDirectories).stream()
+                .map(Paths::get)
+                .collect(Collectors.toSet());
             LOGGER.warn("Watching {} directories to track changes between builds", directories.size());
             return new JdkFileWatcherRegistry(watchService, directories);
         }

@@ -16,6 +16,7 @@
 
 package org.gradle.internal.snapshot;
 
+import javax.annotation.Nullable;
 import java.util.Optional;
 
 /**
@@ -60,9 +61,9 @@ public interface FileSystemNode {
      */
     FileSystemNode withPathToParent(String newPathToParent);
 
-    void accept(NodeVisitor visitor);
+    void accept(NodeVisitor visitor, @Nullable FileSystemNode parent);
 
     interface NodeVisitor {
-        void visitNode(FileSystemNode node);
+        void visitNode(FileSystemNode node, @Nullable FileSystemNode parent);
     }
 }
