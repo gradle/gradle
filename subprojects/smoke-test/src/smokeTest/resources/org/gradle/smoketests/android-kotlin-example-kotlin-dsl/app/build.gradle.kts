@@ -46,7 +46,11 @@ android {
         getByName("androidTest").java.srcDir("src/androidTest/kotlin")
     }
     testOptions {
-        unitTests.isReturnDefaultValues = true
+        unitTests.withGroovyBuilder {
+            // AGP >= 4.0.0 exposes `returnDefaultValues`
+            // AGP < 4.0.0 exposes `isReturnDefaultValues
+            setProperty("returnDefaultValues", true)
+        }
     }
     kotlinOptions {
         jvmTarget = "1.8"

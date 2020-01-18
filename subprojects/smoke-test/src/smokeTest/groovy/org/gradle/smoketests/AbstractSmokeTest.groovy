@@ -38,7 +38,7 @@ import static org.gradle.test.fixtures.server.http.MavenHttpPluginRepository.PLU
 
 abstract class AbstractSmokeTest extends Specification {
 
-    private static final AndroidGradlePluginVersions agpVersions = new AndroidGradlePluginVersions()
+    protected static final AndroidGradlePluginVersions agpVersions = new AndroidGradlePluginVersions()
 
     static class TestedVersions {
         /**
@@ -85,7 +85,7 @@ abstract class AbstractSmokeTest extends Specification {
         // https://developer.android.com/studio/releases/build-tools
         static androidTools = "29.0.2"
         // https://developer.android.com/studio/releases/gradle-plugin
-        static androidGradle = Versions.of(*agpVersions.latestAgpVersions)
+        static androidGradle = Versions.of(*agpVersions.latestAgpVersionsIncludingNightly)
 
         // https://search.maven.org/search?q=g:org.jetbrains.kotlin%20AND%20a:kotlin-project&core=gav
         static kotlin = Versions.of('1.3.21', '1.3.31', '1.3.41', '1.3.50', '1.3.61')

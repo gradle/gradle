@@ -62,7 +62,7 @@ class AndroidGradlePluginVersions {
         }
     }
 
-    private static boolean isNightly(String agpVersion) {
+    static boolean isNightly(String agpVersion) {
         return agpVersion.contains("-") && agpVersion.substring(agpVersion.indexOf("-") + 1).matches("^[0-9].*")
     }
 
@@ -73,7 +73,7 @@ class AndroidGradlePluginVersions {
         }
     }
 
-    private static File createAgpNightlyRepositoryInitScript() {
+    static File createAgpNightlyRepositoryInitScript() {
         File mirrors = File.createTempFile("mirrors", ".gradle")
         mirrors.deleteOnExit()
         mirrors << AGP_NIGHTLY_REPOSITORY_INIT_SCRIPT
@@ -112,6 +112,10 @@ class AndroidGradlePluginVersions {
 
     String getLatestNightly() {
         return getVersion("nightly")
+    }
+
+    List<String> getLatestAgpVersionsIncludingNightly() {
+        return [getLatestAgpVersions(), [getLatestNightly()]].flatten()
     }
 
     private List<String> getVersionList(String name) {
