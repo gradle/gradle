@@ -18,6 +18,7 @@ package org.gradle.internal.snapshot;
 
 import com.google.common.collect.ImmutableList;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -119,10 +120,10 @@ public abstract class AbstractIncompleteSnapshotWithChildren extends AbstractFil
     }
 
     @Override
-    public void accept(NodeVisitor visitor) {
-        visitor.visitNode(this);
+    public void accept(NodeVisitor visitor, @Nullable FileSystemNode parent) {
+        visitor.visitNode(this, parent);
         for (FileSystemNode child : children) {
-            child.accept(visitor);
+            child.accept(visitor, this);
         }
     }
 }

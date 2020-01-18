@@ -16,6 +16,7 @@
 
 package org.gradle.internal.snapshot;
 
+import javax.annotation.Nullable;
 import java.util.Optional;
 
 public abstract class AbstractCompleteFileSystemLocationSnapshot implements CompleteFileSystemLocationSnapshot {
@@ -120,8 +121,8 @@ public abstract class AbstractCompleteFileSystemLocationSnapshot implements Comp
         }
 
         @Override
-        public void accept(NodeVisitor visitor) {
-            delegate.accept(visitor);
+        public void accept(NodeVisitor visitor, @Nullable FileSystemNode parent) {
+            delegate.accept(visitor, parent);
         }
     }
 }

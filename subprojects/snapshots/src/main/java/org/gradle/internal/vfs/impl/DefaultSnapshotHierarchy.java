@@ -22,6 +22,7 @@ import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemNode;
 import org.gradle.internal.snapshot.MetadataSnapshot;
 import org.gradle.internal.snapshot.VfsRelativePath;
+import org.gradle.internal.vfs.SnapshotHierarchy;
 
 import java.util.Optional;
 
@@ -87,11 +88,14 @@ public class DefaultSnapshotHierarchy implements SnapshotHierarchy {
 
     @Override
     public void visitSnapshots(SnapshotVisitor snapshotVisitor) {
-        rootNode.accept(node -> node.getSnapshot().ifPresent(snapshot -> {
-            if (snapshot instanceof CompleteFileSystemLocationSnapshot) {
-                snapshotVisitor.visitSnapshot((CompleteFileSystemLocationSnapshot) snapshot);
-            }
-        }));
+        rootNode.accept(
+            (node, parent) -> node.getSnapshot().ifPresent(snapshot -> {
+                if (snapshot instanceof CompleteFileSystemLocationSnapshot) {
+                    snapshotVisitor.visitSnapshot((CompleteFileSystemLocationSnapshot) snapshot, !(parent instanceof CompleteFileSystemLocationSnapshot));
+                }
+            }),
+            null
+        );
     }
 
     private enum EmptySnapshotHierarchy implements SnapshotHierarchy {
