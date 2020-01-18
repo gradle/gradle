@@ -93,7 +93,15 @@ val prepareVersionsInfo = tasks.register<PrepareVersionsInfo>("prepareVersionsIn
     mostRecentSnapshot = releasedVersions.mostRecentSnapshot
 }
 
-sourceSets.main { output.dir(mapOf("builtBy" to prepareVersionsInfo), generatedResourcesDir) }
+val copyAgpVersionsInfo by tasks.registering(Copy::class) {
+    from(rootProject.layout.projectDirectory.file("gradle/dependency-management/agp-versions.properties"))
+    into(temporaryDir)
+}
+
+sourceSets.main {
+    output.dir(mapOf("builtBy" to prepareVersionsInfo), generatedResourcesDir)
+    output.dir(copyAgpVersionsInfo)
+}
 
 @CacheableTask
 open class PrepareVersionsInfo : DefaultTask() {
