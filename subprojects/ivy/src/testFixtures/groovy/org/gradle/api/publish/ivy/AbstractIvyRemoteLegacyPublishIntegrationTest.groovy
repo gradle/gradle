@@ -25,13 +25,15 @@ import org.gradle.test.fixtures.ivy.RemoteIvyModule
 import org.gradle.test.fixtures.ivy.RemoteIvyRepository
 import org.gradle.test.fixtures.server.RepositoryServer
 import org.gradle.test.fixtures.server.sftp.SFTPServer
+import org.gradle.util.GradleVersion
 import org.junit.Rule
 import spock.lang.Issue
 
 abstract class AbstractIvyRemoteLegacyPublishIntegrationTest extends AbstractIntegrationSpec {
     abstract RepositoryServer getServer()
 
-    @Rule ProgressLoggingFixture progressLogger = new ProgressLoggingFixture(executer, temporaryFolder)
+    @Rule
+    ProgressLoggingFixture progressLogger = new ProgressLoggingFixture(executer, temporaryFolder)
 
     private RemoteIvyModule module
     private RemoteIvyRepository ivyRepo
@@ -51,7 +53,9 @@ abstract class AbstractIvyRemoteLegacyPublishIntegrationTest extends AbstractInt
         // We expect 'The compile/runtime configuration has been deprecated for removal.' for using this legacy mechanism in the traditional way.
         executer.expectDeprecationWarning("The compile configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 7.0. Please use the implementation configuration instead.")
         executer.expectDeprecationWarning("The runtime configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 7.0. Please use the runtimeOnly configuration instead.")
-        executer.expectDeprecationWarning("The uploadArchives task has been deprecated. This is scheduled to be removed in Gradle 7.0. Use the 'ivy-publish' plugin instead")
+        executer.expectDeprecationWarning("The uploadArchives task has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+            "Use the 'ivy-publish' plugin instead. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#legacy_publication_system_is_deprecated_and_replaced_with_the_publish_plugins")
 
         given:
         settingsFile << 'rootProject.name = "publish"'
@@ -114,7 +118,7 @@ uploadArchives {
         module.jarFile.assertIsCopyOf(file('build/libs/publish-2.jar'))
         module.parsedIvy.expectArtifact("publish", "jar").hasAttributes("jar", "jar", ["apiElements", "archives", "runtime", "runtimeElements"], null)
 
-        with (module.parsedIvy) {
+        with(module.parsedIvy) {
             dependencies.size() == 6
             dependencies["commons-collections:commons-collections:3.2.1"].hasConf("compile->default")
             dependencies["commons-beanutils:commons-beanutils:1.8.3"].hasConf("compile->default")
@@ -163,7 +167,9 @@ uploadArchives {
         module.jar.expectUploadBroken()
 
         when:
-        executer.expectDeprecationWarning("The uploadArchives task has been deprecated. This is scheduled to be removed in Gradle 7.0. Use the 'ivy-publish' plugin instead")
+        executer.expectDeprecationWarning("The uploadArchives task has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+            "Use the 'ivy-publish' plugin instead. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#legacy_publication_system_is_deprecated_and_replaced_with_the_publish_plugins")
         fails 'uploadArchives'
 
         then:
