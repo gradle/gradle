@@ -29,21 +29,24 @@ class InstantExecutionAndroidIntegrationTest extends AbstractInstantExecutionAnd
 
     def instantExecution
 
+    def buildScript = file("android-3.6-mini").file("build.gradle")
+
     def setup() {
         executer.noDeprecationChecks()
         executer.withRepositoryMirrors()
 
-        def rootDir = file("android-3.6-mini")
         executer.beforeExecute {
-            inDirectory(rootDir)
+            inDirectory(buildScript.parentFile)
         }
-        withAgpNightly(rootDir.file("build.gradle"))
 
         instantExecution = newInstantExecutionFixture()
     }
 
     @Unroll
-    def "android 3.6 minimal build assembleDebug up-to-date (fromIde=#fromIde)"() {
+    def "android minimal build assembleDebug up-to-date (agp=#agpVersion, fromIde=#fromIde)"() {
+
+        given:
+        usingAgpVersion(buildScript, agpVersion)
 
         when:
         instantRun("assembleDebug", "-Pandroid.injected.invoked.from.ide=$fromIde")
@@ -58,11 +61,14 @@ class InstantExecutionAndroidIntegrationTest extends AbstractInstantExecutionAnd
         instantExecution.assertStateLoaded()
 
         where:
-        fromIde << [false, true]
+        [agpVersion, fromIde] << [testedAgpVersions, [false, true]].combinations()
     }
 
     @Unroll
-    def "android 3.6 minimal build clean assembleDebug (fromIde=#fromIde)"() {
+    def "android minimal build clean assembleDebug (agp=#agpVersion, fromIde=#fromIde)"() {
+
+        given:
+        usingAgpVersion(buildScript, agpVersion)
 
         when:
         instantRun("assembleDebug", "-Pandroid.injected.invoked.from.ide=$fromIde")
@@ -78,6 +84,6 @@ class InstantExecutionAndroidIntegrationTest extends AbstractInstantExecutionAnd
         instantExecution.assertStateLoaded()
 
         where:
-        fromIde << [false, true]
+        [agpVersion, fromIde] << [testedAgpVersions, [false, true]].combinations()
     }
 }

@@ -34,11 +34,11 @@ class InstantExecutionSantaTrackerIntegrationTest extends AbstractInstantExecuti
     }
 
     @Unroll
-    def "assembleDebug up-to-date on Santa Tracker #flavor (fromIde=#fromIde)"() {
+    def "assembleDebug up-to-date on #remoteProject (agp=#agpVersion, fromIde=#fromIde)"() {
 
         given:
         copyRemoteProject(remoteProject)
-        withAgpNightly()
+        usingAgpVersion(agpVersion)
 
         when:
         instantRun("assembleDebug", "--no-build-cache", "-Pandroid.injected.invoked.from.ide=$fromIde")
@@ -47,20 +47,20 @@ class InstantExecutionSantaTrackerIntegrationTest extends AbstractInstantExecuti
         instantRun("assembleDebug", "--no-build-cache", "-Pandroid.injected.invoked.from.ide=$fromIde")
 
         where:
-        flavor | remoteProject      | fromIde
-        'Java' | "santaTrackerJava" | false
-        'Java' | "santaTrackerJava" | true
-        // TODO:instant-execution Kotlin 1.3.70
-        // 'Kotlin' | "santaTrackerKotlin" | false
-        // 'Kotlin' | "santaTrackerKotlin" | true
+        [remoteProject, agpVersion, fromIde] << [
+            // TODO:instant-execution Kotlin 1.3.70
+            ["santaTrackerJava" /*, "santaTrackerKotlin" */],
+            testedAgpVersions,
+            [false, true]
+        ].combinations()
     }
 
     @Unroll
-    def "clean assembleDebug on Santa Tracker #flavor (fromIde=#fromIde)"() {
+    def "clean assembleDebug on #remoteProject (agp=#agpVersion, fromIde=#fromIde)"() {
 
         given:
         copyRemoteProject(remoteProject)
-        withAgpNightly()
+        usingAgpVersion(agpVersion)
 
         when:
         instantRun("assembleDebug", "--no-build-cache", "-Pandroid.injected.invoked.from.ide=$fromIde")
@@ -73,11 +73,11 @@ class InstantExecutionSantaTrackerIntegrationTest extends AbstractInstantExecuti
         instantRun("assembleDebug", "--no-build-cache", "-Pandroid.injected.invoked.from.ide=$fromIde")
 
         where:
-        flavor | remoteProject      | fromIde
-        'Java' | "santaTrackerJava" | false
-        'Java' | "santaTrackerJava" | true
-        // TODO:instant-execution Kotlin 1.3.70
-        // 'Kotlin' | "santaTrackerKotlin" | false
-        // 'Kotlin' | "santaTrackerKotlin" | true
+        [remoteProject, agpVersion, fromIde] << [
+            // TODO:instant-execution Kotlin 1.3.70
+            ["santaTrackerJava" /*, "santaTrackerKotlin" */],
+            testedAgpVersions,
+            [false, true]
+        ].combinations()
     }
 }
