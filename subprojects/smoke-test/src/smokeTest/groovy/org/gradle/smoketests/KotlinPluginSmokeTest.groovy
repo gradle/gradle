@@ -19,6 +19,7 @@ package org.gradle.smoketests
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.android.AndroidHome
 import org.gradle.testkit.runner.BuildResult
+import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
 import spock.lang.Unroll
 
@@ -113,7 +114,9 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
 
         if (version == TestedVersions.kotlin.latest()) {
             expectDeprecationWarnings(result,
-                "The compile configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 7.0. Please use the implementation configuration instead."
+                "The compile configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 7.0. " +
+                    "Please use the implementation configuration instead. " +
+                    "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations"
             )
         }
 
