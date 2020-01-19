@@ -217,6 +217,23 @@ class GitVersionControlSystemSpec extends Specification {
         e.cause.cause.message.contains('URI not supported: https://notarepo.invalid')
     }
 
+    def 'error if repo is not a git repo with credentials'() {
+        given:
+        def target = tmpDir.file('versionDir')
+        repoSpec.url = 'https://username:123@notarepo.invalid'
+
+        when:
+        gitVcs.populate(target, repoHead, repoSpec)
+
+        then:
+        GradleException e = thrown()
+        e.message.contains('Could not clone from https://username:123@notarepo.invalid in')
+        e.cause != null
+        e.cause.message.contains('Exception caught during execution of fetch command')
+        e.cause.cause != null
+        e.cause.cause.message.contains('URI not supported: https://username@notarepo.invalid')
+    }
+
     def 'treats tags as the available versions and ignores other references'() {
         given:
         def versions = gitVcs.getAvailableVersions(repoSpec)

@@ -18,13 +18,13 @@ package org.gradle.vcs.git.internal;
 
 import com.google.common.collect.Sets;
 import com.jcraft.jsch.Session;
-import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.api.TransportCommand;
 import org.eclipse.jgit.api.TransportConfigCallback;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.JGitInternalException;
+import org.eclipse.jgit.errors.ConfigInvalidException;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.submodule.SubmoduleWalk;
@@ -33,6 +33,7 @@ import org.eclipse.jgit.transport.OpenSshConfig;
 import org.eclipse.jgit.transport.SshTransport;
 import org.eclipse.jgit.transport.Transport;
 import org.eclipse.jgit.transport.URIish;
+import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.gradle.api.GradleException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -113,7 +114,12 @@ public class GitVersionControlSystem implements VersionControlSystem {
 
     private Collection<Ref> getRemoteRefs(GitVersionControlSpec gitSpec, boolean tags, boolean heads) {
         try {
-            return configureTransport(Git.lsRemoteRepository()).setRemote(normalizeUri(gitSpec.getUrl())).setTags(tags).setHeads(heads).call();
+            URIish urIish = new URIish(gitSpec.getUrl().toString());
+            return configureTransport(urIish, Git.lsRemoteRepository())
+                .setRemote(urIish.toPrivateASCIIString())
+                .setTags(tags)
+                .setHeads(heads)
+                .call();
         } catch (URISyntaxException | GitAPIException e) {
             throw wrapGitCommandException("ls-remote", gitSpec.getUrl(), null, e);
         }
@@ -122,12 +128,17 @@ public class GitVersionControlSystem implements VersionControlSystem {
     private static void cloneRepo(File workingDir, GitVersionControlSpec gitSpec, VersionRef ref) {
         Git git = null;
         try {
-            CloneCommand clone = configureTransport(Git.cloneRepository()).
-                    setURI(normalizeUri(gitSpec.getUrl())).
-                    setDirectory(workingDir).
-                    setCloneSubmodules(true);
-            git = clone.call();
-            git.reset().setMode(ResetCommand.ResetType.HARD).setRef(ref.getCanonicalId()).call();
+            URIish urIish = new URIish(gitSpec.getUrl().toString());
+            git = configureTransport(urIish, Git.cloneRepository())
+                .setURI(urIish.toPrivateASCIIString())
+                .setDirectory(workingDir)
+                .setCloneSubmodules(true)
+                .call();
+
+            git.reset()
+                .setMode(ResetCommand.ResetType.HARD)
+                .setRef(ref.getCanonicalId())
+                .call();
         } catch (GitAPIException | URISyntaxException | JGitInternalException e) {
             throw wrapGitCommandException("clone", gitSpec.getUrl(), workingDir, e);
         } finally {
@@ -141,9 +152,12 @@ public class GitVersionControlSystem implements VersionControlSystem {
         Git git = null;
         try {
             git = Git.open(workingDir);
-            git.reset().setMode(ResetCommand.ResetType.HARD).setRef(ref.getCanonicalId()).call();
+            git.reset()
+                .setMode(ResetCommand.ResetType.HARD)
+                .setRef(ref.getCanonicalId())
+                .call();
             updateSubModules(git);
-        } catch (IOException | JGitInternalException | GitAPIException e) {
+        } catch (IOException | JGitInternalException | GitAPIException | ConfigInvalidException | URISyntaxException e) {
             throw wrapGitCommandException("reset", gitSpec.getUrl(), workingDir, e);
         } finally {
             if (git != null) {
@@ -152,16 +166,21 @@ public class GitVersionControlSystem implements VersionControlSystem {
         }
     }
 
-    private static void updateSubModules(Git git) throws IOException, GitAPIException {
+    private static void updateSubModules(Git git) throws IOException, GitAPIException, ConfigInvalidException, URISyntaxException {
         SubmoduleWalk walker = SubmoduleWalk.forIndex(git.getRepository());
         try {
             while (walker.next()) {
                 Repository submodule = walker.getRepository();
                 try {
                     Git submoduleGit = Git.wrap(submodule);
-                    configureTransport(submoduleGit.fetch()).call();
-                    git.submoduleUpdate().addPath(walker.getPath()).call();
-                    submoduleGit.reset().setMode(ResetCommand.ResetType.HARD).call();
+                    configureTransport(new URIish(walker.getRemoteUrl()), submoduleGit.fetch())
+                        .call();
+                    git.submoduleUpdate()
+                        .addPath(walker.getPath())
+                        .call();
+                    submoduleGit.reset()
+                        .setMode(ResetCommand.ResetType.HARD)
+                        .call();
                     updateSubModules(submoduleGit);
                 } finally {
                     submodule.close();
@@ -170,12 +189,6 @@ public class GitVersionControlSystem implements VersionControlSystem {
         } finally {
             walker.close();
         }
-    }
-
-    private static String normalizeUri(URI uri) throws URISyntaxException {
-        // We have to go through URIish and back to deal with differences between how
-        // Java File and Git implement file URIs.
-        return new URIish(uri.toString()).toPrivateASCIIString();
     }
 
     private static GitVersionControlSpec cast(VersionControlSpec spec) {
@@ -192,8 +205,11 @@ public class GitVersionControlSystem implements VersionControlSystem {
         return new GradleException(String.format("Could not %s from %s in %s", commandName, repoUrl, workingDir), e);
     }
 
-    private static <T extends TransportCommand<?, ?>> T configureTransport(T command) {
+    private static <T extends TransportCommand<?, ?>> T configureTransport(URIish urIish, T command) {
         command.setTransportConfigCallback(new DefaultTransportConfigCallback());
+        if (urIish != null && urIish.getUser() != null && urIish.getPass() != null) {
+            command.setCredentialsProvider(new UsernamePasswordCredentialsProvider(urIish.getUser(), urIish.getPass()));
+        }
         return command;
     }
 
@@ -205,7 +221,7 @@ public class GitVersionControlSystem implements VersionControlSystem {
                 sshTransport.setSshSessionFactory(new JschConfigSessionFactory() {
                     @Override
                     protected void configure(OpenSshConfig.Host hc, Session session) {
-                        // TODO: This is where the password information would go
+                        // TODO: This is where the IdentityFile information would go
                     }
                 });
             }
