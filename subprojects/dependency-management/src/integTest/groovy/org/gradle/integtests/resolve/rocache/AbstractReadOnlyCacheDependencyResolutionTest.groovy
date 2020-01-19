@@ -22,13 +22,13 @@ import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.cache.CachingIntegrationFixture
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 
 import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.attribute.PosixFilePermission
 
 @CompileStatic
 abstract class AbstractReadOnlyCacheDependencyResolutionTest extends AbstractHttpDependencyResolutionTest implements CachingIntegrationFixture {
@@ -193,25 +193,23 @@ abstract class AbstractReadOnlyCacheDependencyResolutionTest extends AbstractHtt
     }
 
     private void makeCacheReadOnly() {
-        roCacheDir.listFiles().each {
-            it.eachFileRecurse {
-                def perms = Files.getPosixFilePermissions(it.toPath())
-                perms.remove(PosixFilePermission.OWNER_WRITE)
-                perms.remove(PosixFilePermission.OTHERS_WRITE)
-                perms.remove(PosixFilePermission.GROUP_WRITE)
-                Files.setPosixFilePermissions(it.toPath(), perms)
-            }
-        }
+        makeWritable(false)
     }
 
     private void makeCacheWritable() {
+        makeWritable(true)
+    }
+
+    private void makeWritable(boolean writable) {
+        if (OperatingSystem.current().isWindows()) {
+            // skip on Windows as it doesn't seem to work properly
+            // and testing against Linux already gives us the guarantees
+            // we want in the tests
+            return
+        }
         roCacheDir.listFiles().each {
             it.eachFileRecurse {
-                def perms = Files.getPosixFilePermissions(it.toPath())
-                perms.add(PosixFilePermission.OWNER_WRITE)
-                perms.add(PosixFilePermission.OTHERS_WRITE)
-                perms.add(PosixFilePermission.GROUP_WRITE)
-                Files.setPosixFilePermissions(it.toPath(), perms)
+                it.setWritable(writable)
             }
         }
     }
