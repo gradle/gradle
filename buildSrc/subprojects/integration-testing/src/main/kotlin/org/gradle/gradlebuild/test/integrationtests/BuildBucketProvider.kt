@@ -72,8 +72,9 @@ interface BuildBucketProvider {
 // -PonlyTestGradleVersion=4.0-5.0
 // 4.0 <= gradle < 5.0
 class CrossVersionBucketProvider(private val onlyTestGradleVersion: String) : BuildBucketProvider {
-    private val startVersionInclusive = onlyTestGradleVersion.substringBefore("-")
-    private val endVersionExclusive = onlyTestGradleVersion.substringAfter("-")
+    val startVersionInclusive = onlyTestGradleVersion.substringBefore("-")
+    val endVersionExclusive = onlyTestGradleVersion.substringAfter("-")
+
     override fun configureTest(testTask: Test, sourceSet: SourceSet, testType: TestType) {
         val currentVersionUnderTest = extractTestTaskGradleVersion(testTask.name)
         currentVersionUnderTest?.apply {
