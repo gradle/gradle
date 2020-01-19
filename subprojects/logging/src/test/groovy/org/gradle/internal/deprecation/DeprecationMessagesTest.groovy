@@ -51,7 +51,7 @@ class DeprecationMessagesTest extends Specification {
         deprecationMessage.setRemovalDetails("removal")
 
         when:
-        deprecationMessage.nagUser()
+        deprecationMessage.undocumented().nagUser()
 
         then:
         def events = outputEventListener.events
@@ -67,7 +67,7 @@ class DeprecationMessagesTest extends Specification {
         deprecationMessage.withAdvice("advice")
 
         when:
-        deprecationMessage.nagUser()
+        deprecationMessage.undocumented().nagUser()
 
         then:
         def events = outputEventListener.events
@@ -83,7 +83,7 @@ class DeprecationMessagesTest extends Specification {
         deprecationMessage.withContext("contextualAdvice")
 
         when:
-        deprecationMessage.nagUser()
+        deprecationMessage.undocumented().nagUser()
 
         then:
         def events = outputEventListener.events
@@ -100,7 +100,7 @@ class DeprecationMessagesTest extends Specification {
         deprecationMessage.withContext("contextualAdvice")
 
         when:
-        deprecationMessage.nagUser()
+        deprecationMessage.undocumented().nagUser()
 
         then:
         def events = outputEventListener.events
@@ -110,7 +110,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs generic deprecation message for specific thing"() {
         when:
-        DeprecationLogger.deprecate("Something").nagUser()
+        DeprecationLogger.deprecate("Something").undocumented().nagUser()
 
         then:
         def events = outputEventListener.events
@@ -120,7 +120,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs deprecated behaviour message"() {
         when:
-        DeprecationLogger.deprecateBehaviour("Some behaviour.").nagUser()
+        DeprecationLogger.deprecateBehaviour("Some behaviour.").undocumented().nagUser()
 
         then:
         def events = outputEventListener.events
@@ -130,7 +130,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs deprecated indirect user code cause message"() {
         when:
-        DeprecationLogger.deprecate("Something").withAdvice("Advice.").withContext("Contextual advice.").nagUser()
+        DeprecationLogger.deprecate("Something").withAdvice("Advice.").withContext("Contextual advice.").undocumented().nagUser()
 
         then:
         def events = outputEventListener.events
@@ -140,7 +140,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs deprecated build invocation message"() {
         when:
-        DeprecationLogger.deprecateBuildInvocationFeature("Feature").withAdvice("Advice.").nagUser()
+        DeprecationLogger.deprecateBuildInvocationFeature("Feature").withAdvice("Advice.").undocumented().nagUser()
 
         then:
         def events = outputEventListener.events
@@ -150,7 +150,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs deprecated and replaced parameter usage message"() {
         when:
-        DeprecationLogger.deprecateNamedParameter("paramName").replaceWith("replacement").nagUser()
+        DeprecationLogger.deprecateNamedParameter("paramName").replaceWith("replacement").undocumented().nagUser()
 
         then:
         def events = outputEventListener.events
@@ -160,7 +160,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs deprecated property message"() {
         when:
-        DeprecationLogger.deprecateProperty("propertyName").withAdvice("Advice.").nagUser()
+        DeprecationLogger.deprecateProperty("propertyName").withAdvice("Advice.").undocumented().nagUser()
 
         then:
         def events = outputEventListener.events
@@ -170,7 +170,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs deprecated and replaced property message"() {
         when:
-        DeprecationLogger.deprecateProperty("propertyName").replaceWith("replacement").nagUser()
+        DeprecationLogger.deprecateProperty("propertyName").replaceWith("replacement").undocumented().nagUser()
 
         then:
         def events = outputEventListener.events
@@ -180,7 +180,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs discontinued method message"() {
         when:
-        DeprecationLogger.deprecateMethod("method()").withAdvice("Advice.").nagUser()
+        DeprecationLogger.deprecateMethod("method()").withAdvice("Advice.").undocumented().nagUser()
 
         then:
         def events = outputEventListener.events
@@ -190,7 +190,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs replaced method message"() {
         when:
-        DeprecationLogger.deprecateMethod("method()").replaceWith("replacementMethod()").nagUser()
+        DeprecationLogger.deprecateMethod("method()").replaceWith("replacementMethod()").undocumented().nagUser()
 
         then:
         def events = outputEventListener.events
@@ -200,7 +200,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs discontinued invocation message"() {
         when:
-        DeprecationLogger.deprecateAction("Some action").nagUser()
+        DeprecationLogger.deprecateAction("Some action").undocumented().nagUser()
 
         then:
         def events = outputEventListener.events
@@ -210,7 +210,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs deprecated method invocation message"() {
         when:
-        DeprecationLogger.deprecateInvocation("method()").withAdvice("Advice.").nagUser()
+        DeprecationLogger.deprecateInvocation("method()").withAdvice("Advice.").undocumented().nagUser()
 
         then:
         def events = outputEventListener.events
@@ -220,7 +220,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs replaced method invocation message"() {
         when:
-        DeprecationLogger.deprecateInvocation("method()").replaceWith("replacementMethod()").nagUser()
+        DeprecationLogger.deprecateInvocation("method()").replaceWith("replacementMethod()").undocumented().nagUser()
 
         then:
         def events = outputEventListener.events
@@ -230,7 +230,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs replaced task"() {
         when:
-        DeprecationLogger.deprecateTask("taskName").replaceWith("replacementTask").nagUser()
+        DeprecationLogger.deprecateTask("taskName").replaceWith("replacementTask").undocumented().nagUser()
 
         then:
         def events = outputEventListener.events
@@ -240,7 +240,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs plugin replaced with external one message"() {
         when:
-        DeprecationLogger.deprecatePlugin("pluginName").replaceWithExternalPlugin("replacement").nagUser()
+        DeprecationLogger.deprecatePlugin("pluginName").replaceWithExternalPlugin("replacement").undocumented().nagUser()
 
         then:
         def events = outputEventListener.events
@@ -250,7 +250,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs deprecated plugin message"() {
         when:
-        DeprecationLogger.deprecatePlugin("pluginName").withAdvice("Advice.").nagUser()
+        DeprecationLogger.deprecatePlugin("pluginName").withAdvice("Advice.").undocumented().nagUser()
 
         then:
         def events = outputEventListener.events
@@ -260,7 +260,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs replaced plugin message"() {
         when:
-        DeprecationLogger.deprecatePlugin("pluginName").replaceWith("replacement").nagUser()
+        DeprecationLogger.deprecatePlugin("pluginName").replaceWith("replacement").undocumented().nagUser()
 
         then:
         def events = outputEventListener.events
@@ -280,7 +280,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs configuration deprecation message for artifact declaration"() {
         when:
-        DeprecationLogger.deprecateConfiguration("ConfigurationType").forArtifactDeclaration().replaceWith(['r1', 'r2', 'r3']).nagUser()
+        DeprecationLogger.deprecateConfiguration("ConfigurationType").forArtifactDeclaration().replaceWith(['r1', 'r2', 'r3']).undocumented().nagUser()
 
         then:
         def events = outputEventListener.events
@@ -290,7 +290,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs configuration deprecation message for consumption"() {
         when:
-        DeprecationLogger.deprecateConfiguration("ConfigurationType").forConsumption().replaceWith(['r1', 'r2', 'r3']).nagUser()
+        DeprecationLogger.deprecateConfiguration("ConfigurationType").forConsumption().replaceWith(['r1', 'r2', 'r3']).undocumented().nagUser()
 
         then:
         def events = outputEventListener.events
@@ -300,7 +300,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs configuration deprecation message for dependency declaration"() {
         when:
-        DeprecationLogger.deprecateConfiguration("ConfigurationType").forDependencyDeclaration().replaceWith(['r1', 'r2', 'r3']).nagUser()
+        DeprecationLogger.deprecateConfiguration("ConfigurationType").forDependencyDeclaration().replaceWith(['r1', 'r2', 'r3']).undocumented().nagUser()
 
         then:
         def events = outputEventListener.events
@@ -310,7 +310,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs configuration deprecation message for resolution"() {
         when:
-        DeprecationLogger.deprecateConfiguration("ConfigurationType").forResolution().replaceWith(['r1', 'r2', 'r3']).nagUser()
+        DeprecationLogger.deprecateConfiguration("ConfigurationType").forResolution().replaceWith(['r1', 'r2', 'r3']).undocumented().nagUser()
 
         then:
         def events = outputEventListener.events
@@ -322,6 +322,7 @@ class DeprecationMessagesTest extends Specification {
         when:
         DeprecationLogger.deprecateInternalApi("constructor DefaultPolymorphicDomainObjectContainer(Class<T>, Instantiator)")
             .replaceWith("ObjectFactory.polymorphicDomainObjectContainer(Class<T>)")
+            .undocumented()
             .nagUser()
 
         then:
@@ -335,6 +336,7 @@ class DeprecationMessagesTest extends Specification {
         DeprecationLogger.deprecateInternalApi("constructor DefaultPolymorphicDomainObjectContainer(Class<T>, Instantiator)")
             .replaceWith("ObjectFactory.polymorphicDomainObjectContainer(Class<T>)")
             .withAdvice("foobar")
+            .undocumented()
             .nagUser()
 
         then:
@@ -347,6 +349,7 @@ class DeprecationMessagesTest extends Specification {
         when:
         DeprecationLogger.warnOfChangedBehaviour("Publication ignores 'transitive = false' at configuration level.")
             .withAdvice("Consider using 'transitive = false' at the dependency level if you need this to be published.")
+            .undocumented()
             .nagUser()
 
         then:

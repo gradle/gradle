@@ -79,6 +79,7 @@ abstract class CheckstyleInvoker {
                     if (userProvidedConfigLoc) {
                         DeprecationLogger.deprecateIndirectUsage("Adding 'config_loc' to checkstyle.configProperties")
                             .withAdvice("This property is now ignored and the value of configDirectory is always used for 'config_loc'.")
+                            .undocumented()
                             .nagUser()
                     }
                     // Use configDir for config_loc

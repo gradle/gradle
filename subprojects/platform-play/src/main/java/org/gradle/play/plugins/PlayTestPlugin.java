@@ -49,7 +49,7 @@ public class PlayTestPlugin extends RuleSource {
     @Mutate
     void createTestTasks(ModelMap<Task> tasks, @Path("binaries") ModelMap<PlayApplicationBinarySpecInternal> playBinaries, final PlayPluginConfigurations configurations,
                          final FileResolver fileResolver, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir) {
-        DeprecationLogger.deprecatePlugin("Play Test").replaceWithExternalPlugin("org.gradle.playframework-test").nagUser();
+        DeprecationLogger.deprecatePlugin("Play Test").replaceWithExternalPlugin("org.gradle.playframework-test").undocumented().nagUser();
         for (final PlayApplicationBinarySpecInternal binary : playBinaries) {
             final FileCollection testCompileClasspath = getTestCompileClasspath(binary, configurations);
 

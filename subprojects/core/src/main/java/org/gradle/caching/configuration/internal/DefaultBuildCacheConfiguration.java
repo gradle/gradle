@@ -56,13 +56,13 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
 
     @Override
     public <T extends DirectoryBuildCache> T local(Class<T> type) {
-        DeprecationLogger.deprecateMethod("BuildCacheConfiguration.local(Class)").replaceWith("getLocal()").nagUser();
+        DeprecationLogger.deprecateMethod("BuildCacheConfiguration.local(Class)").replaceWith("getLocal()").undocumented().nagUser();
         return localInternal(type, Actions.doNothing());
     }
 
     @Override
     public <T extends DirectoryBuildCache> T local(Class<T> type, Action<? super T> configuration) {
-        DeprecationLogger.deprecateMethod("BuildCacheConfiguration.local(Class, Action)").replaceWith("local(Action)").nagUser();
+        DeprecationLogger.deprecateMethod("BuildCacheConfiguration.local(Class, Action)").replaceWith("local(Action)").undocumented().nagUser();
         return localInternal(type, configuration);
     }
 

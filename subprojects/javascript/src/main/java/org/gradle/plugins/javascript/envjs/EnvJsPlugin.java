@@ -53,7 +53,7 @@ public class EnvJsPlugin implements Plugin<Project> {
 
     @Override
     public void apply(final Project project) {
-        DeprecationLogger.deprecatePlugin("org.gradle.envjs").nagUser();
+        DeprecationLogger.deprecatePlugin("org.gradle.envjs").undocumented().nagUser();
         project.getPluginManager().apply(RhinoPlugin.class);
         project.getPluginManager().apply(ReportingBasePlugin.class);
 

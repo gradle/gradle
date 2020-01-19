@@ -318,6 +318,6 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
     }
 
     ValidateStep.ValidationWarningReporter createValidationWarningReporter() {
-        return behaviour -> DeprecationLogger.deprecateBehaviour(behaviour).nagUser();
+        return behaviour -> DeprecationLogger.deprecateBehaviour(behaviour).undocumented().nagUser();
     }
 }

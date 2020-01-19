@@ -45,7 +45,7 @@ public class TransformBackedProvider<OUT, IN> extends AbstractMappingProvider<OU
     protected void beforeRead() {
         for (Task producer : getProducerTasks()) {
             if (!producer.getState().getExecuted()) {
-                DeprecationLogger.deprecateAction(String.format("Querying the mapped value of %s before %s has completed", getProvider(), producer)).nagUser();
+                DeprecationLogger.deprecateAction(String.format("Querying the mapped value of %s before %s has completed", getProvider(), producer)).undocumented().nagUser();
                 break; // Only report one producer
             }
         }

@@ -104,7 +104,7 @@ public class CheckstyleExtension extends CodeQualityExtension {
     @Deprecated
     @ReplacedBy("configDirectory")
     public File getConfigDir() {
-        DeprecationLogger.deprecateMethod("CheckstyleExtension.getConfigDir()").replaceWith("CheckstyleExtension.getConfigDirectory()").nagUser();
+        DeprecationLogger.deprecateMethod("CheckstyleExtension.getConfigDir()").replaceWith("CheckstyleExtension.getConfigDirectory()").undocumented().nagUser();
         return configDirectory.get().getAsFile();
     }
 
@@ -117,7 +117,7 @@ public class CheckstyleExtension extends CodeQualityExtension {
      */
     @Deprecated
     public void setConfigDir(File configDir) {
-        DeprecationLogger.deprecateMethod("CheckstyleExtension.setConfigDir()").replaceWith("CheckstyleExtension.getConfigDirectory().set()").nagUser();
+        DeprecationLogger.deprecateMethod("CheckstyleExtension.setConfigDir()").replaceWith("CheckstyleExtension.getConfigDirectory().set()").undocumented().nagUser();
         this.configDirectory.set(configDir);
     }
 
