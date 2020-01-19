@@ -1,9 +1,11 @@
 package Gradle_Check
 
+import Gradle_Check.model.StatisticBasedGradleBuildBucketProvider
 import jetbrains.buildServer.configs.kotlin.v2018_2.project
 import jetbrains.buildServer.configs.kotlin.v2018_2.version
 import model.CIBuildModel
 import projects.RootProject
+import java.io.File
 
 /*
 The settings script is an entry point for defining a single
@@ -26,4 +28,6 @@ calling the subProjects() method in this project.
 */
 
 version = "2019.1"
-project(RootProject(CIBuildModel(buildScanTags = listOf("Check"))))
+val model = CIBuildModel(buildScanTags = listOf("Check"))
+val gradleBuildBucketProvider = StatisticBasedGradleBuildBucketProvider(model, File("./test-class-data.json"))
+project(RootProject(model,gradleBuildBucketProvider))
