@@ -85,7 +85,7 @@ abstract class AbstractSmokeTest extends Specification {
         // https://developer.android.com/studio/releases/build-tools
         static androidTools = "29.0.2"
         // https://developer.android.com/studio/releases/gradle-plugin
-        static androidGradle = Versions.of(*agpVersions.latestAgpVersionsIncludingNightly)
+        static androidGradle = Versions.of(*agpVersions.latestsPlusNightly)
 
         // https://search.maven.org/search?q=g:org.jetbrains.kotlin%20AND%20a:kotlin-project&core=gav
         static kotlin = Versions.of('1.3.21', '1.3.31', '1.3.41', '1.3.50', '1.3.61')
@@ -220,6 +220,14 @@ abstract class AbstractSmokeTest extends Specification {
     protected void useSample(String sampleDirectory) {
         def smokeTestDirectory = new File(this.getClass().getResource(sampleDirectory).toURI())
         FileUtils.copyDirectory(smokeTestDirectory, testProjectDir.root)
+    }
+
+    protected GradleRunner useAgpVersion(String agpVersion, GradleRunner runner) {
+        if (agpVersions.isAgpNightly(agpVersion)) {
+            def init = agpVersions.createAgpNightlyRepositoryInitScript()
+            runner.withArguments([runner.arguments, ["-I", init.canonicalPath]].flatten())
+        }
+        return runner
     }
 
     protected void replaceVariablesInBuildFile(Map binding) {

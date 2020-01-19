@@ -18,7 +18,6 @@ package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.android.AndroidHome
-import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.util.VersionNumber
 import spock.lang.Unroll
@@ -84,12 +83,12 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
         """.stripIndent() << androidPluginConfiguration() << activityDependency()
 
         when:
-        def result = runner(
-            pluginVersion,
+        def result = useAgpVersion(pluginVersion, runner(
             'androidDependencies',
             'build',
             'connectedAndroidTest',
-            '-x', 'lint').build()
+            '-x', 'lint'
+        )).build()
 
         then:
         def pluginBaseVersion = VersionNumber.parse(pluginVersion).baseVersion
@@ -194,7 +193,7 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
         libraryBuildFile << activityDependency()
 
         when:
-        def result = runner(pluginVersion, 'build', '-x', 'lint').build()
+        def result = useAgpVersion(pluginVersion, runner('build', '-x', 'lint')).build()
 
         then:
         result.task(':app:assemble').outcome == TaskOutcome.SUCCESS
@@ -207,7 +206,7 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
 
         when: 'abi change on library'
         writeActivity(library, libPackage, libraryActivity, true)
-        result = runner(pluginVersion, 'build', '-x', 'lint').build()
+        result = useAgpVersion(pluginVersion, runner('build', '-x', 'lint')).build()
 
         then: 'dependent sources are recompiled'
         result.task(':library:compileReleaseJavaWithJavac').outcome == TaskOutcome.SUCCESS
@@ -215,15 +214,6 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
 
         where:
         pluginVersion << TestedVersions.androidGradle
-    }
-
-    private GradleRunner runner(String agpVersion, String... tasks) {
-        def runner = super.runner(tasks)
-        if (agpVersions.isNightly(agpVersion)) {
-            def init = agpVersions.createAgpNightlyRepositoryInitScript()
-            runner.withArguments([runner.arguments, ["-I", init.canonicalPath]].flatten())
-        }
-        return runner
     }
 
     private static String activityDependency() {

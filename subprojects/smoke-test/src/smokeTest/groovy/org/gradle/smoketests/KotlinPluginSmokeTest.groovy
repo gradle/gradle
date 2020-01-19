@@ -71,7 +71,7 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
         }
 
         when:
-        def result = build(androidPluginVersion, workers, 'clean', ':app:testDebugUnitTestCoverage')
+        def result = useAgpVersion(androidPluginVersion, runner(workers, 'clean', ':app:testDebugUnitTestCoverage')).build()
 
         then:
         result.task(':app:testDebugUnitTestCoverage').outcome == SUCCESS
@@ -174,15 +174,6 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
 
     private BuildResult build(boolean workers, String... tasks) {
         return runner(workers, *tasks).build()
-    }
-
-    private BuildResult build(String agpVersion, boolean workers, String... tasks) {
-        def runner = runner(workers, *tasks)
-        if (agpVersions.isNightly(agpVersion)) {
-            def init = agpVersions.createAgpNightlyRepositoryInitScript()
-            runner.withArguments([runner.arguments, ["-I", init.canonicalPath]].flatten())
-        }
-        return runner.build()
     }
 
     private GradleRunner runner(boolean workers, String... tasks) {

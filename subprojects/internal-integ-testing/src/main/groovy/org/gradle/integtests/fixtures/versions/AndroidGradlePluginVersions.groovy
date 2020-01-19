@@ -57,12 +57,12 @@ class AndroidGradlePluginVersions {
         executer.beforeExecute {
             withArgument("-Pandroid.overrideVersionCheck=true")
         }
-        if (isNightly(agpVersion)) {
+        if (isAgpNightly(agpVersion)) {
             usingAgpNightlyRepository(executer)
         }
     }
 
-    static boolean isNightly(String agpVersion) {
+    static boolean isAgpNightly(String agpVersion) {
         return agpVersion.contains("-") && agpVersion.substring(agpVersion.indexOf("-") + 1).matches("^[0-9].*")
     }
 
@@ -80,12 +80,10 @@ class AndroidGradlePluginVersions {
         return mirrors
     }
 
-
     private static String replaceAgpVersion(String scriptText, String agpVersion) {
-        return scriptText.replaceAll(
-            "(['\"]com.android.tools.build:gradle:).+(['\"])",
-            "${'$'}1$agpVersion${'$'}2"
-        )
+        def regex = "(['\"]com.android.tools.build:gradle:).+(['\"])"
+        scriptText.readLines().any { it.matches(".*${regex}.*") }
+        return scriptText.replaceAll(regex, "${'$'}1$agpVersion${'$'}2")
     }
 
     private final Factory<Properties> propertiesFactory
@@ -99,23 +97,26 @@ class AndroidGradlePluginVersions {
         this.propertiesFactory = propertiesFactory
     }
 
-    List<String> getLatestAgpVersions() {
+    List<String> getLatests() {
         return getVersionList("latests")
     }
 
-    List<String> getLatestAgpVersionsFromMinor(String lowerBound) {
+    String getNightly() {
+        return getVersion("nightly")
+    }
+
+    List<String> getLatestsPlusNightly() {
+        return [latests, [nightly]].flatten() as List<String>
+    }
+
+    List<String> getLatestsFromMinor(String lowerBound) {
         assert lowerBound.matches("^[0-9]+\\.[0-9]+\$")
-        def latests = getLatestAgpVersions()
         def withBound = (latests + lowerBound).sort()
         return withBound.subList(withBound.indexOf(lowerBound) + 1, withBound.size())
     }
 
-    String getLatestNightly() {
-        return getVersion("nightly")
-    }
-
-    List<String> getLatestAgpVersionsIncludingNightly() {
-        return [getLatestAgpVersions(), [getLatestNightly()]].flatten()
+    List<String> getLatestsFromMinorPlusNightly(String lowerBound) {
+        return [getLatestsFromMinor(lowerBound), [nightly]].flatten() as List<String>
     }
 
     private List<String> getVersionList(String name) {

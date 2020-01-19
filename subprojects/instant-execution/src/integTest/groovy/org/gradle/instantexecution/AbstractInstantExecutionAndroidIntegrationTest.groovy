@@ -33,10 +33,7 @@ abstract class AbstractInstantExecutionAndroidIntegrationTest extends AbstractIn
 
     private static final AndroidGradlePluginVersions agpVersions = new AndroidGradlePluginVersions()
 
-    protected static final String[] testedAgpVersions = [
-        agpVersions.getLatestAgpVersionsFromMinor("4.0"),
-        [agpVersions.latestNightly]
-    ].flatten() as String[]
+    protected static final String[] testedAgpVersions = agpVersions.getLatestsFromMinorPlusNightly("4.0")
 
     def setup() {
         AndroidHome.assumeIsSet()
