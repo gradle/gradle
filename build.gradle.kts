@@ -122,12 +122,20 @@ buildTypes {
 
     // Used for cross version tests on CI
     create("allVersionsCrossVersionTest") {
-        tasks("allVersionsCrossVersionTests", "integMultiVersionTest")
+        tasks("allVersionsCrossVersionTests")
         projectProperties("testAllVersions" to true)
+        projectProperties("useAllDistribution" to true)
+    }
+
+    create("allVersionsIntegMultiVersionTest") {
+        tasks("integMultiVersionTest")
+        projectProperties("testAllVersions" to true)
+        projectProperties("useAllDistribution" to true)
     }
 
     create("quickFeedbackCrossVersionTest") {
         tasks("quickFeedbackCrossVersionTests")
+        projectProperties("useAllDistribution" to true)
     }
 
     // Used to build production distros and smoke test them
