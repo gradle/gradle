@@ -26,23 +26,9 @@
             ]
         },
         {
-            "type": "org.gradle.kotlin.dsl.ProjectExtensionsKt",
-            "member": "Method org.gradle.kotlin.dsl.ProjectExtensionsKt.repositories(org.gradle.api.initialization.dsl.ScriptHandler,kotlin.jvm.functions.Function1)",
-            "acceptation": "Extension method moved to org.gradle.kotlin.dsl.ScriptHandlerExtensions",
-            "changes": [
-                "Method has been removed"
-            ]
-        },
-        {
             "type": "org.gradle.kotlin.dsl.ScriptHandlerExtensionsKt",
             "member": "Class org.gradle.kotlin.dsl.ScriptHandlerExtensionsKt",
             "acceptation": "Dedicated type for ScriptHandler extensions",
-            "changes": []
-        },
-        {
-            "type": "org.gradle.kotlin.dsl.ScriptHandlerExtensionsKt",
-            "member": "Method org.gradle.kotlin.dsl.ScriptHandlerExtensionsKt.repositories(org.gradle.api.initialization.dsl.ScriptHandler,kotlin.jvm.functions.Function1)",
-            "acceptation": "Extension method moved from org.gradle.kotlin.dsl.ProjectExtensions",
             "changes": []
         },
         {
