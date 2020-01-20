@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.test.fixtures.keystore.TestKeyStore
+import org.gradle.util.GradleVersion
 
 @IntegrationTestTimeout(120)
 class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec implements HttpBuildCacheFixture {
@@ -259,7 +260,9 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec imple
 
         then:
         skipped(":compileJava")
-        outputContains("Using insecure protocols with remote build cache has been deprecated. This is scheduled to be removed in Gradle 7.0. Switch remote build cache to a secure protocol (like HTTPS) or allow insecure protocols, see ")
+        outputContains("Using insecure protocols with remote build cache has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+            "Switch remote build cache to a secure protocol (like HTTPS) or allow insecure protocols. " +
+            "See https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.caching.http.HttpBuildCache.html#org.gradle.caching.http.HttpBuildCache:allowInsecureProtocol for more details.")
     }
 
     def "ssl certificate is validated"() {

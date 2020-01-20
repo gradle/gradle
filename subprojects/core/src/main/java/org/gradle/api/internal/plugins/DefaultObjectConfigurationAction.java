@@ -23,6 +23,7 @@ import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.plugins.ObjectConfigurationAction;
 import org.gradle.api.plugins.PluginAware;
+import org.gradle.api.resources.TextResourceFactory;
 import org.gradle.configuration.ScriptPlugin;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.ScriptSource;
@@ -118,11 +119,13 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
                 .deprecate("Applying script plugins from insecure URIs")
                 .withAdvice(String.format("Use '%s' instead or try 'apply from: resources.text.fromInsecureUri(\"%s\")' to silence the warning.", GUtil.toSecureUrl(scriptUri), scriptUri))
                 .withContext(String.format("The provided URI '%s' uses an insecure protocol (HTTP).", scriptUri))
+                .withDslReference(TextResourceFactory.class, "fromInsecureUri(java.lang.Object)")
                 .nagUser(),
             redirect -> DeprecationLogger
                 .deprecate("Applying script plugins from an insecure redirect")
                 .withAdvice("Switch to HTTPS or use TextResourceFactory.fromInsecureUri(Object) to silence the warning.")
                 .withContext(String.format("'%s' redirects to insecure '%s'.", scriptUri, redirect))
+                .withDslReference(TextResourceFactory.class, "fromInsecureUri(java.lang.Object)")
                 .nagUser()
         );
     }

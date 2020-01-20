@@ -18,7 +18,6 @@ package org.gradle.caching.http.internal;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.GradleException;
-import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.authentication.Authentication;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheServiceFactory;
@@ -44,13 +43,11 @@ import java.util.Collections;
 public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFactory<HttpBuildCache> {
 
     private final SslContextFactory sslContextFactory;
-    private final DocumentationRegistry documentationRegistry;
     private final HttpBuildCacheRequestCustomizer requestCustomizer;
 
     @Inject
-    public DefaultHttpBuildCacheServiceFactory(SslContextFactory sslContextFactory, DocumentationRegistry documentationRegistry, HttpBuildCacheRequestCustomizer requestCustomizer) {
+    public DefaultHttpBuildCacheServiceFactory(SslContextFactory sslContextFactory, HttpBuildCacheRequestCustomizer requestCustomizer) {
         this.sslContextFactory = sslContextFactory;
-        this.documentationRegistry = documentationRegistry;
         this.requestCustomizer = requestCustomizer;
     }
 
@@ -107,13 +104,10 @@ public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFac
             .create(
                 url,
                 allowInsecureProtocol,
-                () -> {
-                    String helpLink = documentationRegistry.getDslRefForProperty(HttpBuildCache.class, "allowInsecureProtocol");
-                    DeprecationLogger
-                        .deprecate("Using insecure protocols with remote build cache")
-                        .withAdvice(String.format("Switch remote build cache to a secure protocol (like HTTPS) or allow insecure protocols, see %s.", helpLink))
-                        .nagUser();
-                },
+                () -> DeprecationLogger.deprecate("Using insecure protocols with remote build cache")
+                    .withAdvice("Switch remote build cache to a secure protocol (like HTTPS) or allow insecure protocols.")
+                    .withDslReference(HttpBuildCache.class, "allowInsecureProtocol")
+                    .nagUser(),
                 redirect -> {
                     throw new IllegalStateException("Redirects are unsupported by the the build cache.");
                 });

@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.repositories
 
 import groovy.transform.CompileStatic
 import org.gradle.api.artifacts.repositories.AuthenticationContainer
-import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
@@ -49,7 +48,7 @@ class DefaultMavenLocalRepositoryTest extends Specification {
     final FileResourceRepository fileResourceRepository = Mock()
     final MavenMutableModuleMetadataFactory mavenMetadataFactory = DependencyManagementTestUtil.mavenMetadataFactory()
     final ObjectFactory objectFactory = Mock()
-    final DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory = new DefaultUrlArtifactRepository.Factory(resolver, new DocumentationRegistry())
+    final DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory = new DefaultUrlArtifactRepository.Factory(resolver)
 
     final DefaultMavenArtifactRepository repository = createRepository()
 
