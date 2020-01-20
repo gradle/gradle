@@ -55,9 +55,7 @@ class DeprecationMessagesTest extends Specification {
         deprecationMessage.nagUser()
 
         then:
-        def events = outputEventListener.events
-        events.size() == 1
-        events[0].message == 'summary removal'
+        expectMessage 'summary removal'
     }
 
     def "logs deprecation message with advice"() {
@@ -71,9 +69,7 @@ class DeprecationMessagesTest extends Specification {
         deprecationMessage.nagUser()
 
         then:
-        def events = outputEventListener.events
-        events.size() == 1
-        events[0].message == 'summary removal advice'
+        expectMessage 'summary removal advice'
     }
 
     def "logs deprecation message with contextual advice"() {
@@ -87,9 +83,7 @@ class DeprecationMessagesTest extends Specification {
         deprecationMessage.nagUser()
 
         then:
-        def events = outputEventListener.events
-        events.size() == 1
-        events[0].message == 'summary removal contextualAdvice'
+        expectMessage 'summary removal contextualAdvice'
     }
 
     def "logs deprecation message with advice and contextual advice"() {
@@ -104,9 +98,7 @@ class DeprecationMessagesTest extends Specification {
         deprecationMessage.nagUser()
 
         then:
-        def events = outputEventListener.events
-        events.size() == 1
-        events[0].message == 'summary removal contextualAdvice advice'
+        expectMessage 'summary removal contextualAdvice advice'
     }
 
     def "logs generic deprecation message for specific thing"() {
@@ -114,9 +106,7 @@ class DeprecationMessagesTest extends Specification {
         DeprecationLogger.deprecate("Something").nagUser()
 
         then:
-        def events = outputEventListener.events
-        events.size() == 1
-        events[0].message == "Something has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}."
+        expectMessage "Something has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}."
     }
 
     def "logs deprecated behaviour message"() {
@@ -124,9 +114,7 @@ class DeprecationMessagesTest extends Specification {
         DeprecationLogger.deprecateBehaviour("Some behaviour.").nagUser()
 
         then:
-        def events = outputEventListener.events
-        events.size() == 1
-        events[0].message == "Some behaviour. This behaviour has been deprecated and is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}."
+        expectMessage "Some behaviour. This behaviour has been deprecated and is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}."
     }
 
     def "logs deprecated indirect user code cause message"() {
@@ -134,9 +122,7 @@ class DeprecationMessagesTest extends Specification {
         DeprecationLogger.deprecate("Something").withAdvice("Advice.").withContext("Contextual advice.").nagUser()
 
         then:
-        def events = outputEventListener.events
-        events.size() == 1
-        events[0].message == "Something has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Contextual advice. Advice."
+        expectMessage "Something has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Contextual advice. Advice."
     }
 
     def "logs deprecated build invocation message"() {
@@ -144,9 +130,7 @@ class DeprecationMessagesTest extends Specification {
         DeprecationLogger.deprecateBuildInvocationFeature("Feature").withAdvice("Advice.").nagUser()
 
         then:
-        def events = outputEventListener.events
-        events.size() == 1
-        events[0].message == "Feature has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Advice."
+        expectMessage "Feature has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Advice."
     }
 
     def "logs deprecated and replaced parameter usage message"() {
@@ -154,9 +138,7 @@ class DeprecationMessagesTest extends Specification {
         DeprecationLogger.deprecateNamedParameter("paramName").replaceWith("replacement").nagUser()
 
         then:
-        def events = outputEventListener.events
-        events.size() == 1
-        events[0].message == "The paramName named parameter has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Please use the replacement named parameter instead."
+        expectMessage "The paramName named parameter has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Please use the replacement named parameter instead."
     }
 
     def "logs deprecated property message"() {
@@ -164,9 +146,7 @@ class DeprecationMessagesTest extends Specification {
         DeprecationLogger.deprecateProperty("propertyName").withAdvice("Advice.").nagUser()
 
         then:
-        def events = outputEventListener.events
-        events.size() == 1
-        events[0].message == "The propertyName property has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Advice."
+        expectMessage "The propertyName property has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Advice."
     }
 
     def "logs deprecated and replaced property message"() {
@@ -174,9 +154,7 @@ class DeprecationMessagesTest extends Specification {
         DeprecationLogger.deprecateProperty("propertyName").replaceWith("replacement").nagUser()
 
         then:
-        def events = outputEventListener.events
-        events.size() == 1
-        events[0].message == "The propertyName property has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Please use the replacement property instead."
+        expectMessage "The propertyName property has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Please use the replacement property instead."
     }
 
     def "logs discontinued method message"() {
@@ -184,9 +162,7 @@ class DeprecationMessagesTest extends Specification {
         DeprecationLogger.deprecateMethod("method()").withAdvice("Advice.").nagUser()
 
         then:
-        def events = outputEventListener.events
-        events.size() == 1
-        events[0].message == "The method() method has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Advice."
+        expectMessage "The method() method has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Advice."
     }
 
     def "logs replaced method message"() {
@@ -194,9 +170,7 @@ class DeprecationMessagesTest extends Specification {
         DeprecationLogger.deprecateMethod("method()").replaceWith("replacementMethod()").nagUser()
 
         then:
-        def events = outputEventListener.events
-        events.size() == 1
-        events[0].message == "The method() method has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Please use the replacementMethod() method instead."
+        expectMessage "The method() method has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Please use the replacementMethod() method instead."
     }
 
     def "logs discontinued invocation message"() {
@@ -204,9 +178,7 @@ class DeprecationMessagesTest extends Specification {
         DeprecationLogger.deprecateAction("Some action").nagUser()
 
         then:
-        def events = outputEventListener.events
-        events.size() == 1
-        events[0].message == "Some action has been deprecated. This will fail with an error in Gradle ${NEXT_GRADLE_VERSION}."
+        expectMessage "Some action has been deprecated. This will fail with an error in Gradle ${NEXT_GRADLE_VERSION}."
     }
 
     def "logs deprecated method invocation message"() {
@@ -214,9 +186,7 @@ class DeprecationMessagesTest extends Specification {
         DeprecationLogger.deprecateInvocation("method()").withAdvice("Advice.").nagUser()
 
         then:
-        def events = outputEventListener.events
-        events.size() == 1
-        events[0].message == "Using method method() has been deprecated. This will fail with an error in Gradle ${NEXT_GRADLE_VERSION}. Advice."
+        expectMessage "Using method method() has been deprecated. This will fail with an error in Gradle ${NEXT_GRADLE_VERSION}. Advice."
     }
 
     def "logs replaced method invocation message"() {
@@ -224,9 +194,7 @@ class DeprecationMessagesTest extends Specification {
         DeprecationLogger.deprecateInvocation("method()").replaceWith("replacementMethod()").nagUser()
 
         then:
-        def events = outputEventListener.events
-        events.size() == 1
-        events[0].message == "Using method method() has been deprecated. This will fail with an error in Gradle ${NEXT_GRADLE_VERSION}. Please use the replacementMethod() method instead."
+        expectMessage "Using method method() has been deprecated. This will fail with an error in Gradle ${NEXT_GRADLE_VERSION}. Please use the replacementMethod() method instead."
     }
 
     def "logs replaced task"() {
@@ -234,9 +202,7 @@ class DeprecationMessagesTest extends Specification {
         DeprecationLogger.deprecateTask("taskName").replaceWith("replacementTask").nagUser()
 
         then:
-        def events = outputEventListener.events
-        events.size() == 1
-        events[0].message == "The taskName task has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Please use the replacementTask task instead."
+        expectMessage "The taskName task has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Please use the replacementTask task instead."
     }
 
     def "logs plugin replaced with external one message"() {
@@ -244,9 +210,7 @@ class DeprecationMessagesTest extends Specification {
         DeprecationLogger.deprecatePlugin("pluginName").replaceWithExternalPlugin("replacement").nagUser()
 
         then:
-        def events = outputEventListener.events
-        events.size() == 1
-        events[0].message == "The pluginName plugin has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Consider using the replacement plugin instead."
+        expectMessage "The pluginName plugin has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Consider using the replacement plugin instead."
     }
 
     def "logs deprecated plugin message"() {
@@ -254,9 +218,7 @@ class DeprecationMessagesTest extends Specification {
         DeprecationLogger.deprecatePlugin("pluginName").withAdvice("Advice.").nagUser()
 
         then:
-        def events = outputEventListener.events
-        events.size() == 1
-        events[0].message == "The pluginName plugin has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Advice."
+        expectMessage "The pluginName plugin has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Advice."
     }
 
     def "logs replaced plugin message"() {
@@ -264,9 +226,7 @@ class DeprecationMessagesTest extends Specification {
         DeprecationLogger.deprecatePlugin("pluginName").replaceWith("replacement").nagUser()
 
         then:
-        def events = outputEventListener.events
-        events.size() == 1
-        events[0].message == "The pluginName plugin has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Please use the replacement plugin instead."
+        expectMessage "The pluginName plugin has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Please use the replacement plugin instead."
     }
 
     def "logs deprecated plugin message with link to upgrade guide"() {
@@ -274,9 +234,7 @@ class DeprecationMessagesTest extends Specification {
         DeprecationLogger.deprecatePlugin("pluginName").withUpgradeGuideSection(42, "upgradeGuideSection").nagUser()
 
         then:
-        def events = outputEventListener.events
-        events.size() == 1
-        events[0].message == "The pluginName plugin has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_42.html#upgradeGuideSection"
+        expectMessage "The pluginName plugin has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_42.html#upgradeGuideSection"
     }
 
     def "logs configuration deprecation message for artifact declaration"() {
@@ -284,9 +242,7 @@ class DeprecationMessagesTest extends Specification {
         DeprecationLogger.deprecateConfiguration("ConfigurationType").forArtifactDeclaration().replaceWith(['r1', 'r2', 'r3']).nagUser()
 
         then:
-        def events = outputEventListener.events
-        events.size() == 1
-        events[0].message == "The ConfigurationType configuration has been deprecated for artifact declaration. This will fail with an error in Gradle ${NEXT_GRADLE_VERSION}. Please use the r1 or r2 or r3 configuration instead."
+        expectMessage "The ConfigurationType configuration has been deprecated for artifact declaration. This will fail with an error in Gradle ${NEXT_GRADLE_VERSION}. Please use the r1 or r2 or r3 configuration instead."
     }
 
     def "logs configuration deprecation message for consumption"() {
@@ -294,9 +250,7 @@ class DeprecationMessagesTest extends Specification {
         DeprecationLogger.deprecateConfiguration("ConfigurationType").forConsumption().replaceWith(['r1', 'r2', 'r3']).nagUser()
 
         then:
-        def events = outputEventListener.events
-        events.size() == 1
-        events[0].message == "The ConfigurationType configuration has been deprecated for consumption. This will fail with an error in Gradle ${NEXT_GRADLE_VERSION}. Please use attributes to consume the r1 or r2 or r3 configuration instead."
+        expectMessage "The ConfigurationType configuration has been deprecated for consumption. This will fail with an error in Gradle ${NEXT_GRADLE_VERSION}. Please use attributes to consume the r1 or r2 or r3 configuration instead."
     }
 
     def "logs configuration deprecation message for dependency declaration"() {
@@ -304,9 +258,7 @@ class DeprecationMessagesTest extends Specification {
         DeprecationLogger.deprecateConfiguration("ConfigurationType").forDependencyDeclaration().replaceWith(['r1', 'r2', 'r3']).nagUser()
 
         then:
-        def events = outputEventListener.events
-        events.size() == 1
-        events[0].message == "The ConfigurationType configuration has been deprecated for dependency declaration. This will fail with an error in Gradle ${NEXT_GRADLE_VERSION}. Please use the r1 or r2 or r3 configuration instead."
+        expectMessage "The ConfigurationType configuration has been deprecated for dependency declaration. This will fail with an error in Gradle ${NEXT_GRADLE_VERSION}. Please use the r1 or r2 or r3 configuration instead."
     }
 
     def "logs configuration deprecation message for resolution"() {
@@ -314,9 +266,7 @@ class DeprecationMessagesTest extends Specification {
         DeprecationLogger.deprecateConfiguration("ConfigurationType").forResolution().replaceWith(['r1', 'r2', 'r3']).nagUser()
 
         then:
-        def events = outputEventListener.events
-        events.size() == 1
-        events[0].message == "The ConfigurationType configuration has been deprecated for resolution. This will fail with an error in Gradle ${NEXT_GRADLE_VERSION}. Please resolve the r1 or r2 or r3 configuration instead."
+        expectMessage "The ConfigurationType configuration has been deprecated for resolution. This will fail with an error in Gradle ${NEXT_GRADLE_VERSION}. Please resolve the r1 or r2 or r3 configuration instead."
     }
 
     def "logs internal API deprecation message"() {
@@ -326,9 +276,7 @@ class DeprecationMessagesTest extends Specification {
             .nagUser()
 
         then:
-        def events = outputEventListener.events
-        events.size() == 1
-        events[0].message == "Internal API constructor DefaultPolymorphicDomainObjectContainer(Class<T>, Instantiator) has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Please use ObjectFactory.polymorphicDomainObjectContainer(Class<T>) instead."
+        expectMessage "Internal API constructor DefaultPolymorphicDomainObjectContainer(Class<T>, Instantiator) has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Please use ObjectFactory.polymorphicDomainObjectContainer(Class<T>) instead."
     }
 
     def "can not overwrite advice when replacing"() {
@@ -339,9 +287,7 @@ class DeprecationMessagesTest extends Specification {
             .nagUser()
 
         then:
-        def events = outputEventListener.events
-        events.size() == 1
-        events[0].message == "Internal API constructor DefaultPolymorphicDomainObjectContainer(Class<T>, Instantiator) has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Please use ObjectFactory.polymorphicDomainObjectContainer(Class<T>) instead."
+        expectMessage "Internal API constructor DefaultPolymorphicDomainObjectContainer(Class<T>, Instantiator) has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Please use ObjectFactory.polymorphicDomainObjectContainer(Class<T>) instead."
     }
 
     def "logs deprecation without scheduled removal"() {
@@ -351,9 +297,7 @@ class DeprecationMessagesTest extends Specification {
             .nagUser()
 
         then:
-        def events = outputEventListener.events
-        events.size() == 1
-        events[0].message == "Publication ignores 'transitive = false' at configuration level. Consider using 'transitive = false' at the dependency level if you need this to be published."
+        expectMessage "Publication ignores 'transitive = false' at configuration level. Consider using 'transitive = false' at the dependency level if you need this to be published."
     }
 
     def "logs documentation reference"() {
@@ -363,10 +307,8 @@ class DeprecationMessagesTest extends Specification {
             .nagUser()
 
         then:
-        def events = outputEventListener.events
-        events.size() == 1
         def expectedDocumentationUrl = DOCUMENTATION_REGISTRY.getDocumentationFor("viewing_debugging_dependencies", "sub:resolving-unsafe-configuration-resolution-errors")
-        events[0].message == "Some behaviour. This behaviour has been deprecated and is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. See ${expectedDocumentationUrl} for more details."
+        expectMessage "Some behaviour. This behaviour has been deprecated and is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. See ${expectedDocumentationUrl} for more details."
     }
 
     def "logs DSL documentation reference"() {
@@ -376,9 +318,13 @@ class DeprecationMessagesTest extends Specification {
             .nagUser()
 
         then:
+        def dslReference = DOCUMENTATION_REGISTRY.getDslRefForProperty(AbstractArchiveTask, "archiveName")
+        expectMessage "The archiveName property has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Please use the archiveFileName property instead. See ${dslReference} for more details."
+    }
+
+    private void expectMessage(String expectedMessage) {
         def events = outputEventListener.events
         events.size() == 1
-        def dslReference = DOCUMENTATION_REGISTRY.getDslRefForProperty(AbstractArchiveTask, "archiveName")
-        events[0].message == "The archiveName property has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Please use the archiveFileName property instead. See ${dslReference} for more details."
+        assert events[0].message == expectedMessage
     }
 }
