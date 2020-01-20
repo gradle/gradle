@@ -7,9 +7,9 @@ import common.checkCleanM2
 import common.gradleWrapper
 import common.individualPerformanceTestArtifactRules
 import common.performanceTestCommandLine
-import jetbrains.buildServer.configs.kotlin.v2018_2.AbsoluteId
-import jetbrains.buildServer.configs.kotlin.v2018_2.BuildStep
-import jetbrains.buildServer.configs.kotlin.v2018_2.buildSteps.script
+import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
+import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep
+import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.script
 import model.CIBuildModel
 
 class IndividualPerformanceScenarioWorkers(model: CIBuildModel, os: Os = Os.linux) : BaseGradleBuildType(model, init = {

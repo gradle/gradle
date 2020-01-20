@@ -17,7 +17,6 @@
 package org.gradle.build
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.GradleException
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
@@ -49,16 +48,8 @@ class BuildReceipt extends DefaultTask {
         }
     }
 
-    static Properties readBuildReceipt(File dir) {
-        File buildReceiptFile = buildReceiptFileIn(dir)
-        if (!buildReceiptFile.exists()) {
-            throw new GradleException("Can't read build receipt file '$buildReceiptFile' as it doesn't exist")
-        }
-        buildReceiptFile.withInputStream {
-            Properties p = new Properties()
-            p.load(it)
-            p
-        }
+    static Properties readBuildReceiptFromString(String buildReceipt) {
+        new Properties().tap { load(new StringReader(buildReceipt)) }
     }
 
     static File buildReceiptFileIn(File dir) {

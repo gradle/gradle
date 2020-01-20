@@ -8,13 +8,13 @@ import common.checkCleanM2
 import common.compileAllDependency
 import common.gradleWrapper
 import common.verifyTestFilesCleanup
-import jetbrains.buildServer.configs.kotlin.v2018_2.BuildFeatures
-import jetbrains.buildServer.configs.kotlin.v2018_2.BuildStep
-import jetbrains.buildServer.configs.kotlin.v2018_2.BuildSteps
-import jetbrains.buildServer.configs.kotlin.v2018_2.BuildType
-import jetbrains.buildServer.configs.kotlin.v2018_2.FailureAction
-import jetbrains.buildServer.configs.kotlin.v2018_2.ProjectFeatures
-import jetbrains.buildServer.configs.kotlin.v2018_2.buildFeatures.commitStatusPublisher
+import jetbrains.buildServer.configs.kotlin.v2019_2.BuildFeatures
+import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep
+import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
+import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
+import jetbrains.buildServer.configs.kotlin.v2019_2.FailureAction
+import jetbrains.buildServer.configs.kotlin.v2019_2.ProjectFeatures
+import jetbrains.buildServer.configs.kotlin.v2019_2.buildFeatures.commitStatusPublisher
 import model.CIBuildModel
 import model.StageNames
 
@@ -112,6 +112,10 @@ fun BaseGradleBuildType.gradleRunnerStep(model: CIBuildModel, gradleTasks: Strin
 private
 fun BaseGradleBuildType.gradleRerunnerStep(model: CIBuildModel, gradleTasks: String, os: Os = Os.linux, extraParameters: String = "", daemon: Boolean = true) {
     val buildScanTags = model.buildScanTags + listOfNotNull(stage?.id)
+    val cleanedExtraParameters = extraParameters
+        .replace("-PincludeTestClasses=true", "")
+        .replace("-PexcludeTestClasses=true", "")
+        .replace("-PonlyTestGradleVersion=[\\d.-]+".toRegex(), "")
 
     steps {
         gradleWrapper {
@@ -121,7 +125,7 @@ fun BaseGradleBuildType.gradleRerunnerStep(model: CIBuildModel, gradleTasks: Str
             gradleParams = (
                 buildToolGradleParameters(daemon, os = os) +
                     this@gradleRerunnerStep.buildCache.gradleParameters(os) +
-                    listOf(extraParameters) +
+                    listOf(cleanedExtraParameters) +
                     "-PteamCityToken=%teamcity.user.bot-gradle.token%" +
                     "-PteamCityBuildId=%teamcity.build.id%" +
                     buildScanTags.map { buildScanTag(it) } +
@@ -161,12 +165,27 @@ fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTas
     applyDefaultDependencies(model, buildType, notQuick)
 }
 
-fun applyTestDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTasks: String, notQuick: Boolean = false, os: Os = Os.linux, extraParameters: String = "", timeout: Int = 90, extraSteps: BuildSteps.() -> Unit = {}, daemon: Boolean = true) {
+fun applyTestDefaults(
+    model: CIBuildModel,
+    buildType: BaseGradleBuildType,
+    gradleTasks: String,
+    notQuick: Boolean = false,
+    os: Os = Os.linux,
+    extraParameters: String = "",
+    timeout: Int = 90,
+    extraSteps: BuildSteps.() -> Unit = {}, // the steps after runner steps
+    daemon: Boolean = true,
+    preSteps: BuildSteps.() -> Unit = {} // the steps before runner steps
+) {
     if (os == Os.macos) {
         buildType.params.param("env.REPO_MIRROR_URLS", "")
     }
 
     buildType.applyDefaultSettings(os, timeout)
+
+    buildType.steps {
+        preSteps()
+    }
 
     buildType.gradleRunnerStep(model, gradleTasks, os, extraParameters, daemon)
     buildType.killProcessStepIfNecessary("KILL_PROCESSES_STARTED_BY_GRADLE", os)

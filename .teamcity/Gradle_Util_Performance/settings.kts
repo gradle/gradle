@@ -1,7 +1,7 @@
 package Gradle_Util_Performance
 
-import jetbrains.buildServer.configs.kotlin.v2018_2.project
-import jetbrains.buildServer.configs.kotlin.v2018_2.version
+import jetbrains.buildServer.configs.kotlin.v2019_2.project
+import jetbrains.buildServer.configs.kotlin.v2019_2.version
 
 /*
 The settings script is an entry point for defining a single

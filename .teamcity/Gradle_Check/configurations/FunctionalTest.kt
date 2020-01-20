@@ -1,22 +1,34 @@
 package configurations
 
 import common.Os
-import jetbrains.buildServer.configs.kotlin.v2018_2.AbsoluteId
+import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
+import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
 import model.CIBuildModel
 import model.Stage
 import model.TestCoverage
 import model.TestType
 
-class FunctionalTest(model: CIBuildModel, uuid: String, name: String, description: String, testCoverage: TestCoverage, stage: Stage, subProjects: List<String> = listOf(), extraParameters: String = "") : BaseGradleBuildType(model, stage = stage, init = {
+class FunctionalTest(
+    model: CIBuildModel,
+    uuid: String,
+    name: String,
+    description: String,
+    testCoverage: TestCoverage,
+    stage: Stage,
+    subprojects: List<String> = listOf(),
+    extraParameters: String = "",
+    extraBuildSteps: BuildSteps.() -> Unit = {},
+    preBuildSteps: BuildSteps.() -> Unit = {}
+) : BaseGradleBuildType(model, stage = stage, init = {
     this.uuid = uuid
     this.name = name
     this.description = description
     id = AbsoluteId(uuid)
     val testTaskName = "${testCoverage.testType.name}Test"
-    val testTasks = if (subProjects.isEmpty())
+    val testTasks = if (subprojects.isEmpty())
         testTaskName
     else
-        subProjects.joinToString(" ") { "$it:$testTaskName" }
+        subprojects.joinToString(" ") { "$it:$testTaskName" }
     val quickTest = testCoverage.testType == TestType.quick
     val buildScanTags = listOf("FunctionalTest")
     val buildScanValues = mapOf(
@@ -38,7 +50,9 @@ class FunctionalTest(model: CIBuildModel, uuid: String, name: String, descriptio
                 buildScanValues.map { buildScanCustomValue(it.key, it.value) } +
                 extraParameters
             ).filter { it.isNotBlank() }.joinToString(separator = " "),
-        timeout = testCoverage.testType.timeout)
+        timeout = testCoverage.testType.timeout,
+        extraSteps = extraBuildSteps,
+        preSteps = preBuildSteps)
 
     params {
         param("env.JAVA_HOME", "%${testCoverage.os}.${testCoverage.buildJvmVersion}.openjdk.64bit%")
