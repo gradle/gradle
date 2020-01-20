@@ -29,11 +29,11 @@ dependencies {
     api(project(":hashing"))
     api(project(":files"))
 
+    implementation(project(":baseAnnotations"))
+
     implementation(library("guava")) { version { require(libraryVersion("guava")) } }
     implementation(library("commons_compress")) { version { require(libraryVersion("commons_compress")) } }
     implementation(library("commons_io")) { version { require(libraryVersion("commons_io")) } }
-
-    compileOnly(project(":baseAnnotations"))
 
     testImplementation(project(":processServices"))
     testImplementation(project(":fileCollections"))
