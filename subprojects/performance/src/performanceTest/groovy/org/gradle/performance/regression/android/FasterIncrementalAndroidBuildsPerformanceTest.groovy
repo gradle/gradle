@@ -16,6 +16,7 @@
 
 package org.gradle.performance.regression.android
 
+import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
 import org.gradle.internal.service.scopes.VirtualFileSystemServices
 import org.gradle.performance.AbstractCrossBuildPerformanceTest
 import org.gradle.performance.categories.PerformanceExperiment
@@ -76,7 +77,7 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
     @Override
     protected void defaultSpec(BuildExperimentSpec.Builder builder) {
         if (builder instanceof GradleBuildExperimentSpec.GradleBuilder) {
-            builder.invocation.args('-Dcom.android.build.gradle.overrideVersionCheck=true')
+            builder.invocation.args(AndroidGradlePluginVersions.OVERRIDE_VERSION_CHECK)
         }
     }
 

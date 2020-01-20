@@ -223,11 +223,12 @@ abstract class AbstractSmokeTest extends Specification {
     }
 
     protected GradleRunner useAgpVersion(String agpVersion, GradleRunner runner) {
+        def extraArgs = [agpVersions.OVERRIDE_VERSION_CHECK]
         if (agpVersions.isAgpNightly(agpVersion)) {
             def init = agpVersions.createAgpNightlyRepositoryInitScript()
-            runner.withArguments([runner.arguments, ["-I", init.canonicalPath]].flatten())
+            extraArgs += ["-I", init.canonicalPath]
         }
-        return runner
+        return runner.withArguments([runner.arguments, extraArgs].flatten())
     }
 
     protected void replaceVariablesInBuildFile(Map binding) {

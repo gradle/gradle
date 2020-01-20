@@ -31,6 +31,8 @@ import org.gradle.test.fixtures.file.TestFile
  */
 class AndroidGradlePluginVersions {
 
+    public static final String OVERRIDE_VERSION_CHECK = '-Dcom.android.build.gradle.overrideVersionCheck=true'
+
     private static final String AGP_NIGHTLY_REPOSITORY_DECLARATION = '''
         maven {
             name = 'agp-nightlies'
@@ -55,7 +57,7 @@ class AndroidGradlePluginVersions {
         println "> Using AGP version ${agpVersion}"
         buildFile.text = replaceAgpVersion(buildFile.text, agpVersion)
         executer.beforeExecute {
-            withArgument("-Pandroid.overrideVersionCheck=true")
+            withArgument(OVERRIDE_VERSION_CHECK)
         }
         if (isAgpNightly(agpVersion)) {
             usingAgpNightlyRepository(executer)

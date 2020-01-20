@@ -21,8 +21,6 @@ plugins {
     id("jacoco")
 }
 
-//System.properties["com.android.build.gradle.overrideVersionCheck"] = "true"
-
 android {
     compileSdkVersion(24)
     buildToolsVersion("$androidBuildToolsVersion")

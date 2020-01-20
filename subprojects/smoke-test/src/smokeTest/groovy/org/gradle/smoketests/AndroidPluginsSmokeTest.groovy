@@ -234,8 +234,6 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
                     classpath 'com.android.tools.build:gradle:${pluginVersion}'
                 }
             }
-
-            System.properties['com.android.build.gradle.overrideVersionCheck'] = 'true'
         """.stripIndent()
     }
 
