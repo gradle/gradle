@@ -16,7 +16,7 @@
 
 package Gradle_Promotion.buildTypes
 
-import jetbrains.buildServer.configs.kotlin.v2018_2.ParameterDisplay
+import jetbrains.buildServer.configs.kotlin.v2019_2.ParameterDisplay
 
 object PublishBranchSnapshotFromQuickFeedback : PublishGradleDistribution(
     branch = "%branch.to.promote%",

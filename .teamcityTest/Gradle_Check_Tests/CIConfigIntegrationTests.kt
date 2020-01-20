@@ -9,8 +9,8 @@ import common.NoBuildCache
 import common.Os
 import configurations.FunctionalTest
 import configurations.StagePasses
-import jetbrains.buildServer.configs.kotlin.v2018_2.Project
-import jetbrains.buildServer.configs.kotlin.v2018_2.buildSteps.GradleBuildStep
+import jetbrains.buildServer.configs.kotlin.v2019_2.Project
+import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.GradleBuildStep
 import model.CIBuildModel
 import model.GradleSubproject
 import model.SpecificBuild

@@ -1,8 +1,8 @@
 package Gradle_Check
 
 import Gradle_Check.model.StatisticBasedGradleBuildBucketProvider
-import jetbrains.buildServer.configs.kotlin.v2018_2.project
-import jetbrains.buildServer.configs.kotlin.v2018_2.version
+import jetbrains.buildServer.configs.kotlin.v2019_2.project
+import jetbrains.buildServer.configs.kotlin.v2019_2.version
 import model.CIBuildModel
 import projects.RootProject
 import java.io.File
