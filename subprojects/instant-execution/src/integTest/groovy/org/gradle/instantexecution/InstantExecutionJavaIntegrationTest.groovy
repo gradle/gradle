@@ -39,13 +39,15 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
             class Thing {
             }
         """
-        // Ignored by the Java source set excludes
+        // Should be ignored by the Java source set excludes
         file("src/main/java/Gizmo.groovy") << """
             class Gizmo { def foo() {} }
         """
 
-        expect:
+        when:
         instantRun "build"
+
+        then:
         instantExecution.assertStateStored()
         result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
         def classFile = file("build/classes/java/main/Thing.class")
@@ -54,7 +56,13 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
         jarFile.isFile()
 
         when:
-        file("build").delete()
+        instantRun "clean"
+
+        then:
+        instantExecution.assertStateStored()
+        !file("build").exists()
+
+        when:
         instantRun "build"
 
         then:
@@ -102,8 +110,8 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
         """
         buildFile << """
             plugins { id 'java' }
-            
-            sourceSets.main.java.srcDir("src/common/java") 
+
+            sourceSets.main.java.srcDir("src/common/java")
         """
         file("src/common/java/OtherThing.java") << """
             class OtherThing {
@@ -114,8 +122,10 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
             }
         """
 
-        expect:
+        when:
         instantRun "assemble"
+
+        then:
         instantExecution.assertStateStored()
         result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":assemble")
         def classFile = file("build/classes/java/main/Thing.class")
@@ -124,7 +134,13 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
         jarFile.isFile()
 
         when:
-        file("build").delete()
+        instantRun "clean"
+
+        then:
+        instantExecution.assertStateStored()
+        !file("build").exists()
+
+        when:
         instantRun "assemble"
 
         then:
@@ -166,7 +182,9 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
         jarFile.isFile()
 
         and:
-        file("build").delete()
+        instantRun "clean"
+
+        and:
         instantRun ":b:assemble"
 
         then:
@@ -269,8 +287,10 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
             }
         """
 
-        expect:
+        when:
         instantRun "check"
+
+        then:
         instantExecution.assertStateStored()
         this.result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":check")
         def classFile = file("build/classes/java/main/Thing.class")
@@ -282,7 +302,13 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
         assertTestsExecuted("ThingTest", "ok")
 
         when:
-        file("build").delete()
+        instantRun "clean"
+
+        then:
+        instantExecution.assertStateStored()
+        !file("build").exists()
+
+        when:
         instantRun "check"
 
         then:
@@ -308,8 +334,10 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
             }
         """
 
-        expect:
+        when:
         instantRun "assemble"
+
+        then:
         instantExecution.assertStateStored()
         result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":startScripts", ":distTar", ":distZip", ":assemble")
         def classFile = file("build/classes/java/main/Thing.class")
@@ -318,7 +346,13 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
         jarFile.isFile()
 
         when:
-        file("build").delete()
+        instantRun "clean"
+
+        then:
+        instantExecution.assertStateStored()
+        !file("build").exists()
+
+        when:
         instantRun "assemble"
 
         then:
