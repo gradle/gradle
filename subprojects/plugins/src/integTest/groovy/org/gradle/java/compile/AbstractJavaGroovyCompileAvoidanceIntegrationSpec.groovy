@@ -18,8 +18,8 @@ package org.gradle.java.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.CompiledLanguage
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.FeaturePreviewsFixture
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Issue
 
 abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends AbstractIntegrationSpec {
@@ -333,14 +333,6 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
         skipped ":b:${language.compileTaskName}"
     }
 
-    @ToBeFixedForInstantExecution(bottomSpecs = [
-        "IncrementalJavaCompileAvoidanceAgainstJarIntegrationSpec",
-        "NonIncrementalJavaCompileAvoidanceAgainstJarIntegrationSpec",
-        "IncrementalGroovyCompileAvoidanceAgainstJarIntegrationSpec",
-        "IncrementalGroovyCompileAvoidanceAgainstClassDirIntegrationSpec",
-        "NonIncrementalGroovyCompileAvoidanceAgainstJarIntegrationSpec",
-        "NonIncrementalGroovyCompileAvoidanceAgainstClassDirIntegrationSpec"
-    ])
     def "recompiles when type of implementation class changes"() {
         given:
         buildFile << """
@@ -440,14 +432,6 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
         executedAndNotSkipped ":b:${language.compileTaskName}"
     }
 
-    @ToBeFixedForInstantExecution(bottomSpecs = [
-        "IncrementalJavaCompileAvoidanceAgainstJarIntegrationSpec",
-        "NonIncrementalJavaCompileAvoidanceAgainstJarIntegrationSpec",
-        "IncrementalGroovyCompileAvoidanceAgainstJarIntegrationSpec",
-        "IncrementalGroovyCompileAvoidanceAgainstClassDirIntegrationSpec",
-        "NonIncrementalGroovyCompileAvoidanceAgainstJarIntegrationSpec",
-        "NonIncrementalGroovyCompileAvoidanceAgainstClassDirIntegrationSpec"
-    ])
     def "recompiles when generic type signatures of implementation class changes"() {
         given:
         buildFile << """
