@@ -61,13 +61,16 @@ class DefaultFileCollectionResolveContextTest extends Specification {
         def result = context.resolveAsFileTrees()
 
         then:
-        result.size() == 2
+        result.size() == 3
         result[0] instanceof FileTreeAdapter
-        result[0].tree instanceof DefaultSingletonFileTree
-        result[0].tree.file == file
+        result[0].tree instanceof DirectoryFileTree
+        result[0].tree.dir == file
         result[1] instanceof FileTreeAdapter
         result[1].tree instanceof DirectoryFileTree
         result[1].tree.dir == dir
+        result[2] instanceof FileTreeAdapter
+        result[2].tree instanceof DirectoryFileTree
+        result[2].tree.dir == doesNotExist
         1 * fileSet.files >> ([file, dir, doesNotExist] as LinkedHashSet)
     }
 
@@ -205,8 +208,8 @@ class DefaultFileCollectionResolveContextTest extends Specification {
         then:
         result.size() == 1
         result[0] instanceof FileTreeAdapter
-        result[0].tree instanceof DefaultSingletonFileTree
-        result[0].tree.file == file
+        result[0].tree instanceof DirectoryFileTree
+        result[0].tree.dir == file
         1 * resolver.resolve('a') >> file
     }
 

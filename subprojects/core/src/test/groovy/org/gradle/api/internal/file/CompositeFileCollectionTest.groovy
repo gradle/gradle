@@ -126,8 +126,14 @@ class CompositeFileCollectionTest extends Specification {
         def source1 = Mock(AbstractFileCollection)
         def source2 = Mock(AbstractFileCollection)
         def collection = new TestCompositeFileCollection(source1, source2)
+
         when:
         def fileTree = collection.getAsFileTree()
+
+        then:
+        0 * _
+
+        when:
         ((CompositeFileTree) fileTree).getSourceCollections()
 
         then:
@@ -140,15 +146,20 @@ class CompositeFileCollectionTest extends Specification {
     def "file tree is live"() {
         def source1 = Mock(AbstractFileCollection)
         def source2 = Mock(AbstractFileCollection)
-        def dir1 = new File("dir1");
-        def dir2 = new File("dir1");
-        def dir3 = new File("dir1");
-        def source3 = Mock(MinimalFileSet);
+        def dir1 = new File("dir1")
+        def dir2 = new File("dir1")
+        def dir3 = new File("dir1")
+        def source3 = Mock(MinimalFileSet)
         def collection = new TestCompositeFileCollection(source1, source2)
 
         when:
         def fileTree = collection.getAsFileTree();
-        ((CompositeFileTree) fileTree).getSourceCollections();
+
+        then:
+        0 * _
+
+        when:
+        ((CompositeFileTree) fileTree).getSourceCollections()
 
         then:
         fileTree instanceof CompositeFileTree
