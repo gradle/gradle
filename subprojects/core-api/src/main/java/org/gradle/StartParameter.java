@@ -413,12 +413,16 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     }
 
     public boolean isSearchUpwards() {
-        DeprecationLogger.deprecateMethod("StartParameter#isSearchUpwards()").nagUser();
+        DeprecationLogger.deprecateMethod("StartParameter#isSearchUpwards()")
+            .withUpgradeGuideSection(5, "search_upwards_related_apis_in_startparameter_have_been_deprecated")
+            .nagUser();
         return searchUpwards;
     }
 
     public void setSearchUpwards(boolean searchUpwards) {
-        DeprecationLogger.deprecateMethod("StartParameter#setSearchUpwards(boolean)").nagUser();
+        DeprecationLogger.deprecateMethod("StartParameter#setSearchUpwards(boolean)")
+            .withUpgradeGuideSection(5, "search_upwards_related_apis_in_startparameter_have_been_deprecated")
+            .nagUser();
         this.searchUpwards = searchUpwards;
     }
 
