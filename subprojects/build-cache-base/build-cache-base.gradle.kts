@@ -19,12 +19,13 @@ plugins {
     `java-library`
     gradlebuild.`strict-compile`
     gradlebuild.classycle
+    gradlebuild.`publish-public-libraries`
 }
 
 dependencies {
     implementation(project(":baseAnnotations"))
     implementation(project(":files"))
-    implementation(library("slf4j_api"))
+    implementation(library("slf4j_api")) { version { require(libraryVersion("slf4j_api")) } }
 }
 
 gradlebuildJava {
