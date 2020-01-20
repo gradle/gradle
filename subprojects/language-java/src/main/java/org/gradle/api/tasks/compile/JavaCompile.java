@@ -144,6 +144,7 @@ public class JavaCompile extends AbstractCompile {
     protected void compile(@SuppressWarnings("deprecation") org.gradle.api.tasks.incremental.IncrementalTaskInputs inputs) {
         DeprecationLogger.deprecate("Extending the JavaCompile task")
             .withAdvice("Configure the task instead.")
+            .withDslReferenceForType(JavaCompile.class)
             .nagUser();
         compile((InputChanges) inputs);
     }

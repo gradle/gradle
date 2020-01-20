@@ -19,6 +19,7 @@ package org.gradle.smoketests
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.android.AndroidHome
 import org.gradle.testkit.runner.TaskOutcome
+import org.gradle.util.GradleVersion
 import org.gradle.util.VersionNumber
 import spock.lang.Unroll
 
@@ -33,7 +34,8 @@ import spock.lang.Unroll
 class AndroidPluginsSmokeTest extends AbstractSmokeTest {
 
 
-    public static final String JAVA_COMPILE_DEPRECATION_MESSAGE = "Extending the JavaCompile task has been deprecated. This is scheduled to be removed in Gradle 7.0. Configure the task instead."
+    public static final String JAVA_COMPILE_DEPRECATION_MESSAGE = "Extending the JavaCompile task has been deprecated. This is scheduled to be removed in Gradle 7.0. Configure the task instead. " +
+        "See https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.api.tasks.compile.JavaCompile.html for more details."
 
     def setup() {
         AndroidHome.assertIsSet()
