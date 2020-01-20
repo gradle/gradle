@@ -20,6 +20,7 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.GradleVersion
 import spock.lang.Unroll
 
 import java.nio.file.Files
@@ -35,7 +36,7 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
 
     private static void assertNoDefinedBuild(TestFile testDirectory) {
         def currentDirectory = testDirectory
-        for (;;) {
+        for (; ;) {
             currentDirectory.file(settingsFileName).assertDoesNotExist()
             currentDirectory.file(settingsKotlinFileName).assertDoesNotExist()
             currentDirectory = currentDirectory.parentFile
@@ -49,7 +50,8 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
     @ToBeFixedForInstantExecution
     def "shows deprecation warning when executing #task task in undefined build"() {
         expect:
-        executer.expectDeprecationWarning("Executing Gradle tasks as part of an undefined build has been deprecated. This will fail with an error in Gradle 7.0.")
+        executer.expectDeprecationWarning("Executing Gradle tasks as part of an undefined build has been deprecated. This will fail with an error in Gradle 7.0. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#executing_gradle_without_a_settings_file_has_been_deprecated")
         succeeds(task) // should fail for all tasks in Gradle 7.0
         // In Gradle 7.0, we should test the .gradle folder is not created
 
