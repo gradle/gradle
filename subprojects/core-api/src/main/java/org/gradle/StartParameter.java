@@ -305,7 +305,9 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * @return this
      */
     public StartParameter useEmptySettings() {
-        DeprecationLogger.deprecateMethod("StartParameter#useEmptySettings()").nagUser();
+        DeprecationLogger.deprecateMethod("StartParameter#useEmptySettings()")
+            .withJavadoc(StartParameter.class)
+            .nagUser();
         doUseEmptySettings();
         return this;
     }
@@ -322,7 +324,9 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * @return Whether to use empty settings or not.
      */
     public boolean isUseEmptySettings() {
-        DeprecationLogger.deprecateMethod("StartParameter#isUseEmptySettings()").nagUser();
+        DeprecationLogger.deprecateMethod("StartParameter#isUseEmptySettings()")
+            .withJavadoc(StartParameter.class)
+            .nagUser();
         return useEmptySettings;
     }
 
