@@ -19,8 +19,8 @@ import common.JvmVersion
 import common.Os
 import configurations.BaseGradleBuildType
 import configurations.PerformanceTestCoordinator
-import jetbrains.buildServer.configs.kotlin.v2018_2.BuildStep
-import jetbrains.buildServer.configs.kotlin.v2018_2.buildSteps.GradleBuildStep
+import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep
+import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.GradleBuildStep
 import model.PerformanceTestType
 import model.SpecificBuild
 import model.Stage

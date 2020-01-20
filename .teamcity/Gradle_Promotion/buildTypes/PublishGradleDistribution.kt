@@ -20,8 +20,8 @@ import common.Os
 import common.builtInRemoteBuildCacheNode
 import common.gradleWrapper
 import common.requiresOs
-import jetbrains.buildServer.configs.kotlin.v2018_2.AbsoluteId
-import jetbrains.buildServer.configs.kotlin.v2018_2.vcs.GitVcsRoot
+import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
+import jetbrains.buildServer.configs.kotlin.v2019_2.vcs.GitVcsRoot
 
 abstract class PublishGradleDistribution(
     branch: String,

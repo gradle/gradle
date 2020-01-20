@@ -14,7 +14,7 @@ import configurations.FunctionalTest
 import configurations.Gradleception
 import configurations.SanityCheck
 import configurations.SmokeTests
-import jetbrains.buildServer.configs.kotlin.v2018_2.BuildType
+import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
 import java.lang.UnsupportedOperationException
 
 enum class StageNames(override val stageName: String, override val description: String, override val uuid: String) : StageName {
