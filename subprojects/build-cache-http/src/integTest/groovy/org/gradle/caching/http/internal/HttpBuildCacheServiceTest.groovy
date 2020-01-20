@@ -274,7 +274,7 @@ class HttpBuildCacheServiceTest extends Specification {
         configuration.url = server.uri.resolve("/cache/")
         configuration.credentials.username = 'user'
         configuration.credentials.password = 'password'
-        cache = new DefaultHttpBuildCacheServiceFactory(new DefaultSslContextFactory(), new DocumentationRegistry(), {}).createBuildCacheService(configuration, buildCacheDescriber) as HttpBuildCacheService
+        cache = new DefaultHttpBuildCacheServiceFactory(new DefaultSslContextFactory(), {}).createBuildCacheService(configuration, buildCacheDescriber) as HttpBuildCacheService
 
         server.authenticationScheme = AuthScheme.BASIC
 
