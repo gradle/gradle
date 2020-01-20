@@ -36,6 +36,10 @@ abstract class DocumentationReference {
         return new UpgradeGuideDocumentationReference(majorVersion, upgradeGuideSection);
     }
 
+    public static DocumentationReference dslReference(Class<?> targetClass, String property) {
+        return new DslReference(targetClass, property);
+    }
+
     abstract String documentationUrl();
 
     String consultDocumentationMessage() {
@@ -93,6 +97,21 @@ abstract class DocumentationReference {
         @Override
         String consultDocumentationMessage() {
             return "Consult the upgrading guide for further information: " + documentationUrl();
+        }
+    }
+
+    private static class DslReference extends DocumentationReference {
+        private final Class<?> targetClass;
+        private final String property;
+
+        public DslReference(Class<?> targetClass, String property) {
+            this.targetClass = targetClass;
+            this.property = property;
+        }
+
+        @Override
+        String documentationUrl() {
+            return DOCUMENTATION_REGISTRY.getDslRefForProperty(targetClass, property);
         }
     }
 }

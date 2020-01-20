@@ -108,7 +108,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     @ReplacedBy("archiveFileName")
     public String getArchiveName() {
         // This is used by the Kotlin plugin, we should upstream a fix to avoid this API first.
-        // DeprecationLogger.nagUserWith(DeprecationMessage.replacedProperty("archiveName", "archiveFileName"));
+        // DeprecationLogger.deprecateProperty("archiveName").replaceWith("archiveFileName").nagUser();
         return archiveName.get();
     }
 

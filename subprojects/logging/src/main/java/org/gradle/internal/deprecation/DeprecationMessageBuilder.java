@@ -58,6 +58,11 @@ public class DeprecationMessageBuilder {
         return this;
     }
 
+    public DeprecationMessageBuilder consultDslReference(Class<?> targetClass, String property) {
+        this.documentationReference = DocumentationReference.dslReference(targetClass, property);
+        return this;
+    }
+
     public DeprecationMessageBuilder withUpgradeGuideSection(int majorVersion, String upgradeGuideSection) {
         this.documentationReference = DocumentationReference.upgradeGuide(majorVersion, upgradeGuideSection);
         return this;

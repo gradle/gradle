@@ -18,6 +18,7 @@ package org.gradle.internal.deprecation
 
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.logging.configuration.WarningMode
+import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.internal.featurelifecycle.DeprecatedUsageBuildOperationProgressBroadcaster
 import org.gradle.internal.featurelifecycle.UsageLocationReporter
 import org.gradle.internal.logging.CollectingTestOutputEventListener
@@ -365,6 +366,19 @@ class DeprecationMessagesTest extends Specification {
         def events = outputEventListener.events
         events.size() == 1
         def expectedDocumentationUrl = DOCUMENTATION_REGISTRY.getDocumentationFor("viewing_debugging_dependencies", "sub:resolving-unsafe-configuration-resolution-errors")
-        events[0].message == "Some behaviour. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. See ${expectedDocumentationUrl} for more details."
+        events[0].message == "Some behaviour. This behaviour has been deprecated and is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. See ${expectedDocumentationUrl} for more details."
+    }
+
+    def "logs DSL documentation reference"() {
+        when:
+        DeprecationLogger.deprecateProperty("archiveName").replaceWith("archiveFileName")
+            .consultDslReference(AbstractArchiveTask, "archiveName")
+            .nagUser()
+
+        then:
+        def events = outputEventListener.events
+        events.size() == 1
+        def dslReference = DOCUMENTATION_REGISTRY.getDslRefForProperty(AbstractArchiveTask, "archiveName")
+        events[0].message == "The archiveName property has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Please use the archiveFileName property instead. See ${dslReference} for more details."
     }
 }
