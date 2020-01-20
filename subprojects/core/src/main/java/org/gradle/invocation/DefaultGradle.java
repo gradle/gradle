@@ -300,13 +300,17 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
 
     @Override
     public void buildStarted(Closure closure) {
-        DeprecationLogger.deprecateMethod("Gradle#buildStarted(Closure)").nagUser();
+        DeprecationLogger.deprecateMethod("Gradle#buildStarted(Closure)")
+            .withUpgradeGuideSection(5, "apis_buildlistener_buildstarted_and_gradle_buildstarted_have_been_deprecated")
+            .nagUser();
         buildListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("buildStarted", closure));
     }
 
     @Override
     public void buildStarted(Action<? super Gradle> action) {
-        DeprecationLogger.deprecateMethod("Gradle#buildStarted(Action)").nagUser();
+        DeprecationLogger.deprecateMethod("Gradle#buildStarted(Action)")
+            .withUpgradeGuideSection(5, "apis_buildlistener_buildstarted_and_gradle_buildstarted_have_been_deprecated")
+            .nagUser();
         buildListenerBroadcast.add("buildStarted", action);
     }
 
@@ -401,7 +405,9 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     private void nagBuildStartedDeprecationIfOverriden(Class<? extends BuildListener> buildListenerClass) {
         try {
             if (!ImmutableSet.of(BuildAdapter.class, InternalBuildAdapter.class).contains(buildListenerClass.getMethod("buildStarted", Gradle.class).getDeclaringClass())) {
-                DeprecationLogger.deprecateMethod("BuildListener#buildStarted(Gradle)").nagUser();
+                DeprecationLogger.deprecateMethod("BuildListener#buildStarted(Gradle)")
+                    .withUpgradeGuideSection(5, "apis_buildlistener_buildstarted_and_gradle_buildstarted_have_been_deprecated")
+                    .nagUser();
             }
         } catch (NoSuchMethodException e) {
             assert false; // There's always a method named buildStarted
@@ -418,7 +424,8 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
         return this;
     }
 
-    @Override @Inject
+    @Override
+    @Inject
     public abstract BuildServiceRegistry getSharedServices();
 
     @Override
