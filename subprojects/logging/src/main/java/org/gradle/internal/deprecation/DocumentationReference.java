@@ -36,6 +36,10 @@ abstract class DocumentationReference {
         return new UpgradeGuideDocumentationReference(majorVersion, upgradeGuideSection);
     }
 
+    static DocumentationReference dslReference(Class<?> targetClass) {
+        return new DslReference(targetClass, null);
+    }
+
     static DocumentationReference dslReference(Class<?> targetClass, String property) {
         return new DslReference(targetClass, property);
     }
@@ -109,13 +113,16 @@ abstract class DocumentationReference {
         private final String property;
 
         public DslReference(Class<?> targetClass, String property) {
-            this.targetClass = targetClass;
+            this.targetClass = Preconditions.checkNotNull(targetClass);
             this.property = property;
         }
 
         @Override
         String documentationUrl() {
-            return DOCUMENTATION_REGISTRY.getDslRefForProperty(targetClass, property);
+            if (property != null) {
+                return DOCUMENTATION_REGISTRY.getDslRefForProperty(targetClass, property);
+            }
+            return DOCUMENTATION_REGISTRY.getDslRefForType(targetClass);
         }
     }
 
@@ -123,7 +130,7 @@ abstract class DocumentationReference {
         private final Class<?> targetClass;
 
         public JavadocReference(Class<?> targetClass) {
-            this.targetClass = targetClass;
+            this.targetClass = Preconditions.checkNotNull(targetClass);
         }
 
         @Override

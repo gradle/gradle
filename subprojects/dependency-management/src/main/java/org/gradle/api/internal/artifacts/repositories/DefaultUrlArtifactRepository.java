@@ -91,7 +91,7 @@ public class DefaultUrlArtifactRepository implements UrlArtifactRepository {
                 "Switch %s repository '%s' to a secure protocol (like HTTPS) or allow insecure protocols.",
                 repositoryType,
                 displayNameSupplier.get()))
-            .withDslReference(UrlArtifactRepository.class, "allowInsecureProtocol")
+            .withDslReferenceForProperty(UrlArtifactRepository.class, "allowInsecureProtocol")
             .nagUser();
     }
 
@@ -111,7 +111,7 @@ public class DefaultUrlArtifactRepository implements UrlArtifactRepository {
                 repositoryType,
                 displayNameSupplier.get()))
             .withContext(contextualAdvice)
-            .withDslReference(UrlArtifactRepository.class, "allowInsecureProtocol")
+            .withDslReferenceForProperty(UrlArtifactRepository.class, "allowInsecureProtocol")
             .nagUser();
     }
 

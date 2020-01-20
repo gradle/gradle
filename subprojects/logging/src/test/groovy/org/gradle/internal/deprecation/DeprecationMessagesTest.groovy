@@ -313,8 +313,19 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs DSL documentation reference"() {
         when:
+        DeprecationLogger.deprecate("Some feature").withAdvice("Do something about it.")
+            .withDslReferenceForType(AbstractArchiveTask)
+            .nagUser()
+
+        then:
+        def dslReference = DOCUMENTATION_REGISTRY.getDslRefForType(AbstractArchiveTask)
+        expectMessage "Some feature has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Do something about it. See ${dslReference} for more details."
+    }
+
+    def "logs DSL property documentation reference"() {
+        when:
         DeprecationLogger.deprecateProperty("archiveName").replaceWith("archiveFileName")
-            .withDslReference(AbstractArchiveTask, "foo")
+            .withDslReferenceForProperty(AbstractArchiveTask, "foo")
             .nagUser()
 
         then:
@@ -322,10 +333,10 @@ class DeprecationMessagesTest extends Specification {
         expectMessage "The archiveName property has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Please use the archiveFileName property instead. See ${dslReference} for more details."
     }
 
-    def "logs DSL documentation reference for deprecate property implicitly"() {
+    def "logs DSL documentation reference for deprecated property implicitly"() {
         when:
         DeprecationLogger.deprecateProperty("archiveName").replaceWith("archiveFileName")
-            .withDslReference(AbstractArchiveTask)
+            .withDslReferenceForProperty(AbstractArchiveTask)
             .nagUser()
 
         then:

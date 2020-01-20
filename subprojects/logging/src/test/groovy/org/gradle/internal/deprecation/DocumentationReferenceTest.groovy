@@ -48,14 +48,6 @@ class DocumentationReferenceTest extends Specification {
         "foo"           | null                 | DOCUMENTATION_REGISTRY.getDocumentationFor("foo")
     }
 
-    def "can not create documentation reference with null id"() {
-        when:
-        DocumentationReference.create(null, "bar")
-
-        then:
-        thrown NullPointerException
-    }
-
     def "creates upgrade guide reference"() {
         when:
         def documentationReference = DocumentationReference.upgradeGuide(11, "section")
@@ -66,15 +58,17 @@ class DocumentationReferenceTest extends Specification {
         documentationReference.consultDocumentationMessage() == "Consult the upgrading guide for further information: ${expectedUrl}"
     }
 
-    def "can not create upgrade guide reference with null section"() {
+    def "creates dsl reference for type"() {
         when:
-        DocumentationReference.upgradeGuide(42, null)
+        def documentationReference = DocumentationReference.dslReference(DocumentationReference)
 
         then:
-        thrown NullPointerException
+        def expectedUrl = DOCUMENTATION_REGISTRY.getDslRefForType(DocumentationReference)
+        documentationReference.documentationUrl() == expectedUrl
+        documentationReference.consultDocumentationMessage() == "See ${expectedUrl} for more details."
     }
 
-    def "creates dsl reference"() {
+    def "creates dsl reference for property"() {
         when:
         def documentationReference = DocumentationReference.dslReference(DocumentationReference, "property")
 
