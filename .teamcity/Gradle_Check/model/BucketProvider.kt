@@ -30,13 +30,13 @@ const val MAX_PROJECT_NUMBER_IN_BUCKET = 10
 
 val CROSS_VERSION_BUCKETS = listOf(
     listOf("0.0", "2.0"), // 0.0 <= version < 2.0
-    listOf("2.0", "2.7"), // 2.0 <= version < 2.7
-    listOf("2.7", "3.0"), // 2.7 <= version < 3.0
-    listOf("3.0", "3.4"), // 3.0 <= version < 3.3
-    listOf("3.4", "4.0"), // 3.3 <= version < 4.0
-    listOf("4.0", "4.4"), // 4.0 <=version < 4.5
-    listOf("4.4", "4.8"), // 4.0 <=version < 4.5
-    listOf("4.8", "5.0"), // 4.5 <=version < 5.0
+    listOf("2.0", "2.8"), // 2.0 <= version < 2.8
+    listOf("2.8", "3.0"), // 2.8 <= version < 3.0
+    listOf("3.0", "3.3"), // 3.0 <= version < 3.3
+    listOf("3.3", "4.1"), // 3.3 <= version < 4.1
+    listOf("4.1", "4.5"), // 4.1 <=version < 4.5
+    listOf("4.5", "4.8"), // 4.5 <=version < 4.8
+    listOf("4.8", "5.0"), // 4.8 <=version < 5.0
     listOf("5.0", "5.4"), // 5.0 <=version < 5.4
     listOf("5.4", "6.0"), // 5.4 <=version < 6.0
     listOf("6.0", "99.0") // 6.0 <=version < 99.0
@@ -44,8 +44,10 @@ val CROSS_VERSION_BUCKETS = listOf(
 
 val INTEG_MULTI_VERSION_BUCKETS = listOf(
     listOf('A', 'E'), // subprojects starting with A-E
-    listOf('F', 'O'), // subprojects starting with F-O
-    listOf('P', 'Z') // subprojects starting with P-Z
+    listOf('F', 'I'), // subprojects starting with F-I
+    listOf('J', 'O'), // subprojects starting with J-O
+    listOf('P', 'U'), // subprojects starting with P-U
+    listOf('V', 'Z') // subprojects starting with V-Z
 )
 
 typealias BuildProjectToSubprojectTestClassTimes = Map<String, Map<String, List<TestClassTime>>>
@@ -189,7 +191,7 @@ class SubprojectsIntegMultiVersionTest(private val subprojects: List<String>) : 
     override fun createFunctionalTestsFor(model: CIBuildModel, stage: Stage, testCoverage: TestCoverage, bucketIndex: Int) =
         FunctionalTest(model,
             getUuid(model, testCoverage, bucketIndex),
-            "${testCoverage.asName()} (${subprojects.joinToString(",")})",
+            "${testCoverage.asName()} (bucket${bucketIndex + 1})",
             "${testCoverage.asName()} for ${subprojects.joinToString(",")}",
             testCoverage,
             stage,
