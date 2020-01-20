@@ -25,16 +25,15 @@ description = "Package build cache results"
 
 dependencies {
     api(project(":buildCacheBase"))
-
-    implementation(project(":baseServices"))
-    implementation(project(":coreApi"))
-    implementation(project(":buildCache"))
-    implementation(project(":files"))
-    implementation(project(":snapshots"))
+    api(project(":snapshots"))
+    api(project(":hashing"))
+    api(project(":files"))
 
     implementation(library("guava")) { version { require(libraryVersion("guava")) } }
     implementation(library("commons_compress")) { version { require(libraryVersion("commons_compress")) } }
     implementation(library("commons_io")) { version { require(libraryVersion("commons_io")) } }
+
+    compileOnly(project(":baseAnnotations"))
 
     testImplementation(project(":processServices"))
     testImplementation(project(":fileCollections"))
