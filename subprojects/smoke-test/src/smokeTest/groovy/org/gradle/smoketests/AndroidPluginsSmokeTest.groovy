@@ -82,13 +82,16 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
             android.defaultConfig.applicationId "org.gradle.android.myapplication"
         """.stripIndent() << androidPluginConfiguration() << activityDependency()
 
-        when:
-        def result = useAgpVersion(pluginVersion, runner(
+        and:
+        def runner = useAgpVersion(pluginVersion, runner(
             'androidDependencies',
             'build',
             'connectedAndroidTest',
             '-x', 'lint'
-        )).build()
+        ))
+
+        when:
+        def result = runner.build()
 
         then:
         def pluginBaseVersion = VersionNumber.parse(pluginVersion).baseVersion
@@ -104,6 +107,13 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
         if (pluginBaseVersion >= threeDotSixBaseVersion) {
             expectNoDeprecationWarnings(result)
         }
+
+        when: 'abi change on application'
+        writeActivity(basedir, packageName, activity, true)
+        result = runner.build()
+
+        then: 'sources are recompiled'
+        result.task(':compileReleaseJavaWithJavac').outcome == TaskOutcome.SUCCESS
 
         where:
         pluginVersion << TestedVersions.androidGradle
@@ -192,8 +202,11 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
         libraryBuildFile << androidPluginConfiguration()
         libraryBuildFile << activityDependency()
 
+        and:
+        def runner = useAgpVersion(pluginVersion, runner('build', '-x', 'lint'))
+
         when:
-        def result = useAgpVersion(pluginVersion, runner('build', '-x', 'lint')).build()
+        def result = runner.build()
 
         then:
         result.task(':app:assemble').outcome == TaskOutcome.SUCCESS
@@ -206,7 +219,7 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
 
         when: 'abi change on library'
         writeActivity(library, libPackage, libraryActivity, true)
-        result = useAgpVersion(pluginVersion, runner('build', '-x', 'lint')).build()
+        result = runner.build()
 
         then: 'dependent sources are recompiled'
         result.task(':library:compileReleaseJavaWithJavac').outcome == TaskOutcome.SUCCESS
