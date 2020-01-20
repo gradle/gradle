@@ -18,8 +18,9 @@ package org.gradle.api.tasks
 
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.util.GradleVersion
 import org.gradle.util.Matchers
 import org.gradle.util.ToBeImplemented
 import org.junit.Rule
@@ -602,6 +603,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
      * two.a starts off with "$one\n${one+1}\n${one+1+1}\n"
      * If these filters are chained in the correct order, you should get 6, 11, and 16
      */
+
     def "multiple filter with CopySpec"() {
         given:
         buildScript '''
@@ -1028,7 +1030,9 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         """
 
         when:
-        executer.expectDeprecationWarning("Copying or archiving duplicate paths with the default duplicates strategy has been deprecated. This is scheduled to be removed in Gradle 7.0. Duplicate path: \"b.txt\". Explicitly set the duplicates strategy to 'DuplicatesStrategy.INCLUDE' if you want to allow duplicate paths.")
+        executer.expectDeprecationWarning("Copying or archiving duplicate paths with the default duplicates strategy has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+            "Duplicate path: \"b.txt\". Explicitly set the duplicates strategy to 'DuplicatesStrategy.INCLUDE' if you want to allow duplicate paths. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#implicit_duplicate_strategy_for_copy_or_archive_tasks_has_been_deprecated")
         succeeds "copyTask"
 
         then:
@@ -1176,7 +1180,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         run "copy"
         then:
         // TODO Task should not be skipped
-        !!! skipped(":copy")
+        !!!skipped(":copy")
     }
 
     @ToBeImplemented
@@ -1203,7 +1207,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         run "copy"
         then:
         // TODO Task should not be skipped
-        !!! skipped(":copy")
+        !!!skipped(":copy")
     }
 
     @ToBeImplemented
@@ -1230,7 +1234,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         run "copy"
         then:
         // TODO Task should not be skipped
-        !!! skipped(":copy")
+        !!!skipped(":copy")
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-3554")
@@ -1328,7 +1332,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         file("destination").deleteDir()
 
         when:
-        withBuildCache().run"copy"
+        withBuildCache().run "copy"
 
         then:
         noneSkipped()
