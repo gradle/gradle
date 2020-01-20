@@ -54,7 +54,7 @@ class AndroidSantaTrackerJavaCachingSmokeTest extends AbstractAndroidSantaTracke
         verify(relocatedResult, expectedResults)
 
         where:
-        agpVersion << testedAgpVersions
+        agpVersion << TESTED_AGP_VERSIONS
     }
 
     private static final EXPECTED_RESULTS = [

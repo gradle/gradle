@@ -38,7 +38,7 @@ import static org.gradle.test.fixtures.server.http.MavenHttpPluginRepository.PLU
 
 abstract class AbstractSmokeTest extends Specification {
 
-    protected static final AndroidGradlePluginVersions agpVersions = new AndroidGradlePluginVersions()
+    protected static final AndroidGradlePluginVersions AGP_VERSIONS = new AndroidGradlePluginVersions()
 
     static class TestedVersions {
         /**
@@ -85,7 +85,7 @@ abstract class AbstractSmokeTest extends Specification {
         // https://developer.android.com/studio/releases/build-tools
         static androidTools = "29.0.2"
         // https://developer.android.com/studio/releases/gradle-plugin
-        static androidGradle = Versions.of(*agpVersions.latestsPlusNightly)
+        static androidGradle = Versions.of(*AGP_VERSIONS.latestsPlusNightly)
 
         // https://search.maven.org/search?q=g:org.jetbrains.kotlin%20AND%20a:kotlin-project&core=gav
         static kotlin = Versions.of('1.3.21', '1.3.31', '1.3.41', '1.3.50', '1.3.61')
@@ -223,9 +223,9 @@ abstract class AbstractSmokeTest extends Specification {
     }
 
     protected GradleRunner useAgpVersion(String agpVersion, GradleRunner runner) {
-        def extraArgs = [agpVersions.OVERRIDE_VERSION_CHECK]
-        if (agpVersions.isAgpNightly(agpVersion)) {
-            def init = agpVersions.createAgpNightlyRepositoryInitScript()
+        def extraArgs = [AGP_VERSIONS.OVERRIDE_VERSION_CHECK]
+        if (AGP_VERSIONS.isAgpNightly(agpVersion)) {
+            def init = AGP_VERSIONS.createAgpNightlyRepositoryInitScript()
             extraArgs += ["-I", init.canonicalPath]
         }
         return runner.withArguments([runner.arguments, extraArgs].flatten())

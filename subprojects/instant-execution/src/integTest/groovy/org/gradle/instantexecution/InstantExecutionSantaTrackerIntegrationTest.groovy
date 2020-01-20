@@ -50,7 +50,7 @@ class InstantExecutionSantaTrackerIntegrationTest extends AbstractInstantExecuti
         [remoteProject, agpVersion, fromIde] << [
             // TODO:instant-execution Kotlin 1.3.70
             ["santaTrackerJava" /*, "santaTrackerKotlin" */],
-            testedAgpVersions,
+            TESTED_AGP_VERSIONS,
             [false, true]
         ].combinations()
     }
@@ -76,7 +76,7 @@ class InstantExecutionSantaTrackerIntegrationTest extends AbstractInstantExecuti
         [remoteProject, agpVersion, fromIde] << [
             // TODO:instant-execution Kotlin 1.3.70
             ["santaTrackerJava" /*, "santaTrackerKotlin" */],
-            testedAgpVersions,
+            TESTED_AGP_VERSIONS,
             [false, true]
         ].combinations()
     }

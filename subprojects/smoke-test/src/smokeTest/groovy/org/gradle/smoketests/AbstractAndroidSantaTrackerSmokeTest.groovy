@@ -29,8 +29,7 @@ import org.junit.Rule
 
 class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
 
-    protected static final List<String> testedAgpVersions = agpVersions.getLatestsFromMinorPlusNightly("3.6")
-    // protected static final List<String> testedAgpVersions = [agpVersions.nightly]
+    protected static final List<String> TESTED_AGP_VERSIONS = AGP_VERSIONS.getLatestsFromMinorPlusNightly("3.6")
 
     @Rule
     TestNameTestDirectoryProvider temporaryFolder
@@ -50,7 +49,7 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
         GradleEnterprisePluginSettingsFixture.applyEnterprisePlugin(targetDir.file("settings.gradle"))
         if (agpVersion != null) {
             def buildFile = targetDir.file("build.gradle")
-            buildFile.text = agpVersions.replaceAgpVersion(buildFile.text, agpVersion)
+            buildFile.text = AGP_VERSIONS.replaceAgpVersion(buildFile.text, agpVersion)
         }
     }
 

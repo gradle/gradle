@@ -31,9 +31,9 @@ import static org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersion
 @CompileStatic
 abstract class AbstractInstantExecutionAndroidIntegrationTest extends AbstractInstantExecutionIntegrationTest {
 
-    private static final AndroidGradlePluginVersions agpVersions = new AndroidGradlePluginVersions()
+    private static final AndroidGradlePluginVersions AGP_VERSIONS = new AndroidGradlePluginVersions()
 
-    protected static final String[] testedAgpVersions = agpVersions.getLatestsFromMinorPlusNightly("4.0")
+    protected static final List<String> TESTED_AGP_VERSIONS = AGP_VERSIONS.getLatestsFromMinorPlusNightly("4.0")
 
     def setup() {
         AndroidHome.assumeIsSet()

@@ -57,7 +57,7 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
         )
 
         where:
-        agpVersion << testedAgpVersions
+        agpVersion << TESTED_AGP_VERSIONS
     }
 
     @Unroll
@@ -77,7 +77,7 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
         }
 
         where:
-        agpVersion << testedAgpVersions
+        agpVersion << TESTED_AGP_VERSIONS
     }
 
     @Unroll
@@ -106,7 +106,7 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
         md5After != md5Before
 
         where:
-        agpVersion << testedAgpVersions
+        agpVersion << TESTED_AGP_VERSIONS
     }
 
     @Unroll
@@ -134,6 +134,6 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
         md5After != md5Before
 
         where:
-        agpVersion << testedAgpVersions
+        agpVersion << TESTED_AGP_VERSIONS
     }
 }

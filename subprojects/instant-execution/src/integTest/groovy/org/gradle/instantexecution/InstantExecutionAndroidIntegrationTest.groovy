@@ -61,7 +61,7 @@ class InstantExecutionAndroidIntegrationTest extends AbstractInstantExecutionAnd
         instantExecution.assertStateLoaded()
 
         where:
-        [agpVersion, fromIde] << [testedAgpVersions, [false, true]].combinations()
+        [agpVersion, fromIde] << [TESTED_AGP_VERSIONS, [false, true]].combinations()
     }
 
     @Unroll
@@ -84,6 +84,6 @@ class InstantExecutionAndroidIntegrationTest extends AbstractInstantExecutionAnd
         instantExecution.assertStateLoaded()
 
         where:
-        [agpVersion, fromIde] << [testedAgpVersions, [false, true]].combinations()
+        [agpVersion, fromIde] << [TESTED_AGP_VERSIONS, [false, true]].combinations()
     }
 }
