@@ -29,8 +29,10 @@ import spock.lang.Issue
 import spock.lang.Unroll
 
 class HttpScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
-    @org.junit.Rule HttpServer server = new HttpServer()
-    @org.junit.Rule TestResources resources = new TestResources(temporaryFolder)
+    @org.junit.Rule
+    HttpServer server = new HttpServer()
+    @org.junit.Rule
+    TestResources resources = new TestResources(temporaryFolder)
 
     def setup() {
         settingsFile << "rootProject.name = 'project'"
@@ -84,8 +86,9 @@ class HttpScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
 
         then:
         executer.expectDeprecationWarning("Applying script plugins from insecure URIs has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
-                "The provided URI '${server.uri("/external.gradle")}' uses an insecure protocol (HTTP). " +
-                "Use '${GUtil.toSecureUrl(server.uri("/external.gradle"))}' instead or try 'apply from: resources.text.fromInsecureUri(\"${server.uri("/external.gradle")}\")' to silence the warning.")
+            "The provided URI '${server.uri("/external.gradle")}' uses an insecure protocol (HTTP). " +
+            "Use '${GUtil.toSecureUrl(server.uri("/external.gradle"))}' instead or try 'apply from: resources.text.fromInsecureUri(\"${server.uri("/external.gradle")}\")' to silence the warning. " +
+            "See https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.api.resources.TextResourceFactory.html#org.gradle.api.resources.TextResourceFactory:fromInsecureUri(java.lang.Object) for more details.")
         succeeds()
     }
 
@@ -451,9 +454,9 @@ task check {
 
         and:
         failure.assertHasDescription("A problem occurred evaluating root project 'project'.")
-                .assertHasCause("Could not read '${scriptUrl}' as it does not exist.")
-                .assertHasFileName("Build file '${buildFile}'")
-                .assertHasLineNumber(2)
+            .assertHasCause("Could not read '${scriptUrl}' as it does not exist.")
+            .assertHasFileName("Build file '${buildFile}'")
+            .assertHasLineNumber(2)
 
         when:
         server.resetExpectations()

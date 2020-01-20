@@ -87,7 +87,7 @@ class HttpBuildCacheServiceTest extends Specification {
         def config = new HttpBuildCache()
         config.url = server.uri.resolve("/cache/")
         buildCacheDescriber = new NoopBuildCacheDescriber()
-        cache = new DefaultHttpBuildCacheServiceFactory(new DefaultSslContextFactory(), new DocumentationRegistry(), { it.addHeader("X-Gradle-Version", "3.0")})
+        cache = new DefaultHttpBuildCacheServiceFactory(new DefaultSslContextFactory(), { it.addHeader("X-Gradle-Version", "3.0") })
             .createBuildCacheService(config, buildCacheDescriber)
     }
 
