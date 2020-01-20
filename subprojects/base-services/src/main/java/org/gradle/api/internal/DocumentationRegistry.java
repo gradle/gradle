@@ -44,6 +44,11 @@ public class DocumentationRegistry {
         return String.format("https://docs.gradle.org/%s/dsl/%s.html#%s:%s", gradleVersion.getVersion(), className, className, property);
     }
 
+    public String getJavadocFor(Class<?> targetClass) {
+        String className = targetClass.getName();
+        return String.format("https://docs.gradle.org/%s/javadoc/%s.html", gradleVersion.getVersion(), className.replace('.', '/'));
+    }
+
     /**
      * Returns the location of the guide for the given name (e.g., "creating-new-gradle-builds").
      */
@@ -57,4 +62,5 @@ public class DocumentationRegistry {
     public String getTopicGuidesFor(String topic) {
         return String.format("https://guides.gradle.org?q=%s", topic);
     }
+
 }

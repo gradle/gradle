@@ -73,4 +73,24 @@ class DocumentationReferenceTest extends Specification {
         then:
         thrown NullPointerException
     }
+
+    def "creates dsl reference"() {
+        when:
+        def documentationReference = DocumentationReference.dslReference(DocumentationReference, "property")
+
+        then:
+        def expectedUrl = DOCUMENTATION_REGISTRY.getDslRefForProperty(DocumentationReference, "property")
+        documentationReference.documentationUrl() == expectedUrl
+        documentationReference.consultDocumentationMessage() == "See ${expectedUrl} for more details."
+    }
+
+    def "creates javadoc reference()"() {
+        when:
+        def documentationReference = DocumentationReference.javadoc(DocumentationReference)
+
+        then:
+        def expectedUrl = DOCUMENTATION_REGISTRY.getJavadocFor(DocumentationReference)
+        documentationReference.documentationUrl() == expectedUrl
+        documentationReference.consultDocumentationMessage() == "See ${expectedUrl} for more details."
+    }
 }

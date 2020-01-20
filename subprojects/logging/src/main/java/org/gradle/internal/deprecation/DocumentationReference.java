@@ -32,12 +32,16 @@ abstract class DocumentationReference {
         return new DefaultDocumentationReference(id, null);
     }
 
-    public static DocumentationReference upgradeGuide(int majorVersion, String upgradeGuideSection) {
+    static DocumentationReference upgradeGuide(int majorVersion, String upgradeGuideSection) {
         return new UpgradeGuideDocumentationReference(majorVersion, upgradeGuideSection);
     }
 
-    public static DocumentationReference dslReference(Class<?> targetClass, String property) {
+    static DocumentationReference dslReference(Class<?> targetClass, String property) {
         return new DslReference(targetClass, property);
+    }
+
+    static DocumentationReference javadoc(Class<?> targetClass) {
+        return new JavadocReference(targetClass);
     }
 
     abstract String documentationUrl();
@@ -112,6 +116,19 @@ abstract class DocumentationReference {
         @Override
         String documentationUrl() {
             return DOCUMENTATION_REGISTRY.getDslRefForProperty(targetClass, property);
+        }
+    }
+
+    private static class JavadocReference extends DocumentationReference {
+        private final Class<?> targetClass;
+
+        public JavadocReference(Class<?> targetClass) {
+            this.targetClass = targetClass;
+        }
+
+        @Override
+        String documentationUrl() {
+            return DOCUMENTATION_REGISTRY.getJavadocFor(targetClass);
         }
     }
 }

@@ -314,12 +314,34 @@ class DeprecationMessagesTest extends Specification {
     def "logs DSL documentation reference"() {
         when:
         DeprecationLogger.deprecateProperty("archiveName").replaceWith("archiveFileName")
-            .consultDslReference(AbstractArchiveTask, "archiveName")
+            .withDslReference(AbstractArchiveTask, "foo")
+            .nagUser()
+
+        then:
+        def dslReference = DOCUMENTATION_REGISTRY.getDslRefForProperty(AbstractArchiveTask, "foo")
+        expectMessage "The archiveName property has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Please use the archiveFileName property instead. See ${dslReference} for more details."
+    }
+
+    def "logs DSL documentation reference for deprecate property implicitly"() {
+        when:
+        DeprecationLogger.deprecateProperty("archiveName").replaceWith("archiveFileName")
+            .withDslReference(AbstractArchiveTask)
             .nagUser()
 
         then:
         def dslReference = DOCUMENTATION_REGISTRY.getDslRefForProperty(AbstractArchiveTask, "archiveName")
         expectMessage "The archiveName property has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Please use the archiveFileName property instead. See ${dslReference} for more details."
+    }
+
+    def "logs javadoc documentation reference"() {
+        when:
+        DeprecationLogger.deprecateProperty("archiveName").replaceWith("archiveFileName")
+            .withJavadoc(AbstractArchiveTask)
+            .nagUser()
+
+        then:
+        def javadocReference = DOCUMENTATION_REGISTRY.getJavadocFor(AbstractArchiveTask)
+        expectMessage "The archiveName property has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Please use the archiveFileName property instead. See ${javadocReference} for more details."
     }
 
     private void expectMessage(String expectedMessage) {

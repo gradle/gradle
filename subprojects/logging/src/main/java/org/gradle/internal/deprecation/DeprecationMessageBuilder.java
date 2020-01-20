@@ -58,8 +58,13 @@ public class DeprecationMessageBuilder {
         return this;
     }
 
-    public DeprecationMessageBuilder consultDslReference(Class<?> targetClass, String property) {
+    public DeprecationMessageBuilder withDslReference(Class<?> targetClass, String property) {
         this.documentationReference = DocumentationReference.dslReference(targetClass, property);
+        return this;
+    }
+
+    public DeprecationMessageBuilder withJavadoc(Class<?> targetClass) {
+        this.documentationReference = DocumentationReference.javadoc(targetClass);
         return this;
     }
 
@@ -92,6 +97,10 @@ public class DeprecationMessageBuilder {
         this.removalDetails = removalDetails;
     }
 
+    void setDocumentationReference(DocumentationReference documentationReference) {
+        this.documentationReference = documentationReference;
+    }
+
     DeprecationMessage build() {
         return new DeprecationMessage(summary, removalDetails, advice, context, documentationReference, usageType);
     }
@@ -106,6 +115,11 @@ public class DeprecationMessageBuilder {
 
         public WithReplacement<T> replaceWith(T replacement) {
             this.replacement = replacement;
+            return this;
+        }
+
+        public WithReplacement<T> withDslReference(Class<?> targetClass) {
+            setDocumentationReference(DocumentationReference.dslReference(targetClass, subject));
             return this;
         }
 
