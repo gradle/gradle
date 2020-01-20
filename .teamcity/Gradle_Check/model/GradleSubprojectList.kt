@@ -29,4 +29,10 @@ data class GradleSubprojectList(val subprojects: List<GradleSubproject>) {
 
     fun getSubprojectByName(name: String) = nameToSubproject[name]
     fun getSlowSubprojects() = subprojects.filter { it.containsSlowTests }
+
+    /**
+     * Get the subprojects starting between startChar (inclusive) and endChar (inclusive),
+     * for example, toolingApi is in ('R','T') but not in ('A','F') because toolingApi starts with 'T'
+     */
+    fun getSubprojectsBetween(startChar: Char, endChar: Char): List<String> = subprojects.map { it.name }.filter { it[0].toUpperCase() in (startChar..endChar) }
 }
