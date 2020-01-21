@@ -40,6 +40,9 @@ public class TwoStageModuleVersionsCache extends AbstractModuleVersionsCache {
         if (roEntry == null) {
             return writableEntry;
         }
+        if (writableEntry == null) {
+            return roEntry;
+        }
         return new ModuleVersionsCacheEntry(Sets.union(roEntry.moduleVersionListing, writableEntry.moduleVersionListing), writableEntry.createTimestamp);
     }
 }
