@@ -16,7 +16,7 @@
 
 package org.gradle.smoketests
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.integtests.fixtures.android.AndroidHome
 import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.util.Requires
@@ -42,7 +42,7 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @UnsupportedWithInstantExecution(iterationMatchers = ".*agp=3\\.[45]\\..*")
     def "android library and application APK assembly (agp=#agpVersion)"() {
 
         given:
