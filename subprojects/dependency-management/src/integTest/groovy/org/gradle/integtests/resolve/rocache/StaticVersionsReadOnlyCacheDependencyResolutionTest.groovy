@@ -23,6 +23,11 @@ import spock.lang.Unroll
 
 class StaticVersionsReadOnlyCacheDependencyResolutionTest extends AbstractReadOnlyCacheDependencyResolutionTest {
 
+    @Override
+    boolean isPublishJavadocsAndSources() {
+        true
+    }
+
     def "fetches dependencies from read-only cache"() {
         given:
         buildFile << """
@@ -82,9 +87,10 @@ class StaticVersionsReadOnlyCacheDependencyResolutionTest extends AbstractReadOn
     def "can recover from corrupt read-only cache (#file)"() {
         given:
         def core = mavenHttpRepo.module('org.readonly', 'core', '1.0')
+        def util = mavenHttpRepo.module('org.readonly', 'util', '1.0')
         buildFile << """
             dependencies {
-                implementation 'org.readonly:core:1.0'
+                implementation 'org.readonly:core:+'
             }
         """
 
@@ -93,23 +99,41 @@ class StaticVersionsReadOnlyCacheDependencyResolutionTest extends AbstractReadOn
         withReadOnlyCache()
 
         core.allowAll()
+        core.rootMetaData.allowGetOrHead()
+        util.allowAll()
 
-        succeeds ':checkDeps'
+        succeeds ':checkDeps', ':extraArtifacts'
 
         then:
         resolve.expectGraph {
             root(':', 'org.gradle:ro-test:20') {
-                module('org.readonly:core:1.0')
+                edge('org.readonly:core:+', 'org.readonly:core:1.0')
             }
         }
 
         where:
         file << [
-            'module-metadata',
-            'module-artifact',
-            'module-artifacts',
-            'resource-at-url'
+            'module-metadata', // stores parsed metadata in binary form
+            'module-artifact', // an index of artifact id -> artifact
+            'module-artifacts', // an index of modules -> artifact list
+            'resource-at-url' // used for external resources found in a repository like maven-metadata.xml (listing)
         ]
+    }
+
+    def "fetches javadocs and sources from read-only cache"() {
+        given:
+        buildFile << """
+            dependencies {
+                implementation 'org.readonly:core:1.0'
+            }
+        """
+
+        when:
+        withReadOnlyCache()
+        succeeds ':extraArtifacts'
+
+        then:
+        noExceptionThrown()
     }
 
 
