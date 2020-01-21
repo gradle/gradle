@@ -42,13 +42,13 @@ public abstract class DefaultDistribution implements Distribution {
 
     @Override
     public String getBaseName() {
-        DeprecationLogger.deprecateProperty("baseName").replaceWith("distributionBaseName").withJavadoc(Distribution.class).nagUser();
+        DeprecationLogger.deprecateProperty("baseName").replaceWith("distributionBaseName").undocumented().nagUser();
         return getDistributionBaseName().getOrNull();
     }
 
     @Override
     public void setBaseName(String baseName) {
-        DeprecationLogger.deprecateProperty("baseName").replaceWith("distributionBaseName").withJavadoc(Distribution.class).nagUser();
+        DeprecationLogger.deprecateProperty("baseName").replaceWith("distributionBaseName").undocumented().nagUser();
         getDistributionBaseName().set(baseName);
         getDistributionBaseName().convention(baseName);
     }

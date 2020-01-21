@@ -56,8 +56,4 @@ class DocumentationRegistryTest extends Specification {
         registry.getTopicGuidesFor("Native") == "https://guides.gradle.org?q=Native"
     }
 
-    def "points users at the javadoc"() {
-        expect:
-        registry.getJavadocFor(org.gradle.api.Action.class) == "https://docs.gradle.org/${gradleVersion.version}/javadoc/org/gradle/api/Action.html"
-    }
 }

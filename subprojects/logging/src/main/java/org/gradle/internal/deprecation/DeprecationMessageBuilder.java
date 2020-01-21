@@ -72,11 +72,6 @@ public class DeprecationMessageBuilder {
         return new WithDocumentation(this);
     }
 
-    public WithDocumentation withJavadoc(Class<?> targetClass) {
-        this.documentationReference = DocumentationReference.javadoc(targetClass);
-        return new WithDocumentation(this);
-    }
-
     public WithDocumentation withUpgradeGuideSection(int majorVersion, String upgradeGuideSection) {
         this.documentationReference = DocumentationReference.upgradeGuide(majorVersion, upgradeGuideSection);
         return new WithDocumentation(this);

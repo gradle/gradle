@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.ContextualMultiVersionTest
 import org.gradle.integtests.fixtures.MultiVersionSpecRunner
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.play.integtest.fixtures.PlayCoverage
-import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.util.VersionNumber
@@ -41,8 +40,7 @@ abstract class AbstractMultiVersionPlayExternalContinuousBuildIntegrationTest ex
     def setup() {
         buildFile << playPlatformConfiguration(version.toString())
         executer.withPluginRepositoryMirror()
-        executer.expectDeprecationWarning("The ProjectLayout.configurableFiles() method has been deprecated. This is scheduled to be removed in Gradle 7.0. Please use the ObjectFactory.fileCollection() method instead. " +
-            "See https://docs.gradle.org/${GradleVersion.current().version}/javadoc/org/gradle/api/file/ProjectLayout.html for more details.")
+        executer.expectDeprecationWarning("The ProjectLayout.configurableFiles() method has been deprecated. This is scheduled to be removed in Gradle 7.0. Please use the ObjectFactory.fileCollection() method instead.")
     }
 
     private static String playPlatformConfiguration(String version) {

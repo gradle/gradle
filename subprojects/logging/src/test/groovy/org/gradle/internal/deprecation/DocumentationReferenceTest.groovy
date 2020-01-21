@@ -78,13 +78,4 @@ class DocumentationReferenceTest extends Specification {
         documentationReference.consultDocumentationMessage() == "See ${expectedUrl} for more details."
     }
 
-    def "creates javadoc reference()"() {
-        when:
-        def documentationReference = DocumentationReference.javadoc(DocumentationReference)
-
-        then:
-        def expectedUrl = DOCUMENTATION_REGISTRY.getJavadocFor(DocumentationReference)
-        documentationReference.documentationUrl() == expectedUrl
-        documentationReference.consultDocumentationMessage() == "See ${expectedUrl} for more details."
-    }
 }

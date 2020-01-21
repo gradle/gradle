@@ -347,17 +347,6 @@ class DeprecationMessagesTest extends Specification {
         expectMessage "The archiveName property has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Please use the archiveFileName property instead. See ${dslReference} for more details."
     }
 
-    def "logs javadoc documentation reference"() {
-        when:
-        DeprecationLogger.deprecateProperty("archiveName").replaceWith("archiveFileName")
-            .withJavadoc(AbstractArchiveTask)
-            .nagUser()
-
-        then:
-        def javadocReference = DOCUMENTATION_REGISTRY.getJavadocFor(AbstractArchiveTask)
-        expectMessage "The archiveName property has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Please use the archiveFileName property instead. See ${javadocReference} for more details."
-    }
-
     private void expectMessage(String expectedMessage) {
         def events = outputEventListener.events
         events.size() == 1

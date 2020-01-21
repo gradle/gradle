@@ -44,10 +44,6 @@ abstract class DocumentationReference {
         return new DslReference(targetClass, property);
     }
 
-    static DocumentationReference javadoc(Class<?> targetClass) {
-        return new JavadocReference(targetClass);
-    }
-
     abstract String documentationUrl();
 
     String consultDocumentationMessage() {
@@ -126,18 +122,6 @@ abstract class DocumentationReference {
         }
     }
 
-    private static class JavadocReference extends DocumentationReference {
-        private final Class<?> targetClass;
-
-        public JavadocReference(Class<?> targetClass) {
-            this.targetClass = Preconditions.checkNotNull(targetClass);
-        }
-
-        @Override
-        String documentationUrl() {
-            return DOCUMENTATION_REGISTRY.getJavadocFor(targetClass);
-        }
-    }
 }
 
 
