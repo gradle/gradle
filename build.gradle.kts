@@ -130,7 +130,6 @@ buildTypes {
     create("allVersionsIntegMultiVersionTest") {
         tasks("integMultiVersionTest")
         projectProperties("testAllVersions" to true)
-        projectProperties("useAllDistribution" to true)
     }
 
     create("quickFeedbackCrossVersionTest") {
