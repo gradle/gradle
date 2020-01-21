@@ -19,6 +19,8 @@ package org.gradle.smoketests
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.android.AndroidHome
 import org.gradle.testkit.runner.TaskOutcome
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.gradle.util.VersionNumber
 import spock.lang.Unroll
 
@@ -30,6 +32,7 @@ import spock.lang.Unroll
  * https://androidstudio.googleblog.com/
  *
  */
+@Requires(TestPrecondition.JDK11_OR_EARLIER)
 class AndroidPluginsSmokeTest extends AbstractSmokeTest {
 
 
