@@ -40,8 +40,11 @@ class DynamicVersionsReadOnlyCacheDependencyResolutionTest extends AbstractReadO
 
         when:
         withReadOnlyCache()
-        latest.rootMetaData.expectGet()
+        latest.rootMetaData.allowGetOrHead()
         expectResolve(latest)
+        if (resolveDynamic) {
+            executer.withArgument("--refresh-dependencies")
+        }
 
         succeeds ':checkDeps'
 

@@ -102,6 +102,11 @@ class StaticVersionsReadOnlyCacheDependencyResolutionTest extends AbstractReadOn
         core.rootMetaData.allowGetOrHead()
         util.allowAll()
 
+        if (resolveDynamic) {
+            mavenHttpRepo.module('org.readonly', 'core', '0.9').publish()
+            executer.withArgument("--refresh-dependencies")
+        }
+
         succeeds ':checkDeps', ':extraArtifacts'
 
         then:

@@ -39,6 +39,10 @@ abstract class AbstractReadOnlyCacheDependencyResolutionTest extends AbstractHtt
         false
     }
 
+    boolean isResolveDynamic() {
+        false
+    }
+
     abstract List<MavenHttpModule> getModulesInReadOnlyCache(MavenHttpRepository repo)
 
     def setup() {
@@ -58,7 +62,7 @@ abstract class AbstractReadOnlyCacheDependencyResolutionTest extends AbstractHtt
             expectResolve(it)
             it.metaData.allowGetOrHead()
             it.rootMetaData.allowGetOrHead()
-            deps.append("""                implementation '${it.group}:${it.module}:${it.version}'
+            deps.append("""                implementation '${it.group}:${it.module}:${resolveDynamic?'+':it.version}'
 """)
             if (publishJavadocsAndSources) {
                 it.getArtifact(classifier: 'javadoc').allowGetOrHead()
