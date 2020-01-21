@@ -42,14 +42,19 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
     }
 
     @Unroll
-    @UnsupportedWithInstantExecution(iterationMatchers = ".*agp=3\\.[45]\\..*")
-    def "android library and application APK assembly (agp=#agpVersion)"() {
+    @UnsupportedWithInstantExecution(iterationMatchers = ".*agp=3\\..*")
+    def "android library and application APK assembly (agp=#agpVersion, ide=#ide)"(
+        String agpVersion, boolean ide
+    ) {
 
         given:
         def abiChange = androidLibraryAndApplicationBuild(agpVersion)
 
         and:
-        def runner = useAgpVersion(agpVersion, runner('assembleDebug'))
+        def runner = useAgpVersion(agpVersion, runner(
+            'assembleDebug',
+            "-Pandroid.injected.invoked.from.ide=$ide"
+        ))
 
         when: 'first build'
         def result = runner.build()
@@ -99,7 +104,10 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
         result.task(':app:assembleDebug').outcome == TaskOutcome.SUCCESS
 
         where:
-        agpVersion << TestedVersions.androidGradle
+        [agpVersion, ide] << [
+            TestedVersions.androidGradle.toList(),
+            [false, true]
+        ].combinations()
     }
 
     /**
