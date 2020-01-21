@@ -35,20 +35,41 @@ abstract class AbstractReadOnlyCacheDependencyResolutionTest extends AbstractHtt
     TestFile roCacheDir
     ResolveTestFixture resolve
 
+    boolean isPublishJavadocsAndSources() {
+        false
+    }
+
     abstract List<MavenHttpModule> getModulesInReadOnlyCache(MavenHttpRepository repo)
 
     def setup() {
         executer.requireIsolatedDaemons()
         executer.requireOwnGradleUserHomeDir()
         def roModules = getModulesInReadOnlyCache(mavenHttpRepo)
-        roModules*.withModuleMetadata()*.publish()
+        roModules.each {
+            it.withModuleMetadata()
+            if (publishJavadocsAndSources) {
+                it.withSourceAndJavadoc()
+            }
+            it.publish()
+        }
         def deps = new StringBuilder()
+        StringBuilder queries = new StringBuilder()
         roModules.each {
             expectResolve(it)
             it.metaData.allowGetOrHead()
             it.rootMetaData.allowGetOrHead()
             deps.append("""                implementation '${it.group}:${it.module}:${it.version}'
 """)
+            if (publishJavadocsAndSources) {
+                it.getArtifact(classifier: 'javadoc').allowGetOrHead()
+                it.getArtifact(classifier: 'sources').allowGetOrHead()
+                queries.append("""
+                    dependencies.createArtifactResolutionQuery()
+                       .forModule('${it.group}', '${it.module}', '${it.version}')
+                       .withArtifacts(JvmLibrary, SourcesArtifact, JavadocArtifact)
+                       .execute()
+                    """)
+            }
         }
         file("setup.gradle") << """
             apply plugin: 'java-library'
@@ -59,6 +80,7 @@ abstract class AbstractReadOnlyCacheDependencyResolutionTest extends AbstractHtt
             tasks.register("populateCache") {
                 doLast {
                     configurations.compileClasspath.files
+                    $queries
                 }
             }
         """
@@ -76,6 +98,12 @@ abstract class AbstractReadOnlyCacheDependencyResolutionTest extends AbstractHtt
                maven {
                   url "${mavenHttpRepo.uri}"
                }
+            }
+
+            tasks.register("extraArtifacts") {
+                doLast {
+                    $queries
+                }
             }
         """
         mavenHttpRepo.server.resetExpectations()
