@@ -33,6 +33,7 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Deeply opinionated file filter that adds elements to the release notes HTML page.
@@ -41,7 +42,7 @@ public class ReleaseNotesTransformer extends FilterReader {
     private File baseCss;
     private File releaseNotesCss;
     private File releaseNotesJavascript;
-    private File jquery;
+    private Set<File> jqueryFiles;
 
     public ReleaseNotesTransformer(Reader original) {
         super(original);
@@ -67,7 +68,7 @@ public class ReleaseNotesTransformer extends FilterReader {
     }
 
     private Reader transform(Reader in) throws IOException {
-        if (jquery == null || releaseNotesJavascript == null || baseCss == null || releaseNotesCss == null) {
+        if (jqueryFiles == null || releaseNotesJavascript == null || baseCss == null || releaseNotesCss == null) {
             throw new GradleException("filter isn't ready to transform");
         }
 
@@ -100,7 +101,9 @@ public class ReleaseNotesTransformer extends FilterReader {
     }
 
     private void addJavascriptToHead(Document document) {
-        appendFileContentsTo(document.head(), "<script type='text/javascript'>", jquery, "</script>");
+        for (File jquery : this.jqueryFiles) {
+            appendFileContentsTo(document.head(), "<script type='text/javascript'>", jquery, "</script>");
+        }
         appendFileContentsTo(document.head(), "<script type='text/javascript'>", releaseNotesJavascript, "</script>");
     }
 
@@ -173,8 +176,8 @@ public class ReleaseNotesTransformer extends FilterReader {
         }
     }
 
-    public void setJquery(File jquery) {
-        this.jquery = jquery;
+    public void setJqueryFiles(Set<File> jqueryFiles) {
+        this.jqueryFiles = jqueryFiles;
     }
 
     public void setBaseCss(File baseCss) {
