@@ -53,6 +53,14 @@ public interface DeprecatedUsageProgressDetails {
     String getContextualAdvice();
 
     /**
+     * See {@link DeprecatedFeatureUsage#getDocumentationUrl()}
+     *
+     * @since 6.2
+     */
+    @Nullable
+    String getDocumentationUrl();
+
+    /**
      * See {@link DeprecatedFeatureUsage#getType()}.
      *
      * Value is always of {@link DeprecatedFeatureUsage.Type#name()}.
