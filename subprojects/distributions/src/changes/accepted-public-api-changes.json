@@ -1,3 +1,18 @@
 {
-    "acceptedApiChanges": []
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.kotlin.dsl.ProjectExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.ProjectExtensionsKt.repositories(org.gradle.api.initialization.dsl.ScriptHandler,kotlin.jvm.functions.Function1)",
+            "acceptation": "Restoring binary compatibility with 6.0",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ScriptHandlerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.ScriptHandlerExtensionsKt.repositories(org.gradle.api.initialization.dsl.ScriptHandler,kotlin.jvm.functions.Function1)",
+            "acceptation": "Restoring binary compatibility with 6.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        }
+    ]
 }
