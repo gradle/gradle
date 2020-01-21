@@ -159,18 +159,18 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs discontinued method message"() {
         when:
-        DeprecationLogger.deprecateMethod("method()").withAdvice("Advice.").undocumented().nagUser()
+        DeprecationLogger.deprecateMethod(DeprecationLogger, "method()").withAdvice("Advice.").undocumented().nagUser()
 
         then:
-        expectMessage "The method() method has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Advice."
+        expectMessage "The DeprecationLogger.method() method has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Advice."
     }
 
     def "logs replaced method message"() {
         when:
-        DeprecationLogger.deprecateMethod("method()").replaceWith("replacementMethod()").undocumented().nagUser()
+        DeprecationLogger.deprecateMethod(DeprecationLogger, "method()").replaceWith("replacementMethod()").undocumented().nagUser()
 
         then:
-        expectMessage "The method() method has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Please use the replacementMethod() method instead."
+        expectMessage "The DeprecationLogger.method() method has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Please use the replacementMethod() method instead."
     }
 
     def "logs discontinued invocation message"() {

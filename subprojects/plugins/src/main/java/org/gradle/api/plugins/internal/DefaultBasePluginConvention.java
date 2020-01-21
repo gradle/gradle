@@ -61,7 +61,7 @@ public class DefaultBasePluginConvention extends BasePluginConvention implements
     @Override
     @Deprecated
     public File getDistsDir() {
-        DeprecationLogger.deprecateMethod("distsDir").replaceWith("distsDirectory").undocumented().nagUser();
+        DeprecationLogger.deprecateMethod(BasePluginConvention.class, "distsDir").replaceWith("distsDirectory").undocumented().nagUser();
         return getDistsDirectory().get().getAsFile();
     }
 
@@ -73,7 +73,7 @@ public class DefaultBasePluginConvention extends BasePluginConvention implements
     @Override
     @Deprecated
     public File getLibsDir() {
-        DeprecationLogger.deprecateMethod("libsDir").replaceWith("libsDirectory").undocumented().nagUser();
+        DeprecationLogger.deprecateMethod(BasePluginConvention.class, "libsDir").replaceWith("libsDirectory").undocumented().nagUser();
         return getLibsDirectory().get().getAsFile();
     }
 
@@ -84,13 +84,13 @@ public class DefaultBasePluginConvention extends BasePluginConvention implements
 
     @Override
     public ProjectInternal getProject() {
-        DeprecationLogger.deprecateMethod("BasePluginConvention.getProject()").undocumented().nagUser();
+        DeprecationLogger.deprecateMethod(BasePluginConvention.class, "getProject()").undocumented().nagUser();
         return project;
     }
 
     @Override
     public void setProject(ProjectInternal project) {
-        DeprecationLogger.deprecateMethod("BasePluginConvention.setProject()").undocumented().nagUser();
+        DeprecationLogger.deprecateMethod(BasePluginConvention.class, "setProject()").undocumented().nagUser();
         this.project = project;
     }
 

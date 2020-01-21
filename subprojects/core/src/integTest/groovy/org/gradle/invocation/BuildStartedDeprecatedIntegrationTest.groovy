@@ -36,7 +36,7 @@ class BuildStartedDeprecatedIntegrationTest extends AbstractIntegrationSpec {
         executer.usingInitScript(initScriptFile)
 
         expect:
-        executer.expectDocumentedDeprecationWarning("The BuildListener#buildStarted(Gradle) method has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+        executer.expectDocumentedDeprecationWarning("The BuildListener.buildStarted(Gradle) method has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
             "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#apis_buildlistener_buildstarted_and_gradle_buildstarted_have_been_deprecated")
         run "help"
 
@@ -61,7 +61,7 @@ class BuildStartedDeprecatedIntegrationTest extends AbstractIntegrationSpec {
         executer.usingInitScript(initScriptFile)
 
         expect:
-        executer.expectDocumentedDeprecationWarning("The BuildListener#buildStarted(Gradle) method has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+        executer.expectDocumentedDeprecationWarning("The BuildListener.buildStarted(Gradle) method has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
             "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#apis_buildlistener_buildstarted_and_gradle_buildstarted_have_been_deprecated")
         run "help"
 
@@ -87,9 +87,9 @@ class BuildStartedDeprecatedIntegrationTest extends AbstractIntegrationSpec {
         executer.usingInitScript(initScriptFile)
 
         expect:
-        executer.expectDocumentedDeprecationWarning("The Gradle#buildStarted(Action) method has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+        executer.expectDocumentedDeprecationWarning("The Gradle.buildStarted(Action) method has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
             "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#apis_buildlistener_buildstarted_and_gradle_buildstarted_have_been_deprecated")
-        executer.expectDocumentedDeprecationWarning("The Gradle#buildStarted(Closure) method has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+        executer.expectDocumentedDeprecationWarning("The Gradle.buildStarted(Closure) method has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
             "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#apis_buildlistener_buildstarted_and_gradle_buildstarted_have_been_deprecated")
         run "help"
 

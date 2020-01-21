@@ -351,13 +351,13 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
 
     @Override
     public void layout(String layoutName, Closure config) {
-        DeprecationLogger.deprecateMethod("IvyArtifactRepository.layout(String, Closure)").replaceWith("IvyArtifactRepository.patternLayout(Action)").undocumented().nagUser();
+        DeprecationLogger.deprecateMethod(IvyArtifactRepository.class, "layout(String, Closure)").replaceWith("IvyArtifactRepository.patternLayout(Action)").undocumented().nagUser();
         internalLayout(layoutName, ConfigureUtil.<RepositoryLayout>configureUsing(config));
     }
 
     @Override
     public void layout(String layoutName, Action<? extends RepositoryLayout> config) {
-        DeprecationLogger.deprecateMethod("IvyArtifactRepository.layout(String, Action)").replaceWith("IvyArtifactRepository.patternLayout(Action)").undocumented().nagUser();
+        DeprecationLogger.deprecateMethod(IvyArtifactRepository.class, "layout(String, Action)").replaceWith("IvyArtifactRepository.patternLayout(Action)").undocumented().nagUser();
         internalLayout(layoutName, config);
     }
 

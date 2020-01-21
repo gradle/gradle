@@ -240,8 +240,8 @@ public class DeprecationMessageBuilder {
 
     public static class DeprecateMethod extends WithReplacement<String> {
 
-        DeprecateMethod(String method) {
-            super(method);
+        DeprecateMethod(Class<?> methodClass, String methodWithParams) {
+            super(String.format("%s.%s", methodClass.getSimpleName(), methodWithParams));
         }
 
         @Override

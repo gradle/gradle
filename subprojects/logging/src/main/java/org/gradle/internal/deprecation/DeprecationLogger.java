@@ -160,8 +160,8 @@ public class DeprecationLogger {
      * Output: The ${method} method has been deprecated. This is scheduled to be removed in Gradle X.
      */
     @CheckReturnValue
-    public static DeprecationMessageBuilder.DeprecateMethod deprecateMethod(String method) {
-        return new DeprecationMessageBuilder.DeprecateMethod(method);
+    public static DeprecationMessageBuilder.DeprecateMethod deprecateMethod(Class<?> methodClass, String methodWithParams) {
+        return new DeprecationMessageBuilder.DeprecateMethod(methodClass, methodWithParams);
     }
 
     /**
