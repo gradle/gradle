@@ -37,11 +37,12 @@ import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.initialization.DefaultProjectDescriptor
 import org.gradle.initialization.DefaultSettings
 import org.gradle.initialization.NotifyingBuildLoader
-import org.gradle.initialization.PropertiesLoadingSettingsProcessor
 import org.gradle.initialization.SettingsLocation
 import org.gradle.initialization.SettingsPreparer
 import org.gradle.initialization.SettingsProcessor
 import org.gradle.initialization.TaskExecutionPreparer
+import org.gradle.instantexecution.initialization.InstantExecutionPropertiesLoader
+import org.gradle.instantexecution.initialization.InstantExecutionStartParameter
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.file.PathToFileResolver
 import org.gradle.internal.operations.BuildOperationCategory
@@ -58,20 +59,11 @@ import java.io.File
 
 
 class InstantExecutionHost internal constructor(
+    private val startParameter: InstantExecutionStartParameter,
     private val gradle: GradleInternal,
     private val classLoaderScopeRegistry: ClassLoaderScopeRegistry,
     private val projectFactory: IProjectFactory
 ) : DefaultInstantExecution.Host {
-
-    private
-    val startParameter = gradle.startParameter
-
-    override val skipLoadingStateReason: String?
-        get() = if (startParameter.isRefreshDependencies) {
-            "--refresh-dependencies"
-        } else {
-            null
-        }
 
     override val currentBuild: ClassicModeBuild =
         DefaultClassicModeBuild()
@@ -83,11 +75,7 @@ class InstantExecutionHost internal constructor(
         gradle.services.get(serviceType)
 
     override fun getSystemProperty(propertyName: String) =
-        startParameter.systemPropertiesArgs[propertyName] ?: System.getProperty(propertyName)
-
-    override val requestedTaskNames: List<String> = startParameter.taskNames
-
-    override val rootDir: File = startParameter.currentDir
+        gradleStartParameter.systemPropertiesArgs[propertyName] ?: System.getProperty(propertyName)
 
     inner class DefaultClassicModeBuild : ClassicModeBuild {
         override val buildSrc: Boolean
@@ -195,25 +183,27 @@ class InstantExecutionHost internal constructor(
             // It may be better to instead point GE at the origin build that produced the cached task graph,
             // or replace this with a different event/op that carries this information and wraps some actual work
             return BuildOperationSettingsProcessor(
-                PropertiesLoadingSettingsProcessor(
-                    SettingsProcessor { gradle, _, _, _ ->
-                        createSettings().also {
-                            applyAutoPluginRequestsTo(it)
-                        }
-                    },
-                    service()
-                ),
+                SettingsProcessor { _, _, _, _ ->
+                    createSettings().also {
+                        applyAutoPluginRequestsTo(it)
+                    }
+                },
                 service()
             ).process(
                 gradle,
                 SettingsLocation(rootDir, File(rootDir, "settings.gradle")),
                 gradle.classLoaderScope,
-                startParameter
+                gradleStartParameter
             )
         }
 
         private
         fun createSettings(): SettingsInternal {
+
+            require(service<InstantExecutionPropertiesLoader>().hasLoaded) {
+                "Properties must have been loaded before Settings object can be created."
+            }
+
             val baseClassLoaderScope = gradle.classLoaderScope
             val classLoaderScope = baseClassLoaderScope.createChild("settings")
             return StringScriptSource("settings", "").let { settingsSource ->
@@ -226,7 +216,7 @@ class InstantExecutionHost internal constructor(
                     service<ScriptHandlerFactory>().create(settingsSource, classLoaderScope),
                     rootDir,
                     settingsSource,
-                    startParameter
+                    gradleStartParameter
                 )
             }
         }
@@ -247,6 +237,10 @@ class InstantExecutionHost internal constructor(
     }
 
     private
+    val rootDir
+        get() = startParameter.rootDir
+
+    private
     val coreScope: ClassLoaderScope
         get() = classLoaderScopeRegistry.coreScope
 
@@ -265,4 +259,8 @@ class InstantExecutionHost internal constructor(
     private
     val projectDescriptorRegistry
         get() = (gradle.settings as DefaultSettings).projectDescriptorRegistry
+
+    private
+    val gradleStartParameter
+        get() = gradle.startParameter
 }

@@ -29,6 +29,8 @@ import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.execution.plan.Node
 import org.gradle.initialization.InstantExecution
 import org.gradle.instantexecution.extensions.uncheckedCast
+import org.gradle.instantexecution.initialization.InstantExecutionPropertiesLoader
+import org.gradle.instantexecution.initialization.InstantExecutionStartParameter
 import org.gradle.instantexecution.serialization.DefaultReadContext
 import org.gradle.instantexecution.serialization.DefaultWriteContext
 import org.gradle.instantexecution.serialization.IsolateOwner
@@ -62,6 +64,7 @@ import kotlin.coroutines.startCoroutine
 
 
 class DefaultInstantExecution internal constructor(
+    private val startParameter: InstantExecutionStartParameter,
     private val host: Host,
     private val scopeRegistryListener: InstantExecutionClassLoaderScopeRegistryListener,
     private val beanConstructors: BeanConstructors,
@@ -71,8 +74,6 @@ class DefaultInstantExecution internal constructor(
 
     interface Host {
 
-        val skipLoadingStateReason: String?
-
         val currentBuild: ClassicModeBuild
 
         fun createBuild(rootProjectName: String): InstantExecutionBuild
@@ -80,31 +81,28 @@ class DefaultInstantExecution internal constructor(
         fun <T> getService(serviceType: Class<T>): T
 
         fun getSystemProperty(propertyName: String): String?
-
-        val rootDir: File
-
-        val requestedTaskNames: List<String>
     }
 
     override fun canExecuteInstantaneously(): Boolean = when {
         !isInstantExecutionEnabled -> {
             false
         }
-        host.skipLoadingStateReason != null -> {
+        startParameter.isRefreshDependencies -> {
             log(
                 "Calculating task graph as instant execution cache cannot be reused due to {}",
-                host.skipLoadingStateReason
+                "--refresh-dependencies"
             )
             false
         }
         !instantExecutionFingerprintFile.isFile -> {
             log(
                 "Calculating task graph as no instant execution cache is available for tasks: {}",
-                host.requestedTaskNames.joinToString(" ")
+                startParameter.requestedTaskNames.joinToString(" ")
             )
             false
         }
         else -> {
+            loadProperties()
             val fingerprintChangedReason = checkFingerprint()
             when {
                 fingerprintChangedReason != null -> {
@@ -272,7 +270,7 @@ class DefaultInstantExecution internal constructor(
                     .uncheckedCast<SystemPropertyValueSource.Parameters>()
                     .propertyName
                     .get()
-                if (value.get() != systemProperty(propertyName)) {
+                if (value.get() != System.getProperty(propertyName)) {
                     "system property '$propertyName' has changed"
                 } else {
                     null
@@ -458,6 +456,11 @@ class DefaultInstantExecution internal constructor(
         }
 
     private
+    fun loadProperties() {
+        service<InstantExecutionPropertiesLoader>().loadProperties()
+    }
+
+    private
     fun log(message: String, vararg args: Any?) {
         logger.log(instantExecutionLogLevel, message, *args)
     }
@@ -485,7 +488,7 @@ class DefaultInstantExecution internal constructor(
     private
     val instantExecutionStateFile by lazy {
         val cacheDir = absoluteFile(".instant-execution-state/${currentGradleVersion()}")
-        val baseName = compactMD5For(host.requestedTaskNames)
+        val baseName = compactMD5For(startParameter.requestedTaskNames)
         val cacheFileName = "$baseName.bin"
         File(cacheDir, cacheFileName)
     }
@@ -496,7 +499,7 @@ class DefaultInstantExecution internal constructor(
 
     private
     fun absoluteFile(path: String) =
-        File(host.rootDir, path).absoluteFile
+        File(startParameter.rootDir, path).absoluteFile
 
     private
     val reportOutputDir by lazy {
