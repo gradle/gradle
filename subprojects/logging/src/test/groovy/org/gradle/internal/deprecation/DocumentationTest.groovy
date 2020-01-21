@@ -58,16 +58,6 @@ class DocumentationTest extends Specification {
         documentationReference.consultDocumentationMessage() == "Consult the upgrading guide for further information: ${expectedUrl}"
     }
 
-    def "creates dsl reference for type"() {
-        when:
-        def documentationReference = Documentation.dslReference(Documentation)
-
-        then:
-        def expectedUrl = DOCUMENTATION_REGISTRY.getDslRefForType(Documentation)
-        documentationReference.documentationUrl() == expectedUrl
-        documentationReference.consultDocumentationMessage() == "See ${expectedUrl} for more details."
-    }
-
     def "creates dsl reference for property"() {
         when:
         def documentationReference = Documentation.dslReference(Documentation, "property")

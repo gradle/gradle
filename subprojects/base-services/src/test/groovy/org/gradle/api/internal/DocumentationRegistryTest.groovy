@@ -36,11 +36,6 @@ class DocumentationRegistryTest extends Specification {
         registry.getDocumentationFor('gradle_daemon', 'reusing_daemons') == "https://docs.gradle.org/${gradleVersion.version}/userguide/gradle_daemon.html#reusing_daemons"
     }
 
-    def "points users at the gradle dsl web site for specific type"() {
-        expect:
-        registry.getDslRefForType(org.gradle.api.Action.class) == "https://docs.gradle.org/${gradleVersion.version}/dsl/org.gradle.api.Action.html"
-    }
-
     def "points users at the gradle dsl web site for specific property"() {
         expect:
         registry.getDslRefForProperty(org.gradle.api.Action.class, 'execute') == "https://docs.gradle.org/${gradleVersion.version}/dsl/org.gradle.api.Action.html#org.gradle.api.Action:execute"

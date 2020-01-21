@@ -314,17 +314,6 @@ class DeprecationMessagesTest extends Specification {
         expectMessage "Some behaviour. This behaviour has been deprecated and is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. See ${expectedDocumentationUrl} for more details."
     }
 
-    def "logs DSL documentation reference"() {
-        when:
-        DeprecationLogger.deprecate("Some feature").withAdvice("Do something about it.")
-            .withDslReferenceForType(AbstractArchiveTask)
-            .nagUser()
-
-        then:
-        def dslReference = DOCUMENTATION_REGISTRY.getDslRefForType(AbstractArchiveTask)
-        expectMessage "Some feature has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Do something about it. See ${dslReference} for more details."
-    }
-
     def "logs DSL property documentation reference"() {
         when:
         DeprecationLogger.deprecateProperty("archiveName").replaceWith("archiveFileName")

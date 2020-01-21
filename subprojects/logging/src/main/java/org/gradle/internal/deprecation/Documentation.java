@@ -36,10 +36,6 @@ abstract class Documentation {
         return new UpgradeGuide(majorVersion, upgradeGuideSection);
     }
 
-    static Documentation dslReference(Class<?> targetClass) {
-        return new DslReference(targetClass, null);
-    }
-
     static Documentation dslReference(Class<?> targetClass, String property) {
         return new DslReference(targetClass, property);
     }
@@ -110,15 +106,12 @@ abstract class Documentation {
 
         public DslReference(Class<?> targetClass, String property) {
             this.targetClass = Preconditions.checkNotNull(targetClass);
-            this.property = property;
+            this.property = Preconditions.checkNotNull(property);
         }
 
         @Override
         String documentationUrl() {
-            if (property != null) {
-                return DOCUMENTATION_REGISTRY.getDslRefForProperty(targetClass, property);
-            }
-            return DOCUMENTATION_REGISTRY.getDslRefForType(targetClass);
+            return DOCUMENTATION_REGISTRY.getDslRefForProperty(targetClass, property);
         }
     }
 

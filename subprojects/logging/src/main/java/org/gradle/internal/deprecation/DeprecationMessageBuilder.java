@@ -62,11 +62,6 @@ public class DeprecationMessageBuilder {
         return new WithDocumentation(this);
     }
 
-    public WithDocumentation withDslReferenceForType(Class<?> targetClass) {
-        this.documentation = Documentation.dslReference(targetClass);
-        return new WithDocumentation(this);
-    }
-
     public WithDocumentation withDslReferenceForProperty(Class<?> targetClass, String property) {
         this.documentation = Documentation.dslReference(targetClass, property);
         return new WithDocumentation(this);
