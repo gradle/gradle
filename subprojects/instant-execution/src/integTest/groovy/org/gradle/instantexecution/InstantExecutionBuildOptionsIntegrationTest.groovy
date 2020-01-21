@@ -21,6 +21,75 @@ import spock.lang.Unroll
 class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecutionIntegrationTest {
 
     @Unroll
+    def "system property from #systemPropertySource used as task and build logic input"() {
+
+        given:
+        def instant = newInstantExecutionFixture()
+        buildKotlinFile """
+
+            abstract class Greet : DefaultTask() {
+
+                @get:Input
+                abstract val greeting: Property<String>
+
+                @TaskAction
+                fun act() {
+                    println(greeting.get().capitalize() + "!")
+                }
+            }
+
+            val greetingProp = providers.systemProperty("greeting")
+            if (greetingProp.get() == "hello") {
+                tasks.register<Greet>("greet") {
+                    greeting.set("hello, hello")
+                }
+            } else {
+                tasks.register<Greet>("greet") {
+                    greeting.set(greetingProp)
+                }
+            }
+        """
+        def runGreetWith = { String greeting ->
+            switch (systemPropertySource) {
+                case SystemPropertySource.COMMAND_LINE:
+                    return instantRun('greet', "-Dgreeting=$greeting")
+                case SystemPropertySource.GRADLE_PROPERTIES:
+                    file('gradle.properties').text = "systemProp.greeting=$greeting"
+                    return instantRun('greet')
+            }
+            throw new IllegalArgumentException('source')
+        }
+        when:
+        runGreetWith 'hi'
+
+        then:
+        output.count("Hi!") == 1
+        instant.assertStateStored()
+
+        when:
+        runGreetWith 'hi'
+
+        then:
+        output.count("Hi!") == 1
+        instant.assertStateLoaded()
+
+        when:
+        runGreetWith 'hello'
+
+        then:
+        output.count("Hello, hello!") == 1
+        instant.assertStateStored()
+
+        where:
+        systemPropertySource << SystemPropertySource.values()
+    }
+
+    enum SystemPropertySource {
+        COMMAND_LINE,
+        GRADLE_PROPERTIES
+    }
+
+    @Unroll
     def "#usage property from properties file used as build logic input"() {
 
         given:
@@ -108,56 +177,6 @@ class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecuti
         expression                                     | usage
         'isCi.map(String::toBoolean).getOrElse(false)' | 'mapped'
         'isCi.getOrElse("false") != "false"'           | 'raw'
-    }
-
-    def "system property used as task and build logic input"() {
-
-        given:
-        def instant = newInstantExecutionFixture()
-        buildKotlinFile """
-
-            abstract class Greet : DefaultTask() {
-
-                @get:Input
-                abstract val greeting: Property<String>
-
-                @TaskAction
-                fun act() {
-                    println(greeting.get().capitalize() + "!")
-                }
-            }
-
-            val greetingProp = providers.systemProperty("greeting")
-            if (greetingProp.get() == "hello") {
-                tasks.register<Greet>("greet") {
-                    greeting.set("hello, hello")
-                }
-            } else {
-                tasks.register<Greet>("greet") {
-                    greeting.set(greetingProp)
-                }
-            }
-        """
-        when:
-        instantRun("greet", "-Dgreeting=hi")
-
-        then:
-        output.count("Hi!") == 1
-        instant.assertStateStored()
-
-        when:
-        instantRun("greet", "-Dgreeting=hi")
-
-        then:
-        output.count("Hi!") == 1
-        instant.assertStateLoaded()
-
-        when:
-        instantRun("greet", "-Dgreeting=hello")
-
-        then:
-        output.count("Hello, hello!") == 1
-        instant.assertStateStored()
     }
 
     def "mapped system property used as task input"() {

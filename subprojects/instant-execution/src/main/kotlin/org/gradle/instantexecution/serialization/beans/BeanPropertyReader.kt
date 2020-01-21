@@ -17,6 +17,7 @@
 package org.gradle.instantexecution.serialization.beans
 
 import org.gradle.api.GradleException
+import org.gradle.instantexecution.extensions.unsafeLazy
 import org.gradle.instantexecution.serialization.IsolateContext
 import org.gradle.instantexecution.serialization.PropertyKind
 import org.gradle.instantexecution.serialization.PropertyTrace
@@ -48,7 +49,7 @@ class BeanPropertyReader(
     val fieldSetters = relevantStateOf(beanType).map { Pair(it.name, setterFor(it)) }
 
     private
-    val constructorForSerialization by lazy {
+    val constructorForSerialization by unsafeLazy {
         constructors.constructorForSerialization(beanType)
     }
 

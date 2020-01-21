@@ -29,6 +29,9 @@ import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.execution.plan.Node
 import org.gradle.initialization.InstantExecution
 import org.gradle.instantexecution.extensions.uncheckedCast
+import org.gradle.instantexecution.extensions.unsafeLazy
+import org.gradle.instantexecution.initialization.InstantExecutionPropertiesLoader
+import org.gradle.instantexecution.initialization.InstantExecutionStartParameter
 import org.gradle.instantexecution.serialization.DefaultReadContext
 import org.gradle.instantexecution.serialization.DefaultWriteContext
 import org.gradle.instantexecution.serialization.IsolateOwner
@@ -63,6 +66,7 @@ import kotlin.coroutines.startCoroutine
 
 class DefaultInstantExecution internal constructor(
     private val host: Host,
+    private val startParameter: InstantExecutionStartParameter,
     private val scopeRegistryListener: InstantExecutionClassLoaderScopeRegistryListener,
     private val beanConstructors: BeanConstructors,
     private val valueSourceProviderFactory: ValueSourceProviderFactory,
@@ -71,40 +75,33 @@ class DefaultInstantExecution internal constructor(
 
     interface Host {
 
-        val skipLoadingStateReason: String?
-
         val currentBuild: ClassicModeBuild
 
         fun createBuild(rootProjectName: String): InstantExecutionBuild
 
         fun <T> getService(serviceType: Class<T>): T
-
-        fun getSystemProperty(propertyName: String): String?
-
-        val rootDir: File
-
-        val requestedTaskNames: List<String>
     }
 
     override fun canExecuteInstantaneously(): Boolean = when {
         !isInstantExecutionEnabled -> {
             false
         }
-        host.skipLoadingStateReason != null -> {
+        startParameter.isRefreshDependencies -> {
             log(
                 "Calculating task graph as instant execution cache cannot be reused due to {}",
-                host.skipLoadingStateReason
+                "--refresh-dependencies"
             )
             false
         }
         !instantExecutionFingerprintFile.isFile -> {
             log(
                 "Calculating task graph as no instant execution cache is available for tasks: {}",
-                host.requestedTaskNames.joinToString(" ")
+                startParameter.requestedTaskNames.joinToString(" ")
             )
             false
         }
         else -> {
+            loadProperties()
             val fingerprintChangedReason = checkFingerprint()
             when {
                 fingerprintChangedReason != null -> {
@@ -272,7 +269,7 @@ class DefaultInstantExecution internal constructor(
                     .uncheckedCast<SystemPropertyValueSource.Parameters>()
                     .propertyName
                     .get()
-                if (value.get() != systemProperty(propertyName)) {
+                if (value.get() != System.getProperty(propertyName)) {
                     "system property '$propertyName' has changed"
                 } else {
                     null
@@ -375,7 +372,7 @@ class DefaultInstantExecution internal constructor(
     )
 
     private
-    val codecs: Codecs by lazy {
+    val codecs: Codecs by unsafeLazy {
         Codecs(
             directoryFileTreeFactory = service(),
             fileCollectionFactory = service(),
@@ -458,6 +455,11 @@ class DefaultInstantExecution internal constructor(
         }
 
     private
+    fun loadProperties() {
+        service<InstantExecutionPropertiesLoader>().loadProperties()
+    }
+
+    private
     fun log(message: String, vararg args: Any?) {
         logger.log(instantExecutionLogLevel, message, *args)
     }
@@ -476,16 +478,16 @@ class DefaultInstantExecution internal constructor(
     }
 
     private
-    val instantExecutionFingerprintFile by lazy {
+    val instantExecutionFingerprintFile by unsafeLazy {
         instantExecutionStateFile.run {
             resolveSibling("$name.fingerprint")
         }
     }
 
     private
-    val instantExecutionStateFile by lazy {
+    val instantExecutionStateFile by unsafeLazy {
         val cacheDir = absoluteFile(".instant-execution-state/${currentGradleVersion()}")
-        val baseName = compactMD5For(host.requestedTaskNames)
+        val baseName = compactMD5For(startParameter.requestedTaskNames)
         val cacheFileName = "$baseName.bin"
         File(cacheDir, cacheFileName)
     }
@@ -496,10 +498,10 @@ class DefaultInstantExecution internal constructor(
 
     private
     fun absoluteFile(path: String) =
-        File(host.rootDir, path).absoluteFile
+        File(startParameter.rootDir, path).absoluteFile
 
     private
-    val reportOutputDir by lazy {
+    val reportOutputDir by unsafeLazy {
         instantExecutionStateFile.run {
             resolveSibling(nameWithoutExtension)
         }
@@ -507,14 +509,14 @@ class DefaultInstantExecution internal constructor(
 
     // Skip instant execution for buildSrc for now. Should instead collect up the inputs of its tasks and treat as task graph cache inputs
     private
-    val isInstantExecutionEnabled: Boolean by lazy {
-        systemProperty(SystemProperties.isEnabled)?.toBoolean() ?: false
+    val isInstantExecutionEnabled: Boolean by unsafeLazy {
+        systemPropertyFlag(SystemProperties.isEnabled)
             && !host.currentBuild.buildSrc
     }
 
     private
     val instantExecutionLogLevel: LogLevel
-        get() = when (systemProperty(SystemProperties.isQuiet)?.toBoolean()) {
+        get() = when (systemPropertyFlag(SystemProperties.isQuiet)) {
             true -> LogLevel.INFO
             else -> LogLevel.LIFECYCLE
         }
@@ -526,14 +528,16 @@ class DefaultInstantExecution internal constructor(
             ?: 512
 
     private
-    fun failOnProblems(): Boolean =
-        systemProperty(SystemProperties.failOnProblems)
-            ?.toBoolean()
-            ?: false
+    fun failOnProblems() =
+        systemPropertyFlag(SystemProperties.failOnProblems)
+
+    private
+    fun systemPropertyFlag(propertyName: String): Boolean =
+        systemProperty(propertyName)?.toBoolean() ?: false
 
     private
     fun systemProperty(propertyName: String) =
-        host.getSystemProperty(propertyName)
+        startParameter.systemPropertyArg(propertyName) ?: System.getProperty(propertyName)
 
     private
     fun compactMD5For(taskNames: List<String>) =
