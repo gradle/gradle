@@ -29,6 +29,7 @@ import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.execution.plan.Node
 import org.gradle.initialization.InstantExecution
 import org.gradle.instantexecution.extensions.uncheckedCast
+import org.gradle.instantexecution.extensions.unsafeLazy
 import org.gradle.instantexecution.initialization.InstantExecutionPropertiesLoader
 import org.gradle.instantexecution.initialization.InstantExecutionStartParameter
 import org.gradle.instantexecution.serialization.DefaultReadContext
@@ -371,7 +372,7 @@ class DefaultInstantExecution internal constructor(
     )
 
     private
-    val codecs: Codecs by lazy {
+    val codecs: Codecs by unsafeLazy {
         Codecs(
             directoryFileTreeFactory = service(),
             fileCollectionFactory = service(),
@@ -477,14 +478,14 @@ class DefaultInstantExecution internal constructor(
     }
 
     private
-    val instantExecutionFingerprintFile by lazy {
+    val instantExecutionFingerprintFile by unsafeLazy {
         instantExecutionStateFile.run {
             resolveSibling("$name.fingerprint")
         }
     }
 
     private
-    val instantExecutionStateFile by lazy {
+    val instantExecutionStateFile by unsafeLazy {
         val cacheDir = absoluteFile(".instant-execution-state/${currentGradleVersion()}")
         val baseName = compactMD5For(startParameter.requestedTaskNames)
         val cacheFileName = "$baseName.bin"
@@ -500,7 +501,7 @@ class DefaultInstantExecution internal constructor(
         File(startParameter.rootDir, path).absoluteFile
 
     private
-    val reportOutputDir by lazy {
+    val reportOutputDir by unsafeLazy {
         instantExecutionStateFile.run {
             resolveSibling(nameWithoutExtension)
         }
@@ -508,7 +509,7 @@ class DefaultInstantExecution internal constructor(
 
     // Skip instant execution for buildSrc for now. Should instead collect up the inputs of its tasks and treat as task graph cache inputs
     private
-    val isInstantExecutionEnabled: Boolean by lazy {
+    val isInstantExecutionEnabled: Boolean by unsafeLazy {
         systemPropertyFlag(SystemProperties.isEnabled)
             && !host.currentBuild.buildSrc
     }
