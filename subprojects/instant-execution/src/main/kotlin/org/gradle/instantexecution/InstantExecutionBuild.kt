@@ -29,8 +29,6 @@ interface InstantExecutionBuild {
 
     fun getProject(path: String): ProjectInternal
 
-    fun autoApplyPlugins()
-
     fun registerProjects()
 
     fun scheduleNodes(nodes: Collection<Node>)

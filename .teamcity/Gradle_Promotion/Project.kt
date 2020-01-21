@@ -11,9 +11,9 @@ import Gradle_Promotion.buildTypes.StartReleaseCycle
 import Gradle_Promotion.buildTypes.StartReleaseCycleTest
 import Gradle_Promotion.vcsRoots.Gradle_Promotion_GradlePromotionBranches
 import Gradle_Promotion.vcsRoots.Gradle_Promotion__master_
-import jetbrains.buildServer.configs.kotlin.v2018_2.Project
-import jetbrains.buildServer.configs.kotlin.v2018_2.projectFeatures.VersionedSettings
-import jetbrains.buildServer.configs.kotlin.v2018_2.projectFeatures.versionedSettings
+import jetbrains.buildServer.configs.kotlin.v2019_2.Project
+import jetbrains.buildServer.configs.kotlin.v2019_2.projectFeatures.VersionedSettings
+import jetbrains.buildServer.configs.kotlin.v2019_2.projectFeatures.versionedSettings
 
 object Project : Project({
     uuid = "16c9f3e3-36a9-4596-a35c-70a3c7a2c5c8"

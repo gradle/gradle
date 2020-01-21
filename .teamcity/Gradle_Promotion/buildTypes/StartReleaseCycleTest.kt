@@ -17,8 +17,8 @@
 package Gradle_Promotion.buildTypes
 
 import common.gradleWrapper
-import jetbrains.buildServer.configs.kotlin.v2018_2.triggers.schedule
-import jetbrains.buildServer.configs.kotlin.v2018_2.triggers.vcs
+import jetbrains.buildServer.configs.kotlin.v2019_2.triggers.schedule
+import jetbrains.buildServer.configs.kotlin.v2019_2.triggers.vcs
 
 object StartReleaseCycleTest : BasePromotionBuildType(vcsRoot = Gradle_Promotion.vcsRoots.Gradle_Promotion_GradlePromotionBranches, cleanCheckout = false) {
     init {

@@ -27,7 +27,41 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
         instantExecution = newInstantExecutionFixture()
     }
 
-    def "build on Java build with a single source file and no dependencies"() {
+    def "build on Java project with no source"() {
+        given:
+        settingsFile << """
+            rootProject.name = 'somelib'
+        """
+        buildFile << """
+            plugins { id 'java' }
+        """
+
+        when:
+        instantRun "build"
+
+        then:
+        instantExecution.assertStateStored()
+        result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
+        def jarFile = file("build/libs/somelib.jar")
+        new ZipTestFixture(jarFile).hasDescendants("META-INF/MANIFEST.MF")
+
+        when:
+        instantRun "clean"
+
+        then:
+        instantExecution.assertStateStored()
+        !file("build").exists()
+
+        when:
+        instantRun "build"
+
+        then:
+        instantExecution.assertStateLoaded()
+        result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
+        new ZipTestFixture(jarFile).hasDescendants("META-INF/MANIFEST.MF")
+    }
+
+    def "build on Java project with a single source file and no dependencies"() {
         given:
         settingsFile << """
             rootProject.name = 'somelib'
@@ -39,32 +73,40 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
             class Thing {
             }
         """
-        // Ignored by the Java source set excludes
+        // Should be ignored by the Java source set excludes
         file("src/main/java/Gizmo.groovy") << """
             class Gizmo { def foo() {} }
         """
 
-        expect:
+        when:
         instantRun "build"
+
+        then:
         instantExecution.assertStateStored()
         result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
         def classFile = file("build/classes/java/main/Thing.class")
         classFile.isFile()
         def jarFile = file("build/libs/somelib.jar")
-        jarFile.isFile()
+        new ZipTestFixture(jarFile).hasDescendants("META-INF/MANIFEST.MF", "Thing.class")
 
         when:
-        file("build").delete()
+        instantRun "clean"
+
+        then:
+        instantExecution.assertStateStored()
+        !file("build").exists()
+
+        when:
         instantRun "build"
 
         then:
         instantExecution.assertStateLoaded()
         result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
         classFile.isFile()
-        new ZipTestFixture(jarFile).assertContainsFile("Thing.class")
+        new ZipTestFixture(jarFile).hasDescendants("META-INF/MANIFEST.MF", "Thing.class")
     }
 
-    def "clean on Java build with a single source file and no dependencies"() {
+    def "clean on Java project with a single source file and no dependencies"() {
         given:
         settingsFile << """
             rootProject.name = 'somelib'
@@ -95,15 +137,15 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
         !buildDir.exists()
     }
 
-    def "assemble on Java build with multiple source directories"() {
+    def "assemble on Java project with multiple source directories"() {
         given:
         settingsFile << """
             rootProject.name = 'somelib'
         """
         buildFile << """
             plugins { id 'java' }
-            
-            sourceSets.main.java.srcDir("src/common/java") 
+
+            sourceSets.main.java.srcDir("src/common/java")
         """
         file("src/common/java/OtherThing.java") << """
             class OtherThing {
@@ -114,8 +156,10 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
             }
         """
 
-        expect:
+        when:
         instantRun "assemble"
+
+        then:
         instantExecution.assertStateStored()
         result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":assemble")
         def classFile = file("build/classes/java/main/Thing.class")
@@ -124,7 +168,13 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
         jarFile.isFile()
 
         when:
-        file("build").delete()
+        instantRun "clean"
+
+        then:
+        instantExecution.assertStateStored()
+        !file("build").exists()
+
+        when:
         instantRun "assemble"
 
         then:
@@ -166,14 +216,16 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
         jarFile.isFile()
 
         and:
-        file("build").delete()
+        instantRun "clean"
+
+        and:
         instantRun ":b:assemble"
 
         then:
         new ZipTestFixture(jarFile).assertContainsFile("b/B.class")
     }
 
-    def "processResources on single project Java build honors up-to-date check"() {
+    def "processResources on Java project honors up-to-date check"() {
         given:
         buildFile << """
             apply plugin: 'java'
@@ -192,7 +244,7 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
         instantExecution.assertStateLoaded()
     }
 
-    def "processResources on single project Java build honors task inputs"() {
+    def "processResources on Java project honors task inputs"() {
         given:
         buildFile << """
             apply plugin: 'java'
@@ -223,7 +275,7 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
         file("build/resources/main/answer.txt").text == "forty-two"
     }
 
-    def "processResources on single project Java build honors task outputs"() {
+    def "processResources on Java project honors task outputs"() {
         given:
         buildFile << """
             apply plugin: 'java'
@@ -244,7 +296,7 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
         file("build/resources/main/answer.txt").text == "42"
     }
 
-    def "check on Java build with JUnit tests"() {
+    def "build on Java project with JUnit tests"() {
         given:
         settingsFile << """
             rootProject.name = 'somelib'
@@ -269,10 +321,12 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
             }
         """
 
-        expect:
-        instantRun "check"
+        when:
+        instantRun "build"
+
+        then:
         instantExecution.assertStateStored()
-        this.result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":check")
+        this.result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
         def classFile = file("build/classes/java/main/Thing.class")
         classFile.isFile()
         def testClassFile = file("build/classes/java/test/ThingTest.class")
@@ -282,19 +336,25 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
         assertTestsExecuted("ThingTest", "ok")
 
         when:
-        file("build").delete()
-        instantRun "check"
+        instantRun "clean"
+
+        then:
+        instantExecution.assertStateStored()
+        !file("build").exists()
+
+        when:
+        instantRun "build"
 
         then:
         instantExecution.assertStateLoaded()
-        this.result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":check")
+        this.result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
         classFile.isFile()
         testClassFile.isFile()
         testResults.isDirectory()
         assertTestsExecuted("ThingTest", "ok")
     }
 
-    def "assemble on Java application build with no dependencies"() {
+    def "build on Java application project with no dependencies"() {
         given:
         settingsFile << """
             rootProject.name = 'someapp'
@@ -308,22 +368,30 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
             }
         """
 
-        expect:
-        instantRun "assemble"
+        when:
+        instantRun "build"
+
+        then:
         instantExecution.assertStateStored()
-        result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":startScripts", ":distTar", ":distZip", ":assemble")
+        result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":startScripts", ":distTar", ":distZip", ":assemble", ":check", ":build")
         def classFile = file("build/classes/java/main/Thing.class")
         classFile.isFile()
         def jarFile = file("build/libs/someapp.jar")
         jarFile.isFile()
 
         when:
-        file("build").delete()
-        instantRun "assemble"
+        instantRun "clean"
+
+        then:
+        instantExecution.assertStateStored()
+        !file("build").exists()
+
+        when:
+        instantRun "build"
 
         then:
         instantExecution.assertStateLoaded()
-        result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":startScripts", ":distTar", ":distZip", ":assemble")
+        result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":startScripts", ":distTar", ":distZip", ":assemble", ":check", ":build")
         classFile.isFile()
         jarFile.isFile()
     }

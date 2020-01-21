@@ -18,7 +18,7 @@ package common
 
 import configurations.buildJavaHome
 import configurations.individualPerformanceTestJavaHome
-import jetbrains.buildServer.configs.kotlin.v2018_2.BuildType
+import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
 
 fun BuildType.applyPerformanceTestSettings(os: Os = Os.linux, timeout: Int = 30) {
     applyDefaultSettings(os = os, timeout = timeout)

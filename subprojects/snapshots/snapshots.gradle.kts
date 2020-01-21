@@ -24,10 +24,12 @@ plugins {
 description = "Tools to take immutable, comparable snapshots of files and other things"
 
 dependencies {
-    implementation(library("guava")) { version { require(libraryVersion("guava")) } }
-    implementation(project(":files"))
-    implementation(project(":hashing"))
+    api(project(":files"))
+    api(project(":hashing"))
+
     implementation(project(":baseAnnotations"))
+
+    implementation(library("guava")) { version { require(libraryVersion("guava")) } }
     implementation(library("slf4j_api")) { version { require(libraryVersion("slf4j_api")) } }
 
     testImplementation(project(":processServices"))

@@ -2,8 +2,8 @@ package projects
 
 import common.Os
 import configurations.IndividualPerformanceScenarioWorkers
-import jetbrains.buildServer.configs.kotlin.v2018_2.AbsoluteId
-import jetbrains.buildServer.configs.kotlin.v2018_2.Project
+import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
+import jetbrains.buildServer.configs.kotlin.v2019_2.Project
 import model.CIBuildModel
 
 class WorkersProject(model: CIBuildModel) : Project({

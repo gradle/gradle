@@ -26,7 +26,7 @@ import common.distributedPerformanceTestParameters
 import common.gradleWrapper
 import common.performanceTestCommandLine
 import configurations.individualPerformanceTestJavaHome
-import jetbrains.buildServer.configs.kotlin.v2018_2.BuildType
+import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
 
 open class AdHocPerformanceTestCoordinator(uuid: String, id: String, os: Os) : BuildType({
     this.uuid = uuid

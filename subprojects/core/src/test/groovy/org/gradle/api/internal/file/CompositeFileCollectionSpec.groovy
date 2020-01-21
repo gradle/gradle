@@ -289,7 +289,7 @@ class CompositeFileCollectionSpec extends Specification {
         collection.buildDependencies.getDependencies(task) == [dependency1, dependency2] as LinkedHashSet
     }
 
-    def "can visit root elements"() {
+    def "can visit structure"() {
         def child1 = Stub(FileCollectionInternal)
         def child2 = Stub(FileTreeInternal)
         def source = Stub(FileCollectionInternal.Source)

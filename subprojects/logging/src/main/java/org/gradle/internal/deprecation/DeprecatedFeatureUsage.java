@@ -118,6 +118,13 @@ public class DeprecatedFeatureUsage extends FeatureUsage {
         return contextualAdvice;
     }
 
+    /**
+     * Link to documentation, describing how to migrate from this deprecated usage.
+     *
+     * Example: https://docs.gradle.org/current/userguide/upgrading_version_5.html#plugin_validation_changes
+     *
+     * @since 6.2
+     */
     @Nullable
     public String getDocumentationUrl() {
         return documentationReference.documentationUrl();

@@ -49,6 +49,11 @@ public class DefaultDeprecatedUsageProgressDetails implements DeprecatedUsagePro
     }
 
     @Override
+    public String getDocumentationUrl() {
+        return featureUsage.getDocumentationUrl();
+    }
+
+    @Override
     public String getType() {
         return featureUsage.getType().name();
     }
