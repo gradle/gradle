@@ -454,7 +454,7 @@ class IvyFileModule extends AbstractModule implements IvyModule {
             attributes + ['org.gradle.status': status]
         )
 
-        adapter.publishTo(moduleDir)
+        adapter.publishTo(moduleDir, publishCount)
     }
 
 

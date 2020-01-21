@@ -30,6 +30,8 @@ class GradleFileModuleAdapter {
     private final List<VariantMetadataSpec> variants
     private final Map<String, String> attributes
 
+    private final String buildId = "test-build"
+
     GradleFileModuleAdapter(String group, String module, String version, String publishArtifactVersion, List<VariantMetadataSpec> variants, Map<String, String> attributes = [:]) {
         this.group = group
         this.module = module
@@ -39,14 +41,21 @@ class GradleFileModuleAdapter {
         this.attributes = attributes
     }
 
-    void publishTo(TestFile moduleDir) {
+    void publishTo(TestFile moduleDir, long publishId) {
         moduleDir.createDir()
         def file = moduleDir.file("$module-${publishArtifactVersion}.module")
         def jsonBuilder = new JsonBuilder()
         jsonBuilder {
             formatVersion GradleModuleMetadataParser.FORMAT_VERSION
             builtBy {
-                gradle { }
+                gradle {
+                    // padding is used to avoid test flakiness: often the FS will not correctly
+                    // report lastModified, but file size would change so we would detect it!
+                    padding "-"*publishId
+
+                    // add a random build id to make sure file changes
+                    buildId "$buildId"
+                }
             }
             component {
                 if (printComponentGAV) {
