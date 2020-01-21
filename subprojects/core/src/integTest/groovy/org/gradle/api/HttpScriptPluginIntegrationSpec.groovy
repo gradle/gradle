@@ -16,8 +16,8 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.matchers.UserAgentMatcher
@@ -85,10 +85,10 @@ class HttpScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
 """
 
         then:
-        executer.expectDeprecationWarning("Applying script plugins from insecure URIs has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+        executer.expectDocumentedDeprecationWarning("Applying script plugins from insecure URIs has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
             "The provided URI '${server.uri("/external.gradle")}' uses an insecure protocol (HTTP). " +
             "Use '${GUtil.toSecureUrl(server.uri("/external.gradle"))}' instead or try 'apply from: resources.text.fromInsecureUri(\"${server.uri("/external.gradle")}\")' to silence the warning. " +
-            "See https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.api.resources.TextResourceFactory.html#org.gradle.api.resources.TextResourceFactory:fromInsecureUri(java.lang.Object) for more details.")
+            "See https://docs.gradle.org/current/dsl/org.gradle.api.resources.TextResourceFactory.html#org.gradle.api.resources.TextResourceFactory:fromInsecureUri(java.lang.Object) for more details.")
         succeeds()
     }
 

@@ -17,13 +17,15 @@
 
 
 package org.gradle.play.plugins
+
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
-import org.gradle.util.GradleVersion
 
 class PlayCoffeeScriptPluginGoodBehaviourIntegrationTest extends WellBehavedPluginTest {
 
     def setup() {
-        executer.expectDeprecationWarning()
+        executer.expectDocumentedDeprecationWarning("The Play CoffeeScript plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+            "Consider using the org.gradle.playframework plugin instead. " +
+            "See https://docs.gradle.org/current/userguide/play_plugin.html for more details.")
     }
 
     @Override
@@ -31,15 +33,4 @@ class PlayCoffeeScriptPluginGoodBehaviourIntegrationTest extends WellBehavedPlug
         return 'play-coffeescript'
     }
 
-    def "emits deprecation warning"() {
-        given:
-        applyPlugin()
-        def documentationLink = "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/play_plugin.html for more details."
-
-        when:
-        succeeds("help")
-
-        then:
-        outputContains("The Play CoffeeScript plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consider using the org.gradle.playframework plugin instead. ${documentationLink}")
-    }
 }

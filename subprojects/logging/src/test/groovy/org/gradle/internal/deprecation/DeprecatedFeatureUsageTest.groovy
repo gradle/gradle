@@ -31,7 +31,7 @@ class DeprecatedFeatureUsageTest extends Specification {
         featureUsage.formattedMessage() == expected
 
         where:
-        summary   | removalDetails   | advice   | contextualAdvice   | documentationReference                      | expected
+        summary   | removalDetails   | advice   | contextualAdvice   | documentationReference                 | expected
         "summary" | "removalDetails" | null     | null               | Documentation.NO_DOCUMENTATION         | "summary removalDetails"
         "summary" | "removalDetails" | "advice" | null               | Documentation.NO_DOCUMENTATION         | "summary removalDetails advice"
         "summary" | "removalDetails" | "advice" | "contextualAdvice" | Documentation.NO_DOCUMENTATION         | "summary removalDetails contextualAdvice advice"
@@ -46,7 +46,7 @@ class DeprecatedFeatureUsageTest extends Specification {
         featureUsage.getDocumentationUrl() == expected
 
         where:
-        documentationReference                         | expected
+        documentationReference                 | expected
         Documentation.NO_DOCUMENTATION         | null
         Documentation.userManual("foo", "bar") | "https://docs.gradle.org/${GradleVersion.current().version}/userguide/foo.html#bar"
         Documentation.upgradeGuide(42, "bar")  | "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_42.html#bar"

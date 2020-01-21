@@ -25,7 +25,6 @@ import org.gradle.test.fixtures.ivy.RemoteIvyModule
 import org.gradle.test.fixtures.ivy.RemoteIvyRepository
 import org.gradle.test.fixtures.server.RepositoryServer
 import org.gradle.test.fixtures.server.sftp.SFTPServer
-import org.gradle.util.GradleVersion
 import org.junit.Rule
 import spock.lang.Issue
 
@@ -51,15 +50,15 @@ abstract class AbstractIvyRemoteLegacyPublishIntegrationTest extends AbstractInt
     )
     void "can publish using uploadArchives"() {
         // We expect 'The compile/runtime configuration has been deprecated for removal.' for using this legacy mechanism in the traditional way.
-        executer.expectDeprecationWarning("The compile configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 7.0. " +
+        executer.expectDocumentedDeprecationWarning("The compile configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 7.0. " +
             "Please use the implementation configuration instead. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
-        executer.expectDeprecationWarning("The runtime configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 7.0. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
+        executer.expectDocumentedDeprecationWarning("The runtime configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 7.0. " +
             "Please use the runtimeOnly configuration instead. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
-        executer.expectDeprecationWarning("The uploadArchives task has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
+        executer.expectDocumentedDeprecationWarning("The uploadArchives task has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
             "Use the 'ivy-publish' plugin instead. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#legacy_publication_system_is_deprecated_and_replaced_with_the_publish_plugins")
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#legacy_publication_system_is_deprecated_and_replaced_with_the_publish_plugins")
 
         given:
         settingsFile << 'rootProject.name = "publish"'
@@ -171,9 +170,9 @@ uploadArchives {
         module.jar.expectUploadBroken()
 
         when:
-        executer.expectDeprecationWarning("The uploadArchives task has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+        executer.expectDocumentedDeprecationWarning("The uploadArchives task has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
             "Use the 'ivy-publish' plugin instead. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#legacy_publication_system_is_deprecated_and_replaced_with_the_publish_plugins")
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#legacy_publication_system_is_deprecated_and_replaced_with_the_publish_plugins")
         fails 'uploadArchives'
 
         then:

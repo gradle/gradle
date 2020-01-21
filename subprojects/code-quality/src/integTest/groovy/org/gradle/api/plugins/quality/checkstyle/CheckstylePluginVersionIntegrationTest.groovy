@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.quality.integtest.fixtures.CheckstyleCoverage
-import org.gradle.util.GradleVersion
 import org.gradle.util.Matchers
 import org.gradle.util.Resources
 import org.gradle.util.ToBeImplemented
@@ -365,9 +364,9 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         // config_loc points to the location of suppressions.xml
         // while the default configDirectory does not.
         // The build should fail because we ignore the user provided value
-        executer.expectDeprecationWarning("Adding 'config_loc' to checkstyle.configProperties has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+        executer.expectDocumentedDeprecationWarning("Adding 'config_loc' to checkstyle.configProperties has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
             "This property is now ignored and the value of configDirectory is always used for 'config_loc'. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#user_provided_config_loc_properties_are_ignored_by_checkstyle")
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#user_provided_config_loc_properties_are_ignored_by_checkstyle")
         fails "checkstyleMain"
         then:
         executedAndNotSkipped(":checkstyleMain")

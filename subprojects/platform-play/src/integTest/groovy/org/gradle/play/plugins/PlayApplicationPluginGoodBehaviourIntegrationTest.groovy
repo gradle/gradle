@@ -17,12 +17,22 @@
 package org.gradle.play.plugins
 
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
-import org.gradle.util.GradleVersion
 
 class PlayApplicationPluginGoodBehaviourIntegrationTest extends WellBehavedPluginTest {
 
     def setup() {
-        executer.expectDeprecationWarnings(6)
+        executer.expectDocumentedDeprecationWarning("The Play Application plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+            "Consider using the org.gradle.playframework-application plugin instead. See https://docs.gradle.org/current/userguide/play_plugin.html for more details.")
+        executer.expectDocumentedDeprecationWarning("The Play Twirl plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+            "Consider using the org.gradle.playframework-twirl plugin instead. See https://docs.gradle.org/current/userguide/play_plugin.html for more details.")
+        executer.expectDocumentedDeprecationWarning("The Play Routes plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+            "Consider using the org.gradle.playframework-routes plugin instead. See https://docs.gradle.org/current/userguide/play_plugin.html for more details.")
+        executer.expectDocumentedDeprecationWarning("The java-lang plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
+        executer.expectDocumentedDeprecationWarning("The jvm-resources plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
+        executer.expectDocumentedDeprecationWarning("The scala-lang plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
     }
 
     @Override
@@ -31,17 +41,4 @@ class PlayApplicationPluginGoodBehaviourIntegrationTest extends WellBehavedPlugi
         return "playBinary"
     }
 
-    def "emits deprecation warning"() {
-        given:
-        applyPlugin()
-        def documentationLink = "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/play_plugin.html for more details."
-
-        when:
-        succeeds("help")
-
-        then:
-        outputContains("The Play Application plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consider using the org.gradle.playframework-application plugin instead. ${documentationLink}")
-        outputContains("The Play Twirl plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consider using the org.gradle.playframework-twirl plugin instead. ${documentationLink}")
-        outputContains("The Play Routes plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consider using the org.gradle.playframework-routes plugin instead. ${documentationLink}")
-    }
 }

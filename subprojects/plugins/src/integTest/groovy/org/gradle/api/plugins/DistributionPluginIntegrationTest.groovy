@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.test.fixtures.archive.TarTestFixture
 import org.gradle.test.fixtures.maven.MavenPom
-import org.gradle.util.GradleVersion
 
 @TestReproducibleArchives
 class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
@@ -83,12 +82,12 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
             }
             """
         then:
-        executer.expectDeprecationWarning("The maven plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+        executer.expectDocumentedDeprecationWarning("The maven plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
             "Please use the maven-publish plugin instead. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#legacy_publication_system_is_deprecated_and_replaced_with_the_publish_plugins")
-        executer.expectDeprecationWarning("The uploadArchives task has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#legacy_publication_system_is_deprecated_and_replaced_with_the_publish_plugins")
+        executer.expectDocumentedDeprecationWarning("The uploadArchives task has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
             "Use the 'maven-publish' plugin instead. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#legacy_publication_system_is_deprecated_and_replaced_with_the_publish_plugins")
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#legacy_publication_system_is_deprecated_and_replaced_with_the_publish_plugins")
         succeeds("uploadArchives")
         file("repo/org/acme/TestProject/1.0/TestProject-1.0.zip").assertIsFile()
 

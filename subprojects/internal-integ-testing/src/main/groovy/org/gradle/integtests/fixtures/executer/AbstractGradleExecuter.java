@@ -1270,6 +1270,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     @Override
+    public GradleExecuter expectDocumentedDeprecationWarning(String warning) {
+        return expectDeprecationWarning(warning.replace("https://docs.gradle.org/current/", "https://docs.gradle.org/" + GradleVersion.current().getVersion() + "/"));
+    }
+
+    @Override
     public GradleExecuter noDeprecationChecks() {
         checkDeprecations = false;
         return this;

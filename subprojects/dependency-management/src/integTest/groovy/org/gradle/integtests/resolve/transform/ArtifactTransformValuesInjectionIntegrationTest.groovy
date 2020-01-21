@@ -41,7 +41,6 @@ import org.gradle.api.tasks.options.OptionValues
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.process.ExecOperations
-import org.gradle.util.GradleVersion
 import spock.lang.Unroll
 
 import java.util.concurrent.atomic.AtomicInteger
@@ -97,7 +96,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
 
         when:
         if (expectedDeprecation) {
-            executer.expectDeprecationWarning()
+            executer.expectDocumentedDeprecationWarning(expectedDeprecation)
         }
         run(":a:resolve")
 
@@ -105,13 +104,10 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         outputContains("processing b.jar")
         outputContains("processing c.jar")
         outputContains("result = [b.jar.green, c.jar.green]")
-        if (expectedDeprecation) {
-            outputContains(expectedDeprecation)
-        }
 
         where:
         inputArtifactType              | convertToFile   | expectedDeprecation
-        'File'                         | ''              | "Injecting the input artifact of a transform as a File has been deprecated. This is scheduled to be removed in Gradle 7.0. Declare the input artifact as Provider<FileSystemLocation> instead. See https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.api.artifacts.transform.TransformAction.html for more details."
+        'File'                         | ''              | "Injecting the input artifact of a transform as a File has been deprecated. This is scheduled to be removed in Gradle 7.0. Declare the input artifact as Provider<FileSystemLocation> instead. See https://docs.gradle.org/current/dsl/org.gradle.api.artifacts.transform.TransformAction.html for more details."
         'Provider<FileSystemLocation>' | '.get().asFile' | null
     }
 

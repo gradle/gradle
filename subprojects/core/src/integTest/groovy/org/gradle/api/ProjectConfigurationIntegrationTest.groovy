@@ -17,7 +17,6 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.GradleVersion
 
 class ProjectConfigurationIntegrationTest extends AbstractIntegrationSpec {
 
@@ -58,10 +57,10 @@ class ProjectConfigurationIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << "include 'a', 'b'"
 
         expect:
-        executer.expectDeprecationWarning("Using method Project#afterEvaluate(Closure) when the project is already evaluated has been deprecated. " +
+        executer.expectDocumentedDeprecationWarning("Using method Project#afterEvaluate(Closure) when the project is already evaluated has been deprecated. " +
             "This will fail with an error in Gradle 7.0. " +
             "The configuration given is ignored because the project has already been evaluated. To apply this configuration, remove afterEvaluate. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#calling_project_afterevaluate_on_an_evaluated_project_has_been_deprecated")
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#calling_project_afterevaluate_on_an_evaluated_project_has_been_deprecated")
         succeeds()
     }
 
@@ -93,10 +92,10 @@ class ProjectConfigurationIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << "include 'a', 'b'"
 
         expect:
-        executer.expectDeprecationWarning("Using method Project#afterEvaluate(Action) when the project is already evaluated has been deprecated. " +
+        executer.expectDocumentedDeprecationWarning("Using method Project#afterEvaluate(Action) when the project is already evaluated has been deprecated. " +
             "This will fail with an error in Gradle 7.0. " +
             "The configuration given is ignored because the project has already been evaluated. To apply this configuration, remove afterEvaluate. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#calling_project_afterevaluate_on_an_evaluated_project_has_been_deprecated")
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#calling_project_afterevaluate_on_an_evaluated_project_has_been_deprecated")
         succeeds()
     }
 }
