@@ -20,13 +20,13 @@ import org.gradle.api.internal.DocumentationRegistry
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class DocumentationReferenceTest extends Specification {
+class DocumentationTest extends Specification {
 
     private static final DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry()
 
     def "null documentation reference always returns nulls"() {
         when:
-        def documentationReference = DocumentationReference.NO_DOCUMENTATION
+        def documentationReference = Documentation.NO_DOCUMENTATION
 
         then:
         documentationReference.documentationUrl() == null
@@ -36,7 +36,7 @@ class DocumentationReferenceTest extends Specification {
     @Unroll
     def "formats message for documentation id #documentationId, section #documentationSection"() {
         given:
-        def documentationReference = DocumentationReference.userManual(documentationId, documentationSection)
+        def documentationReference = Documentation.userManual(documentationId, documentationSection)
 
         expect:
         documentationReference.documentationUrl() == expectedUrl
@@ -50,7 +50,7 @@ class DocumentationReferenceTest extends Specification {
 
     def "creates upgrade guide reference"() {
         when:
-        def documentationReference = DocumentationReference.upgradeGuide(11, "section")
+        def documentationReference = Documentation.upgradeGuide(11, "section")
 
         then:
         def expectedUrl = DOCUMENTATION_REGISTRY.getDocumentationFor("upgrading_version_11", "section")
@@ -60,20 +60,20 @@ class DocumentationReferenceTest extends Specification {
 
     def "creates dsl reference for type"() {
         when:
-        def documentationReference = DocumentationReference.dslReference(DocumentationReference)
+        def documentationReference = Documentation.dslReference(Documentation)
 
         then:
-        def expectedUrl = DOCUMENTATION_REGISTRY.getDslRefForType(DocumentationReference)
+        def expectedUrl = DOCUMENTATION_REGISTRY.getDslRefForType(Documentation)
         documentationReference.documentationUrl() == expectedUrl
         documentationReference.consultDocumentationMessage() == "See ${expectedUrl} for more details."
     }
 
     def "creates dsl reference for property"() {
         when:
-        def documentationReference = DocumentationReference.dslReference(DocumentationReference, "property")
+        def documentationReference = Documentation.dslReference(Documentation, "property")
 
         then:
-        def expectedUrl = DOCUMENTATION_REGISTRY.getDslRefForProperty(DocumentationReference, "property")
+        def expectedUrl = DOCUMENTATION_REGISTRY.getDslRefForProperty(Documentation, "property")
         documentationReference.documentationUrl() == expectedUrl
         documentationReference.consultDocumentationMessage() == "See ${expectedUrl} for more details."
     }

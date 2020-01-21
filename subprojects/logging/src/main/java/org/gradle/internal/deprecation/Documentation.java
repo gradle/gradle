@@ -19,28 +19,28 @@ package org.gradle.internal.deprecation;
 import com.google.common.base.Preconditions;
 import org.gradle.api.internal.DocumentationRegistry;
 
-abstract class DocumentationReference {
+abstract class Documentation {
     private static final DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry();
 
-    static final DocumentationReference NO_DOCUMENTATION = new NullDocumentationReference();
+    static final Documentation NO_DOCUMENTATION = new NullDocumentation();
 
-    static DocumentationReference userManual(String id, String section) {
-        return new DefaultDocumentationReference(id, section);
+    static Documentation userManual(String id, String section) {
+        return new UserGuide(id, section);
     }
 
-    static DocumentationReference userManual(String id) {
-        return new DefaultDocumentationReference(id, null);
+    static Documentation userManual(String id) {
+        return new UserGuide(id, null);
     }
 
-    static DocumentationReference upgradeGuide(int majorVersion, String upgradeGuideSection) {
-        return new UpgradeGuideDocumentationReference(majorVersion, upgradeGuideSection);
+    static Documentation upgradeGuide(int majorVersion, String upgradeGuideSection) {
+        return new UpgradeGuide(majorVersion, upgradeGuideSection);
     }
 
-    static DocumentationReference dslReference(Class<?> targetClass) {
+    static Documentation dslReference(Class<?> targetClass) {
         return new DslReference(targetClass, null);
     }
 
-    static DocumentationReference dslReference(Class<?> targetClass, String property) {
+    static Documentation dslReference(Class<?> targetClass, String property) {
         return new DslReference(targetClass, property);
     }
 
@@ -50,9 +50,9 @@ abstract class DocumentationReference {
         return String.format("See %s for more details.", documentationUrl());
     }
 
-    private static class NullDocumentationReference extends DocumentationReference {
+    private static class NullDocumentation extends Documentation {
 
-        private NullDocumentationReference() {
+        private NullDocumentation() {
         }
 
         @Override
@@ -66,11 +66,11 @@ abstract class DocumentationReference {
         }
     }
 
-    private static class DefaultDocumentationReference extends DocumentationReference {
+    private static class UserGuide extends Documentation {
         private final String id;
         private final String section;
 
-        private DefaultDocumentationReference(String id, String section) {
+        private UserGuide(String id, String section) {
             this.id = Preconditions.checkNotNull(id);
             this.section = section;
         }
@@ -84,11 +84,11 @@ abstract class DocumentationReference {
         }
     }
 
-    private static class UpgradeGuideDocumentationReference extends DocumentationReference {
+    private static class UpgradeGuide extends Documentation {
         private final int majorVersion;
         private final String section;
 
-        private UpgradeGuideDocumentationReference(int majorVersion, String section) {
+        private UpgradeGuide(int majorVersion, String section) {
             this.majorVersion = majorVersion;
             this.section = Preconditions.checkNotNull(section);
         }
@@ -104,7 +104,7 @@ abstract class DocumentationReference {
         }
     }
 
-    private static class DslReference extends DocumentationReference {
+    private static class DslReference extends Documentation {
         private final Class<?> targetClass;
         private final String property;
 

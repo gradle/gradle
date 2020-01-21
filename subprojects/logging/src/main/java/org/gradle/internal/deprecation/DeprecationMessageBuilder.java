@@ -32,7 +32,7 @@ public class DeprecationMessageBuilder {
     private String removalDetails;
     private String context;
     private String advice;
-    private DocumentationReference documentationReference = DocumentationReference.NO_DOCUMENTATION;
+    private Documentation documentation = Documentation.NO_DOCUMENTATION;
     private DeprecatedFeatureUsage.Type usageType = DeprecatedFeatureUsage.Type.USER_CODE_DIRECT;
 
     DeprecationMessageBuilder() {
@@ -53,27 +53,27 @@ public class DeprecationMessageBuilder {
     }
 
     public WithDocumentation withUserManual(String documentationId) {
-        this.documentationReference = DocumentationReference.userManual(documentationId);
+        this.documentation = Documentation.userManual(documentationId);
         return new WithDocumentation(this);
     }
 
     public WithDocumentation withUserManual(String documentationId, String section) {
-        this.documentationReference = DocumentationReference.userManual(documentationId, section);
+        this.documentation = Documentation.userManual(documentationId, section);
         return new WithDocumentation(this);
     }
 
     public WithDocumentation withDslReferenceForType(Class<?> targetClass) {
-        this.documentationReference = DocumentationReference.dslReference(targetClass);
+        this.documentation = Documentation.dslReference(targetClass);
         return new WithDocumentation(this);
     }
 
     public WithDocumentation withDslReferenceForProperty(Class<?> targetClass, String property) {
-        this.documentationReference = DocumentationReference.dslReference(targetClass, property);
+        this.documentation = Documentation.dslReference(targetClass, property);
         return new WithDocumentation(this);
     }
 
     public WithDocumentation withUpgradeGuideSection(int majorVersion, String upgradeGuideSection) {
-        this.documentationReference = DocumentationReference.upgradeGuide(majorVersion, upgradeGuideSection);
+        this.documentation = Documentation.upgradeGuide(majorVersion, upgradeGuideSection);
         return new WithDocumentation(this);
     }
 
@@ -97,12 +97,12 @@ public class DeprecationMessageBuilder {
         this.removalDetails = removalDetails;
     }
 
-    void setDocumentationReference(DocumentationReference documentationReference) {
-        this.documentationReference = documentationReference;
+    void setDocumentation(Documentation documentation) {
+        this.documentation = documentation;
     }
 
     DeprecationMessage build() {
-        return new DeprecationMessage(summary, removalDetails, advice, context, documentationReference, usageType);
+        return new DeprecationMessage(summary, removalDetails, advice, context, documentation, usageType);
     }
 
     public static class WithDocumentation {
@@ -131,7 +131,7 @@ public class DeprecationMessageBuilder {
         }
 
         public WithDocumentation withDslReferenceForProperty(Class<?> targetClass) {
-            setDocumentationReference(DocumentationReference.dslReference(targetClass, subject));
+            setDocumentation(Documentation.dslReference(targetClass, subject));
             return new WithDocumentation(this);
         }
 
