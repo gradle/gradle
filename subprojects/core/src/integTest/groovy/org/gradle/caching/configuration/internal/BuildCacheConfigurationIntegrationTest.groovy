@@ -311,8 +311,8 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         method                 | config                                           | message
-        "local(Class)"         | "local(DirectoryBuildCache).enabled = false"     | "The BuildCacheConfiguration.local(Class) method has been deprecated. This is scheduled to be removed in Gradle 7.0. Please use the getLocal() method instead. See https://docs.gradle.org/current/dsl/org.gradle.caching.configuration.BuildCacheConfiguration.html#org.gradle.caching.configuration.BuildCacheConfiguration:local(java.lang.Class) for more details."
-        "local(Class, Action)" | "local(DirectoryBuildCache) { enabled = false }" | "The BuildCacheConfiguration.local(Class, Action) method has been deprecated. This is scheduled to be removed in Gradle 7.0. Please use the local(Action) method instead. See https://docs.gradle.org/current/dsl/org.gradle.caching.configuration.BuildCacheConfiguration.html#org.gradle.caching.configuration.BuildCacheConfiguration:local(java.lang.Class, org.gradle.api.Action) for more details."
+        "local(Class)"         | "local(DirectoryBuildCache).enabled = false"     | "The BuildCacheConfiguration.local(Class) method has been deprecated. This is scheduled to be removed in Gradle 7.0. Please use the getLocal() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#local_build_cache_is_always_a_directory_cache"
+        "local(Class, Action)" | "local(DirectoryBuildCache) { enabled = false }" | "The BuildCacheConfiguration.local(Class, Action) method has been deprecated. This is scheduled to be removed in Gradle 7.0. Please use the local(Action) method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#local_build_cache_is_always_a_directory_cache"
     }
 
     private static String customTaskCode() {
