@@ -63,7 +63,7 @@ public class DeprecationLogger {
      * Output: ${feature} has been deprecated. This is scheduled to be removed in Gradle X.
      */
     @CheckReturnValue
-    public static DeprecationMessageBuilder deprecate(final String feature) {
+    public static DeprecationMessageBuilder<?> deprecate(final String feature) {
         return new DeprecationMessageBuilder() {
             @Override
             DeprecationMessage build() {
@@ -78,8 +78,8 @@ public class DeprecationLogger {
      * Output: ${feature} has been deprecated. This is scheduled to be removed in Gradle X.
      */
     @CheckReturnValue
-    public static DeprecationMessageBuilder deprecateIndirectUsage(String feature) {
-        DeprecationMessageBuilder builder = deprecate(feature);
+    public static DeprecationMessageBuilder<?> deprecateIndirectUsage(String feature) {
+        DeprecationMessageBuilder<?> builder = deprecate(feature);
         builder.setIndirectUsage();
         return builder;
     }
@@ -88,8 +88,8 @@ public class DeprecationLogger {
      * Output: ${feature} has been deprecated. This is scheduled to be removed in Gradle X.
      */
     @CheckReturnValue
-    public static DeprecationMessageBuilder deprecateBuildInvocationFeature(String feature) {
-        DeprecationMessageBuilder builder = deprecate(feature);
+    public static DeprecationMessageBuilder<?> deprecateBuildInvocationFeature(String feature) {
+        DeprecationMessageBuilder<?> builder = deprecate(feature);
         builder.setBuildInvocationUsage();
         return builder;
     }
@@ -98,7 +98,7 @@ public class DeprecationLogger {
      * Output: ${behaviour}. This behaviour has been deprecated and is scheduled to be removed in Gradle X.
      */
     @CheckReturnValue
-    public static DeprecationMessageBuilder deprecateBehaviour(final String behaviour) {
+    public static DeprecationMessageBuilder<?> deprecateBehaviour(final String behaviour) {
         return new DeprecationMessageBuilder() {
             @Override
             DeprecationMessage build() {
@@ -113,7 +113,7 @@ public class DeprecationLogger {
      * Output: ${behaviour}
      */
     @CheckReturnValue
-    public static DeprecationMessageBuilder warnOfChangedBehaviour(final String behaviour) {
+    public static DeprecationMessageBuilder<?> warnOfChangedBehaviour(final String behaviour) {
         return new DeprecationMessageBuilder() {
             @Override
             DeprecationMessage build() {
@@ -129,7 +129,7 @@ public class DeprecationLogger {
      * Output: ${action} has been deprecated. This will fail with an error in Gradle X.
      */
     @CheckReturnValue
-    public static DeprecationMessageBuilder deprecateAction(final String action) {
+    public static DeprecationMessageBuilder<?> deprecateAction(final String action) {
         return new DeprecationMessageBuilder() {
             @Override
             DeprecationMessage build() {
@@ -144,8 +144,8 @@ public class DeprecationLogger {
      * Output: The ${property} property has been deprecated. This is scheduled to be removed in Gradle X.
      */
     @CheckReturnValue
-    public static DeprecationMessageBuilder.DeprecateProperty deprecateProperty(String property) {
-        return new DeprecationMessageBuilder.DeprecateProperty(property);
+    public static DeprecationMessageBuilder.DeprecateProperty deprecateProperty(Class<?> propertyClass, String property) {
+        return new DeprecationMessageBuilder.DeprecateProperty(propertyClass, property);
     }
 
     /**
@@ -168,8 +168,8 @@ public class DeprecationLogger {
      * Output: Using method ${invocation} has been deprecated. This will fail with an error in Gradle X.
      */
     @CheckReturnValue
-    public static DeprecationMessageBuilder.DeprecateInvocation deprecateInvocation(String invocation) {
-        return new DeprecationMessageBuilder.DeprecateInvocation(invocation);
+    public static DeprecationMessageBuilder.DeprecateInvocation deprecateInvocation(String methodWithParams) {
+        return new DeprecationMessageBuilder.DeprecateInvocation(methodWithParams);
     }
 
     /**
@@ -204,7 +204,7 @@ public class DeprecationLogger {
         return new DeprecationMessageBuilder.ConfigurationDeprecationTypeSelector(configurationType);
     }
 
-    static void nagUserWith(DeprecationMessageBuilder deprecationMessageBuilder, Class<?> calledFrom) {
+    static void nagUserWith(DeprecationMessageBuilder<?> deprecationMessageBuilder, Class<?> calledFrom) {
         if (isEnabled()) {
             DeprecationMessage deprecationMessage = deprecationMessageBuilder.build();
             nagUserWith(deprecationMessage.toDeprecatedFeatureUsage(calledFrom));

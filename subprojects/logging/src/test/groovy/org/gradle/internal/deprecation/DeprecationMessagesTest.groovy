@@ -143,18 +143,18 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs deprecated property message"() {
         when:
-        DeprecationLogger.deprecateProperty("propertyName").withAdvice("Advice.").undocumented().nagUser()
+        DeprecationLogger.deprecateProperty(DeprecationLogger, "propertyName").withAdvice("Advice.").undocumented().nagUser()
 
         then:
-        expectMessage "The propertyName property has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Advice."
+        expectMessage "The DeprecationLogger.propertyName property has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Advice."
     }
 
     def "logs deprecated and replaced property message"() {
         when:
-        DeprecationLogger.deprecateProperty("propertyName").replaceWith("replacement").undocumented().nagUser()
+        DeprecationLogger.deprecateProperty(DeprecationLogger, "propertyName").replaceWith("replacement").undocumented().nagUser()
 
         then:
-        expectMessage "The propertyName property has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Please use the replacement property instead."
+        expectMessage "The DeprecationLogger.propertyName property has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Please use the replacement property instead."
     }
 
     def "logs discontinued method message"() {
@@ -316,24 +316,24 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs DSL property documentation reference"() {
         when:
-        DeprecationLogger.deprecateProperty("archiveName").replaceWith("archiveFileName")
-            .withDslReferenceForProperty(AbstractArchiveTask, "foo")
+        DeprecationLogger.deprecateProperty(DeprecationLogger, "archiveName").replaceWith("archiveFileName")
+            .withDslReference(AbstractArchiveTask, "bar")
             .nagUser()
 
         then:
-        def dslReference = DOCUMENTATION_REGISTRY.getDslRefForProperty(AbstractArchiveTask, "foo")
-        expectMessage "The archiveName property has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Please use the archiveFileName property instead. See ${dslReference} for more details."
+        def dslReference = DOCUMENTATION_REGISTRY.getDslRefForProperty(AbstractArchiveTask, "bar")
+        expectMessage "The DeprecationLogger.archiveName property has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Please use the archiveFileName property instead. See ${dslReference} for more details."
     }
 
     def "logs DSL documentation reference for deprecated property implicitly"() {
         when:
-        DeprecationLogger.deprecateProperty("archiveName").replaceWith("archiveFileName")
-            .withDslReferenceForProperty(AbstractArchiveTask)
+        DeprecationLogger.deprecateProperty(AbstractArchiveTask, "archiveName").replaceWith("archiveFileName")
+            .withDslReference()
             .nagUser()
 
         then:
         def dslReference = DOCUMENTATION_REGISTRY.getDslRefForProperty(AbstractArchiveTask, "archiveName")
-        expectMessage "The archiveName property has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Please use the archiveFileName property instead. See ${dslReference} for more details."
+        expectMessage "The AbstractArchiveTask.archiveName property has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Please use the archiveFileName property instead. See ${dslReference} for more details."
     }
 
     private void expectMessage(String expectedMessage) {
