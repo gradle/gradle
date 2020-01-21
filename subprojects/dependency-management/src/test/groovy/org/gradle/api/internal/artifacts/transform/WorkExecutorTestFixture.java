@@ -160,7 +160,7 @@ public class WorkExecutorTestFixture {
             outputFilesRepository,
             new DefaultOverlappingOutputDetector(),
             new DefaultTimeoutHandler(null),
-            behaviour -> DeprecationLogger.deprecateBehaviour(behaviour).nagUser(),
+            behaviour -> DeprecationLogger.deprecateBehaviour(behaviour).undocumented().nagUser(),
             valueSnapshotter
         );
     }

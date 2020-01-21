@@ -48,18 +48,18 @@ public class DeprecationMessageBuilder {
         return this;
     }
 
-    public DeprecationMessageBuilder guidedBy(String documentationId, String section) {
+    public WithDocumentation undocumented() {
+        return new WithDocumentation(this);
+    }
+
+    public WithDocumentation guidedBy(String documentationId, String section) {
         this.documentationReference = DocumentationReference.create(documentationId, section);
-        return this;
+        return new WithDocumentation(this);
     }
 
-    public DeprecationMessageBuilder withUpgradeGuideSection(int majorVersion, String upgradeGuideSection) {
+    public WithDocumentation withUpgradeGuideSection(int majorVersion, String upgradeGuideSection) {
         this.documentationReference = DocumentationReference.upgradeGuide(majorVersion, upgradeGuideSection);
-        return this;
-    }
-
-    public void nagUser() {
-        DeprecationLogger.nagUserWith(this, DeprecationMessageBuilder.class);
+        return new WithDocumentation(this);
     }
 
     void setIndirectUsage() {
@@ -84,6 +84,18 @@ public class DeprecationMessageBuilder {
 
     DeprecationMessage build() {
         return new DeprecationMessage(summary, removalDetails, advice, context, documentationReference, usageType);
+    }
+
+    public static class WithDocumentation {
+        private final DeprecationMessageBuilder builder;
+
+        public WithDocumentation(DeprecationMessageBuilder builder) {
+            this.builder = builder;
+        }
+
+        public void nagUser() {
+            DeprecationLogger.nagUserWith(builder, WithDocumentation.class);
+        }
     }
 
     public static abstract class WithReplacement<T> extends DeprecationMessageBuilder {

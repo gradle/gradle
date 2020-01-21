@@ -43,8 +43,8 @@ class DeprecationLoggerTest extends ConcurrentSpec {
 
     def "logs deprecation warning once until reset"() {
         when:
-        DeprecationLogger.deprecate("nag").nagUser()
-        DeprecationLogger.deprecate("nag").nagUser()
+        DeprecationLogger.deprecate("nag").undocumented().nagUser()
+        DeprecationLogger.deprecate("nag").undocumented().nagUser()
 
         then:
         def events = outputEventListener.events
@@ -53,7 +53,7 @@ class DeprecationLoggerTest extends ConcurrentSpec {
 
         when:
         DeprecationLogger.reset()
-        DeprecationLogger.deprecate("nag").nagUser()
+        DeprecationLogger.deprecate("nag").undocumented().nagUser()
 
         then:
         events.size() == 2
@@ -73,7 +73,7 @@ class DeprecationLoggerTest extends ConcurrentSpec {
 
         and:
         1 * factory.create() >> {
-            DeprecationLogger.deprecate("nag").nagUser()
+            DeprecationLogger.deprecate("nag").undocumented().nagUser()
             return "result"
         }
         0 * _
@@ -102,13 +102,13 @@ class DeprecationLoggerTest extends ConcurrentSpec {
         async {
             start {
                 thread.blockUntil.disabled
-                DeprecationLogger.deprecate("nag").nagUser()
+                DeprecationLogger.deprecate("nag").undocumented().nagUser()
                 instant.logged
             }
             start {
                 DeprecationLogger.whileDisabled {
                     instant.disabled
-                    DeprecationLogger.deprecate("ignored").nagUser()
+                    DeprecationLogger.deprecate("ignored").undocumented().nagUser()
                     thread.blockUntil.logged
                 }
             }
@@ -127,6 +127,7 @@ class DeprecationLoggerTest extends ConcurrentSpec {
         when:
         DeprecationLogger.deprecate("foo")
             .withAdvice("bar.")
+            .undocumented()
             .nagUser();
 
         then:

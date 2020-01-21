@@ -34,7 +34,7 @@ public class DeprecateUndefinedBuildWorkExecutor implements BuildWorkExecutor {
     @Override
     public void execute(GradleInternal gradle, Collection<? super Throwable> failures) {
         if (isUndefinedBuild(gradle) && !wasInitTaskRequested(gradle.getStartParameter())) {
-            DeprecationLogger.deprecateAction("Executing Gradle tasks as part of an undefined build").nagUser();
+            DeprecationLogger.deprecateAction("Executing Gradle tasks as part of an undefined build").undocumented().nagUser();
         }
         delegate.execute(gradle, failures);
     }

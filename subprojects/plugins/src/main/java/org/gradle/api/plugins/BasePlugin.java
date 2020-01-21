@@ -135,6 +135,7 @@ public class BasePlugin implements Plugin<Project> {
                 uploadArchives.doFirst(task -> DeprecationLogger
                     .deprecateTask(UPLOAD_ARCHIVES_TASK_NAME)
                     .withAdvice("Use the " + (usesMaven.get() ? "'maven-publish'" : "'ivy-publish'") + " plugin instead")
+                    .undocumented()
                     .nagUser());
                 boolean hasIvyRepo = !uploadArchives.getRepositories().withType(IvyArtifactRepository.class).isEmpty();
                 if (!hasIvyRepo) {

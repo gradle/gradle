@@ -65,6 +65,7 @@ public class DefaultArtifactHandler implements ArtifactHandler, MethodMixIn {
         if (configuration.isFullyDeprecated()) {
             DeprecationLogger.deprecateConfiguration(configuration.getName()).forArtifactDeclaration()
                 .replaceWith(GUtil.flattenElements(configuration.getDeclarationAlternatives(), configuration.getConsumptionAlternatives()))
+                .undocumented()
                 .nagUser();
         }
     }

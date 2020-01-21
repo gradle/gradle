@@ -101,7 +101,7 @@ public class DefaultUrlArtifactRepository implements UrlArtifactRepository {
                 displayNameSupplier.get(),
                 allowInsecureProtocolHelpLink()
                 )
-            ).nagUser();
+            ).undocumented().nagUser();
     }
 
     private void nagUserOfInsecureRedirect(@Nullable URI redirectFrom, URI redirectLocation) {
@@ -121,6 +121,7 @@ public class DefaultUrlArtifactRepository implements UrlArtifactRepository {
                 displayNameSupplier.get(),
                 allowInsecureProtocolHelpLink()))
             .withContext(contextualAdvice)
+            .undocumented()
             .nagUser();
     }
 

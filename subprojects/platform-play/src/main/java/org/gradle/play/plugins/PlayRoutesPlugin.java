@@ -55,7 +55,7 @@ public class PlayRoutesPlugin extends RuleSource {
 
     @ComponentType
     void registerRoutesLanguageType(TypeBuilder<RoutesSourceSet> builder) {
-        DeprecationLogger.deprecatePlugin("Play Routes").replaceWithExternalPlugin("org.gradle.playframework-routes").nagUser();
+        DeprecationLogger.deprecatePlugin("Play Routes").replaceWithExternalPlugin("org.gradle.playframework-routes").undocumented().nagUser();
     }
 
     @Mutate
