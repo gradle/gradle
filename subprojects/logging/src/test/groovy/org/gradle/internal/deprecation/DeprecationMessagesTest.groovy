@@ -52,7 +52,7 @@ class DeprecationMessagesTest extends Specification {
         deprecationMessage.setRemovalDetails("removal")
 
         when:
-        deprecationMessage.nagUser()
+        deprecationMessage.undocumented().nagUser()
 
         then:
         expectMessage 'summary removal'
@@ -66,7 +66,7 @@ class DeprecationMessagesTest extends Specification {
         deprecationMessage.withAdvice("advice")
 
         when:
-        deprecationMessage.nagUser()
+        deprecationMessage.undocumented().nagUser()
 
         then:
         expectMessage 'summary removal advice'
@@ -80,7 +80,7 @@ class DeprecationMessagesTest extends Specification {
         deprecationMessage.withContext("contextualAdvice")
 
         when:
-        deprecationMessage.nagUser()
+        deprecationMessage.undocumented().nagUser()
 
         then:
         expectMessage 'summary removal contextualAdvice'
@@ -95,7 +95,7 @@ class DeprecationMessagesTest extends Specification {
         deprecationMessage.withContext("contextualAdvice")
 
         when:
-        deprecationMessage.nagUser()
+        deprecationMessage.undocumented().nagUser()
 
         then:
         expectMessage 'summary removal contextualAdvice advice'
@@ -103,7 +103,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs generic deprecation message for specific thing"() {
         when:
-        DeprecationLogger.deprecate("Something").nagUser()
+        DeprecationLogger.deprecate("Something").undocumented().nagUser()
 
         then:
         expectMessage "Something has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}."
@@ -111,7 +111,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs deprecated behaviour message"() {
         when:
-        DeprecationLogger.deprecateBehaviour("Some behaviour.").nagUser()
+        DeprecationLogger.deprecateBehaviour("Some behaviour.").undocumented().nagUser()
 
         then:
         expectMessage "Some behaviour. This behaviour has been deprecated and is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}."
@@ -119,7 +119,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs deprecated indirect user code cause message"() {
         when:
-        DeprecationLogger.deprecate("Something").withAdvice("Advice.").withContext("Contextual advice.").nagUser()
+        DeprecationLogger.deprecate("Something").withAdvice("Advice.").withContext("Contextual advice.").undocumented().nagUser()
 
         then:
         expectMessage "Something has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Contextual advice. Advice."
@@ -127,7 +127,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs deprecated build invocation message"() {
         when:
-        DeprecationLogger.deprecateBuildInvocationFeature("Feature").withAdvice("Advice.").nagUser()
+        DeprecationLogger.deprecateBuildInvocationFeature("Feature").withAdvice("Advice.").undocumented().nagUser()
 
         then:
         expectMessage "Feature has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Advice."
@@ -135,7 +135,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs deprecated and replaced parameter usage message"() {
         when:
-        DeprecationLogger.deprecateNamedParameter("paramName").replaceWith("replacement").nagUser()
+        DeprecationLogger.deprecateNamedParameter("paramName").replaceWith("replacement").undocumented().nagUser()
 
         then:
         expectMessage "The paramName named parameter has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Please use the replacement named parameter instead."
@@ -143,7 +143,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs deprecated property message"() {
         when:
-        DeprecationLogger.deprecateProperty("propertyName").withAdvice("Advice.").nagUser()
+        DeprecationLogger.deprecateProperty("propertyName").withAdvice("Advice.").undocumented().nagUser()
 
         then:
         expectMessage "The propertyName property has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Advice."
@@ -151,7 +151,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs deprecated and replaced property message"() {
         when:
-        DeprecationLogger.deprecateProperty("propertyName").replaceWith("replacement").nagUser()
+        DeprecationLogger.deprecateProperty("propertyName").replaceWith("replacement").undocumented().nagUser()
 
         then:
         expectMessage "The propertyName property has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Please use the replacement property instead."
@@ -159,7 +159,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs discontinued method message"() {
         when:
-        DeprecationLogger.deprecateMethod("method()").withAdvice("Advice.").nagUser()
+        DeprecationLogger.deprecateMethod("method()").withAdvice("Advice.").undocumented().nagUser()
 
         then:
         expectMessage "The method() method has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Advice."
@@ -167,7 +167,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs replaced method message"() {
         when:
-        DeprecationLogger.deprecateMethod("method()").replaceWith("replacementMethod()").nagUser()
+        DeprecationLogger.deprecateMethod("method()").replaceWith("replacementMethod()").undocumented().nagUser()
 
         then:
         expectMessage "The method() method has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Please use the replacementMethod() method instead."
@@ -175,7 +175,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs discontinued invocation message"() {
         when:
-        DeprecationLogger.deprecateAction("Some action").nagUser()
+        DeprecationLogger.deprecateAction("Some action").undocumented().nagUser()
 
         then:
         expectMessage "Some action has been deprecated. This will fail with an error in Gradle ${NEXT_GRADLE_VERSION}."
@@ -183,7 +183,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs deprecated method invocation message"() {
         when:
-        DeprecationLogger.deprecateInvocation("method()").withAdvice("Advice.").nagUser()
+        DeprecationLogger.deprecateInvocation("method()").withAdvice("Advice.").undocumented().nagUser()
 
         then:
         expectMessage "Using method method() has been deprecated. This will fail with an error in Gradle ${NEXT_GRADLE_VERSION}. Advice."
@@ -191,7 +191,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs replaced method invocation message"() {
         when:
-        DeprecationLogger.deprecateInvocation("method()").replaceWith("replacementMethod()").nagUser()
+        DeprecationLogger.deprecateInvocation("method()").replaceWith("replacementMethod()").undocumented().nagUser()
 
         then:
         expectMessage "Using method method() has been deprecated. This will fail with an error in Gradle ${NEXT_GRADLE_VERSION}. Please use the replacementMethod() method instead."
@@ -199,7 +199,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs replaced task"() {
         when:
-        DeprecationLogger.deprecateTask("taskName").replaceWith("replacementTask").nagUser()
+        DeprecationLogger.deprecateTask("taskName").replaceWith("replacementTask").undocumented().nagUser()
 
         then:
         expectMessage "The taskName task has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Please use the replacementTask task instead."
@@ -207,7 +207,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs plugin replaced with external one message"() {
         when:
-        DeprecationLogger.deprecatePlugin("pluginName").replaceWithExternalPlugin("replacement").nagUser()
+        DeprecationLogger.deprecatePlugin("pluginName").replaceWithExternalPlugin("replacement").undocumented().nagUser()
 
         then:
         expectMessage "The pluginName plugin has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Consider using the replacement plugin instead."
@@ -215,7 +215,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs deprecated plugin message"() {
         when:
-        DeprecationLogger.deprecatePlugin("pluginName").withAdvice("Advice.").nagUser()
+        DeprecationLogger.deprecatePlugin("pluginName").withAdvice("Advice.").undocumented().nagUser()
 
         then:
         expectMessage "The pluginName plugin has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Advice."
@@ -223,7 +223,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs replaced plugin message"() {
         when:
-        DeprecationLogger.deprecatePlugin("pluginName").replaceWith("replacement").nagUser()
+        DeprecationLogger.deprecatePlugin("pluginName").replaceWith("replacement").undocumented().nagUser()
 
         then:
         expectMessage "The pluginName plugin has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Please use the replacement plugin instead."
@@ -239,7 +239,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs configuration deprecation message for artifact declaration"() {
         when:
-        DeprecationLogger.deprecateConfiguration("ConfigurationType").forArtifactDeclaration().replaceWith(['r1', 'r2', 'r3']).nagUser()
+        DeprecationLogger.deprecateConfiguration("ConfigurationType").forArtifactDeclaration().replaceWith(['r1', 'r2', 'r3']).undocumented().nagUser()
 
         then:
         expectMessage "The ConfigurationType configuration has been deprecated for artifact declaration. This will fail with an error in Gradle ${NEXT_GRADLE_VERSION}. Please use the r1 or r2 or r3 configuration instead."
@@ -247,7 +247,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs configuration deprecation message for consumption"() {
         when:
-        DeprecationLogger.deprecateConfiguration("ConfigurationType").forConsumption().replaceWith(['r1', 'r2', 'r3']).nagUser()
+        DeprecationLogger.deprecateConfiguration("ConfigurationType").forConsumption().replaceWith(['r1', 'r2', 'r3']).undocumented().nagUser()
 
         then:
         expectMessage "The ConfigurationType configuration has been deprecated for consumption. This will fail with an error in Gradle ${NEXT_GRADLE_VERSION}. Please use attributes to consume the r1 or r2 or r3 configuration instead."
@@ -255,7 +255,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs configuration deprecation message for dependency declaration"() {
         when:
-        DeprecationLogger.deprecateConfiguration("ConfigurationType").forDependencyDeclaration().replaceWith(['r1', 'r2', 'r3']).nagUser()
+        DeprecationLogger.deprecateConfiguration("ConfigurationType").forDependencyDeclaration().replaceWith(['r1', 'r2', 'r3']).undocumented().nagUser()
 
         then:
         expectMessage "The ConfigurationType configuration has been deprecated for dependency declaration. This will fail with an error in Gradle ${NEXT_GRADLE_VERSION}. Please use the r1 or r2 or r3 configuration instead."
@@ -263,7 +263,7 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs configuration deprecation message for resolution"() {
         when:
-        DeprecationLogger.deprecateConfiguration("ConfigurationType").forResolution().replaceWith(['r1', 'r2', 'r3']).nagUser()
+        DeprecationLogger.deprecateConfiguration("ConfigurationType").forResolution().replaceWith(['r1', 'r2', 'r3']).undocumented().nagUser()
 
         then:
         expectMessage "The ConfigurationType configuration has been deprecated for resolution. This will fail with an error in Gradle ${NEXT_GRADLE_VERSION}. Please resolve the r1 or r2 or r3 configuration instead."
@@ -273,6 +273,7 @@ class DeprecationMessagesTest extends Specification {
         when:
         DeprecationLogger.deprecateInternalApi("constructor DefaultPolymorphicDomainObjectContainer(Class<T>, Instantiator)")
             .replaceWith("ObjectFactory.polymorphicDomainObjectContainer(Class<T>)")
+            .undocumented()
             .nagUser()
 
         then:
@@ -284,6 +285,7 @@ class DeprecationMessagesTest extends Specification {
         DeprecationLogger.deprecateInternalApi("constructor DefaultPolymorphicDomainObjectContainer(Class<T>, Instantiator)")
             .replaceWith("ObjectFactory.polymorphicDomainObjectContainer(Class<T>)")
             .withAdvice("foobar")
+            .undocumented()
             .nagUser()
 
         then:
@@ -294,6 +296,7 @@ class DeprecationMessagesTest extends Specification {
         when:
         DeprecationLogger.warnOfChangedBehaviour("Publication ignores 'transitive = false' at configuration level.")
             .withAdvice("Consider using 'transitive = false' at the dependency level if you need this to be published.")
+            .undocumented()
             .nagUser()
 
         then:
