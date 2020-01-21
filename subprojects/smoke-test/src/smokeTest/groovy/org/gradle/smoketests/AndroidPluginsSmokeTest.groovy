@@ -35,7 +35,6 @@ import spock.lang.Unroll
 @Requires(TestPrecondition.JDK11_OR_EARLIER)
 class AndroidPluginsSmokeTest extends AbstractSmokeTest {
 
-
     public static final String JAVA_COMPILE_DEPRECATION_MESSAGE = "Extending the JavaCompile task has been deprecated. This is scheduled to be removed in Gradle 7.0. Configure the task instead."
 
     def setup() {
@@ -44,88 +43,69 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
 
     @Unroll
     @ToBeFixedForInstantExecution
-    def "android application plugin #pluginVersion"(String pluginVersion) {
+    def "android library and application APK assembly (agp=#agpVersion)"() {
+
         given:
-
-        def basedir = '.'
-
-        def packageName = 'org.gradle.android.example'
-        def activity = 'MyActivity'
-        writeActivity(basedir, packageName, activity)
-
-        file("${basedir}/src/main/res/values/strings.xml") << '''<?xml version="1.0" encoding="utf-8"?>
-            <resources>
-                <string name="app_name">Android Gradle</string>
-            </resources>'''.stripIndent()
-
-
-        file('src/main/AndroidManifest.xml') << """<?xml version="1.0" encoding="utf-8"?>
-            <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-                package="${packageName}">
-
-                <application android:label="@string/app_name" >
-                    <activity
-                        android:name=".${activity}"
-                        android:label="@string/app_name" >
-                        <intent-filter>
-                            <action android:name="android.intent.action.MAIN" />
-                            <category android:name="android.intent.category.LAUNCHER" />
-                        </intent-filter>
-                    </activity>
-                </application>
-
-            </manifest>""".stripIndent()
-
-        buildFile << buildscript(pluginVersion) << """
-            apply plugin: 'com.android.application'
-
-           ${jcenterRepository()}
-           ${googleRepository()}
-
-            android.defaultConfig.applicationId "org.gradle.android.myapplication"
-        """.stripIndent() << androidPluginConfiguration() << activityDependency()
+        def abiChange = androidLibraryAndApplicationBuild(agpVersion)
 
         and:
-        def runner = useAgpVersion(pluginVersion, runner(
-            'androidDependencies',
-            'build',
-            'connectedAndroidTest',
-            '-x', 'lint'
-        ))
+        def runner = useAgpVersion(agpVersion, runner('assembleDebug'))
 
-        when:
+        when: 'first build'
         def result = runner.build()
 
         then:
-        def pluginBaseVersion = VersionNumber.parse(pluginVersion).baseVersion
+        result.task(':app:compileDebugJavaWithJavac').outcome == TaskOutcome.SUCCESS
+        result.task(':library:assembleDebug').outcome == TaskOutcome.SUCCESS
+        result.task(':app:assembleDebug').outcome == TaskOutcome.SUCCESS
+
+        and:
+        def agpBaseVersion = VersionNumber.parse(agpVersion).baseVersion
         def threeDotSixBaseVersion = VersionNumber.parse("3.6.0").baseVersion
-        if (pluginBaseVersion < threeDotSixBaseVersion) {
+        if (agpBaseVersion < threeDotSixBaseVersion) {
             assert result.output.contains(JAVA_COMPILE_DEPRECATION_MESSAGE)
         } else {
             assert !result.output.contains(JAVA_COMPILE_DEPRECATION_MESSAGE)
         }
-        result.task(':assemble').outcome == TaskOutcome.SUCCESS
-        result.task(':compileReleaseJavaWithJavac').outcome == TaskOutcome.SUCCESS
-
-        if (pluginBaseVersion >= threeDotSixBaseVersion) {
+        if (agpBaseVersion >= threeDotSixBaseVersion) {
             expectNoDeprecationWarnings(result)
         }
 
-        when: 'abi change on application'
-        writeActivity(basedir, packageName, activity, true)
+        when: 'up-to-date build'
         result = runner.build()
 
-        then: 'sources are recompiled'
-        result.task(':compileReleaseJavaWithJavac').outcome == TaskOutcome.SUCCESS
+        then:
+        result.task(':app:compileDebugJavaWithJavac').outcome == TaskOutcome.UP_TO_DATE
+        result.task(':library:assembleDebug').outcome == TaskOutcome.UP_TO_DATE
+        result.task(':app:assembleDebug').outcome == TaskOutcome.UP_TO_DATE
+
+        when: 'abi change on library'
+        abiChange.run()
+        result = runner.build()
+
+        then: 'dependent sources are recompiled'
+        result.task(':library:compileDebugJavaWithJavac').outcome == TaskOutcome.SUCCESS
+        result.task(':app:compileDebugJavaWithJavac').outcome == TaskOutcome.SUCCESS
+        result.task(':library:assembleDebug').outcome == TaskOutcome.SUCCESS
+        result.task(':app:assembleDebug').outcome == TaskOutcome.SUCCESS
+
+        when: 'clean re-build'
+        useAgpVersion(agpVersion, this.runner('clean')).build()
+        result = runner.build()
+
+        then:
+        result.task(':app:compileDebugJavaWithJavac').outcome == TaskOutcome.SUCCESS
+        result.task(':library:assembleDebug').outcome == TaskOutcome.SUCCESS
+        result.task(':app:assembleDebug').outcome == TaskOutcome.SUCCESS
 
         where:
-        pluginVersion << TestedVersions.androidGradle
+        agpVersion << TestedVersions.androidGradle
     }
 
-    @Unroll
-    @ToBeFixedForInstantExecution
-    def "android library plugin #pluginVersion"(String pluginVersion) {
-        given:
+    /**
+     * @return ABI change runnable
+     */
+    private Runnable androidLibraryAndApplicationBuild(String agpVersion) {
 
         def app = 'app'
         def appPackage = 'org.gradle.android.example.app'
@@ -177,7 +157,7 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
             include ':${library}'
         """
 
-        file('build.gradle') << buildscript(pluginVersion) << """
+        file('build.gradle') << buildscript(agpVersion) << """
             subprojects {
                 ${jcenterRepository()}
                 ${googleRepository()}
@@ -205,31 +185,9 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
         libraryBuildFile << androidPluginConfiguration()
         libraryBuildFile << activityDependency()
 
-        and:
-        def runner = useAgpVersion(pluginVersion, runner('build', '-x', 'lint'))
-
-        when:
-        def result = runner.build()
-
-        then:
-        result.task(':app:assemble').outcome == TaskOutcome.SUCCESS
-        result.task(':library:assemble').outcome == TaskOutcome.SUCCESS
-        result.task(':app:compileReleaseJavaWithJavac').outcome == TaskOutcome.SUCCESS
-
-        if (pluginVersion == TestedVersions.androidGradle.latest()) {
-            expectNoDeprecationWarnings(result)
+        return {
+            writeActivity(library, libPackage, libraryActivity, true)
         }
-
-        when: 'abi change on library'
-        writeActivity(library, libPackage, libraryActivity, true)
-        result = runner.build()
-
-        then: 'dependent sources are recompiled'
-        result.task(':library:compileReleaseJavaWithJavac').outcome == TaskOutcome.SUCCESS
-        result.task(':app:compileReleaseJavaWithJavac').outcome == TaskOutcome.SUCCESS
-
-        where:
-        pluginVersion << TestedVersions.androidGradle
     }
 
     private static String activityDependency() {
