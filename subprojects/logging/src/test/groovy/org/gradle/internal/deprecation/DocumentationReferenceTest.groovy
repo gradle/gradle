@@ -36,7 +36,7 @@ class DocumentationReferenceTest extends Specification {
     @Unroll
     def "formats message for documentation id #documentationId, section #documentationSection"() {
         given:
-        def documentationReference = DocumentationReference.create(documentationId, documentationSection)
+        def documentationReference = DocumentationReference.userManual(documentationId, documentationSection)
 
         expect:
         documentationReference.documentationUrl() == expectedUrl

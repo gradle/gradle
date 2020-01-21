@@ -306,7 +306,7 @@ class DeprecationMessagesTest extends Specification {
     def "logs documentation reference"() {
         when:
         DeprecationLogger.deprecateBehaviour("Some behaviour.")
-            .guidedBy("viewing_debugging_dependencies", "sub:resolving-unsafe-configuration-resolution-errors")
+            .withUserManual("viewing_debugging_dependencies", "sub:resolving-unsafe-configuration-resolution-errors")
             .nagUser()
 
         then:

@@ -91,7 +91,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
     public void apply(Project project) {
         DeprecationLogger.deprecatePlugin("Play Application")
             .replaceWithExternalPlugin("org.gradle.playframework-application")
-            .guidedBy("play_plugin")
+            .withUserManual("play_plugin")
             .nagUser();
         project.getPluginManager().apply(JavaLanguagePlugin.class);
         project.getPluginManager().apply(ScalaLanguagePlugin.class);

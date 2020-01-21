@@ -35,7 +35,7 @@ class DeprecatedFeatureUsageTest extends Specification {
         "summary" | "removalDetails" | null     | null               | DocumentationReference.NO_DOCUMENTATION     | "summary removalDetails"
         "summary" | "removalDetails" | "advice" | null               | DocumentationReference.NO_DOCUMENTATION     | "summary removalDetails advice"
         "summary" | "removalDetails" | "advice" | "contextualAdvice" | DocumentationReference.NO_DOCUMENTATION     | "summary removalDetails contextualAdvice advice"
-        "summary" | "removalDetails" | "advice" | "contextualAdvice" | DocumentationReference.create("foo", "bar") | "summary removalDetails contextualAdvice advice See https://docs.gradle.org/${GradleVersion.current().version}/userguide/foo.html#bar for more details."
+        "summary" | "removalDetails" | "advice" | "contextualAdvice" | DocumentationReference.userManual("foo", "bar") | "summary removalDetails contextualAdvice advice See https://docs.gradle.org/${GradleVersion.current().version}/userguide/foo.html#bar for more details."
     }
 
     def "returns documentation url"() {
@@ -48,7 +48,7 @@ class DeprecatedFeatureUsageTest extends Specification {
         where:
         documentationReference                         | expected
         DocumentationReference.NO_DOCUMENTATION        | null
-        DocumentationReference.create("foo", "bar")    | "https://docs.gradle.org/${GradleVersion.current().version}/userguide/foo.html#bar"
+        DocumentationReference.userManual("foo", "bar") | "https://docs.gradle.org/${GradleVersion.current().version}/userguide/foo.html#bar"
         DocumentationReference.upgradeGuide(42, "bar") | "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_42.html#bar"
     }
 }

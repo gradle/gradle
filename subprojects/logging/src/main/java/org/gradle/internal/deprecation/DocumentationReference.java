@@ -24,11 +24,11 @@ abstract class DocumentationReference {
 
     static final DocumentationReference NO_DOCUMENTATION = new NullDocumentationReference();
 
-    static DocumentationReference create(String id, String section) {
+    static DocumentationReference userManual(String id, String section) {
         return new DefaultDocumentationReference(id, section);
     }
 
-    static DocumentationReference create(String id) {
+    static DocumentationReference userManual(String id) {
         return new DefaultDocumentationReference(id, null);
     }
 

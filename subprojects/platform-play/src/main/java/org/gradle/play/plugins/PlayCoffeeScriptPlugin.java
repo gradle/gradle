@@ -73,7 +73,7 @@ public class PlayCoffeeScriptPlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project target) {
-        DeprecationLogger.deprecatePlugin("Play CoffeeScript").replaceWithExternalPlugin("org.gradle.playframework").guidedBy("play_plugin").nagUser();
+        DeprecationLogger.deprecatePlugin("Play CoffeeScript").replaceWithExternalPlugin("org.gradle.playframework").withUserManual("play_plugin").nagUser();
         target.getPluginManager().apply(ComponentModelBasePlugin.class);
     }
 

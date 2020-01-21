@@ -52,13 +52,13 @@ public class DeprecationMessageBuilder {
         return new WithDocumentation(this);
     }
 
-    public WithDocumentation guidedBy(String documentationId) {
-        this.documentationReference = DocumentationReference.create(documentationId);
+    public WithDocumentation withUserManual(String documentationId) {
+        this.documentationReference = DocumentationReference.userManual(documentationId);
         return new WithDocumentation(this);
     }
 
-    public WithDocumentation guidedBy(String documentationId, String section) {
-        this.documentationReference = DocumentationReference.create(documentationId, section);
+    public WithDocumentation withUserManual(String documentationId, String section) {
+        this.documentationReference = DocumentationReference.userManual(documentationId, section);
         return new WithDocumentation(this);
     }
 
