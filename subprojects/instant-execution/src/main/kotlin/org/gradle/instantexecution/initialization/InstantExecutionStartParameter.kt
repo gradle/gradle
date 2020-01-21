@@ -31,4 +31,7 @@ class InstantExecutionStartParameter(private val startParameter: StartParameter)
     val requestedTaskNames: List<String> by lazy(LazyThreadSafetyMode.NONE) {
         startParameter.taskNames
     }
+
+    fun systemPropertyArg(propertyName: String): String? =
+        startParameter.systemPropertiesArgs[propertyName]
 }

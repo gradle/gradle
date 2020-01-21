@@ -74,9 +74,6 @@ class InstantExecutionHost internal constructor(
     override fun <T> getService(serviceType: Class<T>): T =
         gradle.services.get(serviceType)
 
-    override fun getSystemProperty(propertyName: String) =
-        gradleStartParameter.systemPropertiesArgs[propertyName] ?: System.getProperty(propertyName)
-
     inner class DefaultClassicModeBuild : ClassicModeBuild {
         override val buildSrc: Boolean
             get() = gradle.parent != null && gradle.publicBuildPath.buildPath.name == SettingsInternal.BUILD_SRC
@@ -193,7 +190,7 @@ class InstantExecutionHost internal constructor(
                 gradle,
                 SettingsLocation(rootDir, File(rootDir, "settings.gradle")),
                 gradle.classLoaderScope,
-                gradleStartParameter
+                gradle.startParameter
             )
         }
 
@@ -216,7 +213,7 @@ class InstantExecutionHost internal constructor(
                     service<ScriptHandlerFactory>().create(settingsSource, classLoaderScope),
                     rootDir,
                     settingsSource,
-                    gradleStartParameter
+                    gradle.startParameter
                 )
             }
         }
@@ -259,8 +256,4 @@ class InstantExecutionHost internal constructor(
     private
     val projectDescriptorRegistry
         get() = (gradle.settings as DefaultSettings).projectDescriptorRegistry
-
-    private
-    val gradleStartParameter
-        get() = gradle.startParameter
 }

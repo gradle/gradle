@@ -64,8 +64,8 @@ import kotlin.coroutines.startCoroutine
 
 
 class DefaultInstantExecution internal constructor(
-    private val startParameter: InstantExecutionStartParameter,
     private val host: Host,
+    private val startParameter: InstantExecutionStartParameter,
     private val scopeRegistryListener: InstantExecutionClassLoaderScopeRegistryListener,
     private val beanConstructors: BeanConstructors,
     private val valueSourceProviderFactory: ValueSourceProviderFactory,
@@ -79,8 +79,6 @@ class DefaultInstantExecution internal constructor(
         fun createBuild(rootProjectName: String): InstantExecutionBuild
 
         fun <T> getService(serviceType: Class<T>): T
-
-        fun getSystemProperty(propertyName: String): String?
     }
 
     override fun canExecuteInstantaneously(): Boolean = when {
@@ -511,13 +509,13 @@ class DefaultInstantExecution internal constructor(
     // Skip instant execution for buildSrc for now. Should instead collect up the inputs of its tasks and treat as task graph cache inputs
     private
     val isInstantExecutionEnabled: Boolean by lazy {
-        systemProperty(SystemProperties.isEnabled)?.toBoolean() ?: false
+        systemPropertyFlag(SystemProperties.isEnabled)
             && !host.currentBuild.buildSrc
     }
 
     private
     val instantExecutionLogLevel: LogLevel
-        get() = when (systemProperty(SystemProperties.isQuiet)?.toBoolean()) {
+        get() = when (systemPropertyFlag(SystemProperties.isQuiet)) {
             true -> LogLevel.INFO
             else -> LogLevel.LIFECYCLE
         }
@@ -529,14 +527,16 @@ class DefaultInstantExecution internal constructor(
             ?: 512
 
     private
-    fun failOnProblems(): Boolean =
-        systemProperty(SystemProperties.failOnProblems)
-            ?.toBoolean()
-            ?: false
+    fun failOnProblems() =
+        systemPropertyFlag(SystemProperties.failOnProblems)
+
+    private
+    fun systemPropertyFlag(propertyName: String): Boolean =
+        systemProperty(propertyName)?.toBoolean() ?: false
 
     private
     fun systemProperty(propertyName: String) =
-        host.getSystemProperty(propertyName)
+        startParameter.systemPropertyArg(propertyName) ?: System.getProperty(propertyName)
 
     private
     fun compactMD5For(taskNames: List<String>) =
