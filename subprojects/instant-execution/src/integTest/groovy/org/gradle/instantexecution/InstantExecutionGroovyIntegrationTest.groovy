@@ -22,16 +22,16 @@ import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.jcenterReposito
 
 class InstantExecutionGroovyIntegrationTest extends AbstractInstantExecutionIntegrationTest {
 
-    def "build on Groovy build with JUnit tests"() {
+    def "build on Groovy project with JUnit tests"() {
 
         def instantExecution = newInstantExecutionFixture()
 
         given:
         buildFile << """
             plugins { id 'groovy' }
-        
+
             ${jcenterRepository()}
-            
+
             dependencies {
                 implementation(localGroovy())
                 testImplementation("junit:junit:4.12")
@@ -44,7 +44,7 @@ class InstantExecutionGroovyIntegrationTest extends AbstractInstantExecutionInte
             import org.junit.*
             class ThingTest {
                 @Test void ok() { new Thing() }
-            } 
+            }
         """
 
         and:
@@ -73,9 +73,7 @@ class InstantExecutionGroovyIntegrationTest extends AbstractInstantExecutionInte
         assertTestsExecuted("ThingTest", "ok")
 
         when:
-        classFile.delete()
-        testClassFile.delete()
-        testResults.delete()
+        instantRun "clean"
 
         and:
         instantRun "build"
@@ -93,22 +91,23 @@ class InstantExecutionGroovyIntegrationTest extends AbstractInstantExecutionInte
         assertTestsExecuted("ThingTest", "ok")
     }
 
-    def "compileGroovy without sources nor groovy dependency is executed but skipped"() {
+    def "build on Groovy project without sources nor groovy dependency"() {
         given:
         buildFile << """
             plugins { id 'groovy' }
         """
 
         when:
-        instantRun "assemble"
-        instantRun "assemble"
+        instantRun "build"
+        instantRun "clean"
+        instantRun "build"
 
         then:
         result.assertTaskExecuted(":compileGroovy")
         result.assertTaskSkipped(":compileGroovy")
     }
 
-    def "compileGroovy with sources but no groovy dependency is executed and fails with a reasonable error message"() {
+    def "assemble on Groovy project with sources but no groovy dependency is executed and fails with a reasonable error message"() {
         given:
         buildFile << """
             plugins { id 'groovy' }

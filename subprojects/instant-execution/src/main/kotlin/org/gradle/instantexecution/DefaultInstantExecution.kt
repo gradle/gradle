@@ -207,7 +207,6 @@ class DefaultInstantExecution internal constructor(
         readRelevantProjects(build)
 
         build.registerProjects()
-        build.autoApplyPlugins()
 
         initProjectProvider(build::getProject)
 

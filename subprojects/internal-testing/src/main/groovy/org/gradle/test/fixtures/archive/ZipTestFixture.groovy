@@ -18,14 +18,16 @@ package org.gradle.test.fixtures.archive
 
 import org.apache.tools.zip.ZipEntry
 import org.apache.tools.zip.ZipFile
+import org.gradle.test.fixtures.file.TestFile
 
 import java.nio.charset.Charset
 
 class ZipTestFixture extends ArchiveTestFixture {
-    protected final String metadataCharset;
-    protected final String contentCharset;
+    protected final String metadataCharset
+    protected final String contentCharset
 
     ZipTestFixture(File file, String metadataCharset = null, String contentCharset = null) {
+        new TestFile(file).assertIsFile()
         this.metadataCharset = metadataCharset ?: Charset.defaultCharset().name()
         this.contentCharset = contentCharset ?: Charset.defaultCharset().name()
         def zipFile = new ZipFile(file, this.metadataCharset)
