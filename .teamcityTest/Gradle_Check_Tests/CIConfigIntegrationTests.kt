@@ -1,6 +1,5 @@
 import Gradle_Check.model.CROSS_VERSION_BUCKETS
 import Gradle_Check.model.GradleBuildBucketProvider
-import Gradle_Check.model.INTEG_MULTI_VERSION_BUCKETS
 import Gradle_Check.model.StatisticBasedGradleBuildBucketProvider
 import common.JvmCategory
 import common.JvmVendor
@@ -188,18 +187,6 @@ class CIConfigIntegrationTests {
             }
         }
 
-        fun String.countSubstring(sub: String): Int = split(sub).size - 1
-
-        fun assertMultiVersionIntegrationTest(functionalTests: List<FunctionalTest>) {
-            assertEquals(INTEG_MULTI_VERSION_BUCKETS.size, functionalTests.size)
-
-            val allTasks = functionalTests.joinToString(" ") { it.getGradleTasks() }
-            model.subprojects.subprojects.forEach {
-                val projectTaskName = "${it.name}:allVersionsIntegMultiVersionTest"
-                assertEquals(1, allTasks.countSubstring(projectTaskName))
-            }
-        }
-
         for (stageProject in rootProject.subProjects.filterIsInstance<StageProject>()) {
             for (functionalTestProject in stageProject.subProjects.filterIsInstance<FunctionalTestProject>()) {
                 when {
@@ -208,9 +195,6 @@ class CIConfigIntegrationTests {
                     }
                     functionalTestProject.name.contains("QuickFeedbackCrossVersion") -> {
                         assertProjectAreSplitByGradleVersionCorrectly(TestType.quickFeedbackCrossVersion, functionalTestProject.functionalTests)
-                    }
-                    functionalTestProject.name.contains("AllVersionsIntegMultiVersion") -> {
-                        assertMultiVersionIntegrationTest(functionalTestProject.functionalTests)
                     }
                     else -> {
                         assertProjectAreSplitByClassesCorrectly(functionalTestProject.functionalTests)
