@@ -25,7 +25,7 @@ These additional tests can be executed with the `integrationTest` task or as par
 $ ./gradlew check
 
 BUILD SUCCESSFUL
-11 actionable tasks: 11 executed
+5 actionable tasks: 5 executed
 ----
 
 For more information, see link:{userManualPath}/java_testing.html#sec:configuring_java_integration_tests[section Configuring integration tests in the Testing in Java project chapter].

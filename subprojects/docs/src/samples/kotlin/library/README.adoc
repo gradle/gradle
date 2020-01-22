@@ -17,7 +17,7 @@ To build the library:
 $ ./gradlew jar
 
 BUILD SUCCESSFUL
-2 actionable tasks: 2 executed
+3 actionable tasks: 3 executed
 ----
 
 For more information, see link:https://kotlinlang.org/docs/reference/using-gradle.html[building a Kotlin project with Gradle reference].

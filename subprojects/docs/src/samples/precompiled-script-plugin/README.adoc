@@ -20,20 +20,6 @@ Running the task added by the precompiled script plugin:
 ----
 $ ./gradlew greet
 
-> Task :plugin:extractPrecompiledScriptPluginPlugins
-> Task :plugin:generateExternalPluginSpecBuilders
-> Task :plugin:compilePluginsBlocks
-> Task :plugin:generatePrecompiledScriptPluginAccessors
-> Task :plugin:configurePrecompiledScriptDependenciesResolver
-> Task :plugin:generateScriptPluginAdapters
-> Task :plugin:compileKotlin
-> Task :plugin:compileJava NO-SOURCE
-> Task :plugin:pluginDescriptors
-> Task :plugin:processResources
-> Task :plugin:classes
-> Task :plugin:inspectClassesForKotlinIC
-> Task :plugin:jar
-
 > Task :greet
 Hello, World!
 
