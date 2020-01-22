@@ -44,10 +44,16 @@ class AndroidSantaTrackerJavaCachingSmokeTest extends AbstractAndroidSantaTracke
         when:
         buildLocation(originalDir, agpVersion)
 
-        and:
+        then:
+        assertInstantExecutionStateStored()
+
+        when:
         BuildResult relocatedResult = buildLocation(relocatedDir, agpVersion)
 
         then:
+        assertInstantExecutionStateStored()
+
+        and:
         def expectedResults = agpVersion.startsWith('3.6')
             ? EXPECTED_RESULTS_3_6
             : agpVersion.startsWith('4.0.0-alpha')

@@ -58,6 +58,7 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
             "The configuration :detachedConfiguration8 was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a different project. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. See https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors for more details.",
             "The configuration :detachedConfiguration9 was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a different project. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. See https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors for more details.",
         )
+        assertInstantExecutionStateStored()
 
         where:
         agpVersion << TESTED_AGP_VERSIONS
@@ -81,6 +82,7 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
         } else {
             expectNoDeprecationWarnings(result)
         }
+        assertInstantExecutionStateStored()
 
         where:
         agpVersion << TESTED_AGP_VERSIONS
@@ -106,6 +108,7 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
 
         then:
         result.task(":tracker:compileDebugJavaWithJavac").outcome == SUCCESS
+        assertInstantExecutionStateStored()
 
         when:
         nonAbiChangeMutator.beforeBuild()
@@ -114,6 +117,7 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
 
         then:
         result.task(":tracker:compileDebugJavaWithJavac").outcome == SUCCESS
+        assertInstantExecutionStateLoaded()
         md5After != md5Before
 
         where:
@@ -139,6 +143,7 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
 
         then:
         result.task(":santa-tracker:compileDevelopmentDebugJavaWithJavac").outcome == SUCCESS
+        assertInstantExecutionStateStored()
 
         when:
         nonAbiChangeMutator.beforeBuild()
@@ -147,6 +152,7 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
 
         then:
         result.task(":santa-tracker:compileDevelopmentDebugJavaWithJavac").outcome == SUCCESS
+        assertInstantExecutionStateLoaded()
         md5After != md5Before
 
         where:
