@@ -1,7 +1,3 @@
-extraction:
-  java:
-    index:
-      exclude:
-        - subprojects/performance/src/templates/pom.xml
-      filters:
-        - exclude: "subprojects/performance/src/templates/pom.xml"
+path_classifiers:
+    test:
+        - exclude: subprojects/performance/src/templates/pom.xml
