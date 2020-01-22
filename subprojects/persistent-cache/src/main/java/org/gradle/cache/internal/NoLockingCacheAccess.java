@@ -20,6 +20,12 @@ import org.gradle.internal.Factory;
 
 class NoLockingCacheAccess extends AbstractCrossProcessCacheAccess {
 
+    private final Runnable onClose;
+
+    NoLockingCacheAccess(Runnable onClose) {
+        this.onClose = onClose;
+    }
+
     @Override
     public void open() {
         // Don't need to do anything
@@ -27,6 +33,7 @@ class NoLockingCacheAccess extends AbstractCrossProcessCacheAccess {
 
     @Override
     public void close() {
+        onClose.run();
     }
 
     @Override

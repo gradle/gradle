@@ -110,7 +110,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
                 fileAccess = new UnitOfWorkFileAccess();
                 break;
             case None:
-                crossProcessCacheAccess = new NoLockingCacheAccess();
+                crossProcessCacheAccess = new NoLockingCacheAccess(this::notifyFinish);
                 fileAccess = TransparentFileAccess.INSTANCE;
                 break;
             default:
@@ -345,10 +345,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
             cacheClosedCount++;
             takeOwnershipNow();
             try {
-                // Notify caches that lock is to be released. The caches may do work on the cache files during this
-                for (IndexedCacheEntry<?, ?> entry : caches.values()) {
-                    entry.getCache().finishWork();
-                }
+                notifyFinish();
 
                 // Snapshot the state and notify the caches
                 FileLock.State state = fileLock.getState();
@@ -361,6 +358,13 @@ public class DefaultCacheAccess implements CacheCoordinator {
         } finally {
             this.fileLock = null;
             this.stateAtOpen = null;
+        }
+    }
+
+    private void notifyFinish() {
+        // Notify caches that lock is to be released. The caches may do work on the cache files during this
+        for (IndexedCacheEntry<?, ?> entry : caches.values()) {
+            entry.getCache().finishWork();
         }
     }
 
