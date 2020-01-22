@@ -1,0 +1,7 @@
+extraction:
+  java:
+    index:
+      exclude:
+        - subprojects/performance/src/templates/pom.xml
+      filters:
+        - exclude: "subprojects/performance/src/templates/pom.xml"
