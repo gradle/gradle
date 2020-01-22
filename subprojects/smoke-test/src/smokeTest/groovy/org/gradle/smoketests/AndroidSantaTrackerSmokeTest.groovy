@@ -91,42 +91,6 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
-    def "incremental Java compilation works for Santa Tracker Kotlin (agp=#agpVersion)"() {
-
-        given:
-        def checkoutDir = temporaryFolder.createDir("checkout")
-        setupCopyOfSantaTracker(checkoutDir, 'Kotlin', agpVersion)
-
-        and:
-        def pathToClass = "com/google/android/apps/santatracker/tracker/ui/BottomSheetBehavior"
-        def fileToChange = checkoutDir.file("tracker/src/main/java/${pathToClass}.java")
-        def compiledClassFile = checkoutDir.file("tracker/build/intermediates/javac/debug/classes/${pathToClass}.class")
-        def nonAbiChangeMutator = new ApplyNonAbiChangeToJavaSourceFileMutator(fileToChange)
-
-        when:
-        def result = buildLocation(checkoutDir, agpVersion)
-        def md5Before = compiledClassFile.md5Hash
-
-        then:
-        result.task(":tracker:compileDebugJavaWithJavac").outcome == SUCCESS
-        assertInstantExecutionStateStored()
-
-        when:
-        nonAbiChangeMutator.beforeBuild()
-        buildLocation(checkoutDir, agpVersion)
-        def md5After = compiledClassFile.md5Hash
-
-        then:
-        result.task(":tracker:compileDebugJavaWithJavac").outcome == SUCCESS
-        assertInstantExecutionStateLoaded()
-        md5After != md5Before
-
-        where:
-        agpVersion << TESTED_AGP_VERSIONS
-    }
-
-    @Unroll
     @UnsupportedWithInstantExecution(iterationMatchers = AGP_3_ITERATION_MATCHER)
     def "incremental Java compilation works for Santa Tracker Java (agp=#agpVersion)"() {
 
