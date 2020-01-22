@@ -1,3 +1,5 @@
-path_classifiers:
-    test:
-        - exclude: subprojects/performance/src/templates/project-with-source/pom.xml
+extraction:
+    java:
+        before_index:
+            exclude:
+                - "subprojects/performance/src/templates/**"
