@@ -2,3 +2,5 @@ extraction:
   java:
     before_index:
       - rm -rf subprojects/performance/src/templates/
+    index:
+      java_version: "11"
