@@ -353,6 +353,11 @@ tasks.named("checkstyleDocsTest") {
     enabled = false
 }
 
+// TODO: The rich console to plain text is flaky
+tasks.named("checkAsciidoctorSampleContents") {
+    enabled = false
+}
+
 // Publications for the docs subproject:
 
 configurations {
