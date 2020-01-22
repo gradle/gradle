@@ -22,8 +22,9 @@ import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 import org.gradle.build.ReproduciblePropertiesWriter
-import org.jsoup.Jsoup
+import org.w3c.dom.Element
 import java.util.Properties
+import javax.xml.parsers.DocumentBuilderFactory
 
 
 /**
@@ -44,22 +45,9 @@ abstract class UpdateAgpVersions : DefaultTask() {
     @TaskAction
     fun fetch() {
 
-        val minimumSupported = minimumSupportedMinor.get()
-
-        val url = "https://mvnrepository.com/artifact/com.android.tools.build/gradle?repo=google"
-        val body = Jsoup.connect(url).get().body()
-        val minorSets = body.select("table.grid.versions tbody")
-
-        var latests = minorSets.map { it.select("a.vbtn").first().text() }
-        latests = (latests + minimumSupported).sorted()
-        latests = latests.subList(latests.indexOf(minimumSupported) + 1, latests.size)
-
-        val nightlyUrl = "https://repo.gradle.org/gradle/ext-snapshots-local/com/android/tools/build/gradle/"
-        val nightly = Jsoup.connect(nightlyUrl).get().body()
-            .select("a")
-            .last { it.text().matches(Regex("^[0-9].*")) }
-            .text().dropLast(1)
-
+        val dbf = DocumentBuilderFactory.newInstance()
+        val latests = dbf.fetchLatests(minimumSupportedMinor.get())
+        val nightly = dbf.fetchNightly()
         val properties = Properties().apply {
             setProperty("latests", latests.joinToString(","))
             setProperty("nightly", nightly)
@@ -70,4 +58,29 @@ abstract class UpdateAgpVersions : DefaultTask() {
             comment.get()
         )
     }
+
+    private
+    fun DocumentBuilderFactory.fetchLatests(minimumSupported: String): List<String> {
+        var latests = fetchVersionsFromMavenMetadata("https://dl.google.com/dl/android/maven2/com/android/tools/build/gradle/maven-metadata.xml")
+            .groupBy { it.take(3) }
+            .map { (_, versions) -> versions.first() }
+        latests = (latests + minimumSupported).sorted()
+        latests = latests.subList(latests.indexOf(minimumSupported) + 1, latests.size)
+        return latests
+    }
+
+    private
+    fun DocumentBuilderFactory.fetchNightly(): String =
+        fetchVersionsFromMavenMetadata("https://repo.gradle.org/gradle/ext-snapshots-local/com/android/tools/build/gradle/maven-metadata.xml")
+            .first()
+
+    private
+    fun DocumentBuilderFactory.fetchVersionsFromMavenMetadata(url: String): List<String> =
+        newDocumentBuilder()
+            .parse(url)
+            .getElementsByTagName("version").let { versions ->
+                (0 until versions.length)
+                    .map { idx -> (versions.item(idx) as Element).textContent }
+                    .reversed()
+            }
 }
