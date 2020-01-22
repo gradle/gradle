@@ -17,7 +17,6 @@
 package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
-import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
 import org.gradle.internal.scan.config.fixtures.GradleEnterprisePluginSettingsFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -53,13 +52,13 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
         }
     }
 
-    protected BuildResult buildLocation(File projectDir, String agpVersion = null) {
+    protected BuildResult buildLocation(File projectDir, String agpVersion) {
         def runner = runner("assembleDebug")
             .withProjectDir(projectDir)
             .withTestKitDir(homeDir)
             .forwardOutput()
-        if (agpVersion != null && AndroidGradlePluginVersions.isAgpNightly(agpVersion)) {
-            def init = AndroidGradlePluginVersions.createAgpNightlyRepositoryInitScript()
+        if (AGP_VERSIONS.isAgpNightly(agpVersion)) {
+            def init = AGP_VERSIONS.createAgpNightlyRepositoryInitScript()
             runner.withArguments([runner.arguments, ['-I', init.canonicalPath]].flatten())
         }
         runner.build()

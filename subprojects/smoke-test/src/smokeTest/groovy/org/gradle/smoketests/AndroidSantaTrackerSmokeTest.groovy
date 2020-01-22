@@ -32,12 +32,15 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
     @Unroll
     @ToBeFixedForInstantExecution
     def "check deprecation warnings produced by building Santa Tracker Kotlin (agp=#agpVersion)"() {
+
+        given:
         def checkoutDir = temporaryFolder.createDir("checkout")
         setupCopyOfSantaTracker(checkoutDir, 'Kotlin', agpVersion)
 
+        when:
         def result = buildLocation(checkoutDir, agpVersion)
 
-        expect:
+        then:
         expectDeprecationWarnings(result,
             "The configuration :detachedConfiguration1 was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a different project. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. See https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors for more details.",
             "The configuration :detachedConfiguration10 was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a different project. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. See https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors for more details.",
@@ -62,12 +65,15 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
 
     @Unroll
     def "check deprecation warnings produced by building Santa Tracker Java (agp=#agpVersion)"() {
+
+        given:
         def checkoutDir = temporaryFolder.createDir("checkout")
         setupCopyOfSantaTracker(checkoutDir, 'Java', agpVersion)
 
+        when:
         def result = buildLocation(checkoutDir, agpVersion)
 
-        expect:
+        then:
         if (agpVersion.startsWith('3.6')) {
             expectDeprecationWarnings(result,
                 "Internal API constructor DefaultDomainObjectSet(Class<T>) has been deprecated. This is scheduled to be removed in Gradle 7.0. Please use ObjectFactory.domainObjectSet(Class<T>) instead."
@@ -83,9 +89,12 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
     @Unroll
     @ToBeFixedForInstantExecution
     def "incremental Java compilation works for Santa Tracker Kotlin (agp=#agpVersion)"() {
+
+        given:
         def checkoutDir = temporaryFolder.createDir("checkout")
         setupCopyOfSantaTracker(checkoutDir, 'Kotlin', agpVersion)
 
+        and:
         def pathToClass = "com/google/android/apps/santatracker/tracker/ui/BottomSheetBehavior"
         def fileToChange = checkoutDir.file("tracker/src/main/java/${pathToClass}.java")
         def compiledClassFile = checkoutDir.file("tracker/build/intermediates/javac/debug/classes/${pathToClass}.class")
@@ -94,6 +103,7 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
         when:
         def result = buildLocation(checkoutDir, agpVersion)
         def md5Before = compiledClassFile.md5Hash
+
         then:
         result.task(":tracker:compileDebugJavaWithJavac").outcome == SUCCESS
 
@@ -101,6 +111,7 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
         nonAbiChangeMutator.beforeBuild()
         buildLocation(checkoutDir, agpVersion)
         def md5After = compiledClassFile.md5Hash
+
         then:
         result.task(":tracker:compileDebugJavaWithJavac").outcome == SUCCESS
         md5After != md5Before
@@ -111,9 +122,12 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
 
     @Unroll
     def "incremental Java compilation works for Santa Tracker Java (agp=#agpVersion)"() {
+
+        given:
         def checkoutDir = temporaryFolder.createDir("checkout")
         setupCopyOfSantaTracker(checkoutDir, 'Java', agpVersion)
 
+        and:
         def pathToClass = "com/google/android/apps/santatracker/map/BottomSheetBehavior"
         def fileToChange = checkoutDir.file("santa-tracker/src/main/java/${pathToClass}.java")
         def compiledClassFile = checkoutDir.file("santa-tracker/build/intermediates/javac/developmentDebug/classes/${pathToClass}.class")
@@ -122,6 +136,7 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
         when:
         def result = buildLocation(checkoutDir, agpVersion)
         def md5Before = compiledClassFile.md5Hash
+
         then:
         result.task(":santa-tracker:compileDevelopmentDebugJavaWithJavac").outcome == SUCCESS
 
@@ -129,6 +144,7 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
         nonAbiChangeMutator.beforeBuild()
         buildLocation(checkoutDir, agpVersion)
         def md5After = compiledClassFile.md5Hash
+
         then:
         result.task(":santa-tracker:compileDevelopmentDebugJavaWithJavac").outcome == SUCCESS
         md5After != md5Before

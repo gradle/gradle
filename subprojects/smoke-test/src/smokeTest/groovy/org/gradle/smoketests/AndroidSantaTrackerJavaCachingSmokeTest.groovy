@@ -43,6 +43,8 @@ class AndroidSantaTrackerJavaCachingSmokeTest extends AbstractAndroidSantaTracke
 
         when:
         buildLocation(originalDir, agpVersion)
+
+        and:
         BuildResult relocatedResult = buildLocation(relocatedDir, agpVersion)
 
         then:

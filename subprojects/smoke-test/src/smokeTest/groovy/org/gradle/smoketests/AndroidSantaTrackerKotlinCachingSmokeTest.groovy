@@ -45,6 +45,8 @@ class AndroidSantaTrackerKotlinCachingSmokeTest extends AbstractAndroidSantaTrac
 
         when:
         buildLocation(originalDir, agpVersion)
+
+        and:
         BuildResult relocatedResult = buildLocation(relocatedDir, agpVersion)
 
         then:
