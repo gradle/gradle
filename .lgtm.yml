@@ -1,5 +1,5 @@
 extraction:
-    java:
-        before_index:
-            exclude:
-                - "subprojects/performance/src/templates/**"
+  java:
+    before_index:
+      exclude:
+        - "subprojects/performance/src/templates/**"
