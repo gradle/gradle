@@ -122,13 +122,13 @@ tasks {
 
     register<RemoteProject>("santaTrackerKotlin") {
         remoteUri.set(santaGitUri)
-        // From branch agp-3.6.0
+        // Pinned from branch agp-3.6.0
         ref.set("3bbbd895de38efafd0dd1789454d4e4cb72d46d5")
     }
 
     register<RemoteProject>("santaTrackerJava") {
         remoteUri.set(santaGitUri)
-        // From agp-3.6.0-java branch
+        // Pinned from branch agp-3.6.0-java
         ref.set("174705275e434adc843e8e9b28106a5e3ffd6733")
     }
 
