@@ -110,7 +110,6 @@ plugins.withType<EclipsePlugin>().configureEach {
     }
 }
 
-// TODO Copied from instant-execution.gradle.kts, we should have one place to clone this thing and clone it from there locally when needed
 tasks {
 
     /**
