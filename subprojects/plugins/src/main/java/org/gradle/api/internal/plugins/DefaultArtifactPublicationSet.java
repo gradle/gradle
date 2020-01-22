@@ -80,9 +80,8 @@ public class DefaultArtifactPublicationSet {
             return null;
         }
 
-        @Nullable
         @Override
-        public Set<PublishArtifact> getOrNull() {
+        protected Value<Set<PublishArtifact>> calculateOwnValue() {
             if (defaultArtifacts == null) {
                 defaultArtifacts = Sets.newLinkedHashSet();
                 currentDefault = null;
@@ -108,7 +107,7 @@ public class DefaultArtifactPublicationSet {
                     }
                 }
             }
-            return defaultArtifacts;
+            return Value.of(defaultArtifacts);
         }
 
         void replaceCurrent(PublishArtifact artifact) {

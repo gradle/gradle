@@ -193,7 +193,7 @@ abstract class ProviderSpec<T> extends Specification {
 
         then:
         def t = thrown(MissingValueException)
-        t.message == "Cannot query the value of ${displayName} because it has no value available."
+        t.message == "Cannot query the value of this provider because it has no value available."
     }
 
     def "flat mapped provider with no value does not use transformer"() {
@@ -213,7 +213,7 @@ abstract class ProviderSpec<T> extends Specification {
 
         then:
         def t = thrown(MissingValueException)
-        t.message == "Cannot query the value of ${displayName} because it has no value available."
+        t.message == "Cannot query the value of this provider because it has no value available."
     }
 
     def "can map to provider that uses value if present or a default value"() {
@@ -231,10 +231,11 @@ abstract class ProviderSpec<T> extends Specification {
 
     def "can map to provider that uses value if present or a default value from another provider"() {
         expect:
+        def broken = brokenSupplier()
         def supplier = Providers.of(someOtherValue())
 
         def present = providerWithValue(someValue())
-        def usesValue = present.orElse(supplier)
+        def usesValue = present.orElse(broken)
 
         usesValue.present
         usesValue.get() == someValue()
@@ -250,15 +251,17 @@ abstract class ProviderSpec<T> extends Specification {
         expect:
         def supplier = Providers.notDefined()
 
-        def present = providerWithValue(someValue())
-        def usesValue = present.orElse(supplier)
-        usesValue.present
-        usesValue.get() == someValue()
-
         def notPresent = providerWithNoValue()
         def usesDefaultValue = notPresent.orElse(supplier)
         !usesDefaultValue.present
         usesDefaultValue.getOrNull() == null
+
+        when:
+        notPresent.get()
+
+        then:
+        def e = thrown(MissingValueException)
+        e.message == "Cannot query the value of ${displayName} because it has no value available."
     }
 
     def "can chain orElse"() {
@@ -300,4 +303,22 @@ abstract class ProviderSpec<T> extends Specification {
         copy.present
         copy.getOrNull() == someValue()
     }
+
+    /**
+     * A test provider that always fails.
+     */
+    ProviderInternal<T> brokenSupplier() {
+        return new AbstractMinimalProvider<T>() {
+            @Override
+            Class<T> getType() {
+                return ProviderSpec.this.type()
+            }
+
+            @Override
+            protected ValueSupplier.Value<T> calculateOwnValue() {
+                throw new RuntimeException("broken!")
+            }
+        }
+    }
+
 }

@@ -69,7 +69,7 @@ class NativeBasePluginTest extends Specification {
         def b2 = Stub(SoftwareComponent)
         b2.name >> "b2"
         def component = Stub(ComponentWithBinaries)
-        def binaries = new DefaultBinaryCollection(SoftwareComponent, null)
+        def binaries = new DefaultBinaryCollection(SoftwareComponent)
         component.binaries >> binaries
 
         given:
@@ -109,7 +109,7 @@ class NativeBasePluginTest extends Specification {
     def "assemble task builds outputs of development binary of main component"() {
         def binary1 = binary('debug', 'debugInstall')
         def binary2 = binary('release', 'releaseInstall')
-        def binaries = new DefaultBinaryCollection(SoftwareComponent, null)
+        def binaries = new DefaultBinaryCollection(SoftwareComponent)
         binaries.add(binary1)
         binaries.add(binary2)
         def component = Stub(TestComponent)
@@ -130,7 +130,7 @@ class NativeBasePluginTest extends Specification {
     def "adds assemble task for each binary of main component"() {
         def binary1 = binary('debug', 'installDebug')
         def binary2 = binary('release', 'installRelease')
-        def binaries = new DefaultBinaryCollection(SoftwareComponent, null)
+        def binaries = new DefaultBinaryCollection(SoftwareComponent)
         binaries.add(binary1)
         binaries.add(binary2)
         def component = Stub(TestComponent)

@@ -48,11 +48,11 @@ public interface ValueSupplier {
         Value<Object> MISSING = new ScalarSupplier.Missing<>();
         Value<Void> SUCCESS = new Present<>(null);
 
-        static <T> Value<? extends T> ofNullable(@Nullable T value) {
+        static <T> Value<T> ofNullable(@Nullable T value) {
             if (value == null) {
                 return MISSING.asType();
             }
-            return new Present<T>(value);
+            return new Present<>(value);
         }
 
         static <T> Value<T> missing() {
@@ -60,6 +60,7 @@ public interface ValueSupplier {
         }
 
         static <T> Value<T> of(T value) {
+            assert value != null;
             return new Present<>(value);
         }
 
@@ -79,9 +80,11 @@ public interface ValueSupplier {
 
         boolean isMissing();
 
+        <S> Value<S> asType();
+
         Value<T> pushWhenMissing(@Nullable DisplayName displayName);
 
-        <S> Value<S> asType();
+        Value<T> addPathsFrom(Value<?> rightValue);
     }
 
     class Present<T> implements Value<T> {
@@ -123,6 +126,11 @@ public interface ValueSupplier {
 
         @Override
         public List<DisplayName> getPathToOrigin() {
+            throw new IllegalStateException();
+        }
+
+        @Override
+        public Value<T> addPathsFrom(Value<?> rightValue) {
             throw new IllegalStateException();
         }
     }
@@ -176,7 +184,22 @@ public interface ValueSupplier {
             ImmutableList.Builder<DisplayName> builder = ImmutableList.builderWithExpectedSize(path.size() + 1);
             builder.add(displayName);
             builder.addAll(path);
-            return new Missing<T>(builder.build());
+            return new Missing<>(builder.build());
+        }
+
+        @Override
+        public Value<T> addPathsFrom(Value<?> rightValue) {
+            if (path.isEmpty()) {
+                return rightValue.asType();
+            }
+            Missing<?> other = (Missing<?>) rightValue;
+            if (other.path.isEmpty()) {
+                return this;
+            }
+            ImmutableList.Builder<DisplayName> builder = ImmutableList.builderWithExpectedSize(path.size() + other.path.size());
+            builder.addAll(path);
+            builder.addAll(other.path);
+            return new Missing<>(builder.build());
         }
     }
 }

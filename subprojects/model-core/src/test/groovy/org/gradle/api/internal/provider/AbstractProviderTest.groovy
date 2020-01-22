@@ -19,6 +19,8 @@ package org.gradle.api.internal.provider
 import org.gradle.api.Transformer
 import org.gradle.internal.state.ManagedFactory
 
+import javax.annotation.Nullable
+
 class AbstractProviderTest extends ProviderSpec<String> {
     TestProvider provider = new TestProvider()
 
@@ -64,7 +66,7 @@ class AbstractProviderTest extends ProviderSpec<String> {
 
     def "mapped provider is live"() {
         def transformer = Stub(Transformer)
-        transformer.transform(_) >> {String s -> "[$s]" }
+        transformer.transform(_) >> { String s -> "[$s]" }
 
         expect:
         def mapped = provider.map(transformer)
@@ -86,9 +88,9 @@ class AbstractProviderTest extends ProviderSpec<String> {
 
     def "can chain mapped providers"() {
         def transformer1 = Stub(Transformer)
-        transformer1.transform(_) >> {String s -> "[$s]" as String }
+        transformer1.transform(_) >> { String s -> "[$s]" as String }
         def transformer2 = Stub(Transformer)
-        transformer2.transform(_) >> {String s -> "-$s-" as String }
+        transformer2.transform(_) >> { String s -> "-$s-" as String }
 
         expect:
         def mapped = provider.map(transformer1).map(transformer2)
@@ -114,6 +116,7 @@ class AbstractProviderTest extends ProviderSpec<String> {
     }
 
     static class TestProvider extends AbstractMinimalProvider {
+        @Nullable
         String value
 
         void value(String s) {
@@ -126,8 +129,8 @@ class AbstractProviderTest extends ProviderSpec<String> {
         }
 
         @Override
-        Object getOrNull() {
-            return value
+        protected Value calculateOwnValue() {
+            return Value.ofNullable(value)
         }
     }
 }

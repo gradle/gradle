@@ -189,9 +189,8 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
             return null;
         }
 
-        @Nullable
         @Override
-        public T getOrNull() {
+        protected Value<? extends T> calculateOwnValue() {
             synchronized (this) {
                 if (value == null) {
 
@@ -200,7 +199,7 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
 
                     onValueObtained();
                 }
-                return value.get();
+                return Value.ofNullable(value.get());
             }
         }
 

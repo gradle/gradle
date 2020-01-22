@@ -23,6 +23,14 @@ import org.gradle.api.provider.Provider;
  */
 public abstract class AbstractProviderWithValue<T> extends AbstractMinimalProvider<T> {
     @Override
+    protected Value<? extends T> calculateOwnValue() {
+        return Value.of(get());
+    }
+
+    @Override
+    public abstract T get();
+
+    @Override
     public T getOrNull() {
         return get();
     }

@@ -18,7 +18,6 @@ package org.gradle.api.internal.collections
 
 import org.gradle.api.Action
 import org.gradle.api.internal.provider.AbstractMinimalProvider
-
 import org.gradle.api.internal.provider.ChangingValue
 import org.gradle.api.internal.provider.ChangingValueHandler
 import org.gradle.api.internal.provider.CollectionProviderInternal
@@ -210,7 +209,7 @@ abstract class AbstractElementSourceTest extends Specification {
         source.iterator().collect() == iterationOrder("foo", "baz", "fooz", "fizz")
     }
 
-    def "comodification with iterator causes an exception" () {
+    def "comodification with iterator causes an exception"() {
         given:
         def provider = provider("baz")
         def providerOfSet = setProvider("fuzz", "buzz")
@@ -292,8 +291,8 @@ abstract class AbstractElementSourceTest extends Specification {
         }
 
         @Override
-        T getOrNull() {
-            return value
+        protected Value<T> calculateOwnValue() {
+            return Value.of(value)
         }
 
         void setValue(T value) {
@@ -324,8 +323,8 @@ abstract class AbstractElementSourceTest extends Specification {
         }
 
         @Override
-        Set<T> getOrNull() {
-            return value
+        protected Value<? extends Set<T>> calculateOwnValue() {
+            return Value.of(value)
         }
 
         @Override

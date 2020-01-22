@@ -455,7 +455,7 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
 
     def "reports the source of element provider when value is missing and source is known"() {
         given:
-        def elementProvider = sourceWithNoValue(Describables.of("<source>"))
+        def elementProvider = supplierWithNoValue(Describables.of("<source>"))
         property.set(toMutable(["123"]))
         property.add(elementProvider)
 
@@ -489,7 +489,7 @@ The value of this property is derived from: <source>""")
 
     def "reports the source of collection provider when value is missing and source is known"() {
         given:
-        def elementsProvider = sourceWithNoValue(Describables.of("<source>"))
+        def elementsProvider = supplierWithNoValue(Describables.of("<source>"))
         property.set(toMutable(["123"]))
         property.addAll(elementsProvider)
 
