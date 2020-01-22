@@ -22,7 +22,6 @@ import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.cache.CachingIntegrationFixture
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
@@ -233,12 +232,6 @@ abstract class AbstractReadOnlyCacheDependencyResolutionTest extends AbstractHtt
     }
 
     private void makeWritable(boolean writable) {
-        if (OperatingSystem.current().isWindows()) {
-            // skip on Windows as it doesn't seem to work properly
-            // and testing against Linux already gives us the guarantees
-            // we want in the tests
-            return
-        }
         roCacheDir.listFiles().each {
             it.eachFileRecurse {
                 it.setWritable(writable)
