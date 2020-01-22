@@ -32,13 +32,13 @@ class MapPropertyIntegrationTest extends AbstractIntegrationSpec {
                 final Class<K> keyType
                 @Internal
                 final Class<V> valueType
-                
+
                 AbstractVerificationTask(Class<K> keyType, Class<V> valueType) {
                     this.keyType = keyType
                     this.valueType = valueType
                     prop = project.objects.mapProperty(keyType, valueType)
                 }
-                
+
                 @TaskAction
                 void validate() {
                     def actual = prop.getOrNull()
@@ -49,17 +49,17 @@ class MapPropertyIntegrationTest extends AbstractIntegrationSpec {
                         assert keyType.isInstance(it.key)
                         assert valueType.isInstance(it.value)
                     }
-                }            
+                }
             }
 
             class StringVerificationTask extends AbstractVerificationTask<String, String> {
                 StringVerificationTask() { super(String, String) }
             }
-            
+
             class IntegerVerificationTask extends AbstractVerificationTask<String, String> {
                 IntegerVerificationTask() { super(Integer, Integer) }
             }
-            
+
             task verify(type: StringVerificationTask)
             task verifyInt(type: IntegerVerificationTask)
             '''
@@ -77,17 +77,17 @@ class MapPropertyIntegrationTest extends AbstractIntegrationSpec {
             abstract class MyTask extends DefaultTask {
                 @Input
                 abstract MapProperty<$keyType, $valueType> getProp()
-                
+
                 @TaskAction
                 void go() {
                     println("prop = \${prop.get()}")
                 }
             }
-            
+
             def key = new Param<String>(display: 'a')
             def map = [:]
             map[key] = new Param<Number>(display: 12)
-            
+
             tasks.create("thing", MyTask) {
                 prop = $value
             }
@@ -110,16 +110,16 @@ class MapPropertyIntegrationTest extends AbstractIntegrationSpec {
         buildFile << '''
             int counter = 0
             def provider = providers.provider { [(++counter): ++counter] }
-            
+
             def property = objects.mapProperty(Integer, Integer)
             property.set(provider)
-            
+
             assert property.get() == [1: 2]
             assert property.get() == [3: 4]
             property.finalizeValue()
             assert property.get() == [5: 6]
             assert property.get() == [5: 6]
-            
+
             property.set([1: 2])
             '''.stripIndent()
 
@@ -135,16 +135,16 @@ class MapPropertyIntegrationTest extends AbstractIntegrationSpec {
         buildFile << '''
             int counter = 0
             def provider = providers.provider { [(++counter): ++counter] }
-            
+
             def property = objects.mapProperty(Integer, Integer)
             property.set(provider)
-            
+
             assert property.get() == [1: 2]
             assert property.get() == [3: 4]
             property.disallowChanges()
             assert property.get() == [5: 6]
             assert property.get() == [7: 8]
-            
+
             property.set([1: 2])
             '''.stripIndent()
 
@@ -161,16 +161,16 @@ class MapPropertyIntegrationTest extends AbstractIntegrationSpec {
             class SomeTask extends DefaultTask {
                 @Input
                 final MapProperty<String, String> prop = project.objects.mapProperty(String, String)
-                
+
                 @OutputFile
                 final Property<RegularFile> outputFile = project.objects.fileProperty()
-                
+
                 @TaskAction
                 void go() {
                     outputFile.get().asFile.text = prop.get()
                 }
             }
-            
+
             task thing(type: SomeTask) {
                 prop = ['key1': 'value1']
                 outputFile = layout.buildDirectory.file('out.txt')
@@ -178,11 +178,11 @@ class MapPropertyIntegrationTest extends AbstractIntegrationSpec {
                     prop.set(['ignoredKey': 'ignoredValue'])
                 }
             }
-            
+
             afterEvaluate {
                 thing.prop = ['key2': 'value2']
             }
-            
+
             task before {
                 doLast {
                     thing.prop = providers.provider { ['finalKey': 'finalValue'] }
@@ -203,7 +203,7 @@ class MapPropertyIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << '''
             def prop = project.objects.mapProperty(String, String)
-            
+
             task thing {
                 inputs.property('prop', prop)
                 prop.set(['key1': 'value1'])
@@ -250,7 +250,7 @@ task thing {
         buildFile << """
             verify {
                 prop = ${value}
-                expected = ['key1': 'value1', 'key2': 'value2']            
+                expected = ['key1': 'value1', 'key2': 'value2']
             }
             """.stripIndent()
 
@@ -271,7 +271,7 @@ task thing {
                 prop.empty()
                 prop['key1'] = 'value1'
                 prop['key2'] = project.provider { 'value2' }
-                expected = ['key1': 'value1', 'key2': 'value2']          
+                expected = ['key1': 'value1', 'key2': 'value2']
             }
             '''.stripIndent()
 
@@ -286,7 +286,7 @@ task thing {
                 prop.empty()
                 prop[1] = 111
                 prop[2] = project.provider { 222 }
-                expected = [1: 111, 2: 222]          
+                expected = [1: 111, 2: 222]
             }
             '''.stripIndent()
 
@@ -301,7 +301,7 @@ task thing {
             def str = "aBc"
             verify {
                 prop = ${value}
-                expected = ['a': 'b']            
+                expected = ['a': 'b']
             }
             """.stripIndent()
 
@@ -324,7 +324,7 @@ task thing {
                 prop.putAll(['key4': 'value4'])
                 prop.putAll(project.provider { ['key5': 'value5'] })
                 expected = ['key1': 'value1', 'key2': 'value2', 'key3': 'value3', 'key4': 'value4', 'key5': 'value5']
-            } 
+            }
             '''.stripIndent()
     }
 
@@ -338,7 +338,7 @@ task thing {
                 prop.putAll(['key3': 'value3'])
                 prop.putAll(project.provider { ['key4': 'value4'] })
                 expected = ['key1': 'value1', 'key2': 'value2', 'key3': 'value3', 'key4': 'value4']
-            } 
+            }
             '''.stripIndent()
 
         expect:
@@ -354,7 +354,7 @@ task thing {
                 prop = ['key': 'value']
                 prop.putAll(${value})
                 expected = ['key': 'value', 'b': 'c']
-            } 
+            }
             """.stripIndent()
 
         expect:
@@ -375,7 +375,7 @@ task thing {
                 prop = ['key': 'value']
                 prop.put(${key}, ${value})
                 expected = ['key': 'value', 'a': 'b']
-            } 
+            }
             """.stripIndent()
 
         expect:
@@ -395,51 +395,51 @@ task thing {
                 verify.prop = 123
             }
         }
-        
+
         task wrongRuntimeKeyType {
             doLast {
                 verify.prop = [123: 'value']
                 verify.prop.get()
             }
         }
-        
+
         task wrongRuntimeValueType {
             doLast {
                 verify.prop = ['key': 123]
                 verify.prop.get()
             }
         }
-        
+
         task wrongPropertyTypeDsl {
             doLast {
                 verify.prop = objects.property(Integer)
             }
         }
-        
+
         task wrongPropertyTypeApi {
             doLast {
                 verify.prop.set(objects.property(Integer))
             }
         }
-        
+
         task wrongRuntimeKeyTypeDsl {
             doLast {
                 verify.prop = objects.mapProperty(Integer, String)
             }
         }
-        
+
         task wrongRuntimeValueTypeDsl {
             doLast {
                 verify.prop = objects.mapProperty(String, Integer)
             }
         }
-        
+
         task wrongRuntimeKeyTypeApi {
             doLast {
                 verify.prop.set(objects.mapProperty(Integer, String))
             }
         }
-        
+
         task wrongRuntimeValueTypeApi {
             doLast {
                 verify.prop.set(objects.mapProperty(String, Integer))
@@ -513,21 +513,21 @@ task thing {
                     verify.expected = ['key': 'newValue']
                 }
             }
-            
+
             task replacingPutWithProvider {
                 doLast {
                     verify.prop.put('key', project.provider { 'newValue' })
                     verify.expected = ['key': 'newValue']
                 }
             }
-            
+
             task replacingPutAll {
                 doLast {
                     verify.prop.putAll(['key': 'newValue', 'otherKey': 'otherValue'])
                     verify.expected = ['key': 'newValue', 'otherKey': 'otherValue']
                 }
             }
-            
+
             task replacingPutAllWithProvider {
                 doLast {
                     verify.prop.putAll(project.provider { ['key': 'newValue', 'otherKey': 'otherValue'] })
@@ -556,7 +556,7 @@ task thing {
                 prop.putAll(['key3': 'value3'])
                 prop.putAll(project.provider { ['key4': 'value4'] })
                 expected = null
-            }   
+            }
             '''.stripIndent()
 
         expect:
@@ -595,7 +595,7 @@ task thing {
             verify {
                 prop.put('key', project.provider { null })
                 expected = null
-            }   
+            }
             '''.stripIndent()
 
         expect:
@@ -608,10 +608,35 @@ task thing {
             verify {
                 prop.putAll(project.provider { null })
                 expected = null
-            }   
+            }
             '''.stripIndent()
 
         expect:
         succeeds('verify')
+    }
+
+    def "fails when property with no value is queried"() {
+        given:
+        buildFile << """
+            abstract class SomeTask extends DefaultTask {
+                @Internal
+                abstract MapProperty<String, Long> getProp()
+
+                @TaskAction
+                def go() {
+                    prop.set((Map<String, Long>)null)
+                    prop.get()
+                }
+            }
+
+            tasks.register('thing', SomeTask)
+        """
+
+        when:
+        fails("thing")
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':thing'.")
+        failure.assertHasCause("Cannot query the value of task ':thing' property 'prop' because it has no value available.")
     }
 }

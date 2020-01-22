@@ -18,8 +18,6 @@ package org.gradle.api.internal.provider;
 
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
-import org.gradle.internal.DisplayName;
-import org.gradle.internal.logging.text.TreeFormatter;
 
 import javax.annotation.Nullable;
 
@@ -152,42 +150,11 @@ public class DefaultProperty<T> extends AbstractProperty<T> implements Property<
         convention = Providers.noValue();
     }
 
-    @Override
-    public T get() {
-        beforeRead();
-        Value<? extends T> value = valueSupplier.calculateValue();
-        if (value.isMissing()) {
-            TreeFormatter formatter = new TreeFormatter();
-            formatter.node("Cannot query the value of ").append(getDisplayName().getDisplayName()).append(" because it has no value available.");
-            if (!value.getPathToOrigin().isEmpty()) {
-                formatter.node("The value of this property is derived from");
-                formatter.startChildren();
-                for (DisplayName displayName : value.getPathToOrigin()) {
-                    formatter.node(displayName.getDisplayName());
-                }
-                formatter.endChildren();
-            }
-            throw new MissingValueException(formatter.toString());
-        }
-        return value.get();
-    }
 
     @Override
-    public Value<? extends T> calculateValue() {
+    protected Value<? extends T> calculateOwnValue() {
         beforeRead();
-        return valueSupplier.calculateValue().pushWhenMissing(getDisplayName());
-    }
-
-    @Override
-    public T getOrNull() {
-        beforeRead();
-        return valueSupplier.calculateValue().orNull();
-    }
-
-    @Override
-    public T getOrElse(T defaultValue) {
-        beforeRead();
-        return valueSupplier.calculateValue().orElse(defaultValue);
+        return valueSupplier.calculateValue();
     }
 
     @Override

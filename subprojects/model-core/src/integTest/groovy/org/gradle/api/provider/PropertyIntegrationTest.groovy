@@ -148,9 +148,7 @@ task thing(type: SomeTask) {
                 }
             }
 
-            tasks.register('thing', SomeTask) {
-                prop
-            }
+            tasks.register('thing', SomeTask)
         """
 
         when:

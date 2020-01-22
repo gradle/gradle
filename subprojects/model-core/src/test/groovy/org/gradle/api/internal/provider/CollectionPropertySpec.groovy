@@ -144,7 +144,7 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
     def "can set untyped from provider"() {
         def provider = Stub(ProviderInternal)
         provider.type >> null
-        provider.get() >>> [["1"], ["2"]]
+        provider.calculateValue() >>> [["1"], ["2"]].collect { ValueSupplier.Value.of(it) }
 
         expect:
         property.setFromAnyValue(provider)
@@ -174,7 +174,7 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
     def "queries underlying provider for every call to get()"() {
         def provider = Stub(ProviderInternal)
         provider.type >> List
-        provider.get() >>> [["123"], ["abc"]]
+        provider.calculateValue() >>> [["123"], ["abc"]].collect { ValueSupplier.Value.of(it) }
         provider.present >> true
 
         expect:
@@ -279,7 +279,7 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
     def "queries values of provider on every call to get()"() {
         def provider = Stub(ProviderInternal)
         _ * provider.present >> true
-        _ * provider.get() >>> [["abc"], ["def"]]
+        _ * provider.calculateValue() >>> [["abc"], ["def"]].collect { ValueSupplier.Value.of(it) }
 
         expect:
         property.addAll(provider)
@@ -352,18 +352,18 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
         property.get()
 
         then:
-        1 * valueProvider.get() >> ["1"]
-        1 * addProvider.get() >> "2"
-        1 * addAllProvider.get() >> ["3"]
+        1 * valueProvider.calculateValue() >> ValueSupplier.Value.of(["1"])
+        1 * addProvider.getOrNull() >> "2"
+        1 * addAllProvider.calculateValue() >> ValueSupplier.Value.of(["3"])
         0 * _
 
         when:
         property.getOrNull()
 
         then:
-        1 * valueProvider.getOrNull() >> ["1"]
+        1 * valueProvider.calculateValue() >> ValueSupplier.Value.of(["1"])
         1 * addProvider.getOrNull() >> "2"
-        1 * addAllProvider.getOrNull() >> ["3"]
+        1 * addAllProvider.calculateValue() >> ValueSupplier.Value.of(["3"])
         0 * _
     }
 
@@ -428,7 +428,7 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == Providers.NULL_VALUE
+        e.message == "Cannot query the value of ${displayName} because it has no value available."
     }
 
     def "property has no value when adding an element provider with no value"() {
@@ -447,7 +447,7 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == Providers.NULL_VALUE
+        e.message == "Cannot query the value of ${displayName} because it has no value available."
     }
 
     def "property has no value when adding an collection provider with no value"() {
@@ -466,7 +466,7 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == Providers.NULL_VALUE
+        e.message == "Cannot query the value of ${displayName} because it has no value available."
     }
 
     def "can set to null value to discard value"() {
