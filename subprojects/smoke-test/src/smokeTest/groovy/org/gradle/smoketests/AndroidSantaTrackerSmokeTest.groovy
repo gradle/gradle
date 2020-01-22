@@ -16,10 +16,8 @@
 
 package org.gradle.smoketests
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.profiler.mutations.ApplyNonAbiChangeToJavaSourceFileMutator
-import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
@@ -29,41 +27,6 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 @Requires(TestPrecondition.JDK11_OR_EARLIER)
 class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest {
-
-    @Unroll
-    @ToBeFixedForInstantExecution
-    def "check deprecation warnings produced by building Santa Tracker Kotlin (agp=#agpVersion)"() {
-
-        given:
-        def checkoutDir = temporaryFolder.createDir("checkout")
-        setupCopyOfSantaTracker(checkoutDir, 'Kotlin', agpVersion)
-
-        when:
-        def result = buildLocation(checkoutDir, agpVersion)
-
-        then:
-        expectDeprecationWarnings(result,
-            "The configuration :detachedConfiguration1 was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a different project. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. See https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors for more details.",
-            "The configuration :detachedConfiguration10 was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a different project. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. See https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors for more details.",
-            "The configuration :detachedConfiguration11 was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a different project. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. See https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors for more details.",
-            "The configuration :detachedConfiguration12 was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a different project. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. See https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors for more details.",
-            "The configuration :detachedConfiguration13 was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a different project. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. See https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors for more details.",
-            "The configuration :detachedConfiguration14 was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a different project. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. See https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors for more details.",
-            "The configuration :detachedConfiguration15 was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a different project. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. See https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors for more details.",
-            "The configuration :detachedConfiguration2 was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a different project. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. See https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors for more details.",
-            "The configuration :detachedConfiguration3 was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a different project. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. See https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors for more details.",
-            "The configuration :detachedConfiguration4 was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a different project. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. See https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors for more details.",
-            "The configuration :detachedConfiguration5 was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a different project. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. See https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors for more details.",
-            "The configuration :detachedConfiguration6 was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a different project. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. See https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors for more details.",
-            "The configuration :detachedConfiguration7 was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a different project. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. See https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors for more details.",
-            "The configuration :detachedConfiguration8 was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a different project. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. See https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors for more details.",
-            "The configuration :detachedConfiguration9 was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a different project. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. See https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors for more details.",
-        )
-        assertInstantExecutionStateStored()
-
-        where:
-        agpVersion << TESTED_AGP_VERSIONS
-    }
 
     @Unroll
     @UnsupportedWithInstantExecution(iterationMatchers = AGP_3_ITERATION_MATCHER)
