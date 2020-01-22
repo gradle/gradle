@@ -1,5 +1,4 @@
 extraction:
   java:
-    index:
-      exclude:
-        - "subprojects/performance/src/templates/**"
+    before_index:
+      - rm -rf subprojects/performance/src/templates/
