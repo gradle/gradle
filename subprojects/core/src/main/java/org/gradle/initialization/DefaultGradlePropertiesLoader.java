@@ -29,8 +29,8 @@ import java.util.Properties;
 public class DefaultGradlePropertiesLoader implements IGradlePropertiesLoader {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultGradlePropertiesLoader.class);
 
-    private Map<String, String> defaultProperties = new HashMap<String, String>();
-    private Map<String, String> overrideProperties = new HashMap<String, String>();
+    private Map<String, String> defaultProperties = new HashMap<>();
+    private Map<String, String> overrideProperties = new HashMap<>();
     private final StartParameterInternal startParameter;
 
     public DefaultGradlePropertiesLoader(StartParameterInternal startParameter) {
@@ -73,7 +73,7 @@ public class DefaultGradlePropertiesLoader implements IGradlePropertiesLoader {
 
     @Override
     public Map<String, String> mergeProperties(Map<String, String> properties) {
-        Map<String, String> result = new HashMap<String, String>();
+        Map<String, String> result = new HashMap<>();
         result.putAll(defaultProperties);
         result.putAll(properties);
         result.putAll(overrideProperties);

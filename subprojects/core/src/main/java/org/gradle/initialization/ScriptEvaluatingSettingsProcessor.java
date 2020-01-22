@@ -56,7 +56,7 @@ public class ScriptEvaluatingSettingsProcessor implements SettingsProcessor {
                                     ClassLoaderScope baseClassLoaderScope,
                                     StartParameter startParameter) {
         Timer settingsProcessingClock = Time.startTimer();
-        Map<String, String> properties = propertiesLoader.mergeProperties(Collections.<String, String>emptyMap());
+        Map<String, String> properties = propertiesLoader.mergeProperties(Collections.emptyMap());
         TextResourceScriptSource settingsScript = new TextResourceScriptSource(textFileResourceLoader.loadFile("settings file", settingsLocation.getSettingsFile()));
         SettingsInternal settings = settingsFactory.createSettings(gradle, settingsLocation.getSettingsDir(), settingsScript, properties, startParameter, baseClassLoaderScope);
 
