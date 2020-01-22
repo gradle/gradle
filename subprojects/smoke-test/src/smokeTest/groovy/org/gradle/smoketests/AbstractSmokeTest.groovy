@@ -18,12 +18,15 @@ package org.gradle.smoketests
 
 import org.apache.commons.io.FileUtils
 import org.gradle.cache.internal.DefaultGeneratedGradleJarCache
+import org.gradle.integtests.fixtures.instantexecution.InstantExecutionBuildOperationsFixture
+import org.gradle.integtests.fixtures.BuildOperationTreeFixture
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.InstantExecutionGradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler
+import org.gradle.internal.operations.trace.BuildOperationTrace
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
@@ -188,10 +191,11 @@ abstract class AbstractSmokeTest extends Specification {
         )
     }
 
-    private static List<String> buildContextParameters() {
+    private List<String> buildContextParameters() {
         List<String> parameters = []
         if (GradleContextualExecuter.isInstant()) {
             parameters += InstantExecutionGradleExecuter.INSTANT_EXECUTION_ARGS
+            parameters += ["-D${BuildOperationTrace.SYSPROP}=${buildOperationTracePath()}".toString()]
         }
         def generatedApiJarCacheDir = IntegrationTestBuildContext.INSTANCE.gradleGeneratedApiJarCacheDir
         if (generatedApiJarCacheDir == null) {
@@ -215,6 +219,26 @@ abstract class AbstractSmokeTest extends Specification {
             "-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}" as String,
             "-D${INIT_SCRIPT_LOCATION}=${mirrorInitScriptPath}" as String,
         ]
+    }
+
+    protected void assertInstantExecutionStateStored() {
+        if (GradleContextualExecuter.isInstant()) {
+            newInstantExecutionBuildOperationsFixture().assertStateStored()
+        }
+    }
+
+    protected void assertInstantExecutionStateLoaded() {
+        if (GradleContextualExecuter.isInstant()) {
+            newInstantExecutionBuildOperationsFixture().assertStateLoaded()
+        }
+    }
+
+    private InstantExecutionBuildOperationsFixture newInstantExecutionBuildOperationsFixture() {
+        return new InstantExecutionBuildOperationsFixture(new BuildOperationTreeFixture(BuildOperationTrace.read(buildOperationTracePath())))
+    }
+
+    private String buildOperationTracePath() {
+        return file("operations").absolutePath
     }
 
     protected void useSample(String sampleDirectory) {

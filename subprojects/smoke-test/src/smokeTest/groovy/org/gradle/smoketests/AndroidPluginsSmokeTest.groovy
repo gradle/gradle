@@ -76,6 +76,9 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
             expectNoDeprecationWarnings(result)
         }
 
+        and:
+        assertInstantExecutionStateStored()
+
         when: 'up-to-date build'
         result = runner.build()
 
@@ -83,6 +86,9 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
         result.task(':app:compileDebugJavaWithJavac').outcome == TaskOutcome.UP_TO_DATE
         result.task(':library:assembleDebug').outcome == TaskOutcome.UP_TO_DATE
         result.task(':app:assembleDebug').outcome == TaskOutcome.UP_TO_DATE
+
+        and:
+        assertInstantExecutionStateLoaded()
 
         when: 'abi change on library'
         abiChange.run()
@@ -94,6 +100,9 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
         result.task(':library:assembleDebug').outcome == TaskOutcome.SUCCESS
         result.task(':app:assembleDebug').outcome == TaskOutcome.SUCCESS
 
+        and:
+        assertInstantExecutionStateLoaded()
+
         when: 'clean re-build'
         useAgpVersion(agpVersion, this.runner('clean')).build()
         result = runner.build()
@@ -102,6 +111,9 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
         result.task(':app:compileDebugJavaWithJavac').outcome == TaskOutcome.SUCCESS
         result.task(':library:assembleDebug').outcome == TaskOutcome.SUCCESS
         result.task(':app:assembleDebug').outcome == TaskOutcome.SUCCESS
+
+        and:
+        assertInstantExecutionStateLoaded()
 
         where:
         [agpVersion, ide] << [
