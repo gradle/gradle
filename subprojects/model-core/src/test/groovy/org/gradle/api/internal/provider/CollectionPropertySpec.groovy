@@ -19,6 +19,8 @@ package org.gradle.api.internal.provider
 import com.google.common.collect.ImmutableCollection
 import org.gradle.api.Transformer
 import org.gradle.api.provider.Provider
+import org.gradle.internal.Describables
+import org.gradle.util.TextUtil
 import spock.lang.Unroll
 
 abstract class CollectionPropertySpec<C extends Collection<String>> extends PropertySpec<C> {
@@ -87,6 +89,7 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
     }
 
     def "can change value to empty collection"() {
+        property.set(["abc"])
         property.empty()
 
         expect:
@@ -353,7 +356,7 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
 
         then:
         1 * valueProvider.calculateValue() >> ValueSupplier.Value.of(["1"])
-        1 * addProvider.getOrNull() >> "2"
+        1 * addProvider.calculateValue() >> ValueSupplier.Value.of("2")
         1 * addAllProvider.calculateValue() >> ValueSupplier.Value.of(["3"])
         0 * _
 
@@ -362,7 +365,7 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
 
         then:
         1 * valueProvider.calculateValue() >> ValueSupplier.Value.of(["1"])
-        1 * addProvider.getOrNull() >> "2"
+        1 * addProvider.calculateValue() >> ValueSupplier.Value.of("2")
         1 * addAllProvider.calculateValue() >> ValueSupplier.Value.of(["3"])
         0 * _
     }
@@ -450,6 +453,21 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
         e.message == "Cannot query the value of ${displayName} because it has no value available."
     }
 
+    def "reports the source of element provider when value is missing and source is known"() {
+        given:
+        def elementProvider = sourceWithNoValue(Describables.of("<source>"))
+        property.set(toMutable(["123"]))
+        property.add(elementProvider)
+
+        when:
+        property.get()
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == TextUtil.toPlatformLineSeparators("""Cannot query the value of ${displayName} because it has no value available.
+The value of this property is derived from: <source>""")
+    }
+
     def "property has no value when adding an collection provider with no value"() {
         given:
         property.set(toMutable(["123"]))
@@ -467,6 +485,21 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
         then:
         def e = thrown(IllegalStateException)
         e.message == "Cannot query the value of ${displayName} because it has no value available."
+    }
+
+    def "reports the source of collection provider when value is missing and source is known"() {
+        given:
+        def elementsProvider = sourceWithNoValue(Describables.of("<source>"))
+        property.set(toMutable(["123"]))
+        property.addAll(elementsProvider)
+
+        when:
+        property.get()
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == TextUtil.toPlatformLineSeparators("""Cannot query the value of ${displayName} because it has no value available.
+The value of this property is derived from: <source>""")
     }
 
     def "can set to null value to discard value"() {

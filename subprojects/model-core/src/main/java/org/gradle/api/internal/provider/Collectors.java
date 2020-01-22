@@ -142,11 +142,11 @@ public class Collectors {
 
         @Override
         public Value<Void> maybeCollectInto(ValueCollector<T> collector, Collection<T> collection) {
-            T value = providerOfElement.getOrNull();
-            if (value == null) {
-                return Value.missing();
+            Value<? extends T> value = providerOfElement.calculateValue();
+            if (value.isMissing()) {
+                return value.asType();
             }
-            collector.add(value, collection);
+            collector.add(value.get(), collection);
             return Value.present();
         }
 
