@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.instantexecution
+package org.gradle.integtests.fixtures.instantexecution
 
-import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.gradle.integtests.fixtures.BuildOperationTreeQueries
 import org.gradle.internal.operations.trace.BuildOperationRecord
-import org.gradle.test.fixtures.file.TestDirectoryProvider
 
 import static org.hamcrest.CoreMatchers.notNullValue
 import static org.hamcrest.CoreMatchers.nullValue
@@ -28,10 +26,10 @@ import static org.junit.Assert.assertThat
 
 class InstantExecutionBuildOperationsFixture {
 
-    final BuildOperationsFixture operations
+    final BuildOperationTreeQueries operations
 
-    InstantExecutionBuildOperationsFixture(GradleExecuter executer, TestDirectoryProvider projectDir) {
-        operations = new BuildOperationsFixture(executer, projectDir)
+    InstantExecutionBuildOperationsFixture(BuildOperationTreeQueries operations) {
+        this.operations = operations
     }
 
     void assertStateLoaded() {

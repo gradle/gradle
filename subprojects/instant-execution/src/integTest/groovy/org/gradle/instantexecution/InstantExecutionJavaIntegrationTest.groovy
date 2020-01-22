@@ -16,6 +16,7 @@
 
 package org.gradle.instantexecution
 
+import org.gradle.integtests.fixtures.instantexecution.InstantExecutionBuildOperationsFixture
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.junit.Test
 
@@ -102,8 +103,8 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
         """
         buildFile << """
             plugins { id 'java' }
-            
-            sourceSets.main.java.srcDir("src/common/java") 
+
+            sourceSets.main.java.srcDir("src/common/java")
         """
         file("src/common/java/OtherThing.java") << """
             class OtherThing {
