@@ -145,13 +145,12 @@ public class MapCollectors {
 
         @Override
         public Value<Void> maybeCollectInto(MapEntryCollector<K, V> collector, Map<K, V> dest) {
-            V value = providerOfValue.getOrNull();
-            if (value != null) {
-                collector.add(key, value, dest);
-                return Value.present();
-            } else {
-                return Value.missing();
+            Value<? extends V> value = providerOfValue.calculateValue();
+            if (value.isMissing()) {
+                return value.asType();
             }
+            collector.add(key, value.get(), dest);
+            return Value.present();
         }
 
         @Override

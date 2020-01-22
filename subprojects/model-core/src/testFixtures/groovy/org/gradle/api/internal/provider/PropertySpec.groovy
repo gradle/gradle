@@ -22,7 +22,9 @@ import org.gradle.api.Transformer
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.provider.Provider
 import org.gradle.internal.Describables
+import org.gradle.internal.DisplayName
 import org.gradle.internal.state.Managed
+import org.gradle.util.TextUtil
 
 import java.util.concurrent.Callable
 
@@ -224,6 +226,40 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         then:
         property.present
         property.get() == someOtherValue()
+    }
+
+    def "property has no value when convention provider has no value"() {
+        def provider = provider()
+        def property = propertyWithDefaultValue()
+
+        when:
+        property.convention(provider)
+
+        then:
+        !property.present
+
+        when:
+        property.get()
+
+        then:
+        def e = thrown(MissingValueException)
+        e.message == "Cannot query the value of ${displayName} because it has no value available."
+    }
+
+    def "reports the source of convention provider when value is missing and source is known"() {
+        def provider = sourceWithNoValue(Describables.of("<source>"))
+        def property = propertyWithDefaultValue()
+
+        given:
+        property.convention(provider)
+
+        when:
+        property.get()
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == TextUtil.toPlatformLineSeparators("""Cannot query the value of ${displayName} because it has no value available.
+The value of this property is derived from: <source>""")
     }
 
     def "can replace convention value before value has been set"() {
@@ -1569,8 +1605,8 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
 
         then:
         def e2 = thrown(MissingValueException)
-        e2.message == """Cannot query the value of <a> because it has no value available.
-The value of this property is derived from: <c>"""
+        e2.message == TextUtil.toPlatformLineSeparators("""Cannot query the value of <a> because it has no value available.
+The value of this property is derived from: <c>""")
 
         when:
         b.attachDisplayName(Describables.of("<b>"))
@@ -1578,10 +1614,10 @@ The value of this property is derived from: <c>"""
 
         then:
         def e3 = thrown(MissingValueException)
-        e3.message == """Cannot query the value of <a> because it has no value available.
+        e3.message == TextUtil.toPlatformLineSeparators("""Cannot query the value of <a> because it has no value available.
 The value of this property is derived from:
   - <b>
-  - <c>"""
+  - <c>""")
     }
 
     def "producer task for a property is not known by default"() {
@@ -1751,6 +1787,20 @@ The value of this property is derived from:
     }
 
     /**
+     * A provider with no value and the given display name
+     */
+    ProviderInternal<T> sourceWithNoValue(DisplayName displayName) {
+        return new NoValueProvider<T>(type(), displayName)
+    }
+
+    /**
+     * A provider with no value and the given display name
+     */
+    ProviderInternal<T> sourceWithNoValue(Class type, DisplayName displayName) {
+        return new NoValueProvider<T>(type, displayName)
+    }
+
+    /**
      * A provider that provides one of given values each time it is queried, in the order given.
      */
     ProviderInternal<T> provider(T... values) {
@@ -1763,6 +1813,31 @@ The value of this property is derived from:
 
     ProviderInternal<T> contentProducedByTask(Task producer) {
         return new TestProvider<T>(type(), [], producer)
+    }
+
+    class NoValueProvider<T> extends AbstractMinimalProvider<T> {
+        private final Class<T> type
+        private final DisplayName displayName
+
+        NoValueProvider(Class<T> type, DisplayName displayName) {
+            this.displayName = displayName
+            this.type = type
+        }
+
+        @Override
+        Class<T> getType() {
+            return type
+        }
+
+        @Override
+        T getOrNull() {
+            return null
+        }
+
+        @Override
+        Value<? extends T> calculateValue() {
+            return Value.missing().pushWhenMissing(displayName)
+        }
     }
 
     class TestProvider<T> extends AbstractMinimalProvider<T> {

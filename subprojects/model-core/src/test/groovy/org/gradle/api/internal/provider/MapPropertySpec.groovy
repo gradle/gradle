@@ -17,7 +17,9 @@
 package org.gradle.api.internal.provider
 
 import com.google.common.collect.ImmutableMap
+import org.gradle.internal.Describables
 import org.gradle.internal.state.ManagedFactory
+import org.gradle.util.TextUtil
 import org.spockframework.util.Assert
 
 class MapPropertySpec extends PropertySpec<Map<String, String>> {
@@ -275,7 +277,7 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
         property.get()
         then:
         1 * valueProvider.calculateValue() >> ValueSupplier.Value.of(['k1': 'v1'])
-        1 * putProvider.getOrNull() >> 'v2'
+        1 * putProvider.calculateValue() >> ValueSupplier.Value.of('v2')
         1 * putAllProvider.calculateValue() >> ValueSupplier.Value.of(['k3': 'v3'])
         0 * _
 
@@ -283,7 +285,7 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
         property.getOrNull()
         then:
         1 * valueProvider.calculateValue() >> ValueSupplier.Value.of(['k1': 'v1'])
-        1 * putProvider.getOrNull() >> 'v2'
+        1 * putProvider.calculateValue() >> ValueSupplier.Value.of('v2')
         1 * putAllProvider.calculateValue() >> ValueSupplier.Value.of(['k3': 'v3'])
         0 * _
     }
@@ -338,6 +340,22 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
         e.message == "Cannot query the value of ${displayName} because it has no value available."
     }
 
+    def "reports the source of value provider when value is missing and source is known"() {
+        given:
+        def provider = sourceWithNoValue(String, Describables.of("<source>"))
+        property.set(['k1': 'v1'])
+        property.put('k2', 'v2')
+        property.put('k3', provider)
+
+        when:
+        property.get()
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == TextUtil.toPlatformLineSeparators("""Cannot query the value of ${displayName} because it has no value available.
+The value of this property is derived from: <source>""")
+    }
+
     def "property has no value when adding a map provider with no value"() {
         given:
         property.set(['k1': 'v1'])
@@ -354,6 +372,22 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
         then:
         def e = thrown(IllegalStateException)
         e.message == "Cannot query the value of ${displayName} because it has no value available."
+    }
+
+    def "reports the source of map provider when value is missing and source is known"() {
+        given:
+        def provider = sourceWithNoValue(Describables.of("<source>"))
+        property.set(['k1': 'v1'])
+        property.put('k2', 'v2')
+        property.putAll(provider)
+
+        when:
+        property.get()
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == TextUtil.toPlatformLineSeparators("""Cannot query the value of ${displayName} because it has no value available.
+The value of this property is derived from: <source>""")
     }
 
     def "can set to null value to discard value"() {
@@ -617,8 +651,10 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
 
         when:
         entryProvider.get()
+
         then:
-        thrown IllegalStateException
+        def e = thrown(MissingValueException)
+        e.message == "Cannot query the value of this provider because it has no value available."
     }
 
     def "entry provider has no value when key is not in map"() {
@@ -632,8 +668,10 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
 
         when:
         entryProvider.get()
+
         then:
-        thrown IllegalStateException
+        def e = thrown(MissingValueException)
+        e.message == "Cannot query the value of this provider because it has no value available."
     }
 
     def "entry provider tracks value of property"() {
@@ -653,6 +691,12 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
         entryProvider.present
         entryProvider.get() == 'v2'
         entryProvider.getOrNull() == 'v2'
+
+        when:
+        property.set(Providers.of([:]))
+        then:
+        !entryProvider.present
+        entryProvider.getOrNull() == null
     }
 
     def "entry provider tracks value of last added entry"() {
@@ -699,8 +743,10 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
 
         when:
         keySetProvider.get()
+
         then:
-        thrown IllegalStateException
+        def e = thrown(MissingValueException)
+        e.message == "Cannot query the value of this provider because it has no value available."
     }
 
     def "keySet provider tracks value of property"() {
@@ -772,7 +818,7 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
         def result2 = property.get()
 
         then:
-        1 * provider.getOrNull() >> "value"
+        1 * provider.calculateValue() >> ValueSupplier.Value.of("value")
         0 * _
 
         and:
