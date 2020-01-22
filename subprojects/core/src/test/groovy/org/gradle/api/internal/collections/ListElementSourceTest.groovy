@@ -239,7 +239,9 @@ class ListElementSourceTest extends AbstractIterationOrderRetainingElementSource
 
         when:
         iterator = source.listIterator()
-        while(iterator.hasNext()) { iterator.next() }
+        while (iterator.hasNext()) {
+            iterator.next()
+        }
         iterator.add("buzz")
 
         then:
@@ -247,7 +249,9 @@ class ListElementSourceTest extends AbstractIterationOrderRetainingElementSource
 
         when:
         iterator = source.listIterator()
-        while(iterator.hasNext()) { iterator.next() }
+        while (iterator.hasNext()) {
+            iterator.next()
+        }
         iterator.previous()
         iterator.add("bazz")
 
@@ -486,13 +490,13 @@ class ListElementSourceTest extends AbstractIterationOrderRetainingElementSource
         }
 
         @Override
-        Class<? extends T> getElementType() {
+        Class<T> getElementType() {
             return type
         }
 
         @Override
-        List<T> getOrNull() {
-            return value
+        protected Value<List<T>> calculateOwnValue() {
+            return Value.of(value)
         }
 
         @Override

@@ -90,9 +90,8 @@ public class BuildServiceProvider<T extends BuildService<P>, P extends BuildServ
         return true;
     }
 
-    @Nullable
     @Override
-    public T getOrNull() {
+    protected Value<? extends T> calculateOwnValue() {
         synchronized (this) {
             if (instance == null) {
                 // TODO - extract some shared infrastructure to take care of instantiation (eg which services are visible, strict vs lenient, decorated or not?)
@@ -106,7 +105,7 @@ public class BuildServiceProvider<T extends BuildService<P>, P extends BuildServ
                     instance = Try.failure(new ServiceLifecycleException("Failed to create service '" + name + "'.", e));
                 }
             }
-            return instance.get();
+            return Value.of(instance.get());
         }
     }
 

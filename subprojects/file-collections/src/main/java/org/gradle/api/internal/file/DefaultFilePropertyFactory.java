@@ -248,10 +248,9 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
                     return AbstractFileVar.this.getType();
                 }
 
-                @Nullable
                 @Override
-                public T getOrNull() {
-                    return AbstractFileVar.this.getOrNull();
+                protected Value<? extends T> calculateOwnValue() {
+                    return AbstractFileVar.this.calculateOwnValue();
                 }
             };
         }
@@ -356,7 +355,7 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
 
         @Override
         public Provider<Directory> dir(final Provider<? extends CharSequence> path) {
-            return new AbstractCombiningProvider<Directory, Directory, CharSequence>(Directory.class, this, path) {
+            return new AbstractCombiningProvider<Directory, Directory, CharSequence>(Directory.class, this, Providers.internal(path)) {
                 @Override
                 protected Directory map(Directory b, CharSequence v) {
                     return b.dir(v.toString());
@@ -376,7 +375,7 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
 
         @Override
         public Provider<RegularFile> file(final Provider<? extends CharSequence> path) {
-            return new AbstractCombiningProvider<RegularFile, Directory, CharSequence>(RegularFile.class, this, path) {
+            return new AbstractCombiningProvider<RegularFile, Directory, CharSequence>(RegularFile.class, this, Providers.internal(path)) {
                 @Override
                 protected RegularFile map(Directory b, CharSequence v) {
                     return b.file(v.toString());

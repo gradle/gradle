@@ -36,9 +36,9 @@ public class DefaultProvider<T> extends AbstractMinimalProvider<T> {
     }
 
     @Override
-    public T getOrNull() {
+    protected Value<? extends T> calculateOwnValue() {
         try {
-            return value.call();
+            return Value.ofNullable(value.call());
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }

@@ -342,7 +342,7 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
 
     def "reports the source of value provider when value is missing and source is known"() {
         given:
-        def provider = sourceWithNoValue(String, Describables.of("<source>"))
+        def provider = supplierWithNoValue(String, Describables.of("<source>"))
         property.set(['k1': 'v1'])
         property.put('k2', 'v2')
         property.put('k3', provider)
@@ -376,7 +376,7 @@ The value of this property is derived from: <source>""")
 
     def "reports the source of map provider when value is missing and source is known"() {
         given:
-        def provider = sourceWithNoValue(Describables.of("<source>"))
+        def provider = supplierWithNoValue(Describables.of("<source>"))
         property.set(['k1': 'v1'])
         property.put('k2', 'v2')
         property.putAll(provider)

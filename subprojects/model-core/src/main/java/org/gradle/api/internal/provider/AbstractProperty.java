@@ -21,7 +21,6 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
-import org.gradle.internal.logging.text.TreeFormatter;
 
 import javax.annotation.Nullable;
 
@@ -44,11 +43,17 @@ public abstract class AbstractProperty<T> extends AbstractMinimalProvider<T> imp
         this.displayName = displayName;
     }
 
-    @Nullable
+    @Nullable @Override
     protected DisplayName getDeclaredDisplayName() {
         return displayName;
     }
 
+    @Override
+    protected DisplayName getTypedDisplayName() {
+        return DEFAULT_DISPLAY_NAME;
+    }
+
+    @Override
     protected DisplayName getDisplayName() {
         if (displayName == null) {
             return DEFAULT_DISPLAY_NAME;
@@ -86,42 +91,6 @@ public abstract class AbstractProperty<T> extends AbstractMinimalProvider<T> imp
         } else {
             return describeContents();
         }
-    }
-
-    protected abstract ScalarSupplier.Value<? extends T> calculateOwnValue();
-
-    @Override
-    public Value<? extends T> calculateValue() {
-        return calculateOwnValue().pushWhenMissing(getDeclaredDisplayName());
-    }
-
-    @Override
-    public T get() {
-        Value<? extends T> value = calculateOwnValue();
-        if (value.isMissing()) {
-            TreeFormatter formatter = new TreeFormatter();
-            formatter.node("Cannot query the value of ").append(getDisplayName().getDisplayName()).append(" because it has no value available.");
-            if (!value.getPathToOrigin().isEmpty()) {
-                formatter.node("The value of this property is derived from");
-                formatter.startChildren();
-                for (DisplayName displayName : value.getPathToOrigin()) {
-                    formatter.node(displayName.getDisplayName());
-                }
-                formatter.endChildren();
-            }
-            throw new MissingValueException(formatter.toString());
-        }
-        return value.get();
-    }
-
-    @Override
-    public T getOrNull() {
-        return calculateOwnValue().orNull();
-    }
-
-    @Override
-    public T getOrElse(T defaultValue) {
-        return calculateOwnValue().orElse(defaultValue);
     }
 
     @Override

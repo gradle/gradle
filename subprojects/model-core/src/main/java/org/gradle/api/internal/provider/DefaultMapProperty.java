@@ -336,16 +336,15 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
             return (Class) Set.class;
         }
 
-        @Nullable
         @Override
-        public Set<K> getOrNull() {
+        protected Value<Set<K>> calculateOwnValue() {
             beforeRead();
             Set<K> keys = new LinkedHashSet<>();
             Value<Void> result = value.maybeCollectKeysInto(keyCollector, keys);
             if (result.isMissing()) {
-                return null;
+                return result.asType();
             }
-            return ImmutableSet.copyOf(keys);
+            return Value.of(ImmutableSet.copyOf(keys));
         }
     }
 

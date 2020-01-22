@@ -865,8 +865,8 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
 
         @Override
-        public I getOrNull() {
-            return Cast.uncheckedCast(findByNameWithoutRules(getName()));
+        protected Value<I> calculateOwnValue() {
+            return Value.ofNullable(Cast.uncheckedCast(findByNameWithoutRules(getName())));
         }
     }
 
@@ -914,9 +914,9 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
 
         @Override
-        public I getOrNull() {
+        protected Value<? extends I> calculateOwnValue() {
             if (wasElementRemoved()) {
-                return null;
+                return Value.missing();
             }
             if (failure != null) {
                 throw failure;
@@ -927,7 +927,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
                     tryCreate();
                 }
             }
-            return object;
+            return Value.of(object);
         }
 
         protected void tryCreate() {

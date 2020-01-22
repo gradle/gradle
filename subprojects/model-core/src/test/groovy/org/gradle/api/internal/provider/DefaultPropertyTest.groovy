@@ -217,7 +217,7 @@ class DefaultPropertyTest extends PropertySpec<String> {
 
     def "mapped provider is live"() {
         def transformer = Mock(Transformer)
-        def provider = provider("abc")
+        def provider = supplierWithValues("abc")
 
         def property = new DefaultProperty<String>(String)
 

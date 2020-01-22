@@ -33,10 +33,10 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.internal.Cast;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -115,10 +115,9 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
     @Override
     public Provider<Set<FileSystemLocation>> getElements() {
         return new AbstractProviderWithValue<Set<FileSystemLocation>>() {
-            @Nullable
             @Override
             public Class<Set<FileSystemLocation>> getType() {
-                return null;
+                return Cast.uncheckedCast(Set.class);
             }
 
             @Override

@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.provider;
 
-import org.gradle.api.Describable;
 import org.gradle.api.Transformer;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
@@ -26,7 +25,6 @@ import javax.annotation.Nullable;
 
 public class Providers {
     public static final String NULL_TRANSFORMER_RESULT = "Transformer for this provider returned a null value.";
-    public static final String NULL_VALUE = "Cannot query the value of this provider because it has no value available.";
 
     private static final NoValueProvider NULL_PROVIDER = new NoValueProvider();
 
@@ -77,10 +75,6 @@ public class Providers {
         }
     }
 
-    public static MissingValueException nullValue(Describable owner) {
-        return new MissingValueException(String.format("Cannot query the value of %s because it has no value available.", owner.getDisplayName()));
-    }
-
     public static class FixedValueProvider<T> extends AbstractProviderWithValue<T> implements ScalarSupplier<T> {
         private final T value;
 
@@ -96,21 +90,6 @@ public class Providers {
 
         @Override
         public T get() {
-            return value;
-        }
-
-        @Override
-        public Value<? extends T> calculateValue() {
-            return new Present<>(value);
-        }
-
-        @Override
-        public T getOrNull() {
-            return value;
-        }
-
-        @Override
-        public T getOrElse(T defaultValue) {
             return value;
         }
 
@@ -160,14 +139,14 @@ public class Providers {
         }
 
         @Override
-        public S get() {
+        protected Value<? extends S> calculateOwnValue() {
             if (value == null) {
                 value = transformer.transform(provider.get());
                 if (value == null) {
                     throw new IllegalStateException(NULL_TRANSFORMER_RESULT);
                 }
             }
-            return value;
+            return Value.of(value);
         }
 
         @Override
@@ -197,11 +176,6 @@ public class Providers {
 
     private static class NoValueProvider extends AbstractMinimalProvider<Object> implements ScalarSupplier<Object> {
         @Override
-        public Object get() {
-            throw new MissingValueException(NULL_VALUE);
-        }
-
-        @Override
         public Value<?> calculateValue() {
             return new Missing<>();
         }
@@ -218,13 +192,8 @@ public class Providers {
         }
 
         @Override
-        public Object getOrNull() {
-            return null;
-        }
-
-        @Override
-        public Object getOrElse(Object defaultValue) {
-            return defaultValue;
+        protected Value<?> calculateOwnValue() {
+            return Value.missing();
         }
 
         @Override

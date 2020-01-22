@@ -212,21 +212,21 @@ class DefaultFilePropertyFactoryTest extends Specification {
 
         then:
         def e2 = thrown(IllegalStateException)
-        e2.message == 'Cannot query the value of this property because it has no value available.'
+        e2.message == 'Cannot query the value of this provider because it has no value available.'
 
         when:
         dir.get()
 
         then:
         def e3 = thrown(IllegalStateException)
-        e3.message == 'Cannot query the value of this property because it has no value available.'
+        e3.message == 'Cannot query the value of this provider because it has no value available.'
 
         when:
         file.get()
 
         then:
         def e4 = thrown(IllegalStateException)
-        e4.message == 'Cannot query the value of this property because it has no value available.'
+        e4.message == 'Cannot query the value of this provider because it has no value available.'
 
         when:
         tree.files
