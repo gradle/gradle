@@ -17,8 +17,6 @@ import model.TestType
 import java.io.File
 import java.util.*
 
-const val BUCKET_NUMBER_PER_BUILD_TYPE = 50
-
 const val MAX_PROJECT_NUMBER_IN_BUCKET = 10
 
 // 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 1.10, 1.11, 1.12
@@ -144,7 +142,7 @@ class StatisticBasedGradleBuildBucketProvider(private val model: CIBuildModel, t
             SubprojectTestClassTime::totalTime,
             { largeElement: SubprojectTestClassTime, size: Int -> largeElement.split(size) },
             { list: List<SubprojectTestClassTime> -> SmallSubprojectBucket(list) },
-            BUCKET_NUMBER_PER_BUILD_TYPE,
+            testCoverage.expectedBucketNumber,
             MAX_PROJECT_NUMBER_IN_BUCKET
         )
     }
