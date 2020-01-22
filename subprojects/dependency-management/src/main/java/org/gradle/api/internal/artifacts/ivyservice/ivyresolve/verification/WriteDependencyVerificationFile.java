@@ -65,14 +65,14 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
     private static final List<String> DEFAULT_CHECKSUMS = ImmutableList.of("sha1", "sha512");
 
     private final DependencyVerifierBuilder verificationsBuilder = new DependencyVerifierBuilder();
-    private final File buildDirectory;
+    private final File gradleDirectory;
     private final BuildOperationExecutor buildOperationExecutor;
     private final List<String> checksums;
     private final Set<ChecksumEntry> entriesToBeWritten = Sets.newLinkedHashSetWithExpectedSize(512);
     private final ChecksumService checksumService;
 
-    public WriteDependencyVerificationFile(File buildDirectory, BuildOperationExecutor buildOperationExecutor, List<String> checksums, ChecksumService checksumService) {
-        this.buildDirectory = buildDirectory;
+    public WriteDependencyVerificationFile(File gradleDirectory, BuildOperationExecutor buildOperationExecutor, List<String> checksums, ChecksumService checksumService) {
+        this.gradleDirectory = gradleDirectory;
         this.buildOperationExecutor = buildOperationExecutor;
         this.checksums = validateChecksums(checksums);
         this.checksumService = checksumService;
@@ -115,9 +115,11 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
         return new DependencyVerifyingModuleComponentRepository(original, this);
     }
 
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     @Override
     public void buildFinished(Gradle gradle) {
-        File verifFile = DependencyVerificationOverride.dependencyVerificationsFile(buildDirectory);
+        File verifFile = DependencyVerificationOverride.dependencyVerificationsFile(gradleDirectory);
+        verifFile.getParentFile().mkdirs();
         try {
             maybeReadExistingFile(verifFile);
             computeHashsConcurrently(gradle);

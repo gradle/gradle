@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 import org.gradle.StartParameter;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
-import org.gradle.internal.hash.ChecksumService;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.ChecksumVerificationOverride;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.DependencyVerificationOverride;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.WriteDependencyVerificationFile;
@@ -32,6 +31,7 @@ import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.ModuleSources;
+import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.resolve.ArtifactResolveException;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -54,9 +54,11 @@ import java.util.List;
 
 public class StartParameterResolutionOverride {
     private final StartParameter startParameter;
+    private final File gradleDir;
 
-    public StartParameterResolutionOverride(StartParameter startParameter) {
+    public StartParameterResolutionOverride(StartParameter startParameter, File gradleDir) {
         this.startParameter = startParameter;
+        this.gradleDir = gradleDir;
     }
 
     public void applyToCachePolicy(CachePolicy cachePolicy) {
@@ -75,13 +77,12 @@ public class StartParameterResolutionOverride {
     }
 
     public DependencyVerificationOverride dependencyVerificationOverride(BuildOperationExecutor buildOperationExecutor, ChecksumService checksumService) {
-        File currentDir = startParameter.getCurrentDir();
         List<String> checksums = startParameter.getWriteDependencyVerifications();
         if (!checksums.isEmpty()) {
             SingleMessageLogger.incubatingFeatureUsed("Dependency verification");
-            return new WriteDependencyVerificationFile(currentDir, buildOperationExecutor, checksums, checksumService);
+            return new WriteDependencyVerificationFile(gradleDir, buildOperationExecutor, checksums, checksumService);
         } else {
-            File verificationsFile = DependencyVerificationOverride.dependencyVerificationsFile(currentDir);
+            File verificationsFile = DependencyVerificationOverride.dependencyVerificationsFile(gradleDir);
             if (verificationsFile.exists()) {
                 SingleMessageLogger.incubatingFeatureUsed("Dependency verification");
                 return new ChecksumVerificationOverride(buildOperationExecutor, verificationsFile, checksumService);

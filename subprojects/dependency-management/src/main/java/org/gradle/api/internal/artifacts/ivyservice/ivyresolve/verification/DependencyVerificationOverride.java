@@ -29,17 +29,8 @@ public interface DependencyVerificationOverride {
         }
     };
 
-    static File dependencyVerificationsFile(File buildDirectory) {
-        File gradleDir = ensureGradleDirExists(buildDirectory);
-        return new File(gradleDir, "verification-metadata.xml");
-    }
-
-    static File ensureGradleDirExists(File buildDirectory) {
-        File gradleDir = new File(buildDirectory, "gradle");
-        if (!gradleDir.exists()) {
-            gradleDir.mkdirs();
-        }
-        return gradleDir;
+    static File dependencyVerificationsFile(File gradleDirectory) {
+        return new File(gradleDirectory, "verification-metadata.xml");
     }
 
     ModuleComponentRepository overrideDependencyVerification(ModuleComponentRepository original);
