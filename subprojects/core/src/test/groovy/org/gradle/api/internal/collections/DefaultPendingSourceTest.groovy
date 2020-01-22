@@ -29,9 +29,9 @@ class DefaultPendingSourceTest extends Specification {
 
     def setup() {
         pending.onRealize(realize)
-        _ * provider1.get() >> "provider1"
-        _ * provider2.get() >> "provider2"
-        _ * provider3.get() >> "provider3"
+        _ * provider1.getOrNull() >> "provider1"
+        _ * provider2.getOrNull() >> "provider2"
+        _ * provider3.getOrNull() >> "provider3"
     }
 
     def "realizes pending elements on flush"() {

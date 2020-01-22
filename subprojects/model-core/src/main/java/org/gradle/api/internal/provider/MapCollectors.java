@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-import org.gradle.internal.DisplayName;
 
 import java.util.Collection;
 import java.util.List;
@@ -32,26 +31,18 @@ public class MapCollectors {
     public static class EmptyMap implements MapCollector<Object, Object> {
 
         @Override
-        public boolean present() {
+        public boolean isPresent() {
             return true;
         }
 
         @Override
-        public void collectInto(DisplayName owner, MapEntryCollector<Object, Object> collector, Map<Object, Object> dest) {
+        public Value<Void> maybeCollectInto(MapEntryCollector<Object, Object> collector, Map<Object, Object> dest) {
+            return Value.present();
         }
 
         @Override
-        public boolean maybeCollectInto(MapEntryCollector<Object, Object> collector, Map<Object, Object> dest) {
-            return true;
-        }
-
-        @Override
-        public void collectKeysInto(ValueCollector<Object> collector, Collection<Object> dest) {
-        }
-
-        @Override
-        public boolean maybeCollectKeysInto(ValueCollector<Object> collector, Collection<Object> dest) {
-            return true;
+        public Value<Void> maybeCollectKeysInto(ValueCollector<Object> collector, Collection<Object> dest) {
+            return Value.present();
         }
 
         @Override
@@ -84,30 +75,20 @@ public class MapCollectors {
         }
 
         @Override
-        public boolean present() {
+        public boolean isPresent() {
             return true;
         }
 
         @Override
-        public void collectInto(DisplayName owner, MapEntryCollector<K, V> collector, Map<K, V> dest) {
-            maybeCollectInto(collector, dest);
-        }
-
-        @Override
-        public boolean maybeCollectInto(MapEntryCollector<K, V> collector, Map<K, V> dest) {
+        public Value<Void> maybeCollectInto(MapEntryCollector<K, V> collector, Map<K, V> dest) {
             collector.add(key, value, dest);
-            return true;
+            return Value.present();
         }
 
         @Override
-        public void collectKeysInto(ValueCollector<K> collector, Collection<K> dest) {
+        public Value<Void> maybeCollectKeysInto(ValueCollector<K> collector, Collection<K> dest) {
             collector.add(key, dest);
-        }
-
-        @Override
-        public boolean maybeCollectKeysInto(ValueCollector<K> collector, Collection<K> dest) {
-            collectKeysInto(collector, dest);
-            return true;
+            return Value.present();
         }
 
         @Override
@@ -158,42 +139,28 @@ public class MapCollectors {
         }
 
         @Override
-        public boolean present() {
+        public boolean isPresent() {
             return providerOfValue.isPresent();
         }
 
         @Override
-        public void collectInto(DisplayName owner, MapEntryCollector<K, V> collector, Map<K, V> dest) {
-            collector.add(key, providerOfValue.get(), dest);
-        }
-
-        @Override
-        public boolean maybeCollectInto(MapEntryCollector<K, V> collector, Map<K, V> dest) {
+        public Value<Void> maybeCollectInto(MapEntryCollector<K, V> collector, Map<K, V> dest) {
             V value = providerOfValue.getOrNull();
             if (value != null) {
                 collector.add(key, value, dest);
-                return true;
+                return Value.present();
             } else {
-                return false;
+                return Value.missing();
             }
         }
 
         @Override
-        public void collectKeysInto(ValueCollector<K> collector, Collection<K> dest) {
+        public Value<Void> maybeCollectKeysInto(ValueCollector<K> collector, Collection<K> dest) {
             if (providerOfValue.isPresent()) {
                 collector.add(key, dest);
+                return Value.present();
             } else {
-                throw new MissingValueException(Providers.NULL_VALUE);
-            }
-        }
-
-        @Override
-        public boolean maybeCollectKeysInto(ValueCollector<K> collector, Collection<K> dest) {
-            if (providerOfValue.isPresent()) {
-                collector.add(key, dest);
-                return true;
-            } else {
-                return false;
+                return Value.missing();
             }
         }
 
@@ -227,30 +194,20 @@ public class MapCollectors {
         }
 
         @Override
-        public boolean present() {
+        public boolean isPresent() {
             return true;
         }
 
         @Override
-        public void collectInto(DisplayName owner, MapEntryCollector<K, V> collector, Map<K, V> dest) {
-            maybeCollectInto(collector, dest);
-        }
-
-        @Override
-        public boolean maybeCollectInto(MapEntryCollector<K, V> collector, Map<K, V> dest) {
+        public Value<Void> maybeCollectInto(MapEntryCollector<K, V> collector, Map<K, V> dest) {
             collector.addAll(entries.entrySet(), dest);
-            return true;
+            return Value.present();
         }
 
         @Override
-        public void collectKeysInto(ValueCollector<K> collector, Collection<K> dest) {
+        public Value<Void> maybeCollectKeysInto(ValueCollector<K> collector, Collection<K> dest) {
             collector.addAll(entries.keySet(), dest);
-        }
-
-        @Override
-        public boolean maybeCollectKeysInto(ValueCollector<K> collector, Collection<K> dest) {
-            collectKeysInto(collector, dest);
-            return true;
+            return Value.present();
         }
 
         @Override
@@ -282,39 +239,28 @@ public class MapCollectors {
         }
 
         @Override
-        public boolean present() {
+        public boolean isPresent() {
             return providerOfEntries.isPresent();
         }
 
         @Override
-        public void collectInto(DisplayName owner, MapEntryCollector<K, V> collector, Map<K, V> dest) {
-            collector.addAll(providerOfEntries.get().entrySet(), dest);
-        }
-
-        @Override
-        public boolean maybeCollectInto(MapEntryCollector<K, V> collector, Map<K, V> dest) {
-            Map<? extends K, ? extends V> entries = providerOfEntries.getOrNull();
-            if (entries != null) {
-                collector.addAll(entries.entrySet(), dest);
-                return true;
-            } else {
-                return false;
+        public Value<Void> maybeCollectInto(MapEntryCollector<K, V> collector, Map<K, V> dest) {
+            Value<? extends Map<? extends K, ? extends V>> value = providerOfEntries.calculateValue();
+            if (value.isMissing()) {
+                return value.asType();
             }
+            collector.addAll(value.get().entrySet(), dest);
+            return Value.present();
         }
 
         @Override
-        public void collectKeysInto(ValueCollector<K> collector, Collection<K> dest) {
-            collector.addAll(providerOfEntries.get().keySet(), dest);
-        }
-
-        @Override
-        public boolean maybeCollectKeysInto(ValueCollector<K> collector, Collection<K> dest) {
+        public Value<Void> maybeCollectKeysInto(ValueCollector<K> collector, Collection<K> dest) {
             Map<? extends K, ? extends V> entries = providerOfEntries.getOrNull();
             if (entries != null) {
                 collector.addAll(entries.keySet(), dest);
-                return true;
+                return Value.present();
             } else {
-                return false;
+                return Value.missing();
             }
         }
 
@@ -342,28 +288,18 @@ public class MapCollectors {
     public static class NoValue implements MapCollector<Object, Object> {
 
         @Override
-        public boolean present() {
+        public boolean isPresent() {
             return false;
         }
 
         @Override
-        public void collectInto(DisplayName owner, MapEntryCollector<Object, Object> collector, Map<Object, Object> dest) {
-            throw Providers.nullValue(owner);
+        public Value<Void> maybeCollectInto(MapEntryCollector<Object, Object> collector, Map<Object, Object> dest) {
+            return Value.missing();
         }
 
         @Override
-        public boolean maybeCollectInto(MapEntryCollector<Object, Object> collector, Map<Object, Object> dest) {
-            return false;
-        }
-
-        @Override
-        public void collectKeysInto(ValueCollector<Object> collector, Collection<Object> dest) {
-            throw new MissingValueException(Providers.NULL_VALUE);
-        }
-
-        @Override
-        public boolean maybeCollectKeysInto(ValueCollector<Object> collector, Collection<Object> dest) {
-            return false;
+        public Value<Void> maybeCollectKeysInto(ValueCollector<Object> collector, Collection<Object> dest) {
+            return Value.missing();
         }
 
         @Override

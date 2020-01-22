@@ -25,7 +25,7 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
-import org.gradle.internal.DisplayName;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -96,31 +96,23 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
     @Override
     public boolean isPresent() {
         beforeRead();
-        return value.present();
+        return value.isPresent();
     }
 
     @Override
-    public Map<K, V> get() {
+    protected Value<? extends Map<K, V>> calculateOwnValue() {
         beforeRead();
-        Map<K, V> entries = new LinkedHashMap<>();
-        value.collectInto(getDisplayName(), entryCollector, entries);
-        return ImmutableMap.copyOf(entries);
+        return doCalculateOwnValue();
     }
 
-    @Nullable
-    @Override
-    public Map<K, V> getOrNull() {
-        beforeRead();
-        return doGetOrNull();
-    }
-
-    @Nullable
-    private Map<K, V> doGetOrNull() {
+    @NotNull
+    private Value<? extends Map<K, V>> doCalculateOwnValue() {
         Map<K, V> entries = new LinkedHashMap<>();
-        if (!value.maybeCollectInto(entryCollector, entries)) {
-            return null;
+        Value<Void> result = value.maybeCollectInto(entryCollector, entries);
+        if (result.isMissing()) {
+            return result.asType();
         }
-        return ImmutableMap.copyOf(entries);
+        return Value.of(ImmutableMap.copyOf(entries));
     }
 
     @Override
@@ -131,10 +123,11 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
             public V call() {
                 beforeRead();
                 Map<K, V> dest = new LinkedHashMap<>();
-                if (value.maybeCollectInto(entryCollector, dest)) {
-                    return dest.get(key);
+                Value<Void> result = value.maybeCollectInto(entryCollector, dest);
+                if (result.isMissing()) {
+                    return null;
                 }
-                return null;
+                return dest.get(key);
             }
         });
     }
@@ -322,7 +315,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
     @Override
     @SuppressWarnings("unchecked")
     protected void makeFinal() {
-        Map<K, V> entries = doGetOrNull();
+        Map<K, V> entries = doCalculateOwnValue().orNull();
         if (entries != null) {
             if (entries.isEmpty()) {
                 set((MapCollector<K, V>) EMPTY_MAP);
@@ -343,20 +336,13 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
             return (Class) Set.class;
         }
 
-        @Override
-        public Set<K> get() {
-            beforeRead();
-            Set<K> keys = new LinkedHashSet<>();
-            value.collectKeysInto(keyCollector, keys);
-            return ImmutableSet.copyOf(keys);
-        }
-
         @Nullable
         @Override
         public Set<K> getOrNull() {
             beforeRead();
             Set<K> keys = new LinkedHashSet<>();
-            if (!value.maybeCollectKeysInto(keyCollector, keys)) {
+            Value<Void> result = value.maybeCollectKeysInto(keyCollector, keys);
+            if (result.isMissing()) {
                 return null;
             }
             return ImmutableSet.copyOf(keys);
@@ -373,36 +359,26 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
         }
 
         @Override
-        public boolean present() {
-            return left.present() && right.present();
+        public boolean isPresent() {
+            return left.isPresent() && right.isPresent();
         }
 
         @Override
-        public void collectInto(DisplayName owner, MapEntryCollector<K, V> collector, Map<K, V> dest) {
-            left.collectInto(owner, collector, dest);
-            right.collectInto(owner, collector, dest);
-        }
-
-        @Override
-        public boolean maybeCollectInto(MapEntryCollector<K, V> collector, Map<K, V> dest) {
-            if (left.maybeCollectInto(collector, dest)) {
-                return right.maybeCollectInto(collector, dest);
+        public Value<Void> maybeCollectInto(MapEntryCollector<K, V> collector, Map<K, V> dest) {
+            Value<Void> result = left.maybeCollectInto(collector, dest);
+            if (result.isMissing()) {
+                return result;
             }
-            return false;
+            return right.maybeCollectInto(collector, dest);
         }
 
         @Override
-        public void collectKeysInto(ValueCollector<K> collector, Collection<K> dest) {
-            left.collectKeysInto(collector, dest);
-            right.collectKeysInto(collector, dest);
-        }
-
-        @Override
-        public boolean maybeCollectKeysInto(ValueCollector<K> collector, Collection<K> dest) {
-            if (left.maybeCollectKeysInto(collector, dest)) {
-                return right.maybeCollectKeysInto(collector, dest);
+        public Value<Void> maybeCollectKeysInto(ValueCollector<K> collector, Collection<K> dest) {
+            Value<Void> result = left.maybeCollectKeysInto(collector, dest);
+            if (result.isMissing()) {
+                return result;
             }
-            return false;
+            return right.maybeCollectKeysInto(collector, dest);
         }
 
         @Override

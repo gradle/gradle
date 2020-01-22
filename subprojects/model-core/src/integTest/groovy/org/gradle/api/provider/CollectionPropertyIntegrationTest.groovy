@@ -27,7 +27,7 @@ class CollectionPropertyIntegrationTest extends AbstractIntegrationSpec {
                 final ListProperty<String> prop = project.objects.listProperty(String)
                 @Internal
                 List<String> expected = []
-                
+
                 @TaskAction
                 void validate() {
                     def actual = prop.getOrNull()
@@ -37,7 +37,7 @@ class CollectionPropertyIntegrationTest extends AbstractIntegrationSpec {
                     actual.each { assert it instanceof String }
                 }
             }
-            
+
             task verify(type: MyTask)
         """
     }
@@ -54,13 +54,13 @@ class CollectionPropertyIntegrationTest extends AbstractIntegrationSpec {
             abstract class ATask extends DefaultTask {
                 @Input
                 abstract ListProperty<$type> getProp()
-                
+
                 @TaskAction
                 void go() {
                     println("prop = \${prop.get()}")
                 }
             }
-            
+
             tasks.create("thing", ATask) {
                 prop = $value
             }
@@ -87,8 +87,8 @@ def provider = providers.provider { [++counter, ++counter] }
 def property = objects.listProperty(Integer)
 property.set(provider)
 
-assert property.get() == [1, 2] 
-assert property.get() == [3, 4] 
+assert property.get() == [1, 2]
+assert property.get() == [3, 4]
 property.finalizeValue()
 assert property.get() == [5, 6]
 assert property.get() == [5, 6]
@@ -112,8 +112,8 @@ def provider = providers.provider { [++counter, ++counter] }
 def property = objects.listProperty(Integer)
 property.set(provider)
 
-assert property.get() == [1, 2] 
-assert property.get() == [3, 4] 
+assert property.get() == [1, 2]
+assert property.get() == [3, 4]
 property.disallowChanges()
 assert property.get() == [5, 6]
 assert property.get() == [7, 8]
@@ -134,10 +134,10 @@ property.set([1])
 class SomeTask extends DefaultTask {
     @Input
     final ListProperty<String> prop = project.objects.listProperty(String)
-    
+
     @OutputFile
     final Property<RegularFile> outputFile = project.objects.fileProperty()
-    
+
     @TaskAction
     void go() {
         outputFile.get().asFile.text = prop.get()
@@ -453,4 +453,30 @@ task wrongPropertyElementTypeApi {
         expect:
         succeeds("verify")
     }
+
+    def "fails when property with no value is queried"() {
+        given:
+        buildFile << """
+            abstract class SomeTask extends DefaultTask {
+                @Internal
+                abstract ListProperty<String> getProp()
+
+                @TaskAction
+                def go() {
+                    prop.set((Iterable<String>)null)
+                    prop.get()
+                }
+            }
+
+            tasks.register('thing', SomeTask)
+        """
+
+        when:
+        fails("thing")
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':thing'.")
+        failure.assertHasCause("Cannot query the value of task ':thing' property 'prop' because it has no value available.")
+    }
+
 }

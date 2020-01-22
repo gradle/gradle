@@ -124,7 +124,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         property.getOrNull() == null
     }
 
-    def "can set value using provider and chaining method"() {
+    def "can set value using provider with chaining method"() {
         given:
         def property = propertyWithNoValue()
         property.value(Providers.of(someValue()))
@@ -1545,6 +1545,43 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         then:
         def e2 = thrown(IllegalStateException)
         e2.message == 'The value for <display-name> cannot be changed any further.'
+    }
+
+    def "reports the source of the property's value when value is missing and source is known"() {
+        given:
+        def a = propertyWithNoValue()
+        def b = propertyWithNoValue()
+        def c = propertyWithNoValue()
+        a.attachDisplayName(Describables.of("<a>"))
+        a.set(b)
+        b.set(c)
+
+        when:
+        a.get()
+
+        then:
+        def e = thrown(MissingValueException)
+        e.message == "Cannot query the value of <a> because it has no value available."
+
+        when:
+        c.attachDisplayName(Describables.of("<c>"))
+        a.get()
+
+        then:
+        def e2 = thrown(MissingValueException)
+        e2.message == """Cannot query the value of <a> because it has no value available.
+The value of this property is derived from: <c>"""
+
+        when:
+        b.attachDisplayName(Describables.of("<b>"))
+        a.get()
+
+        then:
+        def e3 = thrown(MissingValueException)
+        e3.message == """Cannot query the value of <a> because it has no value available.
+The value of this property is derived from:
+  - <b>
+  - <c>"""
     }
 
     def "producer task for a property is not known by default"() {

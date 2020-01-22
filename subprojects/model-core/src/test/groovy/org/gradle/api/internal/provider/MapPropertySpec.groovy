@@ -103,7 +103,7 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
         given:
         def provider = Stub(ProviderInternal)
         provider.type >> null
-        provider.get() >>> [['k1': 'v1'], ['k2': 'v2']]
+        provider.calculateValue() >>> [['k1': 'v1'], ['k2': 'v2']].collect { ValueSupplier.Value.of(it) }
 
         when:
         property.setFromAnyValue(provider)
@@ -132,7 +132,7 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
         given:
         def provider = Stub(ProviderInternal)
         provider.type >> Map
-        provider.get() >>> [['k1': 'v1'], ['k2': 'v2']]
+        provider.calculateValue() >>> [['k1': 'v1'], ['k2': 'v2']].collect { ValueSupplier.Value.of(it) }
         provider.present >> true
         and:
         property.set(provider)
@@ -229,7 +229,7 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
         def provider = Stub(ProviderInternal)
         _ * provider.type >> Map
         _ * provider.present >> true
-        _ * provider.get() >>> [['k1': 'v1'], ['k2': 'v2']]
+        _ * provider.calculateValue() >>> [['k1': 'v1'], ['k2': 'v2']].collect { ValueSupplier.Value.of(it) }
         and:
         property.putAll(provider)
 
@@ -274,17 +274,17 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
         when:
         property.get()
         then:
-        1 * valueProvider.get() >> ['k1': 'v1']
-        1 * putProvider.get() >> 'v2'
-        1 * putAllProvider.get() >> ['k3': 'v3']
+        1 * valueProvider.calculateValue() >> ValueSupplier.Value.of(['k1': 'v1'])
+        1 * putProvider.getOrNull() >> 'v2'
+        1 * putAllProvider.calculateValue() >> ValueSupplier.Value.of(['k3': 'v3'])
         0 * _
 
         when:
         property.getOrNull()
         then:
-        1 * valueProvider.getOrNull() >> ['k1': 'v1']
+        1 * valueProvider.calculateValue() >> ValueSupplier.Value.of(['k1': 'v1'])
         1 * putProvider.getOrNull() >> 'v2'
-        1 * putAllProvider.getOrNull() >> ['k3': 'v3']
+        1 * putAllProvider.calculateValue() >> ValueSupplier.Value.of(['k3': 'v3'])
         0 * _
     }
 
@@ -317,7 +317,7 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
         property.get()
         then:
         def e = thrown(IllegalStateException)
-        e.message == Providers.NULL_VALUE
+        e.message == "Cannot query the value of ${displayName} because it has no value available."
     }
 
     def "property has no value when adding a value provider with no value"() {
@@ -335,7 +335,7 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
         property.get()
         then:
         def e = thrown(IllegalStateException)
-        e.message == Providers.NULL_VALUE
+        e.message == "Cannot query the value of ${displayName} because it has no value available."
     }
 
     def "property has no value when adding a map provider with no value"() {
@@ -353,7 +353,7 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
         property.get()
         then:
         def e = thrown(IllegalStateException)
-        e.message == Providers.NULL_VALUE
+        e.message == "Cannot query the value of ${displayName} because it has no value available."
     }
 
     def "can set to null value to discard value"() {

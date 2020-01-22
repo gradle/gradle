@@ -16,11 +16,13 @@
 
 package org.gradle.api.internal
 
+
 import org.gradle.api.Action
 import org.gradle.api.DomainObjectCollection
 import org.gradle.api.internal.plugins.DslObject
 import org.gradle.api.internal.provider.CollectionProviderInternal
 import org.gradle.api.internal.provider.ProviderInternal
+import org.gradle.api.internal.provider.ValueSupplier
 import org.gradle.configuration.internal.DefaultUserCodeApplicationContext
 import org.gradle.configuration.internal.UserCodeApplicationContext
 import org.gradle.configuration.internal.UserCodeApplicationId
@@ -219,7 +221,8 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         !result
 
         and:
-        1 * provider.get() >> a
+        1 * provider.getOrNull() >> a
+        0 * _
     }
 
     def "provider for iterable of elements is queried when membership checked"() {
@@ -237,7 +240,9 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         !result
 
         and:
-        1 * provider.get() >> [a, d]
+        _ * provider.size() >> 2
+        1 * provider.calculateValue() >> ValueSupplier.Value.of([a, d])
+        0 * _
     }
 
     def "can get all domain objects ordered by order added"() {
@@ -283,8 +288,8 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         result == iterationOrder(b, a, d, c)
 
         and:
-        1 * provider1.get() >> a
-        1 * provider2.get() >> d
+        1 * provider1.getOrNull() >> a
+        1 * provider2.getOrNull() >> d
         0 * _
     }
 
@@ -305,7 +310,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
         and:
         _ * provider1.size() >> 2
-        1 * provider1.get() >> [a, d]
+        1 * provider1.calculateValue() >> ValueSupplier.Value.of([a, d])
         0 * _
     }
 
@@ -417,7 +422,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         then:
         1 * action.execute(c)
         _ * provider1.type >> type
-        1 * provider1.get() >> c
+        1 * provider1.getOrNull() >> c
         0 * _
 
         when:
@@ -444,7 +449,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         then:
         1 * action.execute(c)
         _ * provider1.elementType >> type
-        1 * provider1.get() >> [c]
+        1 * provider1.calculateValue() >> ValueSupplier.Value.of([c])
         _ * provider1.size() >> 1
         0 * _
 
@@ -489,15 +494,15 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         then:
         result == iterationOrder(c, a)
         _ * provider.type >> type
-        1 * provider.get() >> a
-        0 * provider._
+        1 * provider.getOrNull() >> a
+        0 * _
 
         when:
         def result2 = toList(container)
 
         then:
         result2 == iterationOrder(c, a, d)
-        0 * provider._
+        0 * _
     }
 
     def "provider for iterable of elements is queried when filtered collection with matching type created"() {
@@ -521,15 +526,15 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         then:
         result == iterationOrder(c, a, b)
         _ * provider.size() >> 2
-        1 * provider.get() >> [a, b]
-        0 * provider._
+        1 * provider.calculateValue() >> ValueSupplier.Value.of([a, b])
+        0 * _
 
         when:
         def result2 = toList(container)
 
         then:
         result2 == iterationOrder(c, a, b, d)
-        0 * provider._
+        0 * _
     }
 
     def "provider for element is not queried when filtered collection with non matching type created"() {
@@ -545,22 +550,22 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         def filtered = container.withType(otherType)
 
         then:
-        0 * provider._
+        0 * _
 
         when:
         def result = toList(filtered)
 
         then:
         result == iterationOrder(d)
-        0 * provider._
+        0 * _
 
         when:
         def result2 = toList(container)
 
         then:
         result2 == iterationOrder(c, a, d)
-        1 * provider.get() >> a
-        0 * provider._
+        1 * provider.getOrNull() >> a
+        0 * _
     }
 
     def "provider for iterable of elements is not queried when filtered collection with non matching type created"() {
@@ -592,8 +597,8 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         then:
         result2 == iterationOrder(c, a, b, d)
         _ * provider.size() >> 2
-        1 * provider.get() >> [a, b]
-        0 * provider._
+        1 * provider.calculateValue() >> ValueSupplier.Value.of([a, b])
+        0 * _
     }
 
     def "can execute action for all elements in a type filtered collection"() {
@@ -670,7 +675,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
         then:
         _ * provider1.type >> type
-        1 * provider1.get() >> c
+        1 * provider1.getOrNull() >> c
         1 * action.execute(c)
         0 * _
 
@@ -699,7 +704,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         then:
         _ * provider1.elementType >> type
         _ * provider1.size() >> 1
-        1 * provider1.get() >> [c]
+        1 * provider1.calculateValue() >> ValueSupplier.Value.of([c])
         1 * action.execute(c)
         0 * _
 
@@ -785,7 +790,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         toList(container)
 
         then:
-        1 * provider1.get() >> a
+        1 * provider1.getOrNull() >> a
         1 * action.execute(a)
         0 * _
 
@@ -800,7 +805,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         toList(container)
 
         then:
-        1 * provider2.get() >> c
+        1 * provider2.getOrNull() >> c
         1 * action.execute(c)
         0 * _
 
@@ -816,7 +821,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
         then:
         _ * provider3.size() >> 2
-        1 * provider3.get() >> [b, d]
+        1 * provider3.calculateValue() >> ValueSupplier.Value.of([b, d])
         1 * action.execute(b)
         1 * action.execute(d)
         0 * _
@@ -829,8 +834,8 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         def providerOfIterable = Mock(CollectionProviderInternal)
 
         given:
-        _ * provider.get() >> a
-        _ * providerOfIterable.get() >> [b, c]
+        _ * provider.getOrNull() >> a
+        _ * providerOfIterable.calculateValue() >> ValueSupplier.Value.of([b, c])
         container.addLater(provider)
         container.addAllLater(providerOfIterable)
         toList(container)
@@ -883,10 +888,10 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
         then:
         _ * provider1.type >> type
-        1 * provider1.get() >> a
+        1 * provider1.getOrNull() >> a
         1 * action.execute(a)
         _ * provider2.type >> otherType
-        1 * provider2.get() >> d
+        1 * provider2.getOrNull() >> d
         0 * _
 
         when:
@@ -920,12 +925,12 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         then:
         _ * provider1.elementType >> type
         _ * provider1.size() >> 2
-        1 * provider1.get() >> [a, c]
+        1 * provider1.calculateValue() >> ValueSupplier.Value.of([a, c])
         1 * action.execute(a)
         1 * action.execute(c)
         _ * provider2.elementType >> otherType
         _ * provider2.size() >> 1
-        1 * provider2.get() >> [d]
+        1 * provider2.calculateValue() >> ValueSupplier.Value.of([d])
         0 * _
 
         when:
@@ -952,16 +957,17 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         filtered.configureEach(action)
 
         then:
-        0 * provider1.get()
-        0 * provider2.get()
-        0 * action.execute(_)
+        0 * _
 
         when:
         def result = toList(filtered)
 
         then:
-        1 * provider1.get() >> a
-        1 * provider2.get() >> b
+        1 * provider1.getOrNull() >> a
+        1 * provider2.getOrNull() >> b
+        0 * _
+
+        and:
         result == iterationOrder(a, b)
 
         and:
@@ -986,9 +992,9 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         filtered.configureEach(action)
 
         then:
-        0 * provider1.get()
-        0 * provider2.get()
-        0 * action.execute(_)
+        _ * provider1.size() >> 1
+        _ * provider2.size() >> 2
+        0 * _
 
         when:
         def result = toList(filtered)
@@ -996,8 +1002,11 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         then:
         _ * provider1.size() >> 1
         _ * provider2.size() >> 2
-        1 * provider1.get() >> [a]
-        1 * provider2.get() >> [c, b]
+        1 * provider1.calculateValue() >> ValueSupplier.Value.of([a])
+        1 * provider2.calculateValue() >> ValueSupplier.Value.of([c, b])
+        0 * _
+
+        and:
         result == iterationOrder(a, c, b)
 
         and:
@@ -1023,16 +1032,17 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         filtered.configureEach(action)
 
         then:
-        0 * provider1.get()
-        0 * provider2.get()
-        0 * action.execute(_)
+        0 * _
 
         when:
         def result = toList(filtered)
 
         then:
         0 * provider1.get() >> a
-        1 * provider2.get() >> b
+        1 * provider2.getOrNull() >> b
+        0 * _
+
+        and:
         result == iterationOrder(b)
 
         and:
@@ -1057,9 +1067,9 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         filtered.configureEach(action)
 
         then:
-        0 * provider1.get()
-        0 * provider2.get()
-        0 * action.execute(_)
+        _ * provider1.size() >> 1
+        _ * provider2.size() >> 2
+        0 * _
 
         when:
         def result = toList(filtered)
@@ -1067,8 +1077,11 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         then:
         _ * provider1.size() >> 1
         _ * provider2.size() >> 2
-        0 * provider1.get() >> [a]
-        1 * provider2.get() >> [b, c]
+        0 * provider1.get()
+        1 * provider2.calculateValue() >> ValueSupplier.Value.of([b, c])
+        0 * _
+
+        and:
         result == iterationOrder(b, c)
 
         and:
@@ -1094,15 +1107,17 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         filtered.configureEach(action)
 
         then:
-        0 * provider1.get()
-        0 * provider2.get()
+        0 * _
 
         when:
         def result = toList(filtered)
 
         then:
-        1 * provider1.get() >> a
-        1 * provider2.get() >> b
+        1 * provider1.getOrNull() >> a
+        1 * provider2.getOrNull() >> b
+        0 * _
+
+        and:
         result == iterationOrder(b)
 
         and:
@@ -1128,15 +1143,17 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         didRemoved
 
         and:
-        0 * provider1.get()
-        0 * provider2.get()
+        0 * _
 
         when:
         def result = toList(container)
 
         then:
-        0 * provider1.get()
-        1 * provider2.get() >> b
+        0 * provider1.getOrNull()
+        1 * provider2.getOrNull() >> b
+        0 * _
+
+        and:
         result == iterationOrder(b)
     }
 
@@ -1157,7 +1174,8 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         toList(container) == []
 
         and:
-        0 * provider1.get()
+        _ * provider1.type >> type
+        0 * _
 
         when:
         def didRemovedSecondTime = container.remove(provider1)
@@ -1167,8 +1185,9 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         toList(container) == []
 
         and:
+        _ * provider1.type >> type
         1 * provider1.present >> false
-        0 * provider1.get()
+        0 * _
     }
 
     def "can remove realized external providers without realizing more providers"() {
@@ -1179,10 +1198,10 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
         given:
         _ * provider1.type >> type
-        _ * provider1.get() >> a
+        _ * provider1.getOrNull() >> a
         _ * provider1.present >> true
         _ * provider2.type >> type
-        _ * provider2.get() >> b
+        _ * provider2.getOrNull() >> b
         _ * provider2.present >> true
         _ * provider3.type >> otherType
         container.addLater(provider1)
@@ -1199,9 +1218,10 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         didRemoved1
 
         and:
+        _ * provider1.type >> type
+        1 * provider1.present >> true
         1 * provider1.get() >> a
-        0 * provider2.get()
-        0 * provider3.get()
+        0 * _
 
         when:
         def didRemoved2 = container.remove(provider2)
@@ -1210,9 +1230,10 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         didRemoved2
 
         and:
-        0 * provider1.get()
+        _ * provider2.type >> type
+        1 * provider2.present >> true
         1 * provider2.get() >> b
-        0 * provider3.get()
+        0 * _
     }
 
     def "can remove realized external elements via instance"() {
@@ -1222,7 +1243,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
         given:
         _ * provider1.type >> type
-        _ * provider1.get() >> a
+        _ * provider1.getOrNull() >> a
         _ * provider2.type >> otherType
         container.addLater(provider1)
         container.addLater(provider2)
@@ -1237,8 +1258,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         didRemoved
 
         and:
-        0 * provider1.get()
-        0 * provider2.get()
+        0 * _
     }
 
     def "will execute remove action when removing external provider only for realized elements"() {
@@ -1249,6 +1269,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
         given:
         _ * provider1.type >> type
+        _ * provider1.getOrNull() >> a
         _ * provider1.get() >> a
         _ * provider1.present >> true
         _ * provider2.type >> otherType
@@ -1266,8 +1287,13 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         didRemoved1
 
         and:
+        _ * provider1.type >> type
+        1 * provider1.present >> true
+        1 * provider1.get() >> a
+
+        and:
         1 * action.execute(a)
-        0 * action.execute(_)
+        0 * _
 
         when:
         def didRemoved2 = container.remove(provider2)
@@ -1276,7 +1302,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         didRemoved2
 
         and:
-        0 * action.execute(_)
+        0 * _
     }
 
     def "will execute remove action when clearing the container only for realized external providers"() {
@@ -1287,7 +1313,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
         given:
         _ * provider1.type >> type
-        _ * provider1.get() >> a
+        _ * provider1.getOrNull() >> a
         _ * provider2.type >> otherType
         container.addLater(provider1)
         container.addLater(provider2)
@@ -1301,7 +1327,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
         then:
         1 * action.execute(a)
-        0 * action.execute(_)
+        0 * _
 
         when:
         def result = toList(container)
@@ -1325,15 +1351,15 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         container.clear()
 
         then:
-        0 * provider1.get()
-        0 * provider2.get()
+        0 * _
 
         when:
         def result = toList(container)
 
         then:
-        0 * provider1.get()
-        0 * provider2.get()
+        0 * _
+
+        and:
         result == iterationOrder()
     }
 
@@ -1345,9 +1371,9 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
         given:
         _ * provider1.type >> type
-        _ * provider1.get() >> a
+        _ * provider1.getOrNull() >> a
         _ * provider2.type >> otherType
-        _ * provider2.get() >> d
+        _ * provider2.getOrNull() >> d
         container.addLater(provider1)
         container.addLater(provider2)
         container.whenObjectRemoved(action)
@@ -1362,15 +1388,19 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         didRetained
 
         and:
+        1 * provider2.getOrNull() >> d
         1 * action.execute(a)
         1 * action.execute(d)
-        0 * action.execute(_)
+        0 * _
 
         when:
         def result = toList(container)
 
         then:
         result == iterationOrder()
+
+        and:
+        0 * _
     }
 
     def "will query external providers when not retaining them"() {
@@ -1391,15 +1421,17 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         didRetained
 
         and:
-        1 * provider1.get() >> a
-        1 * provider2.get() >> b
+        1 * provider1.getOrNull() >> a
+        1 * provider2.getOrNull() >> b
+        0 * _
 
         when:
         def result = toList(container)
 
         then:
-        0 * provider1.get()
-        0 * provider2.get()
+        0 * _
+
+        and:
         result == iterationOrder(b)
     }
 
@@ -1410,9 +1442,9 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
         given:
         _ * provider1.type >> type
-        _ * provider1.get() >> a
+        _ * provider1.getOrNull() >> a
         _ * provider2.type >> otherType
-        _ * provider2.get() >> d
+        _ * provider2.getOrNull() >> d
         container.addLater(provider1)
         container.addLater(provider2)
 
@@ -1426,13 +1458,16 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         didRetained
 
         and:
-        0 * provider1.get()
-        1 * provider2.get() >> d
+        1 * provider2.getOrNull() >> d
+        0 * _
 
         when:
         def result = toList(container)
 
         then:
+        0 * _
+
+        and:
         result == iterationOrder(a)
     }
 
@@ -1453,8 +1488,9 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         filtered.configureEach(action)
 
         then:
-        0 * provider1.get()
-        0 * provider2.get()
+        _ * provider1.size() >> 1
+        _ * provider2.size() >> 2
+        0 * _
 
         when:
         def result = toList(filtered)
@@ -1462,8 +1498,11 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         then:
         _ * provider1.size() >> 1
         _ * provider2.size() >> 2
-        1 * provider1.get() >> [a]
-        1 * provider2.get() >> [b, c]
+        1 * provider1.calculateValue() >> ValueSupplier.Value.of([a])
+        1 * provider2.calculateValue() >> ValueSupplier.Value.of([b, c])
+        0 * _
+
+        and:
         result == iterationOrder(b)
 
         and:
@@ -1487,15 +1526,18 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         container.withType(type).iterator()
 
         then:
-        1 * provider1.get() >> a
-        0 * provider2.get()
+        1 * provider1.getOrNull() >> a
+        0 * _
 
         when:
         def result = toList(container)
 
         then:
         0 * provider1.get()
-        1 * provider2.get() >> b
+        1 * provider2.getOrNull() >> b
+        0 * _
+
+        and:
         result == iterationOrder(a, b)
     }
 
@@ -1507,9 +1549,9 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
         given:
         _ * provider1.type >> type
-        _ * provider1.get() >> a
+        _ * provider1.getOrNull() >> a
         _ * provider2.type >> type
-        _ * provider2.get() >> b
+        _ * provider2.getOrNull() >> b
         container.addLater(provider1)
         container.addLater(provider2)
         container.whenObjectRemoved(action)
@@ -1524,8 +1566,10 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         result == iterationOrder(b)
 
         and:
+        1 * provider1.getOrNull() >> a
+        1 * provider2.getOrNull() >> b
         1 * action.execute(a)
-        0 * action.execute(_)
+        0 * _
     }
 
     def "will execute remove action when removing a collection of external provider only for realized elements"() {
@@ -1536,6 +1580,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
         given:
         _ * provider1.type >> type
+        _ * provider1.getOrNull() >> a
         _ * provider1.get() >> a
         _ * provider1.present >> true
         _ * provider2.type >> otherType
@@ -1554,8 +1599,11 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         container.empty
 
         and:
+        _ * provider1.type >> type
+        1 * provider1.present >> true
+        1 * provider1.get() >> a
         1 * action.execute(a)
-        0 * action.execute(_)
+        0 * _
     }
 
     void setupContainerDefaults() {}

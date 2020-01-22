@@ -136,7 +136,7 @@ class DefaultPropertyTest extends PropertySpec<String> {
 
         given:
         provider.asSupplier(_, _, _) >> supplier
-        supplier.calculateValue() >>> [1, 2, 3].collect { ScalarSupplier.Value.ofNullable(it) }
+        supplier.calculateValue() >>> [1, 2, 3].collect { ValueSupplier.Value.ofNullable(it) }
 
         def property = new DefaultProperty<Number>(Number)
 
