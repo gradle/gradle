@@ -17,6 +17,7 @@
 package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.profiler.mutations.ApplyNonAbiChangeToJavaSourceFileMutator
 import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
@@ -65,6 +66,7 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
     }
 
     @Unroll
+    @UnsupportedWithInstantExecution(iterationMatchers = AGP_3_ITERATION_MATCHER)
     def "check deprecation warnings produced by building Santa Tracker Java (agp=#agpVersion)"() {
 
         given:
@@ -125,6 +127,7 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
     }
 
     @Unroll
+    @UnsupportedWithInstantExecution(iterationMatchers = AGP_3_ITERATION_MATCHER)
     def "incremental Java compilation works for Santa Tracker Java (agp=#agpVersion)"() {
 
         given:

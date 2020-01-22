@@ -42,7 +42,7 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
     }
 
     @Unroll
-    @UnsupportedWithInstantExecution(iterationMatchers = ".*agp=3\\..*")
+    @UnsupportedWithInstantExecution(iterationMatchers = AGP_3_ITERATION_MATCHER)
     def "android library and application APK assembly (agp=#agpVersion, ide=#ide)"(
         String agpVersion, boolean ide
     ) {

@@ -16,6 +16,7 @@
 
 package org.gradle.smoketests
 
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -31,6 +32,7 @@ import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
 class AndroidSantaTrackerJavaCachingSmokeTest extends AbstractAndroidSantaTrackerSmokeTest {
 
     @Unroll
+    @UnsupportedWithInstantExecution(iterationMatchers = AGP_3_ITERATION_MATCHER)
     def "can cache Santa Tracker Java Android application (agp=#agpVersion)"() {
 
         given:
