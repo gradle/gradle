@@ -360,7 +360,7 @@ tasks.register("largeAndroidBuild", RemoteProject) {
 tasks.register("santaTrackerAndroidBuild", RemoteProject) {
     remoteUri = 'https://github.com/gradle/santa-tracker-android.git'
     // Pinned from branch agp-3.6.0
-    ref = '3bbbd895de38efafd0dd1789454d4e4cb72d46d5'
+    ref = '65479d5a244a64afef79d86b4bbc81d8908d2434'
     doLast {
         addGoogleServicesJson(outputDirectory)
     }
@@ -369,7 +369,7 @@ tasks.register("santaTrackerAndroidBuild", RemoteProject) {
 tasks.register("santaTrackerAndroidJavaBuild", RemoteProject) {
     remoteUri = 'https://github.com/gradle/santa-tracker-android.git'
     // Pinned from branch agp-3.6.0-java
-    ref = '174705275e434adc843e8e9b28106a5e3ffd6733'
+    ref = '5fff06e2496cc762b34031f6dd28467041ae8453'
     doLast {
         addGoogleServicesJson(outputDirectory)
     }
