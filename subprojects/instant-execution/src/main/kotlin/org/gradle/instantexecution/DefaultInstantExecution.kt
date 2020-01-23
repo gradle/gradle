@@ -498,7 +498,7 @@ class DefaultInstantExecution internal constructor(
 
     private
     fun absoluteFile(path: String) =
-        File(startParameter.rootDir, path).absoluteFile
+        File(startParameter.rootDirectory, path).absoluteFile
 
     private
     val reportOutputDir by unsafeLazy {

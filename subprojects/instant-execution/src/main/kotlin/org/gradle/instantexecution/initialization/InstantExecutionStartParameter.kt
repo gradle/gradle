@@ -17,13 +17,17 @@
 package org.gradle.instantexecution.initialization
 
 import org.gradle.StartParameter
+import org.gradle.initialization.layout.BuildLayout
 import java.io.File
 
 
-class InstantExecutionStartParameter(private val startParameter: StartParameter) {
+class InstantExecutionStartParameter(
+    private val buildLayout: BuildLayout,
+    private val startParameter: StartParameter
+) {
 
-    val rootDir: File
-        get() = startParameter.currentDir
+    val rootDirectory: File
+        get() = buildLayout.rootDirectory
 
     val isRefreshDependencies
         get() = startParameter.isRefreshDependencies

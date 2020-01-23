@@ -894,4 +894,38 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         outputContains("thisTask = true")
         outputContains("bean.owner = true")
     }
+
+    def "reuses cache when build is started from a different subdirectory"() {
+        given:
+        settingsFile << """
+            include 'a', 'b'
+        """
+        buildScript """
+            task ok
+        """
+        def a = testDirectory.createDir('a')
+        def b = testDirectory.createDir('b')
+        def instantExecution = newInstantExecutionFixture()
+
+        when:
+        inDirectory a
+        instantRun ':ok'
+
+        then:
+        instantExecution.assertStateStored()
+
+        when:
+        inDirectory b
+        instantRun ':ok'
+
+        then:
+        instantExecution.assertStateLoaded()
+
+        when:
+        inDirectory a
+        instantRun ':ok'
+
+        then:
+        instantExecution.assertStateLoaded()
+    }
 }
