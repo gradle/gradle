@@ -493,21 +493,23 @@ class DefaultInstantExecution internal constructor(
 
     private
     fun instantExecutionCacheKey() = startParameter.run {
-        val requested = requestedTaskNames.joinToString("/")
-        val excluded = excludedTaskNames.joinToString("/")
-        val tasksPart = "$requested-$excluded"
-        val absoluteTasksOnly = requestedTaskNames.all { it.startsWith(':') }
-        when {
-            absoluteTasksOnly -> tasksPart
-            else -> {
-                // Because unqualified task names are resolved relative to the enclosing
-                // sub-project according to `invocationDir` we need to include
-                // the relative invocation dir information in the key.
-                relativeChildPathOrNull(invocationDir, rootDirectory)?.let { subDirPart ->
-                    "$subDirPart:$tasksPart"
-                } ?: tasksPart
+        val cacheKey = StringBuilder()
+        requestedTaskNames.joinTo(cacheKey, separator = "/")
+        if (excludedTaskNames.isNotEmpty()) {
+            excludedTaskNames.joinTo(cacheKey, prefix = "-", separator = "/")
+        }
+        val taskNames = requestedTaskNames.asSequence() + excludedTaskNames.asSequence()
+        val hasRelativeTaskName = taskNames.any { !it.startsWith(':') }
+        if (hasRelativeTaskName) {
+            // Because unqualified task names are resolved relative to the enclosing
+            // sub-project according to `invocationDir` we need to include
+            // the relative invocation dir information in the key.
+            relativeChildPathOrNull(invocationDir, rootDirectory)?.let { relativeSubDir ->
+                cacheKey.append('@')
+                cacheKey.append(relativeSubDir)
             }
         }
+        cacheKey.toString()
     }
 
     /**
