@@ -20,11 +20,11 @@ import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.util.Requires
 
 import static org.gradle.util.TestPrecondition.JDK12_OR_EARLIER
-import static org.gradle.util.TestPrecondition.LINUX
+import static org.gradle.util.TestPrecondition.HAS_DOCKER
 
 // Works on MacOS, but let's test on linux only where we know docker is available
 // Does not work on Java 13 as a dependency of the docker plugin (httpclient) is busted on 13
-@Requires([LINUX, JDK12_OR_EARLIER])
+@Requires([HAS_DOCKER, JDK12_OR_EARLIER])
 class ArtifactoryAndDockerSmokeTest extends AbstractSmokeTest {
 
     @ToBeFixedForInstantExecution

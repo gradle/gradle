@@ -454,7 +454,10 @@ class IvyFileModule extends AbstractModule implements IvyModule {
             attributes + ['org.gradle.status': status]
         )
 
-        adapter.publishTo(moduleDir, publishCount)
+        def moduleFile = moduleDir.file("$module-${revision}.module")
+        publish(moduleFile) {
+            adapter.publishTo(it, publishCount)
+        }
     }
 
 

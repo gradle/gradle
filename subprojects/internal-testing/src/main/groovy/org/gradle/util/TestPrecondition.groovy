@@ -73,6 +73,10 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     LINUX({
         OperatingSystem.current().linux
     }),
+    HAS_DOCKER({
+        // TODO: should use a better detection strategy
+        OperatingSystem.current().linux
+    }),
     NOT_LINUX({
         !LINUX.fulfilled
     }),
