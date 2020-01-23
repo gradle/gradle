@@ -94,6 +94,7 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
         !output.contains("Configuration on demand is incubating")
     }
 
+    @ToBeFixedForInstantExecution
     def "follows java project dependencies"() {
         settingsFile << "include 'api', 'impl', 'util'"
         buildFile << "allprojects { apply plugin: 'java-library' } "
@@ -403,6 +404,7 @@ class SomeTask extends DefaultTask {
         fixture.assertProjectsConfigured(":", ":a")
     }
 
+    @ToBeFixedForInstantExecution
     def "does not configure all projects when excluded task path is not qualified and is exact match for task in default project"() {
         settingsFile << "include 'a', 'a:child', 'b', 'b:child', 'c'"
         file('a').mkdirs()
@@ -439,6 +441,7 @@ allprojects {
         fixture.assertProjectsConfigured(":", ":b", ":a")
     }
 
+    @ToBeFixedForInstantExecution
     def "does not configure all projects when excluded task path is not qualified and an exact match for task has already been seen in some sub-project of default project"() {
         settingsFile << "include 'a', 'b', 'c', 'c:child'"
         file('c').mkdirs()
@@ -467,6 +470,7 @@ project(':b') {
         fixture.assertProjectsConfigured(":", ":c", ':c:child')
     }
 
+    @ToBeFixedForInstantExecution
     def "configures all subprojects of default project when excluded task path is not qualified and an exact match not found in default project"() {
         settingsFile << "include 'a', 'b', 'c', 'c:child'"
         file('c').mkdirs()
@@ -493,6 +497,7 @@ allprojects {
         fixture.assertProjectsConfigured(":", ":c", ':c:child')
     }
 
+    @ToBeFixedForInstantExecution
     def "configures all subprojects of default projects when excluded task path is not qualified and uses camel case matching"() {
         settingsFile << "include 'a', 'b', 'b:child', 'c'"
         file('b').mkdirs()
