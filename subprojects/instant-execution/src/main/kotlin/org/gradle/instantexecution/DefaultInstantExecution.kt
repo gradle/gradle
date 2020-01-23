@@ -501,7 +501,7 @@ class DefaultInstantExecution internal constructor(
             absoluteTasksOnly -> tasksPart
             else -> {
                 // Because unqualified task names are resolved relative to the enclosing
-                // subproject according to `invocationDir` we need to include
+                // sub-project according to `invocationDir` we need to include
                 // the relative invocation dir information in the key.
                 relativeChildPathOrNull(invocationDir, rootDirectory)?.let { subDirPart ->
                     "$subDirPart:$tasksPart"
@@ -512,7 +512,7 @@ class DefaultInstantExecution internal constructor(
 
     /**
      * Returns the path of [target] relative to [base] if
-     * [target] is a child of [base] and `null` otherwise.
+     * [target] is a child of [base] or `null` otherwise.
      */
     private
     fun relativeChildPathOrNull(target: File, base: File): String? =
