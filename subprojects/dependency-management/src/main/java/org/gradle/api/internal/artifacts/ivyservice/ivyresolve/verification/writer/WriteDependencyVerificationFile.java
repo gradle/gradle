@@ -109,7 +109,7 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
     private boolean hasMissingKeys = false;
     private boolean hasFailedVerification = false;
 
-    public WriteDependencyVerificationFile(File buildDirectory,
+    public WriteDependencyVerificationFile(File gradleDir,
                                            BuildOperationExecutor buildOperationExecutor,
                                            List<String> checksums,
                                            ChecksumService checksumService,
@@ -119,8 +119,8 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
         this.buildOperationExecutor = buildOperationExecutor;
         this.checksums = checksums;
         this.checksumService = checksumService;
-        this.verificationFile = DependencyVerificationOverride.dependencyVerificationsFile(buildDirectory);
-        this.keyringsFile = DependencyVerificationOverride.keyringsFile(buildDirectory);
+        this.verificationFile = DependencyVerificationOverride.dependencyVerificationsFile(gradleDir);
+        this.keyringsFile = DependencyVerificationOverride.keyringsFile(gradleDir);
         this.signatureVerificationServiceFactory = signatureVerificationServiceFactory;
         this.isDryRun = isDryRun;
         this.generatePgpInfo = checksums.contains(PGP);
@@ -165,7 +165,7 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
 
     @Override
     public void buildFinished(Gradle gradle) {
-
+        ensureOutputDirCreated();
         maybeReadExistingFile();
         SignatureVerificationService signatureVerificationService = signatureVerificationServiceFactory.create(
             keyringsFile,
@@ -182,6 +182,10 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
         } finally {
             signatureVerificationService.stop();
         }
+    }
+
+    public boolean ensureOutputDirCreated() {
+        return verificationFile.getParentFile().mkdirs();
     }
 
     private void serializeResult(SignatureVerificationService signatureVerificationService) throws IOException {
