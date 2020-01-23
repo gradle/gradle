@@ -160,7 +160,6 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         succeeds("a", "b", "c")
     }
 
-    @ToBeFixedForInstantExecution
     def excludesTasksWhenExcludePatternSpecified() {
         settingsFile << "include 'sub'"
         buildFile << """

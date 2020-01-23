@@ -404,7 +404,6 @@ class SomeTask extends DefaultTask {
         fixture.assertProjectsConfigured(":", ":a")
     }
 
-    @ToBeFixedForInstantExecution
     def "does not configure all projects when excluded task path is not qualified and is exact match for task in default project"() {
         settingsFile << "include 'a', 'a:child', 'b', 'b:child', 'c'"
         file('a').mkdirs()
