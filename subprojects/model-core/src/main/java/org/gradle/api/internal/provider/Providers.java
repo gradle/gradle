@@ -104,73 +104,8 @@ public class Providers {
         }
 
         @Override
-        public <S> ProviderInternal<S> map(final Transformer<? extends S, ? super T> transformer) {
-            return new MappedFixedValueProvider<>(transformer, this);
-        }
-
-        @Override
         public String toString() {
             return String.format("fixed(%s, %s)", getType(), value);
-        }
-    }
-
-    private static class MappedFixedValueProvider<S, T> extends AbstractMinimalProvider<S> {
-        private final Transformer<? extends S, ? super T> transformer;
-        private final Provider<T> provider;
-        private S value;
-
-        MappedFixedValueProvider(Transformer<? extends S, ? super T> transformer, Provider<T> provider) {
-            this.transformer = transformer;
-            this.provider = provider;
-        }
-
-        @Nullable
-        @Override
-        public Class<S> getType() {
-            if (value != null) {
-                return Cast.uncheckedCast(value.getClass());
-            }
-            return null;
-        }
-
-        @Override
-        public boolean isPresent() {
-            return true;
-        }
-
-        @Override
-        protected Value<? extends S> calculateOwnValue() {
-            if (value == null) {
-                value = transformer.transform(provider.get());
-                if (value == null) {
-                    throw new IllegalStateException(NULL_TRANSFORMER_RESULT);
-                }
-            }
-            return Value.of(value);
-        }
-
-        @Override
-        public S getOrElse(S defaultValue) {
-            return get();
-        }
-
-        @Nullable
-        @Override
-        public S getOrNull() {
-            return get();
-        }
-
-        @Override
-        public <U> ProviderInternal<U> map(Transformer<? extends U, ? super S> transformer) {
-            return new MappedFixedValueProvider<>(transformer, this);
-        }
-
-        @Override
-        public String toString() {
-            if (value == null) {
-                return "transform(not calculated)";
-            }
-            return String.format("transform(%s, %s)", getType(), value);
         }
     }
 

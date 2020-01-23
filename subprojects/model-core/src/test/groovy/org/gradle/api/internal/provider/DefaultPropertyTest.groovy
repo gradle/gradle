@@ -53,7 +53,17 @@ class DefaultPropertyTest extends PropertySpec<String> {
 
     @Override
     String someOtherValue() {
-        return "value2"
+        return "other1"
+    }
+
+    @Override
+    String someOtherValue2() {
+        return "other2"
+    }
+
+    @Override
+    String someOtherValue3() {
+        return "other3"
     }
 
     @Override
@@ -230,9 +240,10 @@ class DefaultPropertyTest extends PropertySpec<String> {
 
         when:
         property.set("123")
+        p.present
 
         then:
-        p.present
+        1 * transformer.transform("123") >> "present"
         0 * _
 
         when:

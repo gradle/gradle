@@ -33,7 +33,17 @@ class FilePropertyTest extends FileSystemPropertySpec<RegularFile> {
 
     @Override
     RegularFile someOtherValue() {
-        return baseDir.file("dir2").get()
+        return baseDir.file("other1").get()
+    }
+
+    @Override
+    RegularFile someOtherValue2() {
+        return baseDir.file("other1").get()
+    }
+
+    @Override
+    RegularFile someOtherValue3() {
+        return baseDir.file("other1").get()
     }
 
     @Override

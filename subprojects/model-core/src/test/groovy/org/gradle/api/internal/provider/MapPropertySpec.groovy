@@ -63,6 +63,16 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
     }
 
     @Override
+    Map<String, String> someOtherValue2() {
+        return ['k2': 'v2']
+    }
+
+    @Override
+    Map<String, String> someOtherValue3() {
+        return ['k3': 'v3']
+    }
+
+    @Override
     protected void setToNull(Object property) {
         property.set((Map) null)
     }
