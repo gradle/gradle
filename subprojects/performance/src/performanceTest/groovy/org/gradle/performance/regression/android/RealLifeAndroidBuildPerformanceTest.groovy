@@ -16,6 +16,7 @@
 
 package org.gradle.performance.regression.android
 
+import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
 import org.gradle.internal.scan.config.fixtures.GradleEnterprisePluginSettingsFixture
 import org.gradle.performance.AbstractCrossVersionGradleProfilerPerformanceTest
 import org.gradle.performance.categories.SlowPerformanceRegressionTest
@@ -32,7 +33,7 @@ import static org.gradle.performance.regression.android.IncrementalAndroidTestPr
 class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProfilerPerformanceTest {
 
     def setup() {
-        runner.args = ['-Dcom.android.build.gradle.overrideVersionCheck=true']
+        runner.args = [AndroidGradlePluginVersions.OVERRIDE_VERSION_CHECK]
         runner.targetVersions = ["6.2-20200108160029+0000"]
         // AGP 3.6 requires 5.6.1+
         // The enterprise plugin requires Gradle 6.0

@@ -1,8 +1,5 @@
 import build.futureKotlin
-import org.gradle.gradlebuild.BuildEnvironment
-import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
-import org.gradle.testing.performance.generator.tasks.RemoteProject
 
 plugins {
     `kotlin-library`
@@ -71,44 +68,6 @@ gradlebuildJava {
 
 
 tasks {
-
-    /**
-     * Santa Tracker git URI.
-     *
-     * Note that you can change it to `file:///path/to/your/santa-tracker-clone/.git`
-     * if you need to iterate quickly on changes to Santa Tracker.
-     */
-    val gitUri = "https://github.com/gradle/santa-tracker-android.git"
-
-    val santaTrackerJava by registering(RemoteProject::class) {
-        remoteUri.set(gitUri)
-        // From agp-3.6.0-java branch
-        ref.set("174705275e434adc843e8e9b28106a5e3ffd6733")
-    }
-
-    val santaTrackerKotlin by registering(RemoteProject::class) {
-        remoteUri.set(gitUri)
-        // From agp-3.6.0 branch
-        ref.set("3bbbd895de38efafd0dd1789454d4e4cb72d46d5")
-    }
-
-    if (BuildEnvironment.isCiServer) {
-        withType<RemoteProject>().configureEach {
-            outputs.upToDateWhen { false }
-        }
-    }
-
-    withType<IntegrationTest>().configureEach {
-        dependsOn(santaTrackerJava)
-        dependsOn(santaTrackerKotlin)
-        inputs.property("androidHomeIsSet", System.getenv("ANDROID_HOME") != null)
-    }
-
-    register<Delete>("cleanRemoteProjects") {
-        delete(santaTrackerJava.get().outputDirectory)
-        delete(santaTrackerKotlin.get().outputDirectory)
-    }
-
     instantIntegTest {
         enabled = false
     }
