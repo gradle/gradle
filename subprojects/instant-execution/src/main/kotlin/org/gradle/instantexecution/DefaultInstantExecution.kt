@@ -276,7 +276,7 @@ class DefaultInstantExecution internal constructor(
                 }
             }
             else -> {
-                val valueSource = instantiateValueSourceOf(this)
+                val valueSource = instantiateValueSource()
                 if (value.get() != valueSource.obtain()) {
                     "a build logic input has changed"
                 } else {
@@ -287,14 +287,12 @@ class DefaultInstantExecution internal constructor(
     }
 
     private
-    fun instantiateValueSourceOf(obtainedValue: ObtainedValue): ValueSource<Any, ValueSourceParameters> =
-        obtainedValue.run {
-            (valueSourceProviderFactory as DefaultValueSourceProviderFactory).instantiateValueSource(
-                valueSourceType,
-                valueSourceParametersType,
-                valueSourceParameters
-            )
-        }
+    fun ObtainedValue.instantiateValueSource(): ValueSource<Any, ValueSourceParameters> =
+        (valueSourceProviderFactory as DefaultValueSourceProviderFactory).instantiateValueSource(
+            valueSourceType,
+            valueSourceParametersType,
+            valueSourceParameters
+        )
 
     private
     fun attachBuildLogicInputsCollector() {
