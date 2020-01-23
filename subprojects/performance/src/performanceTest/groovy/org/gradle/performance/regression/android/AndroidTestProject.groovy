@@ -19,7 +19,6 @@ package org.gradle.performance.regression.android
 import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
 import org.gradle.performance.fixture.GradleBuildExperimentSpec
 import org.gradle.performance.fixture.GradleProfilerCrossVersionPerformanceTestRunner
-import org.gradle.profiler.BuildMutator
 import org.gradle.profiler.InvocationSettings
 import org.gradle.profiler.mutations.ApplyAbiChangeToJavaSourceFileMutator
 import org.gradle.profiler.mutations.ApplyNonAbiChangeToJavaSourceFileMutator
@@ -95,17 +94,7 @@ class IncrementalAndroidTestProject extends AndroidTestProject {
 
 
     void configureForLatestAgpVersionOfMinor(GradleProfilerCrossVersionPerformanceTestRunner runner, String lowerBound) {
-        runner.addBuildMutator { invocationSettings ->
-            new BuildMutator() {
-                @Override
-                void beforeScenario() {
-                    AGP_VERSIONS.replaceAgpVersion(
-                        new File(invocationSettings.projectDir, "build.gradle"),
-                        AGP_VERSIONS.getLatestOfMinor(lowerBound)
-                    )
-                }
-            }
-        }
+        runner.gradleOpts += ["-DagpVersion=${AGP_VERSIONS.getLatestOfMinor(lowerBound)}"]
     }
 
     void configureForAbiChange(GradleProfilerCrossVersionPerformanceTestRunner runner) {
