@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
-import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -1549,7 +1548,6 @@ task checkDeps(dependsOn: configurations.compile) {
         noExceptionThrown()
     }
 
-    @Ignore("Fix reverted since it caused instability, to be reworked")
     def "evicted hard dependency shouldn't add constraint on range"() {
         given:
         4.times { mavenRepo.module("org", "e", "${it+1}").publish() }
@@ -1584,7 +1582,6 @@ task checkDeps(dependsOn: configurations.compile) {
         noExceptionThrown()
     }
 
-    @Ignore("Fix reverted since it caused instability, to be reworked")
     def "evicted hard dependency shouldn't add constraint on version"() {
         given:
         mavenRepo.module("org", "a", "1").publish()
@@ -1619,7 +1616,6 @@ task checkDeps(dependsOn: configurations.compile) {
         noExceptionThrown()
     }
 
-    @Ignore("Fix reverted since it caused instability, to be reworked")
     def "doesn't include evicted version from branch which has been deselected"() {
         given:
         mavenRepo.module('org', 'a', '1').dependsOn('org', 'b', '2').publish()
