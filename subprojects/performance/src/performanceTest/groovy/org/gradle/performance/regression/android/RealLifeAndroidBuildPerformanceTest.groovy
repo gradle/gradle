@@ -32,6 +32,8 @@ import static org.gradle.performance.regression.android.IncrementalAndroidTestPr
 
 class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProfilerPerformanceTest {
 
+    private static final String SANTA_AGP_VERSION_MINOR = "3.6"
+
     def setup() {
         runner.args = [AndroidGradlePluginVersions.OVERRIDE_VERSION_CHECK]
         runner.targetVersions = ["6.2-20200108160029+0000"]
@@ -49,6 +51,11 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
         runner.warmUpRuns = warmUpRuns
         runner.runs = runs
         applyEnterprisePlugin()
+
+        and:
+        if (testProject == SANTA_TRACKER_KOTLIN) {
+            testProject.configureForLatestAgpVersionOfMinor(runner, SANTA_AGP_VERSION_MINOR)
+        }
 
         when:
         def result = runner.run()
@@ -81,6 +88,11 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
             new ClearArtifactTransformCacheMutator(invocationSettings.getGradleUserHome(), AbstractCleanupMutator.CleanupSchedule.BUILD)
         }
         applyEnterprisePlugin()
+
+        and:
+        if (testProject == SANTA_TRACKER_KOTLIN) {
+            testProject.configureForLatestAgpVersionOfMinor(runner, SANTA_AGP_VERSION_LOWER_BOUND)
+        }
 
         when:
         def result = runner.run()

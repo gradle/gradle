@@ -16,13 +16,16 @@
 
 package org.gradle.performance.regression.android
 
+import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
 import org.gradle.performance.fixture.GradleBuildExperimentSpec
 import org.gradle.performance.fixture.GradleProfilerCrossVersionPerformanceTestRunner
+import org.gradle.profiler.BuildMutator
 import org.gradle.profiler.InvocationSettings
 import org.gradle.profiler.mutations.ApplyAbiChangeToJavaSourceFileMutator
 import org.gradle.profiler.mutations.ApplyNonAbiChangeToJavaSourceFileMutator
 
 class AndroidTestProject {
+
     static final LARGE_ANDROID_BUILD = new AndroidTestProject(
         templateName: 'largeAndroidBuild',
         memory: '5g',
@@ -55,6 +58,9 @@ class AndroidTestProject {
 }
 
 class IncrementalAndroidTestProject extends AndroidTestProject {
+
+    private static final AndroidGradlePluginVersions AGP_VERSIONS = new AndroidGradlePluginVersions()
+
     static final SANTA_TRACKER_KOTLIN = new IncrementalAndroidTestProject(
         templateName: 'santaTrackerAndroidBuild',
         memory: '1g',
@@ -71,6 +77,20 @@ class IncrementalAndroidTestProject extends AndroidTestProject {
 
     String pathToChange
     String taskToRunForChange
+
+    void configureForLatestAgpVersionOfMinor(GradleProfilerCrossVersionPerformanceTestRunner runner, String lowerBound) {
+        runner.addBuildMutator { invocationSettings ->
+            new BuildMutator() {
+                @Override
+                void beforeScenario() {
+                    AGP_VERSIONS.replaceAgpVersion(
+                        new File(invocationSettings.projectDir, "build.gradle"),
+                        AGP_VERSIONS.getLatestOfMinor(lowerBound)
+                    )
+                }
+            }
+        }
+    }
 
     void configureForAbiChange(GradleProfilerCrossVersionPerformanceTestRunner runner) {
         configure(runner)
