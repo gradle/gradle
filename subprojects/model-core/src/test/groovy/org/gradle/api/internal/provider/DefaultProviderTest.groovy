@@ -39,7 +39,17 @@ class DefaultProviderTest extends ProviderSpec<String> {
 
     @Override
     String someOtherValue() {
-        return "s2"
+        return "other1"
+    }
+
+    @Override
+    String someOtherValue2() {
+        return "other2"
+    }
+
+    @Override
+    String someOtherValue3() {
+        return "other3"
     }
 
     @Override

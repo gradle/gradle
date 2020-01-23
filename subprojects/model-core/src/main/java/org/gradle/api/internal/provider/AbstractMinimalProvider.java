@@ -224,7 +224,7 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
         private ProviderInternal<? extends S> map(T value) {
             Provider<? extends S> result = transformer.transform(value);
             if (result == null) {
-                throw new IllegalStateException(Providers.NULL_TRANSFORMER_RESULT);
+                return Providers.notDefined();
             }
             return Providers.internal(result);
         }
