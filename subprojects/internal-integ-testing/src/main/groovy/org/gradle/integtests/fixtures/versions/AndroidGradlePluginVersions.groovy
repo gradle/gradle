@@ -16,9 +16,7 @@
 
 package org.gradle.integtests.fixtures.versions
 
-import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.internal.Factory
-import org.gradle.test.fixtures.file.TestFile
 
 
 /**
@@ -53,26 +51,8 @@ class AndroidGradlePluginVersions {
         }
     """
 
-    static void usingAgpVersion(GradleExecuter executer, TestFile buildFile, String agpVersion) {
-        println "> Using AGP version ${agpVersion}"
-        buildFile.text = replaceAgpVersion(buildFile.text, agpVersion)
-        executer.beforeExecute {
-            withArgument(OVERRIDE_VERSION_CHECK)
-        }
-        if (isAgpNightly(agpVersion)) {
-            usingAgpNightlyRepository(executer)
-        }
-    }
-
     static boolean isAgpNightly(String agpVersion) {
         return agpVersion.contains("-") && agpVersion.substring(agpVersion.indexOf("-") + 1).matches("^[0-9].*")
-    }
-
-    static void usingAgpNightlyRepository(GradleExecuter executer) {
-        def init = createAgpNightlyRepositoryInitScript()
-        executer.beforeExecute {
-            usingInitScript(init)
-        }
     }
 
     static File createAgpNightlyRepositoryInitScript() {
@@ -80,16 +60,6 @@ class AndroidGradlePluginVersions {
         mirrors.deleteOnExit()
         mirrors << AGP_NIGHTLY_REPOSITORY_INIT_SCRIPT
         return mirrors
-    }
-
-    static void replaceAgpVersion(File script, String agpVersion) {
-        script.text = replaceAgpVersion(script.text, agpVersion)
-    }
-
-    static String replaceAgpVersion(String scriptText, String agpVersion) {
-        def regex = "(['\"]com.android.tools.build:gradle:).+(['\"])"
-        scriptText.readLines().any { it.matches(".*${regex}.*") }
-        return scriptText.replaceAll(regex, "${'$'}1$agpVersion${'$'}2")
     }
 
     private final Factory<Properties> propertiesFactory
