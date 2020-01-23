@@ -63,6 +63,11 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
         property.set((Iterable) null)
     }
 
+    @Override
+    protected void nullConvention(Object property) {
+        property.convention((Iterable) null)
+    }
+
     def property = property()
 
     protected void assertValueIs(Collection<String> expected) {

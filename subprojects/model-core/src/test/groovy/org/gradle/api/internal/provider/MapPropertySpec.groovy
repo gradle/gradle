@@ -68,6 +68,11 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
     }
 
     @Override
+    protected void nullConvention(Object property) {
+        property.convention((Map) null)
+    }
+
+    @Override
     ManagedFactory managedFactory() {
         return new ManagedFactories.MapPropertyManagedFactory()
     }

@@ -250,8 +250,12 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     }
 
     @Override
-    public HasMultipleValues<T> convention(Iterable<? extends T> elements) {
-        convention(new ElementsFromCollection<T>(elements));
+    public HasMultipleValues<T> convention(@Nullable Iterable<? extends T> elements) {
+        if (elements == null) {
+            convention((Collector<T>) NO_VALUE_COLLECTOR);
+        } else {
+            convention(new ElementsFromCollection<T>(elements));
+        }
         return this;
     }
 
