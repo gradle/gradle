@@ -36,7 +36,9 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
     def "faster incremental build on #testProject (build comparison)"() {
         given:
         runner.testGroup = "incremental android changes"
+        def agpVersionMinor = "4.0"
 
+        and:
         // Kotlin is not supported for instant execution
         def optimizations = testProject == SANTA_TRACKER_KOTLIN
             ? [
@@ -53,12 +55,14 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
         optimizations.each { name, Set<Optimization> enabledOptimizations ->
             runner.buildSpec {
                 testProject.configureForNonAbiChange(it)
+                testProject.configureForLatestAgpVersionOfMinor(it, agpVersionMinor)
                 passChangedFile(it, testProject)
                 invocation.args(*enabledOptimizations*.argument)
                 displayName("non abi change (${name})")
             }
             runner.buildSpec {
                 testProject.configureForAbiChange(it)
+                testProject.configureForLatestAgpVersionOfMinor(it, agpVersionMinor)
                 passChangedFile(it, testProject)
                 invocation.args(*enabledOptimizations*.argument)
                 displayName("abi change (${name})")
