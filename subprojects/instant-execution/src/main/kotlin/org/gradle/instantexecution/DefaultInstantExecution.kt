@@ -493,7 +493,9 @@ class DefaultInstantExecution internal constructor(
 
     private
     fun instantExecutionCacheKey() = startParameter.run {
-        val tasksPart = requestedTaskNames.joinToString("/")
+        val requested = requestedTaskNames.joinToString("/")
+        val excluded = excludedTaskNames.joinToString("/")
+        val tasksPart = "$requested-$excluded"
         val absoluteTasksOnly = requestedTaskNames.all { it.startsWith(':') }
         when {
             absoluteTasksOnly -> tasksPart
