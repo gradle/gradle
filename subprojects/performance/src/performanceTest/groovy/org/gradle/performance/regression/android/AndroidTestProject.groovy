@@ -81,20 +81,20 @@ class IncrementalAndroidTestProject extends AndroidTestProject {
     @Override
     void configure(GradleProfilerCrossVersionPerformanceTestRunner runner) {
         super.configure(runner)
-        runner.gradleOpts += [ENABLE_AGP_IDE_MODE_ARG]
+        runner.gradleOpts.add(ENABLE_AGP_IDE_MODE_ARG)
     }
 
     @Override
     void configure(GradleBuildExperimentSpec.GradleBuilder builder) {
         super.configure(builder)
         builder.invocation {
-            gradleOptions += [ENABLE_AGP_IDE_MODE_ARG]
+            gradleOptions.add(ENABLE_AGP_IDE_MODE_ARG)
         }
     }
 
 
     void configureForLatestAgpVersionOfMinor(GradleProfilerCrossVersionPerformanceTestRunner runner, String lowerBound) {
-        runner.gradleOpts += ["-DagpVersion=${AGP_VERSIONS.getLatestOfMinor(lowerBound)}"]
+        runner.gradleOpts.add("-DagpVersion=${AGP_VERSIONS.getLatestOfMinor(lowerBound)}")
     }
 
     void configureForAbiChange(GradleProfilerCrossVersionPerformanceTestRunner runner) {
