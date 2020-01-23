@@ -62,6 +62,10 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         property.set(null)
     }
 
+    protected void nullConvention(def property) {
+        property.convention(null)
+    }
+
     def "cannot get value when it has none"() {
         given:
         def property = propertyWithNoValue()
@@ -206,6 +210,18 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         property.set(someOtherValue())
         property.present
         property.get() == someOtherValue()
+    }
+
+    def "can use null convention value"() {
+        def property = propertyWithDefaultValue()
+        assert property.getOrNull() != someValue()
+
+        expect:
+        nullConvention(property)
+
+        !property.present
+        property.getOrNull() == null
+        property.getOrElse(someValue()) == someValue()
     }
 
     def "convention provider is used before value has been set"() {

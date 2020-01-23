@@ -263,8 +263,12 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
     }
 
     @Override
-    public MapProperty<K, V> convention(Map<? extends K, ? extends V> value) {
-        convention(new MapCollectors.EntriesFromMap<>(value));
+    public MapProperty<K, V> convention(@Nullable Map<? extends K, ? extends V> value) {
+        if (value == null) {
+            convention((MapCollector<K, V>) NO_VALUE);
+        } else {
+            convention(new MapCollectors.EntriesFromMap<>(value));
+        }
         return this;
     }
 
