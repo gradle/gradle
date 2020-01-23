@@ -34,12 +34,14 @@ For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility 
 <a name="cache"></a>
 ## Gradle's Dependency Cache can be relocated
 
-The Gradle Dependency cache under `$GRADLE_HOME/caches/modules-2` can now be relocated to another directory or host for dependencies cached by Gradle 6.1 and later. When moved to a new location or seeded into a host image, builds using the dependency cache will not need to access the network to download artifacts or metadata if the dependencies have already been downloaded. 
+It's increasingly common to run builds in a CI/CD pipeline with ephemeral build (single-use environments) to improve reliability and reduce potential interactions between builds.
+However, without optimization, it results in significantly longer build times as no state is reused between builds.
+For example, all dependencies would be re-downloaded for each build.
+ 
+Starting with Gradle 6.1, [the dependency cache](userguide/dependency_resolution.html#sec:dependency_cache) can be copied, to another directory or host.
+When the dependency cache copy is made available as part of a single-use environment, builds will be able to leverage it and will not need to access the network to download artifacts or metadata if they are already cached. 
 
-Note that the cache should be primed and consumed by same Gradle version for maximum effect.
 See [the documentation](userguide/dependency_resolution.html#sub:cache_copy) for more details. 
-
-This is just one step along the way to help organizations using ephemeral CI agents to reduce the overhead of downloading dependencies during the build.
 
 <a name="compilation-order"></a>
 ## Defining compilation order between Groovy, Scala and Java
