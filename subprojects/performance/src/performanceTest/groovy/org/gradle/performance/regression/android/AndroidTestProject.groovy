@@ -60,6 +60,7 @@ class AndroidTestProject {
 class IncrementalAndroidTestProject extends AndroidTestProject {
 
     private static final AndroidGradlePluginVersions AGP_VERSIONS = new AndroidGradlePluginVersions()
+    private static final String ENABLE_AGP_IDE_MODE_ARG = "-Pandroid.injected.invoked.from.ide=true"
 
     static final SANTA_TRACKER_KOTLIN = new IncrementalAndroidTestProject(
         templateName: 'santaTrackerAndroidBuild',
@@ -77,6 +78,21 @@ class IncrementalAndroidTestProject extends AndroidTestProject {
 
     String pathToChange
     String taskToRunForChange
+
+    @Override
+    void configure(GradleProfilerCrossVersionPerformanceTestRunner runner) {
+        super.configure(runner)
+        runner.gradleOpts += [ENABLE_AGP_IDE_MODE_ARG]
+    }
+
+    @Override
+    void configure(GradleBuildExperimentSpec.GradleBuilder builder) {
+        super.configure(builder)
+        builder.invocation {
+            gradleOptions += [ENABLE_AGP_IDE_MODE_ARG]
+        }
+    }
+
 
     void configureForLatestAgpVersionOfMinor(GradleProfilerCrossVersionPerformanceTestRunner runner, String lowerBound) {
         runner.addBuildMutator { invocationSettings ->
