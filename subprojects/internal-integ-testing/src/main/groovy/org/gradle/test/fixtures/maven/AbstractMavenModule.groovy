@@ -516,7 +516,10 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
             },
             attributes + ['org.gradle.status': version.endsWith('-SNAPSHOT') ? 'integration' : 'release']
         )
-        adapter.publishTo(moduleDir, publishCount)
+        def moduleFile = moduleDir.file("$artifactId-${publishArtifactVersion}.module")
+        publish(moduleFile) {
+            adapter.publishTo(it, publishCount)
+        }
     }
 
     @Override

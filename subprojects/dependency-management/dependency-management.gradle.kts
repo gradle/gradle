@@ -83,7 +83,6 @@ dependencies {
         because("tests use HttpServlet directly")
     }
     integTestImplementation(testFixtures(project(":security")))
-
     integTestRuntimeOnly(project(":ivy"))
     integTestRuntimeOnly(project(":maven"))
     integTestRuntimeOnly(project(":resourcesS3"))
@@ -113,6 +112,12 @@ dependencies {
         because("Groovy compiler reflects on private field on TextUtil")
     }
     testFixturesImplementation(library("bouncycastle_pgp"))
+    testFixturesApi(testLibrary("testcontainers_spock")) {
+        because("API because of Groovy compiler bug leaking internals")
+    }
+    testFixturesImplementation(project(":jvmServices")) {
+        because("Groovy compiler bug leaks internals")
+    }
     crossVersionTestRuntimeOnly(project(":maven"))
 }
 

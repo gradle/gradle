@@ -25,6 +25,7 @@ import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactCachesProvider;
 import org.gradle.api.internal.initialization.DefaultClassLoaderScope;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -725,6 +726,17 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     @Override
+    public GradleExecuter withReadOnlyCacheDir(File cacheDir) {
+        return withReadOnlyCacheDir(cacheDir.getAbsolutePath());
+    }
+
+    @Override
+    public GradleExecuter withReadOnlyCacheDir(String cacheDir) {
+        environmentVars.put(ArtifactCachesProvider.READONLY_CACHE_ENV_VAR, cacheDir);
+        return this;
+    }
+
+    @Override
     public GradleExecuter requireIsolatedDaemons() {
         return withDaemonBaseDir(testDirectoryProvider.getTestDirectory().file("daemon"));
     }
@@ -1382,6 +1394,26 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         final List<String> launcherJvmArgs = new ArrayList<>();
         // Implicit JVM args that should be used to fork a JVM
         final List<String> implicitLauncherJvmArgs = new ArrayList<>();
+
+        protected Map<String, String> getEnvironmentVars() {
+            return environmentVars;
+        }
+
+        protected List<String> getArgs() {
+            return args;
+        }
+
+        protected List<String> getBuildJvmArgs() {
+            return buildJvmArgs;
+        }
+
+        protected List<String> getLauncherJvmArgs() {
+            return launcherJvmArgs;
+        }
+
+        protected List<String> getImplicitLauncherJvmArgs() {
+            return implicitLauncherJvmArgs;
+        }
     }
 
     @Override

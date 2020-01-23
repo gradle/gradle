@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve.rocache
 
 import groovy.transform.CompileStatic
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactCachesProvider
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.cache.CachingIntegrationFixture
@@ -158,9 +157,7 @@ abstract class AbstractReadOnlyCacheDependencyResolutionTest extends AbstractHtt
     }
 
     void withReadOnlyCache() {
-        executer.withEnvironmentVars([
-            (ArtifactCachesProvider.READONLY_CACHE_ENV_VAR): roCacheDir.absolutePath
-        ])
+        executer.withReadOnlyCacheDir(roCacheDir)
         makeCacheReadOnly()
     }
 
