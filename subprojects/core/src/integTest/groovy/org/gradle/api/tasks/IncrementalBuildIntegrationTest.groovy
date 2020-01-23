@@ -1392,7 +1392,6 @@ task generate(type: TransformerTask) {
         outputFile.text == 'second'
     }
 
-    @ToBeImplemented
     @Issue("https://github.com/gradle/gradle/issues/11805")
     def "Groovy property annotated as @Internal with differently annotated getter emits warning about conflicting annotations"() {
         def inputFile = file("input.txt")
@@ -1425,21 +1424,24 @@ task generate(type: TransformerTask) {
         """
 
         when:
+        executer.expectDeprecationWarning()
         run "custom"
         then:
         executedAndNotSkipped ":custom"
+        outputContains("Property 'classpath' annotated with @Internal should not be also annotated with @InputFiles, @Classpath. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.")
 
         when:
+        executer.expectDeprecationWarning()
         run "custom"
         then:
         skipped ":custom"
 
         when:
+        executer.expectDeprecationWarning()
         inputFile.text = "changed"
         run "custom"
 
         then:
-        // FIXME This should execute instead of being skipped, or emit a warning
         skipped ":custom"
     }
 }

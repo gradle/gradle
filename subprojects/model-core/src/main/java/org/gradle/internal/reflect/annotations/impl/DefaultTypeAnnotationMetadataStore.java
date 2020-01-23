@@ -381,20 +381,6 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                 simpleAnnotationNames(annotations.keySet().stream())));
         }
 
-        if (annotations.size() > 1) {
-            annotations.keySet().stream()
-                .filter(ignoredMethodAnnotations::contains)
-                .findFirst()
-                .ifPresent(ignoredMethodAnnotation -> metadataBuilder.recordProblem(
-                    String.format("getter '%s()' annotated with @%s should not be also annotated with %s",
-                        method.getName(),
-                        ignoredMethodAnnotation.getSimpleName(),
-                        simpleAnnotationNames(annotations.keySet().stream()
-                            .filter(annotationType -> !annotationType.equals(ignoredMethodAnnotation)))
-                    )
-                ));
-        }
-
         for (Annotation annotation : annotations.values()) {
             metadataBuilder.declareAnnotation(annotation);
         }
@@ -511,7 +497,16 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
             // If method should be ignored, then ignore all other annotations
             List<Annotation> declaredTypes = declaredAnnotations.get(TYPE);
             for (Annotation declaredType : declaredTypes) {
-                if (ignoredMethodAnnotations.contains(declaredType.annotationType())) {
+                Class<? extends Annotation> ignoredMethodAnnotation = declaredType.annotationType();
+                if (ignoredMethodAnnotations.contains(ignoredMethodAnnotation)) {
+                    if (declaredAnnotations.values().size() > 1) {
+                        recordProblem(String.format("annotated with @%s should not be also annotated with %s",
+                            ignoredMethodAnnotation.getSimpleName(),
+                            simpleAnnotationNames(declaredAnnotations.values().stream()
+                                .<Class<? extends Annotation>>map(Annotation::annotationType)
+                                .filter(annotationType -> !annotationType.equals(ignoredMethodAnnotation)))
+                        ));
+                    }
                     return ImmutableMap.of(TYPE, declaredType);
                 }
             }
