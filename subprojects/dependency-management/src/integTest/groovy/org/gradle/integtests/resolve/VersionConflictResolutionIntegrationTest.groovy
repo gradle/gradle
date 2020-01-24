@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
-import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -1549,7 +1548,6 @@ task checkDeps(dependsOn: configurations.compile) {
         noExceptionThrown()
     }
 
-    @Ignore("Fix reverted since it caused instability, to be reworked")
     def "evicted hard dependency shouldn't add constraint on range"() {
         given:
         4.times { mavenRepo.module("org", "e", "${it+1}").publish() }
@@ -1584,7 +1582,6 @@ task checkDeps(dependsOn: configurations.compile) {
         noExceptionThrown()
     }
 
-    @Ignore("Fix reverted since it caused instability, to be reworked")
     def "evicted hard dependency shouldn't add constraint on version"() {
         given:
         mavenRepo.module("org", "a", "1").publish()
@@ -1619,7 +1616,6 @@ task checkDeps(dependsOn: configurations.compile) {
         noExceptionThrown()
     }
 
-    @Ignore("Fix reverted since it caused instability, to be reworked")
     def "doesn't include evicted version from branch which has been deselected"() {
         given:
         mavenRepo.module('org', 'a', '1').dependsOn('org', 'b', '2').publish()
@@ -1951,6 +1947,40 @@ project(':sub') {
             dependencies {
                 implementation 'org:direct:1.0'  // dependeincy on 'lib'
                 implementation 'org:a:1.0'       // updates direct (to remove dependency on 'lib' again)
+            }
+        """
+
+        expect:
+        succeeds 'dependencies', '--configuration', 'runtimeClasspath'
+    }
+
+    @ToBeFixedForInstantExecution
+    def 'direct recursion between dependencies does not causes a ConcurrentModificationException during selector removal with strict version endorsement'() {
+        given:
+        def direct11 = mavenRepo.module('org', 'direct', '1.1')
+        def betweenLibAndDirect = mavenRepo.module('org', 'betweenLibAndDirect', '1.0').dependsOn(direct11)
+        def lib2 = mavenRepo.module('org', 'lib', '2.0').publish()
+        def lib1 = mavenRepo.module('org', 'lib', '1.0').dependsOn(betweenLibAndDirect)
+        // recursive dependencies between different versions of 'lib'
+            .dependencyConstraint(lib2).withModuleMetadata().publish()
+        def lib05 = mavenRepo.module('org', 'lib', '0.5').publish()
+
+        mavenRepo.module('org', 'direct', '1.0')
+        // endorsing dependency that will cause a reselection of the parent again causing a reselection of other children
+        // ("looping back" if a another child is the same as the one that was endorsed)
+            .dependsOn([endorseStrictVersions: true], lib1).dependsOn(lib05).dependsOn(lib1).withModuleMetadata().publish()
+
+        buildFile << """
+            apply plugin: 'java-library'
+
+            repositories {
+                maven {
+                    url '${mavenRepo.uri}'
+                }
+            }
+
+            dependencies {
+                implementation 'org:direct:1.0'  // dependency on 'lib' which will istself update 'direct'
             }
         """
 
