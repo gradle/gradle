@@ -96,6 +96,10 @@ class IncrementalAndroidTestProject extends AndroidTestProject {
         runner.args.add("-DagpVersion=${AGP_VERSIONS.getLatestOfMinor(lowerBound)}")
     }
 
+    void configureForLatestAgpVersionOfMinor(GradleBuildExperimentSpec.GradleBuilder builder, String lowerBound) {
+        builder.invocation.args("-DagpVersion=${AGP_VERSIONS.getLatestOfMinor(lowerBound)}")
+    }
+
     void configureForAbiChange(GradleProfilerCrossVersionPerformanceTestRunner runner) {
         configure(runner)
         runner.tasksToRun = [taskToRunForChange]
