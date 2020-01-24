@@ -141,7 +141,7 @@ class DefaultPropertyTest extends PropertySpec<String> {
     }
 
     def "can set value to a provider whose type is compatible"() {
-        def supplier = Mock(ScalarSupplier)
+        def supplier = Mock(ProviderInternal)
         def provider = Mock(ProviderInternal)
 
         given:

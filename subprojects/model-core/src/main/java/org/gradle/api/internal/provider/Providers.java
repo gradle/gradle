@@ -29,15 +29,7 @@ public class Providers {
     public static final Provider<Boolean> TRUE = of(true);
     public static final Provider<Boolean> FALSE = of(false);
 
-    public static <T> ScalarSupplier<T> noValue() {
-        return Cast.uncheckedCast(NULL_PROVIDER);
-    }
-
-    public static <T> ScalarSupplier<T> fixedValue(T value) {
-        return new FixedValueProvider<>(value);
-    }
-
-    public static <T> ScalarSupplier<T> fixedValue(DisplayName owner, T value, Class<T> targetType, ValueSanitizer<T> sanitizer) {
+    public static <T> ProviderInternal<T> fixedValue(DisplayName owner, T value, Class<T> targetType, ValueSanitizer<T> sanitizer) {
         value = sanitizer.sanitize(value);
         if (!targetType.isInstance(value)) {
             throw new IllegalArgumentException(String.format("Cannot set the value of %s of type %s using an instance of type %s.", owner.getDisplayName(), targetType.getName(), value.getClass().getName()));
@@ -45,15 +37,15 @@ public class Providers {
         return new FixedValueProvider<>(value);
     }
 
-    public static <T> ScalarSupplier<T> nullableValue(ValueSupplier.Value<? extends T> value) {
+    public static <T> ProviderInternal<T> nullableValue(ValueSupplier.Value<? extends T> value) {
         if (value.isMissing()) {
             if (value.getPathToOrigin().isEmpty()) {
-                return noValue();
+                return notDefined();
             } else {
                 return new NoValueProvider<>(value);
             }
         } else {
-            return fixedValue(value.get());
+            return of(value.get());
         }
     }
 
@@ -77,7 +69,7 @@ public class Providers {
         }
     }
 
-    public static class FixedValueProvider<T> extends AbstractProviderWithValue<T> implements ScalarSupplier<T> {
+    public static class FixedValueProvider<T> extends AbstractProviderWithValue<T> {
         private final T value;
 
         FixedValueProvider(T value) {
@@ -96,12 +88,7 @@ public class Providers {
         }
 
         @Override
-        public ProviderInternal<T> asProvider() {
-            return this;
-        }
-
-        @Override
-        public ScalarSupplier<T> withFinalValue() {
+        public ProviderInternal<T> withFinalValue() {
             return this;
         }
 
@@ -111,7 +98,7 @@ public class Providers {
         }
     }
 
-    private static class NoValueProvider<T> extends AbstractMinimalProvider<T> implements ScalarSupplier<T> {
+    private static class NoValueProvider<T> extends AbstractMinimalProvider<T> {
         private final Value<? extends T> value;
 
         public NoValueProvider(Value<? extends T> value) {
@@ -151,17 +138,12 @@ public class Providers {
         }
 
         @Override
-        public ScalarSupplier<T> asSupplier(DisplayName owner, Class<? super T> targetType, ValueSanitizer<? super T> sanitizer) {
+        public ProviderInternal<T> asSupplier(DisplayName owner, Class<? super T> targetType, ValueSanitizer<? super T> sanitizer) {
             return this;
         }
 
         @Override
-        public ProviderInternal<T> asProvider() {
-            return this;
-        }
-
-        @Override
-        public ScalarSupplier<T> withFinalValue() {
+        public ProviderInternal<T> withFinalValue() {
             return this;
         }
 
