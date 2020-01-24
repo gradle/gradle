@@ -397,14 +397,13 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/9586")
-    @ToBeFixedForInstantExecution
     def "change in case of input file will sync properly"() {
         given:
         def uppercaseFile = file('FILE.TXT')
         def lowercaseFile = file('file.txt').createFile()
         buildFile << '''
             task syncIt(type: Sync) {
-                from project.hasProperty("capitalize") ? "FILE.TXT" : "file.txt"
+                from providers.systemProperty("capitalize").map { "FILE.TXT" }.orElse("file.txt")
                 into buildDir
             }
         '''
@@ -417,7 +416,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         assert uppercaseFile.canonicalFile.name == 'FILE.TXT'
 
         when:
-        succeeds('syncIt', '-Pcapitalize')
+        succeeds('syncIt', '-Dcapitalize')
         then:
         executedAndNotSkipped ':syncIt'
         file('build/FILE.TXT').with {
@@ -440,7 +439,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         }
         buildFile << '''
             task syncIt(type: Sync) {
-                from project.hasProperty("capitalize") ? "DIR" : "dir"
+                from providers.systemProperty("capitalize").map { "DIR" }.orElse("dir")
                 into buildDir
             }
         '''
@@ -459,7 +458,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         new File(uppercaseNestedDir, 'nestedDirFile2.txt').renameTo(new File(uppercaseNestedDir, 'NESTEDDIRFILE2.TXT'))
 
         when:
-        succeeds('syncIt', '-Pcapitalize')
+        succeeds('syncIt', '-Dcapitalize')
         then:
         executedAndNotSkipped ':syncIt'
         file('build').assertHasDescendants(
