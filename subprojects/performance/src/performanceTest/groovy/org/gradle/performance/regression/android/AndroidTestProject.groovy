@@ -92,7 +92,6 @@ class IncrementalAndroidTestProject extends AndroidTestProject {
         }
     }
 
-
     void configureForLatestAgpVersionOfMinor(GradleProfilerCrossVersionPerformanceTestRunner runner, String lowerBound) {
         runner.gradleOpts.add("-DagpVersion=${AGP_VERSIONS.getLatestOfMinor(lowerBound)}")
     }
