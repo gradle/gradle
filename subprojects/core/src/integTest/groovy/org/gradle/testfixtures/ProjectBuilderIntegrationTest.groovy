@@ -19,10 +19,19 @@ package org.gradle.testfixtures
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
+import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 
 class ProjectBuilderIntegrationTest extends AbstractIntegrationSpec {
+    @Rule SetSystemProperties systemProperties
     @Rule HttpServer server
+
+    def setup() {
+        System.setProperty("user.dir", temporaryFolder.testDirectory.absolutePath)
+        file("settings.gradle") << """
+            rootProject.name = 'test'
+        """
+    }
 
     def "can resolve remote dependencies"() {
         def repo = new MavenHttpRepository(server, mavenRepo)
