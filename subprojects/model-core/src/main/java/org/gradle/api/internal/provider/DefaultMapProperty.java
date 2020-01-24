@@ -17,6 +17,7 @@
 package org.gradle.api.internal.provider;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
@@ -29,19 +30,16 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Callable;
 
 public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implements MapProperty<K, V>, MapProviderInternal<K, V> {
-    private static final MapSupplier<Object, Object> NO_VALUE = new NoValueSupplier<>(Value.missing());
-
     private static final String NULL_KEY_FORBIDDEN_MESSAGE = String.format("Cannot add an entry with a null key to a property of type %s.", Map.class.getSimpleName());
     private static final String NULL_VALUE_FORBIDDEN_MESSAGE = String.format("Cannot add an entry with a null value to a property of type %s.", Map.class.getSimpleName());
+
+    private static final MapSupplier<Object, Object> NO_VALUE = new NoValueSupplier<>(Value.missing());
 
     private final Class<K> keyType;
     private final Class<V> valueType;
@@ -118,18 +116,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
 
     @Override
     public Provider<V> getting(final K key) {
-        return new DefaultProvider<>(new Callable<V>() {
-            @Override
-            @Nullable
-            public V call() {
-                beforeRead();
-                Value<? extends Map<K, V>> result = doCalculateOwnValue();
-                if (result.isMissing()) {
-                    return null;
-                }
-                return result.get().get(key);
-            }
-        });
+        return new EntryProvider(key);
     }
 
     @Override
@@ -331,6 +318,30 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
         convention = noValueSupplier();
     }
 
+    private class EntryProvider extends AbstractMinimalProvider<V> {
+        private final K key;
+
+        public EntryProvider(K key) {
+            this.key = key;
+        }
+
+        @Nullable
+        @Override
+        public Class<V> getType() {
+            return valueType;
+        }
+
+        @Override
+        protected Value<? extends V> calculateOwnValue() {
+            beforeRead();
+            Value<? extends Map<K, V>> result = doCalculateOwnValue();
+            if (result.isMissing()) {
+                return result.asType();
+            }
+            return Value.ofNullable(result.get().get(key));
+        }
+    }
+
     private class KeySetProvider extends AbstractMinimalProvider<Set<K>> {
         @Nullable
         @Override
@@ -340,22 +351,16 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
         }
 
         @Override
-        protected Value<Set<K>> calculateOwnValue() {
+        protected Value<? extends Set<K>> calculateOwnValue() {
             beforeRead();
-            // TODO - do not make a copy when the value is final
-            Set<K> keys = new LinkedHashSet<>();
-            Value<Void> result = value.maybeCollectKeysInto(keyCollector, keys);
-            if (result.isMissing()) {
-                return result.asType();
-            }
-            return Value.of(ImmutableSet.copyOf(keys));
+            return value.calculateKeys();
         }
     }
 
     private interface MapSupplier<K, V> extends ValueSupplier {
         Value<? extends Map<K, V>> calculateValue();
 
-        Value<Void> maybeCollectKeysInto(ValueCollector<K> collector, Collection<K> dest);
+        Value<? extends Set<K>> calculateKeys();
 
         MapSupplier<K, V> plus(MapCollector<K, V> collector);
 
@@ -381,7 +386,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
         }
 
         @Override
-        public Value<Void> maybeCollectKeysInto(ValueCollector<K> collector, Collection<K> dest) {
+        public Value<? extends Set<K>> calculateKeys() {
             return value.asType();
         }
 
@@ -422,8 +427,8 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
         }
 
         @Override
-        public Value<Void> maybeCollectKeysInto(ValueCollector<K> collector, Collection<K> dest) {
-            return Value.present();
+        public Value<? extends Set<K>> calculateKeys() {
+            return Value.of(ImmutableSet.of());
         }
 
         @Override
@@ -469,9 +474,8 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
         }
 
         @Override
-        public Value<Void> maybeCollectKeysInto(ValueCollector<K> collector, Collection<K> dest) {
-            dest.addAll(entries.keySet());
-            return Value.present();
+        public Value<? extends Set<K>> calculateKeys() {
+            return Value.of(entries.keySet());
         }
 
         @Override
@@ -512,19 +516,28 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
         }
 
         @Override
+        public Value<? extends Set<K>> calculateKeys() {
+            // TODO - don't make a copy when the collector already produces an immutable collection
+            ImmutableSet.Builder<K> builder = ImmutableSet.builder();
+            Value<Void> result = collector.collectKeys(keyCollector, builder);
+            if (result.isMissing()) {
+                return result.asType();
+            }
+            return Value.of(ImmutableSet.copyOf(builder.build()));
+        }
+
+        @Override
         public Value<? extends Map<K, V>> calculateValue() {
             // TODO - don't make a copy when the collector already produces an immutable collection
+            // Cannot use ImmutableMap.Builder here, as it does not allow multiple entries with the same key, however the contract
+            // for MapProperty allows a provider to override the entries of earlier providers and so there can be multiple entries
+            // with the same key
             Map<K, V> entries = new LinkedHashMap<>();
-            Value<Void> result = collector.maybeCollectInto(entryCollector, entries);
+            Value<Void> result = collector.collectEntries(entryCollector, entries);
             if (result.isMissing()) {
                 return result.asType();
             }
             return Value.of(ImmutableMap.copyOf(entries));
-        }
-
-        @Override
-        public Value<Void> maybeCollectKeysInto(ValueCollector<K> collector, Collection<K> dest) {
-            return this.collector.maybeCollectKeysInto(collector, dest);
         }
 
         @Override
@@ -568,21 +581,21 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
         }
 
         @Override
-        public Value<Void> maybeCollectInto(MapEntryCollector<K, V> collector, Map<K, V> dest) {
-            Value<Void> result = left.maybeCollectInto(collector, dest);
+        public Value<Void> collectEntries(MapEntryCollector<K, V> collector, Map<K, V> dest) {
+            Value<Void> result = left.collectEntries(collector, dest);
             if (result.isMissing()) {
                 return result;
             }
-            return right.maybeCollectInto(collector, dest);
+            return right.collectEntries(collector, dest);
         }
 
         @Override
-        public Value<Void> maybeCollectKeysInto(ValueCollector<K> collector, Collection<K> dest) {
-            Value<Void> result = left.maybeCollectKeysInto(collector, dest);
+        public Value<Void> collectKeys(ValueCollector<K> collector, ImmutableCollection.Builder<K> dest) {
+            Value<Void> result = left.collectKeys(collector, dest);
             if (result.isMissing()) {
                 return result;
             }
-            return right.maybeCollectKeysInto(collector, dest);
+            return right.collectKeys(collector, dest);
         }
 
         @Override
