@@ -25,6 +25,7 @@ import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptModel
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
+import org.gradle.util.TextUtil
 
 import java.lang.reflect.Proxy
 
@@ -33,10 +34,22 @@ import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.CoreMatchers.hasItem
 import static org.junit.Assert.assertThat
 
-
 @TargetGradleVersion(">=6.0")
 @LeaksFileHandles("Kotlin Compiler Daemon taking time to shut down")
 class KotlinDslScriptsModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVersionTest {
+    String currentWorkingDir
+
+    def setup() {
+        // we change the working directory because of a bug in 6.1.x where the verification
+        // file is fetched from the working directory instead of the project directory,
+        // which causes the verification file of Gradle itself being used to verify the build
+        // under test
+        currentWorkingDir = System.getProperty("user.dir")
+    }
+
+    def cleanup() {
+        System.setProperty("user.dir", currentWorkingDir)
+    }
 
     def "can fetch model for the scripts of a build"() {
 
@@ -51,6 +64,7 @@ class KotlinDslScriptsModelCrossVersionSpec extends AbstractKotlinScriptModelCro
 
         and:
         assertModelMatchesBuildSpec(model, spec)
+
     }
 
     def "can fetch model for the scripts of a build in lenient mode"() {
@@ -222,6 +236,13 @@ class KotlinDslScriptsModelCrossVersionSpec extends AbstractKotlinScriptModelCro
         def bJar = withEmptyJar("classes_b.jar")
         def precompiledJar = withEmptyJar("classes_b_precompiled.jar")
 
+        def patchBuild = ""
+        def baseVersion = targetDist.version.baseVersion.version
+        if (baseVersion in ["6.1", "6.1.1"]) {
+            // see comment on top of the test class, changing working directory
+            patchBuild = """System.setProperty("user.dir", "${TextUtil.escapeString(temporaryFolder.testDirectory.absolutePath)}")"""
+        }
+
         def some = withFile("some.gradle.kts", """
             buildscript {
                 dependencies {
@@ -235,6 +256,7 @@ class KotlinDslScriptsModelCrossVersionSpec extends AbstractKotlinScriptModelCro
                     classpath(files("${escapeString(settingsJar)}"))
                 }
             }
+            $patchBuild
             apply(from = "some.gradle.kts")
             include("a", "b")
         """)
