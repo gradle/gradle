@@ -19,7 +19,6 @@ package org.gradle.api.internal.tasks.scala
 import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.tasks.compile.MinimalJavaCompileOptions
-import org.gradle.api.tasks.compile.BaseForkOptions
 import org.gradle.api.tasks.compile.ForkOptions
 import org.gradle.api.tasks.scala.ScalaForkOptions
 import org.gradle.initialization.ClassLoaderRegistry
