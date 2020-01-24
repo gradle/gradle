@@ -33,41 +33,6 @@ public class Collectors {
         boolean isProvidedBy(Provider<?> provider);
     }
 
-    public static class EmptyCollection implements Collector<Object> {
-        @Override
-        public boolean isPresent() {
-            return true;
-        }
-
-        @Override
-        public Value<Void> maybeCollectInto(ValueCollector<Object> collector, Collection<Object> collection) {
-            return Value.present();
-        }
-
-        @Override
-        public void visit(List<ProviderInternal<? extends Iterable<?>>> sources) {
-        }
-
-        @Override
-        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-            return true;
-        }
-
-        @Override
-        public void visitProducerTasks(Action<? super Task> visitor) {
-        }
-
-        @Override
-        public boolean isValueProducedByTask() {
-            return false;
-        }
-
-        @Override
-        public int size() {
-            return 0;
-        }
-    }
-
     public static class SingleElement<T> implements Collector<T> {
         private final T element;
 
@@ -329,48 +294,6 @@ public class Collectors {
             } else {
                 throw new UnsupportedOperationException();
             }
-        }
-    }
-
-    public static class NoValueCollector<T> implements Collector<T> {
-        private final Value<Void> value;
-
-        public NoValueCollector(Value<?> value) {
-            assert value.isMissing();
-            this.value = value.asType();
-        }
-
-        @Override
-        public boolean isPresent() {
-            return false;
-        }
-
-        @Override
-        public Value<Void> maybeCollectInto(ValueCollector<T> collector, Collection<T> collection) {
-            return value;
-        }
-
-        @Override
-        public void visit(List<ProviderInternal<? extends Iterable<? extends T>>> sources) {
-        }
-
-        @Override
-        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-            return true;
-        }
-
-        @Override
-        public void visitProducerTasks(Action<? super Task> visitor) {
-        }
-
-        @Override
-        public boolean isValueProducedByTask() {
-            return false;
-        }
-
-        @Override
-        public int size() {
-            return 0;
         }
     }
 
