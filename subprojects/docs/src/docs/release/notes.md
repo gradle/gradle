@@ -12,6 +12,7 @@ We would like to thank the following community contributors to this release of G
 [Vladimir Sitnikov](https://github.com/vlsi/),
 [Peter Stöckli](https://github.com/p-),
 [Sebastian Schuberth](https://github.com/sschuberth),
+[Frieder Bluemle](https://github.com/friederbluemle),
 and [Roberto Perez Alcolea](https://github.com/rpalcolea).
 
 ## Upgrade Instructions
