@@ -61,19 +61,13 @@ public abstract class AbstractMappingProvider<OUT, IN> extends AbstractMinimalPr
     }
 
     @Override
-    public OUT get() {
+    protected Value<OUT> calculateOwnValue() {
         beforeRead();
-        return mapValue(provider.get());
-    }
-
-    @Override
-    public OUT getOrNull() {
-        beforeRead();
-        IN value = provider.getOrNull();
-        if (value != null) {
-            return mapValue(value);
+        Value<? extends IN> value = provider.calculateValue();
+        if (value.isMissing()) {
+            return value.asType();
         }
-        return null;
+        return Value.of(mapValue(value.get()));
     }
 
     protected abstract OUT mapValue(IN v);

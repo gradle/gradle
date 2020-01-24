@@ -110,13 +110,26 @@ plugins.withType<EclipsePlugin>().configureEach {
     }
 }
 
-// TODO Copied from instant-execution.gradle.kts, we should have one place to clone this thing and clone it from there locally when needed
 tasks {
 
-    register<RemoteProject>("santaTracker") {
-        remoteUri.set("https://github.com/gradle/santa-tracker-android.git")
-        // From branch agp-3.6.0
+    /**
+     * Santa Tracker git URI.
+     *
+     * Note that you can change it to `file:///path/to/your/santa-tracker-clone/.git`
+     * if you need to iterate quickly on changes to Santa Tracker.
+     */
+    val santaGitUri = "https://github.com/gradle/santa-tracker-android.git"
+
+    register<RemoteProject>("santaTrackerKotlin") {
+        remoteUri.set(santaGitUri)
+        // Pinned from branch agp-3.6.0
         ref.set("3bbbd895de38efafd0dd1789454d4e4cb72d46d5")
+    }
+
+    register<RemoteProject>("santaTrackerJava") {
+        remoteUri.set(santaGitUri)
+        // Pinned from branch agp-3.6.0-java
+        ref.set("174705275e434adc843e8e9b28106a5e3ffd6733")
     }
 
     register<RemoteProject>("gradleBuildCurrent") {

@@ -139,7 +139,7 @@ class JavaLibraryDistributionIntegrationTest extends WellBehavedPluginTest {
         expect:
         executer.noDeprecationChecks()
         runAndFail 'distZip'
-        failure.assertHasCause "No value has been specified for property 'distributionBaseName'."
+        failure.assertHasCause "Cannot query the value of property 'distributionBaseName' because it has no value available."
     }
 
     def "compile only dependencies are not included in distribution"() {

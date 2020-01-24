@@ -137,7 +137,7 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         }
     }
 
-    public class ValueSourceProvider<T, P extends ValueSourceParameters> extends AbstractReadOnlyProvider<T> {
+    public class ValueSourceProvider<T, P extends ValueSourceParameters> extends AbstractMinimalProvider<T> {
 
         private final Class<? extends ValueSource<T, P>> valueSourceType;
         private final Class<P> parametersType;
@@ -189,9 +189,8 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
             return null;
         }
 
-        @Nullable
         @Override
-        public T getOrNull() {
+        protected Value<? extends T> calculateOwnValue() {
             synchronized (this) {
                 if (value == null) {
 
@@ -200,7 +199,7 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
 
                     onValueObtained();
                 }
-                return value.get();
+                return Value.ofNullable(value.get());
             }
         }
 

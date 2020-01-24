@@ -16,6 +16,7 @@
 
 package org.gradle.instantexecution
 
+import org.gradle.integtests.fixtures.instantexecution.InstantExecutionBuildOperationsFixture
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.junit.Test
 

@@ -22,16 +22,20 @@ import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
+import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.state.Managed;
 import org.gradle.util.GUtil;
 
 import javax.annotation.Nullable;
 
 /**
- * A partial {@link Provider} implementation.
+ * A partial {@link Provider} implementation. Subclasses need to implement {@link ProviderInternal#getType()} and {@link AbstractMinimalProvider#calculateOwnValue()}.
  */
 public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>, ScalarSupplier<T>, Managed {
+    private static final DisplayName DEFAULT_DISPLAY_NAME = Describables.of("this provider");
+
     @Override
     public <S> ProviderInternal<S> map(final Transformer<? extends S, ? super T> transformer) {
         return new TransformBackedProvider<>(transformer, this);
@@ -42,23 +46,68 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
         return new FlatMapProvider<>(this, transformer);
     }
 
+    /**
+     * Returns the human consumable display name for this provider, or null if this is not known.
+     */
+    @Nullable
+    protected DisplayName getDeclaredDisplayName() {
+        return null;
+    }
+
+    /**
+     * Returns a display name for this provider, using a default if this is not known.
+     */
+    protected DisplayName getDisplayName() {
+        DisplayName displayName = getDeclaredDisplayName();
+        if (displayName == null) {
+            return DEFAULT_DISPLAY_NAME;
+        }
+        return displayName;
+    }
+
+    protected DisplayName getTypedDisplayName() {
+        return DEFAULT_DISPLAY_NAME;
+    }
+
+    protected abstract ScalarSupplier.Value<? extends T> calculateOwnValue();
+
     @Override
     public boolean isPresent() {
-        return getOrNull() != null;
+        return !calculateOwnValue().isMissing();
     }
 
     @Override
-    public T get(DisplayName owner) throws IllegalStateException {
-        return get();
+    public T get() {
+        Value<? extends T> value = calculateOwnValue();
+        if (value.isMissing()) {
+            TreeFormatter formatter = new TreeFormatter();
+            formatter.node("Cannot query the value of ").append(getDisplayName().getDisplayName()).append(" because it has no value available.");
+            if (!value.getPathToOrigin().isEmpty()) {
+                formatter.node("The value of ").append(getTypedDisplayName().getDisplayName()).append(" is derived from");
+                formatter.startChildren();
+                for (DisplayName displayName : value.getPathToOrigin()) {
+                    formatter.node(displayName.getDisplayName());
+                }
+                formatter.endChildren();
+            }
+            throw new MissingValueException(formatter.toString());
+        }
+        return value.get();
+    }
+
+    @Override
+    public T getOrNull() {
+        return calculateOwnValue().orNull();
     }
 
     @Override
     public T getOrElse(T defaultValue) {
-        T value = getOrNull();
-        if (value == null) {
-            return defaultValue;
-        }
-        return value;
+        return calculateOwnValue().orElse(defaultValue);
+    }
+
+    @Override
+    public Value<? extends T> calculateValue() {
+        return calculateOwnValue().pushWhenMissing(getDeclaredDisplayName());
     }
 
     @Override
@@ -140,7 +189,7 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
     }
 
     private static class FlatMapProvider<S, T> extends AbstractMinimalProvider<S> {
-        private final Provider<? extends T> provider;
+        private final ProviderInternal<? extends T> provider;
         private final Transformer<? extends Provider<? extends S>, ? super T> transformer;
 
         FlatMapProvider(ProviderInternal<? extends T> provider, Transformer<? extends Provider<? extends S>, ? super T> transformer) {
@@ -164,27 +213,20 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
         }
 
         @Override
-        public S get() {
-            T value = provider.get();
-            return map(value).get();
-        }
-
-        @Nullable
-        @Override
-        public S getOrNull() {
-            T value = provider.getOrNull();
-            if (value == null) {
-                return null;
+        protected Value<? extends S> calculateOwnValue() {
+            Value<? extends T> value = provider.calculateValue();
+            if (value.isMissing()) {
+                return value.asType();
             }
-            return map(value).getOrNull();
+            return map(value.get()).calculateValue();
         }
 
-        private Provider<? extends S> map(T value) {
+        private ProviderInternal<? extends S> map(T value) {
             Provider<? extends S> result = transformer.transform(value);
             if (result == null) {
                 throw new IllegalStateException(Providers.NULL_TRANSFORMER_RESULT);
             }
-            return result;
+            return Providers.internal(result);
         }
 
         @Override
@@ -229,7 +271,7 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
         }
     }
 
-    private static class OrElseProvider<T> extends AbstractReadOnlyProvider<T> {
+    private static class OrElseProvider<T> extends AbstractMinimalProvider<T> {
         private final ProviderInternal<T> left;
         private final ProviderInternal<? extends T> right;
 
@@ -258,14 +300,17 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
             return left.isPresent() || right.isPresent();
         }
 
-        @Nullable
         @Override
-        public T getOrNull() {
-            T value = left.getOrNull();
-            if (value == null) {
-                value = right.getOrNull();
+        protected Value<? extends T> calculateOwnValue() {
+            Value<? extends T> leftValue = left.calculateValue();
+            if (!leftValue.isMissing()) {
+                return leftValue;
             }
-            return value;
+            Value<? extends T> rightValue = right.calculateValue();
+            if (!rightValue.isMissing()) {
+                return rightValue;
+            }
+            return leftValue.addPathsFrom(rightValue);
         }
     }
 

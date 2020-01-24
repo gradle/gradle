@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.provider;
 
-import org.gradle.internal.DisplayName;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -27,15 +25,9 @@ import java.util.Map;
  */
 public interface MapCollector<K, V> extends ValueSupplier {
 
-    boolean present();
+    Value<Void> maybeCollectInto(MapEntryCollector<K, V> collector, Map<K, V> dest);
 
-    void collectInto(DisplayName owner, MapEntryCollector<K, V> collector, Map<K, V> dest);
-
-    boolean maybeCollectInto(MapEntryCollector<K, V> collector, Map<K, V> dest);
-
-    void collectKeysInto(ValueCollector<K> collector, Collection<K> dest);
-
-    boolean maybeCollectKeysInto(ValueCollector<K> collector, Collection<K> dest);
+    Value<Void> maybeCollectKeysInto(ValueCollector<K> collector, Collection<K> dest);
 
     void visit(List<ProviderInternal<? extends Map<? extends K, ? extends V>>> sources);
 }

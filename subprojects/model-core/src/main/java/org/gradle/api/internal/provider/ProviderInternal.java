@@ -63,6 +63,11 @@ public interface ProviderInternal<T> extends Provider<T>, TaskDependencyContaine
     <S> ProviderInternal<S> map(Transformer<? extends S, ? super T> transformer);
 
     /**
+     * Calculates the value of this supplier.
+     */
+    ValueSupplier.Value<? extends T> calculateValue();
+
+    /**
      * Returns a view of this provider that can be used to supply a value to a {@link org.gradle.api.provider.Property} instance.
      */
     ScalarSupplier<T> asSupplier(DisplayName owner, Class<? super T> targetType, ValueSanitizer<? super T> sanitizer);

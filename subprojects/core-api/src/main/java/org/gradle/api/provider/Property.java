@@ -83,12 +83,12 @@ public interface Property<T> extends Provider<T>, HasConfigurableValue {
     /**
      * Specifies the value to use as the convention for this property. The convention is used when no value has been set for this property.
      *
-     * @param value The value.
+     * @param value The value, or null if the convention is that the property should have no value.
      * @return this
      * @since 5.1
      */
     @Incubating
-    Property<T> convention(T value);
+    Property<T> convention(@Nullable T value);
 
     /**
      * Specifies the provider of the value to use as the convention for this property. The convention is used when no value has been set for this property.

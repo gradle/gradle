@@ -18,11 +18,15 @@ package org.gradle.smoketests
 
 import org.apache.commons.io.FileUtils
 import org.gradle.cache.internal.DefaultGeneratedGradleJarCache
+import org.gradle.integtests.fixtures.instantexecution.InstantExecutionBuildOperationsFixture
+import org.gradle.integtests.fixtures.BuildOperationTreeFixture
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.InstantExecutionGradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler
+import org.gradle.internal.operations.trace.BuildOperationTrace
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
@@ -36,6 +40,9 @@ import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRep
 import static org.gradle.test.fixtures.server.http.MavenHttpPluginRepository.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY
 
 abstract class AbstractSmokeTest extends Specification {
+
+    protected static final AndroidGradlePluginVersions AGP_VERSIONS = new AndroidGradlePluginVersions()
+    protected static final String AGP_3_ITERATION_MATCHER = ".*agp=3\\..*"
 
     static class TestedVersions {
         /**
@@ -82,7 +89,7 @@ abstract class AbstractSmokeTest extends Specification {
         // https://developer.android.com/studio/releases/build-tools
         static androidTools = "29.0.2"
         // https://developer.android.com/studio/releases/gradle-plugin
-        static androidGradle = Versions.of("3.4.2", "3.5.3", "3.6.0-rc01", "4.0.0-alpha06")
+        static androidGradle = Versions.of(*AGP_VERSIONS.latestsPlusNightly)
 
         // https://search.maven.org/search?q=g:org.jetbrains.kotlin%20AND%20a:kotlin-project&core=gav
         static kotlin = Versions.of('1.3.21', '1.3.31', '1.3.41', '1.3.50', '1.3.61')
@@ -185,10 +192,11 @@ abstract class AbstractSmokeTest extends Specification {
         )
     }
 
-    private static List<String> buildContextParameters() {
+    private List<String> buildContextParameters() {
         List<String> parameters = []
         if (GradleContextualExecuter.isInstant()) {
             parameters += InstantExecutionGradleExecuter.INSTANT_EXECUTION_ARGS
+            parameters += ["-D${BuildOperationTrace.SYSPROP}=${buildOperationTracePath()}".toString()]
         }
         def generatedApiJarCacheDir = IntegrationTestBuildContext.INSTANCE.gradleGeneratedApiJarCacheDir
         if (generatedApiJarCacheDir == null) {
@@ -214,9 +222,38 @@ abstract class AbstractSmokeTest extends Specification {
         ]
     }
 
+    protected void assertInstantExecutionStateStored() {
+        if (GradleContextualExecuter.isInstant()) {
+            newInstantExecutionBuildOperationsFixture().assertStateStored()
+        }
+    }
+
+    protected void assertInstantExecutionStateLoaded() {
+        if (GradleContextualExecuter.isInstant()) {
+            newInstantExecutionBuildOperationsFixture().assertStateLoaded()
+        }
+    }
+
+    private InstantExecutionBuildOperationsFixture newInstantExecutionBuildOperationsFixture() {
+        return new InstantExecutionBuildOperationsFixture(new BuildOperationTreeFixture(BuildOperationTrace.read(buildOperationTracePath())))
+    }
+
+    private String buildOperationTracePath() {
+        return file("operations").absolutePath
+    }
+
     protected void useSample(String sampleDirectory) {
         def smokeTestDirectory = new File(this.getClass().getResource(sampleDirectory).toURI())
         FileUtils.copyDirectory(smokeTestDirectory, testProjectDir.root)
+    }
+
+    protected GradleRunner useAgpVersion(String agpVersion, GradleRunner runner) {
+        def extraArgs = [AGP_VERSIONS.OVERRIDE_VERSION_CHECK]
+        if (AGP_VERSIONS.isAgpNightly(agpVersion)) {
+            def init = AGP_VERSIONS.createAgpNightlyRepositoryInitScript()
+            extraArgs += ["-I", init.canonicalPath]
+        }
+        return runner.withArguments([runner.arguments, extraArgs].flatten())
     }
 
     protected void replaceVariablesInBuildFile(Map binding) {

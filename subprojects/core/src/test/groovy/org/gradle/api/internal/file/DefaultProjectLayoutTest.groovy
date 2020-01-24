@@ -16,14 +16,15 @@
 
 package org.gradle.api.internal.file
 
-import org.gradle.api.internal.provider.ProviderInternal
+
 import org.gradle.api.internal.tasks.TaskDependencyFactory
-import org.gradle.api.provider.Provider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
+import static org.gradle.api.internal.provider.ProviderTestUtil.withNoValue
+import static org.gradle.api.internal.provider.ProviderTestUtil.withValues
 import static org.gradle.util.Matchers.strictlyEquals
 
 class DefaultProjectLayoutTest extends Specification {
@@ -43,9 +44,7 @@ class DefaultProjectLayoutTest extends Specification {
     }
 
     def "can resolve directory relative to project directory"() {
-        def pathProvider = Stub(ProviderInternal)
-        _ * pathProvider.get() >>> ["a", "b"]
-        _ * pathProvider.present >> true
+        def pathProvider = withValues("a", "b")
 
         expect:
         def dir = layout.projectDirectory.dir("sub-dir")
@@ -65,9 +64,7 @@ class DefaultProjectLayoutTest extends Specification {
     }
 
     def "can resolve regular file relative to project directory"() {
-        def pathProvider = Stub(ProviderInternal)
-        _ * pathProvider.get() >>> ["a", "b"]
-        _ * pathProvider.present >> true
+        def pathProvider = withValues("a", "b")
 
         expect:
         def file = layout.projectDirectory.file("child")
@@ -87,9 +84,7 @@ class DefaultProjectLayoutTest extends Specification {
     }
 
     def "directory is not present when path provider is not present"() {
-        def pathProvider = Stub(ProviderInternal)
-        _ * pathProvider.present >> false
-        _ * pathProvider.getOrNull() >> null
+        def pathProvider = withNoValue()
 
         expect:
         def provider = layout.projectDirectory.dir(pathProvider)
@@ -98,9 +93,7 @@ class DefaultProjectLayoutTest extends Specification {
     }
 
     def "regular file is not present when path provider is not present"() {
-        def pathProvider = Stub(ProviderInternal)
-        _ * pathProvider.present >> false
-        _ * pathProvider.getOrNull() >> null
+        def pathProvider = withNoValue()
 
         expect:
         def provider = layout.projectDirectory.file(pathProvider)
@@ -183,9 +176,7 @@ class DefaultProjectLayoutTest extends Specification {
     }
 
     def "can resolve directory relative to build directory"() {
-        def pathProvider = Stub(Provider)
-        _ * pathProvider.get() >>> ["a", "b"]
-        _ * pathProvider.present >> true
+        def pathProvider = withValues("a", "b")
 
         expect:
         def dir = layout.buildDirectory.dir("sub-dir")
@@ -206,9 +197,7 @@ class DefaultProjectLayoutTest extends Specification {
     }
 
     def "can resolve regular file relative to build directory"() {
-        def pathProvider = Stub(Provider)
-        _ * pathProvider.get() >>> ["a", "b"]
-        _ * pathProvider.present >> true
+        def pathProvider = withValues("a", "b")
 
         expect:
         def file = layout.buildDirectory.file("child")
@@ -249,12 +238,9 @@ class DefaultProjectLayoutTest extends Specification {
     }
 
     def "can map File provider to regular file provider"() {
-        def fileProvider = Stub(ProviderInternal)
         def file1 = projectDir.file("file1")
         def file2 = projectDir.file("file2")
-
-        _ * fileProvider.present >> true
-        _ * fileProvider.get() >>> [file1, file2]
+        def fileProvider = withValues(file1, file2)
 
         expect:
         def provider = layout.file(fileProvider)
@@ -265,12 +251,9 @@ class DefaultProjectLayoutTest extends Specification {
     }
 
     def "can map File provider to directory provider"() {
-        def fileProvider = Stub(ProviderInternal)
         def file1 = projectDir.file("file1")
         def file2 = projectDir.file("file2")
-
-        _ * fileProvider.present >> true
-        _ * fileProvider.get() >>> [file1, file2]
+        def fileProvider = withValues(file1, file2)
 
         expect:
         def provider = layout.dir(fileProvider)
@@ -281,12 +264,10 @@ class DefaultProjectLayoutTest extends Specification {
     }
 
     def "resolves relative file given by File provider"() {
-        def fileProvider = Stub(ProviderInternal)
         def file1 = projectDir.file("file1")
         def file2 = projectDir.file("file2")
 
-        _ * fileProvider.present >> true
-        _ * fileProvider.get() >>> [new File("file1"), new File("file2")]
+        def fileProvider = withValues(new File("file1"), new File("file2"))
 
         expect:
         def provider = layout.file(fileProvider)
@@ -297,12 +278,10 @@ class DefaultProjectLayoutTest extends Specification {
     }
 
     def "resolves relative dir given by File provider"() {
-        def dirProvider = Stub(ProviderInternal)
         def dir1 = projectDir.file("dir1")
         def dir2 = projectDir.file("dir2")
 
-        _ * dirProvider.present >> true
-        _ * dirProvider.get() >>> [new File("dir1"), new File("dir2")]
+        def dirProvider = withValues(new File("dir1"), new File("dir2"))
 
         expect:
         def provider = layout.dir(dirProvider)

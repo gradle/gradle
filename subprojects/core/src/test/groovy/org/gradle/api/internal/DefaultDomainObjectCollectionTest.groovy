@@ -19,6 +19,7 @@ package org.gradle.api.internal
 import org.gradle.api.Action
 import org.gradle.api.internal.collections.IterationOrderRetainingSetElementSource
 import org.gradle.api.internal.provider.ProviderInternal
+import org.gradle.api.internal.provider.ValueSupplier
 import org.gradle.api.specs.Spec
 
 import static org.gradle.util.WrapUtil.toList
@@ -298,7 +299,7 @@ class DefaultDomainObjectCollectionTest extends AbstractDomainObjectCollectionSp
     def callsRemoveActionWhenObjectRemovedUsingIteratorNoFlushAndLastElementIsUnrealized() {
         def action = Mock(Action)
         def provider = Mock(ProviderInternal)
-        _ * provider.get() >> "c"
+        _ * provider.calculateValue() >> ValueSupplier.Value.of("c")
 
         container.whenObjectRemoved(action)
         container.add("a")

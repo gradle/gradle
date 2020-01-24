@@ -17,7 +17,7 @@
 package org.gradle.api.internal.collections
 
 import org.gradle.api.Action
-import org.gradle.api.internal.provider.AbstractReadOnlyProvider
+import org.gradle.api.internal.provider.AbstractMinimalProvider
 import org.gradle.api.internal.provider.ChangingValue
 import org.gradle.api.internal.provider.ChangingValueHandler
 import org.gradle.api.internal.provider.CollectionProviderInternal
@@ -209,7 +209,7 @@ abstract class AbstractElementSourceTest extends Specification {
         source.iterator().collect() == iterationOrder("foo", "baz", "fooz", "fizz")
     }
 
-    def "comodification with iterator causes an exception" () {
+    def "comodification with iterator causes an exception"() {
         given:
         def provider = provider("baz")
         def providerOfSet = setProvider("fuzz", "buzz")
@@ -275,7 +275,7 @@ abstract class AbstractElementSourceTest extends Specification {
         return new TypedProviderOfSet(StringBuffer, values as LinkedHashSet)
     }
 
-    private static class TypedProvider<T> extends AbstractReadOnlyProvider<T> implements ChangingValue<T> {
+    private static class TypedProvider<T> extends AbstractMinimalProvider<T> implements ChangingValue<T> {
         final Class<T> type
         T value
         final ChangingValueHandler<T> changingValue = new ChangingValueHandler<T>()
@@ -291,8 +291,8 @@ abstract class AbstractElementSourceTest extends Specification {
         }
 
         @Override
-        T getOrNull() {
-            return value
+        protected Value<T> calculateOwnValue() {
+            return Value.of(value)
         }
 
         void setValue(T value) {
@@ -307,7 +307,7 @@ abstract class AbstractElementSourceTest extends Specification {
         }
     }
 
-    private static class TypedProviderOfSet<T> extends AbstractReadOnlyProvider<Set<T>> implements CollectionProviderInternal<T, Set<T>>, ChangingValue<Iterable<T>> {
+    private static class TypedProviderOfSet<T> extends AbstractMinimalProvider<Set<T>> implements CollectionProviderInternal<T, Set<T>>, ChangingValue<Iterable<T>> {
         final Class<T> type
         Set<T> value
         final ChangingValueHandler<Iterable<T>> changingValue = new ChangingValueHandler<Iterable<T>>()
@@ -323,8 +323,8 @@ abstract class AbstractElementSourceTest extends Specification {
         }
 
         @Override
-        Set<T> getOrNull() {
-            return value
+        protected Value<? extends Set<T>> calculateOwnValue() {
+            return Value.of(value)
         }
 
         @Override

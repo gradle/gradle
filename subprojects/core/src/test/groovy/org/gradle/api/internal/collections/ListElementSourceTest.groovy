@@ -16,9 +16,8 @@
 
 package org.gradle.api.internal.collections
 
-import org.gradle.api.internal.provider.AbstractReadOnlyProvider
+import org.gradle.api.internal.provider.AbstractMinimalProvider
 import org.gradle.api.internal.provider.CollectionProviderInternal
-
 
 class ListElementSourceTest extends AbstractIterationOrderRetainingElementSourceTest {
     ListElementSource<CharSequence> source = new ListElementSource<>()
@@ -240,7 +239,9 @@ class ListElementSourceTest extends AbstractIterationOrderRetainingElementSource
 
         when:
         iterator = source.listIterator()
-        while(iterator.hasNext()) { iterator.next() }
+        while (iterator.hasNext()) {
+            iterator.next()
+        }
         iterator.add("buzz")
 
         then:
@@ -248,7 +249,9 @@ class ListElementSourceTest extends AbstractIterationOrderRetainingElementSource
 
         when:
         iterator = source.listIterator()
-        while(iterator.hasNext()) { iterator.next() }
+        while (iterator.hasNext()) {
+            iterator.next()
+        }
         iterator.previous()
         iterator.add("bazz")
 
@@ -477,7 +480,7 @@ class ListElementSourceTest extends AbstractIterationOrderRetainingElementSource
         return new TypedProviderOfList<StringBuffer>(StringBuffer, values as List)
     }
 
-    private static class TypedProviderOfList<T> extends AbstractReadOnlyProvider<List<T>> implements CollectionProviderInternal<T, List<T>> {
+    private static class TypedProviderOfList<T> extends AbstractMinimalProvider<List<T>> implements CollectionProviderInternal<T, List<T>> {
         final Class<T> type
         final List<T> value
 
@@ -487,13 +490,13 @@ class ListElementSourceTest extends AbstractIterationOrderRetainingElementSource
         }
 
         @Override
-        Class<? extends T> getElementType() {
+        Class<T> getElementType() {
             return type
         }
 
         @Override
-        List<T> getOrNull() {
-            return value
+        protected Value<List<T>> calculateOwnValue() {
+            return Value.of(value)
         }
 
         @Override
