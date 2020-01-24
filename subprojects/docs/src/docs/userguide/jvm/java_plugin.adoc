@@ -656,7 +656,7 @@ Many popular annotation processors support incremental annotation processing (se
 
 | link:https://github.com/JakeWharton/butterknife[Butterknife]
 | link:https://github.com/JakeWharton/butterknife/commit/2acac62c7354fee46a5201d50a4712732f6dd1ed[10.2.0]
-| N/A
+| N/A 
 
 | link:https://github.com/rzwitserloot/lombok[Lombok]
 | link:https://github.com/rzwitserloot/lombok/releases/tag/v1.16.22[1.16.22]
