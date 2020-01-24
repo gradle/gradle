@@ -16,14 +16,15 @@
 
 package org.gradle.api.internal.provider;
 
-import java.util.Collection;
+import com.google.common.collect.ImmutableCollection;
+
 import java.util.List;
 
 /**
  * A supplier of zero or more values of type {@link T}.
  */
 public interface Collector<T> extends ValueSupplier {
-    Value<Void> maybeCollectInto(ValueCollector<T> collector, Collection<T> dest);
+    Value<Void> collectEntries(ValueCollector<T> collector, ImmutableCollection.Builder<T> dest);
 
     int size();
 

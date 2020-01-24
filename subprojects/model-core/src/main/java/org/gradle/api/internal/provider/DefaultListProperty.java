@@ -16,12 +16,12 @@
 
 package org.gradle.api.internal.provider;
 
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Provider;
 
 import javax.annotation.Nullable;
-import java.util.Collection;
 import java.util.List;
 
 public class DefaultListProperty<T> extends AbstractCollectionProperty<T, List<T>> implements ListProperty<T> {
@@ -40,12 +40,12 @@ public class DefaultListProperty<T> extends AbstractCollectionProperty<T, List<T
     }
 
     @Override
-    protected List<T> fromValue(Collection<T> values) {
-        return ImmutableList.copyOf(values);
+    protected ImmutableCollection.Builder<T> builder() {
+        return ImmutableList.builder();
     }
 
     @Override
-    protected List<T> asEmpty() {
+    protected ImmutableList<T> emptyCollection() {
         return ImmutableList.of();
     }
 

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.provider;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableCollection;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.internal.provider.Collectors.ElementFromProvider;
@@ -66,12 +67,12 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     /**
      * Creates an immutable collection from the given current values of this property.
      */
-    protected abstract C fromValue(Collection<T> values);
+    protected abstract ImmutableCollection.Builder<T> builder();
 
     /**
      * Creates an empty immutable collection.
      */
-    protected abstract C asEmpty();
+    protected abstract C emptyCollection();
 
     @Override
     public void add(final T element) {
@@ -344,7 +345,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
         @Override
         public Value<? extends C> calculateValue() {
-            return Value.of(asEmpty());
+            return Value.of(emptyCollection());
         }
 
         @Override
@@ -429,12 +430,12 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         @Override
         public Value<C> calculateValue() {
             // TODO - don't make a copy when the collector already produces an immutable collection
-            List<T> values = new ArrayList<>();
-            Value<Void> result = value.maybeCollectInto(valueCollector, values);
+            ImmutableCollection.Builder<T> builder = builder();
+            Value<Void> result = value.collectEntries(valueCollector, builder);
             if (result.isMissing()) {
                 return result.asType();
             }
-            return Value.of(fromValue(values));
+            return Value.of(Cast.uncheckedCast(builder.build()));
         }
 
         @Override
@@ -483,12 +484,12 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
 
         @Override
-        public Value<Void> maybeCollectInto(ValueCollector<T> collector, Collection<T> dest) {
-            Value<Void> value = left.maybeCollectInto(collector, dest);
+        public Value<Void> collectEntries(ValueCollector<T> collector, ImmutableCollection.Builder<T> dest) {
+            Value<Void> value = left.collectEntries(collector, dest);
             if (value.isMissing()) {
                 return value;
             }
-            return right.maybeCollectInto(collector, dest);
+            return right.collectEntries(collector, dest);
         }
 
         @Override
