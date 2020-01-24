@@ -68,6 +68,7 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-3540")
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FLAKY)
     def "hash set output files marks task up-to-date"() {
         buildFile << """
             class MyTask extends DefaultTask {
