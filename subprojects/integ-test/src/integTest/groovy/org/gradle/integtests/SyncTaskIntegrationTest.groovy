@@ -48,9 +48,9 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         file('dest').assertHasDescendants(
-                'dir1/file1.txt',
-                'dir2/subdir/file2.txt',
-                'dir2/file3.txt'
+            'dir1/file1.txt',
+            'dir2/subdir/file2.txt',
+            'dir2/file3.txt'
         )
         !file('dest/someOtherEmptyDir').exists()
         file('dest/emptyDir').exists()
@@ -244,7 +244,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         defaultSourceFileTree()
         file('dest').create {
             some {
-                '.git' { }
+                '.git' {}
             }
             out {
                 '.git' {
@@ -279,8 +279,8 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         given:
         defaultSourceFileTree()
         file('dest').create {
-            preservedDir { }
-            nonPreservedDir { }
+            preservedDir {}
+            nonPreservedDir {}
         }
 
         buildScript '''
@@ -566,7 +566,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
                 doLast {
                     project.sync {
                         from files('source')
-                        from fileTree('source2') { exclude '**/ignore/**' } 
+                        from fileTree('source2') { exclude '**/ignore/**' }
                         from configurations.compile
                         into 'dest'
                         include { fte -> fte.relativePath.segments.length < 3 && (fte.file.directory || fte.file.name.contains('f')) }
