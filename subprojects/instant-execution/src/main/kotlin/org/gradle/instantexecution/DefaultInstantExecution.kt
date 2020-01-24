@@ -493,10 +493,13 @@ class DefaultInstantExecution internal constructor(
 
     private
     fun instantExecutionCacheKey() = startParameter.run {
+        // The following characters are not valid in task names
+        // and can be used as separators: /, \, :, <, >, ", ?, *, |
+        // except we also accept qualified task names with :, so colon is out.
         val cacheKey = StringBuilder()
         requestedTaskNames.joinTo(cacheKey, separator = "/")
         if (excludedTaskNames.isNotEmpty()) {
-            excludedTaskNames.joinTo(cacheKey, prefix = "-", separator = "/")
+            excludedTaskNames.joinTo(cacheKey, prefix = "<", separator = "/")
         }
         val taskNames = requestedTaskNames.asSequence() + excludedTaskNames.asSequence()
         val hasRelativeTaskName = taskNames.any { !it.startsWith(':') }
@@ -505,7 +508,7 @@ class DefaultInstantExecution internal constructor(
             // sub-project according to `invocationDir` we need to include
             // the relative invocation dir information in the key.
             relativeChildPathOrNull(invocationDir, rootDirectory)?.let { relativeSubDir ->
-                cacheKey.append('@')
+                cacheKey.append('*')
                 cacheKey.append(relativeSubDir)
             }
         }
