@@ -40,7 +40,7 @@ import java.util.concurrent.Callable;
 public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implements MapProperty<K, V>, MapProviderInternal<K, V> {
 
     private static final MapCollectors.EmptyMap EMPTY_MAP = new MapCollectors.EmptyMap();
-    private static final MapCollectors.NoValue NO_VALUE = new MapCollectors.NoValue();
+    private static final MapCollectors.NoValue<Object, Object> NO_VALUE = new MapCollectors.NoValue<>(Value.missing());
 
     private static final String NULL_KEY_FORBIDDEN_MESSAGE = String.format("Cannot add an entry with a null key to a property of type %s.", Map.class.getSimpleName());
     private static final String NULL_VALUE_FORBIDDEN_MESSAGE = String.format("Cannot add an entry with a null value to a property of type %s.", Map.class.getSimpleName());
@@ -107,6 +107,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
 
     @NotNull
     private Value<? extends Map<K, V>> doCalculateOwnValue() {
+        // TODO - do not make a copy when the value is final
         Map<K, V> entries = new LinkedHashMap<>();
         Value<Void> result = value.maybeCollectInto(entryCollector, entries);
         if (result.isMissing()) {
@@ -319,15 +320,18 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
     @Override
     @SuppressWarnings("unchecked")
     protected void makeFinal() {
-        Map<K, V> entries = doCalculateOwnValue().orNull();
-        if (entries != null) {
+        Value<? extends Map<K, V>> value = doCalculateOwnValue();
+        if (!value.isMissing()) {
+            Map<K, V> entries = value.get();
             if (entries.isEmpty()) {
                 set((MapCollector<K, V>) EMPTY_MAP);
             } else {
                 set(new MapCollectors.EntriesFromMap<>(entries));
             }
-        } else {
+        } else if (value.getPathToOrigin().isEmpty()) {
             set((MapCollector<K, V>) NO_VALUE);
+        } else {
+            set(new MapCollectors.NoValue<>(value));
         }
     }
 

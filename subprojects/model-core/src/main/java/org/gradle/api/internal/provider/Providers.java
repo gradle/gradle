@@ -24,9 +24,7 @@ import org.gradle.internal.DisplayName;
 import javax.annotation.Nullable;
 
 public class Providers {
-    public static final String NULL_TRANSFORMER_RESULT = "Transformer for this provider returned a null value.";
-
-    private static final NoValueProvider NULL_PROVIDER = new NoValueProvider();
+    private static final NoValueProvider<Object> NULL_PROVIDER = new NoValueProvider<>(ValueSupplier.Value.MISSING);
 
     public static final Provider<Boolean> TRUE = of(true);
     public static final Provider<Boolean> FALSE = of(false);
@@ -47,11 +45,15 @@ public class Providers {
         return new FixedValueProvider<>(value);
     }
 
-    public static <T> ScalarSupplier<T> nullableValue(@Nullable T value) {
-        if (value == null) {
-            return noValue();
+    public static <T> ScalarSupplier<T> nullableValue(ValueSupplier.Value<? extends T> value) {
+        if (value.isMissing()) {
+            if (value.getPathToOrigin().isEmpty()) {
+                return noValue();
+            } else {
+                return new NoValueProvider<>(value);
+            }
         } else {
-            return fixedValue(value);
+            return fixedValue(value.get());
         }
     }
 
@@ -109,10 +111,17 @@ public class Providers {
         }
     }
 
-    private static class NoValueProvider extends AbstractMinimalProvider<Object> implements ScalarSupplier<Object> {
+    private static class NoValueProvider<T> extends AbstractMinimalProvider<T> implements ScalarSupplier<T> {
+        private final Value<? extends T> value;
+
+        public NoValueProvider(Value<? extends T> value) {
+            assert value.isMissing();
+            this.value = value;
+        }
+
         @Override
-        public Value<?> calculateValue() {
-            return new Missing<>();
+        public Value<? extends T> calculateValue() {
+            return value;
         }
 
         @Override
@@ -122,17 +131,17 @@ public class Providers {
 
         @Nullable
         @Override
-        public Class<Object> getType() {
+        public Class<T> getType() {
             return null;
         }
 
         @Override
-        protected Value<?> calculateOwnValue() {
+        protected Value<T> calculateOwnValue() {
             return Value.missing();
         }
 
         @Override
-        public <S> ProviderInternal<S> map(Transformer<? extends S, ? super Object> transformer) {
+        public <S> ProviderInternal<S> map(Transformer<? extends S, ? super T> transformer) {
             return Cast.uncheckedCast(this);
         }
 
@@ -142,27 +151,27 @@ public class Providers {
         }
 
         @Override
-        public ScalarSupplier<Object> asSupplier(DisplayName owner, Class<? super Object> targetType, ValueSanitizer<? super Object> sanitizer) {
+        public ScalarSupplier<T> asSupplier(DisplayName owner, Class<? super T> targetType, ValueSanitizer<? super T> sanitizer) {
             return this;
         }
 
         @Override
-        public ProviderInternal<Object> asProvider() {
+        public ProviderInternal<T> asProvider() {
             return this;
         }
 
         @Override
-        public ScalarSupplier<Object> withFinalValue() {
+        public ScalarSupplier<T> withFinalValue() {
             return this;
         }
 
         @Override
-        public Provider<Object> orElse(Object value) {
+        public Provider<T> orElse(T value) {
             return Providers.of(value);
         }
 
         @Override
-        public Provider<Object> orElse(Provider<?> provider) {
+        public Provider<T> orElse(Provider<? extends T> provider) {
             return Cast.uncheckedCast(provider);
         }
 
