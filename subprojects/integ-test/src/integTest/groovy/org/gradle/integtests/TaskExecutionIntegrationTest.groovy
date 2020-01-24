@@ -205,7 +205,6 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         executer.inDirectory(file('sub')).withTasks('c').withArguments('-x', 'a').run().assertTasksExecuted(':a', ':sub:b', ':sub:c')
     }
 
-    @ToBeFixedForInstantExecution
     def 'can use camel-case matching to exclude tasks'() {
         buildFile << """
 task someDep
