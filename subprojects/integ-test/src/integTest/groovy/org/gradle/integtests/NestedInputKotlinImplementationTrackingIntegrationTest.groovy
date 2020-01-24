@@ -24,6 +24,7 @@ import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Issue
 
 @Requires([TestPrecondition.KOTLIN_SCRIPT])
 @LeaksFileHandles
@@ -103,6 +104,7 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractPlu
     }
 
     @ToBeFixedForInstantExecution
+    @Issue("https://github.com/gradle/gradle/issues/11703")
     def "nested bean from closure can be used with the build cache"() {
         def project1 = file("project1").createDir()
         def project2 = file("project2").createDir()
