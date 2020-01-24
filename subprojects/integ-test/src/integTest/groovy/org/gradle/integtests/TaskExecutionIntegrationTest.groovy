@@ -217,7 +217,6 @@ task someTask(dependsOn: [someDep, someOtherDep])
         executer.withTasks("someTask").withArguments("-x", ":sODep").run().assertTasksExecuted(":someDep", ":someTask")
     }
 
-    @ToBeFixedForInstantExecution
     def 'can combine exclude task filters'() {
         buildFile << """
 task someDep
