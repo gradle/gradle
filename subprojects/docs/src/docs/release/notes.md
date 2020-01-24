@@ -35,7 +35,8 @@ For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility 
 ## Ephemeral CI: Reuse Gradle's Dependency Cache 
 
 It's increasingly common for CI/CD pipelines to run with ephemeral build agents.  Ephemeral build agents are single-use and can improve reliability by reducing interactions between builds. Each agent is thrown away at the end of the build and no state is reused between builds.
-Without optimizations, this can result in significantly longer build times because local caches like Gradle's dependency cache has to be refilled for each build. Every build pays the cost of re-downloading all dependencies.
+
+Without optimizations, this results in significantly longer build times because local caches like Gradle's dependency cache has to be refilled for each build. Every build pays the cost of re-downloading all dependencies.
  
 Starting with Gradle 6.1, [the dependency cache](userguide/dependency_resolution.html#sec:dependency_cache) can be copied to another directory or host.
 When a copy of the dependency cache is made available to an ephemeral build agent, builds will no longer need to access the network to download artifacts or metadata contained in the cache. 
@@ -47,7 +48,7 @@ See [the documentation](userguide/dependency_resolution.html#sub:cache_copy) for
 
 Gradle supports combining multiple JVM language in a single project, like mixing Java, Scala, Groovy and Kotlin source files.
 Each language has its own set of sources and a compile task.
-Previously, the relationships between the languages were defined in a way that was hard to change from a plugin or build.
+Previously, the relationships between the languages were defined in a way that was hard to change.
 
 With Gradle 6.1, the relationship between compilation tasks is now fully expressed through the classpath property of the tasks.
 This can be used to change the relationship between Java, Groovy, Kotlin and Scala compilation tasks to whatever order is required by the project.
