@@ -32,7 +32,7 @@ import javax.annotation.Nullable;
 /**
  * A partial {@link Provider} implementation. Subclasses need to implement {@link ProviderInternal#getType()} and {@link AbstractMinimalProvider#calculateOwnValue()}.
  */
-public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>, ScalarSupplier<T>, Managed {
+public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>, Managed {
     private static final DisplayName DEFAULT_DISPLAY_NAME = Describables.of("this provider");
 
     @Override
@@ -68,7 +68,7 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
         return DEFAULT_DISPLAY_NAME;
     }
 
-    protected abstract ScalarSupplier.Value<? extends T> calculateOwnValue();
+    protected abstract ValueSupplier.Value<? extends T> calculateOwnValue();
 
     @Override
     public boolean isPresent() {
@@ -140,12 +140,7 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
     }
 
     @Override
-    public ProviderInternal<T> asProvider() {
-        return this;
-    }
-
-    @Override
-    public ScalarSupplier<T> asSupplier(DisplayName owner, Class<? super T> targetType, ValueSanitizer<? super T> sanitizer) {
+    public ProviderInternal<T> asSupplier(DisplayName owner, Class<? super T> targetType, ValueSanitizer<? super T> sanitizer) {
         if (getType() != null && !targetType.isAssignableFrom(getType())) {
             throw new IllegalArgumentException(String.format("Cannot set the value of %s of type %s using a provider of type %s.", owner.getDisplayName(), targetType.getName(), getType().getName()));
         } else if (getType() == null) {
@@ -156,7 +151,7 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
     }
 
     @Override
-    public ScalarSupplier<T> withFinalValue() {
+    public ProviderInternal<T> withFinalValue() {
         return Providers.nullableValue(calculateValue());
     }
 
