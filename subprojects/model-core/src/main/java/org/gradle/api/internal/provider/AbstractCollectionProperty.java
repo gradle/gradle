@@ -37,7 +37,7 @@ import java.util.List;
 
 public abstract class AbstractCollectionProperty<T, C extends Collection<T>> extends AbstractProperty<C> implements CollectionPropertyInternal<T, C> {
     private static final EmptyCollection EMPTY_COLLECTION = new EmptyCollection();
-    private static final NoValueCollector NO_VALUE_COLLECTOR = new NoValueCollector();
+    private static final NoValueCollector<Object> NO_VALUE_COLLECTOR = new NoValueCollector<>(Value.missing());
     private final Class<? extends Collection> collectionType;
     private final Class<T> elementType;
     private final ValueCollector<T> valueCollector;
@@ -153,6 +153,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     }
 
     private Value<? extends C> doCalculateOwnValue() {
+        // TODO - don't create a new copy when value is final
         List<T> values = new ArrayList<>();
         Value<Void> result = value.maybeCollectInto(valueCollector, values);
         if (result.isMissing()) {
@@ -236,11 +237,13 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     @Override
     protected void makeFinal() {
-        C collection = doCalculateOwnValue().orNull();
-        if (collection != null) {
-            set(new ElementsFromCollection<T>(collection));
-        } else {
+        Value<? extends C> result = doCalculateOwnValue();
+        if (!result.isMissing()) {
+            set(new ElementsFromCollection<>(result.get()));
+        } else if (result.getPathToOrigin().isEmpty()) {
             set((Collector<T>) NO_VALUE_COLLECTOR);
+        } else {
+            set(new NoValueCollector<>(result));
         }
         convention = (Collector<T>) NO_VALUE_COLLECTOR;
     }

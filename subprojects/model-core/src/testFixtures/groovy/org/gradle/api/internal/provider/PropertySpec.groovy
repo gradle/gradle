@@ -880,11 +880,17 @@ The value of this provider is derived from:
 
         when:
         def present = property.present
-        def result = property.getOrNull()
 
         then:
         !present
-        result == null
+        0 * _
+
+        when:
+        property.get()
+
+        then:
+        def e = thrown(MissingValueException)
+        e.message == "Cannot query the value of this property because it has no value available."
         0 * _
     }
 
@@ -913,6 +919,31 @@ The value of this provider is derived from:
         and:
         !present
         result == null
+    }
+
+    def "finalized property with no value reports source of value when source is known"() {
+        def a = propertyWithNoValue()
+        a.attachDisplayName(Describables.of("<a>"))
+        def b = propertyWithNoValue()
+        b.attachDisplayName(Describables.of("<b>"))
+        def property = propertyWithNoValue()
+
+        given:
+        property.set(b)
+        b.set(a)
+
+        and:
+        property.finalizeValue()
+
+        when:
+        property.get()
+
+        then:
+        def e = thrown(MissingValueException)
+        e.message == TextUtil.toPlatformLineSeparators("""Cannot query the value of this property because it has no value available.
+The value of this property is derived from:
+  - <b>
+  - <a>""")
     }
 
     def "can finalize value when already finalized"() {

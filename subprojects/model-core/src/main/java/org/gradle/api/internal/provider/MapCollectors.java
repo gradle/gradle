@@ -284,7 +284,13 @@ public class MapCollectors {
         }
     }
 
-    public static class NoValue implements MapCollector<Object, Object> {
+    public static class NoValue<K, V> implements MapCollector<K, V> {
+        private final Value<Void> value;
+
+        public NoValue(Value<?> value) {
+            this.value = value.asType();
+            assert value.isMissing();
+        }
 
         @Override
         public boolean isPresent() {
@@ -292,17 +298,17 @@ public class MapCollectors {
         }
 
         @Override
-        public Value<Void> maybeCollectInto(MapEntryCollector<Object, Object> collector, Map<Object, Object> dest) {
-            return Value.missing();
+        public Value<Void> maybeCollectInto(MapEntryCollector<K, V> collector, Map<K, V> dest) {
+            return value;
         }
 
         @Override
-        public Value<Void> maybeCollectKeysInto(ValueCollector<Object> collector, Collection<Object> dest) {
-            return Value.missing();
+        public Value<Void> maybeCollectKeysInto(ValueCollector<K> collector, Collection<K> dest) {
+            return value;
         }
 
         @Override
-        public void visit(List<ProviderInternal<? extends Map<?, ?>>> sources) {
+        public void visit(List<ProviderInternal<? extends Map<? extends K, ? extends V>>> sources) {
         }
 
         @Override

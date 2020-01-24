@@ -332,19 +332,26 @@ public class Collectors {
         }
     }
 
-    public static class NoValueCollector implements Collector<Object> {
+    public static class NoValueCollector<T> implements Collector<T> {
+        private final Value<Void> value;
+
+        public NoValueCollector(Value<?> value) {
+            assert value.isMissing();
+            this.value = value.asType();
+        }
+
         @Override
         public boolean isPresent() {
             return false;
         }
 
         @Override
-        public Value<Void> maybeCollectInto(ValueCollector<Object> collector, Collection<Object> collection) {
-            return Value.missing();
+        public Value<Void> maybeCollectInto(ValueCollector<T> collector, Collection<T> collection) {
+            return value;
         }
 
         @Override
-        public void visit(List<ProviderInternal<? extends Iterable<?>>> sources) {
+        public void visit(List<ProviderInternal<? extends Iterable<? extends T>>> sources) {
         }
 
         @Override
