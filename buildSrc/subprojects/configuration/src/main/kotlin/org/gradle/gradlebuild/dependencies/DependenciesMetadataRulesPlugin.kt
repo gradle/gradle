@@ -79,7 +79,9 @@ open class DependenciesMetadataRulesPlugin : Plugin<Project> {
                 withLibraryDependencies("org.gradle.org.littleshoot:littleproxy", DependencyRemovalByNameRule::class,
                     setOf("barchart-udt-bundle", "guava", "commons-cli"))
 
-                // Gradle profiler should use the bundled tooling API
+                // TODO: Gradle profiler should use the bundled tooling API.
+                //   This should actually be handled by conflict resolution, though it doesn't seem to work.
+                //   See https://github.com/gradle/gradle/issues/12002.
                 withLibraryDependencies("org.gradle.profiler:gradle-profiler", DependencyRemovalByNameRule::class,
                     setOf("gradle-tooling-api"))
             }
