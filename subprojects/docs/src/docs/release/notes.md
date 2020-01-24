@@ -68,7 +68,7 @@ tasks.named('compileKotlin') {
 }
 ```
 
-See [the documentation](userguide/building_java_projects.html#sec:building_jvm_lang) for more details.
+See [the documentation](userguide/building_java_projects.html#sub:compile_deps_jvm_lang) for more details.
 
 <a name="samples"></a>
 ## Downloadable Gradle Samples
