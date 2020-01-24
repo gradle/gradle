@@ -45,6 +45,11 @@ public class DefaultListProperty<T> extends AbstractCollectionProperty<T, List<T
     }
 
     @Override
+    protected List<T> asEmpty() {
+        return ImmutableList.of();
+    }
+
+    @Override
     public ListProperty<T> empty() {
         super.empty();
         return this;

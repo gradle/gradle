@@ -35,6 +35,11 @@ public class DefaultSetProperty<T> extends AbstractCollectionProperty<T, Set<T>>
     }
 
     @Override
+    protected Set<T> asEmpty() {
+        return ImmutableSet.of();
+    }
+
+    @Override
     public Class<?> publicType() {
         return SetProperty.class;
     }
