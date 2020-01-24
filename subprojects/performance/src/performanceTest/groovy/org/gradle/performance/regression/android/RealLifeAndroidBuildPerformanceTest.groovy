@@ -32,7 +32,7 @@ import static org.gradle.performance.regression.android.IncrementalAndroidTestPr
 
 class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProfilerPerformanceTest {
 
-    private static final String SANTA_AGP_VERSION_MINOR = "3.6"
+    private static final String SANTA_AGP_TARGET_VERSION = "3.6"
 
     def setup() {
         runner.args = [AndroidGradlePluginVersions.OVERRIDE_VERSION_CHECK]
@@ -56,7 +56,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
 
         and:
         if (testProject == SANTA_TRACKER_KOTLIN) {
-            (testProject as IncrementalAndroidTestProject).configureForLatestAgpVersionOfMinor(runner, SANTA_AGP_VERSION_MINOR)
+            (testProject as IncrementalAndroidTestProject).configureForLatestAgpVersionOfMinor(runner, SANTA_AGP_TARGET_VERSION)
         }
 
         when:
@@ -93,7 +93,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
 
         and:
         if (testProject == SANTA_TRACKER_KOTLIN) {
-            (testProject as IncrementalAndroidTestProject).configureForLatestAgpVersionOfMinor(runner, SANTA_AGP_VERSION_MINOR)
+            (testProject as IncrementalAndroidTestProject).configureForLatestAgpVersionOfMinor(runner, SANTA_AGP_TARGET_VERSION)
         }
 
         when:
@@ -113,7 +113,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
     def "abi change on #testProject"() {
         given:
         testProject.configureForAbiChange(runner)
-        testProject.configureForLatestAgpVersionOfMinor(runner, SANTA_AGP_VERSION_MINOR)
+        testProject.configureForLatestAgpVersionOfMinor(runner, SANTA_AGP_TARGET_VERSION)
         runner.args.add('-Dorg.gradle.parallel=true')
         applyEnterprisePlugin()
 
@@ -131,7 +131,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
     def "non-abi change on #testProject"() {
         given:
         testProject.configureForNonAbiChange(runner)
-        testProject.configureForLatestAgpVersionOfMinor(runner, SANTA_AGP_VERSION_MINOR)
+        testProject.configureForLatestAgpVersionOfMinor(runner, SANTA_AGP_TARGET_VERSION)
         runner.args.add('-Dorg.gradle.parallel=true')
         applyEnterprisePlugin()
 
