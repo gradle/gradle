@@ -28,42 +28,6 @@ import java.util.Map;
 
 public class MapCollectors {
 
-    public static class EmptyMap implements MapCollector<Object, Object> {
-
-        @Override
-        public boolean isPresent() {
-            return true;
-        }
-
-        @Override
-        public Value<Void> maybeCollectInto(MapEntryCollector<Object, Object> collector, Map<Object, Object> dest) {
-            return Value.present();
-        }
-
-        @Override
-        public Value<Void> maybeCollectKeysInto(ValueCollector<Object> collector, Collection<Object> dest) {
-            return Value.present();
-        }
-
-        @Override
-        public void visit(List<ProviderInternal<? extends Map<?, ?>>> sources) {
-        }
-
-        @Override
-        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-            return true;
-        }
-
-        @Override
-        public void visitProducerTasks(Action<? super Task> visitor) {
-        }
-
-        @Override
-        public boolean isValueProducedByTask() {
-            return false;
-        }
-    }
-
     public static class SingleEntry<K, V> implements MapCollector<K, V> {
 
         private final K key;
@@ -281,48 +245,6 @@ public class MapCollectors {
         @Override
         public boolean isValueProducedByTask() {
             return providerOfEntries.isValueProducedByTask();
-        }
-    }
-
-    public static class NoValue<K, V> implements MapCollector<K, V> {
-        private final Value<Void> value;
-
-        public NoValue(Value<?> value) {
-            this.value = value.asType();
-            assert value.isMissing();
-        }
-
-        @Override
-        public boolean isPresent() {
-            return false;
-        }
-
-        @Override
-        public Value<Void> maybeCollectInto(MapEntryCollector<K, V> collector, Map<K, V> dest) {
-            return value;
-        }
-
-        @Override
-        public Value<Void> maybeCollectKeysInto(ValueCollector<K> collector, Collection<K> dest) {
-            return value;
-        }
-
-        @Override
-        public void visit(List<ProviderInternal<? extends Map<? extends K, ? extends V>>> sources) {
-        }
-
-        @Override
-        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-            return true;
-        }
-
-        @Override
-        public void visitProducerTasks(Action<? super Task> visitor) {
-        }
-
-        @Override
-        public boolean isValueProducedByTask() {
-            return false;
         }
     }
 }
