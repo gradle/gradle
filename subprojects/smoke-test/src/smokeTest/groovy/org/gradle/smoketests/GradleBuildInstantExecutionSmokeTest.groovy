@@ -32,9 +32,15 @@ class GradleBuildInstantExecutionSmokeTest extends AbstractSmokeTest {
         new TestFile("build/gradleBuildCurrent").copyTo(testProjectDir.root)
 
         and:
-        def supportedTasks = ["help"]
+        def supportedTasks = [
+            ":distributions:binZip",
+            ":core:integTest", "--tests=NameValidationIntegrationTest"
+        ]
 
-        when:
+        when: 'clean build without instant execution'
+        run(":distributions:binZip", "-q")
+
+        and:
         def result = instantRun(*supportedTasks)
 
         then:
@@ -48,18 +54,18 @@ class GradleBuildInstantExecutionSmokeTest extends AbstractSmokeTest {
     }
 
     private BuildResult instantRun(String... tasks) {
-        def testArgs = ["-Dorg.gradle.unsafe.instant-execution=true"]
-        return run(*(tasks + testArgs))
+        return run(*(tasks + ["-Dorg.gradle.unsafe.instant-execution=true"]))
     }
 
     private BuildResult run(String... tasks) {
         return runner(*(tasks + GRADLE_BUILD_TEST_ARGS))
             .withEnvironment(
-                /// Run the test build without the CI environment variable
-                /// so `buildTimestamp` doesn't change between invocations
-                /// (which would invalidate the instant execution cache).
-                /// See BuildVersionPlugin in buildSrc.
                 new HashMap(System.getenv()).tap {
+                    put("JAVA_HOME", System.getenv("GRADLE_BUILD_JAVA_HOME"))
+                    // Run the test build without the CI environment variable
+                    // so `buildTimestamp` doesn't change between invocations
+                    // (which would invalidate the instant execution cache).
+                    // See BuildVersionPlugin in buildSrc.
                     remove("CI")
                 }
             )
@@ -67,6 +73,8 @@ class GradleBuildInstantExecutionSmokeTest extends AbstractSmokeTest {
     }
 
     private static final String[] GRADLE_BUILD_TEST_ARGS = [
+        "--dependency-verification=off", // TODO:instant-execution remove once handled
+        "-Dorg.gradle.unsafe.kotlin-eap=true", // TODO:instant-execution kotlin 1.3.61 doesn't support instant execution
         "-PbuildSrcCheck=false",
         "-DcompileJavaHome=${System.getenv("GRADLE_BUILD_JAVA_HOME")}",
         "-DtestJavaHome=${System.getenv("GRADLE_BUILD_JAVA_HOME")}"
