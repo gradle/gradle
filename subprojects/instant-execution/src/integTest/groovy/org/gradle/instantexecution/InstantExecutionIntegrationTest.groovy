@@ -894,5 +894,4 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         outputContains("thisTask = true")
         outputContains("bean.owner = true")
     }
-
 }
