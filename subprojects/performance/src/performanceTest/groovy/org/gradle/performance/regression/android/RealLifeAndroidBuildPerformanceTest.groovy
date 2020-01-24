@@ -47,14 +47,16 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
         given:
         testProject.configure(runner)
         runner.tasksToRun = tasks.split(' ')
-        runner.args = parallel ? ['-Dorg.gradle.parallel=true'] : []
+        if (parallel) {
+            runner.args.add('-Dorg.gradle.parallel=true')
+        }
         runner.warmUpRuns = warmUpRuns
         runner.runs = runs
         applyEnterprisePlugin()
 
         and:
         if (testProject == SANTA_TRACKER_KOTLIN) {
-            testProject.configureForLatestAgpVersionOfMinor(runner, SANTA_AGP_VERSION_MINOR)
+            (testProject as IncrementalAndroidTestProject).configureForLatestAgpVersionOfMinor(runner, SANTA_AGP_VERSION_MINOR)
         }
 
         when:
@@ -80,7 +82,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
         given:
         testProject.configure(runner)
         runner.tasksToRun = tasks.split(' ')
-        runner.args = ['-Dorg.gradle.parallel=true']
+        runner.args.add('-Dorg.gradle.parallel=true')
         runner.warmUpRuns = warmUpRuns
         runner.cleanTasks = ["clean"]
         runner.runs = runs
@@ -91,7 +93,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
 
         and:
         if (testProject == SANTA_TRACKER_KOTLIN) {
-            testProject.configureForLatestAgpVersionOfMinor(runner, SANTA_AGP_VERSION_LOWER_BOUND)
+            (testProject as IncrementalAndroidTestProject).configureForLatestAgpVersionOfMinor(runner, SANTA_AGP_VERSION_MINOR)
         }
 
         when:
@@ -111,7 +113,8 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
     def "abi change on #testProject"() {
         given:
         testProject.configureForAbiChange(runner)
-        runner.args = ['-Dorg.gradle.parallel=true']
+        testProject.configureForLatestAgpVersionOfMinor(runner, SANTA_AGP_VERSION_MINOR)
+        runner.args.add('-Dorg.gradle.parallel=true')
         applyEnterprisePlugin()
 
         when:
@@ -128,7 +131,8 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
     def "non-abi change on #testProject"() {
         given:
         testProject.configureForNonAbiChange(runner)
-        runner.args = ['-Dorg.gradle.parallel=true']
+        testProject.configureForLatestAgpVersionOfMinor(runner, SANTA_AGP_VERSION_MINOR)
+        runner.args.add('-Dorg.gradle.parallel=true')
         applyEnterprisePlugin()
 
         when:
