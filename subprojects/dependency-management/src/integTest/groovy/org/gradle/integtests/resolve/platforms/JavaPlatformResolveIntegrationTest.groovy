@@ -132,7 +132,7 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
         }
     }
 
-    def "reasonable behavior when using a regular project dependency instead of a platform dependency"() {
+    def "fails when using a regular project dependency instead of a platform dependency"() {
         def module = mavenHttpRepo.module("org", "foo", "1.1").publish()
 
         given:
@@ -143,6 +143,10 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
         """)
 
         buildFile << """
+            java {
+                targetCompatibility = JavaVersion.VERSION_1_8
+                sourceCompatibility = JavaVersion.VERSION_1_8
+            }
             dependencies {
                 api project(":platform")
                 api "org:foo"
@@ -151,24 +155,42 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
         checkConfiguration("compileClasspath")
 
         when:
-        module.pom.expectGet()
-        module.artifact.expectGet()
-
-        run ":checkDeps"
+        fails ":checkDeps"
 
         then:
-        resolve.expectGraph {
-            root(":", "org.test:test:1.9") {
-                project(":platform", "org.test:platform:1.9") {
-                    variant("apiElements", ['org.gradle.usage': 'java-api', 'org.gradle.category': 'platform'])
-                    constraint("org:foo:1.1")
-                    noArtifacts()
-                }
-                edge('org:foo', 'org:foo:1.1') {
-                    byConstraint()
-                }
-            }
-        }
+        failure.assertHasCause('''Unable to find a matching variant of project :platform:
+  - Variant 'apiElements' capability org.test:platform:1.9:
+      - Incompatible attribute:
+          - Required org.gradle.category 'library' and found incompatible value 'platform'.
+      - Other attributes:
+          - Required org.gradle.dependency.bundling 'external' but no value provided.
+          - Required org.gradle.jvm.version '8' but no value provided.
+          - Required org.gradle.libraryelements 'classes' but no value provided.
+          - Required org.gradle.usage 'java-api' and found compatible value 'java-api'.
+  - Variant 'enforcedApiElements' capability org.test:platform-derived-enforced-platform:1.9:
+      - Incompatible attribute:
+          - Required org.gradle.category 'library' and found incompatible value 'enforced-platform'.
+      - Other attributes:
+          - Required org.gradle.dependency.bundling 'external' but no value provided.
+          - Required org.gradle.jvm.version '8' but no value provided.
+          - Required org.gradle.libraryelements 'classes' but no value provided.
+          - Required org.gradle.usage 'java-api' and found compatible value 'java-api'.
+  - Variant 'enforcedRuntimeElements' capability org.test:platform-derived-enforced-platform:1.9:
+      - Incompatible attribute:
+          - Required org.gradle.category 'library' and found incompatible value 'enforced-platform'.
+      - Other attributes:
+          - Required org.gradle.dependency.bundling 'external' but no value provided.
+          - Required org.gradle.jvm.version '8' but no value provided.
+          - Required org.gradle.libraryelements 'classes' but no value provided.
+          - Required org.gradle.usage 'java-api' and found compatible value 'java-runtime'.
+  - Variant 'runtimeElements' capability org.test:platform:1.9:
+      - Incompatible attribute:
+          - Required org.gradle.category 'library' and found incompatible value 'platform'.
+      - Other attributes:
+          - Required org.gradle.dependency.bundling 'external' but no value provided.
+          - Required org.gradle.jvm.version '8' but no value provided.
+          - Required org.gradle.libraryelements 'classes' but no value provided.
+          - Required org.gradle.usage 'java-api' and found compatible value 'java-runtime'.''')
     }
 
     def "can enforce a local platform dependency"() {

@@ -1729,6 +1729,7 @@ org:leaf2:1.0
 project :
    variant "runtimeClasspath" [
       org.gradle.usage               = java-runtime
+      org.gradle.category            = library
       org.gradle.libraryelements     = jar
       org.gradle.dependency.bundling = external
       org.gradle.jvm.version         = $jvmVersion
@@ -1737,7 +1738,7 @@ project :
       org.gradle.usage               = java-runtime
       org.gradle.libraryelements     = jar
       org.gradle.dependency.bundling = external
-      org.gradle.category            = library (not requested)
+      org.gradle.category            = library
       org.gradle.jvm.version         = $jvmVersion
    ]
 
@@ -1788,7 +1789,7 @@ org:leaf2:1.0
       org.gradle.status              = release (not requested)
       org.gradle.usage               = java-runtime
       org.gradle.libraryelements     = jar
-      org.gradle.category            = library (not requested)
+      org.gradle.category            = library
 
       Requested attributes not found in the selected variant:
          org.gradle.dependency.bundling = external
@@ -1843,7 +1844,7 @@ project :impl
       org.gradle.usage               = java-api
       org.gradle.libraryelements     = jar (compatible with: classes)
       org.gradle.dependency.bundling = external
-      org.gradle.category            = library (not requested)
+      org.gradle.category            = library
       org.gradle.jvm.version         = $jvmVersion
    ]
 
@@ -1896,7 +1897,7 @@ org:leaf4:1.0
       org.gradle.status              = release (not requested)
       org.gradle.usage               = java-api
       org.gradle.libraryelements     = jar (compatible with: classes)
-      org.gradle.category            = library (not requested)
+      org.gradle.category            = library
 
       Requested attributes not found in the selected variant:
          org.gradle.dependency.bundling = external
@@ -1935,7 +1936,7 @@ org:leaf1:1.0
       org.gradle.status              = release (not requested)
       org.gradle.usage               = java-api
       org.gradle.libraryelements     = jar (compatible with: classes)
-      org.gradle.category            = library (not requested)
+      org.gradle.category            = library
 
       Requested attributes not found in the selected variant:
          org.gradle.dependency.bundling = external
@@ -1956,7 +1957,7 @@ org:leaf2:1.0
       org.gradle.status              = release (not requested)
       org.gradle.usage               = java-api
       org.gradle.libraryelements     = jar (compatible with: classes)
-      org.gradle.category            = library (not requested)
+      org.gradle.category            = library
 
       Requested attributes not found in the selected variant:
          org.gradle.dependency.bundling = external
@@ -2018,7 +2019,7 @@ project :api
       org.gradle.usage               = java-api
       org.gradle.libraryelements     = jar (compatible with: classes)
       org.gradle.dependency.bundling = external
-      org.gradle.category            = library (not requested)
+      org.gradle.category            = library
       org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
    ]
 
@@ -2037,7 +2038,7 @@ project :some:deeply:nested
       org.gradle.usage               = java-api
       org.gradle.libraryelements     = jar (compatible with: classes)
       org.gradle.dependency.bundling = external
-      org.gradle.category            = library (not requested)
+      org.gradle.category            = library
       org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
    ]
 
@@ -2055,7 +2056,7 @@ project :some:deeply:nested
       org.gradle.usage               = java-api
       org.gradle.libraryelements     = jar (compatible with: classes)
       org.gradle.dependency.bundling = external
-      org.gradle.category            = library (not requested)
+      org.gradle.category            = library
       org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
    ]
 
@@ -2107,7 +2108,7 @@ org:leaf3:1.0
       org.gradle.status              = release (not requested)
       org.gradle.usage               = java-api
       org.gradle.libraryelements     = jar (compatible with: classes)
-      org.gradle.category            = library (not requested)
+      org.gradle.category            = library
 
       Requested attributes not found in the selected variant:
          org.gradle.dependency.bundling = external
@@ -2215,7 +2216,7 @@ foo:foo:1.0
       org.gradle.status              = release (not requested)
       org.gradle.usage               = java-api
       org.gradle.libraryelements     = jar (compatible with: classes)
-      org.gradle.category            = library (not requested)
+      org.gradle.category            = library
 
       Requested attributes not found in the selected variant:
          org.gradle.dependency.bundling = external
@@ -2272,7 +2273,7 @@ org:foo -> $selected
       org.gradle.status              = release (not requested)
       org.gradle.usage               = java-api
       org.gradle.libraryelements     = jar (compatible with: classes)
-      org.gradle.category            = library (not requested)
+      org.gradle.category            = library
 
       Requested attributes not found in the selected variant:
          org.gradle.dependency.bundling = external
@@ -2326,7 +2327,7 @@ org:foo -> $selected
       org.gradle.status              = release (not requested)
       org.gradle.usage               = java-api
       org.gradle.libraryelements     = jar (compatible with: classes)
-      org.gradle.category            = library (not requested)
+      org.gradle.category            = library
 
       Requested attributes not found in the selected variant:
          org.gradle.dependency.bundling = external
@@ -2377,7 +2378,7 @@ org:foo:${displayVersion} -> $selected
       org.gradle.status              = release (not requested)
       org.gradle.usage               = java-api
       org.gradle.libraryelements     = jar (compatible with: classes)
-      org.gradle.category            = library (not requested)
+      org.gradle.category            = library
 
       Requested attributes not found in the selected variant:
          org.gradle.dependency.bundling = external
@@ -2434,7 +2435,7 @@ org:foo:[1.1,1.3] -> 1.3
       org.gradle.status              = release (not requested)
       org.gradle.usage               = java-api
       org.gradle.libraryelements     = jar (compatible with: classes)
-      org.gradle.category            = library (not requested)
+      org.gradle.category            = library
 
       Requested attributes not found in the selected variant:
          org.gradle.dependency.bundling = external
@@ -2451,7 +2452,7 @@ org:foo:1.1
       org.gradle.status              = release (not requested)
       org.gradle.usage               = java-api
       org.gradle.libraryelements     = jar (compatible with: classes)
-      org.gradle.category            = library (not requested)
+      org.gradle.category            = library
 
       Requested attributes not found in the selected variant:
          org.gradle.dependency.bundling = external
@@ -2512,7 +2513,7 @@ org:bar:1.0
       org.gradle.status              = release (not requested)
       org.gradle.usage               = java-api
       org.gradle.libraryelements     = jar (compatible with: classes)
-      org.gradle.category            = library (not requested)
+      org.gradle.category            = library
 
       Requested attributes not found in the selected variant:
          org.gradle.dependency.bundling = external
@@ -2530,7 +2531,7 @@ org:foo:1.1
       org.gradle.status              = release (not requested)
       org.gradle.usage               = java-api
       org.gradle.libraryelements     = jar (compatible with: classes)
-      org.gradle.category            = library (not requested)
+      org.gradle.category            = library
 
       Requested attributes not found in the selected variant:
          org.gradle.dependency.bundling = external
@@ -2576,7 +2577,7 @@ org:leaf:1.0 (by constraint)
       org.gradle.status              = release (not requested)
       org.gradle.usage               = java-api
       org.gradle.libraryelements     = jar (compatible with: classes)
-      org.gradle.category            = library (not requested)
+      org.gradle.category            = library
 
       Requested attributes not found in the selected variant:
          org.gradle.dependency.bundling = external
@@ -2629,7 +2630,7 @@ org.test:leaf:1.0
       org.gradle.status              = release (not requested)
       org.gradle.usage               = java-api
       org.gradle.libraryelements     = jar (compatible with: classes)
-      org.gradle.category            = library (not requested)
+      org.gradle.category            = library
 
       Requested attributes not found in the selected variant:
          org.gradle.dependency.bundling = external
@@ -2813,7 +2814,7 @@ org:foo:1.0
       org.gradle.status              = release (not requested)
       org.gradle.usage               = java-api
       org.gradle.libraryelements     = jar (compatible with: classes)
-      org.gradle.category            = library (not requested)
+      org.gradle.category            = library
 
       Requested attributes not found in the selected variant:
          org.gradle.dependency.bundling = external
@@ -2869,7 +2870,7 @@ org:foo:{require [1.0,); reject 1.1} -> 1.0
       org.gradle.status              = release (not requested)
       org.gradle.usage               = java-api
       org.gradle.libraryelements     = jar (compatible with: classes)
-      org.gradle.category            = library (not requested)
+      org.gradle.category            = library
 
       Requested attributes not found in the selected variant:
          org.gradle.dependency.bundling = external
@@ -2936,7 +2937,7 @@ org:foo:1.0
       org.gradle.status              = release (not requested)
       org.gradle.usage               = java-api
       org.gradle.libraryelements     = jar (compatible with: classes)
-      org.gradle.category            = library (not requested)
+      org.gradle.category            = library
 
       Requested attributes not found in the selected variant:
          org.gradle.dependency.bundling = external
@@ -2945,12 +2946,14 @@ org:foo:1.0
    Selection reasons:
       - Rejection : version 1.2:
           - Attribute 'color' didn't match. Requested 'blue', was: 'red'
+          - Attribute 'org.gradle.category' didn't match. Requested 'library', was: not found
           - Attribute 'org.gradle.dependency.bundling' didn't match. Requested 'external', was: not found
           - Attribute 'org.gradle.jvm.version' didn't match. Requested '${JavaVersion.current().majorVersion}', was: not found
           - Attribute 'org.gradle.libraryelements' didn't match. Requested 'classes', was: not found
           - Attribute 'org.gradle.usage' didn't match. Requested 'java-api', was: not found
       - Rejection : version 1.1:
           - Attribute 'color' didn't match. Requested 'blue', was: 'green'
+          - Attribute 'org.gradle.category' didn't match. Requested 'library', was: not found
           - Attribute 'org.gradle.dependency.bundling' didn't match. Requested 'external', was: not found
           - Attribute 'org.gradle.jvm.version' didn't match. Requested '${JavaVersion.current().majorVersion}', was: not found
           - Attribute 'org.gradle.libraryelements' didn't match. Requested 'classes', was: not found
@@ -3014,7 +3017,7 @@ planet:mercury:1.0.2
       org.gradle.status              = release (not requested)
       org.gradle.usage               = java-api
       org.gradle.libraryelements     = jar (compatible with: classes)
-      org.gradle.category            = library (not requested)
+      org.gradle.category            = library
 
       Requested attributes not found in the selected variant:
          org.gradle.dependency.bundling = external
@@ -3046,7 +3049,7 @@ planet:venus:2.0.1
       org.gradle.status              = release (not requested)
       org.gradle.usage               = java-api
       org.gradle.libraryelements     = jar (compatible with: classes)
-      org.gradle.category            = library (not requested)
+      org.gradle.category            = library
 
       Requested attributes not found in the selected variant:
          org.gradle.dependency.bundling = external
@@ -3078,7 +3081,7 @@ planet:pluto:1.0.0
       org.gradle.status              = release (not requested)
       org.gradle.usage               = java-api
       org.gradle.libraryelements     = jar (compatible with: classes)
-      org.gradle.category            = library (not requested)
+      org.gradle.category            = library
 
       Requested attributes not found in the selected variant:
          org.gradle.dependency.bundling = external
