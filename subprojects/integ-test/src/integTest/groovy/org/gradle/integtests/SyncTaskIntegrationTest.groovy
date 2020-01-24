@@ -428,7 +428,6 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/9586")
-    @ToBeFixedForInstantExecution
     def "change in case of input folder will sync properly"() {
         given:
         def uppercaseDir = file('DIR')
