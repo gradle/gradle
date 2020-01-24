@@ -81,14 +81,14 @@ class IncrementalAndroidTestProject extends AndroidTestProject {
     @Override
     void configure(GradleProfilerCrossVersionPerformanceTestRunner runner) {
         super.configure(runner)
-        runner.gradleOpts.add(ENABLE_AGP_IDE_MODE_ARG)
+        runner.args.add(ENABLE_AGP_IDE_MODE_ARG)
     }
 
     @Override
     void configure(GradleBuildExperimentSpec.GradleBuilder builder) {
         super.configure(builder)
         builder.invocation {
-            gradleOptions.add(ENABLE_AGP_IDE_MODE_ARG)
+            args.add(ENABLE_AGP_IDE_MODE_ARG)
         }
     }
 
