@@ -31,7 +31,6 @@ import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.caching.internal.origin.OriginReader;
 import org.gradle.caching.internal.origin.OriginWriter;
 import org.gradle.caching.internal.packaging.BuildCacheEntryPacker;
-import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.hash.HashCode;
@@ -66,9 +65,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.gradle.caching.internal.packaging.impl.PackerDirectoryUtil.ensureDirectoryForTree;
-import static org.gradle.caching.internal.packaging.impl.PackerDirectoryUtil.makeDirectory;
-
 /**
  * Packages build cache entries to a POSIX TAR file.
  */
@@ -89,13 +85,18 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
     private static final int BUFFER_SIZE = 64 * 1024;
     private static final ThreadLocal<byte[]> COPY_BUFFERS = ThreadLocal.withInitial(() -> new byte[BUFFER_SIZE]);
 
-    private final Deleter deleter;
+    private final TarPackerFileSystemSupport fileSystemSupport;
     private final FilePermissionAccess filePermissionAccess;
     private final StreamHasher streamHasher;
     private final Interner<String> stringInterner;
 
-    public TarBuildCacheEntryPacker(Deleter deleter, FilePermissionAccess filePermissionAccess, StreamHasher streamHasher, Interner<String> stringInterner) {
-        this.deleter = deleter;
+    public TarBuildCacheEntryPacker(
+        TarPackerFileSystemSupport fileSystemSupport,
+        FilePermissionAccess filePermissionAccess,
+        StreamHasher streamHasher,
+        Interner<String> stringInterner
+    ) {
+        this.fileSystemSupport = fileSystemSupport;
         this.filePermissionAccess = filePermissionAccess;
         this.streamHasher = streamHasher;
         this.stringInterner = stringInterner;
@@ -231,11 +232,11 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
         }
         // We are handling the root of the tree here
         if (missing) {
-            unpackMissingFile(treeRoot);
+            fileSystemSupport.ensureFileIsMissing(treeRoot);
             return input.getNextTarEntry();
         }
 
-        ensureDirectoryForTree(deleter, treeType, treeRoot);
+        fileSystemSupport.ensureDirectoryForTree(treeType, treeRoot);
         if (treeType == TreeType.FILE) {
             if (isDirEntry) {
                 throw new IllegalStateException("Should be a file: " + treeName);
@@ -251,13 +252,6 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
         chmodUnpackedFile(rootEntry, treeRoot);
 
         return unpackDirectoryTree(input, rootEntry, snapshots, entries, treeRoot, treeName);
-    }
-
-    private void unpackMissingFile(File treeRoot) throws IOException {
-        if (!makeDirectory(deleter, treeRoot.getParentFile())) {
-            // Make sure tree is removed if it exists already
-            deleter.deleteRecursively(treeRoot);
-        }
     }
 
     private RegularFileSnapshot unpackFile(TarArchiveInputStream input, TarArchiveEntry entry, File file, String fileName) throws IOException {
