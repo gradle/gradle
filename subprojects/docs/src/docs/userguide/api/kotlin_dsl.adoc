@@ -134,7 +134,7 @@ If the above doesn't work and you suspect an issue with the Kotlin DSL script ed
 From version 5.1 onwards, the log directory is cleaned up automatically.
 It is checked periodically (at most every 24 hours) and log files are deleted if they haven’t been used for 7 days.
 
-If the above isn't enough to pinpoint the problem, you can enable the `org.gradle.kotlin.dsl.logging.tapi` system property in your IDE. This will cause the Gradle Daemon to log extra information in its log file located in `&HOME/.gradle/daemons`. In IntelliJ IDEA this can be done by opening `Help > Edit Custom VM Options...` and adding `-Dorg.gradle.kotlin.dsl.logging.tapi=true`.
+If the above isn't enough to pinpoint the problem, you can enable the `org.gradle.kotlin.dsl.logging.tapi` system property in your IDE. This will cause the Gradle Daemon to log extra information in its log file located in `$HOME/.gradle/daemons`. In IntelliJ IDEA this can be done by opening `Help > Edit Custom VM Options...` and adding `-Dorg.gradle.kotlin.dsl.logging.tapi=true`.
 
 For IDE problems outside of the Kotlin DSL script editor, please open issues in the corresponding IDE's issue tracker:
 
