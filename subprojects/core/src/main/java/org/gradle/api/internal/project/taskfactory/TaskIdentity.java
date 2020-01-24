@@ -93,4 +93,8 @@ public final class TaskIdentity<T extends Task> {
     public String getProjectPath() {
         return projectPath.getParent().getPath();
     }
+
+    public String getIdentityPath() {
+        return identityPath.getPath();
+    }
 }

@@ -120,7 +120,6 @@ public class BuildOperatingFiringTaskExecutionPreparer implements TaskExecutionP
             });
         }
 
-
         TaskExecutionGraphInternal populateTaskGraph() {
             delegate.prepareForTaskExecution(gradle);
             return gradle.getTaskGraph();

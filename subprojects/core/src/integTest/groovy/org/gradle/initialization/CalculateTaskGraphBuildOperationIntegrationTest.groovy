@@ -102,39 +102,6 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
         operation().result.taskPlan.task.taskPath == [':otherTask', ':someTask', ':a:otherTask', ':a:someTask', ':b:otherTask', ':b:someTask', ':a:c:otherTask', ':a:c:someTask']
     }
 
-    @ToBeFixedForInstantExecution
-    def "captures full plan details"() {
-        settingsFile << """
-        """
-
-        buildFile << """
-                task independentTask
-                task otherTask
-                task anotherTask
-                task firstTask
-                task secondTask
-                task lastTask
-                task someTask
-
-                someTask.dependsOn anotherTask
-                someTask.dependsOn otherTask
-                someTask.mustRunAfter firstTask
-                someTask.shouldRunAfter secondTask
-                someTask.finalizedBy lastTask
-        """
-        when:
-        succeeds('independentTask', 'someTask')
-
-        then:
-        operation().result.taskPlan.task.taskPath == [":independentTask", ":anotherTask", ":otherTask", ":someTask", ":lastTask"]
-        operation().result.taskPlan[3].task.taskPath == ":someTask"
-        operation().result.taskPlan[3].dependencies.taskPath as Set == [":otherTask", ":anotherTask"] as Set
-        operation().result.taskPlan[3].finalizedBy.taskPath == [":lastTask"]
-        operation().result.taskPlan[3].mustRunAfter.taskPath == [":firstTask"]
-        operation().result.taskPlan[3].shouldRunAfter.taskPath == [":secondTask"]
-    }
-
-
     def "errors in calculating task graph are exposed"() {
         when:
         fails('someNonexistent')
@@ -179,6 +146,62 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
         taskGraphCalculations[1].result.requestedTaskPaths == [":build"]
         taskGraphCalculations[2].details.buildPath== ":b"
         taskGraphCalculations[2].result.requestedTaskPaths == [":compileJava", ":jar"]
+    }
+
+    @ToBeFixedForInstantExecution
+    def "exposes plan details"() {
+        file("included-build").mkdir()
+        file("included-build/settings.gradle")
+        file("included-build/build.gradle") << """
+        apply plugin:'java-library'
+        group = 'org.acme'
+        version = '1.0'
+        """
+
+        file('src/main/java/org/acme/Library.java') << """
+        package org.acme;
+
+        class Library {
+        }
+        """
+        settingsFile << """
+            includeBuild 'included-build'
+        """
+
+        buildFile << """
+                apply plugin:'java-library'
+
+                dependencies {
+                    implementation 'org.acme:included-build:1.0'
+                }
+                task independentTask
+                task otherTask
+                task anotherTask
+                task firstTask
+                task secondTask
+                task lastTask
+                task someTask
+
+                someTask.dependsOn anotherTask
+                someTask.dependsOn otherTask
+                someTask.mustRunAfter firstTask
+                someTask.shouldRunAfter secondTask
+                someTask.finalizedBy lastTask
+        """
+        when:
+        succeeds('classes', 'independentTask', 'someTask')
+
+        then:
+        operations()[0].result.taskPlan.task.identityPath == [":compileJava", ":processResources", ":classes", ":independentTask", ":anotherTask", ":otherTask", ":someTask", ":lastTask"]
+        operations()[0].result.taskPlan.dependencies.identityPath as Set == [[":included-build:compileJava"], [], [":processResources", ":compileJava"], [":anotherTask", ":otherTask"]] as Set
+        operations()[0].result.taskPlan.finalizedBy.taskPath == [[], [], [], [], [], [], [":lastTask"], []]
+        operations()[0].result.taskPlan.mustRunAfter.taskPath ==  [[], [], [], [], [], [], [":firstTask"], []]
+        operations()[0].result.taskPlan.shouldRunAfter.taskPath == [[], [], [], [], [], [], [":secondTask"], []]
+        operations()[1].result.taskPlan.task.identityPath == [':included-build:compileJava']
+    }
+
+    private List<BuildOperationRecord> operations() {
+        buildOperations.all(CalculateTaskGraphBuildOperationType)
     }
 
     private BuildOperationRecord operation() {

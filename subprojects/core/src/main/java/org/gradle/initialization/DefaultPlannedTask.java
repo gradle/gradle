@@ -28,10 +28,6 @@ public class DefaultPlannedTask implements PlannedTask{
     private List shouldRunAfter;
     private final List<TaskIdentity> finalizers;
 
-//    public DefaultPlannedTask() {
-//
-//    }
-
     public DefaultPlannedTask(TaskIdentity<?> taskIdentity, List dependencies, List mustRunAfter, List shouldRunAfter, List finalizers) {
         this.taskIdentity = taskIdentity;
         this.dependencies = dependencies;
