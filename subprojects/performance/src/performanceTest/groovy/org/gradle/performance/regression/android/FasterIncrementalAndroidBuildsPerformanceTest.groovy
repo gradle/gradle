@@ -16,6 +16,7 @@
 
 package org.gradle.performance.regression.android
 
+import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
 import org.gradle.internal.service.scopes.VirtualFileSystemServices
 import org.gradle.performance.AbstractCrossBuildPerformanceTest
 import org.gradle.performance.categories.PerformanceExperiment
@@ -35,7 +36,9 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
     def "faster incremental build on #testProject (build comparison)"() {
         given:
         runner.testGroup = "incremental android changes"
+        def agpTargetVersion = "4.0"
 
+        and:
         // Kotlin is not supported for instant execution
         def optimizations = testProject == SANTA_TRACKER_KOTLIN
             ? [
@@ -52,12 +55,14 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
         optimizations.each { name, Set<Optimization> enabledOptimizations ->
             runner.buildSpec {
                 testProject.configureForNonAbiChange(it)
+                testProject.configureForLatestAgpVersionOfMinor(it, agpTargetVersion)
                 passChangedFile(it, testProject)
                 invocation.args(*enabledOptimizations*.argument)
                 displayName("non abi change (${name})")
             }
             runner.buildSpec {
                 testProject.configureForAbiChange(it)
+                testProject.configureForLatestAgpVersionOfMinor(it, agpTargetVersion)
                 passChangedFile(it, testProject)
                 invocation.args(*enabledOptimizations*.argument)
                 displayName("abi change (${name})")
@@ -76,7 +81,7 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
     @Override
     protected void defaultSpec(BuildExperimentSpec.Builder builder) {
         if (builder instanceof GradleBuildExperimentSpec.GradleBuilder) {
-            builder.invocation.args('-Dcom.android.build.gradle.overrideVersionCheck=true')
+            builder.invocation.args(AndroidGradlePluginVersions.OVERRIDE_VERSION_CHECK)
         }
     }
 

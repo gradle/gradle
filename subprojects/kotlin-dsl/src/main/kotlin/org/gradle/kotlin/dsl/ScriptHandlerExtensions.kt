@@ -18,15 +18,7 @@ package org.gradle.kotlin.dsl
 
 import org.gradle.api.Incubating
 import org.gradle.api.artifacts.dsl.DependencyLockingHandler
-import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.initialization.dsl.ScriptHandler
-
-
-/**
- * Configures the repositories for the script dependencies.
- */
-fun ScriptHandler.repositories(configuration: RepositoryHandler.() -> Unit) =
-    repositories.configuration()
 
 
 /**

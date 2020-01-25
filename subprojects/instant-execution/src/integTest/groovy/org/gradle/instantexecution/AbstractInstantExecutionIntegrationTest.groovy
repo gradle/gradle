@@ -17,7 +17,9 @@
 package org.gradle.instantexecution
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.instantexecution.InstantExecutionBuildOperationsFixture
 import org.intellij.lang.annotations.Language
 
 
@@ -38,7 +40,7 @@ class AbstractInstantExecutionIntegrationTest extends AbstractIntegrationSpec {
     public static final String INSTANT_EXECUTION_PROPERTY = "-Dorg.gradle.unsafe.instant-execution=true"
 
     protected InstantExecutionBuildOperationsFixture newInstantExecutionFixture() {
-        return new InstantExecutionBuildOperationsFixture(executer, temporaryFolder)
+        return new InstantExecutionBuildOperationsFixture(new BuildOperationsFixture(executer, temporaryFolder))
     }
 
     protected void assertTestsExecuted(String testClass, String... testNames) {

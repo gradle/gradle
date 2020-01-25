@@ -17,8 +17,6 @@ import model.TestType
 import java.io.File
 import java.util.*
 
-const val BUCKET_NUMBER_PER_BUILD_TYPE = 50
-
 const val MAX_PROJECT_NUMBER_IN_BUCKET = 10
 
 // 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 1.10, 1.11, 1.12
@@ -40,14 +38,6 @@ val CROSS_VERSION_BUCKETS = listOf(
     listOf("5.0", "5.4"), // 5.0 <=version < 5.4
     listOf("5.4", "6.0"), // 5.4 <=version < 6.0
     listOf("6.0", "99.0") // 6.0 <=version < 99.0
-)
-
-val INTEG_MULTI_VERSION_BUCKETS = listOf(
-    listOf('A', 'E'), // subprojects starting with A-E
-    listOf('F', 'I'), // subprojects starting with F-I
-    listOf('J', 'O'), // subprojects starting with J-O
-    listOf('P', 'U'), // subprojects starting with P-U
-    listOf('V', 'Z') // subprojects starting with V-Z
 )
 
 typealias BuildProjectToSubprojectTestClassTimes = Map<String, Map<String, List<TestClassTime>>>
@@ -86,14 +76,6 @@ class StatisticBasedGradleBuildBucketProvider(private val model: CIBuildModel, t
     }
 
     private
-    fun splitBucketsBySubprojects(): List<BuildTypeBucket> {
-        return INTEG_MULTI_VERSION_BUCKETS.map {
-            val subprojects = model.subprojects.getSubprojectsBetween(it[0], it[1])
-            SubprojectsIntegMultiVersionTest(subprojects)
-        }
-    }
-
-    private
     fun buildBuckets(buildClassTimeJson: File, model: CIBuildModel): Map<TestCoverage, List<BuildTypeBucket>> {
         val jsonObj = JSON.parseObject(buildClassTimeJson.readText()) as JSONObject
         val buildProjectClassTimes: BuildProjectToSubprojectTestClassTimes = jsonObj.map { buildProjectToSubprojectTestClassTime ->
@@ -106,9 +88,6 @@ class StatisticBasedGradleBuildBucketProvider(private val model: CIBuildModel, t
         for (stage in model.stages) {
             for (testCoverage in stage.functionalTests) {
                 when (testCoverage.testType) {
-                    TestType.allVersionsIntegMultiVersion -> {
-                        result[testCoverage] = splitBucketsBySubprojects()
-                    }
                     in listOf(TestType.allVersionsCrossVersion, TestType.quickFeedbackCrossVersion) -> {
                         result[testCoverage] = splitBucketsByGradleVersionForBuildProject()
                     }
@@ -144,7 +123,7 @@ class StatisticBasedGradleBuildBucketProvider(private val model: CIBuildModel, t
             SubprojectTestClassTime::totalTime,
             { largeElement: SubprojectTestClassTime, size: Int -> largeElement.split(size) },
             { list: List<SubprojectTestClassTime> -> SmallSubprojectBucket(list) },
-            BUCKET_NUMBER_PER_BUILD_TYPE,
+            testCoverage.expectedBucketNumber,
             MAX_PROJECT_NUMBER_IN_BUCKET
         )
     }
@@ -185,18 +164,6 @@ fun <T, R> split(list: LinkedList<T>, toIntFunction: (T) -> Int, largeElementSpl
         }
         listOf(smallElementAggregateFunction(buckets)) + split(list, toIntFunction, largeElementSplitFunction, smallElementAggregateFunction, expectedBucketNumber - 1, maxNumberInBucket)
     }
-}
-
-class SubprojectsIntegMultiVersionTest(private val subprojects: List<String>) : BuildTypeBucket {
-    override fun createFunctionalTestsFor(model: CIBuildModel, stage: Stage, testCoverage: TestCoverage, bucketIndex: Int) =
-        FunctionalTest(model,
-            getUuid(model, testCoverage, bucketIndex),
-            "${testCoverage.asName()} (bucket${bucketIndex + 1})",
-            "${testCoverage.asName()} for ${subprojects.joinToString(",")}",
-            testCoverage,
-            stage,
-            subprojects
-        )
 }
 
 class GradleVersionRangeCrossVersionTestBucket(private val startInclusive: String, private val endExclusive: String) : BuildTypeBucket {

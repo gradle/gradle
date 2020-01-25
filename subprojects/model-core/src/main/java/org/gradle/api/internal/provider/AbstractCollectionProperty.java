@@ -29,7 +29,6 @@ import org.gradle.api.internal.provider.Collectors.SingleElement;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.HasMultipleValues;
 import org.gradle.api.provider.Provider;
-import org.gradle.internal.DisplayName;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -144,31 +143,22 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     @Override
     public boolean isPresent() {
         beforeRead();
-        return value.present();
+        return value.isPresent();
     }
 
     @Override
-    public C get() {
+    protected Value<? extends C> calculateOwnValue() {
         beforeRead();
-        List<T> values = new ArrayList<T>();
-        value.collectInto(getDisplayName(), valueCollector, values);
-        return fromValue(values);
+        return doCalculateOwnValue();
     }
 
-    @Nullable
-    @Override
-    public C getOrNull() {
-        beforeRead();
-        return doGetOrNull();
-    }
-
-    @Nullable
-    private C doGetOrNull() {
-        List<T> values = new ArrayList<T>();
-        if (!value.maybeCollectInto(valueCollector, values)) {
-            return null;
+    private Value<? extends C> doCalculateOwnValue() {
+        List<T> values = new ArrayList<>();
+        Value<Void> result = value.maybeCollectInto(valueCollector, values);
+        if (result.isMissing()) {
+            return result.asType();
         }
-        return fromValue(values);
+        return Value.of(fromValue(values));
     }
 
     @Override
@@ -246,7 +236,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     @Override
     protected void makeFinal() {
-        C collection = doGetOrNull();
+        C collection = doCalculateOwnValue().orNull();
         if (collection != null) {
             set(new ElementsFromCollection<T>(collection));
         } else {
@@ -293,8 +283,8 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
 
         @Override
-        public boolean present() {
-            return left.present() && right.present();
+        public boolean isPresent() {
+            return left.isPresent() && right.isPresent();
         }
 
         @Override
@@ -303,17 +293,12 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
 
         @Override
-        public void collectInto(DisplayName owner, ValueCollector<T> collector, Collection<T> dest) {
-            left.collectInto(owner, collector, dest);
-            right.collectInto(owner, collector, dest);
-        }
-
-        @Override
-        public boolean maybeCollectInto(ValueCollector<T> collector, Collection<T> dest) {
-            if (left.maybeCollectInto(collector, dest)) {
-                return right.maybeCollectInto(collector, dest);
+        public Value<Void> maybeCollectInto(ValueCollector<T> collector, Collection<T> dest) {
+            Value<Void> value = left.maybeCollectInto(collector, dest);
+            if (value.isMissing()) {
+                return value;
             }
-            return false;
+            return right.maybeCollectInto(collector, dest);
         }
 
         @Override

@@ -19,7 +19,7 @@ import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.PublishArtifactSet;
-import org.gradle.api.internal.provider.AbstractReadOnlyProvider;
+import org.gradle.api.internal.provider.AbstractMinimalProvider;
 import org.gradle.api.internal.provider.ChangingValue;
 import org.gradle.api.internal.provider.ChangingValueHandler;
 import org.gradle.api.internal.provider.CollectionProviderInternal;
@@ -46,7 +46,7 @@ public class DefaultArtifactPublicationSet {
         defaultArtifactProvider.addArtifact(artifact);
     }
 
-    private static class DefaultArtifactProvider extends AbstractReadOnlyProvider<Set<PublishArtifact>> implements CollectionProviderInternal<PublishArtifact, Set<PublishArtifact>>, ChangingValue<Set<PublishArtifact>> {
+    private static class DefaultArtifactProvider extends AbstractMinimalProvider<Set<PublishArtifact>> implements CollectionProviderInternal<PublishArtifact, Set<PublishArtifact>>, ChangingValue<Set<PublishArtifact>> {
         private Set<PublishArtifact> defaultArtifacts;
         private Set<PublishArtifact> artifacts;
         private PublishArtifact currentDefault;
@@ -80,9 +80,8 @@ public class DefaultArtifactPublicationSet {
             return null;
         }
 
-        @Nullable
         @Override
-        public Set<PublishArtifact> getOrNull() {
+        protected Value<Set<PublishArtifact>> calculateOwnValue() {
             if (defaultArtifacts == null) {
                 defaultArtifacts = Sets.newLinkedHashSet();
                 currentDefault = null;
@@ -108,7 +107,7 @@ public class DefaultArtifactPublicationSet {
                     }
                 }
             }
-            return defaultArtifacts;
+            return Value.of(defaultArtifacts);
         }
 
         void replaceCurrent(PublishArtifact artifact) {

@@ -22,6 +22,8 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 
+import javax.annotation.Nullable;
+
 public abstract class AbstractProperty<T> extends AbstractMinimalProvider<T> implements PropertyInternal<T> {
     private enum State {
         ImplicitValue, ExplicitValue, Final
@@ -41,6 +43,17 @@ public abstract class AbstractProperty<T> extends AbstractMinimalProvider<T> imp
         this.displayName = displayName;
     }
 
+    @Nullable @Override
+    protected DisplayName getDeclaredDisplayName() {
+        return displayName;
+    }
+
+    @Override
+    protected DisplayName getTypedDisplayName() {
+        return DEFAULT_DISPLAY_NAME;
+    }
+
+    @Override
     protected DisplayName getDisplayName() {
         if (displayName == null) {
             return DEFAULT_DISPLAY_NAME;

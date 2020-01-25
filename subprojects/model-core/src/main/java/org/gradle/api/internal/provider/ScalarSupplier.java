@@ -16,25 +16,14 @@
 
 package org.gradle.api.internal.provider;
 
-import org.gradle.internal.DisplayName;
-
-import javax.annotation.Nullable;
-
 /**
  * Supplies zero or one value of type {@link T}.
  */
 public interface ScalarSupplier<T> extends ValueSupplier {
-    boolean isPresent();
-
     /**
-     * Returns the value of this supplier or fails.
-     *
-     * @param owner A display name that can be used in error messages.
+     * Calculates the value of this supplier.
      */
-    T get(DisplayName owner) throws IllegalStateException;
-
-    @Nullable
-    T getOrNull();
+    Value<? extends T> calculateValue();
 
     ProviderInternal<T> asProvider();
 

@@ -72,15 +72,15 @@ class DefaultPropertyTest extends PropertySpec<String> {
         property.get()
 
         then:
-        def e = thrown(IllegalStateException)
-        e.message == "No value has been specified for ${displayName}."
+        def e = thrown(MissingValueException)
+        e.message == "Cannot query the value of ${displayName} because it has no value available."
     }
 
     def "toString() does not realize value"() {
         given:
         def propertyWithBadValue = property()
         propertyWithBadValue.set(new DefaultProvider<String>({
-            assert false : "never called"
+            assert false: "never called"
         }))
 
         expect:
@@ -136,7 +136,7 @@ class DefaultPropertyTest extends PropertySpec<String> {
 
         given:
         provider.asSupplier(_, _, _) >> supplier
-        supplier.get(_) >>> [1, 2, 3]
+        supplier.calculateValue() >>> [1, 2, 3].collect { ValueSupplier.Value.ofNullable(it) }
 
         def property = new DefaultProperty<Number>(Number)
 
@@ -217,7 +217,7 @@ class DefaultPropertyTest extends PropertySpec<String> {
 
     def "mapped provider is live"() {
         def transformer = Mock(Transformer)
-        def provider = provider("abc")
+        def provider = supplierWithValues("abc")
 
         def property = new DefaultProperty<String>(String)
 

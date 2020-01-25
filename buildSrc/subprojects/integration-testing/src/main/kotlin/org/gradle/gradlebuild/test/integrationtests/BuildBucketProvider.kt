@@ -96,23 +96,16 @@ class CrossVersionBucketProvider(private val onlyTestGradleVersion: String) : Bu
 
 class IncludeTestClassProvider(private val includeTestClasses: Map<String, List<String>>) : BuildBucketProvider {
     override fun configureTest(testTask: Test, sourceSet: SourceSet, testType: TestType) {
-        if (testTask.name == "integMultiVersionTest") {
-            // Run integMultiVersionTest in last split
-            testTask.enabled = false
-        } else {
-            testTask.filter.isFailOnNoMatchingTests = false
-            includeTestClasses[sourceSet.name]?.apply { testTask.filter.includePatterns.addAll(this) }
-        }
+        testTask.filter.isFailOnNoMatchingTests = false
+        includeTestClasses[sourceSet.name]?.apply { testTask.filter.includePatterns.addAll(this) }
     }
 }
 
 
 class ExcludeTestClassProvider(private val excludeTestClasses: Map<String, List<String>>) : BuildBucketProvider {
     override fun configureTest(testTask: Test, sourceSet: SourceSet, testType: TestType) {
-        if (testTask.name != "integMultiVersionTest") {
-            testTask.filter.isFailOnNoMatchingTests = false
-            excludeTestClasses[sourceSet.name]?.apply { testTask.filter.excludePatterns.addAll(this) }
-        }
+        testTask.filter.isFailOnNoMatchingTests = false
+        excludeTestClasses[sourceSet.name]?.apply { testTask.filter.excludePatterns.addAll(this) }
     }
 }
 

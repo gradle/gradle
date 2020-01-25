@@ -921,10 +921,11 @@ public class NodeState implements DependencyGraphNode {
         removeOutgoingEdges(null);
     }
 
-    private void removeOutgoingEdges(EdgeState edgeToKeep) {
+    private void removeOutgoingEdges(ComponentState origin) {
         if (!outgoingEdges.isEmpty()) {
             for (EdgeState outgoingDependency : outgoingEdges) {
-                if (outgoingDependency == edgeToKeep) {
+                if (origin != null && origin == outgoingDependency.getTargetComponent()) {
+                    // do not clean up origin again (as we are already in the process of doing that)
                     continue;
                 }
                 if (outgoingDependency.getTargetComponent() == getComponent()) {
@@ -987,20 +988,22 @@ public class NodeState implements DependencyGraphNode {
     private void reselectEndorsingNode() {
         if (incomingEdges.size() == 1) {
             if (incomingEdges.get(0).getDependencyState().getDependency().isEndorsingStrictVersions()) {
-                incomingEdges.get(0).getFrom().reselect(incomingEdges.get(0));
+                // pass my own component because we are already in the process of re-selecting it
+                incomingEdges.get(0).getFrom().reselect(this.getComponent());
             }
         } else {
             for (EdgeState incoming : Lists.newArrayList(incomingEdges)) {
                 if (incoming.getDependencyState().getDependency().isEndorsingStrictVersions()) {
-                    incoming.getFrom().reselect(incoming);
+                    // pass my own component because we are already in the process of re-selecting it
+                    incoming.getFrom().reselect(this.getComponent());
                 }
             }
         }
     }
 
-    private void reselect(EdgeState edgeToKeep) {
+    private void reselect(ComponentState origin) {
         resolveState.onMoreSelected(this);
-        removeOutgoingEdges(edgeToKeep);
+        removeOutgoingEdges(origin);
     }
 
     void prepareForConstraintNoLongerPending(ModuleIdentifier moduleIdentifier) {

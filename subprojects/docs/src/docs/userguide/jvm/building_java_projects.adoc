@@ -516,7 +516,10 @@ If you want to leverage the multi language aspect of the JVM, most of what was d
 Gradle itself provides <<groovy_plugin.adoc#,Groovy>> and <<scala_plugin.adoc#,Scala>> plugins.
 The plugins automatically apply support for compiling Java code and can be further enhanced by combining them with the `java-library` plugin.
 
-These plugins create a dependency between Groovy/Scala compilation and Java compilation (of source code in tha `java` folder of a source set).
+[[sub:compile_deps_jvm_lang]]
+=== Compilation dependency between languages
+
+These plugins create a dependency between Groovy/Scala compilation and Java compilation (of source code in the `java` folder of a source set).
 You can change this default behavior by adjusting the classpath of the involved compile tasks as shown in the following example:
 
 .Changing the classpath of compile tasks
@@ -524,5 +527,12 @@ You can change this default behavior by adjusting the classpath of the involved 
 include::sample[dir="snippets/userguide/tutorial/compileTaskClasspath/groovy",files="build.gradle[tags=compile-task-classpath]"]
 include::sample[dir="snippets/userguide/tutorial/compileTaskClasspath/kotlin",files="build.gradle.kts[tags=compile-task-classpath]"]
 ====
+
+1. By setting the `compileGroovy` classpath to be only `sourceSets.main.compileClasspath`, we effectively remove the previous dependency on `compileJava` that was declared by having the classpath also take into consideration `sourceSets.main.java.classesDirectory`
+2. By adding `sourceSets.main.groovy.classesDirectory` to the `compileJava` `classpath`, we effectively declare a dependency on the `compileGroovy` task
+
+All of this is possible through the use of <<lazy_configuration.adoc#,directory properties>>.
+
+=== Extra language support
 
 Beyond core Gradle, there are other https://plugins.gradle.org/search?term=jvm[great plugins] for more JVM languages!

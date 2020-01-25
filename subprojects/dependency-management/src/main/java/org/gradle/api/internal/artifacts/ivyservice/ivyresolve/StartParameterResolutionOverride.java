@@ -66,9 +66,11 @@ import java.util.List;
 
 public class StartParameterResolutionOverride {
     private final StartParameter startParameter;
+    private final File gradleDir;
 
-    public StartParameterResolutionOverride(StartParameter startParameter) {
+    public StartParameterResolutionOverride(StartParameter startParameter, File gradleDir) {
         this.startParameter = startParameter;
+        this.gradleDir = gradleDir;
     }
 
     public void applyToCachePolicy(CachePolicy cachePolicy) {
@@ -90,16 +92,15 @@ public class StartParameterResolutionOverride {
                                                                          ChecksumService checksumService,
                                                                          SignatureVerificationServiceFactory signatureVerificationServiceFactory,
                                                                          DocumentationRegistry documentationRegistry) {
-        File currentDir = startParameter.getCurrentDir();
         List<String> checksums = startParameter.getWriteDependencyVerifications();
         if (!checksums.isEmpty()) {
             IncubationLogger.incubatingFeatureUsed("Dependency verification");
             return DisablingVerificationOverride.of(
-                new WriteDependencyVerificationFile(currentDir, buildOperationExecutor, checksums, checksumService, signatureVerificationServiceFactory, startParameter.isDryRun(), startParameter.isExportKeys())
+                new WriteDependencyVerificationFile(gradleDir, buildOperationExecutor, checksums, checksumService, signatureVerificationServiceFactory, startParameter.isDryRun(), startParameter.isExportKeys())
             );
         } else {
-            File verificationsFile = DependencyVerificationOverride.dependencyVerificationsFile(currentDir);
-            File keyringsFile = DependencyVerificationOverride.keyringsFile(currentDir);
+            File verificationsFile = DependencyVerificationOverride.dependencyVerificationsFile(gradleDir);
+            File keyringsFile = DependencyVerificationOverride.keyringsFile(gradleDir);
             if (verificationsFile.exists()) {
                 if (startParameter.getDependencyVerificationMode() == DependencyVerificationMode.OFF) {
                     return DependencyVerificationOverride.NO_VERIFICATION;

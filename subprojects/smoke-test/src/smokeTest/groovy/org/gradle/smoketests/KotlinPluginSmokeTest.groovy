@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.android.AndroidHome
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.util.GradleVersion
+import org.gradle.testkit.runner.GradleRunner
 import org.gradle.util.Requires
 import spock.lang.Unroll
 
@@ -54,7 +55,7 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
 
     @Unroll
     @ToBeFixedForInstantExecution
-    def 'kotlin #kotlinPluginVersion android #androidPluginVersion plugins, workers=#workers'() {
+    def '#sampleName kotlin #kotlinPluginVersion android #androidPluginVersion plugins, workers=#workers'() {
         given:
         AndroidHome.assertIsSet()
         useSample(sampleName)
@@ -71,7 +72,7 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
         }
 
         when:
-        def result = build(workers, 'clean', ':app:testDebugUnitTestCoverage')
+        def result = useAgpVersion(androidPluginVersion, runner(workers, 'clean', ':app:testDebugUnitTestCoverage')).build()
 
         then:
         result.task(':app:testDebugUnitTestCoverage').outcome == SUCCESS
@@ -175,8 +176,11 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
     }
 
     private BuildResult build(boolean workers, String... tasks) {
+        return runner(workers, *tasks).build()
+    }
+
+    private GradleRunner runner(boolean workers, String... tasks) {
         return runner(tasks + ["--parallel", "-Pkotlin.parallel.tasks.in.project=$workers"] as String[])
             .forwardOutput()
-            .build()
     }
 }
