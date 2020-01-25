@@ -46,14 +46,10 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
     protected void setupCopyOfSantaTracker(TestFile targetDir, String flavour, String agpVersion = null) {
         copyRemoteProject("santaTracker${flavour.capitalize()}", targetDir)
         GradleEnterprisePluginSettingsFixture.applyEnterprisePlugin(targetDir.file("settings.gradle"))
-        if (agpVersion != null) {
-            def buildFile = targetDir.file("build.gradle")
-            buildFile.text = AGP_VERSIONS.replaceAgpVersion(buildFile.text, agpVersion)
-        }
     }
 
     protected BuildResult buildLocation(File projectDir, String agpVersion) {
-        def runner = runner("assembleDebug")
+        def runner = runner("assembleDebug", "-DagpVersion=$agpVersion")
             .withProjectDir(projectDir)
             .withTestKitDir(homeDir)
             .forwardOutput()
