@@ -160,7 +160,6 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         succeeds("a", "b", "c")
     }
 
-    @ToBeFixedForInstantExecution
     def excludesTasksWhenExcludePatternSpecified() {
         settingsFile << "include 'sub'"
         buildFile << """
@@ -206,7 +205,6 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         executer.inDirectory(file('sub')).withTasks('c').withArguments('-x', 'a').run().assertTasksExecuted(':a', ':sub:b', ':sub:c')
     }
 
-    @ToBeFixedForInstantExecution
     def 'can use camel-case matching to exclude tasks'() {
         buildFile << """
 task someDep
@@ -219,7 +217,6 @@ task someTask(dependsOn: [someDep, someOtherDep])
         executer.withTasks("someTask").withArguments("-x", ":sODep").run().assertTasksExecuted(":someDep", ":someTask")
     }
 
-    @ToBeFixedForInstantExecution
     def 'can combine exclude task filters'() {
         buildFile << """
 task someDep

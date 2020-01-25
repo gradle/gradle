@@ -30,7 +30,6 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
     @SuppressWarnings("GroovyUnusedDeclaration")
     final operationNotificationsFixture = new BuildOperationNotificationsFixture(executer, temporaryFolder)
 
-    @ToBeFixedForInstantExecution
     def "requested and filtered tasks are exposed"() {
         settingsFile << """
         include "a"

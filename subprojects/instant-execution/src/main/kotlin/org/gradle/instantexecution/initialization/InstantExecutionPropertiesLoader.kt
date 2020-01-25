@@ -31,7 +31,7 @@ class InstantExecutionPropertiesLoader(
 
     fun loadProperties() {
         require(!hasLoaded)
-        propertiesLoader.loadProperties(startParameter.rootDir)
+        propertiesLoader.loadProperties(startParameter.rootDirectory)
         loaded = true
     }
 }
