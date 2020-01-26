@@ -38,11 +38,13 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
     DeprecationMessageBuilder() {
     }
 
+    @SuppressWarnings("unchecked")
     public T withContext(String context) {
         this.context = context;
         return (T) this;
     }
 
+    @SuppressWarnings("unchecked")
     public T withAdvice(String advice) {
         this.advice = advice;
         return (T) this;
@@ -120,6 +122,7 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
             this.subject = subject;
         }
 
+        @SuppressWarnings("unchecked")
         public SELF replaceWith(T replacement) {
             this.replacement = replacement;
             return (SELF) this;
