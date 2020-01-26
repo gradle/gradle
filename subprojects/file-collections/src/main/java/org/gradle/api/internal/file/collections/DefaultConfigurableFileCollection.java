@@ -147,7 +147,9 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         } else if (disallowChanges) {
             throw new IllegalStateException("The value for " + displayNameForThisCollection() + " cannot be changed.");
         } else if (state == State.Final) {
-            DeprecationLogger.deprecateAction("Changing the value for a FileCollection with a final value").undocumented().nagUser();
+            DeprecationLogger.deprecateAction("Changing the value for a FileCollection with a final value")
+                .withUserManual("lazy_configuration", "unmodifiable_property")
+                .nagUser();
             return false;
         } else {
             return true;
