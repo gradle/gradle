@@ -235,7 +235,7 @@ class InstantExecutionHost internal constructor(
 
     private
     val rootDir
-        get() = startParameter.rootDir
+        get() = startParameter.rootDirectory
 
     private
     val coreScope: ClassLoaderScope
