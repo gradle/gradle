@@ -30,15 +30,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Manages a set of parallel TestClassProcessors. Uses a simple round-robin algorithm to assign test classes to
- * processors.
+ * Manages a set of parallel TestClassProcessors. Uses a round-robin algorithm to assign test classes to
+ * processors. Shifts the start of each test partition over the processors to avoid systematically
+ * assigning the largest ones first when used with tests sorted by size.
  */
 public class MaxNParallelTestClassProcessor implements TestClassProcessor {
     private final int maxProcessors;
     private final Factory<TestClassProcessor> factory;
     private final ActorFactory actorFactory;
     private TestResultProcessor resultProcessor;
-    private int pos;
+    private int testCount = 0;
     private List<TestClassProcessor> processors = new ArrayList<TestClassProcessor>();
     private List<TestClassProcessor> rawProcessors = new ArrayList<TestClassProcessor>();
     private List<Actor> actors = new ArrayList<Actor>();
@@ -74,9 +75,11 @@ public class MaxNParallelTestClassProcessor implements TestClassProcessor {
             processors.add(processor);
             processor.startProcessing(resultProcessor);
         } else {
-            processor = processors.get(pos);
-            pos = (pos + 1) % processors.size();
+            int shift = (testCount / maxProcessors) % maxProcessors;
+            int processorIndex = (shift + testCount) % maxProcessors;
+            processor = processors.get(processorIndex);
         }
+        testCount += 1;
         processor.processTestClass(testClass);
     }
 

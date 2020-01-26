@@ -58,6 +58,50 @@ class MaxNParallelTestClassProcessorTest extends Specification {
         processor.startProcessing(resultProcessor)
     }
 
+    def roundRobinsTestClassesToProcessorsWithShift() {
+        TestClassRunInfo test = Mock()
+        TestClassProcessor processor1 = Mock()
+        TestClassProcessor processor2 = Mock()
+        TestClassProcessor asyncProcessor1 = Mock()
+        TestClassProcessor asyncProcessor2 = Mock()
+        Actor actor1 = Mock()
+        Actor actor2 = Mock()
+
+        startProcessor()
+
+        when:
+        processor.processTestClass(test)
+
+        then:
+        1 * factory.create() >> processor1
+        1 * actorFactory.createActor(processor1) >> actor1
+        1 * actor1.getProxy(TestClassProcessor) >> asyncProcessor1
+        1 * asyncProcessor1.startProcessing(asyncResultProcessor)
+        1 * asyncProcessor1.processTestClass(test)
+
+        when:
+        processor.processTestClass(test)
+
+        then:
+        1 * factory.create() >> processor2
+        1 * actorFactory.createActor(processor2) >> actor2
+        1 * actor2.getProxy(TestClassProcessor) >> asyncProcessor2
+        1 * asyncProcessor2.startProcessing(asyncResultProcessor)
+        1 * asyncProcessor2.processTestClass(test)
+
+        when:
+        processor.processTestClass(test)
+
+        then:
+        1 * asyncProcessor2.processTestClass(test)
+
+        when:
+        processor.processTestClass(test)
+
+        then:
+        1 * asyncProcessor1.processTestClass(test)
+    }
+
     def startsProcessorsOnDemandAndStopsAtEnd() {
         TestClassRunInfo test = Mock()
         TestClassProcessor processor1 = Mock()
@@ -122,50 +166,6 @@ class MaxNParallelTestClassProcessorTest extends Specification {
         then:
         1 * asyncProcessor1.stop()
         1 * asyncProcessor2.stop()
-    }
-
-    def roundRobinsTestClassesToProcessors() {
-        TestClassRunInfo test = Mock()
-        TestClassProcessor processor1 = Mock()
-        TestClassProcessor processor2 = Mock()
-        TestClassProcessor asyncProcessor1 = Mock()
-        TestClassProcessor asyncProcessor2 = Mock()
-        Actor actor1 = Mock()
-        Actor actor2 = Mock()
-
-        startProcessor()
-
-        when:
-        processor.processTestClass(test)
-
-        then:
-        1 * factory.create() >> processor1
-        1 * actorFactory.createActor(processor1) >> actor1
-        1 * actor1.getProxy(TestClassProcessor) >> asyncProcessor1
-        1 * asyncProcessor1.startProcessing(asyncResultProcessor)
-        1 * asyncProcessor1.processTestClass(test)
-
-        when:
-        processor.processTestClass(test)
-
-        then:
-        1 * factory.create() >> processor2
-        1 * actorFactory.createActor(processor2) >> actor2
-        1 * actor2.getProxy(TestClassProcessor) >> asyncProcessor2
-        1 * asyncProcessor2.startProcessing(asyncResultProcessor)
-        1 * asyncProcessor2.processTestClass(test)
-
-        when:
-        processor.processTestClass(test)
-
-        then:
-        1 * asyncProcessor1.processTestClass(test)
-
-        when:
-        processor.processTestClass(test)
-
-        then:
-        1 * asyncProcessor2.processTestClass(test)
     }
 
     def "stopNow propagates to factory created processors"() {
