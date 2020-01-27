@@ -23,12 +23,14 @@ import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.test.fixtures.file.TestDirectoryProvider
+import org.spockframework.util.NotThreadSafe
 import org.testcontainers.Testcontainers
 import org.testcontainers.containers.BindMode
 import org.testcontainers.containers.SelinuxContext
 import org.testcontainers.utility.MountableFile
 
 @CompileStatic
+@NotThreadSafe
 class GradleInContainer {
     static final String BASE_IMAGE = "openjdk:11-jre-slim"
 
@@ -36,6 +38,9 @@ class GradleInContainer {
     private final GradleContainerExecuter executer
 
     private boolean started
+
+    int containerMaxAliveSeconds = 120
+    Thread monitor
 
     static void exposeHostPort(int port) {
         Testcontainers.exposeHostPorts(port)
@@ -83,10 +88,27 @@ class GradleInContainer {
     void startContainer() {
         started = true
         container.start()
+        monitor = new Thread(new Runnable() {
+            @Override
+            void run() {
+                try {
+                    Thread.sleep(containerMaxAliveSeconds * 1000)
+                    System.err.println("Stopping container because of timeout of ${containerMaxAliveSeconds}s")
+                    stopContainer()
+                } catch (InterruptedException ex) {
+                    // nothing to do
+                }
+            }
+        })
+        monitor.start()
     }
 
     void stopContainer() {
-        container.stop()
+        if (started) {
+            started = false
+            container.stop()
+            monitor.interrupt()
+        }
     }
 
     GradleInContainer withEnv(Map<String, ?> stringMap) {
