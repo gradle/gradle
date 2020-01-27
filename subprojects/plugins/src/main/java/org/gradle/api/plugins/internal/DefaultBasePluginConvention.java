@@ -61,7 +61,7 @@ public class DefaultBasePluginConvention extends BasePluginConvention implements
     @Override
     @Deprecated
     public File getDistsDir() {
-        DeprecationLogger.deprecateMethod(BasePluginConvention.class, "distsDir").replaceWith("distsDirectory").undocumented().nagUser();
+        DeprecationLogger.deprecateProperty(Project.class, "distsDir").replaceWith("distsDirectory").withDslReference().nagUser();
         return getDistsDirectory().get().getAsFile();
     }
 
@@ -73,7 +73,7 @@ public class DefaultBasePluginConvention extends BasePluginConvention implements
     @Override
     @Deprecated
     public File getLibsDir() {
-        DeprecationLogger.deprecateMethod(BasePluginConvention.class, "libsDir").replaceWith("libsDirectory").undocumented().nagUser();
+        DeprecationLogger.deprecateProperty(Project.class, "libsDir").replaceWith("libsDirectory").withDslReference().nagUser();
         return getLibsDirectory().get().getAsFile();
     }
 
