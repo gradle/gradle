@@ -35,7 +35,7 @@ public class GradleProfilerReporter implements DataReporter<PerformanceTestResul
             ? fallbackDirectory
             : new File(debugArtifactsDirectoryPath);
         this.resultCollector = new BenchmarkResultCollector(
-            new CsvGenerator(new File(debugArtifactsDirectory, "benchmark.csv")),
+            new CsvGenerator(new File(debugArtifactsDirectory, "benchmark.csv"), CsvGenerator.Format.LONG),
             new HtmlGenerator(new File(debugArtifactsDirectory, "benchmark.html"))
         );
 
