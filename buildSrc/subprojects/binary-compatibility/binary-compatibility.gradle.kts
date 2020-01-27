@@ -1,7 +1,6 @@
 dependencies {
     api("me.champeau.gradle:japicmp-gradle-plugin:0.2.9")
 
-    implementation(project(":buildPlatform"))
     implementation(project(":kotlinDsl"))
 
     implementation("com.google.code.gson:gson:2.8.2")

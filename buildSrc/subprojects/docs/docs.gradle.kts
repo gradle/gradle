@@ -1,5 +1,4 @@
 dependencies {
-    implementation(project(":buildPlatform"))
     implementation(project(":configuration"))
     implementation(project(":kotlinDsl"))
     implementation(project(":versioning"))

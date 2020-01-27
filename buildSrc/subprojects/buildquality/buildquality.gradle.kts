@@ -1,6 +1,5 @@
 dependencies {
     implementation(project(":binaryCompatibility"))
-    implementation(project(":buildPlatform"))
     implementation(project(":cleanup"))
     implementation(project(":configuration"))
     implementation(project(":docs"))

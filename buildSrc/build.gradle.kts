@@ -101,7 +101,9 @@ allprojects {
 
 dependencies {
     subprojects.forEach {
-        runtimeOnly(project(it.path))
+        if (it.name != "buildPlatform") {
+            runtimeOnly(project(it.path))
+        }
     }
 }
 

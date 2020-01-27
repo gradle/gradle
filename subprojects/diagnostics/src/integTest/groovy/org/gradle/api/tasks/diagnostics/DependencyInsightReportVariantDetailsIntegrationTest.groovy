@@ -36,7 +36,7 @@ class DependencyInsightReportVariantDetailsIntegrationTest extends AbstractInteg
         settingsFile << "include 'a', 'b', 'c'"
         file('a/build.gradle') << '''
             apply plugin: 'java-library'
-            
+
             dependencies {
                 api project(':b')
                 implementation project(':c')
@@ -56,7 +56,7 @@ class DependencyInsightReportVariantDetailsIntegrationTest extends AbstractInteg
    variant "$expectedVariant" [
       $expectedAttributes
       org.gradle.dependency.bundling = external
-      org.gradle.category            = library (not requested)
+      org.gradle.category            = library
       org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
    ]
 
@@ -74,7 +74,7 @@ project :$expectedProject
         mavenRepo.with {
             def leaf = module('org.test', 'leaf', '1.0')
                 .withModuleMetadata()
-                .variant('api', ['org.gradle.usage': 'java-api', 'org.gradle.libraryelements': 'jar', 'org.gradle.test': 'published attribute'])
+                .variant('api', ['org.gradle.usage': 'java-api', 'org.gradle.category': 'library', 'org.gradle.libraryelements': 'jar', 'org.gradle.test': 'published attribute'])
                 .publish()
             module('org.test', 'a', '1.0')
                 .dependsOn(leaf)
@@ -84,15 +84,15 @@ project :$expectedProject
 
         file("build.gradle") << """
             apply plugin: 'java-library'
-            
+
             repositories {
                maven { url "${mavenRepo.uri}" }
             }
-            
+
             dependencies {
                 implementation 'org.test:a:1.0'
             }
-            
+
             configurations.compileClasspath.attributes.attribute(Attribute.of('org.gradle.blah', String), 'something')
         """
 
@@ -103,6 +103,7 @@ project :$expectedProject
         outputContains """org.test:leaf:1.0
    variant "api" [
       org.gradle.usage               = java-api
+      org.gradle.category            = library
       org.gradle.libraryelements     = jar (compatible with: classes)
       org.gradle.test                = published attribute (not requested)
       org.gradle.status              = release (not requested)
@@ -243,7 +244,7 @@ org:leaf:1.0
             dependencies.attributesSchema.attribute(CUSTOM_ATTRIBUTE)
             def configValue = objects.named(CustomAttributeType.class, 'conf_value')
             def dependencyValue = objects.named(CustomAttributeType.class, 'dep_value')
-            
+
             repositories {
                 maven { url "${mavenRepo.uri}" }
             }
@@ -271,7 +272,7 @@ org:leaf:1.0
                     }
                 }
             }
-            
+
             interface CustomAttributeType extends Named {}
         """
 

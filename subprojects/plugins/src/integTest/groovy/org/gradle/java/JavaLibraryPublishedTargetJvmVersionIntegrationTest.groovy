@@ -31,11 +31,11 @@ class JavaLibraryPublishedTargetJvmVersionIntegrationTest extends AbstractHttpDe
         """
         buildFile << """
             apply plugin: 'java-library'
-            
+
             repositories {
                 maven { url '${mavenHttpRepo.uri}' }
             }
-            
+
             dependencies {
                 api 'org:producer:1.0'
             }
@@ -50,31 +50,37 @@ class JavaLibraryPublishedTargetJvmVersionIntegrationTest extends AbstractHttpDe
                 .variant("apiElementsJdk6", [
                 'org.gradle.dependency.bundling': 'external',
                 'org.gradle.jvm.version': 6,
+                'org.gradle.category': 'library',
                 'org.gradle.libraryelements': 'jar',
                 'org.gradle.usage': 'java-api'], { artifact('producer-1.0-jdk6.jar') })
                 .variant("apiElementsJdk7", [
                 'org.gradle.dependency.bundling': 'external',
                 'org.gradle.jvm.version': 7,
+                'org.gradle.category': 'library',
                 'org.gradle.libraryelements': 'jar',
                 'org.gradle.usage': 'java-api'], { artifact('producer-1.0-jdk7.jar') })
                 .variant("apiElementsJdk9", [
                 'org.gradle.dependency.bundling': 'external',
                 'org.gradle.jvm.version': 9,
+                'org.gradle.category': 'library',
                 'org.gradle.libraryelements': 'jar',
                 'org.gradle.usage': 'java-api'], { artifact('producer-1.0-jdk9.jar') })
                 .variant("runtimeElementsJdk6", [
                 'org.gradle.dependency.bundling': 'external',
                 'org.gradle.jvm.version': 6,
+                'org.gradle.category': 'library',
                 'org.gradle.libraryelements': 'jar',
                 'org.gradle.usage': 'java-runtime'], { artifact('producer-1.0-jdk6.jar') })
                 .variant("runtimeElementsJdk7", [
                 'org.gradle.dependency.bundling': 'external',
                 'org.gradle.jvm.version': 7,
+                'org.gradle.category': 'library',
                 'org.gradle.libraryelements': 'jar',
                 'org.gradle.usage': 'java-runtime'], { artifact('producer-1.0-jdk7.jar') })
                 .variant("runtimeElementsJdk9", [
                 'org.gradle.dependency.bundling': 'external',
                 'org.gradle.jvm.version': 9,
+                'org.gradle.category': 'library',
                 'org.gradle.libraryelements': 'jar',
                 'org.gradle.usage': 'java-runtime'], { artifact('producer-1.0-jdk9.jar') })
                 .publish()
@@ -98,6 +104,7 @@ class JavaLibraryPublishedTargetJvmVersionIntegrationTest extends AbstractHttpDe
       - Incompatible attribute:
           - Required org.gradle.jvm.version '5' and found incompatible value '6'.
       - Other attributes:
+          - Required org.gradle.category 'library' and found compatible value 'library'.
           - Required org.gradle.dependency.bundling 'external' and found compatible value 'external'.
           - Required org.gradle.libraryelements 'classes' and found compatible value 'jar'.
           - Found org.gradle.status 'release' but wasn't required.
@@ -106,6 +113,7 @@ class JavaLibraryPublishedTargetJvmVersionIntegrationTest extends AbstractHttpDe
       - Incompatible attribute:
           - Required org.gradle.jvm.version '5' and found incompatible value '7'.
       - Other attributes:
+          - Required org.gradle.category 'library' and found compatible value 'library'.
           - Required org.gradle.dependency.bundling 'external' and found compatible value 'external'.
           - Required org.gradle.libraryelements 'classes' and found compatible value 'jar'.
           - Found org.gradle.status 'release' but wasn't required.
@@ -114,6 +122,7 @@ class JavaLibraryPublishedTargetJvmVersionIntegrationTest extends AbstractHttpDe
       - Incompatible attribute:
           - Required org.gradle.jvm.version '5' and found incompatible value '9'.
       - Other attributes:
+          - Required org.gradle.category 'library' and found compatible value 'library'.
           - Required org.gradle.dependency.bundling 'external' and found compatible value 'external'.
           - Required org.gradle.libraryelements 'classes' and found compatible value 'jar'.
           - Found org.gradle.status 'release' but wasn't required.
@@ -122,6 +131,7 @@ class JavaLibraryPublishedTargetJvmVersionIntegrationTest extends AbstractHttpDe
       - Incompatible attribute:
           - Required org.gradle.jvm.version '5' and found incompatible value '6'.
       - Other attributes:
+          - Required org.gradle.category 'library' and found compatible value 'library'.
           - Required org.gradle.dependency.bundling 'external' and found compatible value 'external'.
           - Required org.gradle.libraryelements 'classes' and found compatible value 'jar'.
           - Found org.gradle.status 'release' but wasn't required.
@@ -130,6 +140,7 @@ class JavaLibraryPublishedTargetJvmVersionIntegrationTest extends AbstractHttpDe
       - Incompatible attribute:
           - Required org.gradle.jvm.version '5' and found incompatible value '7'.
       - Other attributes:
+          - Required org.gradle.category 'library' and found compatible value 'library'.
           - Required org.gradle.dependency.bundling 'external' and found compatible value 'external'.
           - Required org.gradle.libraryelements 'classes' and found compatible value 'jar'.
           - Found org.gradle.status 'release' but wasn't required.
@@ -138,6 +149,7 @@ class JavaLibraryPublishedTargetJvmVersionIntegrationTest extends AbstractHttpDe
       - Incompatible attribute:
           - Required org.gradle.jvm.version '5' and found incompatible value '9'.
       - Other attributes:
+          - Required org.gradle.category 'library' and found compatible value 'library'.
           - Required org.gradle.dependency.bundling 'external' and found compatible value 'external'.
           - Required org.gradle.libraryelements 'classes' and found compatible value 'jar'.
           - Found org.gradle.status 'release' but wasn't required.
@@ -165,6 +177,7 @@ class JavaLibraryPublishedTargetJvmVersionIntegrationTest extends AbstractHttpDe
                             'org.gradle.dependency.bundling': 'external',
                             'org.gradle.jvm.version': selected,
                             'org.gradle.usage': 'java-api',
+                            'org.gradle.category': 'library',
                             'org.gradle.libraryelements': 'jar',
                             'org.gradle.status': 'release'
                     ])
