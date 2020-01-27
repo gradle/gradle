@@ -92,7 +92,9 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
     private void warnIfConfigurationIsDeprecated(DeprecatableConfiguration selectedConfiguration) {
         List<String> alternatives = selectedConfiguration.getConsumptionAlternatives();
         if (alternatives != null) {
-            DeprecationLogger.deprecateConfiguration(selectedConfiguration.getName()).forConsumption().replaceWith(alternatives).undocumented().nagUser();
+            DeprecationLogger.deprecateConfiguration(selectedConfiguration.getName()).forConsumption().replaceWith(alternatives)
+                .withUserManual("java_library_plugin", "sec:java_library_configurations_graph")
+                .nagUser();
         }
     }
 

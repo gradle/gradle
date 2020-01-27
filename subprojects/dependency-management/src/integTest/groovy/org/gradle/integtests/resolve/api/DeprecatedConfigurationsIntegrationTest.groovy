@@ -145,8 +145,9 @@ class DeprecatedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        executer.expectDeprecationWarning("The compileOnly configuration has been deprecated for consumption. This will fail with an error in Gradle 7.0. " +
-            "Please use attributes to consume the compileElements configuration instead.")
+        executer.expectDocumentedDeprecationWarning("The compileOnly configuration has been deprecated for consumption. This will fail with an error in Gradle 7.0. " +
+            "Please use attributes to consume the compileElements configuration instead. " +
+            "See https://docs.gradle.org/current/userguide/java_library_plugin.html#sec:java_library_configurations_graph for more details.")
 
         then:
         succeeds ':b:resolve'
@@ -172,8 +173,9 @@ class DeprecatedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        executer.expectDeprecationWarning("The compileOnly configuration has been deprecated for consumption. This will fail with an error in Gradle 7.0. " +
-            "Please use attributes to consume the compileElements configuration instead.")
+        executer.expectDocumentedDeprecationWarning("The compileOnly configuration has been deprecated for consumption. This will fail with an error in Gradle 7.0. " +
+            "Please use attributes to consume the compileElements configuration instead. " +
+            "See https://docs.gradle.org/current/userguide/java_library_plugin.html#sec:java_library_configurations_graph for more details.")
 
         then:
         succeeds ':b:resolve', ':b:dependencies'
