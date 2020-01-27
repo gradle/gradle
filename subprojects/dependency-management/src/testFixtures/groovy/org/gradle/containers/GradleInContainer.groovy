@@ -35,6 +35,8 @@ class GradleInContainer {
     private final GradleContainer container
     private final GradleContainerExecuter executer
 
+    private boolean started
+
     static void exposeHostPort(int port) {
         Testcontainers.exposeHostPorts(port)
     }
@@ -71,16 +73,15 @@ class GradleInContainer {
 
     @PackageScope
     GradleExecResult execute(String... command) {
-        try {
+        if (!started) {
             container.withCommand("tail", "-f", "/dev/null")
             startContainer()
-            return container.execute(command)
-        } finally {
-            stopContainer()
         }
+        return container.execute(command)
     }
 
     void startContainer() {
+        started = true
         container.start()
     }
 
