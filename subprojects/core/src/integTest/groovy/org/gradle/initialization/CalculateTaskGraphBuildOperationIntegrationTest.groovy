@@ -144,7 +144,7 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
         taskGraphCalculations[0].result.requestedTaskPaths == [":build"]
         taskGraphCalculations[1].details.buildPath == ":"
         taskGraphCalculations[1].result.requestedTaskPaths == [":build"]
-        taskGraphCalculations[2].details.buildPath== ":b"
+        taskGraphCalculations[2].details.buildPath == ":b"
         taskGraphCalculations[2].result.requestedTaskPaths == [":compileJava", ":jar"]
     }
 
@@ -195,9 +195,108 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
         operations()[0].result.taskPlan.task.identityPath == [":compileJava", ":processResources", ":classes", ":independentTask", ":anotherTask", ":otherTask", ":someTask", ":lastTask"]
         operations()[0].result.taskPlan.dependencies.identityPath as Set == [[":included-build:compileJava"], [], [":processResources", ":compileJava"], [":anotherTask", ":otherTask"]] as Set
         operations()[0].result.taskPlan.finalizedBy.taskPath == [[], [], [], [], [], [], [":lastTask"], []]
-        operations()[0].result.taskPlan.mustRunAfter.taskPath ==  [[], [], [], [], [], [], [":firstTask"], []]
+        operations()[0].result.taskPlan.mustRunAfter.taskPath == [[], [], [], [], [], [], [":firstTask"], []]
         operations()[0].result.taskPlan.shouldRunAfter.taskPath == [[], [], [], [], [], [], [":secondTask"], []]
         operations()[1].result.taskPlan.task.identityPath == [':included-build:compileJava']
+    }
+
+    @ToBeFixedForInstantExecution
+    def "exposes plan details with nested artifact transforms"() {
+        file('producer/src/main/java/artifact/transform/sample/producer/Producer.java') << """
+            package artifact.transform.sample.producer;
+
+            public final class Producer {
+
+                public String sayHello(String name) {
+                    return "Hello, " + name + "!";
+                }
+            }"""
+        file('producer/build.gradle') << """
+            apply plugin:'java-library' """
+
+        buildFile << """
+            import org.gradle.api.artifacts.transform.TransformParameters
+            import org.gradle.api.artifacts.transform.TransformAction
+
+            plugins {
+                id 'java'
+                id 'application'
+            }
+
+            def artifactType = Attribute.of('artifactType', String)
+            def minified = Attribute.of('minified', Boolean)
+            dependencies {
+                attributesSchema {
+                    attribute(minified)
+                }
+                artifactTypes.getByName("jar") {
+                    attributes.attribute(minified, false)
+                }
+            }
+
+            configurations.all {
+                afterEvaluate {
+                    if (canBeResolved) {
+                        attributes.attribute(minified, true)
+                    }
+                }
+            }
+
+            dependencies {
+                registerTransform(Minify) {
+                    from.attribute(minified, false).attribute(artifactType, "jar")
+                    to.attribute(minified, true).attribute(artifactType, "jar")
+                }
+            }
+
+            dependencies {
+                implementation project(':producer')
+            }
+
+            application {
+                // Define the main class for the application.
+                mainClassName = 'artifact.transform.sample.App'
+            }
+
+            abstract class Minify implements TransformAction<TransformParameters.None> {
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                @Override
+                void transform(TransformOutputs outputs) {
+                    println "Transforming printed to System.out"
+                    outputs.file(inputArtifact)
+                }
+            }
+            """
+        file('src/main/java/artifact/transform/sample/App.java') << """
+            package artifact.transform.sample;
+
+            import artifact.transform.sample.producer.Producer;
+
+            public class App {
+                public String getGreeting() {
+                    return new Producer().sayHello("Stranger");
+                }
+
+                public static void main(String[] args) {
+                    System.out.println(new App().getGreeting());
+                }
+            }
+            """
+
+        settingsFile << """
+            include 'producer'
+            """
+
+
+        when:
+        succeeds(':distZip')
+
+        then:
+
+        operations()[0].result.taskPlan.task.identityPath == [":producer:compileJava", ":producer:processResources", ":producer:classes", ":producer:jar", ":compileJava", ":processResources", ":classes", ":jar", ":startScripts", ":distZip"]
+        operations()[0].result.taskPlan.dependencies.identityPath.collect { it.sort() } == [[], [], [":producer:compileJava", ":producer:processResources"], [":producer:classes"], [":producer:compileJava"], [], [":compileJava", ":processResources"], [":classes"], [], [":jar", ":producer:jar", ":startScripts"]]
     }
 
     private List<BuildOperationRecord> operations() {

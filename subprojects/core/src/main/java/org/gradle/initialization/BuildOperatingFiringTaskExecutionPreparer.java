@@ -34,6 +34,7 @@ import org.gradle.internal.taskgraph.PlannedTask;
 import org.gradle.util.CollectionUtils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -96,17 +97,14 @@ public class BuildOperatingFiringTaskExecutionPreparer implements TaskExecutionP
                 private DefaultPlannedTask toPlannedTask(TaskNode taskNode) {
                     TaskIdentity<?> taskIdentity = taskNode.getTask().getTaskIdentity();
                     return new DefaultPlannedTask(taskIdentity,
-                        transformToIdentities(taskNode.getDependencySuccessors()),
-                        transformToIdentities(taskNode.getMustSuccessors()),
-                        transformToIdentities(taskNode.getShouldSuccessors()),
-                        transformToIdentities(taskNode.getFinalizers()));
+                        transformToIdentities(taskNode.getDependencySuccessors(), node -> node.getDependencySuccessors()),
+                        transformToIdentities(taskNode.getMustSuccessors(), node -> Collections.emptySet()),
+                        transformToIdentities(taskNode.getShouldSuccessors(), node -> Collections.emptySet()),
+                        transformToIdentities(taskNode.getFinalizers(), node -> Collections.emptySet()));
                 }
 
-                private List<TaskIdentity> transformToIdentities(Set<Node> dependencyPredecessors) {
-                    return new ArrayList(CollectionUtils.collect(
-                        CollectionUtils.filter(dependencyPredecessors, node -> node instanceof TaskNode),
-                        node -> ((TaskNode) node).getTask().getTaskIdentity())
-                    );
+                private List<TaskIdentity> transformToIdentities(Set<Node> nodes, Function<Node, Set<Node>> nestedNodesResolver) {
+                    return new ArrayList(CollectionUtils.collect(toOnlyTaskNodes(nodes, nestedNodesResolver), node -> ((TaskNode) node).getTask().getTaskIdentity()));
                 }
 
                 private List<String> toTaskPaths(Set<Task> tasks) {
@@ -118,6 +116,11 @@ public class BuildOperatingFiringTaskExecutionPreparer implements TaskExecutionP
                     })).asList();
                 }
             });
+        }
+
+        private List<Node> toOnlyTaskNodes(Set<Node> nodes, Function<Node, Set<Node>> nestedNodesResolver) {
+            List<Node> flattenAllNodes = CollectionUtils.flattenCollections(Node.class, CollectionUtils.collect(nodes, node -> node instanceof TaskNode ? node : nestedNodesResolver.apply(node)));
+            return CollectionUtils.filter(flattenAllNodes, node -> node instanceof TaskNode);
         }
 
         TaskExecutionGraphInternal populateTaskGraph() {
