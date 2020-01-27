@@ -40,6 +40,7 @@ import org.gradle.profiler.Profiler;
 import org.gradle.profiler.RunTasksAction;
 import org.gradle.profiler.instrument.PidInstrumentation;
 import org.gradle.profiler.jfr.JfrProfiler;
+import org.gradle.profiler.report.CsvGenerator;
 import org.gradle.profiler.result.Sample;
 
 import java.io.File;
@@ -157,7 +158,8 @@ public class GradleProfilerBuildExperimentRunner extends AbstractBuildExperiment
             warmupsForExperiment(experiment),
             invocationsForExperiment(experiment),
             false,
-            experiment.getMeasuredBuildOperations()
+            experiment.getMeasuredBuildOperations(),
+            CsvGenerator.Format.LONG
         );
     }
 
@@ -165,6 +167,7 @@ public class GradleProfilerBuildExperimentRunner extends AbstractBuildExperiment
         GradleDistribution gradleDistribution = invocationSpec.getGradleDistribution();
         List<String> cleanTasks = invocationSpec.getCleanTasks();
         return new GradleScenarioDefinition(
+            experimentSpec.getDisplayName(),
             experimentSpec.getDisplayName(),
             (GradleBuildInvoker) invocationSettings.getInvoker(),
             new GradleBuildConfiguration(gradleDistribution.getVersion(), gradleDistribution.getGradleHomeDir(), Jvm.current().getJavaHome(), invocationSpec.getJvmOpts(), false),
