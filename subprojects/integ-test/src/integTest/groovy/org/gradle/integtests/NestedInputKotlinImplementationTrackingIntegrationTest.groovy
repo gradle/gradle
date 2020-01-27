@@ -103,7 +103,6 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractPlu
         output.contains "Implementation of input property 'action' has changed for task ':myTask'"
     }
 
-    @ToBeFixedForInstantExecution
     @Issue("https://github.com/gradle/gradle/issues/11703")
     def "nested bean from closure can be used with the build cache"() {
         def project1 = file("project1").createDir()

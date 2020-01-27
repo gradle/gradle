@@ -32,7 +32,7 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
             allprojects {
                 apply plugin: 'java-library'
             }
-            
+
             dependencies {
                 api project(':producer')
             }
@@ -61,7 +61,7 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
       - Incompatible attribute:
           - Required org.gradle.jvm.version '6' and found incompatible value '7'.
       - Other attributes:
-          - Found org.gradle.category 'library' but wasn't required.
+          - Required org.gradle.category 'library' and found compatible value 'library'.
           - Required org.gradle.dependency.bundling 'external' and found compatible value 'external'.
           - Required org.gradle.libraryelements 'classes' and found compatible value 'jar'.
           - Required org.gradle.usage 'java-api' and found compatible value 'java-api'.
@@ -69,7 +69,7 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
       - Incompatible attribute:
           - Required org.gradle.jvm.version '6' and found incompatible value '7'.
       - Other attributes:
-          - Found org.gradle.category 'library' but wasn't required.
+          - Required org.gradle.category 'library' and found compatible value 'library'.
           - Required org.gradle.dependency.bundling 'external' and found compatible value 'external'.
           - Required org.gradle.libraryelements 'classes' and found compatible value 'jar'.
           - Required org.gradle.usage 'java-api' and found compatible value 'java-runtime'.''')
@@ -81,7 +81,7 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
             // avoid test noise so that typically version 8 is not selected when running on JDK 8
             configurations.apiElements.attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 1000)
             configurations.runtimeElements.attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 1000)
-            
+
             [6, 7, 9].each { v ->
                 configurations {
                     "apiElementsJdk\${v}" {
@@ -154,7 +154,7 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
       - Incompatible attribute:
           - Required org.gradle.jvm.version '6' and found incompatible value '7'.
       - Other attributes:
-          - Found org.gradle.category 'library' but wasn't required.
+          - Required org.gradle.category 'library' and found compatible value 'library'.
           - Required org.gradle.dependency.bundling 'external' and found compatible value 'external'.
           - Required org.gradle.libraryelements 'classes' and found compatible value 'jar'.
           - Required org.gradle.usage 'java-api' and found compatible value 'java-api'.
@@ -162,7 +162,7 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
       - Incompatible attribute:
           - Required org.gradle.jvm.version '6' and found incompatible value '7'.
       - Other attributes:
-          - Found org.gradle.category 'library' but wasn't required.
+          - Required org.gradle.category 'library' and found compatible value 'library'.
           - Required org.gradle.dependency.bundling 'external' and found compatible value 'external'.
           - Required org.gradle.libraryelements 'classes' and found compatible value 'jar'.
           - Required org.gradle.usage 'java-api' and found compatible value 'java-runtime'.""")

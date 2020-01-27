@@ -17,6 +17,8 @@
 package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
+import org.gradle.profiler.Phase
+import org.gradle.profiler.ScenarioContext
 import org.gradle.profiler.mutations.ApplyNonAbiChangeToJavaSourceFileMutator
 import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
@@ -63,6 +65,7 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
         given:
         def checkoutDir = temporaryFolder.createDir("checkout")
         setupCopyOfSantaTracker(checkoutDir, 'Java', agpVersion)
+        def buildContext = new ScenarioContext(UUID.randomUUID(), "nonAbiChange").withBuild(Phase.MEASURE, 0)
 
         and:
         def pathToClass = "com/google/android/apps/santatracker/map/BottomSheetBehavior"
@@ -79,7 +82,7 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
         assertInstantExecutionStateStored()
 
         when:
-        nonAbiChangeMutator.beforeBuild()
+        nonAbiChangeMutator.beforeBuild(buildContext)
         buildLocation(checkoutDir, agpVersion)
         def md5After = compiledClassFile.md5Hash
 
