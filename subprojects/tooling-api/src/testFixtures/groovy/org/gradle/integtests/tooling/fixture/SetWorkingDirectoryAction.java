@@ -13,25 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.integtests.tooling.fixture;
 
-package org.gradle.instantexecution.initialization
+import org.gradle.tooling.BuildAction;
+import org.gradle.tooling.BuildController;
 
-import org.gradle.initialization.IGradlePropertiesLoader
+public class SetWorkingDirectoryAction implements BuildAction {
+    private final String workingDirectory;
 
+    public SetWorkingDirectoryAction(String workingDirectory) {
+        this.workingDirectory = workingDirectory;
+    }
 
-class InstantExecutionPropertiesLoader(
-    private val startParameter: InstantExecutionStartParameter,
-    private val propertiesLoader: IGradlePropertiesLoader
-) {
-    private
-    var loaded = false
-
-    val hasLoaded
-        get() = loaded
-
-    fun loadProperties() {
-        require(!hasLoaded)
-        propertiesLoader.loadProperties(startParameter.rootDirectory)
-        loaded = true
+    @Override
+    public Object execute(BuildController controller) {
+        System.setProperty("user.dir", workingDirectory);
+        return workingDirectory;
     }
 }

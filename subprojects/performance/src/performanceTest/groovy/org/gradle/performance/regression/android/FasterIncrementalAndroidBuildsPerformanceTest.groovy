@@ -38,6 +38,7 @@ import static org.gradle.performance.regression.android.IncrementalAndroidTestPr
 
 @Category(PerformanceExperiment)
 class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPerformanceTest {
+    private static final String AGP_TARGET_VERSION = "4.0"
 
     def setup() {
         runner.testGroup = "incremental android changes"
@@ -80,6 +81,7 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
             runner.buildSpec {
                 passChangedFile(delegate, testProject)
                 invocation.args(*enabledOptimizations*.argument)
+                testProject.configureForLatestAgpVersionOfMinor(delegate, AGP_TARGET_VERSION)
                 displayName(name)
 
                 final Closure clonedClosure = scenarioConfiguration.clone() as Closure;

@@ -259,6 +259,8 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             .collect(Collectors.joining(" "));
         File cpJar = new File(getDefaultTmpDir(), "daemon-classpath-manifest-" + HashUtil.createCompactMD5(cpString) + ".jar");
         if (!cpJar.isFile()) {
+            // Make sure the parent exists or the jar creation might fail
+            cpJar.getParentFile().mkdirs();
             Manifest manifest = new Manifest();
             manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
             manifest.getMainAttributes().put(Attributes.Name.CLASS_PATH, cpString);

@@ -7,6 +7,8 @@
       <verify-signatures>true</verify-signatures>
       <trusted-artifacts>
          <trust group="gradle" name="gradle"/>
+         <!-- TAPI tests use a lot of different versions of the Tooling API -->
+         <trust group="org.gradle" name="gradle-tooling-api"/>
          <trust group="net[.]rubygrapefruit" name="native-platform.*" version=".*snapshot.*" regex="true"/>
          <trust file=".*-javadoc[.]jar" regex="true"/>
          <trust file=".*-sources[.]jar" regex="true"/>

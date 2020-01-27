@@ -16,7 +16,6 @@
 
 package org.gradle.plugins.ide.internal.tooling.eclipse
 
-
 import org.gradle.api.Project
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry
 import org.gradle.api.internal.composite.CompositeBuildContext
@@ -50,6 +49,9 @@ class EclipseModelBuilderDependenciesTest extends AbstractProjectBuilderSpec {
         child1 = ProjectBuilder.builder().withName("child1").withParent(project).build()
         child2 = ProjectBuilder.builder().withName("child2").withParent(project).build()
         child3 = ProjectBuilder.builder().withName("child3").withParent(project).build()
+        new File(project.projectDir, "settings.gradle") << """
+            rootProject.name = 'test'
+        """
 
         def libsDir = new File(project.projectDir, "libs")
         libsDir.mkdirs()

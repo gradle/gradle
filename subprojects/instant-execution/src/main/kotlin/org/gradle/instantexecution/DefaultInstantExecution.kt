@@ -44,7 +44,7 @@ import org.gradle.instantexecution.serialization.readNonNull
 import org.gradle.instantexecution.serialization.withIsolate
 import org.gradle.instantexecution.serialization.writeCollection
 import org.gradle.internal.build.event.BuildEventListenerRegistryInternal
-import org.gradle.internal.hash.HashUtil
+import org.gradle.internal.hash.HashUtil.createCompactMD5
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
@@ -52,6 +52,7 @@ import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
 import org.gradle.internal.vfs.VirtualFileSystem
 import org.gradle.tooling.events.OperationCompletionListener
+import org.gradle.util.GFileUtils.relativePathOf
 import org.gradle.util.GradleVersion
 import org.gradle.util.Path
 import java.io.File
@@ -276,7 +277,7 @@ class DefaultInstantExecution internal constructor(
                 }
             }
             else -> {
-                val valueSource = instantiateValueSourceOf(this)
+                val valueSource = instantiateValueSource()
                 if (value.get() != valueSource.obtain()) {
                     "a build logic input has changed"
                 } else {
@@ -287,14 +288,12 @@ class DefaultInstantExecution internal constructor(
     }
 
     private
-    fun instantiateValueSourceOf(obtainedValue: ObtainedValue): ValueSource<Any, ValueSourceParameters> =
-        obtainedValue.run {
-            (valueSourceProviderFactory as DefaultValueSourceProviderFactory).instantiateValueSource(
-                valueSourceType,
-                valueSourceParametersType,
-                valueSourceParameters
-            )
-        }
+    fun ObtainedValue.instantiateValueSource(): ValueSource<Any, ValueSourceParameters> =
+        (valueSourceProviderFactory as DefaultValueSourceProviderFactory).instantiateValueSource(
+            valueSourceType,
+            valueSourceParametersType,
+            valueSourceParameters
+        )
 
     private
     fun attachBuildLogicInputsCollector() {
@@ -487,10 +486,43 @@ class DefaultInstantExecution internal constructor(
     private
     val instantExecutionStateFile by unsafeLazy {
         val cacheDir = absoluteFile(".instant-execution-state/${currentGradleVersion()}")
-        val baseName = compactMD5For(startParameter.requestedTaskNames)
+        val baseName = createCompactMD5(instantExecutionCacheKey())
         val cacheFileName = "$baseName.bin"
         File(cacheDir, cacheFileName)
     }
+
+    private
+    fun instantExecutionCacheKey() = startParameter.run {
+        // The following characters are not valid in task names
+        // and can be used as separators: /, \, :, <, >, ", ?, *, |
+        // except we also accept qualified task names with :, so colon is out.
+        val cacheKey = StringBuilder()
+        requestedTaskNames.joinTo(cacheKey, separator = "/")
+        if (excludedTaskNames.isNotEmpty()) {
+            excludedTaskNames.joinTo(cacheKey, prefix = "<", separator = "/")
+        }
+        val taskNames = requestedTaskNames.asSequence() + excludedTaskNames.asSequence()
+        val hasRelativeTaskName = taskNames.any { !it.startsWith(':') }
+        if (hasRelativeTaskName) {
+            // Because unqualified task names are resolved relative to the enclosing
+            // sub-project according to `invocationDir` we need to include
+            // the relative invocation dir information in the key.
+            relativeChildPathOrNull(invocationDir, rootDirectory)?.let { relativeSubDir ->
+                cacheKey.append('*')
+                cacheKey.append(relativeSubDir)
+            }
+        }
+        cacheKey.toString()
+    }
+
+    /**
+     * Returns the path of [target] relative to [base] if
+     * [target] is a child of [base] or `null` otherwise.
+     */
+    private
+    fun relativeChildPathOrNull(target: File, base: File): String? =
+        relativePathOf(target, base)
+            .takeIf { !it.startsWith('.') }
 
     private
     fun currentGradleVersion(): String =
@@ -498,7 +530,7 @@ class DefaultInstantExecution internal constructor(
 
     private
     fun absoluteFile(path: String) =
-        File(startParameter.rootDir, path).absoluteFile
+        File(startParameter.rootDirectory, path).absoluteFile
 
     private
     val reportOutputDir by unsafeLazy {
@@ -538,10 +570,6 @@ class DefaultInstantExecution internal constructor(
     private
     fun systemProperty(propertyName: String) =
         startParameter.systemPropertyArg(propertyName) ?: System.getProperty(propertyName)
-
-    private
-    fun compactMD5For(taskNames: List<String>) =
-        HashUtil.createCompactMD5(taskNames.joinToString("/"))
 }
 
 

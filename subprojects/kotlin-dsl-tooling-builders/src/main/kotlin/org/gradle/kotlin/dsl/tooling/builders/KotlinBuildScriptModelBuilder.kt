@@ -167,9 +167,14 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
             (modelRequestProject.findProperty(KotlinBuildScriptModel.SCRIPT_GRADLE_PROPERTY_NAME) as? String)?.let(::canonicalFile),
             modelRequestProject.findProperty(KotlinDslModelsParameters.CORRELATION_ID_GRADLE_PROPERTY_NAME) as? String
         )
+}
 
-    private
-    fun log(message: String) = println(message)
+
+internal
+fun log(message: String) {
+    if (System.getProperty("org.gradle.kotlin.dsl.logging.tapi") == "true") {
+        println(message)
+    }
 }
 
 

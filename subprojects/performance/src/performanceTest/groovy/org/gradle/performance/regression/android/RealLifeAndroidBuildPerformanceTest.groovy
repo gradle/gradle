@@ -33,6 +33,8 @@ import static org.gradle.performance.regression.android.IncrementalAndroidTestPr
 
 class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProfilerPerformanceTest {
 
+    private static final String SANTA_AGP_TARGET_VERSION = "3.6"
+
     def setup() {
         runner.args = [AndroidGradlePluginVersions.OVERRIDE_VERSION_CHECK]
         runner.targetVersions = ["6.2-20200108160029+0000"]
@@ -46,10 +48,17 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
         given:
         testProject.configure(runner)
         runner.tasksToRun = tasks.split(' ')
-        runner.args = parallel ? ['-Dorg.gradle.parallel=true'] : []
+        if (parallel) {
+            runner.args.add('-Dorg.gradle.parallel=true')
+        }
         runner.warmUpRuns = warmUpRuns
         runner.runs = runs
         applyEnterprisePlugin()
+
+        and:
+        if (testProject == SANTA_TRACKER_KOTLIN) {
+            (testProject as IncrementalAndroidTestProject).configureForLatestAgpVersionOfMinor(runner, SANTA_AGP_TARGET_VERSION)
+        }
 
         when:
         def result = runner.run()
@@ -74,7 +83,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
         given:
         testProject.configure(runner)
         runner.tasksToRun = tasks.split(' ')
-        runner.args = ['-Dorg.gradle.parallel=true']
+        runner.args.add('-Dorg.gradle.parallel=true')
         runner.warmUpRuns = warmUpRuns
         runner.cleanTasks = ["clean"]
         runner.runs = runs
@@ -82,6 +91,11 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
             new ClearArtifactTransformCacheMutator(invocationSettings.getGradleUserHome(), AbstractCleanupMutator.CleanupSchedule.BUILD)
         }
         applyEnterprisePlugin()
+
+        and:
+        if (testProject == SANTA_TRACKER_KOTLIN) {
+            (testProject as IncrementalAndroidTestProject).configureForLatestAgpVersionOfMinor(runner, SANTA_AGP_TARGET_VERSION)
+        }
 
         when:
         def result = runner.run()
@@ -100,7 +114,8 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
     def "abi change on #testProject"() {
         given:
         testProject.configureForAbiChange(runner)
-        runner.args = ['-Dorg.gradle.parallel=true']
+        testProject.configureForLatestAgpVersionOfMinor(runner, SANTA_AGP_TARGET_VERSION)
+        runner.args.add('-Dorg.gradle.parallel=true')
         applyEnterprisePlugin()
 
         when:
@@ -117,7 +132,8 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
     def "non-abi change on #testProject"() {
         given:
         testProject.configureForNonAbiChange(runner)
-        runner.args = ['-Dorg.gradle.parallel=true']
+        testProject.configureForLatestAgpVersionOfMinor(runner, SANTA_AGP_TARGET_VERSION)
+        runner.args.add('-Dorg.gradle.parallel=true')
         applyEnterprisePlugin()
 
         when:
