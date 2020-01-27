@@ -17,11 +17,9 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 class GradleBuildScriptExecutionFromSubDirIntegTest extends AbstractIntegrationSpec {
 
-    @ToBeFixedForInstantExecution
     def "shouldn't create a gradle directory within the invocation directory"() {
         buildFile << """
             tasks.register("checkDir") {
