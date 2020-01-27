@@ -17,7 +17,6 @@
 package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
-import org.gradle.profiler.BuildContext
 import org.gradle.profiler.Phase
 import org.gradle.profiler.ScenarioContext
 import org.gradle.profiler.mutations.ApplyNonAbiChangeToJavaSourceFileMutator
