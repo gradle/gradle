@@ -17,7 +17,6 @@
 package org.gradle.internal.service.scopes;
 
 import org.gradle.StartParameter;
-import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.ClassPathRegistry;
@@ -183,7 +182,6 @@ import org.gradle.internal.resource.TextFileResourceLoader;
 import org.gradle.internal.resource.TextUriResourceLoader;
 import org.gradle.internal.service.CachingServiceLocator;
 import org.gradle.internal.service.DefaultServiceRegistry;
-import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.Clock;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
@@ -205,20 +203,17 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     public BuildScopeServices(final ServiceRegistry parent) {
         super(parent);
         addProvider(new BuildCacheServices());
-        register(new Action<ServiceRegistration>() {
-            @Override
-            public void execute(ServiceRegistration registration) {
-                registration.add(DefaultExecOperations.class);
-                registration.add(DefaultFileOperations.class);
-                registration.add(DefaultFileSystemOperations.class);
-                for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {
-                    pluginServiceRegistry.registerBuildServices(registration);
-                }
+        register(registration -> {
+            registration.add(DefaultExecOperations.class);
+            registration.add(DefaultFileOperations.class);
+            registration.add(DefaultFileSystemOperations.class);
+            for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {
+                pluginServiceRegistry.registerBuildServices(registration);
             }
         });
     }
 
-    ValueSourceProviderFactory createValueSourceProviderFactory(
+    protected ValueSourceProviderFactory createValueSourceProviderFactory(
         InstantiatorFactory instantiatorFactory,
         IsolatableFactory isolatableFactory,
         ServiceRegistry services,
@@ -232,7 +227,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         );
     }
 
-    ProviderFactory createProviderFactory(ValueSourceProviderFactory valueSourceProviderFactory) {
+    protected ProviderFactory createProviderFactory(ValueSourceProviderFactory valueSourceProviderFactory) {
         return new DefaultProviderFactory(valueSourceProviderFactory);
     }
 
