@@ -16,9 +16,9 @@
 
 package org.gradle.api.plugins.quality.checkstyle
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.quality.integtest.fixtures.CheckstyleCoverage
 import org.gradle.util.Matchers
@@ -70,15 +70,15 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
                 config = project.resources.text.fromString('''<!DOCTYPE module PUBLIC "-//Puppy Crawl//DTD Check Configuration 1.3//EN"
                         "https://www.puppycrawl.com/dtds/configuration_1_3.dtd">
                 <module name="Checker">
-                
+
                     <module name="FileTabCharacter"/>
-                
+
                     <module name="SuppressionFilter">
                         <property name="file" value="\${config_loc}/suppressions.xml" default=""/>
                         <property name="optional" value="true"/>
                     </module>
                 </module>''')
-            
+
                 configDirectory = file("config/does-not-exist")
             }
         """
@@ -219,7 +219,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         file("build/reports/checkstyle/main.html").assertContents(containsClass("org.gradle.class2"))
     }
 
-    @IgnoreIf({GradleContextualExecuter.parallel})
+    @IgnoreIf({ GradleContextualExecuter.parallel })
     @ToBeFixedForInstantExecution
     def "is incremental"() {
         given:
@@ -357,17 +357,18 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
 
         buildFile << """
             checkstyle {
-                configProperties['config_loc'] = file("custom") 
+                configProperties['config_loc'] = file("custom")
             }
         """
         when:
         // config_loc points to the location of suppressions.xml
         // while the default configDirectory does not.
         // The build should fail because we ignore the user provided value
-        executer.expectDeprecationWarning()
+        executer.expectDocumentedDeprecationWarning("Adding 'config_loc' to checkstyle.configProperties has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+            "This property is now ignored and the value of configDirectory is always used for 'config_loc'. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#user_provided_config_loc_properties_are_ignored_by_checkstyle")
         fails "checkstyleMain"
         then:
-        outputContains("Adding 'config_loc' to checkstyle.configProperties has been deprecated.")
         executedAndNotSkipped(":checkstyleMain")
     }
 

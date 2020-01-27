@@ -41,12 +41,12 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 public static void someFeature() {
-                    DeprecationLogger.deprecateMethod("someFeature()").undocumented().nagUser();
+                    DeprecationLogger.deprecateMethod(DeprecatedTask.class, "someFeature()").undocumented().nagUser();
                     System.out.println("DeprecatedTask.someFeature() executed.");
                 }
 
                 void otherFeature() {
-                    DeprecationLogger.deprecateMethod("otherFeature()").withAdvice("Relax. This is just a test.").undocumented().nagUser();
+                    DeprecationLogger.deprecateMethod(DeprecatedTask.class, "otherFeature()").withAdvice("Relax. This is just a test.").undocumented().nagUser();
                     System.out.println("DeprecatedTask.otherFeature() executed.");
                 }
 
@@ -103,8 +103,8 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         output.contains(PLUGIN_DEPRECATION_MESSAGE) == warningsCountInConsole > 0
-        output.contains('The someFeature() method has been deprecated') == warningsCountInConsole > 0
-        output.contains('The otherFeature() method has been deprecated') == warningsCountInConsole > 0
+        output.contains('The DeprecatedTask.someFeature() method has been deprecated') == warningsCountInConsole > 0
+        output.contains('The DeprecatedTask.otherFeature() method has been deprecated') == warningsCountInConsole > 0
         output.contains('The deprecated task has been deprecated') == warningsCountInConsole > 0
 
         and:

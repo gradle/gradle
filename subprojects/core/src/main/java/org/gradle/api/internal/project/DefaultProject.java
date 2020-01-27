@@ -1017,8 +1017,10 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     private void maybeNagDeprecationOfAfterEvaluateAfterProjectIsEvaluated(String methodPrototype) {
         if (!state.isUnconfigured() && !state.isConfiguring()) {
-            DeprecationLogger.deprecateInvocation("Project#" + methodPrototype + " when the project is already evaluated")
-                .withAdvice(getAdviceOnDeprecationOfAfterEvaluateAfterProjectIsEvaluated()).undocumented().nagUser();
+            DeprecationLogger.deprecateInvocation("Project." + methodPrototype + " when the project is already evaluated")
+                .withAdvice(getAdviceOnDeprecationOfAfterEvaluateAfterProjectIsEvaluated())
+                .withUpgradeGuideSection(5, "calling_project_afterevaluate_on_an_evaluated_project_has_been_deprecated")
+                .nagUser();
         }
     }
 

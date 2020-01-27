@@ -93,7 +93,10 @@ public class MavenPlugin implements Plugin<ProjectInternal> {
     @Override
     public void apply(final ProjectInternal project) {
         this.project = project;
-        DeprecationLogger.deprecatePlugin("maven").replaceWith("maven-publish").undocumented().nagUser();
+        DeprecationLogger.deprecatePlugin("maven").replaceWith("maven-publish")
+            .withUpgradeGuideSection(5, "legacy_publication_system_is_deprecated_and_replaced_with_the_publish_plugins")
+            .nagUser();
+
         project.getPluginManager().apply(BasePlugin.class);
 
         MavenFactory mavenFactory = project.getServices().get(MavenFactory.class);

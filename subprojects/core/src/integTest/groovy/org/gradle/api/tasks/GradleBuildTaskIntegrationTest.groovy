@@ -113,10 +113,10 @@ class GradleBuildTaskIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         displayName                                | codeUnderTest
-        "StartParameter#setSearchUpwards(boolean)" | "buildInBuild.startParameter.searchUpwards = true"
-        "StartParameter#isSearchUpwards()"         | "buildInBuild.startParameter.searchUpwards"
-        "StartParameter#useEmptySettings()"        | "buildInBuild.startParameter.useEmptySettings()"
-        "StartParameter#isUseEmptySettings()"      | "buildInBuild.startParameter.useEmptySettings"
+        "StartParameter.setSearchUpwards(boolean)" | "buildInBuild.startParameter.searchUpwards = true"
+        "StartParameter.isSearchUpwards()"         | "buildInBuild.startParameter.searchUpwards"
+        "StartParameter.useEmptySettings()"        | "buildInBuild.startParameter.useEmptySettings()"
+        "StartParameter.isUseEmptySettings()"      | "buildInBuild.startParameter.useEmptySettings"
     }
 
     @ToBeFixedForInstantExecution

@@ -85,13 +85,13 @@ public class DefaultTextResourceFactory implements TextResourceFactory {
                     .deprecate("Loading a TextResource from an insecure URI")
                     .withAdvice(String.format("Switch the URI to '%s' or try 'resources.text.fromInsecureUri(\"%s\")' to silence the warning.", GUtil.toSecureUrl(rootUri), rootUri))
                     .withContext(String.format("The provided URI '%s' uses an insecure protocol (HTTP).", rootUri))
-                    .undocumented()
+                    .withDslReference(TextResourceFactory.class, "fromInsecureUri(java.lang.Object)")
                     .nagUser(),
                 redirect -> DeprecationLogger
                     .deprecate("Loading a TextResource from an insecure redirect")
                     .withAdvice("Switch to HTTPS or use TextResourceFactory.fromInsecureUri(Object) to silence the warning.")
                     .withContext(String.format("'%s' redirects to insecure '%s'.", uri, redirect))
-                    .undocumented()
+                    .withDslReference(TextResourceFactory.class, "fromInsecureUri(java.lang.Object)")
                     .nagUser()
             );
         return apiTextResourcesAdapterFactory.create(rootUri, redirectVerifier);

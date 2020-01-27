@@ -763,7 +763,9 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         buildFile << archiveTaskWithDuplicates(archiveType)
 
         expect:
-        executer.expectDeprecationWarning('Copying or archiving duplicate paths with the default duplicates strategy has been deprecated. This is scheduled to be removed in Gradle 7.0. Duplicate path: "file1.txt". Explicitly set the duplicates strategy to \'DuplicatesStrategy.INCLUDE\' if you want to allow duplicate paths.')
+        executer.expectDocumentedDeprecationWarning('Copying or archiving duplicate paths with the default duplicates strategy has been deprecated. This is scheduled to be removed in Gradle 7.0. ' +
+            'Duplicate path: "file1.txt". Explicitly set the duplicates strategy to \'DuplicatesStrategy.INCLUDE\' if you want to allow duplicate paths. ' +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#implicit_duplicate_strategy_for_copy_or_archive_tasks_has_been_deprecated")
         succeeds 'archive'
 
         where:
@@ -933,14 +935,14 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         file(archiveFile).assertExists()
 
         where:
-        taskType | prop | archiveFile
-        "Zip"    | "version"   | "build/distributions/archive.zip"
-        "Jar"    | "version"   | "build/libs/archive.jar"
-        "Tar"    | "version"   | "build/distributions/archive.tar"
+        taskType | prop       | archiveFile
+        "Zip"    | "version"  | "build/distributions/archive.zip"
+        "Jar"    | "version"  | "build/libs/archive.jar"
+        "Tar"    | "version"  | "build/distributions/archive.tar"
 
-        "Zip"    | "baseName"   | "build/distributions/1.0.zip"
-        "Jar"    | "baseName"   | "build/libs/1.0.jar"
-        "Tar"    | "baseName"   | "build/distributions/1.0.tar"
+        "Zip"    | "baseName" | "build/distributions/1.0.zip"
+        "Jar"    | "baseName" | "build/libs/1.0.jar"
+        "Tar"    | "baseName" | "build/distributions/1.0.tar"
 
     }
 

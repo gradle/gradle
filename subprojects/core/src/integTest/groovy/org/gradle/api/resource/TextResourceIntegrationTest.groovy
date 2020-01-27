@@ -16,8 +16,8 @@
 package org.gradle.api.resource
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.server.http.HttpServer
@@ -131,9 +131,10 @@ class TextResourceIntegrationTest extends AbstractIntegrationSpec {
             }
 """
         when:
-        executer.expectDeprecationWarning("Loading a TextResource from an insecure URI has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
-                "The provided URI '${server.uri("/myConfig-" + uuid + ".txt")}' uses an insecure protocol (HTTP). " +
-                "Switch the URI to '${GUtil.toSecureUrl(server.uri("/myConfig-" + uuid + ".txt"))}' or try 'resources.text.fromInsecureUri(\"${server.uri("/myConfig-" + uuid + ".txt")}\")' to silence the warning.")
+        executer.expectDocumentedDeprecationWarning("Loading a TextResource from an insecure URI has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+            "The provided URI '${server.uri("/myConfig-" + uuid + ".txt")}' uses an insecure protocol (HTTP). " +
+            "Switch the URI to '${GUtil.toSecureUrl(server.uri("/myConfig-" + uuid + ".txt"))}' or try 'resources.text.fromInsecureUri(\"${server.uri("/myConfig-" + uuid + ".txt")}\")' to silence the warning. " +
+            "See https://docs.gradle.org/current/dsl/org.gradle.api.resources.TextResourceFactory.html#org.gradle.api.resources.TextResourceFactory:fromInsecureUri(java.lang.Object) for more details.")
         run("uriText")
 
         then:

@@ -937,7 +937,9 @@ class SomeTask extends DefaultTask {
         """
 
         when:
-        executer.expectDeprecationWarning("Querying the mapped value of task ':producer' property 'output' before task ':producer' has completed has been deprecated. This will fail with an error in Gradle 7.0.")
+        executer.expectDocumentedDeprecationWarning("Querying the mapped value of task ':producer' property 'output' before task ':producer' has completed has been deprecated. " +
+            "This will fail with an error in Gradle 7.0. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#querying_a_mapped_output_property_of_a_task_before_the_task_has_completed")
         succeeds("producer")
 
         then:
@@ -957,7 +959,9 @@ class SomeTask extends DefaultTask {
         """
 
         when:
-        executer.expectDeprecationWarning("Querying the mapped value of task ':producer' property 'output' before task ':producer' has completed has been deprecated. This will fail with an error in Gradle 7.0.")
+        executer.expectDocumentedDeprecationWarning("Querying the mapped value of task ':producer' property 'output' before task ':producer' has completed has been deprecated. " +
+            "This will fail with an error in Gradle 7.0. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#querying_a_mapped_output_property_of_a_task_before_the_task_has_completed")
         succeeds("producer")
 
         then:
@@ -976,7 +980,9 @@ class SomeTask extends DefaultTask {
         """
 
         when:
-        executer.expectDeprecationWarning("Querying the mapped value of task ':producer' property 'output' before task ':producer' has completed has been deprecated. This will fail with an error in Gradle 7.0.")
+        executer.expectDocumentedDeprecationWarning("Querying the mapped value of task ':producer' property 'output' before task ':producer' has completed has been deprecated. " +
+            "This will fail with an error in Gradle 7.0. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#querying_a_mapped_output_property_of_a_task_before_the_task_has_completed")
         succeeds("producer")
 
         then:
@@ -997,7 +1003,9 @@ class SomeTask extends DefaultTask {
         """
 
         when:
-        executer.expectDeprecationWarning("Querying the mapped value of task ':producer' property 'output' before task ':producer' has completed has been deprecated. This will fail with an error in Gradle 7.0.")
+        executer.expectDocumentedDeprecationWarning("Querying the mapped value of task ':producer' property 'output' before task ':producer' has completed has been deprecated. " +
+            "This will fail with an error in Gradle 7.0. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#querying_a_mapped_output_property_of_a_task_before_the_task_has_completed")
         succeeds("producer")
 
         then:
