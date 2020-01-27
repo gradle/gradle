@@ -274,7 +274,7 @@ public class NodeState implements DependencyGraphNode {
 
         // Clear previous traversal state, if any
         if (previousTraversalExclusions != null) {
-            removeOutgoingEdges();
+            removeOutgoingEdges(this);
             upcomingNoLongerPendingConstraints = null;
             edgesToRecompute = null;
             potentiallyActivatedConstraints = null;
@@ -353,7 +353,7 @@ public class NodeState implements DependencyGraphNode {
     private void handleNonTransitiveNode(Collection<EdgeState> discoveredEdges) {
         // If node was previously traversed, need to remove outgoing edges.
         if (previousTraversalExclusions != null) {
-            removeOutgoingEdges();
+            removeOutgoingEdges(this);
         }
         if (!incomingEdges.isEmpty()) {
             LOGGER.debug("{} has no transitive incoming edges. ignoring outgoing edges.", this);
@@ -917,18 +917,15 @@ public class NodeState implements DependencyGraphNode {
             && previousIncomingEdgeCount == incomingEdgeCount;
     }
 
-    private void removeOutgoingEdges() {
-        removeOutgoingEdges(null);
-    }
-
-    private void removeOutgoingEdges(ComponentState origin) {
+    private void removeOutgoingEdges(NodeState origin) {
         if (!outgoingEdges.isEmpty()) {
             for (EdgeState outgoingDependency : outgoingEdges) {
-                if (origin != null && origin == outgoingDependency.getTargetComponent()) {
+                ComponentState targetComponent = outgoingDependency.getTargetComponent();
+                if (targetComponent != null && targetComponent.getNodes().contains(origin)) {
                     // do not clean up origin again (as we are already in the process of doing that)
                     continue;
                 }
-                if (outgoingDependency.getTargetComponent() == getComponent()) {
+                if (targetComponent != null && targetComponent.getNodes().contains(this)) {
                     // if the same component depends on itself: do not attempt to cleanup the same thing several times
                     continue;
                 }
@@ -981,7 +978,7 @@ public class NodeState implements DependencyGraphNode {
     }
 
     public void deselect() {
-        removeOutgoingEdges();
+        removeOutgoingEdges(this);
         reselectEndorsingNode();
     }
 
@@ -989,19 +986,19 @@ public class NodeState implements DependencyGraphNode {
         if (incomingEdges.size() == 1) {
             if (incomingEdges.get(0).getDependencyState().getDependency().isEndorsingStrictVersions()) {
                 // pass my own component because we are already in the process of re-selecting it
-                incomingEdges.get(0).getFrom().reselect(this.getComponent());
+                incomingEdges.get(0).getFrom().reselect(this);
             }
         } else {
             for (EdgeState incoming : Lists.newArrayList(incomingEdges)) {
                 if (incoming.getDependencyState().getDependency().isEndorsingStrictVersions()) {
                     // pass my own component because we are already in the process of re-selecting it
-                    incoming.getFrom().reselect(this.getComponent());
+                    incoming.getFrom().reselect(this);
                 }
             }
         }
     }
 
-    private void reselect(ComponentState origin) {
+    private void reselect(NodeState origin) {
         resolveState.onMoreSelected(this);
         removeOutgoingEdges(origin);
     }
