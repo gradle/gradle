@@ -16,7 +16,20 @@
 
 package org.gradle.api.publish;
 
+import org.gradle.api.Incubating;
+
+/**
+ *
+ * Exception used for errors associated with {@link PublishRetrier}
+ * @since 6.3
+ */
+@Incubating
 public class PublishRetrierException extends Exception {
+
+    /**
+     * @since 6.3
+     */
+    @Incubating
     public PublishRetrierException(String errorMessage, Throwable t) {
         super(errorMessage, t);
     }

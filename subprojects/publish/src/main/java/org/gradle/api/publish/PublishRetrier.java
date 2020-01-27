@@ -16,6 +16,18 @@
 
 package org.gradle.api.publish;
 
+import org.gradle.api.Incubating;
+
+/**
+ * Publisher that is able to retry in case of intermittent network issues.
+ *
+ * @since 6.3
+ */
+@Incubating
 public interface PublishRetrier {
+
+    /**
+     * @since 6.3
+     */
     void publishWithRetry() throws PublishRetrierException;
 }
