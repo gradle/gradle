@@ -69,6 +69,9 @@ import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.project.taskfactory.PropertyAssociationTaskFactory;
 import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
 import org.gradle.api.internal.project.taskfactory.TaskFactory;
+import org.gradle.api.internal.provider.DefaultProviderFactory;
+import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory;
+import org.gradle.api.internal.provider.ValueSourceProviderFactory;
 import org.gradle.api.internal.resources.ApiTextResourceAdapter;
 import org.gradle.api.internal.resources.DefaultResourceHandler;
 import org.gradle.api.internal.tasks.TaskStatistics;
@@ -165,6 +168,7 @@ import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.invocation.DefaultBuildInvocationDetails;
+import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.logging.sink.OutputEventListenerManager;
@@ -212,6 +216,24 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                 }
             }
         });
+    }
+
+    ValueSourceProviderFactory createValueSourceProviderFactory(
+        InstantiatorFactory instantiatorFactory,
+        IsolatableFactory isolatableFactory,
+        ServiceRegistry services,
+        ListenerManager listenerManager
+    ) {
+        return new DefaultValueSourceProviderFactory(
+            listenerManager,
+            instantiatorFactory,
+            isolatableFactory,
+            services
+        );
+    }
+
+    ProviderFactory createProviderFactory(ValueSourceProviderFactory valueSourceProviderFactory) {
+        return new DefaultProviderFactory(valueSourceProviderFactory);
     }
 
     protected BuildLayout createBuildLayout(BuildLayoutFactory buildLayoutFactory, StartParameter startParameter) {
