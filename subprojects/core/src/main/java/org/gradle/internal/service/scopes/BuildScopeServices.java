@@ -70,6 +70,7 @@ import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
 import org.gradle.api.internal.project.taskfactory.TaskFactory;
 import org.gradle.api.internal.provider.DefaultProviderFactory;
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory;
+import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.api.internal.provider.ValueSourceProviderFactory;
 import org.gradle.api.internal.resources.ApiTextResourceAdapter;
 import org.gradle.api.internal.resources.DefaultResourceHandler;
@@ -193,6 +194,8 @@ import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 import org.gradle.tooling.provider.model.internal.BuildScopeToolingModelBuilderRegistryAction;
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry;
 
+import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -217,12 +220,14 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         InstantiatorFactory instantiatorFactory,
         IsolatableFactory isolatableFactory,
         ServiceRegistry services,
+        GradleProperties gradleProperties,
         ListenerManager listenerManager
     ) {
         return new DefaultValueSourceProviderFactory(
             listenerManager,
             instantiatorFactory,
             isolatableFactory,
+            gradleProperties,
             services
         );
     }
@@ -297,6 +302,18 @@ public class BuildScopeServices extends DefaultServiceRegistry {
 
     protected IGradlePropertiesLoader createGradlePropertiesLoader() {
         return new DefaultGradlePropertiesLoader((StartParameterInternal) get(StartParameter.class));
+    }
+
+    protected GradleProperties createGradleProperties(IGradlePropertiesLoader propertiesLoader) {
+        return new GradleProperties() {
+            @Nullable
+            @Override
+            public String find(String propertyName) {
+                return propertiesLoader
+                    .mergeProperties(Collections.emptyMap())
+                    .get(propertyName);
+            }
+        };
     }
 
     protected BuildLoader createBuildLoader(IGradlePropertiesLoader propertiesLoader, IProjectFactory projectFactory, BuildOperationExecutor buildOperationExecutor) {

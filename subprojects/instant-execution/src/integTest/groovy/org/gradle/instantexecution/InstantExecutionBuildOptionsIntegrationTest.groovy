@@ -232,7 +232,7 @@ class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecuti
         where:
         kind     | option
         'system' | 'D'
-//        'gradle' | 'P'
+        'gradle' | 'P'
     }
 
     def "mapped system property used as task input"() {

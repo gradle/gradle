@@ -16,18 +16,22 @@
 
 package org.gradle.api.internal.provider.sources;
 
-import kotlin.NotImplementedError;
+import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.ValueSource;
 import org.gradle.api.provider.ValueSourceParameters;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 
 public abstract class GradlePropertyValueSource implements ValueSource<String, GradlePropertyValueSource.Parameters> {
 
     public interface Parameters extends ValueSourceParameters {
         Property<String> getPropertyName();
     }
+
+    @Inject
+    protected abstract GradleProperties getGradleProperties();
 
     @Nullable
     @Override
@@ -36,6 +40,6 @@ public abstract class GradlePropertyValueSource implements ValueSource<String, G
         if (propertyName == null) {
             return null;
         }
-        throw new NotImplementedError();
+        return getGradleProperties().find(propertyName);
     }
 }
