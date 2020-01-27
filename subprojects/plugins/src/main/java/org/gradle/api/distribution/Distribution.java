@@ -39,11 +39,13 @@ public interface Distribution extends Named {
      * <p>
      * If the {@link #getName()} of this distribution is "{@code main}" this defaults to the project's name.
      * Otherwise it is "{@code $project.name-$this.name}".
+     * </p>
+     *
+     * <p>This property has been replaced by distributionBaseName</p>
      *
      * @deprecated Use #getDistributionBaseName()
      */
     @Deprecated
-    @ReplacedBy("distributionBaseName")
     String getBaseName();
 
     /**
