@@ -22,6 +22,7 @@ import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.util.Requires
+import spock.lang.Unroll
 
 import static org.gradle.util.TestPrecondition.HAS_DOCKER
 
@@ -76,9 +77,13 @@ class ReadOnlyDependencyCacheWithinContainerTest extends AbstractReadOnlyCacheDe
             assertOutputContains("/gradle-home/caches/modules-2/files-2.1/org.readonly/core/1.0/")
             assertOutputContains("/gradle-home/caches/modules-2/files-2.1/org.readonly/util/1.0/")
         }
+
+        cleanup:
+        container.stopContainer()
     }
 
-    def "can use a read-only cache within multiple containers concurrently"() {
+    @Unroll
+    def "can use a read-only cache within multiple containers concurrently (daemon in container=#daemon)"() {
         given:
         def ids = (0..3)
         exposeServerToContainers()
@@ -91,6 +96,13 @@ class ReadOnlyDependencyCacheWithinContainerTest extends AbstractReadOnlyCacheDe
             def testBuildDir = createContainerBuild("build$id")
             newContainer()
                 .withBuildDir(testBuildDir)
+                .withExecuter {
+                    if (daemon) {
+                        requireDaemon()
+                        requireIsolatedDaemons()
+                    }
+                    it
+                }
         }
 
         synchronizer.expectConcurrent(ids.collect { "build$it".toString() })
@@ -111,6 +123,28 @@ class ReadOnlyDependencyCacheWithinContainerTest extends AbstractReadOnlyCacheDe
             }
         }
 
+        when:
+        synchronizer.expectConcurrent(ids.collect { "build$it".toString() })
+        results = Collections.synchronizedCollection([])
+        containers.collect { container ->
+            Thread.start {
+                results << container.succeeds("resolve")
+            }
+        }*.join()
+
+        then: "for next resolve, HEAD requests are redundant"
+        results.each { result ->
+            result.with {
+                assertOutputContains("/gradle-home/caches/modules-2/files-2.1/org.readonly/core/1.0/")
+                assertOutputContains("/gradle-home/caches/modules-2/files-2.1/org.readonly/util/1.0/")
+            }
+        }
+
+        cleanup:
+        containers*.stopContainer()
+
+        where:
+        daemon << [false, true]
     }
 
     private static void expectRefresh(MavenHttpModule module) {
