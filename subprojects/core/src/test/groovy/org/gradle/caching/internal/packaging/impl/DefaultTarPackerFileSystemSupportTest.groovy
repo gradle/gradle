@@ -22,22 +22,22 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-import static org.gradle.caching.internal.packaging.impl.PackerDirectoryUtil.ensureDirectoryForTree
 import static org.gradle.internal.file.TreeType.DIRECTORY
 import static org.gradle.internal.file.TreeType.FILE
 
 @CleanupTestDirectory
-class PackerDirectoryUtilTest extends Specification {
+class DefaultTarPackerFileSystemSupportTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
     def deleter = TestFiles.deleter()
+    def fileSystemSupport = new DefaultTarPackerFileSystemSupport(deleter)
 
     def "parent directory is created for output file"() {
         def targetOutputFile = temporaryFolder.file("build/some-dir/output.txt")
         targetOutputFile << "Some data"
 
         when:
-        ensureDirectoryForTree(deleter, FILE, targetOutputFile)
+        fileSystemSupport.ensureDirectoryForTree(FILE, targetOutputFile)
 
         then:
         targetOutputFile.parentFile.assertIsEmptyDir()
@@ -47,7 +47,7 @@ class PackerDirectoryUtilTest extends Specification {
         def targetOutputDir = temporaryFolder.file("build/output")
 
         when:
-        ensureDirectoryForTree(deleter, DIRECTORY, targetOutputDir)
+        fileSystemSupport.ensureDirectoryForTree(DIRECTORY, targetOutputDir)
 
         then:
         targetOutputDir.assertIsEmptyDir()
@@ -58,7 +58,7 @@ class PackerDirectoryUtilTest extends Specification {
         targetOutputDir.file("sub-dir/data.txt") << "Some data"
 
         when:
-        ensureDirectoryForTree(deleter, DIRECTORY, targetOutputDir)
+        fileSystemSupport.ensureDirectoryForTree(DIRECTORY, targetOutputDir)
 
         then:
         targetOutputDir.assertIsEmptyDir()
@@ -69,7 +69,7 @@ class PackerDirectoryUtilTest extends Specification {
         targetOutputDir << "This should become a directory"
 
         when:
-        ensureDirectoryForTree(deleter, DIRECTORY, targetOutputDir)
+        fileSystemSupport.ensureDirectoryForTree(DIRECTORY, targetOutputDir)
 
         then:
         targetOutputDir.assertIsEmptyDir()
@@ -80,7 +80,7 @@ class PackerDirectoryUtilTest extends Specification {
         targetOutputFile.createDir()
 
         when:
-        ensureDirectoryForTree(deleter, FILE, targetOutputFile)
+        fileSystemSupport.ensureDirectoryForTree(FILE, targetOutputFile)
 
         then:
         targetOutputFile.parentFile.assertIsEmptyDir()

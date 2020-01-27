@@ -47,9 +47,10 @@ abstract class AbstractTarBuildCacheEntryPackerSpec extends Specification {
 
     def filePermissionAccess = createFilePermissionAccess()
     def deleter = createDeleter()
+    def fileSystemSupport = new DefaultTarPackerFileSystemSupport(deleter)
     def streamHasher = new DefaultStreamHasher()
     def stringInterner = new StringInterner()
-    def packer = new TarBuildCacheEntryPacker(deleter, filePermissionAccess, streamHasher, stringInterner)
+    def packer = new TarBuildCacheEntryPacker(fileSystemSupport, filePermissionAccess, streamHasher, stringInterner)
     def virtualFileSystem = TestFiles.virtualFileSystem()
 
     abstract protected FilePermissionAccess createFilePermissionAccess()
