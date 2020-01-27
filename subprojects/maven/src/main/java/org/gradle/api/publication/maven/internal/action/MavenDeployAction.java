@@ -17,6 +17,8 @@ package org.gradle.api.publication.maven.internal.action;
 
 import org.apache.maven.artifact.ant.RemoteRepository;
 import org.gradle.api.GradleException;
+import org.gradle.api.publish.PublishRetrierException;
+import org.gradle.api.publish.internal.DefaultPublishRetrier;
 import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,17 +76,21 @@ public class MavenDeployAction extends AbstractMavenPublishAction {
 
         LOGGER.info("Deploying to {}", gradleRepo.getUrl());
 
-        DefaultMavenDeployRetrier deployRetrier = new DefaultMavenDeployRetrier(
+        DefaultPublishRetrier deployRetrier = new DefaultPublishRetrier(
             () -> {
                 repositorySystem.deploy(session, request);
                 return null;
                 },
-            remoteRepository,
+            remoteRepository.getUrl(),
             maxDeployAttempts,
             initialBackOff
         );
 
-        deployRetrier.deployWithRetry();
+        try {
+            deployRetrier.publishWithRetry();
+        } catch (PublishRetrierException e) {
+            throw new DeploymentException(e.getMessage(), e);
+        }
     }
 
     private org.sonatype.aether.repository.RemoteRepository createRepository(RemoteRepository gradleRepo) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publication.maven.internal.action;
+package org.gradle.api.publish.internal;
 
-import org.apache.maven.artifact.ant.RemoteRepository;
 import org.gradle.api.internal.artifacts.repositories.transport.NetworkingIssueVerifier;
+import org.gradle.api.publish.PublishRetrier;
+import org.gradle.api.publish.PublishRetrierException;
 import org.gradle.internal.UncheckedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.sonatype.aether.deployment.DeploymentException;
 
 import java.util.concurrent.Callable;
 
-public class DefaultMavenDeployRetrier implements MavenDeployRetrier {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultMavenDeployRetrier.class);
-    private final RemoteRepository remoteRepository;
+public class DefaultPublishRetrier implements PublishRetrier {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPublishRetrier.class);
+    private final String remoteRepository;
     private final Callable operation;
     private final int maxDeployAttempts;
     private final int initialBackOff;
 
-    public DefaultMavenDeployRetrier(Callable operation, RemoteRepository remoteRepository, int maxDeployAttempts, int initialBackOff) {
+    public DefaultPublishRetrier(Callable operation, String remoteRepository, int maxDeployAttempts, int initialBackOff) {
         this.operation = operation;
         this.maxDeployAttempts = maxDeployAttempts;
         this.initialBackOff = initialBackOff;
@@ -43,7 +43,7 @@ public class DefaultMavenDeployRetrier implements MavenDeployRetrier {
 
 
     @Override
-    public void deployWithRetry() throws DeploymentException {
+    public void publishWithRetry() throws PublishRetrierException {
         int backoff = initialBackOff;
         int retries = 0;
         while (retries < maxDeployAttempts) {
@@ -59,7 +59,7 @@ public class DefaultMavenDeployRetrier implements MavenDeployRetrier {
                 failure = throwable;
             }
             if (!NetworkingIssueVerifier.isLikelyTransientNetworkingIssue(failure) || retries == maxDeployAttempts) {
-                throw new DeploymentException("Could not deploy to remote repository | " + failure.getMessage(), failure);
+                throw new PublishRetrierException("Could not deploy to remote repository | " + failure.getMessage(), failure);
             } else {
                 LOGGER.info("Error while accessing remote repository {}. Waiting {}ms before next retry. {} retries left", remoteRepository, backoff, maxDeployAttempts - retries, failure);
                 try {

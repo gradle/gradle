@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publication.maven.internal.action
+package org.gradle.api.publish.internal
 
-import org.apache.http.conn.HttpHostConnectException
-import org.apache.maven.artifact.ant.RemoteRepository
-import org.gradle.internal.resource.transport.http.HttpErrorStatusCodeException
+import org.gradle.api.publish.PublishRetrierException
 import spock.lang.Specification
-import org.sonatype.aether.deployment.DeploymentException
-import spock.lang.Unroll
+import spock.lang.Subject
 
 import java.util.concurrent.Callable
 
-@Unroll
-class DefaultMavenDeployRetrierTest extends Specification {
+@Subject(DefaultPublishRetrier)
+class DefaultPublishRetrierTest extends Specification {
 
     def 'retries operation if transient network issue - #ex'() {
         when:
@@ -35,18 +32,16 @@ class DefaultMavenDeployRetrierTest extends Specification {
             retried++
             throw ex
         }
-        DefaultMavenDeployRetrier defaultMavenDeployRetrier = new DefaultMavenDeployRetrier(operation, Mock(RemoteRepository), 3, 1)
-        defaultMavenDeployRetrier.deployWithRetry()
+        DefaultPublishRetrier defaultPublishRetrier = new DefaultPublishRetrier(operation, "my-repository", 3, 1)
+        defaultPublishRetrier.publishWithRetry()
 
         then:
         retried == 3
-        thrown(DeploymentException)
+        thrown(PublishRetrierException)
 
         where:
         ex << [
             new SocketTimeoutException("something went wrong"),
-            new HttpHostConnectException(new IOException("something went wrong"), null, null),
-            new HttpErrorStatusCodeException("something", "something", 503, "something"),
             new RuntimeException("with cause", new SocketTimeoutException("something went wrong"))
         ]
     }
@@ -58,17 +53,16 @@ class DefaultMavenDeployRetrierTest extends Specification {
             retried++
             throw ex
         }
-        DefaultMavenDeployRetrier defaultMavenDeployRetrier = new DefaultMavenDeployRetrier(operation, Mock(RemoteRepository), 3, 1)
-        defaultMavenDeployRetrier.deployWithRetry()
+        DefaultPublishRetrier defaultPublishRetrier = new DefaultPublishRetrier(operation, "my-repository", 3, 1)
+        defaultPublishRetrier.publishWithRetry()
 
         then:
         retried == 1
-        thrown(DeploymentException)
+        thrown(PublishRetrierException)
 
         where:
         ex << [
-            new RuntimeException("non network issue"),
-            new HttpErrorStatusCodeException("something", "something", 400, "something")
+            new RuntimeException("non network issue")
         ]
     }
 }

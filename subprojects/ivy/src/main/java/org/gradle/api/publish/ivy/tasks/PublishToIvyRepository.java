@@ -20,6 +20,7 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.publish.internal.DefaultPublishRetrier;
 import org.gradle.api.publish.internal.PublishOperation;
 import org.gradle.api.publish.internal.validation.DuplicatePublicationTracker;
 import org.gradle.api.publish.ivy.IvyPublication;
@@ -40,8 +41,13 @@ import java.util.concurrent.Callable;
  */
 public class PublishToIvyRepository extends DefaultTask {
 
+    private final static String MAX_DEPLOY_ATTEMPTS = "org.gradle.internal.remote.repository.deploy.max.attempts";
+    private final static String INITIAL_BACKOFF_MS = "org.gradle.internal.remote.repository.deploy.initial.backoff";
+
     private IvyPublicationInternal publication;
     private IvyArtifactRepository repository;
+    private final int maxDeployAttempts;
+    private final int initialBackOff;
 
     public PublishToIvyRepository() {
 
@@ -61,6 +67,9 @@ public class PublishToIvyRepository extends DefaultTask {
         // They *might* have input files and other dependencies as well though
         // Inputs: The credentials they need may be expressed in a file
         // Dependencies: Can't think of a case here
+
+        this.maxDeployAttempts = Integer.getInteger(MAX_DEPLOY_ATTEMPTS, 3);
+        this.initialBackOff = Integer.getInteger(INITIAL_BACKOFF_MS, 1000);
     }
 
     /**
@@ -148,7 +157,17 @@ public class PublishToIvyRepository extends DefaultTask {
             protected void publish() throws Exception {
                 IvyNormalizedPublication normalizedPublication = publication.asNormalisedPublication();
                 IvyPublisher publisher = getIvyPublisher();
-                publisher.publish(normalizedPublication, repository);
+                DefaultPublishRetrier deployRetrier = new DefaultPublishRetrier(
+                    () -> {
+                        publisher.publish(normalizedPublication, repository);
+                        return null;
+                    },
+                    repository.getUrl().toString(),
+                    maxDeployAttempts,
+                    initialBackOff
+                );
+
+                deployRetrier.publishWithRetry();
             }
         }.run();
     }
