@@ -34,8 +34,8 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 /**
  * An implementation of an artifact cache manager which performs operations in a read-only
- * cache first. If the operation is not successful in the readonly cache OR that it's a write
- * operation, the 2d level writable cache is used.
+ * cache first. If the operation is not successful in the readonly cache OR if it's a write
+ * operation, the 2nd level writable cache is used.
  *
  * Operations use in-process locking for the read-only cache (even when requesting file locking) and
  * write operations use the regular locking mechanism (file or in-process).

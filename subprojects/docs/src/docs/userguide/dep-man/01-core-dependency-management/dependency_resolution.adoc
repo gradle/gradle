@@ -231,8 +231,8 @@ Obsolete artifacts are then deleted to ensure the cache does not grow indefinite
 == Dealing with ephemeral builds
 
 It's a common practice to run builds in ephemeral containers.
-A container is typically spawned to execute a single build, then is destroyed.
-This can become a practical problem when a build depends on a lot of dependencies and that each container has to re-download all dependencies.
+A container is typically spawned to only execute a single build before it is destroyed.
+This can become a practical problem when a build depends on a lot of dependencies which each container has to re-download.
 To help with this scenario, Gradle provides a couple of options:
 
 - <<sub:cache_copy,copying the dependency cache>> into each container
@@ -241,7 +241,7 @@ To help with this scenario, Gradle provides a couple of options:
 [[sub:cache_copy]]
 === Copy and reuse the cache
 
-The dependency cache, both the file and metadata parts, are fully encoded using relative path.
+The dependency cache, both the file and metadata parts, are fully encoded using relative paths.
 This means that it is perfectly possible to copy a cache around and see Gradle benefit from it.
 
 The path that can be copied is `$GRADLE_HOME/caches/modules-<version>`.
@@ -266,13 +266,14 @@ If multiple incompatible Gradle versions are in play, all should be used when se
 
 Instead of <<sub:cache_copy,copying the dependency cache into each container>>, it's possible to mount a shared, read-only folder that will act as a dependency cache for all containers.
 This cache, unlike the classical dependency cache, is accessed without locking, making it possible for multiple builds to read from the cache concurrently.
-When Gradle will look for dependencies (artifacts or metadata), it will look into the classic writable cache, but will also search into the read-only cache.
-It means that if an artifact is present in the read-only cache, it will not be downloaded, but if it's missing from the read-only dependency cache, it will be added to the _local_, writable cache of the Gradle instance.
+When Gradle looks for dependencies (artifacts or metadata), it will look into the writable cache in the local Gradle home directory, but will also search the shared read-only cache if it is activated.
+If an artifact is present in the read-only cache, it will not be downloaded.
+If an artifact missing from the read-only dependency cache, it will be added to the _local_, writable cache of the Gradle instance.
 In practice it means that the writable cache will contain the _diff_ between what the build requires and what is available in the read-only cache.
 
 NOTE: The shared read-only dependency cache is an incubating feature.
 
-The first step in using the shared dependency cache is actually to create a copy of an existing cache.
+The first step in using a shared dependency cache is to create one by copying of an existing _local_ cache.
 For this you need to follow the <<sub:cache_copy,instructions above>>.
 
 Then set the `GRADLE_RO_DEP_CACHE` environment variable to point to the directory containing the cache:
@@ -290,7 +291,7 @@ $GRADLE_HOME
 
 In a CI environment, it's a good idea to have one build which "seeds" a Gradle dependency cache, which is then _copied_ to a different directory.
 This directory can then be used as the read-only cache for other builds.
-You shouldn't use an existing Gradle installation cache as the read-only cache, because this directory may contain locks and be accessed by the seeding build.
+You shouldn't use an existing Gradle installation cache as the read-only cache, because this directory may contain locks and may be modified by the seeding build.
 
 [[sec:programmatic_api]]
 == Accessing the resolution result programmatically
