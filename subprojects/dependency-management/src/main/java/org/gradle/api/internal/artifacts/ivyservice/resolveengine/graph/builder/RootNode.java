@@ -49,7 +49,7 @@ class RootNode extends NodeState implements RootGraphNode {
     }
 
     @Override
-    public void deselect() {
+    public void deselect(NodeState currentlyDeselecting) {
     }
 
     @Override
