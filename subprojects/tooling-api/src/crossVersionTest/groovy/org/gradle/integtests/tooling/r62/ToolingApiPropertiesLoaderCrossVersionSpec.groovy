@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.r60
+package org.gradle.integtests.tooling.r62
 
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
@@ -24,7 +24,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import spock.lang.Issue
 
 @ToolingApiVersion('>=3.0')
-@TargetGradleVersion('>=6.0 <6.2')
+@TargetGradleVersion('>=6.2')
 class ToolingApiPropertiesLoaderCrossVersionSpec extends ToolingApiSpecification{
 
     @Issue('https://github.com/gradle/gradle/issues/11173')
@@ -68,11 +68,11 @@ class ToolingApiPropertiesLoaderCrossVersionSpec extends ToolingApiSpecification
         then:
         output.contains('system_property_available in buildSrc:                 true')
         output.contains('system_property_available in buildSrc:                 true')
-        output.contains('project_property_available in buildSrc:                false')
+        output.contains('project_property_available in buildSrc:                true')
         output.contains('system_property_available in included buildSrc:        true')
-        output.contains('project_property_available in included buildSrc:       false')
+        output.contains('project_property_available in included buildSrc:       true')
         output.contains('system_property_available in included root:            true')
-        output.contains('project_property_available in included root:           false')
+        output.contains('project_property_available in included root:           true')
         output.contains('system_property_available in root:                     true')
         output.contains('project_property_available in root:                    true')
         output.contains('system_property_available in settings.gradle:          true')
