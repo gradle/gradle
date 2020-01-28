@@ -920,12 +920,11 @@ public class NodeState implements DependencyGraphNode {
     private void removeOutgoingEdges(NodeState origin) {
         if (!outgoingEdges.isEmpty()) {
             for (EdgeState outgoingDependency : outgoingEdges) {
-                ComponentState targetComponent = outgoingDependency.getTargetComponent();
-                if (targetComponent != null && targetComponent.getNodes().contains(origin)) {
+                if (origin != null && origin.getComponent() == outgoingDependency.getTargetComponent()) {
                     // do not clean up origin again (as we are already in the process of doing that)
                     continue;
                 }
-                if (targetComponent != null && targetComponent.getNodes().contains(this)) {
+                if (outgoingDependency.getTargetComponent() == getComponent()) {
                     // if the same component depends on itself: do not attempt to cleanup the same thing several times
                     continue;
                 }
@@ -936,7 +935,7 @@ public class NodeState implements DependencyGraphNode {
         if (virtualEdges != null) {
             for (EdgeState outgoingDependency : virtualEdges) {
                 outgoingDependency.removeFromTargetConfigurations();
-                outgoingDependency.getSelector().release();
+                outgoingDependency.getSelector().release(this);
             }
         }
         virtualEdges = null;
@@ -977,20 +976,20 @@ public class NodeState implements DependencyGraphNode {
         transitiveEdgeCount = 0;
     }
 
-    public void deselect() {
+    public void deselect(NodeState currentlyDeselecting) {
         removeOutgoingEdges(this);
-        reselectEndorsingNode();
+        reselectEndorsingNode(currentlyDeselecting);
     }
 
-    private void reselectEndorsingNode() {
+    private void reselectEndorsingNode(NodeState currentlyDeselecting) {
         if (incomingEdges.size() == 1) {
-            if (incomingEdges.get(0).getDependencyState().getDependency().isEndorsingStrictVersions()) {
+            if (incomingEdges.get(0).getFrom() != currentlyDeselecting && incomingEdges.get(0).getDependencyState().getDependency().isEndorsingStrictVersions()) {
                 // pass my own component because we are already in the process of re-selecting it
                 incomingEdges.get(0).getFrom().reselect(this);
             }
         } else {
             for (EdgeState incoming : Lists.newArrayList(incomingEdges)) {
-                if (incoming.getDependencyState().getDependency().isEndorsingStrictVersions()) {
+                if (incoming.getFrom() != currentlyDeselecting && incoming.getDependencyState().getDependency().isEndorsingStrictVersions()) {
                     // pass my own component because we are already in the process of re-selecting it
                     incoming.getFrom().reselect(this);
                 }
@@ -1039,7 +1038,7 @@ public class NodeState implements DependencyGraphNode {
             if (from != backToPendingSource) {
                 // Only remove edges that come from a different node than the source of the dependency going back to pending
                 // The edges from the "From" will be removed first
-                incomingEdge.getSelector().release();
+                incomingEdge.getSelector().release(null);
                 from.getOutgoingEdges().remove(incomingEdge);
             }
             pendingDependencies.addNode(from);
@@ -1110,7 +1109,7 @@ public class NodeState implements DependencyGraphNode {
 
     void makePending(EdgeState edgeState) {
         outgoingEdges.remove(edgeState);
-        edgeState.getSelector().release();
+        edgeState.getSelector().release(null);
         registerActivatingConstraint(edgeState.getDependencyState());
     }
 
