@@ -26,6 +26,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import static org.gradle.api.Project.GRADLE_PROPERTIES;
+
 public class DefaultGradlePropertiesLoader implements IGradlePropertiesLoader {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultGradlePropertiesLoader.class);
 
@@ -45,9 +47,9 @@ public class DefaultGradlePropertiesLoader implements IGradlePropertiesLoader {
     void loadProperties(File settingsDir, StartParameterInternal startParameter, Map<String, String> systemProperties, Map<String, String> envProperties) {
         defaultProperties.clear();
         overrideProperties.clear();
-        addGradleProperties(defaultProperties, new File(startParameter.getGradleHomeDir(), Project.GRADLE_PROPERTIES));
-        addGradleProperties(defaultProperties, new File(settingsDir, Project.GRADLE_PROPERTIES));
-        addGradleProperties(overrideProperties, new File(startParameter.getGradleUserHomeDir(), Project.GRADLE_PROPERTIES));
+        addGradleProperties(defaultProperties, new File(startParameter.getGradleHomeDir(), GRADLE_PROPERTIES));
+        addGradleProperties(defaultProperties, new File(settingsDir, GRADLE_PROPERTIES));
+        addGradleProperties(overrideProperties, new File(startParameter.getGradleUserHomeDir(), GRADLE_PROPERTIES));
         setSystemProperties(startParameter.getSystemPropertiesArgs());
         overrideProperties.putAll(getEnvProjectProperties(envProperties));
         overrideProperties.putAll(getSystemProjectProperties(systemProperties));
