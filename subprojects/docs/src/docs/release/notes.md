@@ -38,6 +38,17 @@ Please refer to the [userguide](userguide/dependency_verification.html) to figur
 We would like to give special thanks to [Vladimir Sitnikov](https://github.com/vlsi) for his feedback and inspiration.
 A lot of the work on this feature is, in particular, available to previous versions of Gradle via his [Checksum Dependency Plugin](https://github.com/vlsi/vlsi-release-plugins/tree/master/plugins/checksum-dependency-plugin).
 
+<a name="shared-dependency-cache"></a>
+## Shared dependency cache
+
+Improving on [relocatable dependency caches introduced in the previous release](https://docs.gradle.org/6.1.1/release-notes.html#ephemeral-ci:-reuse-gradle's-dependency-cache), Gradle 6.2 now offers the ability to **share** a dependency cache between multiple instances.
+In the context of ephemeral builds on disposable containers, it makes it possible to have a single, shared, directory between containers which contains most, if not all, the dependencies required by other builds:
+
+- each container will have access to a read-only dependency cache, avoiding redundant downloads between builds
+- this cache can be shared between containers, reducing the overall disk usage, instead of copying
+
+Please refer to the [userguide](userguide/dependency_resolution.html#sec:dependency_cache) to learn how to setup the shared dependency cache.
+
 ## Deprecation messages link to documentation
 
 Deprecation messages now include links to relevant documentation that can provide more context around the deprecation and explain how to migrate to a new API or avoid the deprecated behavior. 
