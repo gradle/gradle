@@ -24,6 +24,7 @@ import org.gradle.cache.internal.UsedGradleVersions;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.serialize.Serializer;
+import org.gradle.util.IncubationLogger;
 
 import java.io.Closeable;
 import java.io.File;
@@ -44,6 +45,7 @@ public class DefaultArtifactCaches implements ArtifactCachesProvider {
         });
         String roCache = System.getenv(READONLY_CACHE_ENV_VAR);
         if (StringUtils.isNotEmpty(roCache)) {
+            IncubationLogger.incubatingFeatureUsed("Shared read-only dependency cache");
             readOnlyCacheMetadata = new DefaultArtifactCacheMetadata(cacheScopeMapping, new File(roCache));
             readOnlyArtifactCacheLockingManager = new ReadOnlyArtifactCacheLockingManager(cacheRepository, readOnlyCacheMetadata);
         } else {

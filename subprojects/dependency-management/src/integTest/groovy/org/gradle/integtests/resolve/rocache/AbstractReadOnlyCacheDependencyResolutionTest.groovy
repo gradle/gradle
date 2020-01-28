@@ -153,7 +153,12 @@ abstract class AbstractReadOnlyCacheDependencyResolutionTest extends AbstractHtt
     }
 
     def cleanup() {
+        checkIncubationMessage()
         makeCacheWritable()
+    }
+
+    protected void checkIncubationMessage() {
+        outputContains("Shared read-only dependency cache is an incubating feature.")
     }
 
     void withReadOnlyCache() {
