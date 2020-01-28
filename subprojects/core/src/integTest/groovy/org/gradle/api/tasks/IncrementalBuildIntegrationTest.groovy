@@ -1252,13 +1252,12 @@ task generate(type: TransformerTask) {
     }
 
     @Issue('https://github.com/gradle/gradle/issues/1224')
-    @ToBeFixedForInstantExecution
     def 'can change input properties dynamically'() {
         given:
         file('inputDir1').createDir()
         file('inputDir2').createDir()
         buildFile << '''
-    class MyTask extends DefaultTask{
+    class MyTask extends DefaultTask {
         @TaskAction
         void processFiles(IncrementalTaskInputs inputs) {
             inputs.outOfDate { }
