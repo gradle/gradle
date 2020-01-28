@@ -31,6 +31,7 @@ import org.gradle.api.internal.tasks.properties.InputParameterUtils
 import org.gradle.api.internal.tasks.properties.OutputFilePropertyType
 import org.gradle.api.internal.tasks.properties.PropertyValue
 import org.gradle.api.internal.tasks.properties.PropertyVisitor
+import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.FileNormalizer
 import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.execution.plan.TaskNodeFactory
@@ -89,6 +90,7 @@ class TaskNodeCodec(
         writeString(task.name)
 
         withTaskOf(taskType, task, userTypesCodec) {
+            writeUpToDateSpec(task)
             beanStateWriterFor(task.javaClass).run {
                 writeStateOf(task)
                 writeRegisteredPropertiesOf(task, this as BeanPropertyWriter)
@@ -106,6 +108,7 @@ class TaskNodeCodec(
         val task = createTask(projectPath, taskName, taskType)
 
         withTaskOf(taskType, task, userTypesCodec) {
+            readUpToDateSpec(task)
             beanStateReaderFor(task.javaClass).run {
                 readStateOf(task)
                 readRegisteredPropertiesOf(task)
@@ -114,6 +117,24 @@ class TaskNodeCodec(
         }
 
         return task
+    }
+
+    private
+    suspend fun WriteContext.writeUpToDateSpec(task: TaskInternal) {
+        // TODO - should just write this as a bean field of the outputs object, and also do this for the registered properties above
+        if (task.outputs.upToDateSpec.isEmpty) {
+            writeBoolean(false)
+        } else {
+            writeBoolean(true)
+            write(task.outputs.upToDateSpec)
+        }
+    }
+
+    private
+    suspend fun ReadContext.readUpToDateSpec(task: TaskInternal) {
+        if (readBoolean()) {
+            task.outputs.upToDateWhen(read() as Spec<Task>)
+        }
     }
 
     private

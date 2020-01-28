@@ -15,6 +15,7 @@ tasks {
 
 dependencies {
     implementation(project(":baseServices"))
+    implementation(project(":baseServicesGroovy"))
     implementation(project(":messaging"))
     implementation(project(":logging"))
     implementation(project(":coreApi"))
