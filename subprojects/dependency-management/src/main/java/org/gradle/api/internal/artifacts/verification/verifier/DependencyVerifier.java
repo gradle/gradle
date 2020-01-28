@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.verification.verifier;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -292,7 +293,7 @@ public class DependencyVerifier {
         }
 
         public SignatureVerificationFailure asError(PublicKeyService publicKeyService) {
-            ImmutableMap.Builder<String, SignatureVerificationFailure.SignatureError> errors = ImmutableMap.builder();
+            Map<String, SignatureVerificationFailure.SignatureError> errors = Maps.newHashMap();
             if (missingKeys != null) {
                 for (String missingKey : missingKeys) {
                     errors.put(missingKey, error(null, SignatureVerificationFailure.FailureKind.MISSING_KEY));
@@ -313,7 +314,7 @@ public class DependencyVerifier {
                     errors.put(ignoredKey, error(null, SignatureVerificationFailure.FailureKind.IGNORED_KEY));
                 }
             }
-            return new SignatureVerificationFailure(file, signatureFile, errors.build(), publicKeyService);
+            return new SignatureVerificationFailure(file, signatureFile, ImmutableMap.copyOf(errors), publicKeyService);
         }
 
         public boolean hasError() {
