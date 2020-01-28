@@ -26,20 +26,22 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.File;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import static org.junit.Assert.*;
+import static java.util.Collections.emptyMap;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 public class DefaultGradlePropertiesLoaderTest {
     private DefaultGradlePropertiesLoader gradlePropertiesLoader;
     private File gradleUserHomeDir;
     private File settingsDir;
     private File gradleInstallationHomeDir;
-    private Map<String, String> systemProperties = new HashMap<String, String>();
-    private Map<String, String> envProperties = new HashMap<String, String>();
+    private Map<String, String> systemProperties = new HashMap<>();
+    private Map<String, String> envProperties = new HashMap<>();
     private StartParameterInternal startParameter = new StartParameterInternal();
     @Rule
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
@@ -66,8 +68,7 @@ public class DefaultGradlePropertiesLoaderTest {
     public void mergeAddsPropertiesFromInstallationPropertiesFile() {
         writePropertyFile(gradleInstallationHomeDir, GUtil.map("settingsProp", "settings value"));
 
-        gradlePropertiesLoader.loadProperties(settingsDir, startParameter, systemProperties, envProperties);
-        Map<String, String> properties = gradlePropertiesLoader.mergeProperties(Collections.<String, String>emptyMap());
+        Map<String, String> properties = loadAndMergePropertiesWith(emptyMap());
 
         assertEquals("settings value", properties.get("settingsProp"));
     }
@@ -76,8 +77,7 @@ public class DefaultGradlePropertiesLoaderTest {
     public void mergeAddsPropertiesFromUserPropertiesFile() {
         writePropertyFile(gradleUserHomeDir, GUtil.map("userProp", "user value"));
 
-        gradlePropertiesLoader.loadProperties(settingsDir, startParameter, systemProperties, envProperties);
-        Map<String, String> properties = gradlePropertiesLoader.mergeProperties(Collections.<String, String>emptyMap());
+        Map<String, String> properties = loadAndMergePropertiesWith(emptyMap());
 
         assertEquals("user value", properties.get("userProp"));
     }
@@ -86,8 +86,7 @@ public class DefaultGradlePropertiesLoaderTest {
     public void mergeAddsPropertiesFromSettingsPropertiesFile() {
         writePropertyFile(settingsDir, GUtil.map("settingsProp", "settings value"));
 
-        gradlePropertiesLoader.loadProperties(settingsDir, startParameter, systemProperties, envProperties);
-        Map<String, String> properties = gradlePropertiesLoader.mergeProperties(Collections.<String, String>emptyMap());
+        Map<String, String> properties = loadAndMergePropertiesWith(emptyMap());
 
         assertEquals("settings value", properties.get("settingsProp"));
     }
@@ -95,11 +94,10 @@ public class DefaultGradlePropertiesLoaderTest {
     @Test
     public void mergeAddsPropertiesFromEnvironmentVariablesWithPrefix() {
         envProperties = GUtil.map(
-                IGradlePropertiesLoader.ENV_PROJECT_PROPERTIES_PREFIX + "envProp", "env value",
-                "ignoreMe", "ignored");
+            IGradlePropertiesLoader.ENV_PROJECT_PROPERTIES_PREFIX + "envProp", "env value",
+            "ignoreMe", "ignored");
 
-        gradlePropertiesLoader.loadProperties(settingsDir, startParameter, systemProperties, envProperties);
-        Map<String, String> properties = gradlePropertiesLoader.mergeProperties(Collections.<String, String>emptyMap());
+        Map<String, String> properties = loadAndMergePropertiesWith(emptyMap());
 
         assertEquals("env value", properties.get("envProp"));
     }
@@ -107,11 +105,10 @@ public class DefaultGradlePropertiesLoaderTest {
     @Test
     public void mergeAddsPropertiesFromSystemPropertiesWithPrefix() {
         systemProperties = GUtil.map(
-                IGradlePropertiesLoader.SYSTEM_PROJECT_PROPERTIES_PREFIX + "systemProp", "system value",
-                "ignoreMe", "ignored");
+            IGradlePropertiesLoader.SYSTEM_PROJECT_PROPERTIES_PREFIX + "systemProp", "system value",
+            "ignoreMe", "ignored");
 
-        gradlePropertiesLoader.loadProperties(settingsDir, startParameter, systemProperties, envProperties);
-        Map<String, String> properties = gradlePropertiesLoader.mergeProperties(Collections.<String, String>emptyMap());
+        Map<String, String> properties = loadAndMergePropertiesWith(emptyMap());
 
         assertEquals("system value", properties.get("systemProp"));
     }
@@ -120,8 +117,7 @@ public class DefaultGradlePropertiesLoaderTest {
     public void mergeAddsPropertiesFromStartParameter() {
         startParameter.setProjectProperties(GUtil.map("paramProp", "param value"));
 
-        gradlePropertiesLoader.loadProperties(settingsDir, startParameter, systemProperties, envProperties);
-        Map<String, String> properties = gradlePropertiesLoader.mergeProperties(Collections.<String, String>emptyMap());
+        Map<String, String> properties = loadAndMergePropertiesWith(emptyMap());
 
         assertEquals("param value", properties.get("paramProp"));
     }
@@ -131,8 +127,7 @@ public class DefaultGradlePropertiesLoaderTest {
         writePropertyFile(gradleInstallationHomeDir, GUtil.map("prop", "settings value"));
         Map<String, String> projectProperties = GUtil.map("prop", "project value");
 
-        gradlePropertiesLoader.loadProperties(settingsDir, startParameter, systemProperties, envProperties);
-        Map<String, String> properties = gradlePropertiesLoader.mergeProperties(projectProperties);
+        Map<String, String> properties = loadAndMergePropertiesWith(projectProperties);
 
         assertEquals("project value", properties.get("prop"));
     }
@@ -142,8 +137,7 @@ public class DefaultGradlePropertiesLoaderTest {
         writePropertyFile(settingsDir, GUtil.map("prop", "settings value"));
         Map<String, String> projectProperties = GUtil.map("prop", "project value");
 
-        gradlePropertiesLoader.loadProperties(settingsDir, startParameter, systemProperties, envProperties);
-        Map<String, String> properties = gradlePropertiesLoader.mergeProperties(projectProperties);
+        Map<String, String> properties = loadAndMergePropertiesWith(projectProperties);
 
         assertEquals("project value", properties.get("prop"));
     }
@@ -153,8 +147,7 @@ public class DefaultGradlePropertiesLoaderTest {
         writePropertyFile(gradleUserHomeDir, GUtil.map("prop", "user value"));
         writePropertyFile(settingsDir, GUtil.map("prop", "settings value"));
 
-        gradlePropertiesLoader.loadProperties(settingsDir, startParameter, systemProperties, envProperties);
-        Map<String, String> properties = gradlePropertiesLoader.mergeProperties(Collections.<String, String>emptyMap());
+        Map<String, String> properties = loadAndMergePropertiesWith(emptyMap());
 
         assertEquals("user value", properties.get("prop"));
     }
@@ -165,8 +158,7 @@ public class DefaultGradlePropertiesLoaderTest {
         writePropertyFile(settingsDir, GUtil.map("prop", "settings value"));
         Map<String, String> projectProperties = GUtil.map("prop", "project value");
 
-        gradlePropertiesLoader.loadProperties(settingsDir, startParameter, systemProperties, envProperties);
-        Map<String, String> properties = gradlePropertiesLoader.mergeProperties(projectProperties);
+        Map<String, String> properties = loadAndMergePropertiesWith(projectProperties);
 
         assertEquals("user value", properties.get("prop"));
     }
@@ -178,8 +170,7 @@ public class DefaultGradlePropertiesLoaderTest {
         Map<String, String> projectProperties = GUtil.map("prop", "project value");
         envProperties = GUtil.map(IGradlePropertiesLoader.ENV_PROJECT_PROPERTIES_PREFIX + "prop", "env value");
 
-        gradlePropertiesLoader.loadProperties(settingsDir, startParameter, systemProperties, envProperties);
-        Map<String, String> properties = gradlePropertiesLoader.mergeProperties(projectProperties);
+        Map<String, String> properties = loadAndMergePropertiesWith(projectProperties);
 
         assertEquals("env value", properties.get("prop"));
     }
@@ -192,8 +183,7 @@ public class DefaultGradlePropertiesLoaderTest {
         envProperties = GUtil.map(IGradlePropertiesLoader.ENV_PROJECT_PROPERTIES_PREFIX + "prop", "env value");
         systemProperties = GUtil.map(IGradlePropertiesLoader.SYSTEM_PROJECT_PROPERTIES_PREFIX + "prop", "system value");
 
-        gradlePropertiesLoader.loadProperties(settingsDir, startParameter, systemProperties, envProperties);
-        Map<String, String> properties = gradlePropertiesLoader.mergeProperties(projectProperties);
+        Map<String, String> properties = loadAndMergePropertiesWith(projectProperties);
 
         assertEquals("system value", properties.get("prop"));
     }
@@ -207,8 +197,7 @@ public class DefaultGradlePropertiesLoaderTest {
         systemProperties = GUtil.map(IGradlePropertiesLoader.SYSTEM_PROJECT_PROPERTIES_PREFIX + "prop", "system value");
         startParameter.setProjectProperties(GUtil.map("prop", "param value"));
 
-        gradlePropertiesLoader.loadProperties(settingsDir, startParameter, systemProperties, envProperties);
-        Map<String, String> properties = gradlePropertiesLoader.mergeProperties(projectProperties);
+        Map<String, String> properties = loadAndMergePropertiesWith(projectProperties);
 
         assertEquals("param value", properties.get("prop"));
     }
@@ -218,10 +207,10 @@ public class DefaultGradlePropertiesLoaderTest {
         startParameter.setSystemPropertiesArgs(WrapUtil.toMap("systemPropArgKey", "systemPropArgValue"));
         writePropertyFile(gradleUserHomeDir, GUtil.map(Project.SYSTEM_PROP_PREFIX + ".userSystemProp", "userSystemValue"));
         writePropertyFile(settingsDir, GUtil.map(
-                Project.SYSTEM_PROP_PREFIX + ".userSystemProp", "settingsSystemValue",
-                Project.SYSTEM_PROP_PREFIX + ".settingsSystemProp2", "settingsSystemValue2"));
+            Project.SYSTEM_PROP_PREFIX + ".userSystemProp", "settingsSystemValue",
+            Project.SYSTEM_PROP_PREFIX + ".settingsSystemProp2", "settingsSystemValue2"));
 
-        gradlePropertiesLoader.loadProperties(settingsDir, startParameter, systemProperties, envProperties);
+        loadProperties();
 
         assertEquals("userSystemValue", System.getProperty("userSystemProp"));
         assertEquals("settingsSystemValue2", System.getProperty("settingsSystemProp2"));
@@ -231,13 +220,13 @@ public class DefaultGradlePropertiesLoaderTest {
     @Test
     public void loadPropertiesWithNoExceptionForNonexistentGradleInstallationHomeAndUserHomeAndSettingsDir() {
         tmpDir.getTestDirectory().deleteDir();
-        gradlePropertiesLoader.loadProperties(settingsDir, startParameter, systemProperties, envProperties);
+        loadProperties();
     }
 
     @Test
     public void loadPropertiesWithNoExceptionIfGradleInstallationHomeIsNotKnown() {
         gradleInstallationHomeDir = null;
-        gradlePropertiesLoader.loadProperties(settingsDir, startParameter, systemProperties, envProperties);
+        loadProperties();
     }
 
     @Test
@@ -247,13 +236,11 @@ public class DefaultGradlePropertiesLoaderTest {
         File otherSettingsDir = tmpDir.createDir("otherSettingsDir");
         writePropertyFile(otherSettingsDir, GUtil.map("prop1", "otherValue"));
 
-        gradlePropertiesLoader.loadProperties(settingsDir, startParameter, systemProperties, envProperties);
-        Map<String, String> properties = gradlePropertiesLoader.mergeProperties(Collections.<String, String>emptyMap());
+        Map<String, String> properties = loadAndMergePropertiesWith(emptyMap());
         assertEquals("value", properties.get("prop1"));
         assertEquals("value", properties.get("prop2"));
 
-        gradlePropertiesLoader.loadProperties(otherSettingsDir, startParameter, systemProperties, envProperties);
-        properties = gradlePropertiesLoader.mergeProperties(Collections.<String, String>emptyMap());
+        properties = loadPropertiesFrom(otherSettingsDir).mergeProperties(emptyMap());
         assertEquals("otherValue", properties.get("prop1"));
         assertNull(properties.get("prop2"));
     }
@@ -272,8 +259,21 @@ public class DefaultGradlePropertiesLoaderTest {
         systemProperties = GUtil.map("prop", "system value");
         startParameter.setSystemPropertiesArgs(WrapUtil.toMap("prop", "commandline value"));
 
-        gradlePropertiesLoader.loadProperties(settingsDir, startParameter, systemProperties, envProperties);
+        loadProperties();
 
         assertEquals("commandline value", System.getProperty("prop"));
+    }
+
+    private Map<String, String> loadAndMergePropertiesWith(Map<String, String> properties) {
+        return loadProperties().mergeProperties(properties);
+    }
+
+    private DefaultGradlePropertiesLoader loadProperties() {
+        return loadPropertiesFrom(settingsDir);
+    }
+
+    private DefaultGradlePropertiesLoader loadPropertiesFrom(File settingsDir) {
+        gradlePropertiesLoader.loadProperties(settingsDir, startParameter, systemProperties, envProperties);
+        return gradlePropertiesLoader;
     }
 }
