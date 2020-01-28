@@ -17,9 +17,11 @@
 package org.gradle.internal.taskgraph;
 
 import org.gradle.api.internal.project.taskfactory.TaskIdentity;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
 import java.util.List;
 
+@UsedByScanPlugin
 public interface PlannedTask {
 
     TaskIdentity getTask();

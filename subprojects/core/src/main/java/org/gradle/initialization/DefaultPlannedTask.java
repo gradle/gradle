@@ -21,14 +21,14 @@ import org.gradle.internal.taskgraph.PlannedTask;
 
 import java.util.List;
 
-public class DefaultPlannedTask implements PlannedTask{
+public class DefaultPlannedTask implements PlannedTask {
     private final TaskIdentity<?> taskIdentity;
     private final List<TaskIdentity> dependencies;
-    private List mustRunAfter;
-    private List shouldRunAfter;
+    private final List<TaskIdentity> mustRunAfter;
+    private final List<TaskIdentity> shouldRunAfter;
     private final List<TaskIdentity> finalizers;
 
-    public DefaultPlannedTask(TaskIdentity<?> taskIdentity, List dependencies, List mustRunAfter, List shouldRunAfter, List finalizers) {
+    public DefaultPlannedTask(TaskIdentity<?> taskIdentity, List<TaskIdentity> dependencies, List<TaskIdentity> mustRunAfter, List<TaskIdentity> shouldRunAfter, List<TaskIdentity> finalizers) {
         this.taskIdentity = taskIdentity;
         this.dependencies = dependencies;
         this.mustRunAfter = mustRunAfter;
@@ -37,7 +37,7 @@ public class DefaultPlannedTask implements PlannedTask{
     }
 
     @Override
-    public TaskIdentity getTask() {
+    public TaskIdentity<?> getTask() {
         return taskIdentity;
     }
 
