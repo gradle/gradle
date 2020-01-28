@@ -306,7 +306,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      */
     public StartParameter useEmptySettings() {
         DeprecationLogger.deprecateMethod(StartParameter.class, "useEmptySettings()")
-            .undocumented()
+            .withUpgradeGuideSection(6, "discontinued_methods")
             .nagUser();
         doUseEmptySettings();
         return this;
@@ -325,7 +325,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      */
     public boolean isUseEmptySettings() {
         DeprecationLogger.deprecateMethod(StartParameter.class, "isUseEmptySettings()")
-            .undocumented()
+            .withUpgradeGuideSection(6, "discontinued_methods")
             .nagUser();
         return useEmptySettings;
     }

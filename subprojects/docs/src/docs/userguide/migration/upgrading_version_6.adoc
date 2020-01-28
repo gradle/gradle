@@ -64,10 +64,12 @@ println("thread pool size = " + consumer.threadPoolSize.get())
 Querying the value of `consumer.threadPoolSize` will produce a deprecation warning if done prior to `producer` completing, as the output file has not yet been generated.
 
 ==== Discontinued methods
-The following methods have been discontinued and should no longer be used. Using them will fail with an error in Gradle 7.0.
+The following methods have been discontinued and should no longer be used. They will be removed in Gradle 7.0.
 
 - `BasePluginConvention.setProject(ProjectInternal)`
 - `BasePluginConvention.getProject()`
+- `StartParameter.useEmptySettings()`
+- `StartParameter.isUseEmptySettings()`
 
 [[upgrading_jvm_plugins]]
 ==== Alternative JVM plugins (a.k.a "Software Model")
