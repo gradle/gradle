@@ -215,26 +215,6 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         });
     }
 
-    protected ValueSourceProviderFactory createValueSourceProviderFactory(
-        InstantiatorFactory instantiatorFactory,
-        IsolatableFactory isolatableFactory,
-        ServiceRegistry services,
-        GradleProperties gradleProperties,
-        ListenerManager listenerManager
-    ) {
-        return new DefaultValueSourceProviderFactory(
-            listenerManager,
-            instantiatorFactory,
-            isolatableFactory,
-            gradleProperties,
-            services
-        );
-    }
-
-    protected ProviderFactory createProviderFactory(ValueSourceProviderFactory valueSourceProviderFactory) {
-        return new DefaultProviderFactory(valueSourceProviderFactory);
-    }
-
     protected BuildLayout createBuildLayout(BuildLayoutFactory buildLayoutFactory, StartParameter startParameter) {
         return buildLayoutFactory.getLayoutFor(new BuildLayoutConfiguration(startParameter));
     }
@@ -295,12 +275,28 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new DefaultIsolatedAntBuilder(classPathRegistry, classLoaderFactory, moduleRegistry);
     }
 
-    protected ActorFactory createActorFactory() {
-        return new DefaultActorFactory(get(ExecutorFactory.class));
-    }
-
     protected IGradlePropertiesLoader createGradlePropertiesLoader() {
         return new DefaultGradlePropertiesLoader((StartParameterInternal) get(StartParameter.class));
+    }
+
+    protected ValueSourceProviderFactory createValueSourceProviderFactory(
+        InstantiatorFactory instantiatorFactory,
+        IsolatableFactory isolatableFactory,
+        ServiceRegistry services,
+        GradleProperties gradleProperties,
+        ListenerManager listenerManager
+    ) {
+        return new DefaultValueSourceProviderFactory(
+            listenerManager,
+            instantiatorFactory,
+            isolatableFactory,
+            gradleProperties,
+            services
+        );
+    }
+
+    protected ProviderFactory createProviderFactory(ValueSourceProviderFactory valueSourceProviderFactory) {
+        return new DefaultProviderFactory(valueSourceProviderFactory);
     }
 
     protected GradleProperties createGradleProperties(
@@ -312,6 +308,10 @@ public class BuildScopeServices extends DefaultServiceRegistry {
 
         final Map<String, String> properties = propertiesLoader.mergeProperties(Collections.emptyMap());
         return properties::get;
+    }
+
+    protected ActorFactory createActorFactory() {
+        return new DefaultActorFactory(get(ExecutorFactory.class));
     }
 
     protected BuildLoader createBuildLoader(IGradlePropertiesLoader propertiesLoader, IProjectFactory projectFactory, BuildOperationExecutor buildOperationExecutor) {
