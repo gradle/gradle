@@ -54,6 +54,11 @@ class ReadOnlyDependencyCacheWithinContainerTest extends AbstractReadOnlyCacheDe
         synchronizer.stop()
     }
 
+    @Override
+    protected void checkIncubationMessage() {
+        // not checked because running in containers
+    }
+
     def "can use a read-only cache within a container"() {
         given:
         exposeServerToContainers()
