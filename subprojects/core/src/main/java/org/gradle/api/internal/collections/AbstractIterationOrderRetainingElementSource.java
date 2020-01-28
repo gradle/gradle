@@ -17,6 +17,8 @@
 package org.gradle.api.internal.collections;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -161,7 +163,7 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
     Element<T> cachingElement(CollectionProviderInternal<T, ? extends Iterable<T>> provider) {
         final Element<T> element = new Element<T>(provider.getElementType(), new ElementsFromCollectionProvider<T>(provider), realizeAction);
         if (provider instanceof ChangingValue) {
-            ((ChangingValue<Iterable<T>>)provider).onValueChange(new Action<Iterable<T>>() {
+            ((ChangingValue<Iterable<T>>) provider).onValueChange(new Action<Iterable<T>>() {
                 @Override
                 public void execute(Iterable<T> previousValues) {
                     clearCachedElement(element);
@@ -319,8 +321,9 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
 
         public void realize() {
             if (cache == null) {
-                cache = new ArrayList<T>(delegate.size());
-                super.collectInto(cache);
+                ImmutableList.Builder<T> builder = ImmutableList.builderWithExpectedSize(delegate.size());
+                super.collectInto(builder);
+                cache = new ArrayList<>(builder.build());
                 cache.removeAll(removedValues);
                 realized = true;
                 if (realizeAction != null) {
@@ -335,11 +338,11 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
         }
 
         @Override
-        public void collectInto(Collection<T> collection) {
+        public void collectInto(ImmutableCollection.Builder<T> builder) {
             if (!realized) {
                 realize();
             }
-            collection.addAll(cache);
+            builder.addAll(cache);
         }
 
         List<T> getValues() {

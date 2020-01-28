@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,48 +16,53 @@
 
 package org.gradle.api.internal.provider
 
-
 import org.gradle.api.provider.Provider
 import org.gradle.internal.state.ManagedFactory
 
-class ProvidersTest extends ProviderSpec<Integer> {
+class AbstractMappingProviderTest extends ProviderSpec<String> {
     @Override
-    Provider providerWithNoValue() {
-        return Providers.notDefined()
+    Provider<String> providerWithValue(String value) {
+        return new TestProvider(Providers.of(value.replace("{", "").replace("}", "")))
     }
 
     @Override
-    Provider<Integer> providerWithValue(Integer value) {
-        return Providers.of(value)
+    Provider<String> providerWithNoValue() {
+        return new TestProvider(Providers.notDefined())
     }
 
     @Override
-    Integer someValue() {
-        return 12
+    String someValue() {
+        "{s1}"
     }
 
     @Override
-    Integer someOtherValue() {
-        return 123
+    String someOtherValue() {
+        "{other1}"
     }
 
     @Override
-    Integer someOtherValue2() {
-        return 1234
+    String someOtherValue2() {
+        "{other2}"
     }
 
     @Override
-    Integer someOtherValue3() {
-        return 12345
-    }
-
-    @Override
-    boolean isNoValueProviderImmutable() {
-        return true
+    String someOtherValue3() {
+        "{other3}"
     }
 
     @Override
     ManagedFactory managedFactory() {
         return new ManagedFactories.ProviderManagedFactory()
+    }
+
+    class TestProvider extends AbstractMappingProvider<String, String> {
+        TestProvider(ProviderInternal<? extends String> provider) {
+            super(String, provider)
+        }
+
+        @Override
+        protected String mapValue(String v) {
+            return "{$v}"
+        }
     }
 }

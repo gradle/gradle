@@ -62,6 +62,10 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         property.set(null)
     }
 
+    protected void nullConvention(def property) {
+        property.convention(null)
+    }
+
     def "cannot get value when it has none"() {
         given:
         def property = propertyWithNoValue()
@@ -206,6 +210,18 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         property.set(someOtherValue())
         property.present
         property.get() == someOtherValue()
+    }
+
+    def "can use null convention value"() {
+        def property = propertyWithDefaultValue()
+        assert property.getOrNull() != someValue()
+
+        expect:
+        nullConvention(property)
+
+        !property.present
+        property.getOrNull() == null
+        property.getOrElse(someValue()) == someValue()
     }
 
     def "convention provider is used before value has been set"() {
@@ -864,11 +880,17 @@ The value of this provider is derived from:
 
         when:
         def present = property.present
-        def result = property.getOrNull()
 
         then:
         !present
-        result == null
+        0 * _
+
+        when:
+        property.get()
+
+        then:
+        def e = thrown(MissingValueException)
+        e.message == "Cannot query the value of this property because it has no value available."
         0 * _
     }
 
@@ -897,6 +919,31 @@ The value of this provider is derived from:
         and:
         !present
         result == null
+    }
+
+    def "finalized property with no value reports source of value when source is known"() {
+        def a = propertyWithNoValue()
+        a.attachDisplayName(Describables.of("<a>"))
+        def b = propertyWithNoValue()
+        b.attachDisplayName(Describables.of("<b>"))
+        def property = propertyWithNoValue()
+
+        given:
+        property.set(b)
+        b.set(a)
+
+        and:
+        property.finalizeValue()
+
+        when:
+        property.get()
+
+        then:
+        def e = thrown(MissingValueException)
+        e.message == TextUtil.toPlatformLineSeparators("""Cannot query the value of this property because it has no value available.
+The value of this property is derived from:
+  - <b>
+  - <a>""")
     }
 
     def "can finalize value when already finalized"() {

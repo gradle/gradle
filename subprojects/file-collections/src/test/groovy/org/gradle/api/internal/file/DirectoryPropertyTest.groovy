@@ -33,7 +33,17 @@ class DirectoryPropertyTest extends FileSystemPropertySpec<Directory> {
 
     @Override
     Directory someOtherValue() {
-        return baseDir.dir("dir2").get()
+        return baseDir.dir("other1").get()
+    }
+
+    @Override
+    Directory someOtherValue2() {
+        return baseDir.dir("other2").get()
+    }
+
+    @Override
+    Directory someOtherValue3() {
+        return baseDir.dir("other3").get()
     }
 
     @Override

@@ -16,11 +16,12 @@
 
 package org.gradle.api.internal.provider;
 
+import com.google.common.collect.ImmutableCollection;
+
 import javax.annotation.Nullable;
-import java.util.Collection;
 
 public interface ValueCollector<T> {
-    void add(@Nullable T value, Collection<T> dest);
+    void add(@Nullable T value, ImmutableCollection.Builder<T> dest);
 
-    void addAll(Iterable<? extends T> values, Collection<T> dest);
+    void addAll(Iterable<? extends T> values, ImmutableCollection.Builder<T> dest);
 }
