@@ -361,6 +361,10 @@ link:{javadocPath}/org/gradle/api/file/ConfigurableFileTree.html[ConfigurableFil
   Factories;;
     * link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#fileTree--[ObjectFactory.fileTree()]
 
+link:{javadocPath}/org/gradle/api/file/SourceDirectorySet.html[SourceDirectorySet]:: Hierarchy of source directories
+  Factories;;
+    * link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#sourceDirectorySet-java.lang.String-java.lang.String-[ObjectFactory.sourceDirectorySet(String, String)]
+
 == Lazy Collections API Reference
 
 Use these types for _mutable_ values:
