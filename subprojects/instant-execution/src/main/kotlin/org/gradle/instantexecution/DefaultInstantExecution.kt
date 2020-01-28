@@ -30,7 +30,6 @@ import org.gradle.execution.plan.Node
 import org.gradle.initialization.InstantExecution
 import org.gradle.instantexecution.extensions.uncheckedCast
 import org.gradle.instantexecution.extensions.unsafeLazy
-import org.gradle.instantexecution.initialization.InstantExecutionPropertiesLoader
 import org.gradle.instantexecution.initialization.InstantExecutionStartParameter
 import org.gradle.instantexecution.serialization.DefaultReadContext
 import org.gradle.instantexecution.serialization.DefaultWriteContext
@@ -102,7 +101,6 @@ class DefaultInstantExecution internal constructor(
             false
         }
         else -> {
-            loadProperties()
             val fingerprintChangedReason = checkFingerprint()
             when {
                 fingerprintChangedReason != null -> {
@@ -452,11 +450,6 @@ class DefaultInstantExecution internal constructor(
                 ?.path
                 ?.let(Path::path)
         }
-
-    private
-    fun loadProperties() {
-        service<InstantExecutionPropertiesLoader>().loadProperties()
-    }
 
     private
     fun log(message: String, vararg args: Any?) {
