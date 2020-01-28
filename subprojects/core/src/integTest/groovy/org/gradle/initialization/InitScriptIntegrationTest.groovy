@@ -189,10 +189,10 @@ class InitScriptIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         displayName                                | codeUnderTest
-        "StartParameter#setSearchUpwards(boolean)" | "gradle.startParameter.searchUpwards = true"
-        "StartParameter#isSearchUpwards()"         | "gradle.startParameter.searchUpwards"
-        "StartParameter#useEmptySettings()"        | "gradle.startParameter.useEmptySettings()"
-        "StartParameter#isUseEmptySettings()"      | "gradle.startParameter.useEmptySettings"
+        "StartParameter.setSearchUpwards(boolean)" | "gradle.startParameter.searchUpwards = true"
+        "StartParameter.isSearchUpwards()"         | "gradle.startParameter.searchUpwards"
+        "StartParameter.useEmptySettings()"        | "gradle.startParameter.useEmptySettings()"
+        "StartParameter.isUseEmptySettings()"      | "gradle.startParameter.useEmptySettings"
     }
 
     private static String initScript() {

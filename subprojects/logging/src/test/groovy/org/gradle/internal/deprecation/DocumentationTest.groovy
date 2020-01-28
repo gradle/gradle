@@ -20,13 +20,13 @@ import org.gradle.api.internal.DocumentationRegistry
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class DocumentationReferenceTest extends Specification {
+class DocumentationTest extends Specification {
 
     private static final DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry()
 
     def "null documentation reference always returns nulls"() {
         when:
-        def documentationReference = DocumentationReference.NO_DOCUMENTATION
+        def documentationReference = Documentation.NO_DOCUMENTATION
 
         then:
         documentationReference.documentationUrl() == null
@@ -36,7 +36,7 @@ class DocumentationReferenceTest extends Specification {
     @Unroll
     def "formats message for documentation id #documentationId, section #documentationSection"() {
         given:
-        def documentationReference = DocumentationReference.create(documentationId, documentationSection)
+        def documentationReference = Documentation.userManual(documentationId, documentationSection)
 
         expect:
         documentationReference.documentationUrl() == expectedUrl
@@ -48,17 +48,9 @@ class DocumentationReferenceTest extends Specification {
         "foo"           | null                 | DOCUMENTATION_REGISTRY.getDocumentationFor("foo")
     }
 
-    def "can not create documentation reference with null id"() {
-        when:
-        DocumentationReference.create(null, "bar")
-
-        then:
-        thrown NullPointerException
-    }
-
     def "creates upgrade guide reference"() {
         when:
-        def documentationReference = DocumentationReference.upgradeGuide(11, "section")
+        def documentationReference = Documentation.upgradeGuide(11, "section")
 
         then:
         def expectedUrl = DOCUMENTATION_REGISTRY.getDocumentationFor("upgrading_version_11", "section")
@@ -66,11 +58,14 @@ class DocumentationReferenceTest extends Specification {
         documentationReference.consultDocumentationMessage() == "Consult the upgrading guide for further information: ${expectedUrl}"
     }
 
-    def "can not create upgrade guide reference with null section"() {
+    def "creates dsl reference for property"() {
         when:
-        DocumentationReference.upgradeGuide(42, null)
+        def documentationReference = Documentation.dslReference(Documentation, "property")
 
         then:
-        thrown NullPointerException
+        def expectedUrl = DOCUMENTATION_REGISTRY.getDslRefForProperty(Documentation, "property")
+        documentationReference.documentationUrl() == expectedUrl
+        documentationReference.consultDocumentationMessage() == "See ${expectedUrl} for more details."
     }
+
 }

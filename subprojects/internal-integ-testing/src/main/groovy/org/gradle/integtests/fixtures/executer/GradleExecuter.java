@@ -300,6 +300,11 @@ public interface GradleExecuter extends Stoppable {
     GradleExecuter expectDeprecationWarning(String warning);
 
     /**
+     * Expects the given deprecation warning, allowing to pass documentation url with /current/ version and asserting against the actual current version instead.
+     */
+    GradleExecuter expectDocumentedDeprecationWarning(String warning);
+
+    /**
      * Expects exactly the given number of deprecation warnings. If fewer or more warnings are produced during
      * the execution, the assertion fails.
      *

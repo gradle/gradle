@@ -87,8 +87,8 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
         validateMutation(this.force, force);
         if (force) {
             DeprecationLogger.deprecate("Using force on a dependency")
-                .withAdvice("Consider using strict version constraints instead (version { strictly ... } })")
-                .undocumented()
+                .withAdvice("Consider using strict version constraints instead (version { strictly ... } }).")
+                .withUpgradeGuideSection(5, "forced_dependencies")
                 .nagUser();
         }
         this.force = force;
