@@ -78,7 +78,7 @@ Depends on: `linkTest__Variant__` and all tasks which contribute to the runtime 
 ::
 Installs the executable and all of it's runtime dependencies for easy execution.
 
-`runTest__Variant__` (e.g. `runTest`) - link:{groovyDslPath}/org.gradle.nativeplatform.tasks.RunTestExecutable.html[RunTestExecutable]::
+`runTest__Variant__` (e.g. `runTest`) - link:{groovyDslPath}/org.gradle.nativeplatform.test.tasks.RunTestExecutable.html[RunTestExecutable]::
 Depends on: `installTest__Variant__`
 ::
 Run the installed executable.
