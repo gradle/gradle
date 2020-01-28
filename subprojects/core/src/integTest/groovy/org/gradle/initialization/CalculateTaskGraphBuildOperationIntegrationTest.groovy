@@ -80,7 +80,6 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
         operation().result.excludedTaskPaths == []
     }
 
-    @ToBeFixedForInstantExecution
     def "task plan is exposed"() {
         settingsFile << """
         include "a"
@@ -149,7 +148,7 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
     }
 
     @ToBeFixedForInstantExecution
-    def "exposes plan details"() {
+    def "exposes task plan details"() {
         file("included-build").mkdir()
         file("included-build/settings.gradle")
         file("included-build/build.gradle") << """
@@ -192,12 +191,16 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
         succeeds('classes', 'independentTask', 'someTask')
 
         then:
-        operations()[0].result.taskPlan.task.identityPath == [":compileJava", ":processResources", ":classes", ":independentTask", ":anotherTask", ":otherTask", ":someTask", ":lastTask"]
-        operations()[0].result.taskPlan.dependencies.identityPath as Set == [[":included-build:compileJava"], [], [":processResources", ":compileJava"], [":anotherTask", ":otherTask"]] as Set
-        operations()[0].result.taskPlan.finalizedBy.taskPath == [[], [], [], [], [], [], [":lastTask"], []]
-        operations()[0].result.taskPlan.mustRunAfter.taskPath == [[], [], [], [], [], [], [":firstTask"], []]
-        operations()[0].result.taskPlan.shouldRunAfter.taskPath == [[], [], [], [], [], [], [":secondTask"], []]
-        operations()[1].result.taskPlan.task.identityPath == [':included-build:compileJava']
+        with(operations()[0].result.taskPlan) {
+            task.identityPath == [":compileJava", ":processResources", ":classes", ":independentTask", ":anotherTask", ":otherTask", ":someTask", ":lastTask"]
+            dependencies.identityPath.collect { it.sort() } == [[":included-build:compileJava"], [], [":compileJava", ":processResources"], [], [], [], [":anotherTask", ":otherTask"], []]
+            finalizedBy.taskPath == [[], [], [], [], [], [], [":lastTask"], []]
+            mustRunAfter.taskPath == [[], [], [], [], [], [], [":firstTask"], []]
+            shouldRunAfter.taskPath == [[], [], [], [], [], [], [":secondTask"], []]
+        }
+        with(operations()[1].result.taskPlan) {
+            task.identityPath == [':included-build:compileJava']
+        }
     }
 
     @ToBeFixedForInstantExecution
@@ -210,9 +213,11 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
                 public String sayHello(String name) {
                     return "Hello, " + name + "!";
                 }
-            }"""
+            }
+        """
         file('producer/build.gradle') << """
-            apply plugin:'java-library' """
+            apply plugin:'java-library'
+        """
 
         buildFile << """
             import org.gradle.api.artifacts.transform.TransformParameters
@@ -268,7 +273,7 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
                     outputs.file(inputArtifact)
                 }
             }
-            """
+        """
         file('src/main/java/artifact/transform/sample/App.java') << """
             package artifact.transform.sample;
 
@@ -283,20 +288,20 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
                     System.out.println(new App().getGreeting());
                 }
             }
-            """
+        """
 
         settingsFile << """
             include 'producer'
-            """
-
+        """
 
         when:
         succeeds(':distZip')
 
         then:
-
-        operations()[0].result.taskPlan.task.identityPath == [":producer:compileJava", ":producer:processResources", ":producer:classes", ":producer:jar", ":compileJava", ":processResources", ":classes", ":jar", ":startScripts", ":distZip"]
-        operations()[0].result.taskPlan.dependencies.identityPath.collect { it.sort() } == [[], [], [":producer:compileJava", ":producer:processResources"], [":producer:classes"], [":producer:compileJava"], [], [":compileJava", ":processResources"], [":classes"], [], [":jar", ":producer:jar", ":startScripts"]]
+        with(operations()[0].result.taskPlan) {
+            task.identityPath == [":producer:compileJava", ":producer:processResources", ":producer:classes", ":producer:jar", ":compileJava", ":processResources", ":classes", ":jar", ":startScripts", ":distZip"]
+            dependencies.identityPath.collect { it.sort() } == [[], [], [":producer:compileJava", ":producer:processResources"], [":producer:classes"], [":producer:compileJava"], [], [":compileJava", ":processResources"], [":classes"], [], [":jar", ":producer:jar", ":startScripts"]]
+        }
     }
 
     private List<BuildOperationRecord> operations() {

@@ -31,13 +31,14 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType;
 import org.gradle.internal.taskgraph.PlannedTask;
-import org.gradle.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class BuildOperatingFiringTaskExecutionPreparer implements TaskExecutionPreparer {
     private final TaskExecutionPreparer delegate;
@@ -104,23 +105,21 @@ public class BuildOperatingFiringTaskExecutionPreparer implements TaskExecutionP
                 }
 
                 private List<TaskIdentity> transformToIdentities(Set<Node> nodes, Function<Node, Set<Node>> nestedNodesResolver) {
-                    return new ArrayList(CollectionUtils.collect(toOnlyTaskNodes(nodes, nestedNodesResolver), node -> ((TaskNode) node).getTask().getTaskIdentity()));
+                    return toOnlyTaskNodes(nodes, nestedNodesResolver).stream().map(node -> ((TaskNode) node).getTask().getTaskIdentity())
+                        .collect(Collectors.toList());
                 }
 
                 private List<String> toTaskPaths(Set<Task> tasks) {
-                    return ImmutableSortedSet.copyOf(Collections2.transform(tasks, new Function<Task, String>() {
-                        @Override
-                        public String apply(Task task) {
-                            return task.getPath();
-                        }
-                    })).asList();
+                    return ImmutableSortedSet.copyOf(Collections2.transform(tasks, (Function<Task, String>) task -> task.getPath())).asList();
                 }
             });
         }
 
         private List<Node> toOnlyTaskNodes(Set<Node> nodes, Function<Node, Set<Node>> nestedNodesResolver) {
-            List<Node> flattenAllNodes = CollectionUtils.flattenCollections(Node.class, CollectionUtils.collect(nodes, node -> node instanceof TaskNode ? node : nestedNodesResolver.apply(node)));
-            return CollectionUtils.filter(flattenAllNodes, node -> node instanceof TaskNode);
+            return nodes.stream()
+                .flatMap(node -> node instanceof TaskNode ? Stream.of(node) : nestedNodesResolver.apply(node).stream())
+                .filter(node -> node instanceof TaskNode)
+                .collect(Collectors.toList());
         }
 
         TaskExecutionGraphInternal populateTaskGraph() {
