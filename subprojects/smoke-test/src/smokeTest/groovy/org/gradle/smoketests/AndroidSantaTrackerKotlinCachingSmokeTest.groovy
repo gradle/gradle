@@ -43,13 +43,19 @@ class AndroidSantaTrackerKotlinCachingSmokeTest extends AbstractAndroidSantaTrac
         setupCopyOfSantaTracker(originalDir, 'Kotlin', agpVersion)
         setupCopyOfSantaTracker(relocatedDir, 'Kotlin', agpVersion)
 
-        when:
+        when: 'clean build'
         buildLocation(originalDir, agpVersion)
 
         then:
         assertInstantExecutionStateStored()
 
-        when:
+        when: 'up-to-date build, reusing instant execution cache when enabled'
+        buildLocation(originalDir, agpVersion)
+
+        then:
+        assertInstantExecutionStateLoaded()
+
+        when: 'clean cached build'
         BuildResult relocatedResult = buildLocation(relocatedDir, agpVersion)
 
         then:
@@ -60,6 +66,13 @@ class AndroidSantaTrackerKotlinCachingSmokeTest extends AbstractAndroidSantaTrac
             ? EXPECTED_RESULTS_3_6
             : EXPECTED_RESULTS
         verify(relocatedResult, expectedResults)
+
+        when: 'clean cached build, reusing instant execution cache when enabled'
+        cleanLocation(relocatedDir, agpVersion)
+        buildLocation(relocatedDir, agpVersion)
+
+        then:
+        assertInstantExecutionStateLoaded()
 
         where:
         agpVersion << TESTED_AGP_VERSIONS
