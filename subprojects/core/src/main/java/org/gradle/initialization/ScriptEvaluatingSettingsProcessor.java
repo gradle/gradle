@@ -43,7 +43,8 @@ public class ScriptEvaluatingSettingsProcessor implements SettingsProcessor {
 
     public ScriptEvaluatingSettingsProcessor(ScriptPluginFactory configurerFactory,
                                              SettingsFactory settingsFactory,
-                                             IGradlePropertiesLoader propertiesLoader, TextFileResourceLoader textFileResourceLoader) {
+                                             IGradlePropertiesLoader propertiesLoader,
+                                             TextFileResourceLoader textFileResourceLoader) {
         this.configurerFactory = configurerFactory;
         this.settingsFactory = settingsFactory;
         this.propertiesLoader = propertiesLoader;
