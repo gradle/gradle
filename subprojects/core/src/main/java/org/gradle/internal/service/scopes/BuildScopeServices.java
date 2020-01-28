@@ -135,7 +135,6 @@ import org.gradle.initialization.NotifyingBuildLoader;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.initialization.ProjectDescriptorRegistry;
 import org.gradle.initialization.ProjectPropertySettingBuildLoader;
-import org.gradle.initialization.PropertiesLoadingSettingsProcessor;
 import org.gradle.initialization.RootBuildCacheControllerSettingsProcessor;
 import org.gradle.initialization.ScriptEvaluatingSettingsProcessor;
 import org.gradle.initialization.SettingsEvaluatedCallbackFiringSettingsProcessor;
@@ -445,26 +444,33 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         );
     }
 
-    protected SettingsProcessor createSettingsProcessor(ScriptPluginFactory scriptPluginFactory, ScriptHandlerFactory scriptHandlerFactory, Instantiator instantiator,
-                                                        ServiceRegistryFactory serviceRegistryFactory, IGradlePropertiesLoader propertiesLoader, BuildOperationExecutor buildOperationExecutor, TextFileResourceLoader textFileResourceLoader) {
+    protected SettingsProcessor createSettingsProcessor(
+        GradleProperties forceGradleProperties,
+        ScriptPluginFactory scriptPluginFactory,
+        ScriptHandlerFactory scriptHandlerFactory,
+        Instantiator instantiator,
+        ServiceRegistryFactory serviceRegistryFactory,
+        IGradlePropertiesLoader propertiesLoader,
+        BuildOperationExecutor buildOperationExecutor,
+        TextFileResourceLoader textFileResourceLoader
+    ) {
         return new BuildOperationSettingsProcessor(
             new RootBuildCacheControllerSettingsProcessor(
                 new SettingsEvaluatedCallbackFiringSettingsProcessor(
-                    new PropertiesLoadingSettingsProcessor(
-                        new ScriptEvaluatingSettingsProcessor(
-                            scriptPluginFactory,
-                            new SettingsFactory(
-                                instantiator,
-                                serviceRegistryFactory,
-                                scriptHandlerFactory
-                            ),
-                            propertiesLoader,
-                            textFileResourceLoader),
-                        propertiesLoader
+                    new ScriptEvaluatingSettingsProcessor(
+                        scriptPluginFactory,
+                        new SettingsFactory(
+                            instantiator,
+                            serviceRegistryFactory,
+                            scriptHandlerFactory
+                        ),
+                        propertiesLoader,
+                        textFileResourceLoader
                     )
                 )
             ),
-            buildOperationExecutor);
+            buildOperationExecutor
+        );
     }
 
     protected SettingsPreparer createSettingsPreparer(InitScriptHandler initScriptHandler, SettingsLoaderFactory settingsLoaderFactory, BuildOperationExecutor buildOperationExecutor, BuildDefinition buildDefinition) {
