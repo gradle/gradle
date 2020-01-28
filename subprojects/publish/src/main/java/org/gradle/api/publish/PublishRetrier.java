@@ -27,6 +27,8 @@ import org.gradle.api.Incubating;
 public interface PublishRetrier {
 
     /**
+     * executes publish action with retry logic
+     *
      * @since 6.3
      */
     void publishWithRetry() throws PublishRetrierException;

@@ -27,6 +27,7 @@ import org.gradle.api.Incubating;
 public class PublishRetrierException extends Exception {
 
     /**
+     * Exception used for errors associated with {@link PublishRetrier}
      * @since 6.3
      */
     @Incubating
