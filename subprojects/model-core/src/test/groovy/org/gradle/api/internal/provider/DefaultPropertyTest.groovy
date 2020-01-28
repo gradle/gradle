@@ -53,7 +53,17 @@ class DefaultPropertyTest extends PropertySpec<String> {
 
     @Override
     String someOtherValue() {
-        return "value2"
+        return "other1"
+    }
+
+    @Override
+    String someOtherValue2() {
+        return "other2"
+    }
+
+    @Override
+    String someOtherValue3() {
+        return "other3"
     }
 
     @Override
@@ -131,7 +141,7 @@ class DefaultPropertyTest extends PropertySpec<String> {
     }
 
     def "can set value to a provider whose type is compatible"() {
-        def supplier = Mock(ScalarSupplier)
+        def supplier = Mock(ProviderInternal)
         def provider = Mock(ProviderInternal)
 
         given:
@@ -230,9 +240,10 @@ class DefaultPropertyTest extends PropertySpec<String> {
 
         when:
         property.set("123")
+        p.present
 
         then:
-        p.present
+        1 * transformer.transform("123") >> "present"
         0 * _
 
         when:

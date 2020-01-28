@@ -17,52 +17,16 @@
 package org.gradle.api.internal.provider;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 public class MapCollectors {
-
-    public static class EmptyMap implements MapCollector<Object, Object> {
-
-        @Override
-        public boolean isPresent() {
-            return true;
-        }
-
-        @Override
-        public Value<Void> maybeCollectInto(MapEntryCollector<Object, Object> collector, Map<Object, Object> dest) {
-            return Value.present();
-        }
-
-        @Override
-        public Value<Void> maybeCollectKeysInto(ValueCollector<Object> collector, Collection<Object> dest) {
-            return Value.present();
-        }
-
-        @Override
-        public void visit(List<ProviderInternal<? extends Map<?, ?>>> sources) {
-        }
-
-        @Override
-        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-            return true;
-        }
-
-        @Override
-        public void visitProducerTasks(Action<? super Task> visitor) {
-        }
-
-        @Override
-        public boolean isValueProducedByTask() {
-            return false;
-        }
-    }
 
     public static class SingleEntry<K, V> implements MapCollector<K, V> {
 
@@ -80,13 +44,13 @@ public class MapCollectors {
         }
 
         @Override
-        public Value<Void> maybeCollectInto(MapEntryCollector<K, V> collector, Map<K, V> dest) {
+        public Value<Void> collectEntries(MapEntryCollector<K, V> collector, Map<K, V> dest) {
             collector.add(key, value, dest);
             return Value.present();
         }
 
         @Override
-        public Value<Void> maybeCollectKeysInto(ValueCollector<K> collector, Collection<K> dest) {
+        public Value<Void> collectKeys(ValueCollector<K> collector, ImmutableCollection.Builder<K> dest) {
             collector.add(key, dest);
             return Value.present();
         }
@@ -129,7 +93,6 @@ public class MapCollectors {
     }
 
     public static class EntryWithValueFromProvider<K, V> implements MapCollector<K, V> {
-
         private final K key;
         private final ProviderInternal<? extends V> providerOfValue;
 
@@ -144,7 +107,7 @@ public class MapCollectors {
         }
 
         @Override
-        public Value<Void> maybeCollectInto(MapEntryCollector<K, V> collector, Map<K, V> dest) {
+        public Value<Void> collectEntries(MapEntryCollector<K, V> collector, Map<K, V> dest) {
             Value<? extends V> value = providerOfValue.calculateValue();
             if (value.isMissing()) {
                 return value.asType();
@@ -154,7 +117,7 @@ public class MapCollectors {
         }
 
         @Override
-        public Value<Void> maybeCollectKeysInto(ValueCollector<K> collector, Collection<K> dest) {
+        public Value<Void> collectKeys(ValueCollector<K> collector, ImmutableCollection.Builder<K> dest) {
             if (providerOfValue.isPresent()) {
                 collector.add(key, dest);
                 return Value.present();
@@ -198,13 +161,13 @@ public class MapCollectors {
         }
 
         @Override
-        public Value<Void> maybeCollectInto(MapEntryCollector<K, V> collector, Map<K, V> dest) {
+        public Value<Void> collectEntries(MapEntryCollector<K, V> collector, Map<K, V> dest) {
             collector.addAll(entries.entrySet(), dest);
             return Value.present();
         }
 
         @Override
-        public Value<Void> maybeCollectKeysInto(ValueCollector<K> collector, Collection<K> dest) {
+        public Value<Void> collectKeys(ValueCollector<K> collector, ImmutableCollection.Builder<K> dest) {
             collector.addAll(entries.keySet(), dest);
             return Value.present();
         }
@@ -243,7 +206,7 @@ public class MapCollectors {
         }
 
         @Override
-        public Value<Void> maybeCollectInto(MapEntryCollector<K, V> collector, Map<K, V> dest) {
+        public Value<Void> collectEntries(MapEntryCollector<K, V> collector, Map<K, V> dest) {
             Value<? extends Map<? extends K, ? extends V>> value = providerOfEntries.calculateValue();
             if (value.isMissing()) {
                 return value.asType();
@@ -253,7 +216,7 @@ public class MapCollectors {
         }
 
         @Override
-        public Value<Void> maybeCollectKeysInto(ValueCollector<K> collector, Collection<K> dest) {
+        public Value<Void> collectKeys(ValueCollector<K> collector, ImmutableCollection.Builder<K> dest) {
             Map<? extends K, ? extends V> entries = providerOfEntries.getOrNull();
             if (entries != null) {
                 collector.addAll(entries.keySet(), dest);
@@ -281,42 +244,6 @@ public class MapCollectors {
         @Override
         public boolean isValueProducedByTask() {
             return providerOfEntries.isValueProducedByTask();
-        }
-    }
-
-    public static class NoValue implements MapCollector<Object, Object> {
-
-        @Override
-        public boolean isPresent() {
-            return false;
-        }
-
-        @Override
-        public Value<Void> maybeCollectInto(MapEntryCollector<Object, Object> collector, Map<Object, Object> dest) {
-            return Value.missing();
-        }
-
-        @Override
-        public Value<Void> maybeCollectKeysInto(ValueCollector<Object> collector, Collection<Object> dest) {
-            return Value.missing();
-        }
-
-        @Override
-        public void visit(List<ProviderInternal<? extends Map<?, ?>>> sources) {
-        }
-
-        @Override
-        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-            return true;
-        }
-
-        @Override
-        public void visitProducerTasks(Action<? super Task> visitor) {
-        }
-
-        @Override
-        public boolean isValueProducedByTask() {
-            return false;
         }
     }
 }

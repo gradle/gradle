@@ -24,8 +24,8 @@ import javax.annotation.Nullable;
 public class DefaultProperty<T> extends AbstractProperty<T> implements Property<T> {
     private final Class<T> type;
     private final ValueSanitizer<T> sanitizer;
-    private ScalarSupplier<? extends T> convention = Providers.noValue();
-    private ScalarSupplier<? extends T> valueSupplier;
+    private ProviderInternal<? extends T> convention = Providers.notDefined();
+    private ProviderInternal<? extends T> valueSupplier;
 
     public DefaultProperty(Class<T> type) {
         applyDefaultValue();
@@ -94,7 +94,7 @@ public class DefaultProperty<T> extends AbstractProperty<T> implements Property<
     }
 
     public ProviderInternal<? extends T> getProvider() {
-        return valueSupplier.asProvider();
+        return valueSupplier;
     }
 
     public DefaultProperty<T> provider(Provider<? extends T> provider) {
@@ -117,7 +117,7 @@ public class DefaultProperty<T> extends AbstractProperty<T> implements Property<
     @Override
     public Property<T> convention(T value) {
         if (value == null) {
-            applyConvention(Providers.noValue());
+            applyConvention(Providers.notDefined());
         } else {
             applyConvention(Providers.fixedValue(getValidationDisplayName(), value, type, sanitizer));
         }
@@ -126,13 +126,12 @@ public class DefaultProperty<T> extends AbstractProperty<T> implements Property<
 
     @Override
     public Property<T> convention(Provider<? extends T> valueProvider) {
-        ProviderInternal<? extends T> providerInternal = Providers.internal(valueProvider);
-        ScalarSupplier<? extends T> conventionSupplier = providerInternal.asSupplier(getValidationDisplayName(), type, sanitizer);
+        ProviderInternal<? extends T> conventionSupplier = Providers.internal(valueProvider).asSupplier(getValidationDisplayName(), type, sanitizer);
         applyConvention(conventionSupplier);
         return this;
     }
 
-    private void applyConvention(ScalarSupplier<? extends T> conventionSupplier) {
+    private void applyConvention(ProviderInternal<? extends T> conventionSupplier) {
         if (shouldApplyConvention()) {
             this.valueSupplier = conventionSupplier;
         }
@@ -141,15 +140,14 @@ public class DefaultProperty<T> extends AbstractProperty<T> implements Property<
 
     @Override
     protected void applyDefaultValue() {
-        valueSupplier = Providers.noValue();
+        valueSupplier = Providers.notDefined();
     }
 
     @Override
     protected void makeFinal() {
         valueSupplier = valueSupplier.withFinalValue();
-        convention = Providers.noValue();
+        convention = Providers.notDefined();
     }
-
 
     @Override
     protected Value<? extends T> calculateOwnValue() {

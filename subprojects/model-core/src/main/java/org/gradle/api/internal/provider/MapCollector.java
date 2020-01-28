@@ -16,7 +16,8 @@
 
 package org.gradle.api.internal.provider;
 
-import java.util.Collection;
+import com.google.common.collect.ImmutableCollection;
+
 import java.util.List;
 import java.util.Map;
 
@@ -25,9 +26,9 @@ import java.util.Map;
  */
 public interface MapCollector<K, V> extends ValueSupplier {
 
-    Value<Void> maybeCollectInto(MapEntryCollector<K, V> collector, Map<K, V> dest);
+    Value<Void> collectEntries(MapEntryCollector<K, V> collector, Map<K, V> dest);
 
-    Value<Void> maybeCollectKeysInto(ValueCollector<K> collector, Collection<K> dest);
+    Value<Void> collectKeys(ValueCollector<K> collector, ImmutableCollection.Builder<K> dest);
 
     void visit(List<ProviderInternal<? extends Map<? extends K, ? extends V>>> sources);
 }

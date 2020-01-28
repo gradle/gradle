@@ -30,6 +30,7 @@ import org.gradle.api.internal.provider.DefaultSetProperty
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory.ValueSourceProvider
 import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.internal.provider.Providers
+import org.gradle.api.internal.provider.TransformBackedProvider
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ValueSourceParameters
@@ -55,7 +56,7 @@ suspend fun WriteContext.writeProvider(value: ProviderInternal<*>) {
             writeByte(1)
             write(value)
         }
-        value.isValueProducedByTask && value is AbstractMappingProvider<*, *> -> {
+        value.isValueProducedByTask && (value is AbstractMappingProvider<*, *> || value is TransformBackedProvider<*, *>) -> {
             // Need to serialize the transformation and its source, as the value is not available until execution time
             writeByte(2)
             BeanCodec().run { encode(value) }

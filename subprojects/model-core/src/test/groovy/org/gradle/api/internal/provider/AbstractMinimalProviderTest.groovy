@@ -21,7 +21,7 @@ import org.gradle.internal.state.ManagedFactory
 
 import javax.annotation.Nullable
 
-class AbstractProviderTest extends ProviderSpec<String> {
+class AbstractMinimalProviderTest extends ProviderSpec<String> {
     TestProvider provider = new TestProvider()
 
     @Override
@@ -37,13 +37,23 @@ class AbstractProviderTest extends ProviderSpec<String> {
     }
 
     @Override
-    String someOtherValue() {
-        "s1"
+    String someValue() {
+        "s2"
     }
 
     @Override
-    String someValue() {
-        "s2"
+    String someOtherValue() {
+        "other1"
+    }
+
+    @Override
+    String someOtherValue2() {
+        "other2"
+    }
+
+    @Override
+    String someOtherValue3() {
+        "other3"
     }
 
     @Override
