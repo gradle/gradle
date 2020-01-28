@@ -38,6 +38,10 @@ Please refer to the [userguide](userguide/dependency_verification.html) to figur
 We would like to give special thanks to [Vladimir Sitnikov](https://github.com/vlsi) for his feedback and inspiration.
 A lot of the work on this feature is, in particular, available to previous versions of Gradle via his [Checksum Dependency Plugin](https://github.com/vlsi/vlsi-release-plugins/tree/master/plugins/checksum-dependency-plugin).
 
+## Gradle source code for plugin developers in Eclipse
+
+Plugin authors using Eclipse will now have sources of `gradleApi()`, `gradleTestKit()` and `localGroovy()` dependencies downloaded and attached for navigation in the IDE.
+
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
