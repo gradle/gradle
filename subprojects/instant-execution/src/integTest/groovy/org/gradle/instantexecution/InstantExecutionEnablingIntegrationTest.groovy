@@ -17,6 +17,7 @@
 package org.gradle.instantexecution
 
 import org.gradle.integtests.fixtures.executer.AbstractGradleExecuter
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.util.ToBeImplemented
 
 
@@ -62,9 +63,15 @@ class InstantExecutionEnablingIntegrationTest extends AbstractInstantExecutionIn
     @ToBeImplemented
     def "can enable instant execution from gradle.properties"() {
 
-        given:
+        setup:
+        def previousProp = System.getProperty(SystemProperties.isEnabled)
+        if (GradleContextualExecuter.isEmbedded()) {
+            System.clearProperty(SystemProperties.isEnabled)
+        }
+
+        and:
         file('gradle.properties') << """
-            systemprop.${SystemProperties.isEnabled}=true
+            systemProp.${SystemProperties.isEnabled}=true
         """
 
         and:
@@ -75,5 +82,12 @@ class InstantExecutionEnablingIntegrationTest extends AbstractInstantExecutionIn
 
         then: 'it does not enable instant execution'
         fixture.assertNoInstantExecution()
+
+        cleanup:
+        if (previousProp != null) {
+            System.setProperty(SystemProperties.isEnabled, previousProp)
+        } else {
+            System.clearProperty(SystemProperties.isEnabled)
+        }
     }
 }
