@@ -364,7 +364,7 @@ Prefer using separate properties with `@OutputFile`/`@OutputDirectory` annotatio
 
 Follow the API links to learn how to deal with these deprecations (if no extra information is provided here):
 
- * link:{javadocPath}/org/gradle/api/Nullable.html[Nullable]
+ * link:https://docs.gradle.org/4.10.3/javadoc/org/gradle/api/Nullable.html[Nullable]
 
 === Potential breaking changes
 
