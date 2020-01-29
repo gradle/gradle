@@ -17,7 +17,6 @@
 package org.gradle.instantexecution
 
 import org.gradle.integtests.fixtures.executer.AbstractGradleExecuter
-import org.gradle.util.ToBeImplemented
 
 
 class InstantExecutionEnablingIntegrationTest extends AbstractInstantExecutionIntegrationTest {
