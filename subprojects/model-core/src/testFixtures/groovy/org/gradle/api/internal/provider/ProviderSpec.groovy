@@ -45,6 +45,11 @@ abstract class ProviderSpec<T> extends Specification {
         return "this provider"
     }
 
+    def setup() {
+        def values = [someValue(), someOtherValue(), someOtherValue2(), someOtherValue3()]
+        assert values.unique(false) == values
+    }
+
     def "can query value when it has as value"() {
         given:
         def provider = providerWithValue(someValue())
