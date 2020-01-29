@@ -36,8 +36,7 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
             include "b"
             include "a:c"
         """
-
-
+        
         buildFile << """
             allprojects {
                 task otherTask
