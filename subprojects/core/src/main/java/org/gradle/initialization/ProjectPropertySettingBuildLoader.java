@@ -74,7 +74,7 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
         // this should really be <String, Object>, however properties loader signature expects a <String, String>
         // even if in practice it was never enforced (one can pass other property types, such as boolean) an
         // fixing the method signature would be a binary breaking change in a public API.
-        Map<String, String> mergedProperties = gradleProperties.mergeProperties(new HashMap(projectProperties));
+        Map<String, String> mergedProperties = gradleProperties.mergeProperties(uncheckedCast(projectProperties));
         for (Map.Entry<String, String> entry : mergedProperties.entrySet()) {
             applicator.configureProperty(project, entry.getKey(), entry.getValue());
         }
