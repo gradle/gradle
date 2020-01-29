@@ -50,7 +50,7 @@ Features in incubation are clearly indicated to be so. In the source code, all m
 [[feature_preview]]
 ==== Feature Preview API
 
-Feature preview API allows certain incubating features to be activated by adding `enableFeaturePreview('FEATURE')` in _settings.gradle_.
+The feature preview API allows certain incubating features to be activated by adding `enableFeaturePreview('FEATURE')` in your _settings_ file. Individual preview features will be announced in release notes.
 
 When _incubating_ features are either promoted to _public_ or removed, the feature preview flags for them become obsolete, have no effect and should be removed from the settings file.
 
