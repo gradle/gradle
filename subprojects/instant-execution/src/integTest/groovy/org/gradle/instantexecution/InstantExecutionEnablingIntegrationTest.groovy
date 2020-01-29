@@ -59,12 +59,11 @@ class InstantExecutionEnablingIntegrationTest extends AbstractInstantExecutionIn
         }
     }
 
-    @ToBeImplemented
     def "can enable instant execution from gradle.properties"() {
 
         given:
         file('gradle.properties') << """
-            systemprop.${SystemProperties.isEnabled}=true
+            systemProp.${SystemProperties.isEnabled}=true
         """
 
         and:
@@ -73,7 +72,7 @@ class InstantExecutionEnablingIntegrationTest extends AbstractInstantExecutionIn
         when:
         run 'help'
 
-        then: 'it does not enable instant execution'
-        fixture.assertNoInstantExecution()
+        then: 'instant execution is enabled'
+        fixture.assertStateStored()
     }
 }
