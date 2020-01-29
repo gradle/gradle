@@ -17,5 +17,11 @@ changeProject(uuid("16c9f3e3-36a9-4596-a35c-70a3c7a2c5c8")) {
         update {
             param("env.DOTCOM_DEV_DOCS_AWS_ACCESS_KEY", "AKIAX5VJCER2X7DPYFXF")
         }
+        expect {
+            password("env.DOTCOM_DEV_DOCS_AWS_SECRET_KEY", "credentialsJSON:ed0db35e-2034-444c-a9b1-d966b9abe89b")
+        }
+        update {
+            password("env.DOTCOM_DEV_DOCS_AWS_SECRET_KEY", "credentialsJSON:853fec36-91c4-4815-9a04-c9073b497352")
+        }
     }
 }
