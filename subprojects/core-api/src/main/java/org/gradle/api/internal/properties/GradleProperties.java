@@ -17,6 +17,7 @@
 package org.gradle.api.internal.properties;
 
 import javax.annotation.Nullable;
+import java.util.Map;
 
 /**
  * Immutable set of Gradle properties loaded at the start of the build.
@@ -25,4 +26,6 @@ public interface GradleProperties {
 
     @Nullable
     String find(String propertyName);
+
+    Map<String, String> mergeProperties(Map<String, String> properties);
 }

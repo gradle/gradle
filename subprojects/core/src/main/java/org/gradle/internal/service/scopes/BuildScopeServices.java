@@ -193,9 +193,7 @@ import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 import org.gradle.tooling.provider.model.internal.BuildScopeToolingModelBuilderRegistryAction;
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Contains the singleton services for a single build invocation.
@@ -303,21 +301,17 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         IGradlePropertiesLoader propertiesLoader,
         BuildLayout buildLayout
     ) {
-
-        propertiesLoader.loadProperties(buildLayout.getRootDirectory());
-
-        final Map<String, String> properties = propertiesLoader.mergeProperties(Collections.emptyMap());
-        return properties::get;
+        return propertiesLoader.loadProperties(buildLayout.getRootDirectory());
     }
 
     protected ActorFactory createActorFactory() {
         return new DefaultActorFactory(get(ExecutorFactory.class));
     }
 
-    protected BuildLoader createBuildLoader(IGradlePropertiesLoader propertiesLoader, IProjectFactory projectFactory, BuildOperationExecutor buildOperationExecutor) {
+    protected BuildLoader createBuildLoader(GradleProperties gradleProperties, IProjectFactory projectFactory, BuildOperationExecutor buildOperationExecutor) {
         return new NotifyingBuildLoader(
             new ProjectPropertySettingBuildLoader(
-                propertiesLoader,
+                gradleProperties,
                 new InstantiatingBuildLoader(
                     projectFactory
                 )
@@ -445,12 +439,11 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     }
 
     protected SettingsProcessor createSettingsProcessor(
-        GradleProperties forceGradleProperties,
         ScriptPluginFactory scriptPluginFactory,
         ScriptHandlerFactory scriptHandlerFactory,
         Instantiator instantiator,
         ServiceRegistryFactory serviceRegistryFactory,
-        IGradlePropertiesLoader propertiesLoader,
+        GradleProperties gradleProperties,
         BuildOperationExecutor buildOperationExecutor,
         TextFileResourceLoader textFileResourceLoader
     ) {
@@ -464,7 +457,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                             serviceRegistryFactory,
                             scriptHandlerFactory
                         ),
-                        propertiesLoader,
+                        gradleProperties,
                         textFileResourceLoader
                     )
                 )

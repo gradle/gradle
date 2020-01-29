@@ -17,6 +17,7 @@ package org.gradle.initialization;
 
 import org.gradle.api.Project;
 import org.gradle.api.internal.StartParameterInternal;
+import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.GUtil;
 import org.gradle.util.SetSystemProperties;
@@ -31,6 +32,8 @@ import java.util.Map;
 import java.util.Properties;
 
 import static java.util.Collections.emptyMap;
+import static org.gradle.api.Project.SYSTEM_PROP_PREFIX;
+import static org.gradle.initialization.IGradlePropertiesLoader.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -94,7 +97,7 @@ public class DefaultGradlePropertiesLoaderTest {
     @Test
     public void mergeAddsPropertiesFromEnvironmentVariablesWithPrefix() {
         envProperties = GUtil.map(
-            IGradlePropertiesLoader.ENV_PROJECT_PROPERTIES_PREFIX + "envProp", "env value",
+            ENV_PROJECT_PROPERTIES_PREFIX + "envProp", "env value",
             "ignoreMe", "ignored");
 
         Map<String, String> properties = loadAndMergePropertiesWith(emptyMap());
@@ -105,7 +108,7 @@ public class DefaultGradlePropertiesLoaderTest {
     @Test
     public void mergeAddsPropertiesFromSystemPropertiesWithPrefix() {
         systemProperties = GUtil.map(
-            IGradlePropertiesLoader.SYSTEM_PROJECT_PROPERTIES_PREFIX + "systemProp", "system value",
+            SYSTEM_PROJECT_PROPERTIES_PREFIX + "systemProp", "system value",
             "ignoreMe", "ignored");
 
         Map<String, String> properties = loadAndMergePropertiesWith(emptyMap());
@@ -168,7 +171,7 @@ public class DefaultGradlePropertiesLoaderTest {
         writePropertyFile(gradleUserHomeDir, GUtil.map("prop", "user value"));
         writePropertyFile(settingsDir, GUtil.map("prop", "settings value"));
         Map<String, String> projectProperties = GUtil.map("prop", "project value");
-        envProperties = GUtil.map(IGradlePropertiesLoader.ENV_PROJECT_PROPERTIES_PREFIX + "prop", "env value");
+        envProperties = GUtil.map(ENV_PROJECT_PROPERTIES_PREFIX + "prop", "env value");
 
         Map<String, String> properties = loadAndMergePropertiesWith(projectProperties);
 
@@ -180,8 +183,8 @@ public class DefaultGradlePropertiesLoaderTest {
         writePropertyFile(gradleUserHomeDir, GUtil.map("prop", "user value"));
         writePropertyFile(settingsDir, GUtil.map("prop", "settings value"));
         Map<String, String> projectProperties = GUtil.map("prop", "project value");
-        envProperties = GUtil.map(IGradlePropertiesLoader.ENV_PROJECT_PROPERTIES_PREFIX + "prop", "env value");
-        systemProperties = GUtil.map(IGradlePropertiesLoader.SYSTEM_PROJECT_PROPERTIES_PREFIX + "prop", "system value");
+        envProperties = GUtil.map(ENV_PROJECT_PROPERTIES_PREFIX + "prop", "env value");
+        systemProperties = GUtil.map(SYSTEM_PROJECT_PROPERTIES_PREFIX + "prop", "system value");
 
         Map<String, String> properties = loadAndMergePropertiesWith(projectProperties);
 
@@ -193,8 +196,8 @@ public class DefaultGradlePropertiesLoaderTest {
         writePropertyFile(gradleUserHomeDir, GUtil.map("prop", "user value"));
         writePropertyFile(settingsDir, GUtil.map("prop", "settings value"));
         Map<String, String> projectProperties = GUtil.map("prop", "project value");
-        envProperties = GUtil.map(IGradlePropertiesLoader.ENV_PROJECT_PROPERTIES_PREFIX + "prop", "env value");
-        systemProperties = GUtil.map(IGradlePropertiesLoader.SYSTEM_PROJECT_PROPERTIES_PREFIX + "prop", "system value");
+        envProperties = GUtil.map(ENV_PROJECT_PROPERTIES_PREFIX + "prop", "env value");
+        systemProperties = GUtil.map(SYSTEM_PROJECT_PROPERTIES_PREFIX + "prop", "system value");
         startParameter.setProjectProperties(GUtil.map("prop", "param value"));
 
         Map<String, String> properties = loadAndMergePropertiesWith(projectProperties);
@@ -205,10 +208,10 @@ public class DefaultGradlePropertiesLoaderTest {
     @Test
     public void loadSetsSystemProperties() {
         startParameter.setSystemPropertiesArgs(WrapUtil.toMap("systemPropArgKey", "systemPropArgValue"));
-        writePropertyFile(gradleUserHomeDir, GUtil.map(Project.SYSTEM_PROP_PREFIX + ".userSystemProp", "userSystemValue"));
+        writePropertyFile(gradleUserHomeDir, GUtil.map(SYSTEM_PROP_PREFIX + ".userSystemProp", "userSystemValue"));
         writePropertyFile(settingsDir, GUtil.map(
-            Project.SYSTEM_PROP_PREFIX + ".userSystemProp", "settingsSystemValue",
-            Project.SYSTEM_PROP_PREFIX + ".settingsSystemProp2", "settingsSystemValue2"));
+            SYSTEM_PROP_PREFIX + ".userSystemProp", "settingsSystemValue",
+            SYSTEM_PROP_PREFIX + ".settingsSystemProp2", "settingsSystemValue2"));
 
         loadProperties();
 
@@ -268,12 +271,16 @@ public class DefaultGradlePropertiesLoaderTest {
         return loadProperties().mergeProperties(properties);
     }
 
-    private DefaultGradlePropertiesLoader loadProperties() {
+    private GradleProperties loadProperties() {
         return loadPropertiesFrom(settingsDir);
     }
 
-    private DefaultGradlePropertiesLoader loadPropertiesFrom(File settingsDir) {
-        gradlePropertiesLoader.loadProperties(settingsDir, startParameter, systemProperties, envProperties);
-        return gradlePropertiesLoader;
+    private GradleProperties loadPropertiesFrom(File settingsDir) {
+        return gradlePropertiesLoader.loadProperties(
+            settingsDir,
+            startParameter,
+            systemProperties,
+            envProperties
+        );
     }
 }

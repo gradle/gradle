@@ -17,10 +17,12 @@ package org.gradle.initialization;
 
 import org.gradle.api.Project;
 import org.gradle.api.internal.StartParameterInternal;
+import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.util.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
@@ -40,11 +42,11 @@ public class DefaultGradlePropertiesLoader implements IGradlePropertiesLoader {
     }
 
     @Override
-    public void loadProperties(File settingsDir) {
-        loadProperties(settingsDir, startParameter, getAllSystemProperties(), getAllEnvProperties());
+    public GradleProperties loadProperties(File settingsDir) {
+        return loadProperties(settingsDir, startParameter, getAllSystemProperties(), getAllEnvProperties());
     }
 
-    void loadProperties(File settingsDir, StartParameterInternal startParameter, Map<String, String> systemProperties, Map<String, String> envProperties) {
+    GradleProperties loadProperties(File settingsDir, StartParameterInternal startParameter, Map<String, String> systemProperties, Map<String, String> envProperties) {
         defaultProperties.clear();
         overrideProperties.clear();
         addGradleProperties(defaultProperties, new File(startParameter.getGradleHomeDir(), GRADLE_PROPERTIES));
@@ -54,6 +56,25 @@ public class DefaultGradlePropertiesLoader implements IGradlePropertiesLoader {
         overrideProperties.putAll(getEnvProjectProperties(envProperties));
         overrideProperties.putAll(getSystemProjectProperties(systemProperties));
         overrideProperties.putAll(startParameter.getProjectProperties());
+        return new GradleProperties() {
+            @Nullable
+            @Override
+            public String find(String propertyName) {
+                String overridden = overrideProperties.get(propertyName);
+                return overridden != null
+                    ? overridden
+                    : defaultProperties.get(propertyName);
+            }
+
+            @Override
+            public Map<String, String> mergeProperties(Map<String, String> properties) {
+                Map<String, String> result = new HashMap<>();
+                result.putAll(defaultProperties);
+                result.putAll(properties);
+                result.putAll(overrideProperties);
+                return result;
+            }
+        };
     }
 
     Map getAllSystemProperties() {
