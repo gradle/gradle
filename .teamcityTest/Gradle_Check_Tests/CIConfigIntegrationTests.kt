@@ -345,14 +345,14 @@ class CIConfigIntegrationTests {
         val p = RootProject(m, SubProjectBucketProvider(m))
         assertTrue(p.subProjects.size == 2)
 
-        val buildStepsWithCache = (p.subProjectsOrder[0] as StageProject)
-            .subProjects[0].buildTypes.map { ((it as FunctionalTest).steps.items[0] as GradleBuildStep) }
+        val buildStepsWithCache: List<GradleBuildStep> = (p.subProjectsOrder[0] as StageProject)
+            .subProjects[0].buildTypes.map { ((it as FunctionalTest).steps.items.first { it is GradleBuildStep } as GradleBuildStep) }
         buildStepsWithCache.forEach {
             assertTrue(it.gradleParams!!.contains("--build-cache"))
         }
 
         val buildStepsWithoutCache = (p.subProjectsOrder[1] as StageProject)
-            .subProjects[0].buildTypes.map { ((it as FunctionalTest).steps.items[0] as GradleBuildStep) }
+            .subProjects[0].buildTypes.map { ((it as FunctionalTest).steps.items.first { it is GradleBuildStep } as GradleBuildStep) }
         buildStepsWithoutCache.forEach {
             assertFalse(it.gradleParams!!.contains("--build-cache"))
         }

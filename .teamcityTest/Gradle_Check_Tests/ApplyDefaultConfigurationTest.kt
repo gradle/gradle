@@ -97,7 +97,9 @@ class ApplyDefaultConfigurationTest {
         applyTestDefaults(buildModel, buildType, "myTask", os = Os.windows, extraParameters = extraParameters, daemon = daemon)
 
         assertEquals(listOf(
+            "ATTACH_FILE_LEAK_DETECTOR",
             "GRADLE_RUNNER",
+            "DUMP_OPEN_FILES",
             "KILL_PROCESSES_STARTED_BY_GRADLE",
             "GRADLE_RERUNNER",
             "KILL_PROCESSES_STARTED_BY_GRADLE_RERUN",
