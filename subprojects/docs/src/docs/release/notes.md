@@ -31,10 +31,24 @@ For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility 
 <a name="dependency-verification"></a>
 ## Dependency verification
 
-Gradle 6.2 ships with [dependency verification](userguide/dependency_verification.html).
+Typical projects use a large number of external dependencies which put them at risk of using untrusted code.
+What if you accidentally introduced malicious code via a transitive dependency?
+Similarly, what if your build script itself is vulnerable to malicious code execution via a compromised plugin?
+
+In an effort to mitigate the risks, Gradle 6.2 ships with [dependency verification](userguide/dependency_verification.html).
 Dependency verification is a major step towards a safer ecosystem by making it possible to verify both the checksums and the signatures of dependencies and plugins used during a build.
 
-Please refer to the [userguide](userguide/dependency_verification.html) to figure out how to enable dependency verification.
+By enabling dependency verification, Gradle will:
+
+- make sure that the dependencies haven't been tampered with (by verifying their _checksums_)
+- ensure the provenance of dependencies and plugins you use (by verifying their _signatures_)
+
+and therefore dramatically reduce the risks of shipping malicious code to production.
+
+With dependency verification, you maintain an XML file with checksums and optionally also signatures of all external artifacts used in your project, which includes, but is not limited to, all jars (binaries, sources, ...) and plugins.
+Gradle will immediately fail the build if an artifact is not trusted or missing from the configuration file.
+
+Please refer to the [userguide](userguide/dependency_verification.html) for a complete explanation about how to setup dependency verification. 
 
 We would like to give special thanks to [Vladimir Sitnikov](https://github.com/vlsi) for his feedback and inspiration.
 A lot of the work on this feature is, in particular, available to previous versions of Gradle via his [Checksum Dependency Plugin](https://github.com/vlsi/vlsi-release-plugins/tree/master/plugins/checksum-dependency-plugin).
