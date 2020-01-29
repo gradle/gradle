@@ -30,6 +30,7 @@ import org.gradle.internal.logging.text.BufferingStyledTextOutput;
 import org.gradle.internal.logging.text.LinePrefixingStyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
+import org.gradle.internal.service.ServiceCreationException;
 import org.gradle.util.GUtil;
 import org.gradle.util.TreeVisitor;
 
@@ -140,45 +141,60 @@ public class BuildExceptionReporter implements Action<Throwable> {
             if (scriptException.getLocation() != null) {
                 details.location.text(scriptException.getLocation());
             }
-            scriptException.visitReportableCauses(new TreeVisitor<Throwable>() {
-                int depth;
-
-                @Override
-                public void node(final Throwable node) {
-                    if (node == scriptException) {
-                        details.details.text(getMessage(scriptException.getCause()));
-                    } else {
-                        final LinePrefixingStyledTextOutput output = getLinePrefixingStyledTextOutput();
-                        output.text(getMessage(node));
-                    }
-                }
-
-                @Override
-                public void startChildren() {
-                    depth++;
-                }
-
-                @Override
-                public void endChildren() {
-                    depth--;
-                }
-
-                private LinePrefixingStyledTextOutput getLinePrefixingStyledTextOutput() {
-                    details.details.format("%n");
-                    StringBuilder prefix = new StringBuilder();
-                    for (int i = 1; i < depth; i++) {
-                        prefix.append("   ");
-                    }
-                    details.details.text(prefix);
-                    prefix.append("  ");
-                    details.details.style(Info).text("> ").style(Normal);
-
-                    return new LinePrefixingStyledTextOutput(details.details, prefix, false);
-                }
-            });
+            if (details.failure instanceof ServiceCreationException) {
+                details.details.text("Gradle could not start your build.");
+                LinePrefixingStyledTextOutput output = getLinePrefixingStyledTextOutput(details, 0);
+                output.text("Gradle encountered an internal problem.");
+            } else {
+                details.details.text(getMessage(details.failure));
+                scriptException.visitReportableCauses(new ExceptionFormattingVisitor(scriptException, details));
+            }
         } else {
             details.details.text(getMessage(failure));
         }
+    }
+
+    private static class ExceptionFormattingVisitor extends TreeVisitor<Throwable> {
+        private final LocationAwareException scriptException;
+        private final FailureDetails failureDetails;
+
+        private int depth;
+
+        private ExceptionFormattingVisitor(LocationAwareException scriptException, FailureDetails failureDetails) {
+            this.scriptException = scriptException;
+            this.failureDetails = failureDetails;
+        }
+
+        @Override
+        public void node(Throwable node) {
+            if (node != scriptException) {
+                LinePrefixingStyledTextOutput output = getLinePrefixingStyledTextOutput(failureDetails, depth);
+                output.text(getMessage(node));
+            }
+        }
+
+        @Override
+        public void startChildren() {
+            depth++;
+        }
+
+        @Override
+        public void endChildren() {
+            depth--;
+        }
+    }
+
+    private static LinePrefixingStyledTextOutput getLinePrefixingStyledTextOutput(FailureDetails details, int depth) {
+        details.details.format("%n");
+        StringBuilder prefix = new StringBuilder();
+        for (int i = 1; i < depth; i++) {
+            prefix.append("   ");
+        }
+        details.details.text(prefix);
+        prefix.append("  ");
+        details.details.style(Info).text("> ").style(Normal);
+
+        return new LinePrefixingStyledTextOutput(details.details, prefix, false);
     }
 
     private void fillInFailureResolution(FailureDetails details) {
@@ -220,7 +236,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
         resolution.println();
     }
 
-    private String getMessage(Throwable throwable) {
+    private static String getMessage(Throwable throwable) {
         String message = throwable.getMessage();
         if (GUtil.isTrue(message)) {
             return message;
