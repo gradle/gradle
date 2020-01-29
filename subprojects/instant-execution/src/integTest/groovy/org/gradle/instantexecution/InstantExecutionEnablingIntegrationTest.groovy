@@ -20,6 +20,8 @@ import org.gradle.integtests.fixtures.executer.AbstractGradleExecuter
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.util.ToBeImplemented
 
+import javax.annotation.Nullable
+
 
 class InstantExecutionEnablingIntegrationTest extends AbstractInstantExecutionIntegrationTest {
 
@@ -53,11 +55,7 @@ class InstantExecutionEnablingIntegrationTest extends AbstractInstantExecutionIn
 
         cleanup:
         AbstractGradleExecuter.doNotPropagateSystemProperty(SystemProperties.isEnabled)
-        if (previousProp != null) {
-            System.setProperty(SystemProperties.isEnabled, previousProp)
-        } else {
-            System.clearProperty(SystemProperties.isEnabled)
-        }
+        setOrClearProperty(SystemProperties.isEnabled, previousProp)
     }
 
     @ToBeImplemented
@@ -84,10 +82,14 @@ class InstantExecutionEnablingIntegrationTest extends AbstractInstantExecutionIn
         fixture.assertNoInstantExecution()
 
         cleanup:
-        if (previousProp != null) {
-            System.setProperty(SystemProperties.isEnabled, previousProp)
+        setOrClearProperty(SystemProperties.isEnabled, previousProp)
+    }
+
+    private static void setOrClearProperty(String name, @Nullable String value) {
+        if (value != null) {
+            System.setProperty(name, value)
         } else {
-            System.clearProperty(SystemProperties.isEnabled)
+            System.clearProperty(name)
         }
     }
 }
