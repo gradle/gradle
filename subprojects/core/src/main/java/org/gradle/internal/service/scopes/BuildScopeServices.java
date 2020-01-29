@@ -301,7 +301,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         IGradlePropertiesLoader propertiesLoader,
         BuildLayout buildLayout
     ) {
-        return propertiesLoader.loadProperties(buildLayout.getRootDirectory());
+        return propertiesLoader.loadGradleProperties(buildLayout.getRootDirectory());
     }
 
     protected ActorFactory createActorFactory() {

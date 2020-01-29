@@ -42,20 +42,32 @@ public class DefaultGradlePropertiesLoader implements IGradlePropertiesLoader {
     }
 
     @Override
-    public GradleProperties loadProperties(File settingsDir) {
-        return loadProperties(settingsDir, startParameter, getAllSystemProperties(), getAllEnvProperties());
+    public GradleProperties loadGradleProperties(File rootDir) {
+        return loadProperties(rootDir, startParameter, getAllSystemProperties(), getAllEnvProperties());
     }
 
-    GradleProperties loadProperties(File settingsDir, StartParameterInternal startParameter, Map<String, String> systemProperties, Map<String, String> envProperties) {
+    /**
+     * For binary backwards compatibility only.
+     */
+    @Override
+    public void loadProperties(File rootDir) {
+        loadGradleProperties(rootDir);
+    }
+
+    GradleProperties loadProperties(File rootDir, StartParameterInternal startParameter, Map<String, String> systemProperties, Map<String, String> envProperties) {
         defaultProperties.clear();
         overrideProperties.clear();
         addGradleProperties(defaultProperties, new File(startParameter.getGradleHomeDir(), GRADLE_PROPERTIES));
-        addGradleProperties(defaultProperties, new File(settingsDir, GRADLE_PROPERTIES));
+        addGradleProperties(defaultProperties, new File(rootDir, GRADLE_PROPERTIES));
         addGradleProperties(overrideProperties, new File(startParameter.getGradleUserHomeDir(), GRADLE_PROPERTIES));
         setSystemProperties(startParameter.getSystemPropertiesArgs());
         overrideProperties.putAll(getEnvProjectProperties(envProperties));
         overrideProperties.putAll(getSystemProjectProperties(systemProperties));
         overrideProperties.putAll(startParameter.getProjectProperties());
+        return newGradleProperties();
+    }
+
+    private GradleProperties newGradleProperties() {
         return new GradleProperties() {
             @Nullable
             @Override

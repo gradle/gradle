@@ -30,8 +30,9 @@ import org.gradle.internal.time.Timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collections;
 import java.util.Map;
+
+import static java.util.Collections.emptyMap;
 
 
 public class ScriptEvaluatingSettingsProcessor implements SettingsProcessor {
@@ -58,7 +59,7 @@ public class ScriptEvaluatingSettingsProcessor implements SettingsProcessor {
                                     ClassLoaderScope baseClassLoaderScope,
                                     StartParameter startParameter) {
         Timer settingsProcessingClock = Time.startTimer();
-        Map<String, String> properties = gradleProperties.mergeProperties(Collections.emptyMap());
+        Map<String, String> properties = gradleProperties.mergeProperties(emptyMap());
         TextResourceScriptSource settingsScript = new TextResourceScriptSource(textFileResourceLoader.loadFile("settings file", settingsLocation.getSettingsFile()));
         SettingsInternal settings = settingsFactory.createSettings(gradle, settingsLocation.getSettingsDir(), settingsScript, properties, startParameter, baseClassLoaderScope);
 
