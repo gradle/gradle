@@ -336,7 +336,7 @@ A sample of mixed tests can be found at `samples/testing/junitplatform/mix` in t
 === Filtering test engine
 
 JUnit Platform allows you to use different test engines. JUnit currently provides two `TestEngine` implementations out of the box:
-https://junit.org/junit5/docs/current/api/org/junit/jupiter/engine/package-summary.html[junit-jupiter-engine] and https://junit.org/junit5/docs/current/api/org/junit/vintage/engine/package-summary.html[junit-vintage-engine].
+https://junit.org/junit5/docs/current/api/org.junit.jupiter.engine/module-summary.html[junit-jupiter-engine] and https://junit.org/junit5/docs/current/api/org.junit.vintage.engine/module-summary.html[junit-vintage-engine].
 You can also write and plug in your own `TestEngine` implementation as documented https://junit.org/junit5/docs/current/user-guide/#launcher-api-engines-custom[here].
 
 By default, all test engines on the test runtime classpath will be used.

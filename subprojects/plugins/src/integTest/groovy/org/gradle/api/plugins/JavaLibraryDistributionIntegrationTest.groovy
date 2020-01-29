@@ -142,6 +142,24 @@ class JavaLibraryDistributionIntegrationTest extends WellBehavedPluginTest {
         failure.assertHasCause "Cannot query the value of property 'distributionBaseName' because it has no value available."
     }
 
+    def "emits deprecation warning when baseName property is used"() {
+        given:
+        buildFile << """
+            apply plugin:'java-library-distribution'
+            distributions {
+                main {
+                    baseName = 'sample'
+                }
+            }
+            """
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("The Distribution.baseName property has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+            "Please use the distributionBaseName property instead. " +
+            "See https://docs.gradle.org/current/dsl/org.gradle.api.distribution.Distribution.html#org.gradle.api.distribution.Distribution:baseName for more details.")
+        succeeds 'distZip'
+    }
+
     def "compile only dependencies are not included in distribution"() {
         given:
         mavenRepo.module('org.gradle.test', 'compile', '1.0').publish()
