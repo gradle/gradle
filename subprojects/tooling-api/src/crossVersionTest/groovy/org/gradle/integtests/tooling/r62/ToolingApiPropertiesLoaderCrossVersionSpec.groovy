@@ -16,66 +16,27 @@
 
 package org.gradle.integtests.tooling.r62
 
-
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.TestOutputStream
-import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import spock.lang.Issue
+import org.gradle.integtests.tooling.r60.AbstractToolingApiPropertiesLoaderCrossVersionSpec
 
 @ToolingApiVersion('>=3.0')
 @TargetGradleVersion('>=6.2')
-class ToolingApiPropertiesLoaderCrossVersionSpec extends ToolingApiSpecification{
+class ToolingApiPropertiesLoaderCrossVersionSpec extends AbstractToolingApiPropertiesLoaderCrossVersionSpec {
 
-    @Issue('https://github.com/gradle/gradle/issues/11173')
-    def "System properties defined in gradle.properties are available in buildSrc and in included builds"() {
-        setup:
-        settingsFile << '''
-            includeBuild 'includedBuild'
-            println("system_property_available in settings.gradle:          ${System.getProperty('system_property_available', 'false')} ")
-        '''
-        buildFile << '''
-            println("system_property_available in root:                     ${System.getProperty('system_property_available', 'false')} ")
-            println("project_property_available in root:                    ${project.findProperty('project_property_available') ?: 'false'} ")
-            task hello { }
-        '''
-        file('buildSrc/build.gradle') << '''
-            println("system_property_available in buildSrc:                 ${System.getProperty('system_property_available', 'false')} ")
-            println("project_property_available in buildSrc:                ${project.findProperty('project_property_available') ?: 'false'} ")
-        '''
-        file('includedBuild/build.gradle') << '''
-            println("system_property_available in included root:            ${System.getProperty('system_property_available', 'false')} ")
-            println("project_property_available in included root:           ${project.findProperty('project_property_available') ?: 'false'} ")
-        '''
-        file('includedBuild/settings.gradle') << '''
-            println("system_property_available in included settings.gradle: ${System.getProperty('system_property_available', 'false')} ")
-        '''
-        file('includedBuild/buildSrc/build.gradle') << '''
-            println("system_property_available in included buildSrc:        ${System.getProperty('system_property_available', 'false')} ")
-            println("project_property_available in included buildSrc:       ${project.findProperty('project_property_available') ?: 'false'} ")
-        '''
-        file('gradle.properties') << '''
-            systemProp.system_property_available=true
-            project_property_available=true
-        '''.stripIndent()
+    @Override
+    boolean projectPropertyAvailableInIncludedRoot() {
+        true
+    }
 
-        TestOutputStream stdout = new TestOutputStream()
+    @Override
+    boolean projectPropertyAvailableInIncludedBuildSrc() {
+        true
+    }
 
-        when:
-        withConnection { connection -> connection.newBuild().setStandardOutput(stdout).forTasks('hello').run() }
-        String output = stdout.toString()
-
-        then:
-        output.contains('system_property_available in buildSrc:                 true')
-        output.contains('system_property_available in buildSrc:                 true')
-        output.contains('project_property_available in buildSrc:                true')
-        output.contains('system_property_available in included buildSrc:        true')
-        output.contains('project_property_available in included buildSrc:       true')
-        output.contains('system_property_available in included root:            true')
-        output.contains('project_property_available in included root:           true')
-        output.contains('system_property_available in root:                     true')
-        output.contains('project_property_available in root:                    true')
-        output.contains('system_property_available in settings.gradle:          true')
-        output.contains('system_property_available in included settings.gradle: true')
+    @Override
+    boolean projectPropertyAvailableInBuildSrc() {
+        true
     }
 }
+

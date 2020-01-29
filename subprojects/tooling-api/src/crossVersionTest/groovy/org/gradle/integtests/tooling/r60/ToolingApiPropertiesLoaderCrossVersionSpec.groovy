@@ -25,7 +25,25 @@ import spock.lang.Issue
 
 @ToolingApiVersion('>=3.0')
 @TargetGradleVersion('>=6.0 <6.2')
-class ToolingApiPropertiesLoaderCrossVersionSpec extends ToolingApiSpecification{
+class ToolingApiPropertiesLoaderCrossVersionSpec extends AbstractToolingApiPropertiesLoaderCrossVersionSpec {
+
+    @Override
+    boolean projectPropertyAvailableInIncludedRoot() {
+        false
+    }
+
+    @Override
+    boolean projectPropertyAvailableInIncludedBuildSrc() {
+        false
+    }
+
+    @Override
+    boolean projectPropertyAvailableInBuildSrc() {
+        false
+    }
+}
+
+abstract class AbstractToolingApiPropertiesLoaderCrossVersionSpec extends ToolingApiSpecification {
 
     @Issue('https://github.com/gradle/gradle/issues/11173')
     def "System properties defined in gradle.properties are available in buildSrc and in included builds"() {
@@ -68,14 +86,20 @@ class ToolingApiPropertiesLoaderCrossVersionSpec extends ToolingApiSpecification
         then:
         output.contains('system_property_available in buildSrc:                 true')
         output.contains('system_property_available in buildSrc:                 true')
-        output.contains('project_property_available in buildSrc:                false')
+        output.contains("project_property_available in buildSrc:                ${projectPropertyAvailableInBuildSrc()}")
         output.contains('system_property_available in included buildSrc:        true')
-        output.contains('project_property_available in included buildSrc:       false')
+        output.contains("project_property_available in included buildSrc:       ${projectPropertyAvailableInIncludedBuildSrc()}")
         output.contains('system_property_available in included root:            true')
-        output.contains('project_property_available in included root:           false')
+        output.contains("project_property_available in included root:           ${projectPropertyAvailableInIncludedRoot()}")
         output.contains('system_property_available in root:                     true')
         output.contains('project_property_available in root:                    true')
         output.contains('system_property_available in settings.gradle:          true')
         output.contains('system_property_available in included settings.gradle: true')
     }
+
+    abstract boolean projectPropertyAvailableInIncludedRoot();
+
+    abstract boolean projectPropertyAvailableInIncludedBuildSrc();
+
+    abstract boolean projectPropertyAvailableInBuildSrc();
 }
