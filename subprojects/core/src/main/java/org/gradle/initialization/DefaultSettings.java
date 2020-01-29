@@ -344,7 +344,7 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
             DeprecationLogger
                 .deprecate("enableFeaturePreview('" + feature.name() + "')")
                 .withAdvice("The feature flag is no longer relevant, please remove it from your settings file.")
-                .undocumented()
+                .withUserManual("feature_lifecycle", "feature_preview")
                 .nagUser();
         }
     }

@@ -34,4 +34,4 @@ BUILD SUCCESSFUL in 998ms
 =====
 ====
 
-For more information, see link:{userManualPath}/introduction_dependency_management.html[dependency management chapters].
+For more information, see link:{userManualPath}/core_dependency_management.html[dependency management chapters].

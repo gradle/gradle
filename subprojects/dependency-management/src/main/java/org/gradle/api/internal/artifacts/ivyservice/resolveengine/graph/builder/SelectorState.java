@@ -122,16 +122,16 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         }
     }
 
-    public void release() {
+    public void release(NodeState currentlyDeselecting) {
         outgoingEdgeCount--;
         assert outgoingEdgeCount >= 0 : "Inconsistent selector state detected: outgoing edge count cannot be negative";
         if (outgoingEdgeCount == 0) {
-            removeAndMarkSelectorForReuse();
+            removeAndMarkSelectorForReuse(currentlyDeselecting);
         }
     }
 
-    private void removeAndMarkSelectorForReuse() {
-        targetModule.removeSelector(this);
+    private void removeAndMarkSelectorForReuse(NodeState currentlyDeselecting) {
+        targetModule.removeSelector(this, currentlyDeselecting);
         resolved = false;
     }
 

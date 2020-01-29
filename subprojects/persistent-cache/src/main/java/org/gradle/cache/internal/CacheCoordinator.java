@@ -32,4 +32,6 @@ public interface CacheCoordinator extends CacheAccess, Closeable {
     void close();
 
     <K, V> PersistentIndexedCache<K, V> newCache(PersistentIndexedCacheParameters<K, V> parameters);
+
+    <K, V> boolean cacheExists(PersistentIndexedCacheParameters<K, V> parameters);
 }

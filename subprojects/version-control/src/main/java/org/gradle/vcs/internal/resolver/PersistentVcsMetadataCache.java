@@ -44,7 +44,7 @@ public class PersistentVcsMetadataCache implements Stoppable {
         cache = cacheRepository
             .cache(directoryLayout.getMetadataDir())
             .withDisplayName("VCS metadata")
-            .withLockOptions(mode(FileLockManager.LockMode.None)) // Don't need to lock anything until we use the caches
+            .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Don't need to lock anything until we use the caches
             .open();
         workingDirCache = cache.createCache("workingDirs", String.class, VALUE_SERIALIZER);
     }

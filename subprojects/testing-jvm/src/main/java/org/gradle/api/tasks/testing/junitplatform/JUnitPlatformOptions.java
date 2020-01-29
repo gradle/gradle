@@ -39,7 +39,7 @@ public class JUnitPlatformOptions extends TestFrameworkOptions {
     private Set<String> excludeTags = new LinkedHashSet<String>();
 
     /**
-     * The set of engines to run with. Equivalent to invoking <a href="https://junit.org/junit5/docs/current/api/org/junit/platform/launcher/EngineFilter.html#includeEngines-java.lang.String...-">EngineFilter.includeEngines</a>.
+     * The set of engines to run with.
      *
      * @see <a href="https://junit.org/junit5/docs/current/user-guide/#launcher-api-engines-custom">Test Engine</a>
      */
@@ -49,7 +49,7 @@ public class JUnitPlatformOptions extends TestFrameworkOptions {
     }
 
     /**
-     * The set of tags to run with. Equivalent to invoking <a href="https://junit.org/junit5/docs/current/api/org/junit/platform/launcher/TagFilter.html#includeTags-java.util.List-">TagFilter.includeTags</a>.
+     * The set of tags to run with.
      *
      * @see <a href="https://junit.org/junit5/docs/current/user-guide/#writing-tests-tagging-and-filtering">Tagging and Filtering</a>
      */
@@ -59,7 +59,7 @@ public class JUnitPlatformOptions extends TestFrameworkOptions {
     }
 
     /**
-     * The set of engines to exclude. Equivalent to invoking <a href="https://junit.org/junit5/docs/current/api/org/junit/platform/launcher/EngineFilter.html#excludeEngines-java.lang.String...-">EngineFilter.excludeEngines</a>.
+     * The set of engines to exclude.
      *
      * @see <a href="https://junit.org/junit5/docs/current/user-guide/#launcher-api-engines-custom">Test Engine</a>
      */
@@ -69,7 +69,7 @@ public class JUnitPlatformOptions extends TestFrameworkOptions {
     }
 
     /**
-     * The set of tags to exclude. Equivalent to invoking <a href="https://junit.org/junit5/docs/current/api/org/junit/platform/launcher/TagFilter.html#excludeTags-java.util.List-">TagFilter.excludeTags</a>.
+     * The set of tags to exclude.
      *
      * @see <a href="https://junit.org/junit5/docs/current/user-guide/#writing-tests-tagging-and-filtering">Tagging and Filtering</a>
      */

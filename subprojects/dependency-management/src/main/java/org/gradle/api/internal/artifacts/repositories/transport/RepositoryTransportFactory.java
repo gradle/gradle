@@ -19,7 +19,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.credentials.Credentials;
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StartParameterResolutionOverride;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultExternalResourceCachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.ExternalResourceCachePolicy;
@@ -53,7 +52,6 @@ public class RepositoryTransportFactory {
     private final CachedExternalResourceIndex<String> cachedExternalResourceIndex;
     private final ProgressLoggerFactory progressLoggerFactory;
     private final BuildCommencedTimeProvider timeProvider;
-    private final ArtifactCacheLockingManager artifactCacheLockingManager;
     private final BuildOperationExecutor buildOperationExecutor;
     private final StartParameterResolutionOverride startParameterResolutionOverride;
     private final ProducerGuard<ExternalResourceName> producerGuard;
@@ -65,7 +63,6 @@ public class RepositoryTransportFactory {
                                       TemporaryFileProvider temporaryFileProvider,
                                       CachedExternalResourceIndex<String> cachedExternalResourceIndex,
                                       BuildCommencedTimeProvider timeProvider,
-                                      ArtifactCacheLockingManager artifactCacheLockingManager,
                                       BuildOperationExecutor buildOperationExecutor,
                                       StartParameterResolutionOverride startParameterResolutionOverride,
                                       ProducerGuard<ExternalResourceName> producerGuard,
@@ -75,7 +72,6 @@ public class RepositoryTransportFactory {
         this.temporaryFileProvider = temporaryFileProvider;
         this.cachedExternalResourceIndex = cachedExternalResourceIndex;
         this.timeProvider = timeProvider;
-        this.artifactCacheLockingManager = artifactCacheLockingManager;
         this.buildOperationExecutor = buildOperationExecutor;
         this.startParameterResolutionOverride = startParameterResolutionOverride;
         this.producerGuard = producerGuard;
@@ -100,7 +96,7 @@ public class RepositoryTransportFactory {
     }
 
     public RepositoryTransport createFileTransport(String name) {
-        return new FileTransport(name, fileRepository, cachedExternalResourceIndex, temporaryFileProvider, timeProvider, artifactCacheLockingManager, producerGuard, checksumService);
+        return new FileTransport(name, fileRepository, cachedExternalResourceIndex, temporaryFileProvider, timeProvider, producerGuard, checksumService);
     }
 
     public RepositoryTransport createTransport(String scheme, String name, Collection<Authentication> authentications, HttpRedirectVerifier redirectVerifier) {
@@ -130,7 +126,7 @@ public class RepositoryTransportFactory {
         ExternalResourceCachePolicy cachePolicy = new DefaultExternalResourceCachePolicy();
         cachePolicy = startParameterResolutionOverride.overrideExternalResourceCachePolicy(cachePolicy);
 
-        return new ResourceConnectorRepositoryTransport(name, progressLoggerFactory, temporaryFileProvider, cachedExternalResourceIndex, timeProvider, artifactCacheLockingManager, resourceConnector, buildOperationExecutor, cachePolicy, producerGuard, fileRepository, checksumService);
+        return new ResourceConnectorRepositoryTransport(name, progressLoggerFactory, temporaryFileProvider, cachedExternalResourceIndex, timeProvider, resourceConnector, buildOperationExecutor, cachePolicy, producerGuard, fileRepository, checksumService);
     }
 
     private void validateSchemes(Set<String> schemes) {

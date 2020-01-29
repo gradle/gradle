@@ -19,8 +19,10 @@ import org.gradle.integtests.fixtures.AbstractCompatibilityTestRunner
 import org.gradle.integtests.fixtures.GradleDistributionTool
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
+import org.gradle.util.GradleVersion
 
 class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner {
+    private static final GradleVersion MINIMAL_VERSION = GradleVersion.version("2.6")
 
     private static ToolingApiDistributionResolver resolver
 
@@ -57,9 +59,15 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
         def distribution = versionedTool.distribution
         if (distribution.toolingApiSupported) {
             // current vs. target
-            executions.add(new ToolingApiExecution(getResolver().resolve(current.version.version), distribution))
+            def currentVersion = current.version
+            if (currentVersion >= MINIMAL_VERSION) {
+                executions.add(new ToolingApiExecution(getResolver().resolve(currentVersion.version), distribution))
+            }
             // target vs. current
-            executions.add(new ToolingApiExecution(getResolver().resolve(distribution.version.version), current))
+            def distribVersion = distribution.version
+            if (distribVersion >= MINIMAL_VERSION) {
+                executions.add(new ToolingApiExecution(getResolver().resolve(distribVersion.version), current))
+            }
         }
 
         return executions

@@ -19,12 +19,13 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessor
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.AbstractModuleMetadataCache
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetadataCache
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleRepositoryCaches
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.AbstractArtifactsCache
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.ArtifactAtRepositoryKey
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.ModuleArtifactCache
-import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.ModuleArtifactsCache
-import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.ModuleVersionsCache
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.AbstractModuleVersionsCache
 import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost
 import org.gradle.api.internal.component.ArtifactType
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
@@ -55,9 +56,9 @@ class CachingModuleComponentRepositoryTest extends Specification {
         getLocalAccess() >> realLocalAccess
         getRemoteAccess() >> realRemoteAccess
     }
-    def moduleResolutionCache = Stub(ModuleVersionsCache)
-    def moduleDescriptorCache = Mock(ModuleMetadataCache)
-    def moduleArtifactsCache = Mock(ModuleArtifactsCache)
+    def moduleResolutionCache = Stub(AbstractModuleVersionsCache)
+    def moduleDescriptorCache = Mock(AbstractModuleMetadataCache)
+    def moduleArtifactsCache = Mock(AbstractArtifactsCache)
     def artifactAtRepositoryCache = Mock(ModuleArtifactCache)
     def cachePolicy = Stub(CachePolicy)
     def metadataProcessor = Stub(ComponentMetadataProcessor)

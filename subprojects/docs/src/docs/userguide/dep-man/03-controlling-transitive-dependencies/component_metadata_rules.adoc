@@ -12,7 +12,7 @@ Component metadata rules are applied in the components (link:{groovyDslPath}/org
 The rules can be defined in two different ways:
 
 1. As an action directly when they are applied in the _components_ section
-2. As an isolated class implementing the link:{groovyDslPath}/org.gradle.api.artifacts.dsl.ComponentMetadataRule.html[ComponentMetadataRule] interface
+2. As an isolated class implementing the link:{javadocPath}/org/gradle/api/artifacts/ComponentMetadataRule.html[ComponentMetadataRule] interface
 
 While defining rules inline as action can be convenient for experimentation, it is generally recommended to define rules as separate classes.
 Rules that are written as isolated classes can be annotated with `@CacheableRule` to cache the results of their application such that they do not need to be re-executed each time dependencies are resolved.

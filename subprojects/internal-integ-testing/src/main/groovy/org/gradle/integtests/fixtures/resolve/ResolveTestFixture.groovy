@@ -40,7 +40,7 @@ import org.junit.ComparisonFailure
  */
 class ResolveTestFixture {
     private final TestFile buildFile
-    private final String config
+    final String config
     private String defaultConfig = "default"
     private boolean buildArtifacts = true
     private boolean strictReasonsCheck
