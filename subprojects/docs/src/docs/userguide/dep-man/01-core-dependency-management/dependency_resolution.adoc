@@ -239,7 +239,7 @@ To help with this scenario, Gradle provides a couple of options:
 - <<sub:shared-readonly-cache,sharing a read-only dependency cache>> between multiple containers
 
 [[sub:cache_copy]]
-=== Copy and reuse the cache
+=== Copying and reusing the cache
 
 The dependency cache, both the file and metadata parts, are fully encoded using relative paths.
 This means that it is perfectly possible to copy a cache around and see Gradle benefit from it.
