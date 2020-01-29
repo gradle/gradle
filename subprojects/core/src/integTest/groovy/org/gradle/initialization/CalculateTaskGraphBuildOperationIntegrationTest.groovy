@@ -37,6 +37,7 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
             include "a:c"
         """
 
+
         buildFile << """
             allprojects {
                 task otherTask
@@ -192,14 +193,17 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
 
         then:
         with(operations()[0].result.taskPlan) {
-            task.identityPath == [":compileJava", ":processResources", ":classes", ":independentTask", ":anotherTask", ":otherTask", ":someTask", ":lastTask"]
-            dependencies.identityPath.collect { it.sort() } == [[":included-build:compileJava"], [], [":compileJava", ":processResources"], [], [], [], [":anotherTask", ":otherTask"], []]
+            task.taskPath == [":compileJava", ":processResources", ":classes", ":independentTask", ":anotherTask", ":otherTask", ":someTask", ":lastTask"]
+            task.buildPath == [":", ":", ":", ":", ":", ":", ":", ":"]
+            dependencies.taskPath.collect { it.sort() } == [[":compileJava"], [], [":compileJava", ":processResources"], [], [], [], [":anotherTask", ":otherTask"], []]
+            dependencies.buildPath == [[":included-build"], [], [":", ":"], [], [], [], [":", ":"], []]
             finalizedBy.taskPath == [[], [], [], [], [], [], [":lastTask"], []]
             mustRunAfter.taskPath == [[], [], [], [], [], [], [":firstTask"], []]
             shouldRunAfter.taskPath == [[], [], [], [], [], [], [":secondTask"], []]
         }
         with(operations()[1].result.taskPlan) {
-            task.identityPath == [':included-build:compileJava']
+            task.taskPath == [':compileJava']
+            task.buildPath == [':included-build']
         }
     }
 
@@ -230,12 +234,17 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
 
             def artifactType = Attribute.of('artifactType', String)
             def minified = Attribute.of('minified', Boolean)
+            def optimized = Attribute.of('optimized', Boolean)
             dependencies {
                 attributesSchema {
                     attribute(minified)
+                    attribute(optimized)
                 }
                 artifactTypes.getByName("jar") {
                     attributes.attribute(minified, false)
+                }
+                artifactTypes.getByName("jar") {
+                    attributes.attribute(optimized, false)
                 }
             }
 
@@ -243,14 +252,19 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
                 afterEvaluate {
                     if (canBeResolved) {
                         attributes.attribute(minified, true)
+                        attributes.attribute(optimized, true)
                     }
                 }
             }
 
             dependencies {
-                registerTransform(Minify) {
+                registerTransform(SomeTransform) {
                     from.attribute(minified, false).attribute(artifactType, "jar")
                     to.attribute(minified, true).attribute(artifactType, "jar")
+                }
+                registerTransform(SomeTransform) {
+                    from.attribute(optimized, false).attribute(minified, true).attribute(artifactType, "jar")
+                    to.attribute(optimized, true).attribute(minified, true).attribute(artifactType, "jar")
                 }
             }
 
@@ -263,7 +277,7 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
                 mainClassName = 'artifact.transform.sample.App'
             }
 
-            abstract class Minify implements TransformAction<TransformParameters.None> {
+            abstract class SomeTransform implements TransformAction<TransformParameters.None> {
                 @InputArtifact
                 abstract Provider<FileSystemLocation> getInputArtifact()
 
@@ -299,8 +313,8 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
 
         then:
         with(operations()[0].result.taskPlan) {
-            task.identityPath == [":producer:compileJava", ":producer:processResources", ":producer:classes", ":producer:jar", ":compileJava", ":processResources", ":classes", ":jar", ":startScripts", ":distZip"]
-            dependencies.identityPath.collect { it.sort() } == [[], [], [":producer:compileJava", ":producer:processResources"], [":producer:classes"], [":producer:compileJava"], [], [":compileJava", ":processResources"], [":classes"], [], [":jar", ":producer:jar", ":startScripts"]]
+            task.taskPath == [":producer:compileJava", ":producer:processResources", ":producer:classes", ":producer:jar", ":compileJava", ":processResources", ":classes", ":jar", ":startScripts", ":distZip"]
+            dependencies.taskPath.collect { it.sort() } == [[], [], [":producer:compileJava", ":producer:processResources"], [":producer:classes"], [":producer:compileJava"], [], [":compileJava", ":processResources"], [":classes"], [], [":jar", ":producer:jar", ":startScripts"]]
         }
     }
 

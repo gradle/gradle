@@ -30,11 +30,9 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType;
-import org.gradle.internal.taskgraph.PlannedTask;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -77,14 +75,13 @@ public class BuildOperatingFiringTaskExecutionPreparer implements TaskExecutionP
                 }
 
                 @Override
-                public List<PlannedTask> getTaskPlan() {
+                public List<CalculateTaskGraphBuildOperationType.PlannedTask> getTaskPlan() {
                     List<Node> scheduledWork = taskGraph.getScheduledWork();
-                    Set<DefaultPlannedTask> taskPlan = toPlannedTasks(scheduledWork);
-                    return new ArrayList(taskPlan);
+                    return toPlannedTasks(scheduledWork);
                 }
 
-                private Set<DefaultPlannedTask> toPlannedTasks(List<Node> scheduledWork) {
-                    Set<DefaultPlannedTask> plannedTasks = new LinkedHashSet<>();
+                private List<CalculateTaskGraphBuildOperationType.PlannedTask> toPlannedTasks(List<Node> scheduledWork) {
+                    List<CalculateTaskGraphBuildOperationType.PlannedTask> plannedTasks = new ArrayList<>();
                     for (Node node : scheduledWork) {
                         if (node instanceof TaskNode) {
                             TaskNode taskNode = (TaskNode) node;
@@ -95,18 +92,18 @@ public class BuildOperatingFiringTaskExecutionPreparer implements TaskExecutionP
                     return plannedTasks;
                 }
 
-                private DefaultPlannedTask toPlannedTask(TaskNode taskNode) {
+                private CalculateTaskGraphBuildOperationType.PlannedTask toPlannedTask(TaskNode taskNode) {
                     TaskIdentity<?> taskIdentity = taskNode.getTask().getTaskIdentity();
-                    return new DefaultPlannedTask(taskIdentity,
+                    return new DefaultPlannedTask(new PlannedTaskIdentity(taskIdentity),
                         transformToIdentities(taskNode.getDependencySuccessors(), node -> node.getDependencySuccessors()),
                         transformToIdentities(taskNode.getMustSuccessors(), node -> Collections.emptySet()),
                         transformToIdentities(taskNode.getShouldSuccessors(), node -> Collections.emptySet()),
                         transformToIdentities(taskNode.getFinalizers(), node -> Collections.emptySet()));
                 }
 
-                private List<TaskIdentity> transformToIdentities(Set<Node> nodes, Function<Node, Set<Node>> nestedNodesResolver) {
+                private List<CalculateTaskGraphBuildOperationType.TaskIdentity> transformToIdentities(Set<Node> nodes, Function<Node, Set<Node>> nestedNodesResolver) {
                     return toOnlyTaskNodes(nodes, nestedNodesResolver).stream().map(node -> ((TaskNode) node).getTask().getTaskIdentity())
-                        .collect(Collectors.toList());
+                        .map(id -> new PlannedTaskIdentity(id)).collect(Collectors.toList());
                 }
 
                 private List<String> toTaskPaths(Set<Task> tasks) {
@@ -117,7 +114,7 @@ public class BuildOperatingFiringTaskExecutionPreparer implements TaskExecutionP
 
         private List<Node> toOnlyTaskNodes(Set<Node> nodes, Function<Node, Set<Node>> nestedNodesResolver) {
             return nodes.stream()
-                .flatMap(node -> node instanceof TaskNode ? Stream.of(node) : nestedNodesResolver.apply(node).stream())
+                .flatMap(node -> node instanceof TaskNode ? Stream.of(node) : toOnlyTaskNodes(nestedNodesResolver.apply(node), nestedNodesResolver).stream())
                 .filter(node -> node instanceof TaskNode)
                 .collect(Collectors.toList());
         }
@@ -136,6 +133,29 @@ public class BuildOperatingFiringTaskExecutionPreparer implements TaskExecutionP
                         return gradle.getIdentityPath().getPath();
                     }
                 });
+        }
+    }
+
+    private static class PlannedTaskIdentity implements CalculateTaskGraphBuildOperationType.TaskIdentity {
+
+        private final TaskIdentity delegate;
+
+        public PlannedTaskIdentity(TaskIdentity delegate) {
+            this.delegate = delegate;
+        }
+        @Override
+        public String getBuildPath() {
+            return delegate.getBuildPath();
+        }
+
+        @Override
+        public String getTaskPath() {
+            return delegate.getTaskPath();
+        }
+
+        @Override
+        public long getTaskId() {
+            return delegate.getId();
         }
     }
 }

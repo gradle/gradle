@@ -16,19 +16,22 @@
 
 package org.gradle.initialization;
 
-import org.gradle.api.internal.project.taskfactory.TaskIdentity;
-import org.gradle.internal.taskgraph.PlannedTask;
+import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType;
 
 import java.util.List;
 
-public class DefaultPlannedTask implements PlannedTask {
-    private final TaskIdentity<?> taskIdentity;
-    private final List<TaskIdentity> dependencies;
-    private final List<TaskIdentity> mustRunAfter;
-    private final List<TaskIdentity> shouldRunAfter;
-    private final List<TaskIdentity> finalizers;
+public class DefaultPlannedTask implements CalculateTaskGraphBuildOperationType.PlannedTask {
+    private final CalculateTaskGraphBuildOperationType.TaskIdentity taskIdentity;
+    private final List<CalculateTaskGraphBuildOperationType.TaskIdentity> dependencies;
+    private final List<CalculateTaskGraphBuildOperationType.TaskIdentity> mustRunAfter;
+    private final List<CalculateTaskGraphBuildOperationType.TaskIdentity> shouldRunAfter;
+    private final List<CalculateTaskGraphBuildOperationType.TaskIdentity> finalizers;
 
-    public DefaultPlannedTask(TaskIdentity<?> taskIdentity, List<TaskIdentity> dependencies, List<TaskIdentity> mustRunAfter, List<TaskIdentity> shouldRunAfter, List<TaskIdentity> finalizers) {
+    public DefaultPlannedTask(CalculateTaskGraphBuildOperationType.TaskIdentity taskIdentity,
+                              List<CalculateTaskGraphBuildOperationType.TaskIdentity> dependencies,
+                              List<CalculateTaskGraphBuildOperationType.TaskIdentity> mustRunAfter,
+                              List<CalculateTaskGraphBuildOperationType.TaskIdentity> shouldRunAfter,
+                              List<CalculateTaskGraphBuildOperationType.TaskIdentity> finalizers) {
         this.taskIdentity = taskIdentity;
         this.dependencies = dependencies;
         this.mustRunAfter = mustRunAfter;
@@ -37,27 +40,27 @@ public class DefaultPlannedTask implements PlannedTask {
     }
 
     @Override
-    public TaskIdentity<?> getTask() {
+    public CalculateTaskGraphBuildOperationType.TaskIdentity getTask() {
         return taskIdentity;
     }
 
     @Override
-    public List<TaskIdentity> getDependencies() {
+    public List<CalculateTaskGraphBuildOperationType.TaskIdentity> getDependencies() {
         return dependencies;
     }
 
     @Override
-    public List<TaskIdentity> getMustRunAfter() {
+    public List<CalculateTaskGraphBuildOperationType.TaskIdentity> getMustRunAfter() {
         return mustRunAfter;
     }
 
     @Override
-    public List<TaskIdentity> getShouldRunAfter() {
+    public List<CalculateTaskGraphBuildOperationType.TaskIdentity> getShouldRunAfter() {
         return shouldRunAfter;
     }
 
     @Override
-    public List<TaskIdentity> getFinalizedBy() {
+    public List<CalculateTaskGraphBuildOperationType.TaskIdentity> getFinalizedBy() {
         return finalizers;
     }
 }

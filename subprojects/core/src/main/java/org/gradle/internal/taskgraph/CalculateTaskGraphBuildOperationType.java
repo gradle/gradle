@@ -16,6 +16,7 @@
 
 package org.gradle.internal.taskgraph;
 
+import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
@@ -27,6 +28,45 @@ import java.util.List;
  * @since 4.0
  */
 public final class CalculateTaskGraphBuildOperationType implements BuildOperationType<CalculateTaskGraphBuildOperationType.Details, CalculateTaskGraphBuildOperationType.Result> {
+
+    /**
+     *
+     * @since 6.2
+     *
+     * */
+    @UsedByScanPlugin
+    public interface TaskIdentity {
+
+        String getBuildPath();
+
+        String getTaskPath();
+
+        /**
+         * @see org.gradle.api.internal.project.taskfactory.TaskIdentity#uniqueId
+         */
+        long getTaskId();
+
+    }
+    
+    /**
+     *
+     * @since 6.2
+     *
+     * */
+    @UsedByScanPlugin
+    public interface PlannedTask {
+
+        TaskIdentity getTask();
+
+        List<TaskIdentity> getDependencies();
+
+        List<TaskIdentity> getMustRunAfter();
+
+        List<TaskIdentity> getShouldRunAfter();
+
+        List<TaskIdentity> getFinalizedBy();
+
+    }
 
     @UsedByScanPlugin
     public interface Details {
@@ -59,6 +99,8 @@ public final class CalculateTaskGraphBuildOperationType implements BuildOperatio
 
         /**
          * Capturing task execution plan details.
+         *
+         * @since 6.2
          */
         List<PlannedTask> getTaskPlan();
     }
