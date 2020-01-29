@@ -44,7 +44,7 @@ class DefaultArtifactCacheLockingManagerTest extends Specification {
     def usedGradleVersions = Stub(UsedGradleVersions)
 
     @Subject @AutoCleanup
-    def cacheLockingManager = new DefaultArtifactCacheLockingManager(cacheRepository, artifactCacheMetadata, fileAccessTimeJournal, usedGradleVersions)
+    def cacheLockingManager = new WritableArtifactCacheLockingManager(cacheRepository, artifactCacheMetadata, fileAccessTimeJournal, usedGradleVersions)
 
     def "cleans up resources"() {
         given:

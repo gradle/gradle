@@ -20,6 +20,7 @@ import org.gradle.api.UncheckedIOException;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
@@ -46,7 +47,7 @@ public class FileBackedBlockStore implements BlockStore {
         this.factory = factory;
         try {
             cacheFile.getParentFile().mkdirs();
-            file = new RandomAccessFile(cacheFile, "rw");
+            file = openRandomAccessFile();
             output = new ByteOutput(file);
             input = new ByteInput(file);
             currentFileSize = file.length();
@@ -57,6 +58,18 @@ public class FileBackedBlockStore implements BlockStore {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
+
+    private RandomAccessFile openRandomAccessFile() throws FileNotFoundException {
+        try {
+            return randomAccessFile("rw");
+        } catch (FileNotFoundException e) {
+            return randomAccessFile("r");
+        }
+    }
+
+    private RandomAccessFile randomAccessFile(String mode) throws FileNotFoundException {
+        return new RandomAccessFile(cacheFile, mode);
     }
 
     @Override

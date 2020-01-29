@@ -48,7 +48,7 @@ class DefaultGeneratedGradleJarCacheTest extends Specification {
         then:
         1 * cacheRepository.cache(CACHE_KEY) >> cacheBuilder
         1 * cacheBuilder.withDisplayName(CACHE_DISPLAY_NAME) >> cacheBuilder
-        1 * cacheBuilder.withLockOptions(mode(FileLockManager.LockMode.None)) >> cacheBuilder
+        1 * cacheBuilder.withLockOptions(mode(FileLockManager.LockMode.OnDemand)) >> cacheBuilder
         1 * cacheBuilder.open() >> { cache }
         1 * cache.close()
     }
@@ -67,7 +67,7 @@ class DefaultGeneratedGradleJarCacheTest extends Specification {
         then:
         1 * cacheRepository.cache(CACHE_KEY) >> cacheBuilder
         1 * cacheBuilder.withDisplayName(CACHE_DISPLAY_NAME) >> cacheBuilder
-        1 * cacheBuilder.withLockOptions(mode(FileLockManager.LockMode.None)) >> cacheBuilder
+        1 * cacheBuilder.withLockOptions(mode(FileLockManager.LockMode.OnDemand)) >> cacheBuilder
         1 * cacheBuilder.open() >> { cache }
         _ * cache.getBaseDir() >> cacheDir
         1 * cache.useCache(_)
@@ -90,7 +90,7 @@ class DefaultGeneratedGradleJarCacheTest extends Specification {
         then:
         1 * cacheRepository.cache(CACHE_KEY) >> cacheBuilder
         1 * cacheBuilder.withDisplayName(CACHE_DISPLAY_NAME) >> cacheBuilder
-        1 * cacheBuilder.withLockOptions(mode(FileLockManager.LockMode.None)) >> cacheBuilder
+        1 * cacheBuilder.withLockOptions(mode(FileLockManager.LockMode.OnDemand)) >> cacheBuilder
         1 * cacheBuilder.open() >> { cache }
         _ * cache.getBaseDir() >> cacheDir
         1 * cache.useCache(_)
@@ -103,7 +103,7 @@ class DefaultGeneratedGradleJarCacheTest extends Specification {
         then:
         0 * cacheRepository.cache(CACHE_KEY) >> cacheBuilder
         0 * cacheBuilder.withDisplayName(CACHE_DISPLAY_NAME) >> cacheBuilder
-        0 * cacheBuilder.withLockOptions(mode(FileLockManager.LockMode.None)) >> cacheBuilder
+        0 * cacheBuilder.withLockOptions(mode(FileLockManager.LockMode.OnDemand)) >> cacheBuilder
         0 * cacheBuilder.open() >> { cache }
         _ * cache.getBaseDir() >> cacheDir
         1 * cache.useCache(_)

@@ -445,13 +445,22 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
 
     private DefaultExecHandleBuilder handle() {
         new DefaultExecHandleBuilder(TestFiles.pathToFileResolver(), executor, buildCancellationToken)
-                .executable(Jvm.current().getJavaExecutable().getAbsolutePath())
-                .setTimeout(20000) //sanity timeout
-                .workingDir(tmpDir.getTestDirectory())
+            .executable(Jvm.current().getJavaExecutable().getAbsolutePath())
+            .setTimeout(20000) //sanity timeout
+            .workingDir(tmpDir.getTestDirectory())
+            .environment('CLASSPATH', mergeClasspath())
     }
 
-    private List args(Class mainClass, String ... args) {
-        GUtil.flattenElements("-cp", System.getProperty("java.class.path"), mainClass.getName(), args)
+    private String mergeClasspath() {
+        if (System.getenv('CLASSPATH') == null) {
+            return System.getProperty('java.class.path')
+        } else {
+            return "${System.getenv('CLASSPATH')}${File.pathSeparator}${System.getProperty('java.class.path')}"
+        }
+    }
+
+    private List args(Class mainClass, String... args) {
+        GUtil.flattenElements(mainClass.getName(), args)
     }
 
     public static class BrokenApp {

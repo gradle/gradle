@@ -37,3 +37,4 @@ testLibraries.mockito_kotlin2 = 'com.nhaarman.mockitokotlin2:mockito-kotlin:2.1.
 testLibraries.jackson_kotlin = 'com.fasterxml.jackson.module:jackson-module-kotlin:2.9.2'
 testLibraries.archunit = "com.tngtech.archunit:archunit:0.11.0"
 testLibraries.archunit_junit4 = "com.tngtech.archunit:archunit-junit4:0.11.0"
+testLibraries.testcontainers_spock = "org.testcontainers:spock:1.12.5"

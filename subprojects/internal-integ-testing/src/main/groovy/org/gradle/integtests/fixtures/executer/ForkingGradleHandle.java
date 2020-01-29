@@ -18,6 +18,7 @@ package org.gradle.integtests.fixtures.executer;
 import com.google.common.base.Joiner;
 import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactCachesProvider;
 import org.gradle.internal.Factory;
 import org.gradle.internal.io.NullOutputStream;
 import org.gradle.process.ExecResult;
@@ -117,6 +118,10 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
         println(format("    GRADLE_USER_HOME: %s", environment.get("GRADLE_USER_HOME")));
         println(format("    JAVA_OPTS: %s", environment.get("JAVA_OPTS")));
         println(format("    GRADLE_OPTS: %s", environment.get("GRADLE_OPTS")));
+        String roCache = environment.get(ArtifactCachesProvider.READONLY_CACHE_ENV_VAR);
+        if (roCache != null) {
+            println(format("    %s: %s", ArtifactCachesProvider.READONLY_CACHE_ENV_VAR, roCache));
+        }
     }
 
     private static void println(String s) {

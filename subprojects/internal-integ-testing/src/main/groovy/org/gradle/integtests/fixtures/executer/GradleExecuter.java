@@ -232,6 +232,20 @@ public interface GradleExecuter extends Stoppable {
     GradleExecuter withDaemonBaseDir(File baseDir);
 
     /**
+     * Sets the path to the read-only dependency cache
+     * @param cacheDir the path to the RO dependency cache
+     * @return this executer
+     */
+    GradleExecuter withReadOnlyCacheDir(File cacheDir);
+
+    /**
+     * Sets the path to the read-only dependency cache
+     * @param cacheDir the path to the RO dependency cache
+     * @return this executer
+     */
+    GradleExecuter withReadOnlyCacheDir(String cacheDir);
+
+    /**
      * Returns the working space for any daemons used by the builds.
      */
     File getDaemonBaseDir();

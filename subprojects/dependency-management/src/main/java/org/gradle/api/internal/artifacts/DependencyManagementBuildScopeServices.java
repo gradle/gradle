@@ -29,6 +29,7 @@ import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactCachesProvider;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConnectionFailureRepositoryBlacklister;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleDescriptorHashCodec;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleDescriptorHashModuleSource;
@@ -42,6 +43,8 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionC
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.DependencyVerificationOverride;
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.AbstractModuleMetadataCache;
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.FileStoreAndIndexProvider;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.InMemoryModuleMetadataCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleComponentResolveMetadataSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetadataSerializer;
@@ -49,13 +52,24 @@ import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleRepository
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleRepositoryCaches;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleSourcesSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.PersistentModuleMetadataCache;
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.ReadOnlyModuleMetadataCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.SuppliedComponentMetadataSerializer;
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.TwoStageModuleMetadataCache;
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.AbstractArtifactsCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.DefaultModuleArtifactCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.DefaultModuleArtifactsCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.InMemoryModuleArtifactCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.InMemoryModuleArtifactsCache;
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.ModuleArtifactCache;
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.ReadOnlyModuleArtifactCache;
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.ReadOnlyModuleArtifactsCache;
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.TwoStageArtifactsCache;
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.TwoStageModuleArtifactCache;
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.AbstractModuleVersionsCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.DefaultModuleVersionsCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.InMemoryModuleVersionsCache;
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.ReadOnlyModuleVersionsCache;
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.TwoStageModuleVersionsCache;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.LocalComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultLocalComponentRegistry;
@@ -89,7 +103,9 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
-import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore;
+import org.gradle.api.internal.filestore.ArtifactIdentifierFileStore;
+import org.gradle.api.internal.filestore.DefaultArtifactIdentifierFileStore;
+import org.gradle.api.internal.filestore.TwoStageArtifactIdentifierFileStore;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.notations.ClientModuleNotationParserFactory;
 import org.gradle.api.internal.notations.DependencyConstraintNotationParser;
@@ -133,7 +149,11 @@ import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.TextFileResourceLoader;
 import org.gradle.internal.resource.TextUriResourceLoader;
 import org.gradle.internal.resource.cached.ByUrlCachedExternalResourceIndex;
+import org.gradle.internal.resource.cached.CachedExternalResourceIndex;
+import org.gradle.internal.resource.cached.DefaultExternalResourceFileStore;
 import org.gradle.internal.resource.cached.ExternalResourceFileStore;
+import org.gradle.internal.resource.cached.TwoStageByUrlCachedExternalResourceIndex;
+import org.gradle.internal.resource.cached.TwoStageExternalResourceFileStore;
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
@@ -146,11 +166,14 @@ import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.util.BuildCommencedTimeProvider;
 import org.gradle.util.internal.SimpleMapInterner;
 
+import java.nio.file.Path;
 import java.io.File;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * The set of dependency management services that are created per build.
@@ -214,30 +237,56 @@ class DependencyManagementBuildScopeServices {
         return new DesugaredAttributeContainerSerializer(attributesFactory, instantiator);
     }
 
-    ModuleSourcesSerializer createModuleSourcesSerializer(ImmutableModuleIdentifierFactory moduleIdentifierFactory, ArtifactIdentifierFileStore artifactIdentifierFileStore) {
+    ModuleSourcesSerializer createModuleSourcesSerializer(ImmutableModuleIdentifierFactory moduleIdentifierFactory, FileStoreAndIndexProvider fileStoreAndIndexProvider) {
         Map<Integer, PersistentModuleSource.Codec<? extends PersistentModuleSource>> codecs = ImmutableMap.of(
-            MetadataFileSource.CODEC_ID, new DefaultMetadataFileSourceCodec(moduleIdentifierFactory, artifactIdentifierFileStore),
+            MetadataFileSource.CODEC_ID, new DefaultMetadataFileSourceCodec(moduleIdentifierFactory, fileStoreAndIndexProvider.getArtifactIdentifierFileStore()),
             ModuleDescriptorHashModuleSource.CODEC_ID, new ModuleDescriptorHashCodec()
         );
         return new ModuleSourcesSerializer(codecs);
     }
 
     ModuleRepositoryCacheProvider createModuleRepositoryCacheProvider(BuildCommencedTimeProvider timeProvider,
-                                                                      ArtifactCacheLockingManager artifactCacheLockingManager,
                                                                       ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                                                                      ArtifactCacheMetadata artifactCacheMetadata,
+                                                                      ArtifactCachesProvider artifactCaches,
                                                                       AttributeContainerSerializer attributeContainerSerializer,
                                                                       MavenMutableModuleMetadataFactory mavenMetadataFactory,
                                                                       IvyMutableModuleMetadataFactory ivyMetadataFactory,
                                                                       SimpleMapInterner stringInterner,
-                                                                      ArtifactIdentifierFileStore artifactIdentifierFileStore,
+                                                                      FileStoreAndIndexProvider fileStoreAndIndexProvider,
                                                                       ModuleSourcesSerializer moduleSourcesSerializer,
                                                                       ChecksumService checksumService) {
+        ArtifactIdentifierFileStore artifactIdentifierFileStore = fileStoreAndIndexProvider.getArtifactIdentifierFileStore();
+        ModuleRepositoryCaches writableCaches = artifactCaches.withWritableCache((md, manager) -> prepareModuleRepositoryCaches(md, manager, timeProvider, moduleIdentifierFactory, attributeContainerSerializer, mavenMetadataFactory, ivyMetadataFactory, stringInterner, artifactIdentifierFileStore, moduleSourcesSerializer, checksumService));
+        AtomicReference<Path> roCachePath = new AtomicReference<>();
+        Optional<ModuleRepositoryCaches> readOnlyCaches = artifactCaches.withReadOnlyCache((ro, manager) -> {
+            roCachePath.set(ro.getCacheDir().toPath());
+            return prepareReadOnlyModuleRepositoryCaches(ro, manager, timeProvider, moduleIdentifierFactory, attributeContainerSerializer, mavenMetadataFactory, ivyMetadataFactory, stringInterner, artifactIdentifierFileStore, moduleSourcesSerializer, checksumService);
+        });
+        AbstractModuleVersionsCache moduleVersionsCache = readOnlyCaches.map(mrc -> (AbstractModuleVersionsCache) new TwoStageModuleVersionsCache(timeProvider, mrc.moduleVersionsCache, writableCaches.moduleVersionsCache)).orElse(writableCaches.moduleVersionsCache);
+        AbstractModuleMetadataCache persistentModuleMetadataCache = readOnlyCaches.map(mrc -> (AbstractModuleMetadataCache) new TwoStageModuleMetadataCache(timeProvider, mrc.moduleMetadataCache, writableCaches.moduleMetadataCache)).orElse(writableCaches.moduleMetadataCache);
+        AbstractArtifactsCache moduleArtifactsCache = readOnlyCaches.map(mrc -> (AbstractArtifactsCache) new TwoStageArtifactsCache(timeProvider, mrc.moduleArtifactsCache, writableCaches.moduleArtifactsCache)).orElse(writableCaches.moduleArtifactsCache);
+        ModuleArtifactCache moduleArtifactCache = readOnlyCaches.map(mrc -> (ModuleArtifactCache) new TwoStageModuleArtifactCache(roCachePath.get(), mrc.moduleArtifactCache, writableCaches.moduleArtifactCache)).orElse(writableCaches.moduleArtifactCache);
+        ModuleRepositoryCaches persistentCaches = new ModuleRepositoryCaches(
+            new InMemoryModuleVersionsCache(timeProvider, moduleVersionsCache),
+            new InMemoryModuleMetadataCache(timeProvider, persistentModuleMetadataCache),
+            new InMemoryModuleArtifactsCache(timeProvider, moduleArtifactsCache),
+            new InMemoryModuleArtifactCache(timeProvider, moduleArtifactCache)
+        );
+        ModuleRepositoryCaches inMemoryOnlyCaches = new ModuleRepositoryCaches(
+            new InMemoryModuleVersionsCache(timeProvider),
+            new InMemoryModuleMetadataCache(timeProvider),
+            new InMemoryModuleArtifactsCache(timeProvider),
+            new InMemoryModuleArtifactCache(timeProvider)
+        );
+        return new ModuleRepositoryCacheProvider(persistentCaches, inMemoryOnlyCaches);
+    }
+
+    private ModuleRepositoryCaches prepareModuleRepositoryCaches(ArtifactCacheMetadata artifactCacheMetadata, ArtifactCacheLockingManager artifactCacheLockingManager, BuildCommencedTimeProvider timeProvider, ImmutableModuleIdentifierFactory moduleIdentifierFactory, AttributeContainerSerializer attributeContainerSerializer, MavenMutableModuleMetadataFactory mavenMetadataFactory, IvyMutableModuleMetadataFactory ivyMetadataFactory, SimpleMapInterner stringInterner, ArtifactIdentifierFileStore artifactIdentifierFileStore, ModuleSourcesSerializer moduleSourcesSerializer, ChecksumService checksumService) {
         DefaultModuleVersionsCache moduleVersionsCache = new DefaultModuleVersionsCache(
             timeProvider,
             artifactCacheLockingManager,
             moduleIdentifierFactory);
-        PersistentModuleMetadataCache persistentModuleMetadataCache = new PersistentModuleMetadataCache(
+        PersistentModuleMetadataCache moduleMetadataCache = new PersistentModuleMetadataCache(
             timeProvider,
             artifactCacheLockingManager,
             artifactCacheMetadata,
@@ -259,22 +308,65 @@ class DependencyManagementBuildScopeServices {
             artifactIdentifierFileStore.getFileAccessTracker(),
             artifactCacheMetadata.getCacheDir().toPath()
         );
-        ModuleRepositoryCaches persistentCaches = new ModuleRepositoryCaches(
-            new InMemoryModuleVersionsCache(timeProvider, moduleVersionsCache),
-            new InMemoryModuleMetadataCache(timeProvider, persistentModuleMetadataCache),
-            new InMemoryModuleArtifactsCache(timeProvider, moduleArtifactsCache),
-            new InMemoryModuleArtifactCache(timeProvider, moduleArtifactCache)
+        return new ModuleRepositoryCaches(
+            moduleVersionsCache,
+            moduleMetadataCache,
+            moduleArtifactsCache,
+            moduleArtifactCache
         );
-        ModuleRepositoryCaches inMemoryOnlyCaches = new ModuleRepositoryCaches(
-            new InMemoryModuleVersionsCache(timeProvider),
-            new InMemoryModuleMetadataCache(timeProvider),
-            new InMemoryModuleArtifactsCache(timeProvider),
-            new InMemoryModuleArtifactCache(timeProvider)
-        );
-        return new ModuleRepositoryCacheProvider(persistentCaches, inMemoryOnlyCaches);
     }
 
-    ByUrlCachedExternalResourceIndex createArtifactUrlCachedResolutionIndex(BuildCommencedTimeProvider timeProvider, ArtifactCacheLockingManager artifactCacheLockingManager, ExternalResourceFileStore externalResourceFileStore, ArtifactCacheMetadata artifactCacheMetadata) {
+    private ModuleRepositoryCaches prepareReadOnlyModuleRepositoryCaches(ArtifactCacheMetadata artifactCacheMetadata, ArtifactCacheLockingManager artifactCacheLockingManager, BuildCommencedTimeProvider timeProvider, ImmutableModuleIdentifierFactory moduleIdentifierFactory, AttributeContainerSerializer attributeContainerSerializer, MavenMutableModuleMetadataFactory mavenMetadataFactory, IvyMutableModuleMetadataFactory ivyMetadataFactory, SimpleMapInterner stringInterner, ArtifactIdentifierFileStore artifactIdentifierFileStore, ModuleSourcesSerializer moduleSourcesSerializer, ChecksumService checksumService) {
+        ReadOnlyModuleVersionsCache moduleVersionsCache = new ReadOnlyModuleVersionsCache(
+            timeProvider,
+            artifactCacheLockingManager,
+            moduleIdentifierFactory);
+        ReadOnlyModuleMetadataCache moduleMetadataCache = new ReadOnlyModuleMetadataCache(
+            timeProvider,
+            artifactCacheLockingManager,
+            artifactCacheMetadata,
+            moduleIdentifierFactory,
+            attributeContainerSerializer,
+            mavenMetadataFactory,
+            ivyMetadataFactory,
+            stringInterner,
+            moduleSourcesSerializer,
+            checksumService);
+        ReadOnlyModuleArtifactsCache moduleArtifactsCache = new ReadOnlyModuleArtifactsCache(
+            timeProvider,
+            artifactCacheLockingManager
+        );
+        ReadOnlyModuleArtifactCache moduleArtifactCache = new ReadOnlyModuleArtifactCache(
+            "module-artifact",
+            timeProvider,
+            artifactCacheLockingManager,
+            artifactIdentifierFileStore.getFileAccessTracker(),
+            artifactCacheMetadata.getCacheDir().toPath()
+        );
+        return new ModuleRepositoryCaches(
+            moduleVersionsCache,
+            moduleMetadataCache,
+            moduleArtifactsCache,
+            moduleArtifactCache
+        );
+    }
+
+    FileStoreAndIndexProvider createFileStoreAndIndexProvider(BuildCommencedTimeProvider timeProvider, ArtifactCachesProvider artifactCaches, FileAccessTimeJournal fileAccessTimeJournal, ChecksumService checksumService) {
+        ExternalResourceFileStore writableFileStore = prepareExternalResourceFileStore(artifactCaches.getWritableCacheMetadata(), fileAccessTimeJournal, checksumService);
+        ExternalResourceFileStore externalResourceFileStore = artifactCaches.withReadOnlyCache((md, manager) ->
+            (ExternalResourceFileStore) new TwoStageExternalResourceFileStore(prepareExternalResourceFileStore(md, fileAccessTimeJournal, checksumService), writableFileStore)).orElse(writableFileStore);
+        CachedExternalResourceIndex<String> writableByUrlCachedExternalResourceIndex = prepareArtifactUrlCachedResolutionIndex(timeProvider, artifactCaches.getWritableCacheLockingManager(), externalResourceFileStore, artifactCaches.getWritableCacheMetadata());
+        ArtifactIdentifierFileStore writableArtifactIdentifierFileStore = artifactCaches.withWritableCache((md, manager) -> prepareArtifactRevisionIdFileStore(md, fileAccessTimeJournal, checksumService));
+        ArtifactIdentifierFileStore artifactIdentifierFileStore = artifactCaches.withReadOnlyCache((md, manager) -> (ArtifactIdentifierFileStore) new TwoStageArtifactIdentifierFileStore(
+            prepareArtifactRevisionIdFileStore(md, fileAccessTimeJournal, checksumService),
+            writableArtifactIdentifierFileStore
+        )).orElse(writableArtifactIdentifierFileStore);
+        return new FileStoreAndIndexProvider(
+            artifactCaches.withReadOnlyCache((md, manager) -> (CachedExternalResourceIndex<String>) new TwoStageByUrlCachedExternalResourceIndex(md.getCacheDir().toPath(), prepareArtifactUrlCachedResolutionIndex(timeProvider, manager, externalResourceFileStore, md), writableByUrlCachedExternalResourceIndex)).orElse(writableByUrlCachedExternalResourceIndex),
+            externalResourceFileStore, artifactIdentifierFileStore);
+    }
+
+    private ByUrlCachedExternalResourceIndex prepareArtifactUrlCachedResolutionIndex(BuildCommencedTimeProvider timeProvider, ArtifactCacheLockingManager artifactCacheLockingManager, ExternalResourceFileStore externalResourceFileStore, ArtifactCacheMetadata artifactCacheMetadata) {
         return new ByUrlCachedExternalResourceIndex(
             "resource-at-url",
             timeProvider,
@@ -284,23 +376,23 @@ class DependencyManagementBuildScopeServices {
         );
     }
 
-    ArtifactIdentifierFileStore createArtifactRevisionIdFileStore(ArtifactCacheMetadata artifactCacheMetadata, FileAccessTimeJournal fileAccessTimeJournal, ChecksumService checksumService) {
-        return new ArtifactIdentifierFileStore(artifactCacheMetadata.getFileStoreDirectory(), new TmpDirTemporaryFileProvider(), fileAccessTimeJournal, checksumService);
+    private ArtifactIdentifierFileStore prepareArtifactRevisionIdFileStore(ArtifactCacheMetadata artifactCacheMetadata, FileAccessTimeJournal fileAccessTimeJournal, ChecksumService checksumService) {
+        return new DefaultArtifactIdentifierFileStore(artifactCacheMetadata.getFileStoreDirectory(), new TmpDirTemporaryFileProvider(), fileAccessTimeJournal, checksumService);
     }
 
-    ExternalResourceFileStore createExternalResourceFileStore(ArtifactCacheMetadata artifactCacheMetadata, FileAccessTimeJournal fileAccessTimeJournal, ChecksumService checksumService) {
-        return new ExternalResourceFileStore(artifactCacheMetadata.getExternalResourcesStoreDirectory(), new TmpDirTemporaryFileProvider(), fileAccessTimeJournal, checksumService);
+    private ExternalResourceFileStore prepareExternalResourceFileStore(ArtifactCacheMetadata artifactCacheMetadata, FileAccessTimeJournal fileAccessTimeJournal, ChecksumService checksumService) {
+        return new DefaultExternalResourceFileStore(artifactCacheMetadata.getExternalResourcesStoreDirectory(), new TmpDirTemporaryFileProvider(), fileAccessTimeJournal, checksumService);
     }
 
     TextFileResourceLoader createTextFileResourceLoader() {
         return new DefaultTextFileResourceLoader();
     }
 
-    TextUriResourceLoader.Factory createTextUrlResourceLoaderFactory(ExternalResourceFileStore resourceFileStore, RepositoryTransportFactory repositoryTransportFactory) {
+    TextUriResourceLoader.Factory createTextUrlResourceLoaderFactory(FileStoreAndIndexProvider fileStoreAndIndexProvider, RepositoryTransportFactory repositoryTransportFactory) {
         final HashSet<String> schemas = Sets.newHashSet("https", "http");
         return redirectVerifier -> {
             RepositoryTransport transport = repositoryTransportFactory.createTransport(schemas, "resources http", Collections.<Authentication>emptyList(), redirectVerifier);
-            ExternalResourceAccessor externalResourceAccessor = new DefaultExternalResourceAccessor(resourceFileStore, transport.getResourceAccessor());
+            ExternalResourceAccessor externalResourceAccessor = new DefaultExternalResourceAccessor(fileStoreAndIndexProvider.getExternalResourceFileStore(), transport.getResourceAccessor());
             return new CachingTextUriResourceLoader(externalResourceAccessor, schemas);
         };
     }
@@ -317,23 +409,22 @@ class DependencyManagementBuildScopeServices {
         return new DefaultLocalMavenRepositoryLocator(mavenSettingsProvider);
     }
 
-    LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> createArtifactRevisionIdLocallyAvailableResourceFinder(ArtifactCacheMetadata artifactCacheMetadata,
+    LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> createArtifactRevisionIdLocallyAvailableResourceFinder(ArtifactCachesProvider artifactCaches,
                                                                                                                            LocalMavenRepositoryLocator localMavenRepositoryLocator,
-                                                                                                                           ArtifactIdentifierFileStore fileStore,
+                                                                                                                           FileStoreAndIndexProvider fileStoreAndIndexProvider,
                                                                                                                            ChecksumService checksumService) {
         LocallyAvailableResourceFinderFactory finderFactory = new LocallyAvailableResourceFinderFactory(
-            artifactCacheMetadata,
+            artifactCaches,
             localMavenRepositoryLocator,
-            fileStore, checksumService);
+            fileStoreAndIndexProvider.getArtifactIdentifierFileStore(), checksumService);
         return finderFactory.create();
     }
 
     RepositoryTransportFactory createRepositoryTransportFactory(StartParameter startParameter,
                                                                 ProgressLoggerFactory progressLoggerFactory,
                                                                 TemporaryFileProvider temporaryFileProvider,
-                                                                ByUrlCachedExternalResourceIndex externalResourceIndex,
+                                                                FileStoreAndIndexProvider fileStoreAndIndexProvider,
                                                                 BuildCommencedTimeProvider buildCommencedTimeProvider,
-                                                                ArtifactCacheLockingManager artifactCacheLockingManager,
                                                                 List<ResourceConnectorFactory> resourceConnectorFactories,
                                                                 BuildOperationExecutor buildOperationExecutor,
                                                                 ProducerGuard<ExternalResourceName> producerGuard,
@@ -344,9 +435,8 @@ class DependencyManagementBuildScopeServices {
             resourceConnectorFactories,
             progressLoggerFactory,
             temporaryFileProvider,
-            externalResourceIndex,
+            fileStoreAndIndexProvider.getExternalResourceIndex(),
             buildCommencedTimeProvider,
-            artifactCacheLockingManager,
             buildOperationExecutor,
             startParameterResolutionOverride,
             producerGuard,

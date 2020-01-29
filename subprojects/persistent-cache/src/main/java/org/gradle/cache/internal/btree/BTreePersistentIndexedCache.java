@@ -208,9 +208,14 @@ public class BTreePersistentIndexedCache<K, V> {
         return store.isOpen();
     }
 
-    private void rebuild() throws Exception {
+    private void rebuild() {
         LOGGER.warn("{} is corrupt. Discarding.", this);
-        clear();
+        try {
+            clear();
+        } catch (Exception e) {
+            LOGGER.warn("{} couldn't be rebuilt. Closing.", this);
+            close();
+        }
     }
 
     public void verify() {
