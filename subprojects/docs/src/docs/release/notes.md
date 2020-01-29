@@ -42,7 +42,7 @@ A lot of the work on this feature is, in particular, available to previous versi
 <a name="shared-dependency-cache"></a>
 ## Shared dependency cache
 
-Improving on [relocatable dependency caches introduced in the previous release](https://docs.gradle.org/6.1.1/release-notes.html#ephemeral-ci:-reuse-gradle's-dependency-cache), Gradle 6.2 now offers the ability to **share** a dependency cache between multiple instances.
+Improving on [relocatable dependency caches introduced in the previous release](https://docs.gradle.org/6.1.1/release-notes.html#ephemeral-ci:-reuse-gradle's-dependency-cache), Gradle 6.2 now offers the ability to **share** a dependency cache between multiple Gradle instances.
 In the context of ephemeral builds on disposable containers, this makes it possible to have a single, shared, directory between containers which contains most, if not all, the dependencies required by all builds:
 
 - each container will have access to the shared read-only dependency cache, avoiding redundant downloads between builds
