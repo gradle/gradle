@@ -22,9 +22,10 @@ import org.gradle.api.provider.Property
 import org.gradle.api.tasks.TaskState
 import org.gradle.internal.Describables
 import org.gradle.internal.deprecation.DeprecatedFeatureUsage
+import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.featurelifecycle.DeprecatedUsageBuildOperationProgressBroadcaster
 import org.gradle.internal.featurelifecycle.UsageLocationReporter
-import org.gradle.internal.deprecation.DeprecationLogger
+import org.gradle.util.GradleVersion
 import org.gradle.util.RedirectStdOutAndErr
 import org.junit.Rule
 import spock.lang.Specification
@@ -53,7 +54,9 @@ class TransformBackedProviderTest extends Specification {
 
         then:
         1 * broadcaster.progress(_) >> { DeprecatedFeatureUsage usage ->
-            assert usage.formattedMessage() == "Querying the mapped value of <prop> before <task> has completed has been deprecated. This will fail with an error in Gradle 7.0."
+            assert usage.formattedMessage() == "Querying the mapped value of <prop> before <task> has completed has been deprecated. " +
+                "This will fail with an error in Gradle 7.0. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_6.html#querying_a_mapped_output_property_of_a_task_before_the_task_has_completed"
         }
         0 * broadcaster._
     }
@@ -68,7 +71,9 @@ class TransformBackedProviderTest extends Specification {
 
         then:
         1 * broadcaster.progress(_) >> { DeprecatedFeatureUsage usage ->
-            assert usage.formattedMessage() == "Querying the mapped value of <prop> before <task> has completed has been deprecated. This will fail with an error in Gradle 7.0."
+            assert usage.formattedMessage() == "Querying the mapped value of <prop> before <task> has completed has been deprecated. " +
+                "This will fail with an error in Gradle 7.0. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_6.html#querying_a_mapped_output_property_of_a_task_before_the_task_has_completed"
         }
         0 * broadcaster._
     }
@@ -95,7 +100,9 @@ class TransformBackedProviderTest extends Specification {
 
         then:
         1 * broadcaster.progress(_) >> { DeprecatedFeatureUsage usage ->
-            assert usage.formattedMessage() == "Querying the mapped value of <prop> before <task> has completed has been deprecated. This will fail with an error in Gradle 7.0."
+            assert usage.formattedMessage() == "Querying the mapped value of <prop> before <task> has completed has been deprecated. " +
+                "This will fail with an error in Gradle 7.0. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_6.html#querying_a_mapped_output_property_of_a_task_before_the_task_has_completed"
         }
         0 * broadcaster._
     }
@@ -110,7 +117,9 @@ class TransformBackedProviderTest extends Specification {
 
         then:
         1 * broadcaster.progress(_) >> { DeprecatedFeatureUsage usage ->
-            assert usage.formattedMessage() == "Querying the mapped value of <prop> before <task> has completed has been deprecated. This will fail with an error in Gradle 7.0."
+            assert usage.formattedMessage() == "Querying the mapped value of <prop> before <task> has completed has been deprecated. " +
+                "This will fail with an error in Gradle 7.0. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_6.html#querying_a_mapped_output_property_of_a_task_before_the_task_has_completed"
         }
         0 * broadcaster._
     }
@@ -125,10 +134,14 @@ class TransformBackedProviderTest extends Specification {
 
         then:
         1 * broadcaster.progress(_) >> { DeprecatedFeatureUsage usage ->
-            assert usage.formattedMessage() == "Querying the mapped value of map(<prop>) before <task> has completed has been deprecated. This will fail with an error in Gradle 7.0."
+            assert usage.formattedMessage() == "Querying the mapped value of map(<prop>) before <task> has completed has been deprecated. " +
+                "This will fail with an error in Gradle 7.0. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_6.html#querying_a_mapped_output_property_of_a_task_before_the_task_has_completed"
         }
         1 * broadcaster.progress(_) >> { DeprecatedFeatureUsage usage ->
-            assert usage.formattedMessage() == "Querying the mapped value of <prop> before <task> has completed has been deprecated. This will fail with an error in Gradle 7.0."
+            assert usage.formattedMessage() == "Querying the mapped value of <prop> before <task> has completed has been deprecated. " +
+                "This will fail with an error in Gradle 7.0. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_6.html#querying_a_mapped_output_property_of_a_task_before_the_task_has_completed"
         }
         0 * broadcaster._
     }
@@ -143,7 +156,9 @@ class TransformBackedProviderTest extends Specification {
 
         then:
         1 * broadcaster.progress(_) >> { DeprecatedFeatureUsage usage ->
-            assert usage.formattedMessage() == "Querying the mapped value of <prop> before <task> has completed has been deprecated. This will fail with an error in Gradle 7.0."
+            assert usage.formattedMessage() == "Querying the mapped value of <prop> before <task> has completed has been deprecated. " +
+                "This will fail with an error in Gradle 7.0. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_6.html#querying_a_mapped_output_property_of_a_task_before_the_task_has_completed"
         }
         0 * broadcaster._
     }

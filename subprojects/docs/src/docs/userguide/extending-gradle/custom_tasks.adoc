@@ -208,7 +208,7 @@ Examples include:
 
 * There is no history available from a previous execution.
 * You are building with a different version of Gradle. Currently, Gradle does not use task history from a different version.
-* An link:{javadocApi}/org/gradle/api/tasks/TaskOutputs.html#upToDateWhen-groovy.lang.Closure-[`upToDateWhen`] criterion added to the task returns `false`.
+* An link:{javadocPath}/org/gradle/api/tasks/TaskOutputs.html#upToDateWhen-groovy.lang.Closure-[`upToDateWhen`] criterion added to the task returns `false`.
 * An input property has changed since the previous execution.
 * A non-incremental input file property has changed since the previous execution.
 * One or more output files have changed since the previous execution.
@@ -473,7 +473,7 @@ include::sample[dir="snippets/workerApi/noIsolation/kotlin",files="build.gradle.
 
 A `WorkAction` implementation can inject services that provide capabilities during work execution, such as the link:{javadocPath}/org/gradle/api/file/FileSystemOperations.html[FileSystemOperations] service in the example above.  See <<custom_gradle_types.adoc#service_injection,Service Injection>> for further information on injecting service types.
 
-In order to submit the unit of work, it is necessary to first acquire the link:{javadocPath}/org/gradle/workers/WorkerExecutor.html[WorkerExecutor]. To do this, a task should have a constructor annotated with `javax.inject.Inject` that accepts a link:{javadocPath}/org/gradle/workers/WorkerExecutor.html[WorkerExecutor] parameter. Gradle will inject the instance of link:{javadocPath}/org/gradle/workers/WorkerExecutor.html[WorkerExecutor] at runtime when the task is created.  Then a link:{javadocPath}/org/gradle/workers/WorkQueue.html--[WorkQueue] object can be created and individual items of work can be submitted.
+In order to submit the unit of work, it is necessary to first acquire the link:{javadocPath}/org/gradle/workers/WorkerExecutor.html[WorkerExecutor]. To do this, a task should have a constructor annotated with `javax.inject.Inject` that accepts a link:{javadocPath}/org/gradle/workers/WorkerExecutor.html[WorkerExecutor] parameter. Gradle will inject the instance of link:{javadocPath}/org/gradle/workers/WorkerExecutor.html[WorkerExecutor] at runtime when the task is created.  Then a link:{javadocPath}/org/gradle/workers/WorkQueue.html[WorkQueue] object can be created and individual items of work can be submitted.
 
 .Submitting a unit of work for execution
 ====

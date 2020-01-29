@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.RequiredFeatures
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
+import spock.lang.Issue
 import spock.lang.Unroll
 
 class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTest {
@@ -33,7 +34,7 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
 
         buildFile << """
             class CapabilityRule implements ComponentMetadataRule {
-            
+
                 @Override
                 void execute(ComponentMetadataContext context) {
                     def details = context.details
@@ -48,7 +49,7 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
             dependencies {
                conf "cglib:cglib-nodep:3.2.5"
                conf "cglib:cglib:3.2.5"
-            
+
                components {
                   withModule('cglib:cglib-nodep', CapabilityRule)
                }
@@ -146,7 +147,7 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
 
         buildFile << """
             class CapabilityRule implements ComponentMetadataRule {
-            
+
                 @Override
                 void execute(ComponentMetadataContext context) {
                     def details = context.details
@@ -161,12 +162,12 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
             dependencies {
                conf "cglib:cglib-nodep:3.2.4"
                conf "cglib:cglib:3.2.5"
-            
+
                components {
                   withModule('cglib:cglib-nodep', CapabilityRule)
                }
             }
-            
+
             configurations.conf.resolutionStrategy.capabilitiesResolution {
                 $rule
             }
@@ -208,9 +209,9 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
 
         buildFile << """
             apply plugin: 'java-library'
-            
+
             class CapabilityRule implements ComponentMetadataRule {
-            
+
                 @Override
                 void execute(ComponentMetadataContext context) {
                     context.details.allVariants {
@@ -227,12 +228,12 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
 
             dependencies {
                 conf 'org:test:1.0'
-                
+
                 components {
                    withModule('org:test', CapabilityRule)
                 }
             }
-            
+
             configurations {
                 conf.extendsFrom(api)
             }
@@ -285,7 +286,7 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
             dependencies {
                 conf 'org:a:1.0'
                 conf 'org:b:1.0'
-                
+
                 components.all(CapabilityRule)
             }
         """
@@ -308,5 +309,71 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
                 module('org:b:1.0')
             }
         }
+    }
+
+    @Issue("gradle/gradle#12011")
+    @Unroll
+    def "can detect capability conflict even when participants belong to a virtual platform (#first, #second)"() {
+        given:
+        repository {
+            'aligned:foo:1.0'()
+            'indirect:bar:1.0' {
+                dependsOn 'other:baz:1.0'
+            }
+            'other:baz:1.0'()
+        }
+
+        buildFile << """
+            class TheOneRule implements ComponentMetadataRule {
+
+                @Override
+                void execute(ComponentMetadataContext context) {
+                    def id = context.details.id
+                    if (id.group == "aligned") {
+                        context.details.belongsTo('aligned:virtual:1.0')
+                        context.details.allVariants {
+                            withCapabilities {
+                                addCapability('org.test', 'test_capability', '1.0')
+                            }
+                        }
+                    } else if (id.group == "other") {
+                        context.details.allVariants {
+                            withCapabilities {
+                                addCapability('org.test', 'test_capability', '1.0')
+                            }
+                        }
+                    }
+                }
+            }
+
+            dependencies {
+                conf '$first'
+                conf '$second'
+
+                components.all(TheOneRule)
+            }
+"""
+
+        when:
+        repositoryInteractions {
+            'aligned:foo:1.0' {
+                expectGetMetadata()
+            }
+            'indirect:bar:1.0' {
+                expectGetMetadata()
+            }
+            'other:baz:1.0' {
+                expectGetMetadata()
+            }
+        }
+        fails ":checkDeps"
+
+        then:
+        failure.assertHasCause("Module 'aligned:foo' has been rejected")
+
+        where:
+        first   | second
+        'aligned:foo:1.0'   | 'indirect:bar:1.0'
+        'indirect:bar:1.0'  | 'aligned:foo:1.0'
     }
 }

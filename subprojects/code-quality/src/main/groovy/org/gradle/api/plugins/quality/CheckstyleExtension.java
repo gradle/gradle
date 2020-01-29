@@ -97,14 +97,16 @@ public class CheckstyleExtension extends CodeQualityExtension {
      * <p>
      * This path will be exposed as the variable {@code config_loc} in Checkstyle's configuration files.
      * </p>
+     *
      * @return path to other Checkstyle configuration files
      * @since 4.0
-     *
      */
     @Deprecated
     @ReplacedBy("configDirectory")
     public File getConfigDir() {
-        DeprecationLogger.deprecateMethod("CheckstyleExtension.getConfigDir()").replaceWith("CheckstyleExtension.getConfigDirectory()").undocumented().nagUser();
+        DeprecationLogger.deprecateMethod(CheckstyleExtension.class, "getConfigDir()").replaceWith("CheckstyleExtension.getConfigDirectory()")
+            .withDslReference(CheckstyleExtension.class, "configDir")
+            .nagUser();
         return configDirectory.get().getAsFile();
     }
 
@@ -113,11 +115,14 @@ public class CheckstyleExtension extends CodeQualityExtension {
      * <p>
      * This path will be exposed as the variable {@code config_loc} in Checkstyle's configuration files.
      * </p>
+     *
      * @since 4.0
      */
     @Deprecated
     public void setConfigDir(File configDir) {
-        DeprecationLogger.deprecateMethod("CheckstyleExtension.setConfigDir()").replaceWith("CheckstyleExtension.getConfigDirectory().set()").undocumented().nagUser();
+        DeprecationLogger.deprecateMethod(CheckstyleExtension.class, "setConfigDir()").replaceWith("CheckstyleExtension.getConfigDirectory().set()")
+            .withDslReference(CheckstyleExtension.class, "configDir")
+            .nagUser();
         this.configDirectory.set(configDir);
     }
 
@@ -126,6 +131,7 @@ public class CheckstyleExtension extends CodeQualityExtension {
      * <p>
      * This path will be exposed as the variable {@code config_loc} in Checkstyle's configuration files.
      * </p>
+     *
      * @return path to other Checkstyle configuration files
      * @since 4.7
      */
@@ -139,8 +145,8 @@ public class CheckstyleExtension extends CodeQualityExtension {
      * <p>
      * Example: maxErrors = 42
      *
-     * @since 3.4
      * @return the maximum number of errors allowed
+     * @since 3.4
      */
     public int getMaxErrors() {
         return maxErrors;
@@ -149,8 +155,8 @@ public class CheckstyleExtension extends CodeQualityExtension {
     /**
      * Set the maximum number of errors that are tolerated before breaking the build.
      *
-     * @since 3.4
      * @param maxErrors number of errors allowed
+     * @since 3.4
      */
     public void setMaxErrors(int maxErrors) {
         this.maxErrors = maxErrors;
@@ -162,8 +168,8 @@ public class CheckstyleExtension extends CodeQualityExtension {
      * <p>
      * Example: maxWarnings = 1000
      *
-     * @since 3.4
      * @return the maximum number of warnings allowed
+     * @since 3.4
      */
     public int getMaxWarnings() {
         return maxWarnings;
@@ -172,8 +178,8 @@ public class CheckstyleExtension extends CodeQualityExtension {
     /**
      * Set the maximum number of warnings that are tolerated before breaking the build.
      *
-     * @since 3.4
      * @param maxWarnings number of warnings allowed
+     * @since 3.4
      */
     public void setMaxWarnings(int maxWarnings) {
         this.maxWarnings = maxWarnings;

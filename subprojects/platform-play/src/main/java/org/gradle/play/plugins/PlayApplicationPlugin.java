@@ -89,7 +89,10 @@ public class PlayApplicationPlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project project) {
-        DeprecationLogger.deprecatePlugin("Play Application").replaceWithExternalPlugin("org.gradle.playframework-application").undocumented().nagUser();
+        DeprecationLogger.deprecatePlugin("Play Application")
+            .replaceWithExternalPlugin("org.gradle.playframework-application")
+            .withUserManual("play_plugin")
+            .nagUser();
         project.getPluginManager().apply(JavaLanguagePlugin.class);
         project.getPluginManager().apply(ScalaLanguagePlugin.class);
         project.getPluginManager().apply(PlayTwirlPlugin.class);

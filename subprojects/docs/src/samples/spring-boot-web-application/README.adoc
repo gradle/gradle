@@ -37,5 +37,5 @@ BUILD SUCCESSFUL in 6s
 =====
 ====
 
-For more information, we suggest reading link:{userManualPath}getting_started.html[Getting Started with Gradle].
+For more information, we suggest reading link:{userManualPath}/getting_started.html[Getting Started with Gradle].
 You can also find https://spring.io/guides[Spring Boot related information inside the guides provided by the Spring team].

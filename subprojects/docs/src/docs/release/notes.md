@@ -38,6 +38,15 @@ Please refer to the [userguide](userguide/dependency_verification.html) to figur
 We would like to give special thanks to [Vladimir Sitnikov](https://github.com/vlsi) for his feedback and inspiration.
 A lot of the work on this feature is, in particular, available to previous versions of Gradle via his [Checksum Dependency Plugin](https://github.com/vlsi/vlsi-release-plugins/tree/master/plugins/checksum-dependency-plugin).
 
+## Deprecation messages link to documentation
+
+Deprecation messages now include links to relevant documentation that can provide more context around the deprecation and explain how to migrate to a new API or avoid the deprecated behavior. 
+
+For example:
+> The compile configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 7.0. Please use the implementation configuration instead. Consult the upgrading guide for further information: [https://docs.gradle.org/6.2/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations](userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations)
+
+In some terminals, this link will be clickable and take you directly to the documentation.
+
 ## Gradle source code for plugin developers in Eclipse
 
 Plugin authors using Eclipse will now have sources of `gradleApi()`, `gradleTestKit()` and `localGroovy()` dependencies downloaded and attached for navigation in the IDE.

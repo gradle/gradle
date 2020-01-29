@@ -17,6 +17,7 @@
 package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.util.ports.ReleasingPortAllocator
@@ -290,7 +291,8 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
         then:
         expectDeprecationWarnings(result,
             "Property 'classesJarScanningRequired' is private and annotated with @Internal. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
-                "The baseName property has been deprecated. This is scheduled to be removed in Gradle 7.0. Please use the archiveBaseName property instead."
+            "The AbstractArchiveTask.baseName property has been deprecated. This is scheduled to be removed in Gradle 7.0. Please use the archiveBaseName property instead. " +
+                "See https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.api.tasks.bundling.AbstractArchiveTask.html#org.gradle.api.tasks.bundling.AbstractArchiveTask:baseName for more details."
         )
     }
 
@@ -399,21 +401,21 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
                 id('java')
                 id("net.ltgt.errorprone") version "${TestedVersions.errorProne}"
             }
-            
+
             ${mavenCentralRepository()}
-            
+
             if (JavaVersion.current().java8) {
                 dependencies {
                     errorproneJavac("com.google.errorprone:javac:9+181-r4173-1")
                 }
             }
-            
+
             dependencies {
                 errorprone("com.google.errorprone:error_prone_core:2.3.3")
             }
-            
+
             tasks.withType(JavaCompile).configureEach {
-                options.fork = true                
+                options.fork = true
                 options.errorprone {
                     check("DoubleBraceInitialization", net.ltgt.gradle.errorprone.CheckSeverity.ERROR)
                 }
@@ -422,12 +424,12 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
         file("src/main/java/Test.java") << """
             import java.util.HashSet;
             import java.util.Set;
-            
+
             public class Test {
-            
+
                 public static void main(String[] args) {
                 }
-            
+
             }
         """
         when:
@@ -486,7 +488,9 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
             result,
             "Property 'destDir' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
             "Property 'isTest' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
-            "The compile configuration has been deprecated for resolution. This will fail with an error in Gradle 7.0. Please resolve the compileClasspath configuration instead.",
+            "The compile configuration has been deprecated for resolution. This will fail with an error in Gradle 7.0. " +
+                "Please resolve the compileClasspath configuration instead. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations",
             "Property 'buildType' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
             "Property 'builtins' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
             "Property 'descriptorPath' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",

@@ -282,9 +282,10 @@ project(':tool') {
 """
 
         expect:
-        executer.expectDeprecationWarning()
+        executer.expectDocumentedDeprecationWarning("Using force on a dependency has been deprecated. " +
+            "This is scheduled to be removed in Gradle 7.0. Consider using strict version constraints instead (version { strictly ... } }). " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#forced_dependencies")
         run("tool:dependencies")
-        outputContains("Using force on a dependency has been deprecated. This is scheduled to be removed in Gradle 7.0. Consider using strict version constraints instead (version { strictly ... } })")
     }
 
     void "can force the version of a direct dependency"() {

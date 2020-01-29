@@ -27,7 +27,7 @@ public class DeprecatedFeatureUsage extends FeatureUsage {
     private final String removalDetails;
     private final String advice;
     private final String contextualAdvice;
-    private final DocumentationReference documentationReference;
+    private final Documentation documentation;
 
     private final Type type;
 
@@ -36,7 +36,7 @@ public class DeprecatedFeatureUsage extends FeatureUsage {
         String removalDetails,
         @Nullable String advice,
         @Nullable String contextualAdvice,
-        DocumentationReference documentationReference,
+        Documentation documentation,
         Type type,
         Class<?> calledFrom
     ) {
@@ -45,7 +45,7 @@ public class DeprecatedFeatureUsage extends FeatureUsage {
         this.advice = advice;
         this.contextualAdvice = contextualAdvice;
         this.type = Preconditions.checkNotNull(type);
-        this.documentationReference = Preconditions.checkNotNull(documentationReference);
+        this.documentation = Preconditions.checkNotNull(documentation);
     }
 
     DeprecatedFeatureUsage(DeprecatedFeatureUsage usage, Exception traceException) {
@@ -53,7 +53,7 @@ public class DeprecatedFeatureUsage extends FeatureUsage {
         this.removalDetails = usage.removalDetails;
         this.advice = usage.advice;
         this.contextualAdvice = usage.contextualAdvice;
-        this.documentationReference = usage.documentationReference;
+        this.documentation = usage.documentation;
         this.type = usage.type;
     }
 
@@ -127,7 +127,7 @@ public class DeprecatedFeatureUsage extends FeatureUsage {
      */
     @Nullable
     public String getDocumentationUrl() {
-        return documentationReference.documentationUrl();
+        return documentation.documentationUrl();
     }
 
     public DeprecatedFeatureUsage.Type getType() {
@@ -140,7 +140,7 @@ public class DeprecatedFeatureUsage extends FeatureUsage {
         append(outputBuilder, removalDetails);
         append(outputBuilder, contextualAdvice);
         append(outputBuilder, advice);
-        append(outputBuilder, documentationReference.consultDocumentationMessage());
+        append(outputBuilder, documentation.consultDocumentationMessage());
         return outputBuilder.toString();
     }
 

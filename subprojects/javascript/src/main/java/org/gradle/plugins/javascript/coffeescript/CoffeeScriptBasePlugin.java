@@ -39,7 +39,7 @@ import java.util.concurrent.Callable;
 public class CoffeeScriptBasePlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
-        DeprecationLogger.deprecatePlugin("org.gradle.coffeescript-base").undocumented().nagUser();
+        DeprecationLogger.deprecatePlugin("org.gradle.coffeescript-base").withUpgradeGuideSection(5, "deprecated_plugins").nagUser();
         project.getPluginManager().apply(RhinoPlugin.class);
 
         JavaScriptExtension jsExtension = project.getExtensions().getByType(JavaScriptExtension.class);

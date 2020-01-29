@@ -96,7 +96,9 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
 
     @Override
     public ConfigurableFileCollection configurableFiles(Object... files) {
-        DeprecationLogger.deprecateMethod("ProjectLayout.configurableFiles()").replaceWith("ObjectFactory.fileCollection()").undocumented().nagUser();
+        DeprecationLogger.deprecateMethod(ProjectLayout.class, "configurableFiles()").replaceWith("ObjectFactory.fileCollection()")
+            .withUserManual("lazy_configuration", "property_files_api_reference")
+            .nagUser();
         return fileCollectionFactory.configurableFiles().from(files);
     }
 

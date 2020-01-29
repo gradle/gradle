@@ -166,7 +166,9 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         }
         List<String> consumptionAlternatives = toConfiguration.getConsumptionAlternatives();
         if (consumptionAlternatives != null) {
-            DeprecationLogger.deprecateConfiguration(toConfiguration.getName()).forConsumption().replaceWith(consumptionAlternatives).undocumented().nagUser();
+            DeprecationLogger.deprecateConfiguration(toConfiguration.getName()).forConsumption().replaceWith(consumptionAlternatives)
+                .withUserManual("java_library_plugin", "sec:java_library_configurations_graph")
+                .nagUser();
         }
     }
 

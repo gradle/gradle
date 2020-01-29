@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.repositories;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.UrlArtifactRepository;
-import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.verifier.HttpRedirectVerifier;
@@ -36,17 +35,14 @@ public class DefaultUrlArtifactRepository implements UrlArtifactRepository {
     private boolean allowInsecureProtocol;
     private final String repositoryType;
     private final FileResolver fileResolver;
-    private final DocumentationRegistry documentationRegistry;
     private final Supplier<String> displayNameSupplier;
 
     DefaultUrlArtifactRepository(
         final FileResolver fileResolver,
-        final DocumentationRegistry documentationRegistry,
         final String repositoryType,
         final Supplier<String> displayNameSupplier
     ) {
         this.fileResolver = fileResolver;
-        this.documentationRegistry = documentationRegistry;
         this.repositoryType = repositoryType;
         this.displayNameSupplier = displayNameSupplier;
     }
@@ -88,20 +84,15 @@ public class DefaultUrlArtifactRepository implements UrlArtifactRepository {
         return rootUri;
     }
 
-    private String allowInsecureProtocolHelpLink() {
-        return documentationRegistry.getDslRefForProperty(UrlArtifactRepository.class, "allowInsecureProtocol");
-    }
-
     private void nagUserOfInsecureProtocol() {
         DeprecationLogger
             .deprecate("Using insecure protocols with repositories")
             .withAdvice(String.format(
-                "Switch %s repository '%s' to a secure protocol (like HTTPS) or allow insecure protocols, see %s.",
+                "Switch %s repository '%s' to a secure protocol (like HTTPS) or allow insecure protocols.",
                 repositoryType,
-                displayNameSupplier.get(),
-                allowInsecureProtocolHelpLink()
-                )
-            ).undocumented().nagUser();
+                displayNameSupplier.get()))
+            .withDslReference(UrlArtifactRepository.class, "allowInsecureProtocol")
+            .nagUser();
     }
 
     private void nagUserOfInsecureRedirect(@Nullable URI redirectFrom, URI redirectLocation) {
@@ -116,12 +107,11 @@ public class DefaultUrlArtifactRepository implements UrlArtifactRepository {
         DeprecationLogger
             .deprecate("Following insecure redirects")
             .withAdvice(String.format(
-                "Switch %s repository '%s' to redirect to a secure protocol (like HTTPS) or allow insecure protocols, see %s.",
+                "Switch %s repository '%s' to redirect to a secure protocol (like HTTPS) or allow insecure protocols.",
                 repositoryType,
-                displayNameSupplier.get(),
-                allowInsecureProtocolHelpLink()))
+                displayNameSupplier.get()))
             .withContext(contextualAdvice)
-            .undocumented()
+            .withDslReference(UrlArtifactRepository.class, "allowInsecureProtocol")
             .nagUser();
     }
 
@@ -139,16 +129,14 @@ public class DefaultUrlArtifactRepository implements UrlArtifactRepository {
 
     public static class Factory {
         private final FileResolver fileResolver;
-        private final DocumentationRegistry documentationRegistry;
 
         @Inject
-        public Factory(FileResolver fileResolver, DocumentationRegistry documentationRegistry) {
+        public Factory(FileResolver fileResolver) {
             this.fileResolver = fileResolver;
-            this.documentationRegistry = documentationRegistry;
         }
 
         DefaultUrlArtifactRepository create(String repositoryType, Supplier<String> displayNameSupplier) {
-            return new DefaultUrlArtifactRepository(fileResolver, documentationRegistry, repositoryType, displayNameSupplier);
+            return new DefaultUrlArtifactRepository(fileResolver, repositoryType, displayNameSupplier);
         }
     }
 }

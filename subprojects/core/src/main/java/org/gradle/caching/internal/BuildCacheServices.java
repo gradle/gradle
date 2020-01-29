@@ -30,9 +30,11 @@ import org.gradle.caching.internal.controller.RootBuildCacheControllerRef;
 import org.gradle.caching.internal.controller.impl.DefaultBuildCacheCommandFactory;
 import org.gradle.caching.internal.origin.OriginMetadataFactory;
 import org.gradle.caching.internal.packaging.BuildCacheEntryPacker;
+import org.gradle.caching.internal.packaging.impl.DefaultTarPackerFileSystemSupport;
 import org.gradle.caching.internal.packaging.impl.FilePermissionAccess;
 import org.gradle.caching.internal.packaging.impl.GZipBuildCacheEntryPacker;
 import org.gradle.caching.internal.packaging.impl.TarBuildCacheEntryPacker;
+import org.gradle.caching.internal.packaging.impl.TarPackerFileSystemSupport;
 import org.gradle.caching.internal.services.BuildCacheControllerFactory;
 import org.gradle.caching.local.DirectoryBuildCache;
 import org.gradle.caching.local.internal.DirectoryBuildCacheFileStoreFactory;
@@ -108,14 +110,18 @@ public final class BuildCacheServices extends AbstractPluginServiceRegistry {
         registration.addProvider(new Object() {
             private static final String GRADLE_VERSION_KEY = "gradleVersion";
 
+            TarPackerFileSystemSupport createPackerFileSystemSupport(Deleter deleter) {
+                return new DefaultTarPackerFileSystemSupport(deleter);
+            }
+
             BuildCacheEntryPacker createResultPacker(
-                Deleter deleter,
+                TarPackerFileSystemSupport fileSystemSupport,
                 FileSystem fileSystem,
                 StreamHasher fileHasher,
                 StringInterner stringInterner
             ) {
                 return new GZipBuildCacheEntryPacker(
-                    new TarBuildCacheEntryPacker(deleter, new FilePermissionsAccessAdapter(fileSystem), fileHasher, stringInterner));
+                    new TarBuildCacheEntryPacker(fileSystemSupport, new FilePermissionsAccessAdapter(fileSystem), fileHasher, stringInterner));
             }
 
             OriginMetadataFactory createOriginMetadataFactory(
