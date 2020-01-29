@@ -437,6 +437,11 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
             TestFile getFile() {
                 return file
             }
+
+            @Override
+            String getName() {
+                return file.name
+            }
         }
     }
 
@@ -462,6 +467,11 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
             @Override
             TestFile getFile() {
                 return moduleDir.file(fileName)
+            }
+
+            @Override
+            String getName() {
+                return "${artifactName}-${version}${suffix}"
             }
         }
     }
@@ -491,7 +501,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
 
     private void publishModuleMetadata() {
         def defaultArtifacts = getArtifact([:]).collect {
-            new FileSpec(it.file.name, it.file.name)
+            new FileSpec(it.name, it.file.name)
         }
         GradleFileModuleAdapter adapter = new GradleFileModuleAdapter(groupId, artifactId, version, publishArtifactVersion,
             variants.collect { v ->
