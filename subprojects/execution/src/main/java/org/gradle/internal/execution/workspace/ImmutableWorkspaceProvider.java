@@ -16,7 +16,6 @@
 
 package org.gradle.internal.execution.workspace;
 
-import org.gradle.internal.Try;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 
 import java.io.File;
@@ -25,10 +24,10 @@ public interface ImmutableWorkspaceProvider {
     /**
      * Provides a workspace and execution history store for executing the transformation.
      */
-    <T> Try<T> withWorkspace(String identity, WorkspaceAction<T> action);
+    <T> T withWorkspace(String identity, WorkspaceAction<T> action);
 
     @FunctionalInterface
     interface WorkspaceAction<T> {
-        Try<T> executeInWorkspace(File workspace, ExecutionHistoryStore executionHistoryStore);
+        T executeInWorkspace(File workspace, ExecutionHistoryStore executionHistoryStore);
     }
 }

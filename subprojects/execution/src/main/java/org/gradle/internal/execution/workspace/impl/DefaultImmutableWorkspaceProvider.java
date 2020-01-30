@@ -25,7 +25,6 @@ import org.gradle.cache.internal.CompositeCleanupAction;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
-import org.gradle.internal.Try;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.impl.DefaultExecutionHistoryStore;
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
@@ -79,7 +78,7 @@ public class DefaultImmutableWorkspaceProvider implements ImmutableWorkspaceProv
     }
 
     @Override
-    public <T> Try<T> withWorkspace(String identity, WorkspaceAction<T> action) {
+    public <T> T withWorkspace(String identity, WorkspaceAction<T> action) {
         return cache.withFileLock(() -> {
             File workspace = new File(baseDirectory, identity);
             fileAccessTracker.markAccessed(workspace);

@@ -34,13 +34,16 @@ import org.gradle.internal.execution.ExecutionRequestContext
 import org.gradle.internal.execution.InputChangesContext
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.WorkExecutor
+import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.history.changes.InputChangesInternal
+import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider
 import org.gradle.internal.file.TreeType
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.FileCollectionFingerprint
 import org.gradle.internal.fingerprint.FileCollectionSnapshotter
 import org.gradle.internal.fingerprint.impl.OutputFileCollectionFingerprinter
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
+import org.gradle.internal.hash.HashCode
 import org.gradle.internal.snapshot.CompositeFileSystemSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.kotlin.dsl.codegen.fileHeader
@@ -97,27 +100,33 @@ fun pluginSpecBuildersClassPath(project: Project): AccessorsClassPath = project.
 
     rootProject.getOrCreateProperty("gradleKotlinDsl.pluginAccessorsClassPath") {
         val buildSrcClassLoaderScope = baseClassLoaderScopeOf(rootProject)
-        val workExecutor = rootProject.serviceOf<WorkExecutor<ExecutionRequestContext, CachingResult>>()
-        val sourcesOutputDir : File = TODO()
-        val classesOutputDir : File = TODO()
-        val work = GeneratePluginAccessors(
-            rootProject,
-            buildSrcClassLoaderScope,
-            sourcesOutputDir,
-            classesOutputDir,
-            rootProject.serviceOf(),
-            rootProject.serviceOf(),
-            rootProject.serviceOf(),
-            rootProject.serviceOf()
-        )
-        workExecutor.execute(object:ExecutionRequestContext {
-            override fun getWork() = work
-            override fun getRebuildReason() = Optional.of("REBUILD")
-        })
-        return AccessorsClassPath(
-            DefaultClassPath.of(classesOutputDir),
-            DefaultClassPath.of(sourcesOutputDir)
-        )
+        val workExecutor : WorkExecutor<ExecutionRequestContext, CachingResult> = rootProject.serviceOf()
+        val classLoaderHierarchyHasher : ClassLoaderHierarchyHasher = rootProject.serviceOf()
+        val classLoaderHash = requireNotNull(classLoaderHierarchyHasher.getClassLoaderHash(buildSrcClassLoaderScope.exportClassLoader))
+        val workspaceProvider : ImmutableWorkspaceProvider = rootProject.serviceOf()
+        workspaceProvider.withWorkspace(classLoaderHash.toString()) { workspace, executionHistoryStore ->
+            val sourcesOutputDir = File(workspace, "sources")
+            val classesOutputDir = File(workspace, "classes")
+            val work = GeneratePluginAccessors(
+                rootProject,
+                buildSrcClassLoaderScope,
+                classLoaderHash,
+                sourcesOutputDir,
+                classesOutputDir,
+                executionHistoryStore,
+                rootProject.serviceOf(),
+                rootProject.serviceOf(),
+                rootProject.serviceOf()
+            )
+            workExecutor.execute(object:ExecutionRequestContext {
+                override fun getWork() = work
+                override fun getRebuildReason() = Optional.of("REBUILD")
+            })
+            AccessorsClassPath(
+                DefaultClassPath.of(classesOutputDir),
+                DefaultClassPath.of(sourcesOutputDir)
+            )
+        }
     }
 }
 
@@ -125,12 +134,13 @@ fun pluginSpecBuildersClassPath(project: Project): AccessorsClassPath = project.
 class GeneratePluginAccessors(
     private val rootProject : Project,
     private val buildSrcClassLoaderScope : ClassLoaderScope,
+    private val classLoaderHash : HashCode,
     private val sourcesOutputDir : File,
     private val classesOutputDir : File,
+    private val executionHistoryStore: ExecutionHistoryStore,
     private val fileCollectionFactory : FileCollectionFactory,
     private val fileCollectionSnapshotter : FileCollectionSnapshotter,
-    private val outputFingerprinter : OutputFileCollectionFingerprinter,
-    classLoaderHierarchyHasher: ClassLoaderHierarchyHasher
+    private val outputFingerprinter : OutputFileCollectionFingerprinter
 ) : UnitOfWork {
 
     companion object {
@@ -138,9 +148,6 @@ class GeneratePluginAccessors(
         const val SOURCES_OUTPUT_PROPERTY = "sources"
         const val CLASSES_OUTPUT_PROPERTY = "classes"
     }
-
-    private val classLoaderHash =
-        requireNotNull(classLoaderHierarchyHasher.getClassLoaderHash(buildSrcClassLoaderScope.exportClassLoader))
 
     override fun execute(inputChanges : InputChangesInternal?, context: InputChangesContext) : UnitOfWork.WorkResult {
         kotlinScriptClassPathProviderOf(rootProject).run {
@@ -155,11 +162,13 @@ class GeneratePluginAccessors(
         return UnitOfWork.WorkResult.DID_WORK
     }
 
-    override fun getIdentity(): String = "$accessorCacheKeyPrefix-$classLoaderHash"
+    override fun getIdentity(): String = classLoaderHash.toString()
 
-    override fun getDisplayName(): String = identity
+    override fun getDisplayName(): String = "Kotlin plugin accessor generator for $classLoaderHash"
 
     override fun markExecutionTime(): Long = 0
+
+    override fun getExecutionHistoryStore(): Optional<ExecutionHistoryStore> = Optional.of(executionHistoryStore)
 
     override fun validate(validationContext: UnitOfWork.WorkValidationContext) = Unit
 
