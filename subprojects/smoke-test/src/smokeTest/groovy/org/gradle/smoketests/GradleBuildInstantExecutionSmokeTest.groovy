@@ -19,42 +19,27 @@ package org.gradle.smoketests
 import org.gradle.api.JavaVersion
 import org.gradle.api.specs.Spec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.jvm.JvmInstallation
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.testkit.runner.BuildResult
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 
 @Requires(value = TestPrecondition.JDK9_OR_LATER, adhoc = {
-    !GradleContextualExecuter.isEmbedded() && !GradleContextualExecuter.isInstant() &&
-        AvailableJavaHomes.getAvailableJdk(new GradleBuildJvmSpec())
+    !GradleContextualExecuter.isInstant() && AvailableJavaHomes.getAvailableJdk(new GradleBuildJvmSpec())
 })
-class GradleBuildInstantExecutionSmokeTest extends AbstractIntegrationSpec {
+class GradleBuildInstantExecutionSmokeTest extends AbstractSmokeTest {
 
     def "can build gradle with instant execution enabled"() {
 
         given:
-        new TestFile("build/gradleBuildCurrent").copyTo(testDirectory)
+        def buildJavaHome = AvailableJavaHomes.getAvailableJdks(new GradleBuildJvmSpec()).last().javaHome
+        new TestFile("build/gradleBuildCurrent").copyTo(testProjectDir.root)
 
         and:
-        def buildJavaHome = AvailableJavaHomes.getAvailableJdks(new GradleBuildJvmSpec()).last().javaHome
-        executer.beforeExecute {
-            noDeprecationChecks()
-            withEnvironmentVars(
-                new HashMap(System.getenv()).tap {
-                    put("JAVA_HOME", buildJavaHome.canonicalPath)
-                    // Run the test build without the CI environment variable
-                    // so `buildTimestamp` doesn't change between invocations
-                    // (which would invalidate the instant execution cache).
-                    // See BuildVersionPlugin in buildSrc.
-                    remove("CI")
-                }
-            )
-            withJavaHome(buildJavaHome)
-        }
+        file("gradle.properties") << "\norg.gradle.java.home=${buildJavaHome}\n"
 
         and:
         def supportedTasks = [
@@ -63,25 +48,34 @@ class GradleBuildInstantExecutionSmokeTest extends AbstractIntegrationSpec {
         ]
 
         when:
-        instantRun(*supportedTasks)
+        def result = instantRun(*supportedTasks)
 
         then:
         result.output.count("Calculating task graph as no instant execution cache is available") == 1
 
         when:
-        instantRun(*supportedTasks)
+        result = instantRun(*supportedTasks)
 
         then:
         result.output.count("Reusing instant execution cache")
     }
 
-    private ExecutionResult instantRun(String... tasks) {
+    private BuildResult instantRun(String... tasks) {
         return run(*(tasks + ["-Dorg.gradle.unsafe.instant-execution=true"]))
     }
 
-    @Override
-    ExecutionResult run(String... tasks) {
-        return super.run(*(tasks + GRADLE_BUILD_TEST_ARGS))
+    BuildResult run(String... tasks) {
+        return runner(*(tasks + GRADLE_BUILD_TEST_ARGS))
+            .withEnvironment(
+                new HashMap(System.getenv()).tap {
+                    // Run the test build without the CI environment variable
+                    // so `buildTimestamp` doesn't change between invocations
+                    // (which would invalidate the instant execution cache).
+                    // See BuildVersionPlugin in buildSrc.
+                    remove("CI")
+                }
+            )
+            .build()
     }
 
     private static final String[] GRADLE_BUILD_TEST_ARGS = [
