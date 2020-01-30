@@ -52,6 +52,9 @@ class GradleBuildInstantExecutionSmokeTest extends AbstractSmokeTest {
         result.output.count("Calculating task graph as no instant execution cache is available") == 1
 
         when:
+        run("clean")
+
+        and:
         result = instantRun(*supportedTasks)
 
         then:
