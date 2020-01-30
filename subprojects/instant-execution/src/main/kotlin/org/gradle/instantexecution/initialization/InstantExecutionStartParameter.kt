@@ -30,7 +30,7 @@ class InstantExecutionStartParameter(
     val rootDirectory: File
         get() = buildLayout.rootDirectory
 
-    val invocationDir: File
+    val invocationDirectory: File
         get() = startParameter.currentDir
 
     val isRefreshDependencies

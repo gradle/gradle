@@ -437,9 +437,9 @@ class DefaultInstantExecution internal constructor(
         val hasRelativeTaskName = taskNames.any { !it.startsWith(':') }
         if (hasRelativeTaskName) {
             // Because unqualified task names are resolved relative to the enclosing
-            // sub-project according to `invocationDir` we need to include
-            // the relative invocation dir information in the key.
-            relativeChildPathOrNull(invocationDir, rootDirectory)?.let { relativeSubDir ->
+            // sub-project according to `invocationDirectory`,
+            // the relative invocation directory information must be part of the key.
+            relativeChildPathOrNull(invocationDirectory, rootDirectory)?.let { relativeSubDir ->
                 cacheKey.append('*')
                 cacheKey.append(relativeSubDir)
             }
