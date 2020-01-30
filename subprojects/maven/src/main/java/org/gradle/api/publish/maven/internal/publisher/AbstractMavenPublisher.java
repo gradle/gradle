@@ -38,16 +38,10 @@ import org.gradle.internal.xml.XmlTransformer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.util.stream.Stream;
 
 import static org.apache.maven.artifact.ArtifactUtils.isSnapshot;
 
@@ -213,36 +207,7 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
             }
 
             ExternalResourceName externalResource = new ExternalResourceName(rootUri, path.toString());
-            publish(externalResource, maybeSubstituteVersion(extension, content));
-        }
-
-        // When publishing unique snapshot versions, we need to tweak the generated
-        // Gradle Module Metadata file in order to replace the URI/file names of the
-        // published files
-        private File maybeSubstituteVersion(String extension, File content) {
-            if ("module".equals(extension) && !artifactVersion.equals(moduleVersion)) {
-                File timestamped = new File(content.getParentFile(), content.getName() + "-" + artifactVersion);
-                if (timestamped.exists()) {
-                    return timestamped;
-                }
-                // we're publishing a timestamped snapshot version so we need to tweak the generated module file
-                try (PrintWriter writer = new PrintWriter(new BufferedWriter(new OutputStreamWriter(new FileOutputStream(timestamped), StandardCharsets.UTF_8)))) {
-                    try (Stream<String> lines = Files.lines(content.toPath(), StandardCharsets.UTF_8)) {
-                        lines.forEach(line -> {
-                            if (line.contains("\"url\"")) {
-                                // We cannot replace versions that appear as path elements, and so there should only be one version to replace at most
-                                writer.println(line.replaceFirst(moduleVersion + "([^/])", artifactVersion + "$1"));
-                            } else {
-                                writer.println(line);
-                            }
-                        });
-                    }
-                } catch (IOException e) {
-                    throw UncheckedException.throwAsUncheckedException(e);
-                }
-                return timestamped;
-            }
-            return content;
+            publish(externalResource, content);
         }
 
         void publish(ExternalResourceName externalResource, File content) {

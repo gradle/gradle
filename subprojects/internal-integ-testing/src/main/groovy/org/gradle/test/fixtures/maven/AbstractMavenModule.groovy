@@ -261,11 +261,11 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
                 def ref = variant.availableAt
                 if (ref != null) {
                     // Verify the modules are connected together correctly
-                    def otherMetadataArtifact = getArtifact(ref.url)
+                    def otherMetadataArtifact = getArtifact(this.correctURLForSnapshot(ref.url))
                     assert otherMetadataArtifact.file.file
                     def otherMetadata = new GradleModuleMetadata(otherMetadataArtifact.file)
                     def owner = otherMetadata.owner
-                    assert otherMetadataArtifact.file.parentFile.file(owner.url) == getModuleMetadata().file
+                    assert otherMetadataArtifact.file.parentFile.file(this.correctURLForSnapshot(owner.url)) == getModuleMetadata().file
                     assert owner.group == groupId
                     assert owner.module == artifactId
                     assert owner.version == version
@@ -356,6 +356,14 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
         def md5File = md5File(testFile)
         md5File.assertIsFile()
         assert new BigInteger(md5File.text, 16) == getHash(testFile, "MD5")
+    }
+
+    String correctURLForSnapshot(String url) {
+        if (url.contains('-SNAPSHOT')) {
+            return url.replaceFirst('SNAPSHOT\\.', uniqueSnapshotVersion + '.')
+        } else {
+            return url
+        }
     }
 
     @Override
@@ -501,7 +509,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
 
     private void publishModuleMetadata() {
         def defaultArtifacts = getArtifact([:]).collect {
-            new FileSpec(it.name, it.file.name)
+            new FileSpec(it.name)
         }
         GradleFileModuleAdapter adapter = new GradleFileModuleAdapter(groupId, artifactId, version, publishArtifactVersion,
             variants.collect { v ->
