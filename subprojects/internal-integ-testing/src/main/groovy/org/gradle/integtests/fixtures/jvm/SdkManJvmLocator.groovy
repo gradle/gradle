@@ -38,12 +38,16 @@ class SdkManJvmLocator {
     }
 
     List<JvmInstallation> findJvms() {
-        Set<File> javaHomes = new HashSet<>()
         List<JvmInstallation> jvms = new ArrayList<>()
-        File javaCandidatesDir = new File(System.getenv(SDKMAN_CANDIDATES_DIR_ENV_NAME), "java")
+        String sdkManCandidatesDirPath = System.getenv(SDKMAN_CANDIDATES_DIR_ENV_NAME)
+        if (sdkManCandidatesDirPath == null) {
+            return jvms
+        }
+        File javaCandidatesDir = new File(sdkManCandidatesDirPath, "java")
         if (!javaCandidatesDir.isDirectory()) {
             return jvms
         }
+        Set<File> javaHomes = new HashSet<>()
         for (File file : javaCandidatesDir.listFiles()) {
             Matcher matcher = JDKMAN_SDK_DIR.matcher(file.getName())
             if (!matcher.matches()) {
