@@ -29,10 +29,10 @@ import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.local.DirectoryBuildCache;
 import org.gradle.internal.file.FileAccessTimeJournal;
+import org.gradle.internal.file.FileAccessTracker;
 import org.gradle.internal.file.PathToFileResolver;
-import org.gradle.internal.resource.local.FileAccessTracker;
+import org.gradle.internal.file.impl.SingleDepthFileAccessTracker;
 import org.gradle.internal.resource.local.PathKeyFileStore;
-import org.gradle.internal.resource.local.SingleDepthFileAccessTracker;
 
 import javax.inject.Inject;
 import java.io.File;

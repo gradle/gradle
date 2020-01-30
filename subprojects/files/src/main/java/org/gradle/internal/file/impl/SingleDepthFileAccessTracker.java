@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.resource.local;
+package org.gradle.internal.file.impl;
 
 import com.google.common.base.Preconditions;
 import org.gradle.internal.file.FileAccessTimeJournal;
+import org.gradle.internal.file.FileAccessTracker;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Collection;
@@ -29,6 +31,7 @@ import java.util.Set;
  * Tracks access to files and directories at the supplied depth within the supplied base
  * directory by setting their last access time in the supplied {@link FileAccessTimeJournal}.
  */
+@SuppressWarnings("Since15")
 public class SingleDepthFileAccessTracker implements FileAccessTracker {
 
     private final Path baseDir;
@@ -56,7 +59,7 @@ public class SingleDepthFileAccessTracker implements FileAccessTracker {
         }
     }
 
-    private void markAccessed(Path path) {
+    private void markAccessed(@Nullable Path path) {
         if (path != null) {
             journal.setLastAccessTime(path.toFile(), System.currentTimeMillis());
         }
@@ -70,6 +73,7 @@ public class SingleDepthFileAccessTracker implements FileAccessTracker {
         return paths;
     }
 
+    @Nullable
     private Path toSubPath(File file) {
         Path path = file.toPath().toAbsolutePath();
         if (path.getNameCount() >= endNameIndex && path.startsWith(baseDir)) {

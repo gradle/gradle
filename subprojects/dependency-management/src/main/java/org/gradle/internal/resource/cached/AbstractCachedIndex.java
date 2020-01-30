@@ -18,7 +18,7 @@ package org.gradle.internal.resource.cached;
 
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManager;
 import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.internal.resource.local.FileAccessTracker;
+import org.gradle.internal.file.FileAccessTracker;
 import org.gradle.internal.serialize.Serializer;
 
 import java.io.File;

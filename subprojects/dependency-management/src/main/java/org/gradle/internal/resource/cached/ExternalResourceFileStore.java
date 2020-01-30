@@ -15,7 +15,7 @@
  */
 package org.gradle.internal.resource.cached;
 
-import org.gradle.internal.resource.local.FileAccessTracker;
+import org.gradle.internal.file.FileAccessTracker;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.FileStoreSearcher;
 

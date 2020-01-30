@@ -18,7 +18,7 @@ package org.gradle.api.internal.filestore;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
-import org.gradle.internal.resource.local.FileAccessTracker;
+import org.gradle.internal.file.FileAccessTracker;
 import org.gradle.internal.resource.local.FileStoreException;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
 

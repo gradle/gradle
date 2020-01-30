@@ -17,7 +17,7 @@
 package org.gradle.internal.resource.cached
 
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManagerStub
-import org.gradle.internal.resource.local.FileAccessTracker
+import org.gradle.internal.file.FileAccessTracker
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.Serializer

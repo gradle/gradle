@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.resource.local;
+package org.gradle.internal.file;
 
 import java.io.File;
 import java.util.Collection;
 
 /**
- * Tracks access to files, usually within a {@link FileStore}.
+ * Tracks access to files.
  */
 public interface FileAccessTracker {
     /**

@@ -30,8 +30,8 @@ import org.gradle.cache.internal.UnusedVersionsCacheCleanup;
 import org.gradle.cache.internal.UsedGradleVersions;
 import org.gradle.cache.internal.VersionStrategy;
 import org.gradle.internal.file.FileAccessTimeJournal;
-import org.gradle.internal.resource.local.FileAccessTracker;
-import org.gradle.internal.resource.local.SingleDepthFileAccessTracker;
+import org.gradle.internal.file.FileAccessTracker;
+import org.gradle.internal.file.impl.SingleDepthFileAccessTracker;
 
 import java.io.File;
 import java.util.Collections;
