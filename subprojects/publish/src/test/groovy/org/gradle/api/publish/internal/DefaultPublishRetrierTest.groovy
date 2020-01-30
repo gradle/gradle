@@ -16,9 +16,9 @@
 
 package org.gradle.api.publish.internal
 
-
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 
 import java.util.concurrent.Callable
 
@@ -32,7 +32,7 @@ class DefaultPublishRetrierTest extends Specification {
             retried++
             throw ex
         }
-        DefaultPublishRetrier defaultPublishRetrier = new DefaultPublishRetrier(operation, "my-repository", 3, 1)
+        DefaultPublishRetrier defaultPublishRetrier = new DefaultPublishRetrier(operation, "my-repository")
         defaultPublishRetrier.publishWithRetry()
 
         then:
@@ -53,7 +53,7 @@ class DefaultPublishRetrierTest extends Specification {
             retried++
             throw ex
         }
-        DefaultPublishRetrier defaultPublishRetrier = new DefaultPublishRetrier(operation, "my-repository", 3, 1)
+        DefaultPublishRetrier defaultPublishRetrier = new DefaultPublishRetrier(operation, "my-repository")
         defaultPublishRetrier.publishWithRetry()
 
         then:
@@ -64,5 +64,25 @@ class DefaultPublishRetrierTest extends Specification {
         ex << [
             new RuntimeException("non network issue")
         ]
+    }
+
+    @Unroll
+    def "DefaultPublishRetrier is not created if max attempts or initial backoff is 0 or less"() {
+        when:
+        System.setProperty(systemProperty, value)
+        Callable operation = {
+            throw new RuntimeException("non network issue")
+        }
+        DefaultPublishRetrier defaultPublishRetrier = new DefaultPublishRetrier(operation, "my-repository")
+
+        then:
+        thrown(AssertionError)
+
+        where:
+        systemProperty | value
+        "org.gradle.internal.remote.repository.deploy.max.attempts" | "-1"
+        "org.gradle.internal.remote.repository.deploy.max.attempts" | "0"
+        "org.gradle.internal.remote.repository.deploy.initial.backoff" | "-1"
+        "org.gradle.internal.remote.repository.deploy.initial.backoff" | "0"
     }
 }

@@ -25,15 +25,19 @@ import java.util.concurrent.Callable;
 
 public class DefaultPublishRetrier implements PublishRetrier {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPublishRetrier.class);
+
+    private final static String MAX_DEPLOY_ATTEMPTS = "org.gradle.internal.remote.repository.deploy.max.attempts";
+    private final static String INITIAL_BACKOFF_MS = "org.gradle.internal.remote.repository.deploy.initial.backoff";
+
     private final String remoteRepository;
     private final Callable operation;
     private final int maxDeployAttempts;
     private final int initialBackOff;
 
-    public DefaultPublishRetrier(Callable operation, String remoteRepository, int maxDeployAttempts, int initialBackOff) {
+    public DefaultPublishRetrier(Callable operation, String remoteRepository) {
         this.operation = operation;
-        this.maxDeployAttempts = maxDeployAttempts;
-        this.initialBackOff = initialBackOff;
+        this.maxDeployAttempts = Integer.getInteger(MAX_DEPLOY_ATTEMPTS, 3);
+        this.initialBackOff = Integer.getInteger(INITIAL_BACKOFF_MS, 1000);
         assert maxDeployAttempts > 0;
         assert initialBackOff > 0;
         this.remoteRepository = remoteRepository;
