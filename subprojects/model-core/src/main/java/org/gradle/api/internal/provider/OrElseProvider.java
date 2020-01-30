@@ -36,12 +36,21 @@ class OrElseProvider<T> extends AbstractMinimalProvider<T> {
     }
 
     @Override
+    public boolean isValueProducedByTask() {
+        // TODO - this isn't quite right. The value isn't produced by a task when left always has a value and its value is not produced by a task
+        return left.isValueProducedByTask() || right.isValueProducedByTask();
+    }
+
+    @Override
     public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-        if (left.isPresent()) {
-            return left.maybeVisitBuildDependencies(context);
-        } else {
-            return right.maybeVisitBuildDependencies(context);
+        if (left.isValueProducedByTask() && !left.maybeVisitBuildDependencies(context)) {
+            return false;
         }
+        if (!left.isValueProducedByTask() && left.isPresent()) {
+            return left.maybeVisitBuildDependencies(context);
+        }
+        // TODO - this isn't quite right. We shouldn't build right's inputs when left always has a value, but that value is produced by a task
+        return right.maybeVisitBuildDependencies(context);
     }
 
     @Override

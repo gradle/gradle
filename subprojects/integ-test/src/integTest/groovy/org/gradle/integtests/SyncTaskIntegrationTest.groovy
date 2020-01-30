@@ -17,6 +17,7 @@ package org.gradle.integtests
 
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Issue
@@ -395,6 +396,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         ins.close()
     }
 
+    @ToBeFixedForInstantExecution
     @Issue("https://github.com/gradle/gradle/issues/9586")
     def "change in case of input file will sync properly"() {
         given:
@@ -425,6 +427,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FLAKY)
     @Issue("https://github.com/gradle/gradle/issues/9586")
     def "change in case of input folder will sync properly"() {
         given:

@@ -19,6 +19,7 @@ package org.gradle.api.internal.provider;
 import org.gradle.api.Action;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.internal.properties.GradleProperties;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ValueSource;
 import org.gradle.api.provider.ValueSourceParameters;
@@ -171,6 +172,12 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
 
         public P getParameters() {
             return parameters;
+        }
+
+        @Override
+        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
+            // For now, assume value is never calculated from a task output
+            return true;
         }
 
         @Override

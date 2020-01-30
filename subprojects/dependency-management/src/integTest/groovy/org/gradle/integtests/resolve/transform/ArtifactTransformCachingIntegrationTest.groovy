@@ -50,7 +50,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         """
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FLAKY)
     def "transform is applied to each file once per build"() {
         given:
         buildFile << declareAttributes() << multiProjectWithJarSizeTransform() << withJarTasks() << withLibJarDependency("lib3.jar")
@@ -311,7 +311,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         output.count("Transforming artifact lib2.jar (project :lib) with MakeGreen") == 2
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FLAKY)
     def "each file is transformed once per set of configuration parameters"() {
         given:
         buildFile << declareAttributes() << withJarTasks() << withLibJarDependency("lib3.jar") << """
@@ -414,7 +414,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         output.count("Transformed") == 0
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FLAKY)
     def "can use custom type that does not implement equals() for transform configuration"() {
         given:
         buildFile << declareAttributes() << withJarTasks() << """
@@ -518,7 +518,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FLAKY)
     def "can use configuration parameter of type #type"() {
         given:
         buildFile << declareAttributes() << withJarTasks() << """
@@ -608,7 +608,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         "Named"        | "objects.named(Named, 'abc')"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FLAKY)
     def "each file is transformed once per transform class"() {
         given:
         buildFile << declareAttributes() << withJarTasks() << withLibJarDependency("lib3.jar") << """
@@ -816,7 +816,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         output.count("Transformed") == 0
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FLAKY)
     def "transform is executed in different workspace for different file produced in chain"() {
         given:
         buildFile << declareAttributes() << withJarTasks() << duplicatorTransform << """
