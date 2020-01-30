@@ -17,9 +17,12 @@
 package org.gradle.initialization
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 class ErrorMessagesIntegrationTest extends AbstractIntegrationSpec {
 
+    @Requires(TestPrecondition.NOT_WINDOWS)
     def "Error message due to bad permissions on project's gradle cache directory is not scary"() {
         given:
         buildScript """
