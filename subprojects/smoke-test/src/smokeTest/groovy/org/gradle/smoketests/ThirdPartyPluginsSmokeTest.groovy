@@ -122,11 +122,12 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
     }
 
     @Issue('https://github.com/asciidoctor/asciidoctor-gradle-plugin/releases')
+    @Unroll
     def 'asciidoctor plugin'() {
         given:
         buildFile << """
             plugins {
-                id 'org.asciidoctor.convert' version '${TestedVersions.asciidoctor}'
+                id 'org.asciidoctor.convert' version '${version}'
             }
             """.stripIndent()
 
@@ -151,6 +152,9 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
                 "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
                 "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.",
         )
+
+        where:
+        version << TestedVersions.asciidoctor
     }
 
     @Issue('https://plugins.gradle.org/plugin/com.bmuschko.docker-java-application')
