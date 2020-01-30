@@ -356,6 +356,11 @@ class IvyFileModule extends AbstractModule implements IvyModule {
             Map<String, String> getIvyTokens() {
                 toTokens(options)
             }
+
+            @Override
+            String getName() {
+                return file.name
+            }
         }
     }
 

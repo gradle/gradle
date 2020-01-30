@@ -64,4 +64,8 @@ class DefaultSnapshotMavenMetaData implements SnapshotMavenMetaData {
         }
         snapshotVersions = snapshotVersionCollector as List<String>
     }
+
+    String getName() {
+        return file.name
+    }
 }

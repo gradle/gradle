@@ -25,6 +25,11 @@ public class S3Artifact extends S3Resource implements RemoteArtifact {
     }
 
     @Override
+    String getName() {
+        return file.name
+    }
+
+    @Override
     S3Resource getMd5() {
         return new S3Resource(server, file.parentFile.file(file.name + ".md5"), repositoryPath, bucket)
     }
