@@ -1,6 +1,6 @@
 The Gradle team is excited to announce Gradle @version@.
 
-This release adds [built-in dependency checksum and signature verification](#dependency-verification) to keep builds safe, provides a [shareable read-only dependency cache](#shared-dependency-cache) and contains [helpful documentation to avoid deprecations in your build](#deprecation-messages).
+This release adds [built-in dependency checksum and signature verification](#dependency-verification), provides a [shareable read-only dependency cache](#shared-dependency-cache) and emits [helpful documentation links when you have deprecations in your build](#deprecation-messages).
 
 As always, there are several [bug fixes](#fixed-issues), IDE improvements for [Gradle plugin authors](#plugin-dev) and more.
 
@@ -60,7 +60,7 @@ A lot of the work on this feature is, in particular, available to previous versi
 
 Improving on [relocatable dependency caches introduced in the previous release](https://docs.gradle.org/6.1.1/release-notes.html#ephemeral-ci:-reuse-gradle's-dependency-cache), Gradle 6.2 now offers the ability to **share** a dependency cache between multiple Gradle instances.
 
-In the context of ephemeral builds on disposable containers, this makes it possible to have a single, shared, directory between containers which contains most, if not all, the dependencies required by all builds.
+In the context of ephemeral builds on disposable containers, this makes it possible to have a single shared directory that contains the dependencies required by all builds.
 
 - Each container will have access to the shared read-only dependency cache, avoiding redundant downloads between builds.
 - This cache can be shared between containers without copying it, reducing the overall disk usage.
