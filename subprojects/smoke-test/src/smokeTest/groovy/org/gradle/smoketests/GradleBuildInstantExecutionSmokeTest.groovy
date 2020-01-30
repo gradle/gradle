@@ -20,10 +20,8 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.specs.Spec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.integtests.fixtures.instantexecution.InstantExecutionBuildOperationsFixture
 import org.gradle.integtests.fixtures.jvm.JvmInstallation
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
@@ -44,8 +42,8 @@ class GradleBuildInstantExecutionSmokeTest extends AbstractIntegrationSpec {
         and:
         def buildJavaHome = AvailableJavaHomes.getAvailableJdks(new GradleBuildJvmSpec()).last().javaHome
         executer.beforeExecute {
-            executer.noDeprecationChecks()
-            executer.withEnvironmentVars(
+            noDeprecationChecks()
+            withEnvironmentVars(
                 new HashMap(System.getenv()).tap {
                     put("JAVA_HOME", buildJavaHome.canonicalPath)
                     // Run the test build without the CI environment variable
@@ -55,9 +53,8 @@ class GradleBuildInstantExecutionSmokeTest extends AbstractIntegrationSpec {
                     remove("CI")
                 }
             )
-            executer.withJavaHome(buildJavaHome)
+            withJavaHome(buildJavaHome)
         }
-        def instantExecution = new InstantExecutionBuildOperationsFixture(new BuildOperationsFixture(executer, temporaryFolder))
 
         and:
         def supportedTasks = [
@@ -69,13 +66,13 @@ class GradleBuildInstantExecutionSmokeTest extends AbstractIntegrationSpec {
         instantRun(*supportedTasks)
 
         then:
-        instantExecution.assertStateStored()
+        result.output.count("Calculating task graph as no instant execution cache is available") == 1
 
         when:
         instantRun(*supportedTasks)
 
         then:
-        instantExecution.assertStateLoaded()
+        result.output.count("Reusing instant execution cache")
     }
 
     private ExecutionResult instantRun(String... tasks) {
