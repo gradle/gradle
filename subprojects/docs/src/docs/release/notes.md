@@ -33,10 +33,24 @@ For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility 
 <a name="dependency-verification"></a>
 ## Dependency verification
 
-Gradle 6.2 ships with [dependency verification](userguide/dependency_verification.html).
+Typical projects use a large number of external dependencies which put them at risk of using untrusted code.
+What if you accidentally introduced malicious code via a transitive dependency?
+Similarly, what if your build script itself is vulnerable to malicious code execution via a compromised plugin?
+
+In an effort to mitigate the risks, Gradle 6.2 ships with [dependency verification](userguide/dependency_verification.html).
 Dependency verification is a major step towards a safer ecosystem by making it possible to verify both the checksums and the signatures of dependencies and plugins used during a build.
 
-Please refer to the [user manual](userguide/dependency_verification.html) to figure out how to enable dependency verification.
+By enabling dependency verification, Gradle will:
+
+- make sure that the dependencies haven't been tampered with (by verifying their _checksums_)
+- ensure the provenance of dependencies and plugins you use (by verifying their _signatures_)
+
+and therefore dramatically reduce the risks of shipping malicious code to production.
+
+With dependency verification, you maintain an XML file with checksums and optionally also signatures of all external artifacts used in your project, which includes, but is not limited to, all jars (binaries, sources, ...) and plugins.
+Gradle will immediately fail the build if an artifact is not trusted or missing from the configuration file.
+
+Please refer to the [user manual](userguide/dependency_verification.html) for a complete explanation about how to setup dependency verification. 
 
 We would like to give special thanks to [Vladimir Sitnikov](https://github.com/vlsi) for his feedback and inspiration.
 A lot of the work on this feature is, in particular, available to previous versions of Gradle via his [Checksum Dependency Plugin](https://plugins.gradle.org/plugin/com.github.vlsi.checksum-dependency).
@@ -44,7 +58,7 @@ A lot of the work on this feature is, in particular, available to previous versi
 <a name="shared-dependency-cache"></a>
 ## Shared dependency cache
 
-Improving on [relocatable dependency caches introduced in the previous release](https://docs.gradle.org/6.1.1/release-notes.html#ephemeral-ci:-reuse-gradle's-dependency-cache), Gradle 6.2 now offers the ability to **share** a dependency cache between multiple instances.
+Improving on [relocatable dependency caches introduced in the previous release](https://docs.gradle.org/6.1.1/release-notes.html#ephemeral-ci:-reuse-gradle's-dependency-cache), Gradle 6.2 now offers the ability to **share** a dependency cache between multiple Gradle instances.
 
 In the context of ephemeral builds on disposable containers, this makes it possible to have a single, shared, directory between containers which contains most, if not all, the dependencies required by all builds.
 
@@ -72,8 +86,8 @@ Plugin authors will now have the sources of the `gradleApi()`, `gradleTestKit()`
 
 This works out of the box with [Eclipse Buildship](https://projects.eclipse.org/projects/tools.buildship).
 
-For IDEA, the sources for `gradleApi()` are only attached when the [Gradle wrapper](userguide/gradle_wrapper.html#sec:adding_wrapper) is used with an `-all` distribution. 
-This will change once [IDEA-231667](https://youtrack.jetbrains.com/issue/IDEA-231667) is resolved. All Gradle API sources will be downloaded on-demand.
+For IntelliJ IDEA, the sources for `gradleApi()` are only attached when the [Gradle wrapper](userguide/gradle_wrapper.html#sec:adding_wrapper) is used with an `-all` distribution. Sources for `gradleTestKit()` and `localGroovy()` are not attached at the moment.
+This will change once [IDEA-231667](https://youtrack.jetbrains.com/issue/IDEA-231667) is resolved. Then, the sources for all Gradle APIs (`gradleApi()`, `gradleTestKit()` and `localGroovy()`) will be downloaded and attached on-demand regardless of the wrapper in use.
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.

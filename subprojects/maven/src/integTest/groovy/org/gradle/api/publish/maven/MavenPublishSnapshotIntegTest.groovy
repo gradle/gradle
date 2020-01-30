@@ -79,7 +79,7 @@ class MavenPublishSnapshotIntegTest extends AbstractMavenPublishIntegTest {
         }
 
         with (module.parsedModuleMetadata) {
-            variants[0].files[0].url == "snapshotPublish-${initialVersion}.jar"
+            variants[0].files[0].url == "snapshotPublish-1.0-SNAPSHOT.jar"
         }
 
         when: // Publish a second time
@@ -97,7 +97,7 @@ class MavenPublishSnapshotIntegTest extends AbstractMavenPublishIntegTest {
         module.snapshotMetaData.snapshotVersions == [secondVersion]
 
         with (module.parsedModuleMetadata) {
-            variants[0].files[0].url == "snapshotPublish-${secondVersion}.jar"
+            variants[0].files[0].url == "snapshotPublish-1.0-SNAPSHOT.jar"
         }
 
         and:

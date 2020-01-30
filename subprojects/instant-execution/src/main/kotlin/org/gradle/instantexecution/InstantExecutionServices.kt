@@ -17,7 +17,6 @@
 package org.gradle.instantexecution
 
 import org.gradle.instantexecution.initialization.InstantExecutionStartParameter
-import org.gradle.instantexecution.initialization.InstantExecutionPropertiesLoader
 import org.gradle.instantexecution.serialization.beans.BeanConstructors
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry
@@ -40,7 +39,6 @@ class InstantExecutionServices : AbstractPluginServiceRegistry() {
     override fun registerGradleServices(registration: ServiceRegistration) {
         registration.run {
             add(InstantExecutionStartParameter::class.java)
-            add(InstantExecutionPropertiesLoader::class.java)
             add(InstantExecutionHost::class.java)
             add(DefaultInstantExecution::class.java)
         }

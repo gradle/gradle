@@ -14,24 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.instantexecution.initialization
+package org.gradle.api.internal.properties;
 
-import org.gradle.initialization.IGradlePropertiesLoader
+import javax.annotation.Nullable;
+import java.util.Map;
 
+/**
+ * Immutable set of Gradle properties loaded at the start of the build.
+ */
+public interface GradleProperties {
 
-class InstantExecutionPropertiesLoader(
-    private val startParameter: InstantExecutionStartParameter,
-    private val propertiesLoader: IGradlePropertiesLoader
-) {
-    private
-    var loaded = false
+    @Nullable
+    String find(String propertyName);
 
-    val hasLoaded
-        get() = loaded
-
-    fun loadProperties() {
-        require(!hasLoaded)
-        propertiesLoader.loadProperties(startParameter.rootDirectory)
-        loaded = true
-    }
+    /**
+     * Merges the loaded properties with the given properties and returns an immutable
+     * map with the result.
+     *
+     * @param properties read-only properties to be merged with the set of loaded properties.
+     */
+    Map<String, String> mergeProperties(Map<String, String> properties);
 }

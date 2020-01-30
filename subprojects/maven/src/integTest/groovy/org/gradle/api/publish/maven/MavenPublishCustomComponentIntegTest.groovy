@@ -90,15 +90,53 @@ class MavenPublishCustomComponentIntegTest extends AbstractMavenPublishIntegTest
 
         then:
         publishedModule.assertPublished()
-        def publishedVersion = publishedModule.publishArtifactVersion
         publishedModule.parsedPom.scopes.isEmpty()
         publishedModule.parsedModuleMetadata.variants*.name == ["usage"]
         with (publishedModule.parsedModuleMetadata.variant("usage")) { variant ->
             variant.files.empty
             variant.dependencies.empty
             variant.availableAt.coords == 'org.gradle.test:nested:1.9-SNAPSHOT'
-            variant.availableAt.url == "../../nested/1.9-SNAPSHOT/nested-${publishedVersion}.module"
+            variant.availableAt.url == "../../nested/1.9-SNAPSHOT/nested-1.9-SNAPSHOT.module"
         }
+
+        when:
+        mavenRepo.module('group', 'module', '1.0').publish()
+
+        def otherSettings = file('consumer/settings.gradle')
+        def otherBuild = file('consumer/build.gradle')
+
+        otherSettings << "rootProject.name = 'consumer'"
+        otherBuild << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+
+            configurations {
+                conf
+            }
+
+            dependencies {
+                conf('org.gradle.test:publishTest:1.9-SNAPSHOT') {
+                    attributes {
+                        attribute(Attribute.of("test.attribute", String), "value")
+                    }
+                }
+            }
+
+            task resolve {
+                doLast {
+                    println configurations.conf.files
+                }
+            }
+"""
+        executer.inDirectory(file('consumer'))
+
+        and:
+        succeeds 'resolve'
+
+        then:
+        outputContains('nested-1.9-SNAPSHOT.text')
+        outputContains('module-1.0.jar')
     }
 
     def createBuildScripts(def append) {
