@@ -79,8 +79,8 @@ Plugin authors will now have the sources of the `gradleApi()`, `gradleTestKit()`
 
 This works out of the box with [Eclipse Buildship](https://projects.eclipse.org/projects/tools.buildship).
 
-For IDEA, the sources for `gradleApi()` are only attached when the [Gradle wrapper](userguide/gradle_wrapper.html#sec:adding_wrapper) is used with an `-all` distribution. 
-This will change once [IDEA-231667](https://youtrack.jetbrains.com/issue/IDEA-231667) is resolved. All Gradle API sources will be downloaded on-demand.
+For IDEA, the sources for `gradleApi()` are only attached when the [Gradle wrapper](userguide/gradle_wrapper.html#sec:adding_wrapper) is used with an `-all` distribution. Sources for `gradleTestKit()` and `localGroovy()` are not attached at the moment.
+This will change once [IDEA-231667](https://youtrack.jetbrains.com/issue/IDEA-231667) is resolved. Then, the sources for all Gradle APIs (`gradleApi()`, `gradleTestKit()` and `localGroovy()`) will be downloaded and attached on-demand regardless of the wrapper in use.
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
