@@ -244,7 +244,7 @@ class TaskDependencyInferenceIntegrationTest extends AbstractIntegrationSpec imp
         result.assertTasksExecuted(":b", ":c")
     }
 
-    def "dependency declared using orElse provider whose original value is missing and  alternative value is constant does not imply task dependency"() {
+    def "dependency declared using orElse provider whose original value is missing and alternative value is constant does not imply task dependency"() {
         taskTypeWithOutputFileProperty()
         buildFile << """
             def taskA = tasks.create("a", FileProducer) {
@@ -824,7 +824,7 @@ The following types/formats are supported:
 
     def "input property with value of mapped task output implies dependency on the task"() {
         taskTypeWithOutputFileProperty()
-        taskTypeWithInputProperty()
+        taskTypeWithIntInputProperty()
         buildFile << """
             def task = tasks.create("a", FileProducer) {
                 output = file("file.txt")
@@ -866,7 +866,7 @@ The following types/formats are supported:
 
     def "input property with value of mapped task output location does not imply dependency on the task"() {
         taskTypeWithOutputFileProperty()
-        taskTypeWithInputProperty()
+        taskTypeWithIntInputProperty()
         buildFile << """
             def task = tasks.create("a", FileProducer) {
                 output = file("file.txt")
@@ -887,7 +887,7 @@ The following types/formats are supported:
     }
 
     def "input property can have value of mapped output property of same task"() {
-        taskTypeWithInputProperty()
+        taskTypeWithIntInputProperty()
         buildFile << """
             tasks.register("b", InputTask) {
                 inValue = outFile.locationOnly.map { it.asFile.name.length() }

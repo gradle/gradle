@@ -22,7 +22,7 @@ import org.gradle.api.tasks.TasksWithInputsAndOutputs
 class InstantExecutionTaskWiringIntegrationTest extends AbstractInstantExecutionIntegrationTest implements TasksWithInputsAndOutputs {
     def "task input property can consume the mapped output of another task"() {
         taskTypeWithInputFileProperty()
-        taskTypeWithInputProperty()
+        taskTypeWithIntInputProperty()
 
         buildFile << """
             task producer(type: InputFileTask) {

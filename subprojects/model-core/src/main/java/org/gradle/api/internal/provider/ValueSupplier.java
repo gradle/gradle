@@ -44,7 +44,7 @@ public interface ValueSupplier {
     /**
      * Returns true when the <em>value</em> of this supplier is produced by a task. The <em>value</em> is the object returned the query methods.
      * This is distinct from the <em>content</em>, which is the state of the value or the thing that the value points to. For example, for a file property, the file path
-     * represents the value of the property, and the contents of the file on the file system represents the content of the property.
+     * represents the value of the property, and the content of the file on the file system represents the content of the property.
      *
      * <p>Note that a task producing the value of this supplier is not necessarily the same as a task producing the <em>content</em> of
      * the value of this supplier.

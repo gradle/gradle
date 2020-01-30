@@ -16,6 +16,7 @@
 
 package org.gradle.instantexecution
 
+import org.gradle.api.Project
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
@@ -39,9 +40,11 @@ import org.gradle.instantexecution.serialization.beans.BeanConstructors
 import org.gradle.instantexecution.serialization.codecs.Codecs
 import org.gradle.instantexecution.serialization.codecs.WorkNodeCodec
 import org.gradle.instantexecution.serialization.readCollection
+import org.gradle.instantexecution.serialization.readFile
 import org.gradle.instantexecution.serialization.readNonNull
 import org.gradle.instantexecution.serialization.withIsolate
 import org.gradle.instantexecution.serialization.writeCollection
+import org.gradle.instantexecution.serialization.writeFile
 import org.gradle.internal.build.event.BuildEventListenerRegistryInternal
 import org.gradle.internal.hash.HashUtil.createCompactMD5
 import org.gradle.internal.operations.BuildOperationExecutor
@@ -53,12 +56,9 @@ import org.gradle.internal.vfs.VirtualFileSystem
 import org.gradle.tooling.events.OperationCompletionListener
 import org.gradle.util.GFileUtils.relativePathOf
 import org.gradle.util.GradleVersion
-import org.gradle.util.Path
 import java.io.File
 import java.nio.file.Files
 import java.util.ArrayList
-import java.util.SortedSet
-import java.util.TreeSet
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.coroutines.startCoroutine
@@ -429,8 +429,9 @@ class DefaultInstantExecution internal constructor(
 
     private
     fun Encoder.writeRelevantProjectsFor(nodes: List<Node>) {
-        writeCollection(fillTheGapsOf(relevantProjectPathsFor(nodes))) { projectPath ->
-            writeString(projectPath.path)
+        writeCollection(fillTheGapsOf(relevantProjectPathsFor(nodes))) { project ->
+            writeString(project.path)
+            writeFile(project.projectDir)
         }
     }
 
@@ -438,17 +439,16 @@ class DefaultInstantExecution internal constructor(
     fun Decoder.readRelevantProjects(build: InstantExecutionBuild) {
         readCollection {
             val projectPath = readString()
-            build.createProject(projectPath)
+            val projectDir = readFile()
+            build.createProject(projectPath, projectDir)
         }
     }
 
     private
-    fun relevantProjectPathsFor(nodes: List<Node>): SortedSet<Path> =
-        nodes.mapNotNullTo(TreeSet()) { node ->
+    fun relevantProjectPathsFor(nodes: List<Node>): List<Project> =
+        nodes.mapNotNullTo(mutableListOf()) { node ->
             node.owningProject
                 ?.takeIf { it.parent != null }
-                ?.path
-                ?.let(Path::path)
         }
 
     private
@@ -575,22 +575,22 @@ inline fun <reified T> DefaultInstantExecution.Host.service(): T =
 
 
 internal
-fun fillTheGapsOf(paths: SortedSet<Path>): List<Path> {
-    val pathsWithoutGaps = ArrayList<Path>(paths.size)
+fun fillTheGapsOf(projects: Collection<Project>): List<Project> {
+    val projectsWithoutGaps = ArrayList<Project>(projects.size)
     var index = 0
-    paths.forEach { path ->
-        var parent = path.parent
+    projects.forEach { project ->
+        var parent = project.parent
         var added = 0
-        while (parent !== null && parent !in pathsWithoutGaps) {
-            pathsWithoutGaps.add(index, parent)
+        while (parent !== null && parent !in projectsWithoutGaps) {
+            projectsWithoutGaps.add(index, parent)
             added += 1
             parent = parent.parent
         }
-        pathsWithoutGaps.add(path)
+        projectsWithoutGaps.add(project)
         added += 1
         index += added
     }
-    return pathsWithoutGaps
+    return projectsWithoutGaps
 }
 
 

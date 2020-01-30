@@ -356,24 +356,19 @@ allprojects { p ->
          * ${project.name}OutputDir - changes the build directory of the given project.
          * ${project.name}FileName - changes the output file name.
          * ${project.name}ProduceNothing - deletes the output file instead of writing to it.
-         * ${project.name}Content - changes the text to write to the output file.
+         * ${project.name}Content - changes the text to write to the output file, set to empty string to delete the output file.
          */
         void produceFiles() {
             producerTaskClassName = "FileProducer"
             producerConfig = """
                 output = layout.buildDir.file("\${project.name}.jar")
-                content = project.name
+                content.convention(providers.gradleProperty("\${project.name}Content").orElse(project.name))
             """.stripIndent()
             producerConfigOverrides = """
                 if (project.hasProperty("\${project.name}OutputDir")) {
                     buildDir = project.file(project.property("\${project.name}OutputDir"))
                 }
                 tasks.withType(FileProducer) {
-                    if (project.hasProperty("\${project.name}ProduceNothing")) {
-                        content = ""
-                    } else if (project.hasProperty("\${project.name}Content")) {
-                        content = project.property("\${project.name}Content")
-                    }
                     if (project.hasProperty("\${project.name}FileName")) {
                         output = layout.buildDir.file(project.property("\${project.name}FileName"))
                     }

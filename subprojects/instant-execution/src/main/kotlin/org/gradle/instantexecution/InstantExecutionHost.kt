@@ -16,6 +16,7 @@
 
 package org.gradle.instantexecution
 
+import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
@@ -110,13 +111,13 @@ class InstantExecutionHost internal constructor(
             }
         }
 
-        override fun createProject(path: String) {
+        override fun createProject(path: String, dir: File) {
             val projectPath = Path.path(path)
             val name = projectPath.name
             val projectDescriptor = DefaultProjectDescriptor(
                 getProjectDescriptor(projectPath.parent),
                 name ?: rootProjectName,
-                rootDir,
+                dir,
                 projectDescriptorRegistry,
                 fileResolver
             )
@@ -126,10 +127,8 @@ class InstantExecutionHost internal constructor(
         override fun registerProjects() {
             // Ensure projects are registered for look up e.g. by dependency resolution
             service<ProjectStateRegistry>().registerProjects(service<BuildState>())
-            for (project in projectDescriptorRegistry.allProjects) {
-                projectFactory.createProject(gradle, project, getProject(project.path().parent), coreAndPluginsScope, coreAndPluginsScope)
-            }
-            gradle.rootProject = getProject(Path.ROOT)!!
+            val rootProject = createProject(projectDescriptorRegistry.rootProject!!, null)
+            gradle.rootProject = rootProject
             gradle.defaultProject = gradle.rootProject
 
             // Fire build operation required by build scans to determine the build's project structure (and build load time)
@@ -150,6 +149,15 @@ class InstantExecutionHost internal constructor(
                         .details(ConfigureProjectBuildOperationType.DetailsImpl(project.projectPath, gradle.identityPath, project.rootDir))
                 }
             })
+        }
+
+        private
+        fun createProject(descriptor: ProjectDescriptor, parent: ProjectInternal?): ProjectInternal {
+            val project = projectFactory.createProject(gradle, descriptor, parent, coreAndPluginsScope, coreAndPluginsScope)
+            for (child in descriptor.children) {
+                createProject(child, project)
+            }
+            return project
         }
 
         override fun getProject(path: String): ProjectInternal =

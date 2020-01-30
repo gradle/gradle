@@ -37,11 +37,18 @@ class OrElseFixedValueProvider<T> extends AbstractProviderWithValue<T> {
 
     @Override
     public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-        if (provider.isPresent()) {
+        if (provider.isValueProducedByTask() || provider.isPresent()) {
+            // either the provider value will be used, or we don't know yet
             return provider.maybeVisitBuildDependencies(context);
         } else {
-            return super.maybeVisitBuildDependencies(context);
+            // provider value will not be used, so there are no dependencies
+            return true;
         }
+    }
+
+    @Override
+    public boolean isValueProducedByTask() {
+        return provider.isValueProducedByTask();
     }
 
     @Override
