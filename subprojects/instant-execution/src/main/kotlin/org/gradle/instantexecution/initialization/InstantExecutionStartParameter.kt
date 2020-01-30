@@ -18,6 +18,7 @@ package org.gradle.instantexecution.initialization
 
 import org.gradle.StartParameter
 import org.gradle.initialization.layout.BuildLayout
+import org.gradle.instantexecution.extensions.unsafeLazy
 import java.io.File
 
 
@@ -35,7 +36,7 @@ class InstantExecutionStartParameter(
     val isRefreshDependencies
         get() = startParameter.isRefreshDependencies
 
-    val requestedTaskNames: List<String> by lazy(LazyThreadSafetyMode.NONE) {
+    val requestedTaskNames: List<String> by unsafeLazy {
         startParameter.taskNames
     }
 
