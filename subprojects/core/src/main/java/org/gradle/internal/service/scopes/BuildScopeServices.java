@@ -17,7 +17,6 @@
 package org.gradle.internal.service.scopes;
 
 import org.gradle.StartParameter;
-import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.ClassPathRegistry;
@@ -69,6 +68,10 @@ import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.project.taskfactory.PropertyAssociationTaskFactory;
 import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
 import org.gradle.api.internal.project.taskfactory.TaskFactory;
+import org.gradle.api.internal.properties.GradleProperties;
+import org.gradle.api.internal.provider.DefaultProviderFactory;
+import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory;
+import org.gradle.api.internal.provider.ValueSourceProviderFactory;
 import org.gradle.api.internal.resources.ApiTextResourceAdapter;
 import org.gradle.api.internal.resources.DefaultResourceHandler;
 import org.gradle.api.internal.tasks.TaskStatistics;
@@ -132,7 +135,6 @@ import org.gradle.initialization.NotifyingBuildLoader;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.initialization.ProjectDescriptorRegistry;
 import org.gradle.initialization.ProjectPropertySettingBuildLoader;
-import org.gradle.initialization.PropertiesLoadingSettingsProcessor;
 import org.gradle.initialization.RootBuildCacheControllerSettingsProcessor;
 import org.gradle.initialization.ScriptEvaluatingSettingsProcessor;
 import org.gradle.initialization.SettingsEvaluatedCallbackFiringSettingsProcessor;
@@ -165,6 +167,7 @@ import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.invocation.DefaultBuildInvocationDetails;
+import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.logging.sink.OutputEventListenerManager;
@@ -179,7 +182,6 @@ import org.gradle.internal.resource.TextFileResourceLoader;
 import org.gradle.internal.resource.TextUriResourceLoader;
 import org.gradle.internal.service.CachingServiceLocator;
 import org.gradle.internal.service.DefaultServiceRegistry;
-import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.Clock;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
@@ -201,15 +203,12 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     public BuildScopeServices(final ServiceRegistry parent) {
         super(parent);
         addProvider(new BuildCacheServices());
-        register(new Action<ServiceRegistration>() {
-            @Override
-            public void execute(ServiceRegistration registration) {
-                registration.add(DefaultExecOperations.class);
-                registration.add(DefaultFileOperations.class);
-                registration.add(DefaultFileSystemOperations.class);
-                for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {
-                    pluginServiceRegistry.registerBuildServices(registration);
-                }
+        register(registration -> {
+            registration.add(DefaultExecOperations.class);
+            registration.add(DefaultFileOperations.class);
+            registration.add(DefaultFileSystemOperations.class);
+            for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {
+                pluginServiceRegistry.registerBuildServices(registration);
             }
         });
     }
@@ -274,18 +273,45 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new DefaultIsolatedAntBuilder(classPathRegistry, classLoaderFactory, moduleRegistry);
     }
 
-    protected ActorFactory createActorFactory() {
-        return new DefaultActorFactory(get(ExecutorFactory.class));
-    }
-
     protected IGradlePropertiesLoader createGradlePropertiesLoader() {
         return new DefaultGradlePropertiesLoader((StartParameterInternal) get(StartParameter.class));
     }
 
-    protected BuildLoader createBuildLoader(IGradlePropertiesLoader propertiesLoader, IProjectFactory projectFactory, BuildOperationExecutor buildOperationExecutor) {
+    protected ValueSourceProviderFactory createValueSourceProviderFactory(
+        InstantiatorFactory instantiatorFactory,
+        IsolatableFactory isolatableFactory,
+        ServiceRegistry services,
+        GradleProperties gradleProperties,
+        ListenerManager listenerManager
+    ) {
+        return new DefaultValueSourceProviderFactory(
+            listenerManager,
+            instantiatorFactory,
+            isolatableFactory,
+            gradleProperties,
+            services
+        );
+    }
+
+    protected ProviderFactory createProviderFactory(ValueSourceProviderFactory valueSourceProviderFactory) {
+        return new DefaultProviderFactory(valueSourceProviderFactory);
+    }
+
+    protected GradleProperties createGradleProperties(
+        IGradlePropertiesLoader propertiesLoader,
+        BuildLayout buildLayout
+    ) {
+        return propertiesLoader.loadGradleProperties(buildLayout.getRootDirectory());
+    }
+
+    protected ActorFactory createActorFactory() {
+        return new DefaultActorFactory(get(ExecutorFactory.class));
+    }
+
+    protected BuildLoader createBuildLoader(GradleProperties gradleProperties, IProjectFactory projectFactory, BuildOperationExecutor buildOperationExecutor) {
         return new NotifyingBuildLoader(
             new ProjectPropertySettingBuildLoader(
-                propertiesLoader,
+                gradleProperties,
                 new InstantiatingBuildLoader(
                     projectFactory
                 )
@@ -412,26 +438,32 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         );
     }
 
-    protected SettingsProcessor createSettingsProcessor(ScriptPluginFactory scriptPluginFactory, ScriptHandlerFactory scriptHandlerFactory, Instantiator instantiator,
-                                                        ServiceRegistryFactory serviceRegistryFactory, IGradlePropertiesLoader propertiesLoader, BuildOperationExecutor buildOperationExecutor, TextFileResourceLoader textFileResourceLoader) {
+    protected SettingsProcessor createSettingsProcessor(
+        ScriptPluginFactory scriptPluginFactory,
+        ScriptHandlerFactory scriptHandlerFactory,
+        Instantiator instantiator,
+        ServiceRegistryFactory serviceRegistryFactory,
+        GradleProperties gradleProperties,
+        BuildOperationExecutor buildOperationExecutor,
+        TextFileResourceLoader textFileResourceLoader
+    ) {
         return new BuildOperationSettingsProcessor(
             new RootBuildCacheControllerSettingsProcessor(
                 new SettingsEvaluatedCallbackFiringSettingsProcessor(
-                    new PropertiesLoadingSettingsProcessor(
-                        new ScriptEvaluatingSettingsProcessor(
-                            scriptPluginFactory,
-                            new SettingsFactory(
-                                instantiator,
-                                serviceRegistryFactory,
-                                scriptHandlerFactory
-                            ),
-                            propertiesLoader,
-                            textFileResourceLoader),
-                        propertiesLoader
+                    new ScriptEvaluatingSettingsProcessor(
+                        scriptPluginFactory,
+                        new SettingsFactory(
+                            instantiator,
+                            serviceRegistryFactory,
+                            scriptHandlerFactory
+                        ),
+                        gradleProperties,
+                        textFileResourceLoader
                     )
                 )
             ),
-            buildOperationExecutor);
+            buildOperationExecutor
+        );
     }
 
     protected SettingsPreparer createSettingsPreparer(InitScriptHandler initScriptHandler, SettingsLoaderFactory settingsLoaderFactory, BuildOperationExecutor buildOperationExecutor, BuildDefinition buildDefinition) {
