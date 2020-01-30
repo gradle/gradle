@@ -16,7 +16,7 @@
 
 package org.gradle.api.publish.internal
 
-import org.gradle.api.publish.PublishRetrierException
+
 import spock.lang.Specification
 import spock.lang.Subject
 

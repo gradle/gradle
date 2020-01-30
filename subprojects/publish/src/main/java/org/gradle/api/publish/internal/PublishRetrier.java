@@ -14,22 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publish;
-
-import org.gradle.api.Incubating;
+package org.gradle.api.publish.internal;
 
 /**
  * Publisher that is able to retry in case of intermittent network issues.
  *
  * @since 6.3
  */
-@Incubating
 public interface PublishRetrier {
-
-    /**
-     * executes publish action with retry logic
-     *
-     * @since 6.3
-     */
     void publishWithRetry() throws PublishRetrierException;
 }

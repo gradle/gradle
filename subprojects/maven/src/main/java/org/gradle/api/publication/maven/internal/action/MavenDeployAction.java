@@ -17,7 +17,7 @@ package org.gradle.api.publication.maven.internal.action;
 
 import org.apache.maven.artifact.ant.RemoteRepository;
 import org.gradle.api.GradleException;
-import org.gradle.api.publish.PublishRetrierException;
+import org.gradle.api.publish.internal.PublishRetrierException;
 import org.gradle.api.publish.internal.DefaultPublishRetrier;
 import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity;
 import org.slf4j.Logger;

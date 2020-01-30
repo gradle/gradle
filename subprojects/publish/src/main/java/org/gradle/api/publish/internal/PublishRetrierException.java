@@ -14,23 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publish;
-
-import org.gradle.api.Incubating;
+package org.gradle.api.publish.internal;
 
 /**
  *
  * Exception used for errors associated with {@link PublishRetrier}
  * @since 6.3
  */
-@Incubating
 public class PublishRetrierException extends Exception {
-
-    /**
-     * Exception used for errors associated with {@link PublishRetrier}
-     * @since 6.3
-     */
-    @Incubating
     public PublishRetrierException(String errorMessage, Throwable t) {
         super(errorMessage, t);
     }

@@ -17,8 +17,6 @@
 package org.gradle.api.publish.internal;
 
 import org.gradle.api.internal.artifacts.repositories.transport.NetworkingIssueVerifier;
-import org.gradle.api.publish.PublishRetrier;
-import org.gradle.api.publish.PublishRetrierException;
 import org.gradle.internal.UncheckedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
