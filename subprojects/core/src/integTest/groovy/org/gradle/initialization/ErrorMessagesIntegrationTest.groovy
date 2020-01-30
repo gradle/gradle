@@ -22,9 +22,7 @@ import org.gradle.util.TestPrecondition
 
 class ErrorMessagesIntegrationTest extends AbstractIntegrationSpec {
 
-    @Requires(TestPrecondition.NOT_WINDOWS)
-    def "Error message due to bad permissions on project's gradle cache directory is not scary"() {
-        given:
+    def setup() {
         buildScript """
             task hello() {
                 doLast {
@@ -32,9 +30,34 @@ class ErrorMessagesIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
+    }
+
+    @Requires(TestPrecondition.NOT_WINDOWS)
+    def "Error message due to bad permissions on project's Gradle cache directory is not scary"() {
+        given:
         def localGradleCache = file('.gradle')
         localGradleCache.mkdir()
         localGradleCache.setPermissions("r-xr-xr-x")
+
+        when:
+        fails 'hello'
+
+        then:
+        errorOutput.contains("FAILURE: Build failed with an exception.\n" +
+            "\n" +
+            "* What went wrong:\n" +
+            "Gradle could not start your build.\n" +
+            "> Gradle encountered an internal problem.")
+    }
+
+    @Requires(TestPrecondition.NOT_WINDOWS)
+    def "Error message due to unwriteable user home directory is not scary"() {
+        given:
+        requireOwnGradleUserHomeDir()
+        requireGradleDistribution()
+
+        executer.gradleUserHomeDir.mkdir()
+        executer.gradleUserHomeDir.setPermissions("r-xr-xr-x")
 
         when:
         fails 'hello'
