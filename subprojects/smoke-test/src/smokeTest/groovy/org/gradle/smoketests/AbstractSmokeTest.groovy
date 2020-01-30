@@ -69,7 +69,7 @@ abstract class AbstractSmokeTest extends Specification {
         static shadow = Versions.of("4.0.4", "5.2.0")
 
         // https://github.com/asciidoctor/asciidoctor-gradle-plugin/releases
-        static asciidoctor = Versions.of("2.3.0", "3.0.0")
+        static asciidoctor = Versions.of("2.3.0", "3.0.0", "3.1.0")
 
         // https://plugins.gradle.org/plugin/com.github.spotbugs
         static spotbugs = "3.0.0"
