@@ -19,11 +19,13 @@ package org.gradle.internal.execution.history.impl;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.cache.CacheDecorator;
+import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
+import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
-import org.gradle.internal.execution.history.ExecutionHistoryCacheAccess;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
@@ -31,6 +33,7 @@ import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
 import java.util.Optional;
+import java.util.function.Supplier;
 
 import static com.google.common.collect.ImmutableSortedMap.copyOfSorted;
 import static com.google.common.collect.Maps.transformValues;
@@ -39,14 +42,18 @@ public class DefaultExecutionHistoryStore implements ExecutionHistoryStore {
 
     private final PersistentIndexedCache<String, AfterPreviousExecutionState> store;
 
-    public DefaultExecutionHistoryStore(ExecutionHistoryCacheAccess executionHistoryCacheAccess, StringInterner stringInterner) {
+    public DefaultExecutionHistoryStore(
+        Supplier<PersistentCache> cache,
+        InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
+        StringInterner stringInterner
+    ) {
         DefaultPreviousExecutionStateSerializer serializer = new DefaultPreviousExecutionStateSerializer(
             new FileCollectionFingerprintSerializer(stringInterner));
 
-        this.store = executionHistoryCacheAccess.createCache(
-            PersistentIndexedCacheParameters.of("executionHistory", String.class, serializer),
-            10000,
-            false
+        CacheDecorator inMemoryCacheDecorator = inMemoryCacheDecoratorFactory.decorator(10000, false);
+        this.store = cache.get().createCache(
+            PersistentIndexedCacheParameters.of("executionHistory", String.class, serializer)
+            .withCacheDecorator(inMemoryCacheDecorator)
         );
     }
 

@@ -18,9 +18,6 @@ package org.gradle.api.internal.changedetection.state;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
-import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.cache.PersistentIndexedCacheParameters;
-import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.internal.execution.history.ExecutionHistoryCacheAccess;
 
 import javax.annotation.Nullable;
@@ -29,28 +26,23 @@ import java.io.Closeable;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class DefaultExecutionHistoryCacheAccess implements ExecutionHistoryCacheAccess, Closeable {
-    private final InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory;
     private final PersistentCache cache;
 
-    public DefaultExecutionHistoryCacheAccess(@Nullable Object scope, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
-        this.inMemoryCacheDecoratorFactory = inMemoryCacheDecoratorFactory;
-        cache = cacheRepository
-                .cache(scope, "executionHistory")
-                .withDisplayName("execution history cache")
-                .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Lock on demand
-                .open();
+    public DefaultExecutionHistoryCacheAccess(@Nullable Object scope, CacheRepository cacheRepository) {
+        this.cache = cacheRepository
+            .cache(scope, "executionHistory")
+            .withDisplayName("execution history cache")
+            .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Lock on demand
+            .open();
+    }
+
+    @Override
+    public PersistentCache get() {
+        return cache;
     }
 
     @Override
     public void close() {
         cache.close();
     }
-
-    @Override
-    public <K, V> PersistentIndexedCache<K, V> createCache(PersistentIndexedCacheParameters<K, V> parameters, int maxEntriesToKeepInMemory, boolean cacheInMemoryForShortLivedProcesses) {
-        return cache.createCache(parameters
-            .withCacheDecorator(inMemoryCacheDecoratorFactory.decorator(maxEntriesToKeepInMemory, cacheInMemoryForShortLivedProcesses))
-        );
-    }
-
 }

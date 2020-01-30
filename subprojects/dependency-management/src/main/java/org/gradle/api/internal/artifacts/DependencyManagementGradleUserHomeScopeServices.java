@@ -71,12 +71,20 @@ public class DependencyManagementGradleUserHomeScopeServices {
         return artifactCachesProvider;
     }
 
-    ExecutionHistoryCacheAccess createExecutionHistoryCacheAccess(CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
-        return new DefaultExecutionHistoryCacheAccess(null, cacheRepository, inMemoryCacheDecoratorFactory);
+    ExecutionHistoryCacheAccess createExecutionHistoryCacheAccess(CacheRepository cacheRepository) {
+        return new DefaultExecutionHistoryCacheAccess(null, cacheRepository);
     }
 
-    ExecutionHistoryStore createExecutionHistoryStore(ExecutionHistoryCacheAccess executionHistoryCacheAccess, StringInterner stringInterner) {
-        return new DefaultExecutionHistoryStore(executionHistoryCacheAccess, stringInterner);
+    ExecutionHistoryStore createExecutionHistoryStore(
+        ExecutionHistoryCacheAccess executionHistoryCacheAccess,
+        InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
+        StringInterner stringInterner
+    ) {
+        return new DefaultExecutionHistoryStore(
+            executionHistoryCacheAccess,
+            inMemoryCacheDecoratorFactory,
+            stringInterner
+        );
     }
 
     ImmutableTransformationWorkspaceProvider createTransformerWorkspaceProvider(ArtifactCachesProvider artifactCaches, CacheRepository cacheRepository, FileAccessTimeJournal fileAccessTimeJournal, ExecutionHistoryStore executionHistoryStore) {
