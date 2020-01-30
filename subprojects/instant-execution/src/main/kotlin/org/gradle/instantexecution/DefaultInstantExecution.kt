@@ -501,7 +501,7 @@ class DefaultInstantExecution internal constructor(
 
     private
     fun systemProperty(propertyName: String) =
-        startParameter.systemPropertyArg(propertyName) ?: System.getProperty(propertyName)
+        System.getProperty(propertyName)
 }
 
 
