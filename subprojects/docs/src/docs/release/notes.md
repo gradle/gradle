@@ -58,6 +58,14 @@ For example:
 
 In some terminals, this link will be clickable and take you directly to the documentation.
 
+## Gradle source code for plugin developers in IDEs
+
+Plugin authors using Eclipse will now have sources of `gradleApi()`, `gradleTestKit()` and `localGroovy()` dependencies downloaded and attached for navigation in the IDE.
+
+In IDEA, the sources of `gradleApi()` only are attached when [Gradle wrapper](https://docs.gradle.org/6.2/userguide/gradle_wrapper.html#sec:adding_wrapper) is used with `-all` distribution. 
+This will change and sources for all Gradle APIs will be downloaded on-demand in IDEA regardless of the wrapper used once [this issue](https://youtrack.jetbrains.com/issue/IDEA-231667) is resolved.
+
+
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
