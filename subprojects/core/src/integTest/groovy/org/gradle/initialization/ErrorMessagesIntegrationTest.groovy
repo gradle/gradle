@@ -50,7 +50,7 @@ class ErrorMessagesIntegrationTest extends AbstractIntegrationSpec {
             "> Gradle encountered an internal problem.")
     }
 
-    @Requires(TestPrecondition.NOT_WINDOWS)
+    @Requires(TestPrecondition.MAC_OS_X)
     def "Error message due to unwriteable user home directory is not scary"() {
         given:
         requireOwnGradleUserHomeDir()
