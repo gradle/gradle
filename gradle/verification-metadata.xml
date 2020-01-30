@@ -2,6 +2,14 @@
 <verification-metadata xmlns="https://schema.gradle.org/dependency-verification"
                        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                        xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/verification-1.0.xsd">
+   <!--
+      If you are tempted to delete this file because it goes in the way of testing changes or performing an IDE sync, DON'T!
+      Instead, edit `gradle.properties` and set `org.gradle.dependency.verification=lenient`: this would still
+      perform dependency verification but let you know that something is missing _without_ breaking the build.
+
+      Note that if you update the configuration using the automated mode in Gradle (write-verification-metadata), the header
+      and comments will be deleted. Please make sure to keep them as is!
+   -->
    <configuration>
       <verify-metadata>false</verify-metadata>
       <verify-signatures>true</verify-signatures>
