@@ -17,8 +17,10 @@
 package org.gradle.smoketests
 
 import org.gradle.api.JavaVersion
+import org.gradle.api.specs.Spec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.jvm.JvmInstallation
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.util.Requires
@@ -26,7 +28,7 @@ import org.gradle.util.TestPrecondition
 
 
 @Requires(value = TestPrecondition.JDK9_OR_LATER, adhoc = {
-    !GradleContextualExecuter.isInstant() && AvailableJavaHomes.getJdk(JavaVersion.VERSION_11)
+    !GradleContextualExecuter.isInstant() && AvailableJavaHomes.getAvailableJdk(new GradleBuildJvmSpec())
 })
 class GradleBuildInstantExecutionSmokeTest extends AbstractSmokeTest {
 
@@ -36,7 +38,7 @@ class GradleBuildInstantExecutionSmokeTest extends AbstractSmokeTest {
         new TestFile("build/gradleBuildCurrent").copyTo(testProjectDir.root)
 
         and:
-        def buildJavaHome = AvailableJavaHomes.getJdk(JavaVersion.VERSION_11).javaHome
+        def buildJavaHome = AvailableJavaHomes.getAvailableJdks(new GradleBuildJvmSpec()).last().javaHome
         file("gradle.properties") << "\norg.gradle.java.home=${buildJavaHome}\n"
 
         and:
@@ -84,4 +86,12 @@ class GradleBuildInstantExecutionSmokeTest extends AbstractSmokeTest {
         "-Dorg.gradle.unsafe.kotlin-eap=true", // TODO:instant-execution kotlin 1.3.61 doesn't support instant execution
         "-PbuildSrcCheck=false"
     ]
+}
+
+
+class GradleBuildJvmSpec implements Spec<JvmInstallation> {
+    @Override
+    boolean isSatisfiedBy(JvmInstallation jvm) {
+        return jvm.javaVersion >= JavaVersion.VERSION_1_9 && jvm.javaVersion <= JavaVersion.VERSION_11
+    }
 }
