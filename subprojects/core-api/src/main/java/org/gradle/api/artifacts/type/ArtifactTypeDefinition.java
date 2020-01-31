@@ -16,7 +16,9 @@
 
 package org.gradle.api.artifacts.type;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.Named;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.HasAttributes;
 
@@ -62,6 +64,37 @@ public interface ArtifactTypeDefinition extends HasAttributes, Named {
      * @since 5.3
      */
     String DIRECTORY_TYPE = "directory";
+
+    /**
+     * Define a file name extension to which this type definition applies.
+     * This overrides the default where the name of the type defintion is considered as extension.
+     *
+     * @param extension extension to which this definition applies
+     *
+     * @since 6.3
+     */
+    @Incubating
+    void forFileNameExtension(String extension);
+
+    /**
+     * Add a module id. If module ids are defined, this type definition only applies to artifacts
+     * which are part of the indicated modules.
+     *
+     * @param group module group
+     * @param name module name
+     *
+     * @since 6.3
+     */
+    @Incubating
+    void forModule(String group, String name);
+
+    /**
+     * Returns the set of module identifiers for which this definition applies. Empty, if it applies to all artifacts matching the configured file name extension(s).
+     *
+     * @since 6.3
+     */
+    @Incubating
+    Set<ModuleIdentifier> getModuleIdentifiers();
 
     /**
      * Returns the set of file name extensions that should be mapped to this artifact type. Defaults to the name of this type.

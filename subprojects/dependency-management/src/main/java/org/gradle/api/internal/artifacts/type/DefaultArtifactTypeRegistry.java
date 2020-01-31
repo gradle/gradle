@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.type;
 
 import com.google.common.io.Files;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.type.ArtifactTypeContainer;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
@@ -60,7 +61,7 @@ public class DefaultArtifactTypeRegistry implements ArtifactTypeRegistry {
         } else {
             String extension = Files.getFileExtension(file.getName());
             if (artifactTypeDefinitions != null) {
-                attributes = applyForExtension(attributes, extension);
+                attributes = applyForExtension(attributes, extension, null);
             }
             attributes = attributesFactory.concat(attributesFactory.of(ARTIFACT_FORMAT, extension), attributes);
         }
@@ -68,7 +69,7 @@ public class DefaultArtifactTypeRegistry implements ArtifactTypeRegistry {
     }
 
     @Override
-    public ImmutableAttributes mapAttributesFor(VariantResolveMetadata variant) {
+    public ImmutableAttributes mapAttributesFor(VariantResolveMetadata variant, ModuleIdentifier moduleIdentifier) {
         ImmutableAttributes attributes = variant.getAttributes().asImmutable();
 
         // Add attributes to be applied given the extension
@@ -84,7 +85,7 @@ public class DefaultArtifactTypeRegistry implements ArtifactTypeRegistry {
                 }
             }
             if (extension != null) {
-                attributes = applyForExtension(attributes, extension);
+                attributes = applyForExtension(attributes, extension, moduleIdentifier);
             }
         }
 
@@ -108,10 +109,13 @@ public class DefaultArtifactTypeRegistry implements ArtifactTypeRegistry {
         return attributes;
     }
 
-    private ImmutableAttributes applyForExtension(ImmutableAttributes attributes, String extension) {
-        ArtifactTypeDefinition definition = artifactTypeDefinitions.findByName(extension);
-        if (definition != null) {
-            attributes = attributesFactory.concat(((AttributeContainerInternal) definition.getAttributes()).asImmutable(), attributes);
+    private ImmutableAttributes applyForExtension(ImmutableAttributes attributes, String extension, ModuleIdentifier moduleIdentifier) {
+        for (ArtifactTypeDefinition typeDefinition : artifactTypeDefinitions) {
+            if (typeDefinition.getFileNameExtensions().contains(extension)) {
+                if (typeDefinition.getModuleIdentifiers().isEmpty() || typeDefinition.getModuleIdentifiers().contains(moduleIdentifier)) {
+                    attributes = attributesFactory.concat(((AttributeContainerInternal) typeDefinition.getAttributes()).asImmutable(), attributes);
+                }
+            }
         }
         return attributes;
     }

@@ -16,6 +16,7 @@
 
 package org.gradle.jvm.internal;
 
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.component.BuildIdentifier;
@@ -153,7 +154,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
             }
 
             @Override
-            public ImmutableAttributes mapAttributesFor(VariantResolveMetadata variant) {
+            public ImmutableAttributes mapAttributesFor(VariantResolveMetadata variant, ModuleIdentifier moduleIdentifier) {
                 return variant.getAttributes().asImmutable();
             }
 

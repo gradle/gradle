@@ -58,7 +58,7 @@ class DefaultArtifactTypeRegistryTest extends Specification {
         variant.attributes >> attrs
 
         expect:
-        registry.mapAttributesFor(variant) == attrs
+        registry.mapAttributesFor(variant, null) == attrs
     }
 
     def "does not apply any mapping when variant has no artifacts"() {
@@ -70,7 +70,7 @@ class DefaultArtifactTypeRegistryTest extends Specification {
         variant.artifacts >> ImmutableList.of()
 
         expect:
-        registry.mapAttributesFor(variant) == attrs
+        registry.mapAttributesFor(variant, null) == attrs
     }
 
     def "adds artifactType attribute but does not apply any mapping when no matching artifact type"() {
@@ -90,7 +90,7 @@ class DefaultArtifactTypeRegistryTest extends Specification {
         registry.create().create("aar")
 
         expect:
-        registry.mapAttributesFor(variant) == attrsPlusFormat
+        registry.mapAttributesFor(variant, null) == attrsPlusFormat
     }
 
     def "applies mapping when no attributes defined for matching type"() {
@@ -110,7 +110,7 @@ class DefaultArtifactTypeRegistryTest extends Specification {
         registry.create().create("jar")
 
         expect:
-        registry.mapAttributesFor(variant) == attrsPlusFormat
+        registry.mapAttributesFor(variant, null) == attrsPlusFormat
     }
 
     def "applies mapping to matching artifact type"() {
@@ -130,7 +130,7 @@ class DefaultArtifactTypeRegistryTest extends Specification {
         registry.create().create("jar").attributes.attribute(Attribute.of("custom", String), "123")
 
         expect:
-        registry.mapAttributesFor(variant) == attrsPlusFormat
+        registry.mapAttributesFor(variant, null) == attrsPlusFormat
     }
 
     def "does not apply mapping when multiple artifacts with different types"() {
@@ -155,7 +155,7 @@ class DefaultArtifactTypeRegistryTest extends Specification {
         registry.create().create("zip").attributes.attribute(Attribute.of("custom", String), "234")
 
         expect:
-        registry.mapAttributesFor(variant) == attrs
+        registry.mapAttributesFor(variant, null) == attrs
     }
 
     def "maps only artifactType attribute for arbitrary files when no extensions are registered"() {

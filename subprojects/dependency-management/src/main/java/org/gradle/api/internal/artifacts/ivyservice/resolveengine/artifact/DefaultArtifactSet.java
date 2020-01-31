@@ -96,7 +96,7 @@ public abstract class DefaultArtifactSet implements ArtifactSet, ResolvedVariant
         ImmutableSet.Builder<ResolvableArtifact> resolvedArtifacts = ImmutableSet.builder();
 
         // Apply any artifact type mappings to the attributes of the variant
-        ImmutableAttributes attributes = artifactTypeRegistry.mapAttributesFor(variant);
+        ImmutableAttributes attributes = artifactTypeRegistry.mapAttributesFor(variant, ownerId.getModule());
 
         for (ComponentArtifactMetadata artifact : artifacts) {
             IvyArtifactName artifactName = artifact.getName();

@@ -17,11 +17,14 @@
 package org.gradle.api.internal.artifacts.type;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.type.ArtifactTypeContainer;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.AbstractValidatingNamedDomainObjectContainer;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.reflect.Instantiator;
 
@@ -43,6 +46,8 @@ public class DefaultArtifactTypeContainer extends AbstractValidatingNamedDomainO
     public static class DefaultArtifactTypeDefinition implements ArtifactTypeDefinition {
         private final String name;
         private final AttributeContainer attributes;
+        private Set<String> fileNameExtensions;
+        private Set<ModuleIdentifier> moduleIdentifiers;
 
         public DefaultArtifactTypeDefinition(String name, ImmutableAttributesFactory attributesFactory) {
             this.name = name;
@@ -50,8 +55,35 @@ public class DefaultArtifactTypeContainer extends AbstractValidatingNamedDomainO
         }
 
         @Override
+        public void forFileNameExtension(String extension) {
+            if (fileNameExtensions == null) {
+                fileNameExtensions = Sets.newHashSet();
+            }
+            fileNameExtensions.add(extension);
+        }
+
+        @Override
+        public void forModule(String group, String name) {
+            if (moduleIdentifiers == null) {
+                moduleIdentifiers = Sets.newHashSet();
+            }
+            moduleIdentifiers.add(DefaultModuleIdentifier.newId(group, name));
+        }
+
+        @Override
+        public Set<ModuleIdentifier> getModuleIdentifiers() {
+            if (moduleIdentifiers == null) {
+                return ImmutableSet.of();
+            }
+            return ImmutableSet.copyOf(moduleIdentifiers);
+        }
+
+        @Override
         public Set<String> getFileNameExtensions() {
-            return ImmutableSet.of(name);
+            if (fileNameExtensions == null) {
+                return ImmutableSet.of(name);
+            }
+            return ImmutableSet.copyOf(fileNameExtensions);
         }
 
         @Override
