@@ -131,7 +131,7 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
 
     enum Optimization {
         INSTANT_EXECUTION(JavaInstantExecutionPerformanceTest.INSTANT_EXECUTION_ENABLED_PROPERTY),
-        VFS_RETENTION(VirtualFileSystemServices.VFS_RETENTION_ENABLED_PROPERTY)
+        VFS_RETENTION(VirtualFileSystemServices.FILE_WATCHING_STATE_PROPERTY)
 
         Optimization(String systemProperty) {
             this.argument = "-D${systemProperty}=true"

@@ -114,7 +114,7 @@ class VirtualFileSystemServicesTest extends Specification {
 
     Map<String, String> systemPropertyArgs(boolean retentionEnabled) {
         retentionEnabled
-            ? [(VirtualFileSystemServices.VFS_RETENTION_ENABLED_PROPERTY): "true"]
+            ? [(VirtualFileSystemServices.FILE_WATCHING_STATE_PROPERTY): "enabled"]
             : [:]
     }
 

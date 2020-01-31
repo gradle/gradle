@@ -43,7 +43,7 @@ class VfsRetentionGradleExecuter extends DaemonGradleExecuter {
         List<Object> conditionalArgs = firstUse ? ["-D${VirtualFileSystemServices.VFS_DROP_PROPERTY}=true"] : ImmutableList.of()
         firstUse = false
         super.getAllArgs() + ([
-            "-D${VirtualFileSystemServices.VFS_RETENTION_ENABLED_PROPERTY}=true",
+                "-D${VirtualFileSystemServices.FILE_WATCHING_STATE_PROPERTY}=enabled",
         ] + conditionalArgs).collect { it.toString() }
     }
 }

@@ -107,26 +107,26 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
     public static final String VFS_PARTIAL_INVALIDATION_ENABLED_PROPERTY = "org.gradle.unsafe.vfs.partial-invalidation";
 
     /**
-     * System property to enable retaining VFS state between builds.
+     * System property to enable watching the file system and retaining VFS state between builds.
      *
      * Also enables partial VFS invalidation.
      *
      * @see #VFS_PARTIAL_INVALIDATION_ENABLED_PROPERTY
      */
-    public static final String VFS_RETENTION_ENABLED_PROPERTY = "org.gradle.unsafe.vfs.retention";
+    public static final String FILE_WATCHING_STATE_PROPERTY = "org.gradle.unsafe.file.watching";
 
     /**
      * When retention is enabled, this system property can be used to pass a comma-separated
      * list of file paths that have changed since the last build.
      *
-     * @see #VFS_RETENTION_ENABLED_PROPERTY
+     * @see #FILE_WATCHING_STATE_PROPERTY
      */
     public static final String VFS_CHANGES_SINCE_LAST_BUILD_PROPERTY = "org.gradle.unsafe.vfs.changes";
 
     /**
      * When retention is enabled, this system property can be used to invalidate the entire VFS.
      *
-     * @see #VFS_RETENTION_ENABLED_PROPERTY
+     * @see #FILE_WATCHING_STATE_PROPERTY
      */
     public static final String VFS_DROP_PROPERTY = "org.gradle.unsafe.vfs.drop";
 
@@ -136,7 +136,23 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
     }
 
     public static boolean isRetentionEnabled(Map<String, String> systemPropertiesArgs) {
-        return getSystemProperty(VFS_RETENTION_ENABLED_PROPERTY, systemPropertiesArgs) != null;
+        String systemProperty = getSystemProperty(FILE_WATCHING_STATE_PROPERTY, systemPropertiesArgs);
+        if (systemProperty == null) {
+            return false;
+        }
+        systemProperty = systemProperty.trim().toLowerCase();
+        switch (systemProperty) {
+            case "enabled":
+                return true;
+            case "disabled":
+                return false;
+            case "local-only":
+                return System.getenv("CI") == null;
+            default:
+                LOGGER.warn("Unknown value specified for system property '{}': {}, valid values are 'enabled', 'disabled' and 'local-only'" +
+                    " (to enable only when CI environment variable is not present)", FILE_WATCHING_STATE_PROPERTY, systemProperty);
+                return false;
+        }
     }
 
     public static List<File> getChangedPathsSinceLastBuild(PathToFileResolver resolver, Map<String, String> systemPropertiesArgs) {

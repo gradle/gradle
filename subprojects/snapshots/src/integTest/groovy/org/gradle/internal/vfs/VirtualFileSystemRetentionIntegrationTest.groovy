@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.IgnoreIf
 
 import static org.gradle.internal.service.scopes.VirtualFileSystemServices.VFS_DROP_PROPERTY
-import static org.gradle.internal.service.scopes.VirtualFileSystemServices.VFS_RETENTION_ENABLED_PROPERTY
+import static org.gradle.internal.service.scopes.VirtualFileSystemServices.FILE_WATCHING_STATE_PROPERTY
 
 // The whole test makes no sense if there isn't a daemon to retain the state.
 @IgnoreIf({ GradleContextualExecuter.noDaemon || GradleContextualExecuter.vfsRetention })
@@ -415,7 +415,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
     }
 
     private def withRetention() {
-        executer.withArgument  "-D${VFS_RETENTION_ENABLED_PROPERTY}"
+        executer.withArgument  "-D${FILE_WATCHING_STATE_PROPERTY}=enabled"
         this
     }
 
