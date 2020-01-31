@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.Requires
+import spock.lang.Issue
 
 import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 
@@ -240,5 +241,37 @@ task("dumpKotlinBuildScriptModelClassPath") {
         run taskName, '-PinputString=string2'
         then:
         executedAndNotSkipped(taskName)
+    }
+
+    @Issue("https://youtrack.jetbrains.com/issue/KT-36297")
+    def 'can use Kotlin lambda as provider'() {
+        given:
+        buildFile << '''
+            tasks {
+                register<Task>("broken") {
+                    val prop = objects.property(String::class.java)
+                    // broken by https://youtrack.jetbrains.com/issue/KT-36297
+                    prop.set(provider { "abc" })
+                    doLast { println("-> value = ${prop.get()}") }
+                }
+                register<Task>("ok1") {
+                    val prop = objects.property(String::class.java)
+                    val function = { "abc" }
+                    prop.set(provider(function))
+                    doLast { println("-> value = ${prop.get()}") }
+                }
+            }
+            tasks.register<Task>("ok2") {
+                val prop = objects.property(String::class.java)
+                prop.set(provider { "abc" })
+                doLast { println("-> value = ${prop.get()}") }
+            }
+        '''
+
+        when:
+        succeeds 'broken', 'ok1', 'ok2'
+
+        then:
+        result.output.count('-> value = abc') == 3
     }
 }
