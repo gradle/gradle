@@ -17,6 +17,7 @@
 package org.gradle.api.internal.provider
 
 import org.gradle.api.Action
+import org.gradle.api.internal.properties.GradleProperties
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
@@ -37,6 +38,7 @@ abstract class ValueSourceBasedSpec extends Specification {
         listenerManager,
         TestUtil.instantiatorFactory(),
         isolatableFactory,
+        Mock(GradleProperties),
         TestUtil.services()
     )
 

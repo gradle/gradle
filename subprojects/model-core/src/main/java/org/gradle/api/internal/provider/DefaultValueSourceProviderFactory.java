@@ -18,6 +18,7 @@ package org.gradle.api.internal.provider;
 
 import org.gradle.api.Action;
 import org.gradle.api.NonExtensible;
+import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ValueSource;
 import org.gradle.api.provider.ValueSourceParameters;
@@ -39,6 +40,7 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
 
     private final InstantiatorFactory instantiatorFactory;
     private final IsolatableFactory isolatableFactory;
+    private final GradleProperties gradleProperties;
     private final AnonymousListenerBroadcast<Listener> broadcaster;
     private final IsolationScheme<ValueSource, ValueSourceParameters> isolationScheme = new IsolationScheme<>(ValueSource.class, ValueSourceParameters.class, ValueSourceParameters.None.class);
     private final InstanceGenerator paramsInstantiator;
@@ -48,11 +50,13 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         ListenerManager listenerManager,
         InstantiatorFactory instantiatorFactory,
         IsolatableFactory isolatableFactory,
+        GradleProperties gradleProperties,
         ServiceLookup services
     ) {
         this.broadcaster = listenerManager.createAnonymousBroadcaster(ValueSourceProviderFactory.Listener.class);
         this.instantiatorFactory = instantiatorFactory;
         this.isolatableFactory = isolatableFactory;
+        this.gradleProperties = gradleProperties;
         // TODO - dedupe logic copied from DefaultBuildServicesRegistry
         this.paramsInstantiator = instantiatorFactory.decorateScheme().withServices(services).instantiator();
         this.specInstantiator = instantiatorFactory.decorateLenientScheme().withServices(services).instantiator();
@@ -94,6 +98,7 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
     ) {
         DefaultServiceRegistry services = new DefaultServiceRegistry();
         services.add(parametersType, isolatedParameters);
+        services.add(GradleProperties.class, gradleProperties);
         return instantiatorFactory
             .injectScheme()
             .withServices(services)
