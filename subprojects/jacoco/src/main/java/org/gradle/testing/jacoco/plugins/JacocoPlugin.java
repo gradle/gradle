@@ -57,6 +57,10 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
     public static final String AGENT_CONFIGURATION_NAME = "jacocoAgent";
     public static final String ANT_CONFIGURATION_NAME = "jacocoAnt";
     public static final String PLUGIN_EXTENSION_NAME = "jacoco";
+
+    private static final String AGENT_CLASSPATH_CONFIGURATION_NAME = AGENT_CONFIGURATION_NAME + "Classpath";
+    private static final String ANT_CLASSPATH_CONFIGURATION_NAME = ANT_CONFIGURATION_NAME + "Classpath";
+
     private final Instantiator instantiator;
     private Project project;
 
@@ -97,10 +101,31 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
         agentConf.setVisible(false);
         agentConf.setTransitive(true);
         agentConf.setDescription("The Jacoco agent to use to get coverage data.");
+        // TODO: Add a deprecation message when this configuration is resolved and set this to false in Gradle 7
+        agentConf.setCanBeResolved(true);
+        agentConf.setCanBeConsumed(true);
+
+        Configuration agentClasspathConf = project.getConfigurations().create(AGENT_CLASSPATH_CONFIGURATION_NAME);
+        agentClasspathConf.setVisible(false);
+        agentClasspathConf.setTransitive(true);
+        agentClasspathConf.setCanBeResolved(true);
+        agentClasspathConf.setCanBeConsumed(false);
+        agentClasspathConf.extendsFrom(agentConf);
+
         Configuration antConf = project.getConfigurations().create(ANT_CONFIGURATION_NAME);
         antConf.setVisible(false);
         antConf.setTransitive(true);
         antConf.setDescription("The Jacoco ant tasks to use to get execute Gradle tasks.");
+        // TODO: Add a deprecation message when this configuration is resolved and set this to false in Gradle 7
+        antConf.setCanBeResolved(true);
+        antConf.setCanBeConsumed(true);
+
+        Configuration antClasspathConf = project.getConfigurations().create(ANT_CLASSPATH_CONFIGURATION_NAME);
+        antClasspathConf.setVisible(false);
+        antClasspathConf.setTransitive(true);
+        antClasspathConf.setCanBeResolved(true);
+        antClasspathConf.setCanBeConsumed(false);
+        antClasspathConf.extendsFrom(antConf);
     }
 
 
@@ -111,13 +136,13 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
      */
     private void configureAgentDependencies(JacocoAgentJar jacocoAgentJar, final JacocoPluginExtension extension) {
         final Configuration config = project.getConfigurations().getAt(AGENT_CONFIGURATION_NAME);
-        jacocoAgentJar.setAgentConf(config);
         config.defaultDependencies(new Action<DependencySet>() {
             @Override
             public void execute(DependencySet dependencies) {
                 dependencies.add(project.getDependencies().create("org.jacoco:org.jacoco.agent:" + extension.getToolVersion()));
             }
         });
+        jacocoAgentJar.setAgentConf(project.getConfigurations().getAt(AGENT_CLASSPATH_CONFIGURATION_NAME));
     }
 
     /**
@@ -127,17 +152,18 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
      * @param extension the JacocoPluginExtension
      */
     private void configureTaskClasspathDefaults(final JacocoPluginExtension extension) {
-        final Configuration config = this.project.getConfigurations().getAt(ANT_CONFIGURATION_NAME);
-        project.getTasks().withType(JacocoBase.class).configureEach(new Action<JacocoBase>() {
-            @Override
-            public void execute(JacocoBase task) {
-                task.setJacocoClasspath(config);
-            }
-        });
+        final Configuration config = project.getConfigurations().getAt(ANT_CONFIGURATION_NAME);
         config.defaultDependencies(new Action<DependencySet>() {
             @Override
             public void execute(DependencySet dependencies) {
                 dependencies.add(project.getDependencies().create("org.jacoco:org.jacoco.ant:" + extension.getToolVersion()));
+            }
+        });
+        final Configuration classpathConfig = project.getConfigurations().getAt(ANT_CLASSPATH_CONFIGURATION_NAME);
+        project.getTasks().withType(JacocoBase.class).configureEach(new Action<JacocoBase>() {
+            @Override
+            public void execute(JacocoBase task) {
+                task.setJacocoClasspath(classpathConfig);
             }
         });
     }
