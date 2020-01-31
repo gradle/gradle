@@ -136,26 +136,25 @@ public class BuildExceptionReporter implements Action<Throwable> {
 
         fillInFailureResolution(details);
 
-        if (failure instanceof LocationAwareException) {
+        if (isInternalFailure(failure)) {
+            reportInternalGradleError(details);
+        } else if (failure instanceof LocationAwareException) {
             LocationAwareException scriptException = (LocationAwareException) failure;
             details.failure = scriptException.getCause();
             if (scriptException.getLocation() != null) {
                 details.location.text(scriptException.getLocation());
             }
-            if (isInternalFailure(details.failure)) {
-                reportInternalGradleError(details);
-            } else {
-                details.details.text(getMessage(details.failure));
-                scriptException.visitReportableCauses(new ExceptionFormattingVisitor(scriptException, details));
-            }
-        } else if (isInternalFailure(failure)) {
-            reportInternalGradleError(details);
+            details.details.text(getMessage(details.failure));
+            scriptException.visitReportableCauses(new ExceptionFormattingVisitor(scriptException, details));
         } else {
             details.details.text(getMessage(failure));
         }
     }
 
     private static boolean isInternalFailure(Throwable failure) {
+        if (failure instanceof LocationAwareException) {
+            failure = failure.getCause();
+        }
         return failure instanceof ServiceCreationException || failure instanceof NativeException;
     }
 
