@@ -34,6 +34,16 @@ public class DefaultProvider<T> extends AbstractMinimalProvider<T> {
     @Nullable
     @Override
     public Class<T> getType() {
+        // guard against https://youtrack.jetbrains.com/issue/KT-36297
+        try {
+            return inferTypeFromCallableGenericArgument();
+        } catch (NoClassDefFoundError e) {
+            return null;
+        }
+    }
+
+    @Nullable
+    private Class<T> inferTypeFromCallableGenericArgument() {
         // We could do a better job of figuring this out
         // Extract the type for common case that is quick to calculate
         for (Type superType : value.getClass().getGenericInterfaces()) {
