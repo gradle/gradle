@@ -398,7 +398,7 @@ public class SomeTask extends DefaultTask {
     File d;
     @OutputDirectory
     public File getD() { return d; }
-    
+
     @TaskAction
     public void go() { }
 }
@@ -643,7 +643,7 @@ task someTask(type: SomeTask) {
                 public Foo() {
                     getInputs().property("a", null).optional(true);
                 }
-                
+
                 @TaskAction
                 public void doSomething() {}
             }
@@ -659,8 +659,8 @@ task someTask(type: SomeTask) {
 
     @ToBeFixedForInstantExecution
     def "input and output properties are not evaluated too often"() {
-        buildFile << """ 
-            @CacheableTask    
+        buildFile << """
+            @CacheableTask
             class CustomTask extends DefaultTask {
                 @Internal
                 int outputFileCount = 0
@@ -674,68 +674,68 @@ task someTask(type: SomeTask) {
                 int nestedInputValueCount = 0
 
                 private NestedBean bean = new NestedBean()
-                
+
                 @OutputFile
                 File getOutputFile() {
                     count("outputFile", ++outputFileCount)
                     return project.file('build/foo.bar')
-                }        
-                
+                }
+
                 @InputFile
                 @PathSensitive(PathSensitivity.NONE)
                 File getInputFile() {
                     count("inputFile", ++inputFileCount)
                     return project.file('input.txt')
                 }
-                
+
                 @Input
                 String getInput() {
                     count("inputValue", ++inputValueCount)
                     return "Input"
                 }
-                
+
                 @Nested
                 Object getBean() {
                     count("nestedInput", ++nestedInputCount)
                     return bean
                 }
-                
+
                 @TaskAction
                 void doStuff() {
                     outputFile.text = inputFile.text
                 }
-                
+
                 void count(String name, int currentValue) {
-                    println "Evaluating \${name} \${currentValue}"                
+                    println "Evaluating \${name} \${currentValue}"
                 }
-                                
+
                 class NestedBean {
                     @Input getFirst() {
                         count("nestedInputValue", ++nestedInputValueCount)
                         return "first"
                     }
-                    
+
                     @Input getSecond() {
                         return "second"
                     }
                 }
             }
-            
+
             task myTask(type: CustomTask)
-            
+
             task assertInputCounts {
                 dependsOn myTask
                 doLast {
                     ['outputFileCount', 'inputFileCount', 'inputValueCount', 'nestedInputCount', 'nestedInputValueCount'].each { name ->
-                        assert myTask."\$name" == project.property(name) as Integer                    
+                        assert myTask."\$name" == project.property(name) as Integer
                     }
                 }
             }
         """
         def inputFile = file('input.txt')
         inputFile.text = "input"
-        def expectedCounts = [inputFile: 3, outputFile: 3, nestedInput: 3, inputValue: 1, nestedInputValue: 1]
-        def expectedUpToDateCounts = [inputFile: 2, outputFile: 2, nestedInput: 3, inputValue: 1, nestedInputValue: 1]
+        def expectedCounts = [inputFile: 3, outputFile: 3, nestedInput: 4, inputValue: 1, nestedInputValue: 1]
+        def expectedUpToDateCounts = [inputFile: 2, outputFile: 2, nestedInput: 4, inputValue: 1, nestedInputValue: 1]
         def arguments = ["assertInputCounts"] + expectedCounts.collect { name, count -> "-P${name}Count=${count}" }
         def upToDateArguments = ["assertInputCounts"] + expectedUpToDateCounts.collect { name, count -> "-P${name}Count=${count}" }
         def localCache = new TestBuildCache(file('cache-dir'))

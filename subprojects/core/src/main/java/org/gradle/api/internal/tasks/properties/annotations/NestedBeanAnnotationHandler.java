@@ -53,21 +53,24 @@ public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
 
     @Override
     public boolean shouldVisit(PropertyVisitor visitor) {
-        return !visitor.visitOutputFilePropertiesOnly();
+        return true;
     }
 
     @Override
     public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor, BeanPropertyContext context) {
+        boolean visitOutputFilePropertiesOnly = visitor.visitOutputFilePropertiesOnly();
         Object nested;
         try {
             nested = unpackProvider(value.call());
         } catch (Exception e) {
-            visitor.visitInputProperty(propertyName, new InvalidValue(e), false);
+            if (!visitOutputFilePropertiesOnly) {
+                visitor.visitInputProperty(propertyName, new InvalidValue(e), false);
+            }
             return;
         }
         if (nested != null) {
             context.addNested(propertyName, nested);
-        } else if (!propertyMetadata.isAnnotationPresent(Optional.class)) {
+        } else if (!visitOutputFilePropertiesOnly && !propertyMetadata.isAnnotationPresent(Optional.class)) {
             visitor.visitInputProperty(propertyName, new AbsentValue(), false);
         }
     }

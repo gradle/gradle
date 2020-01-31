@@ -38,7 +38,9 @@ class NestedRuntimeBeanNode extends AbstractNestedRuntimeBeanNode {
 
     @Override
     public void visitNode(PropertyVisitor visitor, Queue<RuntimeBeanNode<?>> queue, RuntimeBeanNodeFactory nodeFactory, TypeValidationContext validationContext) {
-        visitImplementation(visitor);
+        if (!visitor.visitOutputFilePropertiesOnly()) {
+            visitImplementation(visitor);
+        }
         visitProperties(visitor, queue, nodeFactory, validationContext);
     }
 

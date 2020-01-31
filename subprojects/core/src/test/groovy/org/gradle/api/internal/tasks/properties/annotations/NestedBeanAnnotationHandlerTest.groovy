@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.properties.annotations
 
 import org.gradle.api.internal.TaskInternal
-import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.tasks.TaskValidationContext
 import org.gradle.api.internal.tasks.properties.BeanPropertyContext
 import org.gradle.api.internal.tasks.properties.DefaultValidatingProperty
@@ -28,13 +27,14 @@ import org.gradle.api.tasks.Optional
 import org.gradle.internal.reflect.PropertyMetadata
 import org.gradle.internal.reflect.TypeValidationContext
 import spock.lang.Specification
+import spock.lang.Unroll
 
+@Unroll
 class NestedBeanAnnotationHandlerTest extends Specification {
 
     def value = Mock(PropertyValue)
     def propertyVisitor = Mock(PropertyVisitor)
     def task = Stub(TaskInternal)
-    def resolver = Mock(FileResolver)
     def context = Mock(BeanPropertyContext)
     def propertyMetadata = Mock(PropertyMetadata)
 
@@ -51,6 +51,7 @@ class NestedBeanAnnotationHandlerTest extends Specification {
         1 * propertyVisitor.visitInputProperty("name", _, false) >> { arguments ->
             validatingValue = arguments[1]
         }
+        1 * propertyVisitor.visitOutputFilePropertiesOnly() >> false
         0 * _
         validatingValue.call() == null
 
@@ -70,6 +71,7 @@ class NestedBeanAnnotationHandlerTest extends Specification {
         then:
         1 * value.call() >> null
         1 * propertyMetadata.isAnnotationPresent(Optional) >> true
+        1 * propertyVisitor.visitOutputFilePropertiesOnly() >> false
         0 * _
     }
 
@@ -87,6 +89,7 @@ class NestedBeanAnnotationHandlerTest extends Specification {
         1 * propertyVisitor.visitInputProperty("name", _, false) >> { arguments ->
             validatingValue = arguments[1]
         }
+        1 * propertyVisitor.visitOutputFilePropertiesOnly() >> false
         0 * _
 
         when:
@@ -108,6 +111,10 @@ class NestedBeanAnnotationHandlerTest extends Specification {
         then:
         1 * value.call() >> nestedBean
         1 * context.addNested(nestedPropertyName, nestedBean)
+        1 * propertyVisitor.visitOutputFilePropertiesOnly() >> outputPropertyFilesOnly
         0 * _
+
+        where:
+        outputPropertyFilesOnly << [true, false]
     }
 }
