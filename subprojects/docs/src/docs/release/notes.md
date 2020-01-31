@@ -84,14 +84,14 @@ This will change once [IDEA-231667](https://youtrack.jetbrains.com/issue/IDEA-23
 
 ## Gradle Wrapper Verification GitHub Action
 
-We have released an official GitHub Action that enables GitHub users to automatically verify that the `gradle-wrapper.jar` in their repository or
-contributed by external developers was officially released by us and not malicious.
+We have created [an official GitHub Action](https://github.com/marketplace/actions/gradle-wrapper-validation) that allows your projects on GitHub to automatically verify that the `gradle-wrapper.jar` in their repository was released by Gradle.
 
-You can find out more about why this is important for your project's security and how to apply this action to your project
+<!-- TODO: Replace this with link to blog when live -->
+See why this is important and how to apply this action to your project
 [here](https://github.com/gradle/wrapper-validation-action).
 
-If you're looking for other ways to verify the provenance of the `gradle-wrapper.jar` external to GitHub, more information can be found in our
-[Wrapper guide](userguide/gradle_wrapper.html#sec:wrapper_checksum_verification).
+You can still manually verify the `gradle-wrapper.jar` by following the instructions in our
+[Gradle Wrapper user manual](userguide/gradle_wrapper.html#sec:wrapper_checksum_verification).
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
