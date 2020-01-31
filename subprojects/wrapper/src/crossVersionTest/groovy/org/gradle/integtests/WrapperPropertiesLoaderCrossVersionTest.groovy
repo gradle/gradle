@@ -26,7 +26,7 @@ import org.junit.Assume
 import spock.lang.Issue
 
 @SuppressWarnings("IntegrationTestFixtures")
-@TargetVersions("3.1+")
+@TargetVersions("6.2+")
 class WrapperPropertiesLoaderCrossVersionTest extends CrossVersionIntegrationSpec {
 
     @Issue('https://github.com/gradle/gradle/issues/11173')
