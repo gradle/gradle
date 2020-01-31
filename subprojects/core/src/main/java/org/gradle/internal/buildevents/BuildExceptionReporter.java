@@ -130,28 +130,34 @@ public class BuildExceptionReporter implements Action<Throwable> {
         formatGenericFailure(granularity, failure, details);
     }
 
-    private void formatGenericFailure(String granularity, Throwable failure, final FailureDetails details) {
+    private void formatGenericFailure(String granularity, Throwable failure, FailureDetails details) {
         details.summary.format("%s failed with an exception.", granularity);
 
         fillInFailureResolution(details);
 
         if (failure instanceof LocationAwareException) {
-            final LocationAwareException scriptException = (LocationAwareException) failure;
+            LocationAwareException scriptException = (LocationAwareException) failure;
             details.failure = scriptException.getCause();
             if (scriptException.getLocation() != null) {
                 details.location.text(scriptException.getLocation());
             }
             if (details.failure instanceof ServiceCreationException) {
-                details.details.text("Gradle could not start your build.");
-                LinePrefixingStyledTextOutput output = getLinePrefixingStyledTextOutput(details, 0);
-                output.text("Gradle encountered an internal problem.");
+                reportInternalGradleError(details);
             } else {
                 details.details.text(getMessage(details.failure));
                 scriptException.visitReportableCauses(new ExceptionFormattingVisitor(scriptException, details));
             }
+        } else if (failure instanceof  ServiceCreationException) {
+            reportInternalGradleError(details);
         } else {
             details.details.text(getMessage(failure));
         }
+    }
+
+    private static void reportInternalGradleError(FailureDetails details) {
+        details.details.text("Gradle could not start your build.");
+        LinePrefixingStyledTextOutput output = getLinePrefixingStyledTextOutput(details, 0);
+        output.text("Gradle encountered an internal problem.");
     }
 
     private static class ExceptionFormattingVisitor extends TreeVisitor<Throwable> {

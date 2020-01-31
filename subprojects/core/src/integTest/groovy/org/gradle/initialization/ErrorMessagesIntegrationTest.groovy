@@ -51,7 +51,7 @@ class ErrorMessagesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Requires(TestPrecondition.MAC_OS_X)
-    def "Error message due to unwriteable user home directory is not scary"() {
+    def "Error message due to unwritable user home directory is not scary"() {
         given:
         requireOwnGradleUserHomeDir()
         requireGradleDistribution()
@@ -59,6 +59,28 @@ class ErrorMessagesIntegrationTest extends AbstractIntegrationSpec {
 
         executer.gradleUserHomeDir.mkdir()
         executer.gradleUserHomeDir.setPermissions("r-xr-xr-x")
+
+        when:
+        fails 'hello'
+
+        then:
+        errorOutput.contains("FAILURE: Build failed with an exception.\n" +
+            "\n" +
+            "* What went wrong:\n" +
+            "Gradle could not start your build.\n" +
+            "> Gradle encountered an internal problem.")
+    }
+
+    @Requires(TestPrecondition.NOT_WINDOWS)
+    def "Error message due to unwritable Gradle daemon directory is not scary"() {
+        given:
+        requireGradleDistribution()
+        executer.requireIsolatedDaemons()
+        executer.requireDaemon()
+
+        def daemonDir = executer.daemonBaseDir
+        daemonDir.mkdirs()
+        daemonDir.setPermissions("r-xr-xr-x")
 
         when:
         fails 'hello'
