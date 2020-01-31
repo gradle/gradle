@@ -113,7 +113,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
      *
      * @see #VFS_PARTIAL_INVALIDATION_ENABLED_PROPERTY
      */
-    public static final String FILE_WATCHING_STATE_PROPERTY = "org.gradle.unsafe.file.watching";
+    public static final String FILE_WATCHING_STATE_PROPERTY = "org.gradle.unsafe.fs.watch";
 
     /**
      * When retention is enabled, this system property can be used to pass a comma-separated
