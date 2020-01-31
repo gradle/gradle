@@ -18,7 +18,6 @@ package org.gradle.instantexecution
 
 import org.gradle.integtests.fixtures.executer.AbstractGradleExecuter
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.util.ToBeImplemented
 
 import javax.annotation.Nullable
 
