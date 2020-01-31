@@ -88,7 +88,10 @@ dependencies {
     integTestRuntimeOnly(project(":resourcesS3"))
     integTestRuntimeOnly(project(":resourcesSftp"))
     integTestRuntimeOnly(project(":testKit"))
+
+    integTestRuntimeOnly(project(":apiMetadata"))
     integTestRuntimeOnly(project(":kotlinDsl"))
+    integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
     integTestRuntimeOnly(project(":pluginDevelopment"))
 
     testFixturesApi(project(":baseServices")) {

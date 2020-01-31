@@ -39,7 +39,7 @@ import org.junit.ComparisonFailure
  * ensure that the old and new dependency graphs plus the artifacts and files are as expected and well-formed.
  */
 class ResolveTestFixture {
-    private final TestFile buildFile
+    final TestFile buildFile
     final String config
     private String defaultConfig = "default"
     private boolean buildArtifacts = true

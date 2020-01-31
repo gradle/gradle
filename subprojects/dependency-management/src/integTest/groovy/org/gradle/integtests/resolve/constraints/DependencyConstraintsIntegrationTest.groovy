@@ -15,64 +15,77 @@
  */
 package org.gradle.integtests.resolve.constraints
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractPolyglotIntegrationSpec
+import org.gradle.integtests.fixtures.FailsWithDsl
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
+import org.gradle.test.fixtures.dsl.GradleDsl
 import spock.lang.Issue
 
 /**
  * This is a variation of {@link PublishedDependencyConstraintsIntegrationTest} that tests dependency constraints
  * declared in the build script (instead of published)
  */
-class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
-    private final ResolveTestFixture resolve = new ResolveTestFixture(buildFile, "conf").expectDefaultConfiguration("runtime")
+class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSpec {
+    private final String resolveName = 'resolve-fixture'
+    private final ResolveTestFixture resolve = new ResolveTestFixture(testDirectory.file("${resolveName}.gradle"), "conf").expectDefaultConfiguration("runtime")
 
     def setup() {
-        settingsFile << "rootProject.name = 'test'"
+        buildSpec {
+            settings {
+                rootProjectName = 'test'
+            }
+            rootProject {
+                repositories {
+                    maven(mavenRepo.uri)
+                }
+                configurations {
+                    conf
+                }
+                applyFrom(resolveName)
+            }
+        }
         resolve.prepare()
-        buildFile << """
-            repositories {
-                maven { url "${mavenRepo.uri}" }
-            }
-            configurations {
-                conf
-            }
-        """
         resolve.addDefaultVariantDerivationStrategy()
     }
 
+    @FailsWithDsl(GradleDsl.KOTLIN)
     void "dependency constraint is not included in resolution without a hard dependency"() {
         given:
         mavenRepo.module("org", "foo", '1.0').publish()
-
-        buildFile << """
-            dependencies {
-                constraints {
-                    conf 'org:foo:1.0'
+        writeSpec {
+            rootProject {
+                dependencies {
+                    constraints {
+                        conf('org:foo:1.0')
+                    }
                 }
             }
-        """
+        }
 
         when:
         run 'checkDeps'
 
         then:
         resolve.expectGraph {
-            root(":", ":test:") { }
+            root(":", ":test:") {}
         }
     }
 
+    @FailsWithDsl(GradleDsl.KOTLIN)
     void "dependency constraint is included into the result of resolution when a hard dependency is also added"() {
         given:
         mavenRepo.module("org", "foo", '1.1').publish()
 
-        buildFile << """
-            dependencies {
-                conf 'org:foo'
-                constraints {
-                    conf 'org:foo:1.1'
+        writeSpec {
+            rootProject {
+                dependencies {
+                    conf 'org:foo'
+                    constraints {
+                        conf('org:foo:1.1')
+                    }
                 }
             }
-        """
+        }
 
         when:
         run 'checkDeps'
@@ -80,12 +93,13 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org:foo","org:foo:1.1")
+                edge("org:foo", "org:foo:1.1")
                 constraint("org:foo:1.1", "org:foo:1.1")
             }
         }
     }
 
+    @FailsWithDsl(GradleDsl.KOTLIN)
     void "dependency constraint can be used to declare incompatibility"() {
         given:
         mavenRepo.module("org", "foo", '1.1').publish()
@@ -93,16 +107,18 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
             .dependsOn('org', 'foo', '1.1')
             .publish()
 
-        buildFile << """
-            dependencies {
-                conf 'org:bar:1.0'
-                constraints {
-                    conf('org:foo') {
-                        version { rejectAll() }
+        writeSpec {
+            rootProject {
+                dependencies {
+                    conf 'org:bar:1.0'
+                    constraints {
+                        conf('org:foo') {
+                            version { rejectAll() }
+                        }
                     }
                 }
             }
-        """
+        }
 
         when:
         fails 'checkDeps'
@@ -113,20 +129,23 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
    Constraint path ':test:unspecified' --> 'org:foo:{reject all versions}'""")
     }
 
+    @FailsWithDsl(GradleDsl.KOTLIN)
     void "dependency constraint is included into the result of resolution when a hard dependency is also added transitively"() {
         given:
         mavenRepo.module("org", "foo", '1.0').publish()
         mavenRepo.module("org", "foo", '1.1').publish()
         mavenRepo.module("org", "bar", "1.0").dependsOn("org", "foo", "1.0").publish()
 
-        buildFile << """
-            dependencies {
-                conf 'org:bar:1.0'
-                constraints {
-                    conf 'org:foo:1.1'
+        writeSpec {
+            rootProject {
+                dependencies {
+                    conf 'org:bar:1.0'
+                    constraints {
+                        conf 'org:foo:1.1'
+                    }
                 }
             }
-        """
+        }
 
         when:
         run 'checkDeps'
@@ -146,6 +165,7 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
      * Test demonstrates a bug in resolution of constraints, when real dependency is evicted via conflict resolution.
      */
     @Issue("gradle/gradle#4610")
+    @FailsWithDsl(GradleDsl.KOTLIN)
     void "dependency constraint should not preserve hard dependency for evicted dependency"() {
         given:
         // "org:foo:1.0" -> "org:baz:1.0" -> "org:baz-transitive:1.0"
@@ -160,20 +180,29 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
             .dependsOn("org", "foo", '1.1').publish()
         mavenRepo.module("org", "foo", '1.1').publish()
 
-        buildFile << """
-            dependencies {
-                conf 'org:foo:1.0' // Would bring in 'baz' and 'baz-transitive' (but will be evicted)
-                conf 'org:bar:1.0' // Brings in 'foo:1.1'
-                
-                constraints {
-                    conf 'org:baz:1.0' // Should not bring in 'baz' when 'foo:1.0' is evicted
+        writeSpec {
+            rootProject {
+                dependencies {
+                    conf 'org:foo:1.0' // Would bring in 'baz' and 'baz-transitive' (but will be evicted)
+                    conf 'org:bar:1.0' // Brings in 'foo:1.1'
+
+                    constraints {
+                        conf 'org:baz:1.0' // Should not bring in 'baz' when 'foo:1.0' is evicted
+                    }
                 }
+                section """
+                    task resolve(type: Sync) {
+                        from configurations.conf
+                        into 'lib'
+                    }
+                """, """
+                    tasks.register<Sync>("resolve") {
+                        from(configurations["conf"])
+                        into("lib")
+                    }
+                """
             }
-            task resolve(type: Sync) {
-                from configurations.conf
-                into 'lib'
-            }
-        """
+        }
 
         when:
         run ':resolve'
@@ -204,6 +233,7 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
          */
     }
 
+    @FailsWithDsl(GradleDsl.KOTLIN)
     void "range resolution kicks in with dependency constraints"() {
         given:
         mavenRepo.module("org", "foo", '1.0').publish()
@@ -211,17 +241,18 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         mavenRepo.module("org", "foo", '1.2').publish()
         mavenRepo.module("org", "bar", "1.0").dependsOn("org", "foo", "[1.0,1.2]").publish()
 
-
-        buildFile << """
-            dependencies {
-                conf 'org:bar:1.0'
-                constraints {
-                    conf('org:foo:[1.0,1.1]') {
-                        because 'tested versions'
+        writeSpec {
+            rootProject {
+                dependencies {
+                    conf 'org:bar:1.0'
+                    constraints {
+                        conf('org:foo:[1.0,1.1]') {
+                            because 'tested versions'
+                        }
                     }
                 }
             }
-        """
+        }
 
         when:
         run 'checkDeps'
@@ -237,20 +268,23 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    @FailsWithDsl(GradleDsl.KOTLIN)
     void "transitive dependencies of an dependency constraint do not participate in conflict resolution if it is not included elsewhere"() {
         given:
         mavenRepo.module("org", "foo", '1.0').dependsOn('org', 'bar', '1.1').publish()
         mavenRepo.module("org", "bar", '1.0').publish()
         mavenRepo.module("org", "bar", '1.1').publish()
 
-        buildFile << """
-            dependencies {
-                conf 'org:bar:1.0'
-                constraints {
-                    conf 'org:foo:1.0'
+        writeSpec {
+            rootProject {
+                dependencies {
+                    conf 'org:bar:1.0'
+                    constraints {
+                        conf 'org:foo:1.0'
+                    }
                 }
             }
-        """
+        }
 
         when:
         run 'checkDeps'
@@ -263,31 +297,43 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    @FailsWithDsl(GradleDsl.KOTLIN)
     void "dependency constraints on substituted module is recognized properly"() {
         given:
         mavenRepo.module("org", "foo", '1.0').publish()
         mavenRepo.module("org", "foo", '1.1').publish()
         mavenRepo.module("org", "bar", '1.1').publish()
 
-        buildFile << """
-            configurations {
-                conf {
-                   resolutionStrategy.dependencySubstitution {
-                      all { DependencySubstitution dependency ->
-                         if (dependency.requested.module == 'bar') {
-                            dependency.useTarget dependency.requested.group + ':foo:' + dependency.requested.version
-                         }
-                      }
-                   }
+        writeSpec {
+            rootProject {
+                configurations {
+                    conf {
+                        section("""
+                        resolutionStrategy.dependencySubstitution {
+                            all { DependencySubstitution dependency ->
+                                if (dependency.requested.module == 'bar') {
+                                    dependency.useTarget dependency.requested.group + ':foo:' + dependency.requested.version
+                                }
+                            }
+                        }""", """resolutionStrategy.dependencySubstitution {
+                            all {
+                                requested as ModuleComponentSelector
+                                if (requested.module == "bar") {
+                                    useTarget(requested.group + ":foo:" + requested.version)
+                                }
+                            }
+                        }
+                        """)
+                    }
+                }
+                dependencies {
+                    conf 'org:foo:1.0'
+                    constraints {
+                        conf 'org:bar:1.1'
+                    }
                 }
             }
-            dependencies {
-                conf 'org:foo:1.0'
-                constraints {
-                    conf 'org:bar:1.1'
-                }
-            }
-        """
+        }
 
         when:
         run 'checkDeps'
@@ -301,24 +347,29 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    @FailsWithDsl(GradleDsl.KOTLIN)
     void "dependency constraints are inherited"() {
         given:
         mavenRepo.module("org", "foo", '1.0').publish()
         mavenRepo.module("org", "foo", '1.1').publish()
 
-        buildFile << """
-            configurations {
-                confSuper
-                conf { extendsFrom confSuper }
-            }
-            dependencies {
-                conf 'org:foo:1.0'
+        writeSpec {
+            rootProject {
+                configurations {
+                    confSuper
+                    conf {
+                        extendsFrom("confSuper")
+                    }
+                }
+                dependencies {
+                    conf 'org:foo:1.0'
 
-                constraints {
-                    confSuper 'org:foo:1.1'
+                    constraints {
+                        confSuper 'org:foo:1.1'
+                    }
                 }
             }
-        """
+        }
 
         when:
         run 'checkDeps'
@@ -332,23 +383,23 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    @FailsWithDsl(GradleDsl.KOTLIN)
     void "dependency constraints defined for a configuration are applied when resolving that configuration as part of a project dependency"() {
         given:
         mavenRepo.module("org", "foo", '1.0').publish()
         mavenRepo.module("org", "foo", '1.1').publish()
 
-        settingsFile << """
-            include 'b'
-        """
-        buildFile << """
-            dependencies {
-                conf project(path: ':b', configuration: 'conf')
-                conf 'org:foo:1.0'
+        writeSpec {
+            rootProject {
+                dependencies {
+                    conf project(path: ':b', configuration: 'conf')
+                    conf 'org:foo:1.0'
+                }
             }
-            
-            project(':b') {
+
+            project("b") {
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven(mavenRepo.uri)
                 }
                 configurations {
                     conf
@@ -361,7 +412,7 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
                     }
                 }
             }
-        """
+        }
 
         when:
         run ':checkDeps'
@@ -379,37 +430,39 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    @FailsWithDsl(GradleDsl.KOTLIN)
     void "dependency constraints defined for a build are applied when resolving a configuration that uses that build as an included build"() {
         given:
         resolve.expectDefaultConfiguration('default')
         mavenRepo.module("org", "foo", '1.0').publish()
         mavenRepo.module("org", "foo", '1.1').publish()
 
-        file('includeBuild/settings.gradle') << "rootProject.name = 'included'"
-        file('includeBuild/build.gradle') << """
-            group "org"
-            version "1.0"
-            
-            configurations {
-                conf
-                'default' { extendsFrom conf }
-            }
-            dependencies {
-                constraints {
-                    conf 'org:foo:1.1'
+        writeSpec {
+            rootProject {
+                dependencies {
+                    conf 'org:included:1.0'
+                    conf 'org:foo:1.0'
                 }
             }
-        """
-
-        settingsFile << """
-            includeBuild 'includeBuild'
-        """
-        buildFile << """
-            dependencies {
-                conf 'org:included:1.0'
-                conf 'org:foo:1.0'
+            includedBuild("includeBuild") {
+                settings {
+                    rootProjectName = 'included'
+                }
+                rootProject {
+                    group = 'org'
+                    version = '1.0'
+                    configurations {
+                        conf
+                        'default' { extendsFrom 'conf' }
+                    }
+                    dependencies {
+                        constraints {
+                            conf 'org:foo:1.1'
+                        }
+                    }
+                }
             }
-        """
+        }
 
         when:
         run 'checkDeps'
@@ -427,22 +480,27 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("gradle/gradle#4609")
+    @FailsWithDsl(GradleDsl.KOTLIN)
     def "dependency constraint does not invalidate excludes defined on hard dependency"() {
         given:
         mavenRepo.module("org", "baz", "1.0").publish()
         mavenRepo.module("org", "foo", '1.0').dependsOn("org", "baz", '1.0').publish()
+        writeSpec {
+            rootProject {
+                dependencies {
+                    conf('org:foo') {
+                        section(
+                            "exclude group: 'org', module: 'baz'",
+                            'exclude(mapOf("group" to "org", "module" to "baz"))'
+                        )
+                    }
 
-        buildFile << """
-            dependencies {
-                conf('org:foo') {
-                    exclude group: 'org', module: 'baz'
-                }
-                
-                constraints {
-                    conf 'org:foo:1.0'
+                    constraints {
+                        conf 'org:foo:1.0'
+                    }
                 }
             }
-        """
+        }
 
         when:
         run 'checkDeps'
@@ -456,19 +514,21 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    @FailsWithDsl(GradleDsl.KOTLIN)
     void "dependency constraints should not pull in additional artifacts"() {
         given:
         mavenRepo.module("org", "foo", '1.0').artifact(classifier: 'shaded').publish()
         mavenRepo.module("org", "foo", '1.1').artifact(classifier: 'shaded').publish()
-
-        buildFile << """
-            dependencies {
-                conf 'org:foo:1.0:shaded'
-                constraints {
-                    conf 'org:foo:1.1'
+        writeSpec {
+            rootProject {
+                dependencies {
+                    conf 'org:foo:1.0:shaded'
+                    constraints {
+                        conf 'org:foo:1.1'
+                    }
                 }
             }
-        """
+        }
 
         when:
         run 'checkDeps'
@@ -476,7 +536,7 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org:foo:1.0","org:foo:1.1")
+                edge("org:foo:1.0", "org:foo:1.1")
                 constraint("org:foo:1.1", "org:foo:1.1") {
                     artifact(classifier: 'shaded')
                 }
@@ -484,20 +544,23 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    @FailsWithDsl(GradleDsl.KOTLIN)
     void "dependency constraints should not pull in additional artifacts for transitive dependencies"() {
         given:
         def foo11 = mavenRepo.module("org", "foo", '1.0').artifact(classifier: 'shaded').publish()
         mavenRepo.module("org", "foo", '1.1').artifact(classifier: 'shaded').publish()
         mavenRepo.module("org", "bar", '1.0').dependsOn(classifier: 'shaded', foo11).publish()
-
-        buildFile << """
-            dependencies {
-                conf 'org:bar:1.0'
-                constraints {
-                    conf 'org:foo:1.1'
+        writeSpec {
+            rootProject {
+                dependencies {
+                    conf 'org:bar:1.0'
+                    constraints {
+                        conf 'org:foo:1.1'
+                    }
                 }
             }
-        """
+        }
+
 
         when:
         run 'checkDeps'
@@ -509,26 +572,28 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
                     artifact(classifier: 'shaded')
                 }
                 module("org:bar:1.0") {
-                    edge("org:foo:1.0","org:foo:1.1")
+                    edge("org:foo:1.0", "org:foo:1.1")
                 }
             }
         }
     }
 
+    @FailsWithDsl(GradleDsl.KOTLIN)
     void 'dependency updated through constraints has its transitive dependencies'() {
         given:
         def foo10 = mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'bar', '1.0').publish()
         mavenRepo.module('org', 'bar', '1.1').dependsOn(foo10).publish()
-
-        buildFile << """
-            dependencies {
-                conf 'org:bar:1.0'
-                constraints {
-                    conf 'org:bar:1.1'
+        writeSpec {
+            rootProject {
+                dependencies {
+                    conf 'org:bar:1.0'
+                    constraints {
+                        conf 'org:bar:1.1'
+                    }
                 }
             }
-        """
+        }
 
         when:
         run 'checkDeps'
@@ -544,20 +609,22 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    @FailsWithDsl(GradleDsl.KOTLIN)
     void 'dependency without version updated through constraints has its transitive dependencies'() {
         given:
         def foo10 = mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'bar', '1.0').publish()
         mavenRepo.module('org', 'bar', '1.1').dependsOn(foo10).publish()
-
-        buildFile << """
-            dependencies {
-                constraints {
-                    conf 'org:bar:1.1'
+        writeSpec {
+            rootProject {
+                dependencies {
+                    constraints {
+                        conf 'org:bar:1.1'
+                    }
+                    conf 'org:bar'
                 }
-                conf 'org:bar'
             }
-        """
+        }
 
         when:
         run 'checkDeps'
@@ -573,6 +640,7 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    @FailsWithDsl(GradleDsl.KOTLIN)
     void 'dependency constraint can be not pending, then pending, then not pending and still participate in resolution'() {
         def constrainedBase = mavenRepo.module('org', 'constrained', '1.0').publish()
         def constrained = mavenRepo.module('org', 'constrained', '1.1').publish()
@@ -581,16 +649,31 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         def higherUser = mavenRepo.module('org', 'user', '1.1').dependsOn(constrainedBase).publish()
         def otherUser = mavenRepo.module('org', 'otherUser', '1.0').dependsOn(higherUser).publish()
         mavenRepo.module('org', 'indirect', '1.0').dependsOn(user).dependsOn(otherUser).dependsOn(bom).publish()
+        writeSpec {
+            rootProject {
+                dependencies {
+                    conf(platform('org:bom:1.0'))
 
-        buildFile << """
+                    conf 'org:indirect:1.0'
+
+                    section("""
+                        components {
+                            withModule('org:indirect', PickPlatformRule)
+                        }""",
+                        """
+                        components {
+                            withModule("org:indirect", PickPlatformRule::class.java)
+                    }""")
+                }
+                section """
             class PickPlatformRule implements ComponentMetadataRule {
                 ObjectFactory objects
-                
+
                 @javax.inject.Inject
                 PickPlatformRule(ObjectFactory objects) {
                     this.objects = objects
                 }
-                
+
                 @Override
                 void execute(ComponentMetadataContext context) {
                     def details = context.details
@@ -609,16 +692,31 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
                     }
                 }
             }
-            dependencies {
-                conf(platform('org:bom:1.0'))
-                
-                conf 'org:indirect:1.0'
-                
-                components {
-                    withModule('org:indirect', PickPlatformRule)
+
+""", """
+            open class PickPlatformRule @javax.inject.Inject constructor(val objects: ObjectFactory): ComponentMetadataRule {
+
+                override fun execute(context: ComponentMetadataContext) {
+                    val details = context.details
+                    if (details.id.name == "indirect") {
+                        details.allVariants {
+                            withDependencies {
+                                forEach {
+                                    if (name == "bom") {
+                                        attributes {
+                                            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category::class.java, "platform"))
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
+
 """
+            }
+        }
 
         when:
         run 'checkDeps'
@@ -635,7 +733,7 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
                         edge("org:constrained:1.0", "org:constrained:1.1")
                     }
                     module("org:otherUser:1.0") {
-                        module( "org:user:1.1")
+                        module("org:user:1.1")
                     }
                     module("org:bom:1.0:platform-runtime")
                 }
@@ -645,19 +743,22 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
 
     void 'dependency constraint on failed variant resolution needs to be in the right state'() {
         mavenRepo.module('org', 'bar', '1.0').publish()
-
-        buildFile << """
-            dependencies {
-                constraints {
-                    conf 'org:bar:1.0'
-                }
-                conf('org:bar') {
-                    attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, 'wrong'))
+        writeSpec {
+            rootProject {
+                dependencies {
+                    constraints {
+                        conf 'org:bar:1.0'
+                    }
+                    conf('org:bar') {
+                        section("""attributes {
+                            attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, 'wrong'))
+                        }""", """attributes {
+                            attribute(Usage.USAGE_ATTRIBUTE, project.objects.named("wrong"))
+                        }""")
                     }
                 }
             }
-"""
+        }
 
         when:
         succeeds 'dependencyInsight', '--configuration', 'conf', '--dependency', 'org:bar'
