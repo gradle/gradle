@@ -50,7 +50,7 @@ class ErrorMessagesIntegrationTest extends AbstractIntegrationSpec {
             "> Gradle encountered an internal problem.")
     }
 
-    @Requires(TestPrecondition.MAC_OS_X)
+    @Requires(TestPrecondition.NOT_WINDOWS)
     def "Error message due to unwritable user home directory is not scary"() {
         given:
         requireOwnGradleUserHomeDir()
@@ -81,6 +81,25 @@ class ErrorMessagesIntegrationTest extends AbstractIntegrationSpec {
         def daemonDir = executer.daemonBaseDir
         daemonDir.mkdirs()
         daemonDir.setPermissions("r-xr-xr-x")
+
+        when:
+        fails 'hello'
+
+        then:
+        errorOutput.contains("FAILURE: Build failed with an exception.\n" +
+            "\n" +
+            "* What went wrong:\n" +
+            "Gradle could not start your build.\n" +
+            "> Gradle encountered an internal problem.")
+    }
+
+    @Requires(TestPrecondition.NOT_WINDOWS)
+    def "Error message due to unwritable native directory is not scary"() {
+        given:
+        requireOwnGradleUserHomeDir()
+        requireGradleDistribution()
+
+        executer.withEnvironmentVars(GRADLE_OPTS: "-Dorg.gradle.native.dir=/dev/null")
 
         when:
         fails 'hello'

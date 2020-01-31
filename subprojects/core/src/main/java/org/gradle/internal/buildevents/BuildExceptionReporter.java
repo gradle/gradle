@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.buildevents;
 
+import net.rubygrapefruit.platform.NativeException;
 import org.gradle.BuildResult;
 import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
@@ -141,17 +142,21 @@ public class BuildExceptionReporter implements Action<Throwable> {
             if (scriptException.getLocation() != null) {
                 details.location.text(scriptException.getLocation());
             }
-            if (details.failure instanceof ServiceCreationException) {
+            if (isInternalFailure(details.failure)) {
                 reportInternalGradleError(details);
             } else {
                 details.details.text(getMessage(details.failure));
                 scriptException.visitReportableCauses(new ExceptionFormattingVisitor(scriptException, details));
             }
-        } else if (failure instanceof  ServiceCreationException) {
+        } else if (isInternalFailure(failure)) {
             reportInternalGradleError(details);
         } else {
             details.details.text(getMessage(failure));
         }
+    }
+
+    private static boolean isInternalFailure(Throwable failure) {
+        return failure instanceof ServiceCreationException || failure instanceof NativeException;
     }
 
     private static void reportInternalGradleError(FailureDetails details) {
