@@ -23,26 +23,24 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class MainTest extends Specification {
-    
+
     @Rule final RedirectStdOutAndErr outputs = new RedirectStdOutAndErr()
 
     CommandLineActionFactory.CommandLineExecution actionImpl
-    
+
     void action(Closure closure) {
         actionImpl = closure as CommandLineActionFactory.CommandLineExecution
     }
-    
+
     def actionFactoryImpl
-    
+
     void actionFactory(Closure closure) {
         actionFactoryImpl = new DefaultCommandLineActionFactory() { CommandLineActionFactory.CommandLineExecution convert(List args) { closure(args) } }
     }
     boolean completedSuccessfully
     boolean completedWithFailure
     Throwable failure
-        
-    final String[] args = ['arg']
-    
+
     final Main main = new Main() {
         protected ExecutionCompleter createCompleter() {
             [complete: { completedSuccessfully = true }, completeWithFailure: { completedWithFailure = true; failure = it }] as ExecutionCompleter
@@ -52,16 +50,16 @@ class MainTest extends Specification {
             actionFactoryImpl
         }
     }
-    
+
 
     def setup() {
         actionFactory { actionImpl }
     }
-    
+
     def createsAndExecutesCommandLineAction() {
         given:
         action {}
-            
+
         when:
         main.run()
 

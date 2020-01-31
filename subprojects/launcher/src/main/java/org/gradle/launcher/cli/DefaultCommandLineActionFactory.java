@@ -367,6 +367,9 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
                 loggingManager.attachProcessConsole(loggingConfiguration.getConsoleOutput());
                 new WelcomeMessageAction(buildLayout).execute(Logging.getLogger(WelcomeMessageAction.class));
                 exceptionReportingAction.execute(executionListener);
+            } catch (RuntimeException e) {
+                reporter.execute(e);
+                executionListener.onFailure(e);
             } finally {
                 loggingManager.stop();
             }

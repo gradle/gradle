@@ -110,6 +110,7 @@ class ErrorMessagesIntegrationTest extends AbstractIntegrationSpec {
             "* What went wrong:\n" +
             "Gradle could not start your build.\n" +
             "> Gradle encountered an internal problem.")
+        errorOutput.contains("net.rubygrapefruit.platform.NativeException: Failed to load native library")
     }
 
 }
