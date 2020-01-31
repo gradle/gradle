@@ -36,7 +36,15 @@ Some plugins will break with this new version of Gradle, for example because the
 [[changes_6.2]]
 == Upgrading from 6.1
 
-There were no breaking changes between Gradle 6.1 and 6.2.
+=== Potential breaking changes
+
+==== Compile and runtime classpath now request library variants by default
+
+A classpath in a JVM project now explicitly requests the `org.gradle.category=library` attribute.
+This leads to clearer error messages if a certain library cannot be used.
+For example, when the library does not support the required Java version.
+The practical effect is that now all <<java_platform_plugin.adoc#sec:java_platform_consumption,platform dependencies>> have to be declared as such.
+Before, platform dependencies also worked, accidentally, when the `platform()` keyword was omitted for local platforms or platforms published with Gradle Module Metadata.
 
 === Deprecations
 
