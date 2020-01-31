@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.service.scopes;
+package org.gradle.integtests.resolve.snapshot
 
-import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
-import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter;
-import org.gradle.internal.state.ManagedFactoryRegistry;
+import org.gradle.integtests.fixtures.TargetVersions
 
-public class WorkerSharedUserHomeScopeServices {
+@TargetVersions("5.3+")
+class GradleMetadataMavenSnapshotPreviousProducerCrossVersionIntegrationTest extends AbstractGradleMetadataMavenSnapshotCrossVersionIntegrationTest {
 
-    DefaultValueSnapshotter createValueSnapshotter(ClassLoaderHierarchyHasher classLoaderHierarchyHasher, ManagedFactoryRegistry managedFactoryRegistry) {
-        return new DefaultValueSnapshotter(classLoaderHierarchyHasher, managedFactoryRegistry);
+    def "can consume Maven snapshot published with previous version of Gradle"() {
+        expect:
+        version previous withTasks ':producer:publish' run()
+        version current withTasks ':consumer:resolve' run()
     }
+
 }

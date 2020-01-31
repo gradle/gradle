@@ -14,24 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.instantexecution.initialization
+package org.gradle.integtests.resolve.snapshot
 
-import org.gradle.initialization.IGradlePropertiesLoader
+import org.gradle.integtests.fixtures.TargetVersions
 
+@TargetVersions("6.0+")
+class GradleMetadataMavenSnapshotPreviousConsumerCrossVersionIntegrationTest extends AbstractGradleMetadataMavenSnapshotCrossVersionIntegrationTest {
 
-class InstantExecutionPropertiesLoader(
-    private val startParameter: InstantExecutionStartParameter,
-    private val propertiesLoader: IGradlePropertiesLoader
-) {
-    private
-    var loaded = false
-
-    val hasLoaded
-        get() = loaded
-
-    fun loadProperties() {
-        require(!hasLoaded)
-        propertiesLoader.loadProperties(startParameter.rootDirectory)
-        loaded = true
+    def "previous Gradle can consume Maven snapshot published with current version of Gradle"() {
+        expect:
+        version current withTasks ':producer:publish' run()
+        version previous withTasks ':consumer:resolve' run()
     }
+
 }

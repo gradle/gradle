@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,22 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.initialization;
 
-import org.gradle.api.internal.properties.GradleProperties;
+package org.gradle.api.tasks.scala.internal;
 
-import java.io.File;
+import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.provider.ListProperty;
+import org.gradle.workers.WorkParameters;
 
-public interface IGradlePropertiesLoader {
+public interface ScaladocParameters extends WorkParameters {
+    ConfigurableFileCollection getClasspath();
+    DirectoryProperty getOutputDirectory();
+    ListProperty<String> getOptions();
 
-    String SYSTEM_PROJECT_PROPERTIES_PREFIX = "org.gradle.project.";
-
-    String ENV_PROJECT_PROPERTIES_PREFIX = "ORG_GRADLE_PROJECT_";
-
-    /**
-     * Loads the immutable set of Gradle properties.
-     *
-     * @since 6.2
-     */
-    GradleProperties loadGradleProperties(File rootDir);
+    ConfigurableFileCollection getSources();
 }
