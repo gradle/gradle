@@ -761,7 +761,7 @@ This is facilitated by the fact the error message tells you were the file is loc
   For your information here are the path to the files which failed verification:
     - GRADLE_USER_HOME/caches/modules-2/files-2.1/com.google.j2objc/j2objc-annotations/1.1/976d8d30bebc251db406f2bdb3eb01962b5685b3/j2objc-annotations-1.1.jar (signature: GRADLE_USER_HOME/caches/modules-2/files-2.1/com.google.j2objc/j2objc-annotations/1.1/82e922e14f57d522de465fd144ec26eb7da44501/j2objc-annotations-1.1.jar.asc)
 
-  GRADLE_USERHOME = /home/jiraya/.gradle
+  GRADLE_USER_HOME = /home/jiraya/.gradle
 ----
 
 You can safely delete the artifact file as Gradle would automatically re-download it:
