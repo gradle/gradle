@@ -1,6 +1,8 @@
 The Gradle team is excited to announce Gradle @version@.
 
-This release features [1](), [2](), ... [n](), and more.
+This release adds [built-in dependency checksum and signature verification](#dependency-verification), provides a [shareable read-only dependency cache](#shared-dependency-cache) and emits [helpful documentation links when you have deprecations in your build](#deprecation-messages).
+
+As always, there are several [bug fixes](#fixed-issues), IDE improvements for [Gradle plugin authors](#plugin-dev) and more.
 
 We would like to thank the following community contributors to this release of Gradle:
 
@@ -48,32 +50,37 @@ and therefore dramatically reduce the risks of shipping malicious code to produc
 With dependency verification, you maintain an XML file with checksums and optionally also signatures of all external artifacts used in your project, which includes, but is not limited to, all jars (binaries, sources, ...) and plugins.
 Gradle will immediately fail the build if an artifact is not trusted or missing from the configuration file.
 
-Please refer to the [userguide](userguide/dependency_verification.html) for a complete explanation about how to setup dependency verification. 
+Please refer to the [user manual](userguide/dependency_verification.html) for a complete explanation about how to setup dependency verification. 
 
 We would like to give special thanks to [Vladimir Sitnikov](https://github.com/vlsi) for his feedback and inspiration.
-A lot of the work on this feature is, in particular, available to previous versions of Gradle via his [Checksum Dependency Plugin](https://github.com/vlsi/vlsi-release-plugins/tree/master/plugins/checksum-dependency-plugin).
+A lot of the work on this feature is, in particular, available to previous versions of Gradle via his [Checksum Dependency Plugin](https://plugins.gradle.org/plugin/com.github.vlsi.checksum-dependency).
 
 <a name="shared-dependency-cache"></a>
 ## Shared dependency cache
 
 Improving on [relocatable dependency caches introduced in the previous release](https://docs.gradle.org/6.1.1/release-notes.html#ephemeral-ci:-reuse-gradle's-dependency-cache), Gradle 6.2 now offers the ability to **share** a dependency cache between multiple Gradle instances.
-In the context of ephemeral builds on disposable containers, this makes it possible to have a single, shared, directory between containers which contains most, if not all, the dependencies required by all builds:
 
-- each container will have access to the shared read-only dependency cache, avoiding redundant downloads between builds
-- this cache can be shared between containers without copying it, reducing the overall disk usage.
+In the context of ephemeral builds on disposable containers, this makes it possible to have a single shared directory that contains the dependencies required by all builds.
 
-Please refer to the [userguide](userguide/dependency_resolution.html#sec:dependency_cache) to learn how to setup the shared dependency cache.
+- Each container will have access to the shared read-only dependency cache, avoiding redundant downloads between builds.
+- This cache can be shared between containers without copying it, reducing the overall disk usage.
 
+Please refer to the [user manual](userguide/dependency_resolution.html#sec:dependency_cache) to learn how to setup the shared dependency cache.
+
+<a name="deprecation-messages"></a>
 ## Deprecation messages link to documentation
 
 Deprecation messages now include links to relevant documentation that can provide more context around the deprecation and explain how to migrate to a new API or avoid the deprecated behavior. 
 
 For example:
-> The compile configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 7.0. Please use the implementation configuration instead. Consult the upgrading guide for further information: [https://docs.gradle.org/6.2/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations](userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations)
+> The compile configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 7.0. Please use the implementation configuration instead. Consult the upgrading guide for further information: [https://docs.gradle.org/6.2/userguide/upgrading_version_5.html#dependencies](userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations)
 
 In some terminals, this link will be clickable and take you directly to the documentation.
 
-## Gradle API source code for plugin developers in IDEs
+<a name="plugin-dev"></a>
+## Improvements for Plugin Development
+
+### Gradle API source code for plugin developers in IDEs
 
 Plugin authors will now have the sources of the `gradleApi()`, `gradleTestKit()` and `localGroovy()` dependencies attached for navigation in the IDE.
 
