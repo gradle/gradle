@@ -297,7 +297,7 @@ class ModuleResolveState implements CandidateModule {
         }
     }
 
-    public Iterable<SelectorState> getSelectors() {
+    public ModuleSelectors<SelectorState> getSelectors() {
         return selectors;
     }
 
@@ -376,7 +376,6 @@ class ModuleResolveState implements CandidateModule {
     void addPendingNode(NodeState node) {
         pendingDependencies.addNode(node);
     }
-
 
     public void maybeUpdateSelection(NodeState currentlyDeselecting) {
         if (replaced) {

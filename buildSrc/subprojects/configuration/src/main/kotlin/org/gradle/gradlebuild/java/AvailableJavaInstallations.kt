@@ -146,16 +146,20 @@ abstract class AvailableJavaInstallations : BuildService<AvailableJavaInstallati
     private
     fun validateCompilationJdks(): Map<String, Boolean> =
         mapOf(
-            "Must use JDK 9+ to perform compilation in this build. It's currently ${javaInstallationForCompilation.vendorAndMajorVersion} at ${javaInstallationForCompilation.javaHome}." to
-                !javaInstallationForCompilation.javaVersion.isJava9Compatible
+            "Must use JDK >= 9 and <= 11 to perform compilation in this build. It's currently ${javaInstallationForCompilation.validationDisplay}."
+                to (!javaInstallationForCompilation.javaVersion.isJava9Compatible || javaInstallationForCompilation.javaVersion > JavaVersion.VERSION_11)
         )
 
     private
     fun validateProductionJdks(): Map<String, Boolean> =
         mapOf(
-            "Must use $productionJdkName to perform this build. Is currently ${currentJavaInstallation.vendorAndMajorVersion} at ${currentJavaInstallation.javaHome}." to
-                (currentJavaInstallation.vendorAndMajorVersion != productionJdkName)
+            "Must use $productionJdkName to perform this build. Is currently ${currentJavaInstallation.validationDisplay}."
+                to (currentJavaInstallation.vendorAndMajorVersion != productionJdkName)
         )
+
+    private
+    val JavaInstallation.validationDisplay: String
+        get() = "$vendorAndMajorVersion at $javaHome"
 
     private
     fun formatValidationError(mainMessage: String, validationErrors: Collection<String>): String =

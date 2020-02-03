@@ -15,7 +15,6 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
 import jetbrains.buildServer.configs.kotlin.v2019_2.FailureAction
 import jetbrains.buildServer.configs.kotlin.v2019_2.ProjectFeatures
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildFeatures.commitStatusPublisher
-import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.script
 import model.CIBuildModel
 import model.StageNames
 
@@ -111,32 +110,6 @@ fun BaseGradleBuildType.gradleRunnerStep(model: CIBuildModel, gradleTasks: Strin
 }
 
 private
-fun BuildType.attachFileLeakDetector() {
-    steps {
-        script {
-            name = "ATTACH_FILE_LEAK_DETECTOR"
-            executionMode = BuildStep.ExecutionMode.ALWAYS
-            scriptContent = """
-            "%windows.java11.openjdk.64bit%\bin\java" gradle/AttachAgentToDaemon.java
-        """.trimIndent()
-        }
-    }
-}
-
-private
-fun BuildType.dumpOpenFiles() {
-    steps {
-        script {
-            name = "DUMP_OPEN_FILES"
-            executionMode = BuildStep.ExecutionMode.ALWAYS
-            scriptContent = """
-            "%windows.java11.openjdk.64bit%\bin\java" gradle\DumpOpenFiles.java
-        """.trimIndent()
-        }
-    }
-}
-
-private
 fun BaseGradleBuildType.gradleRerunnerStep(model: CIBuildModel, gradleTasks: String, os: Os = Os.linux, extraParameters: String = "", daemon: Boolean = true) {
     val buildScanTags = model.buildScanTags + listOfNotNull(stage?.id)
     val cleanedExtraParameters = extraParameters
@@ -185,9 +158,6 @@ fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTas
 
     buildType.steps {
         extraSteps()
-        if (os == Os.windows) {
-            buildType.attachFileLeakDetector()
-        }
         checkCleanM2(os)
         verifyTestFilesCleanup(daemon, os)
     }
@@ -217,15 +187,7 @@ fun applyTestDefaults(
         preSteps()
     }
 
-    if (os == Os.windows) {
-        buildType.attachFileLeakDetector()
-    }
-
     buildType.gradleRunnerStep(model, gradleTasks, os, extraParameters, daemon)
-
-    if (os == Os.windows) {
-        buildType.dumpOpenFiles()
-    }
     buildType.killProcessStepIfNecessary("KILL_PROCESSES_STARTED_BY_GRADLE", os)
     buildType.gradleRerunnerStep(model, gradleTasks, os, extraParameters, daemon)
     buildType.killProcessStepIfNecessary("KILL_PROCESSES_STARTED_BY_GRADLE_RERUN", os)

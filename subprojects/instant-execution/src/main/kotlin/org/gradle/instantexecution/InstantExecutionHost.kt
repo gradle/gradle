@@ -41,7 +41,6 @@ import org.gradle.initialization.SettingsLocation
 import org.gradle.initialization.SettingsPreparer
 import org.gradle.initialization.SettingsProcessor
 import org.gradle.initialization.TaskExecutionPreparer
-import org.gradle.instantexecution.initialization.InstantExecutionPropertiesLoader
 import org.gradle.instantexecution.initialization.InstantExecutionStartParameter
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.file.PathToFileResolver
@@ -196,11 +195,6 @@ class InstantExecutionHost internal constructor(
 
         private
         fun createSettings(): SettingsInternal {
-
-            require(service<InstantExecutionPropertiesLoader>().hasLoaded) {
-                "Properties must have been loaded before Settings object can be created."
-            }
-
             val baseClassLoaderScope = gradle.classLoaderScope
             val classLoaderScope = baseClassLoaderScope.createChild("settings")
             return StringScriptSource("settings", "").let { settingsSource ->

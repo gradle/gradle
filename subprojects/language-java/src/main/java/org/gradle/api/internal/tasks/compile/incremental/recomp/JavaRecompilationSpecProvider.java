@@ -153,12 +153,13 @@ public class JavaRecompilationSpecProvider extends AbstractRecompilationSpecProv
     private void prepareJavaPatterns(Collection<String> staleClasses, PatternSet filesToDelete, PatternSet sourceToCompile) {
         for (String staleClass : staleClasses) {
             String path = staleClass.replaceAll("\\.", "/");
+            String headerPath = staleClass.replaceAll("\\.", "_");
             filesToDelete.include(path.concat(".class"));
             filesToDelete.include(path.concat(".java"));
-            filesToDelete.include(path.concat(".h"));
+            filesToDelete.include(headerPath.concat(".h"));
             filesToDelete.include(path.concat("$*.class"));
             filesToDelete.include(path.concat("$*.java"));
-            filesToDelete.include(path.concat("$*.h"));
+            filesToDelete.include(headerPath.concat("_*.h"));
 
             sourceToCompile.include(path.concat(".java"));
             sourceToCompile.include(path.concat("$*.java"));

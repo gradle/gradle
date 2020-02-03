@@ -32,11 +32,11 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
 
     def "requested and filtered tasks are exposed"() {
         settingsFile << """
-        include "a"
-        include "b"
-        include "a:c"
+            include "a"
+            include "b"
+            include "a:c"
         """
-
+        
         buildFile << """
             allprojects {
                 task otherTask
@@ -80,6 +80,27 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
         operation().result.excludedTaskPaths == []
     }
 
+    def "task plan is exposed"() {
+        settingsFile << """
+            include "a"
+            include "b"
+            include "a:c"
+        """
+
+        buildFile << """
+            allprojects {
+                task otherTask
+                task someTask
+                someTask.dependsOn otherTask
+            }
+        """
+        when:
+        succeeds('someTask')
+
+        then:
+        operation().result.taskPlan.task.taskPath == [':otherTask', ':someTask', ':a:otherTask', ':a:someTask', ':b:otherTask', ':b:someTask', ':a:c:otherTask', ':a:c:someTask']
+    }
+
     def "errors in calculating task graph are exposed"() {
         when:
         fails('someNonexistent')
@@ -98,9 +119,9 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
 
         buildFile << """
             apply plugin:'java'
-            
+
             dependencies {
-                implementation "org.acme:b:1.0"            
+                implementation "org.acme:b:1.0"
             }
         """
 
@@ -122,8 +143,182 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
         taskGraphCalculations[0].result.requestedTaskPaths == [":build"]
         taskGraphCalculations[1].details.buildPath == ":"
         taskGraphCalculations[1].result.requestedTaskPaths == [":build"]
-        taskGraphCalculations[2].details.buildPath== ":b"
+        taskGraphCalculations[2].details.buildPath == ":b"
         taskGraphCalculations[2].result.requestedTaskPaths == [":compileJava", ":jar"]
+    }
+
+    @ToBeFixedForInstantExecution
+    def "exposes task plan details"() {
+        file("included-build").mkdir()
+        file("included-build/settings.gradle")
+        file("included-build/build.gradle") << """
+            apply plugin:'java-library'
+            group = 'org.acme'
+            version = '1.0'
+        """
+
+        file('src/main/java/org/acme/Library.java') << """
+            package org.acme;
+
+            class Library {
+            }
+        """
+        settingsFile << """
+            includeBuild 'included-build'
+        """
+
+        buildFile << """
+            apply plugin:'java-library'
+
+            dependencies {
+                implementation 'org.acme:included-build:1.0'
+            }
+            task independentTask
+            task otherTask
+            task anotherTask
+            task firstTask
+            task secondTask
+            task lastTask
+            task someTask
+
+            someTask.dependsOn anotherTask
+            someTask.dependsOn otherTask
+            someTask.mustRunAfter firstTask
+            someTask.shouldRunAfter secondTask
+            someTask.finalizedBy lastTask
+        """
+        when:
+        succeeds('classes', 'independentTask', 'someTask')
+
+        then:
+        with(operations()[0].result.taskPlan) {
+            task.taskPath == [":compileJava", ":processResources", ":classes", ":independentTask", ":anotherTask", ":otherTask", ":someTask", ":lastTask"]
+            task.buildPath == [":", ":", ":", ":", ":", ":", ":", ":"]
+            dependencies.taskPath.collect { it.sort() } == [[":compileJava"], [], [":compileJava", ":processResources"], [], [], [], [":anotherTask", ":otherTask"], []]
+            dependencies.buildPath == [[":included-build"], [], [":", ":"], [], [], [], [":", ":"], []]
+            finalizedBy.taskPath == [[], [], [], [], [], [], [":lastTask"], []]
+            mustRunAfter.taskPath == [[], [], [], [], [], [], [":firstTask"], []]
+            shouldRunAfter.taskPath == [[], [], [], [], [], [], [":secondTask"], []]
+        }
+        with(operations()[1].result.taskPlan) {
+            task.taskPath == [':compileJava']
+            task.buildPath == [':included-build']
+        }
+    }
+
+    @ToBeFixedForInstantExecution
+    def "exposes plan details with nested artifact transforms"() {
+        file('producer/src/main/java/artifact/transform/sample/producer/Producer.java') << """
+            package artifact.transform.sample.producer;
+
+            public final class Producer {
+
+                public String sayHello(String name) {
+                    return "Hello, " + name + "!";
+                }
+            }
+        """
+        file('producer/build.gradle') << """
+            apply plugin:'java-library'
+        """
+
+        buildFile << """
+            import org.gradle.api.artifacts.transform.TransformParameters
+            import org.gradle.api.artifacts.transform.TransformAction
+
+            plugins {
+                id 'java'
+                id 'application'
+            }
+
+            def artifactType = Attribute.of('artifactType', String)
+            def minified = Attribute.of('minified', Boolean)
+            def optimized = Attribute.of('optimized', Boolean)
+            dependencies {
+                attributesSchema {
+                    attribute(minified)
+                    attribute(optimized)
+                }
+                artifactTypes.getByName("jar") {
+                    attributes.attribute(minified, false)
+                }
+                artifactTypes.getByName("jar") {
+                    attributes.attribute(optimized, false)
+                }
+            }
+
+            configurations.all {
+                afterEvaluate {
+                    if (canBeResolved) {
+                        attributes.attribute(minified, true)
+                        attributes.attribute(optimized, true)
+                    }
+                }
+            }
+
+            dependencies {
+                registerTransform(SomeTransform) {
+                    from.attribute(minified, false).attribute(artifactType, "jar")
+                    to.attribute(minified, true).attribute(artifactType, "jar")
+                }
+                registerTransform(SomeTransform) {
+                    from.attribute(optimized, false).attribute(minified, true).attribute(artifactType, "jar")
+                    to.attribute(optimized, true).attribute(minified, true).attribute(artifactType, "jar")
+                }
+            }
+
+            dependencies {
+                implementation project(':producer')
+            }
+
+            application {
+                // Define the main class for the application.
+                mainClassName = 'artifact.transform.sample.App'
+            }
+
+            abstract class SomeTransform implements TransformAction<TransformParameters.None> {
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                @Override
+                void transform(TransformOutputs outputs) {
+                    println "Transforming printed to System.out"
+                    outputs.file(inputArtifact)
+                }
+            }
+        """
+        file('src/main/java/artifact/transform/sample/App.java') << """
+            package artifact.transform.sample;
+
+            import artifact.transform.sample.producer.Producer;
+
+            public class App {
+                public String getGreeting() {
+                    return new Producer().sayHello("Stranger");
+                }
+
+                public static void main(String[] args) {
+                    System.out.println(new App().getGreeting());
+                }
+            }
+        """
+
+        settingsFile << """
+            include 'producer'
+        """
+
+        when:
+        succeeds(':distZip')
+
+        then:
+        with(operations()[0].result.taskPlan) {
+            task.taskPath == [":producer:compileJava", ":producer:processResources", ":producer:classes", ":producer:jar", ":compileJava", ":processResources", ":classes", ":jar", ":startScripts", ":distZip"]
+            dependencies.taskPath.collect { it.sort() } == [[], [], [":producer:compileJava", ":producer:processResources"], [":producer:classes"], [":producer:compileJava"], [], [":compileJava", ":processResources"], [":classes"], [], [":jar", ":producer:jar", ":startScripts"]]
+        }
+    }
+
+    private List<BuildOperationRecord> operations() {
+        buildOperations.all(CalculateTaskGraphBuildOperationType)
     }
 
     private BuildOperationRecord operation() {

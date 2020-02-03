@@ -18,6 +18,8 @@ package org.gradle.gradlebuild.test.fixtures
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.attributes.Attribute
+import org.gradle.api.attributes.Category
+import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.Usage
 import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.bundling.Zip
@@ -53,6 +55,8 @@ open class IntTestImagePlugin : Plugin<Project> {
         val partialDistribution by configurations.creating {
             attributes {
                 attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage.JAVA_RUNTIME))
+                attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
+                attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.JAR))
             }
             isCanBeResolved = true
             isCanBeConsumed = false
@@ -68,6 +72,8 @@ open class IntTestImagePlugin : Plugin<Project> {
             attributes {
                 attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage.JAVA_RUNTIME))
                 attribute(Attribute.of("org.gradle.api", String::class.java), "core-ext")
+                attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
+                attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.JAR))
             }
             isVisible = false
             isCanBeResolved = true
@@ -78,6 +84,8 @@ open class IntTestImagePlugin : Plugin<Project> {
             attributes {
                 attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage.JAVA_RUNTIME))
                 attribute(Attribute.of("org.gradle.api", String::class.java), "core")
+                attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
+                attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.JAR))
             }
             isVisible = false
             isCanBeResolved = true
@@ -88,6 +96,8 @@ open class IntTestImagePlugin : Plugin<Project> {
             attributes {
                 attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage.JAVA_RUNTIME))
                 attribute(Attribute.of("org.gradle.api", String::class.java), "plugins")
+                attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
+                attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.JAR))
             }
             isVisible = false
             isCanBeResolved = true

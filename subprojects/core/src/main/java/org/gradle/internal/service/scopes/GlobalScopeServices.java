@@ -129,12 +129,7 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
     public GlobalScopeServices(final boolean longLiving, ClassPath additionalModuleClassPath) {
         super();
         this.additionalModuleClassPath = additionalModuleClassPath;
-        this.environment = new GradleBuildEnvironment() {
-            @Override
-            public boolean isLongLivingProcess() {
-                return longLiving;
-            }
-        };
+        this.environment = () -> longLiving;
     }
 
     void configure(ServiceRegistration registration, ClassLoaderRegistry classLoaderRegistry) {
@@ -318,6 +313,6 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
     }
 
     ValidateStep.ValidationWarningReporter createValidationWarningReporter() {
-        return behaviour -> DeprecationLogger.deprecateBehaviour(behaviour).undocumented().nagUser();
+        return behaviour -> DeprecationLogger.deprecateBehaviour(behaviour).withUserManual("more_about_tasks", "sec:up_to_date_checks").nagUser();
     }
 }

@@ -37,7 +37,7 @@ class JavaSourceIncrementalCompilationIntegrationTest extends AbstractSourceIncr
         def annotationClass = file("src/main/${language.name}/SomeAnnotation.${language.name}") << """
             import java.lang.annotation.*;
 
-            @Retention(RetentionPolicy.$retention) 
+            @Retention(RetentionPolicy.$retention)
             public @interface SomeAnnotation {}
         """
         source "@SomeAnnotation class A {}", "class B {}"
@@ -63,22 +63,36 @@ class JavaSourceIncrementalCompilationIntegrationTest extends AbstractSourceIncr
         buildFile << """
             compileJava.options.headerOutputDirectory = file("build/headers/java/main")
         """
-        def sourceFile = source("""class Foo {
-            public native void foo();
-        }""")
+        def sourceFile = file("src/main/java/my/org/Foo.java")
+        sourceFile.text = """
+            package my.org;
+
+            public class Foo {
+                public native void foo();
+
+                public static class Inner {
+                    public native void anotherNative();
+                }
+            }
+        """
+        def generatedHeaderFile = file("build/headers/java/main/my_org_Foo.h")
+        def generatedInnerClassHeaderFile = file("build/headers/java/main/my_org_Foo_Inner.h")
 
         source("""class Bar {
             public native void bar();
         }""")
 
         succeeds language.compileTaskName
+        generatedHeaderFile.assertExists()
+        generatedInnerClassHeaderFile.assertExists()
 
         when:
         sourceFile.delete()
         succeeds language.compileTaskName
 
         then:
-        file("build/headers/java/main/Foo.h").assertDoesNotExist()
+        generatedHeaderFile.assertDoesNotExist()
+        generatedInnerClassHeaderFile.assertDoesNotExist()
         file("build/headers/java/main/Bar.h").assertExists()
     }
 

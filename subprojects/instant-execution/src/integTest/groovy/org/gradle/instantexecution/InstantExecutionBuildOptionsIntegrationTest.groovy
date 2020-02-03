@@ -179,6 +179,62 @@ class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecuti
         'isCi.getOrElse("false") != "false"'           | 'raw'
     }
 
+    @Unroll
+    def "#kind property used as task and build logic input"() {
+
+        given:
+        def instant = newInstantExecutionFixture()
+        buildKotlinFile """
+
+            abstract class Greet : DefaultTask() {
+
+                @get:Input
+                abstract val greeting: Property<String>
+
+                @TaskAction
+                fun act() {
+                    println(greeting.get().capitalize() + "!")
+                }
+            }
+
+            val greetingProp = providers.${kind}Property("greeting")
+            if (greetingProp.get() == "hello") {
+                tasks.register<Greet>("greet") {
+                    greeting.set("hello, hello")
+                }
+            } else {
+                tasks.register<Greet>("greet") {
+                    greeting.set(greetingProp)
+                }
+            }
+        """
+        when:
+        instantRun("greet", "-${option}greeting=hi")
+
+        then:
+        output.count("Hi!") == 1
+        instant.assertStateStored()
+
+        when:
+        instantRun("greet", "-${option}greeting=hi")
+
+        then:
+        output.count("Hi!") == 1
+        instant.assertStateLoaded()
+
+        when:
+        instantRun("greet", "-${option}greeting=hello")
+
+        then:
+        output.count("Hello, hello!") == 1
+        instant.assertStateStored()
+
+        where:
+        kind     | option
+        'system' | 'D'
+        'gradle' | 'P'
+    }
+
     def "mapped system property used as task input"() {
 
         given:

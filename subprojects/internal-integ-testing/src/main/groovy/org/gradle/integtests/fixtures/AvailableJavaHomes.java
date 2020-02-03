@@ -27,6 +27,7 @@ import org.gradle.integtests.fixtures.executer.GradleDistribution;
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution;
 import org.gradle.integtests.fixtures.jvm.InstalledJvmLocator;
 import org.gradle.integtests.fixtures.jvm.JvmInstallation;
+import org.gradle.integtests.fixtures.jvm.SdkManJvmLocator;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.jvm.Jre;
 import org.gradle.internal.jvm.Jvm;
@@ -192,6 +193,9 @@ public abstract class AvailableJavaHomes {
             jvms.addAll(installedJvmLocator.findJvms());
             if (OperatingSystem.current().isLinux()) {
                 jvms.addAll(new BaseDirJvmLocator(fileCanonicalizer, new File("/opt")).findJvms());
+            }
+            if (!OperatingSystem.current().isWindows()) {
+                jvms.addAll(new SdkManJvmLocator(fileCanonicalizer).findJvms());
             }
             jvms.addAll(new HomeDirJvmLocator(fileCanonicalizer).findJvms());
             // Order from most recent to least recent

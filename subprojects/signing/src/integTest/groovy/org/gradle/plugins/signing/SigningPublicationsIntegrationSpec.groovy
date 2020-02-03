@@ -234,8 +234,8 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
     }
 
     @ToBeFixedForInstantExecution
-    def "disallows signing Gradle metadata if version is a snapshot"() {
-        given:
+    def "allows signing Gradle metadata if version is a snapshot"() {
+        when:
         buildFile << """
             apply plugin: 'maven-publish'
             ${keyInfo.addAsPropertiesScript()}
@@ -256,41 +256,8 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
             }
         """
 
-        when:
-        fails "signMavenPublication"
-
         then:
-        failure.assertHasCause("Signing Gradle Module Metadata is not supported for snapshot dependencies.")
-    }
-
-    @ToBeFixedForInstantExecution
-    def "with signing not required, does not fail on Gradle metadata if version is a snapshot"() {
-        given:
-        buildFile << """
-            apply plugin: 'maven-publish'
-
-            version = '1.0-SNAPSHOT'
-
-            publishing {
-                publications {
-                    maven(MavenPublication) {
-                        from components.java
-                    }
-                }
-            }
-            signing {
-                required { false }
-                sign publishing.publications.maven
-            }
-
-        """
-
-        when:
         succeeds "signMavenPublication"
-
-        then:
-        notExecuted "signMavenPublication"
-
     }
 
     @ToBeFixedForInstantExecution

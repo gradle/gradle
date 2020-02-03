@@ -2055,4 +2055,37 @@ dependencies {
         succeeds 'dependencies', '--configuration', 'conf'
     }
 
+    @ToBeFixedForInstantExecution
+    def "can resolve a graph with a local cycle caused by module replacement"() {
+        given:
+        def child1 = mavenRepo.module('org', 'child1', '1.0').publish()
+        def child2 = mavenRepo.module('org', 'child2', '1.0').publish()
+        mavenRepo.module('org', 'direct', '1.0').dependsOn(child1).dependsOn(child2).publish()
+
+        buildFile << """
+            repositories {
+                maven {
+                    name 'repo'
+                    url '${mavenRepo.uri}'
+                }
+            }
+
+            configurations {
+                conf
+            }
+
+            dependencies {
+                modules {
+                    module("org:child1") {
+                        replacedBy("org:direct")
+                    }
+                }
+                conf "org:direct:1.0"
+            }
+        """
+
+        expect:
+        succeeds 'dependencies', '--configuration', 'conf'
+    }
+
 }

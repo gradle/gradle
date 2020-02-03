@@ -124,7 +124,7 @@ enum class Check(private val extension: String) {
         override fun runCheck(project: Project, filesToBeChecked: List<String>) {
             project.javaexec {
                 main = "com.github.shyiko.ktlint.Main"
-                filesToBeChecked.forEach { args(it) }
+                filesToBeChecked.filter { !it.startsWith(".teamcity") }.forEach { args(it) }
                 args("--reporter=plain")
                 args("--color")
                 classpath = project.configurations["quickCheck"]

@@ -47,6 +47,15 @@ sourceSets.main {
     kotlin.srcDir(files(generatedSourcesDir).builtBy(generateSources))
 }
 
+configurations {
+    compileOnly {
+        attributes {
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
+            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.JAR))
+        }
+    }
+}
+
 dependencies {
     compileOnly(project(":baseServices"))
     compileOnly(project(":logging"))

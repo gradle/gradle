@@ -73,7 +73,7 @@ class JavaFirstUsePerformanceTest extends AbstractCrossVersionGradleInternalPerf
         runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
         runner.tasksToRun = ['tasks']
         runner.useDaemon = false
-        runner.targetVersions = ["6.2-20200108160029+0000"]
+        runner.targetVersions = ["6.3-20200202230021+0000"]
         runner.addBuildExperimentListener(new BuildExperimentListenerAdapter() {
             @Override
             void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, BuildExperimentListener.MeasurementCallback measurementCallback) {

@@ -19,10 +19,12 @@ package org.gradle.api.internal.project.taskfactory;
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.util.Path;
 
 import java.util.concurrent.atomic.AtomicLong;
 
+@UsedByScanPlugin
 public final class TaskIdentity<T extends Task> {
 
     private static final AtomicLong SEQUENCE = new AtomicLong();
@@ -92,5 +94,13 @@ public final class TaskIdentity<T extends Task> {
 
     public String getProjectPath() {
         return projectPath.getParent().getPath();
+    }
+
+    public String getIdentityPath() {
+        return identityPath.getPath();
+    }
+
+    public String getBuildPath() {
+        return buildPath.getPath();
     }
 }
