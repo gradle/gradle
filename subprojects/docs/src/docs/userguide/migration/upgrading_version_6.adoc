@@ -109,3 +109,42 @@ In Gradle 6.0, the `ProjectLayout` service was made available to worker actions 
 
 - Checkstyle has been updated to https://checkstyle.org/releasenotes.html#Release_8.27[Checkstyle 8.27].
 - PMD has been updated to https://pmd.github.io/pmd-6.20.0/pmd_release_notes.html#29-november-2019---6200[PMD 6.20.0].
+
+==== Publishing Spring Boot applications
+
+Starting from Gradle 6.2, Gradle performs a sanity check before uploading, to make sure you don't upload stale files (files produced by another build).
+This introduces a problem with Spring Boot applications which are uploaded using the `components.java` component:
+
+```
+Artifact my-application-0.0.1-SNAPSHOT.jar wasn't produced by this build.
+```
+
+This is caused by the fact that the main `jar` task is disabled by the Spring Boot application, and the component expects it to be present.
+Because the `bootJar` task uses the _same file_ as the main `jar` task by default, previous releases of Gradle would either:
+
+- publish a stale `bootJar` artifact
+- or fail if the `bootJar` task hasn't been called previously
+
+A workaround is to tell Gradle what to upload.
+If you want to upload the `bootJar`, then you need to configure the outgoing configurations to do this:
+
+```
+configurations {
+   [apiElements, runtimeElements].each {
+       it.outgoing.artifacts.removeIf { it.buildDependencies.getDependencies(null).contains(jar) }
+       it.outgoing.artifact(bootJar)
+   }
+}
+```
+
+Alternatively, you might want to re-enable the `jar` task, and add the `bootJar` with a different classifier.
+
+```
+jar {
+   enabled = true
+}
+
+bootJar {
+   classifier = 'application'
+}
+```
