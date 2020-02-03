@@ -47,7 +47,7 @@ class JavaInstantExecutionPerformanceTest extends AbstractCrossVersionGradleInte
     def "assemble on #testProject #action instant execution state with #daemon daemon"() {
 
         given:
-        runner.targetVersions = ["6.2-20200108160029+0000"]
+        runner.targetVersions = ["6.3-20200202230021+0000"]
         runner.minimumBaseVersion = "5.6"
         runner.testProject = testProject.projectName
         runner.tasksToRun = ["assemble"]
