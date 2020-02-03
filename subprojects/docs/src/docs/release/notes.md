@@ -67,16 +67,6 @@ In the context of ephemeral builds on disposable containers, this makes it possi
 
 Please refer to the [user manual](userguide/dependency_resolution.html#sec:dependency_cache) to learn how to setup the shared dependency cache.
 
-<a name="deprecation-messages"></a>
-## Deprecation messages link to documentation
-
-Deprecation messages now include links to relevant documentation that can provide more context around the deprecation and explain how to migrate to a new API or avoid the deprecated behavior. 
-
-For example:
-> The compile configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 7.0. Please use the implementation configuration instead. Consult the upgrading guide for further information: [https://docs.gradle.org/6.2/userguide/upgrading_version_5.html#dependencies](userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations)
-
-In some terminals, this link will be clickable and take you directly to the documentation.
-
 <a name="exclusive-repository-content"></a>
 ## Declaring exclusive repository content
 
@@ -116,6 +106,16 @@ repositories {
 
 Please refer to the [user manual](userguide/declaring_repositories.html#declaring_content_exclusively_found_in_one_repository) for details.
 
+<a name="deprecation-messages"></a>
+## Deprecation messages link to documentation
+
+Deprecation messages now include links to relevant documentation that can provide more context around the deprecation and explain how to migrate to a new API or avoid the deprecated behavior. 
+
+For example:
+> The compile configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 7.0. Please use the implementation configuration instead. Consult the upgrading guide for further information: [https://docs.gradle.org/6.2/userguide/upgrading_version_5.html#dependencies](userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations)
+
+In some terminals, this link will be clickable and take you directly to the documentation.
+
 <a name="plugin-dev"></a>
 ## Improvements for Plugin Development
 
@@ -130,7 +130,7 @@ This will change once [IDEA-231667](https://youtrack.jetbrains.com/issue/IDEA-23
 
 ### Injectable services available to Settings plugins
 
-Our `ExecOperations` and `FileSystemOperations` [injectable services](/userguide/custom_gradle_types.html#services_for_injection) are now available to Settings plugins.
+Our `ExecOperations` and `FileSystemOperations` [injectable services](userguide/custom_gradle_types.html#services_for_injection) are now available to Settings plugins.
 
 ## Gradle Wrapper Verification GitHub Action
 
