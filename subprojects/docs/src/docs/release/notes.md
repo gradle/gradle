@@ -77,6 +77,45 @@ For example:
 
 In some terminals, this link will be clickable and take you directly to the documentation.
 
+<a name="exclusive-repository-content"></a>
+## Declaring exclusive repository content
+
+Gradle lets you declare precisely what a repository contains, which is interesting both for build speed (avoiding pinging redundant repositories) and security (avoiding leaking details to the world about your own projects):
+
+```
+repositories {
+   mavenCentral()
+   myRepo {
+       url "https://my-company.com/repo"
+       content {
+           includeGroup "com.mycompany"
+       }
+   }
+```
+
+However, this doesn't prevent Gradle from searching artifacts in other repositories, especially if they were declared before.
+In the example above, if Gradle needs to resolve an artifact `com.mycompany:awesome-lib:1.0`, it will _first_ search into `mavenCentral()`, then into your company repository.
+
+Gradle 6.2 provides an _exclusive content_ API which lets you say that if some artifact can be found in one repository, it _cannot_ be found in any other:
+
+```
+repositories {
+    jcenter()
+    exclusiveContent {
+       forRepository {
+           myRepo {
+               url "https://my-company.com/repo"
+           }
+       }
+       filter {
+           includeGroup "com.mycompany"
+       }
+    }
+}
+```
+
+Please refer to the [user manual](userguide/declaring_repositories.html#declaring_content_exclusively_found_in_one_repository) for details.
+
 <a name="plugin-dev"></a>
 ## Improvements for Plugin Development
 
