@@ -45,7 +45,7 @@ By enabling dependency verification, Gradle will:
 - make sure that the dependencies haven't been tampered with (by verifying their _checksums_)
 - ensure the provenance of dependencies and plugins you use (by verifying their _signatures_)
 
-and therefore dramatically reduce the risks of shipping malicious code to production.
+and therefore reduce the risks of shipping malicious code to production.
 
 With dependency verification, you maintain an XML file with checksums and optionally also signatures of all external artifacts used in your project, which includes, but is not limited to, all jars (binaries, sources, ...) and plugins.
 Gradle will immediately fail the build if an artifact is not trusted or missing from the configuration file.
@@ -62,16 +62,17 @@ Improving on [relocatable dependency caches introduced in the previous release](
 
 In the context of ephemeral builds on disposable containers, this makes it possible to have a single shared directory that contains the dependencies required by all builds.
 
-- Each container will have access to the shared read-only dependency cache, avoiding redundant downloads between builds.
-- This cache can be shared between containers without copying it, reducing the overall disk usage.
+- Each container will have access to the shared read-only dependency cache, which avoids redundant downloads between builds.
+- This cache can be safely shared between containers without creating separate copies of it.
 
 Please refer to the [user manual](userguide/dependency_resolution.html#sec:dependency_cache) to learn how to setup the shared dependency cache.
 
 <a name="exclusive-repository-content"></a>
 ## Declaring exclusive repository content
 
-Gradle lets you declare precisely what a repository contains, which is interesting both for build speed (avoiding pinging redundant repositories) and security (avoiding leaking details to the world about your own projects):
+Gradle lets you [declare precisely which dependencies a repository contains](userguide/declaring_repositories.html#sec:repository-content-filtering).  This speeds up builds by reducing the number of repositories that need to be searched and increases security by not leaking details about your internal projects.
 
+As an example:
 ```
 repositories {
    mavenCentral()
@@ -82,11 +83,9 @@ repositories {
        }
    }
 ```
+If Gradle needs to resolve the dependency `com.mycompany:awesome-lib:1.0`, it will _first_ search in the repository Maven Central and then in your company repository.  This is unnecessary if `com.mycompany` dependencies will never be found in Maven Central.
 
-However, this doesn't prevent Gradle from searching artifacts in other repositories, especially if they were declared before.
-In the example above, if Gradle needs to resolve an artifact `com.mycompany:awesome-lib:1.0`, it will _first_ search into `mavenCentral()`, then into your company repository.
-
-Gradle 6.2 provides an _exclusive content_ API which lets you say that if some artifact can be found in one repository, it _cannot_ be found in any other:
+Gradle 6.2 provides an _exclusive content_ API, which lets you declare that if a dependency can be found in one repository, it _cannot_ be found in any other.
 
 ```
 repositories {
@@ -103,6 +102,8 @@ repositories {
     }
 }
 ```
+
+In this example, when Gradle needs to resolve the dependency `com.mycompany:awesome-lib:1.0`, it will _only_ search in in your company repository. This avoids the unnecessary dependency lookup with Maven Central.
 
 Please refer to the [user manual](userguide/declaring_repositories.html#declaring_content_exclusively_found_in_one_repository) for details.
 
