@@ -42,6 +42,7 @@ import java.util.Set;
 
 public class DefaultFileCollectionFactory implements FileCollectionFactory {
     public static final String DEFAULT_DISPLAY_NAME = "file collection";
+    private static final EmptyFileCollection EMPTY = new EmptyFileCollection(DEFAULT_DISPLAY_NAME);
     private final PathToFileResolver fileResolver;
     private final TaskDependencyFactory taskDependencyFactory;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
@@ -108,6 +109,9 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
 
     @Override
     public FileCollectionInternal resolving(Object... sources) {
+        if (sources.length == 0) {
+            return empty();
+        }
         if (sources.length == 1 && sources[0] instanceof FileCollectionInternal) {
             return (FileCollectionInternal) sources[0];
         }
@@ -121,7 +125,7 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
 
     @Override
     public FileCollectionInternal empty() {
-        return empty(DEFAULT_DISPLAY_NAME);
+        return EMPTY;
     }
 
     @Override

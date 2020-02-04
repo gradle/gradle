@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile;
 
+import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.tasks.compile.daemon.DaemonGroovyCompiler;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDetector;
@@ -73,10 +74,12 @@ public class GroovyCompilerFactory implements CompilerFactory<GroovyJavaJointCom
 
     public static class DaemonSideCompiler implements Compiler<GroovyJavaJointCompileSpec> {
         private final ExecHandleFactory execHandleFactory;
+        private final ProjectLayout projectLayout;
 
         @Inject
-        public DaemonSideCompiler(ExecHandleFactory execHandleFactory) {
+        public DaemonSideCompiler(ExecHandleFactory execHandleFactory, ProjectLayout projectLayout) {
             this.execHandleFactory = execHandleFactory;
+            this.projectLayout = projectLayout;
         }
 
         @Override
@@ -87,7 +90,7 @@ public class GroovyCompilerFactory implements CompilerFactory<GroovyJavaJointCom
             } else {
                 javaCompiler = new JdkJavaCompiler(new JavaHomeBasedJavaCompilerFactory());
             }
-            Compiler<GroovyJavaJointCompileSpec> groovyCompiler = new ApiGroovyCompiler(javaCompiler);
+            Compiler<GroovyJavaJointCompileSpec> groovyCompiler = new ApiGroovyCompiler(javaCompiler, projectLayout);
             return groovyCompiler.execute(spec);
         }
     }

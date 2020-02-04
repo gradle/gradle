@@ -28,12 +28,11 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.maven.MavenDeployment;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.PublicationArtifact;
 import org.gradle.api.publish.internal.PublicationInternal;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugins.signing.internal.SignOperationInternal;
 import org.gradle.plugins.signing.signatory.Signatory;
 import org.gradle.plugins.signing.signatory.SignatoryProvider;
@@ -630,15 +629,15 @@ public class SigningExtension {
     }
 
     protected SignOperation doSignOperation(Action<SignOperation> setup) {
-        SignOperation operation = instantiator().newInstance(SignOperationInternal.class);
+        SignOperation operation = objectFactory().newInstance(SignOperationInternal.class);
         addSignatureSpecConventions(operation);
         setup.execute(operation);
         operation.execute();
         return operation;
     }
 
-    private Instantiator instantiator() {
-        return ((ProjectInternal) project).getServices().get(Instantiator.class);
+    private ObjectFactory objectFactory() {
+        return project.getObjects();
     }
 
     public SignatoryProvider getSignatories() {

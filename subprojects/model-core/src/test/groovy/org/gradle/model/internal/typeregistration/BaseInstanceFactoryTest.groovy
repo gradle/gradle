@@ -222,15 +222,6 @@ class BaseInstanceFactoryTest extends Specification {
         ex.message == "No factory registered to create an instance of implementation class '$Object.name'."
     }
 
-    def "fails when an implementation is registered that doesn't have a default constructor"() {
-        when:
-        instanceFactory.register(ModelType.of(ThingSpec), new SimpleModelRuleDescriptor("thing"))
-            .withImplementation(ModelType.of(NoDefaultConstructorThingSpec))
-        then:
-        def ex = thrown IllegalArgumentException
-        ex.message == "Implementation type '${fullyQualifiedNameOf(NoDefaultConstructorThingSpec)}' registered for '${fullyQualifiedNameOf(ThingSpec)}' must have a public default constructor"
-    }
-
     def "fails when registered implementation type is an abstract type"() {
         when:
         instanceFactory.register(ModelType.of(ThingSpec), new SimpleModelRuleDescriptor("thing"))
