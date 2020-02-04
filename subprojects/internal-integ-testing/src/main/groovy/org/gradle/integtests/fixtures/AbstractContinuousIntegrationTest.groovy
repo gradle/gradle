@@ -89,7 +89,7 @@ abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec
     }
 
     protected int getMinimumBuildTimeMillis() {
-        2000
+        OperatingSystem.current().isWindows() ? 3000 : 2000
     }
 
     protected void withoutContinuousBuild() {
