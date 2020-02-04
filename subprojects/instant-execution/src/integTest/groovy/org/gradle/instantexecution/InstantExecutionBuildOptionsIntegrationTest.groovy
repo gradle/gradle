@@ -27,16 +27,7 @@ class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecuti
         def instant = newInstantExecutionFixture()
         buildKotlinFile """
 
-            abstract class Greet : DefaultTask() {
-
-                @get:Input
-                abstract val greeting: Property<String>
-
-                @TaskAction
-                fun act() {
-                    println(greeting.get().capitalize() + "!")
-                }
-            }
+            $greetTask
 
             val greetingProp = providers.systemProperty("greeting")
             if (greetingProp.get() == "hello") {
@@ -186,16 +177,7 @@ class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecuti
         def instant = newInstantExecutionFixture()
         buildKotlinFile """
 
-            abstract class Greet : DefaultTask() {
-
-                @get:Input
-                abstract val greeting: Property<String>
-
-                @TaskAction
-                fun act() {
-                    println(greeting.get().capitalize() + "!")
-                }
-            }
+            $greetTask
 
             val greetingProp = providers.${kind}Property("greeting")
             if (greetingProp.get() == "hello") {
@@ -325,16 +307,7 @@ class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecuti
         def instant = newInstantExecutionFixture()
         buildKotlinFile """
 
-            abstract class Greet : DefaultTask() {
-
-                @get:Input
-                abstract val greeting: Property<String>
-
-                @TaskAction
-                fun act() {
-                    println(greeting.get().capitalize() + "!")
-                }
-            }
+            $greetTask
 
             val greetingVar = providers.environmentVariable("GREETING")
             if (greetingVar.get().startsWith("hello")) {
@@ -487,16 +460,7 @@ class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecuti
         def instant = newInstantExecutionFixture()
         buildKotlinFile """
 
-            abstract class Greet : DefaultTask() {
-
-                @get:Input
-                abstract val greeting: Property<String>
-
-                @TaskAction
-                fun act() {
-                    println(greeting.get().capitalize() + "!")
-                }
-            }
+            $greetTask
 
             val emptyFileProperty = objects.fileProperty()
             val fileContents = providers.fileContents(emptyFileProperty).asText
@@ -524,6 +488,21 @@ class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecuti
         operator    | operatorType       | usage
         "getOrElse" | "String"           | "build logic input"
         "orElse"    | "Provider<String>" | "task input"
+    }
+
+    private static String getGreetTask() {
+        """
+            abstract class Greet : DefaultTask() {
+
+                @get:Input
+                abstract val greeting: Property<String>
+
+                @TaskAction
+                fun act() {
+                    println(greeting.get().capitalize() + "!")
+                }
+            }
+        """.stripIndent()
     }
 
     private void withEnvironmentVars(Map<String, String> environment) {
