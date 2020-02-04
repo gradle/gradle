@@ -98,6 +98,15 @@ class DefaultFileCollectionFactoryTest extends Specification {
         collection.toString() == "some collection"
     }
 
+    def "constructs empty collection with display name"() {
+        expect:
+        def collection = factory.empty("some collection")
+        collection.files.empty
+        collection.buildDependencies.getDependencies(null).empty
+        collection.visitStructure(new BrokenVisitor())
+        collection.toString() == "some collection"
+    }
+
     def "constructs a collection with fixed contents"() {
         def file1 = new File("a")
         def file2 = new File("b")
@@ -114,16 +123,43 @@ class DefaultFileCollectionFactoryTest extends Specification {
         collection2.toString() == "some collection"
     }
 
-    def "constructs empty collection with display name"() {
+    def "returns empty collection when constructed with empty fixed array"() {
         expect:
-        def collection = factory.empty("some collection")
+        def collection = factory.fixed()
+        collection.files.empty
+        collection.buildDependencies.getDependencies(null).empty
+        collection.visitStructure(new BrokenVisitor())
+        collection.toString() == "file collection"
+    }
+
+    def "returns empty collection when constructed with display name and a fixed empty array"() {
+        expect:
+        def collection = factory.fixed("some collection")
         collection.files.empty
         collection.buildDependencies.getDependencies(null).empty
         collection.visitStructure(new BrokenVisitor())
         collection.toString() == "some collection"
     }
 
-    def "returns empty collection when constructed with no sources"() {
+    def "returns empty collection when constructed with a fixed list containing nothing"() {
+        expect:
+        def collection = factory.fixed([])
+        collection.files.empty
+        collection.buildDependencies.getDependencies(null).empty
+        collection.visitStructure(new BrokenVisitor())
+        collection.toString() == "file collection"
+    }
+
+    def "returns empty collection when constructed with display name and a fixed list containing nothing"() {
+        expect:
+        def collection = factory.fixed("some collection", [])
+        collection.files.empty
+        collection.buildDependencies.getDependencies(null).empty
+        collection.visitStructure(new BrokenVisitor())
+        collection.toString() == "some collection"
+    }
+
+    def "returns empty collection when constructed with empty resolving array"() {
         expect:
         def collection = factory.resolving()
         collection.files.empty
@@ -132,22 +168,27 @@ class DefaultFileCollectionFactoryTest extends Specification {
         collection.toString() == "file collection"
     }
 
-    def "returns empty collection when constructed with display name and a list containing nothing"() {
-        expect:
-        def collection = factory.resolving("some collection", [])
-        collection.files.empty
-        collection.buildDependencies.getDependencies(null).empty
-        collection.visitStructure(new BrokenVisitor())
-        collection.toString() == "some collection"
-    }
-
-    def "returns empty collection when constructed with display name and an array containing nothing"() {
+    def "returns empty collection when constructed with display name and empty resolving array"() {
         expect:
         def collection = factory.resolving("some collection")
         collection.files.empty
         collection.buildDependencies.getDependencies(null).empty
         collection.visitStructure(new BrokenVisitor())
         collection.toString() == "some collection"
+    }
+
+    def "returns live collection when constructed with display name and a resolving list containing nothing"() {
+        def contents = []
+
+        expect:
+        def collection = factory.resolving("some collection", contents)
+        collection.files.empty
+        collection.buildDependencies.getDependencies(null).empty
+        collection.visitStructure(new BrokenVisitor())
+        collection.toString() == "some collection"
+
+        contents.add('a')
+        !collection.files.empty
     }
 
     def "returns original file collection when constructed with a single collection"() {

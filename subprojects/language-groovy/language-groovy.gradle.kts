@@ -29,6 +29,8 @@ dependencies {
     implementation(library("inject"))
 
     testImplementation(project(":baseServicesGroovy"))
+    testImplementation(project(":internalTesting"))
+    testImplementation(project(":resources"))
     testImplementation(testFixtures(project(":core")))
 
     testRuntimeOnly(project(":runtimeApiInfo"))

@@ -74,6 +74,8 @@ dependencies {
     testFixturesImplementation(project(":fileCollections"))
     testFixturesImplementation(project(":languageJvm"))
     testFixturesImplementation(project(":internalIntegTesting"))
+    testFixturesImplementation(project(":processServices"))
+    testFixturesImplementation(project(":resources"))
     testFixturesImplementation(library("guava"))
 
     testImplementation(testLibrary("jsoup"))

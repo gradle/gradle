@@ -96,10 +96,7 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
 
     @Override
     public FileCollectionInternal resolving(String displayName, List<?> sources) {
-        if (sources.isEmpty()) {
-            return new EmptyFileCollection(displayName);
-        }
-        return new ResolvingFileCollection(displayName, fileResolver, ImmutableList.copyOf(sources));
+        return new ResolvingFileCollection(displayName, fileResolver, sources);
     }
 
     @Override
@@ -205,9 +202,9 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
     private static final class ResolvingFileCollection extends CompositeFileCollection {
         private final String displayName;
         private final PathToFileResolver resolver;
-        private final ImmutableList<Object> paths;
+        private final List<?> paths;
 
-        public ResolvingFileCollection(String displayName, PathToFileResolver resolver, ImmutableList<Object> paths) {
+        public ResolvingFileCollection(String displayName, PathToFileResolver resolver, List<?> paths) {
             this.displayName = displayName;
             this.resolver = resolver;
             this.paths = paths;

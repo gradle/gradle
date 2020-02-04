@@ -62,8 +62,8 @@ public class PlayApplicationRunner {
 
         private PlayClassloaderMonitorDeploymentDecorator(Deployment delegate, PlayRunSpec runSpec, FileCollectionFactory fileCollectionFactory) {
             this.delegate = delegate;
-            this.applicationClasspath = collectApplicationClasspath(runSpec);
             this.fileCollectionFactory = fileCollectionFactory;
+            this.applicationClasspath = collectApplicationClasspath(runSpec);
         }
 
         private FileCollection collectApplicationClasspath(PlayRunSpec runSpec) {

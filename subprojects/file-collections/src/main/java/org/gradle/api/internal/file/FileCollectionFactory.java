@@ -82,7 +82,7 @@ public interface FileCollectionFactory {
     /**
      * Creates a {@link FileCollection} with the given files as content.
      *
-     * The collection is live and resolves the files on each query.
+     * The collection is live and resolves the files on each query. Tracks changes to the source list.
      */
     FileCollectionInternal resolving(String displayName, List<?> sources);
 
