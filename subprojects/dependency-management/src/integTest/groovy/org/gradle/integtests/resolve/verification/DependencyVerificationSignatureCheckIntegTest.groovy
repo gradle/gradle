@@ -88,6 +88,7 @@ class DependencyVerificationSignatureCheckIntegTest extends AbstractSignatureVer
         outputContains("Dependency verification is an incubating feature.")
     }
 
+    @ToBeFixedForInstantExecution(because = "breaks the IE assumption that visiting a file collection multiple times will always throw the same exception")
     def "if signature is verified and checksum is declared in configuration, verify checksum"() {
         createMetadataFile {
             keyServer(keyServerFixture.uri)
@@ -121,6 +122,7 @@ class DependencyVerificationSignatureCheckIntegTest extends AbstractSignatureVer
 This can indicate that a dependency has been compromised. Please carefully verify the checksums."""
     }
 
+    @ToBeFixedForInstantExecution(because = "breaks the IE assumption that visiting a file collection multiple times will always throw the same exception")
     def "fails verification is key is missing"() {
         createMetadataFile {
             keyServer(keyServerFixture.uri)
@@ -248,7 +250,7 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
         stopInBetween << [false, true]
     }
 
-
+    @ToBeFixedForInstantExecution(because = "breaks the IE assumption that visiting a file collection multiple times will always throw the same exception")
     def "fails verification is signature is incorrect"() {
         createMetadataFile {
             noMetadataVerification()
@@ -285,6 +287,7 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
     }
 
+    @ToBeFixedForInstantExecution(because = "breaks the IE assumption that visiting a file collection multiple times will always throw the same exception")
     def "doesn't check the same artifact multiple times during a build"() {
         createMetadataFile {
             noMetadataVerification()
@@ -326,6 +329,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
     }
 
+    @ToBeFixedForInstantExecution(because = "breaks the IE assumption that visiting a file collection multiple times will always throw the same exception")
     def "doesn't check the same parent POM file multiple times during a build"() {
         createMetadataFile {
             keyServer(keyServerFixture.uri)
@@ -373,7 +377,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
     }
 
-
+    @ToBeFixedForInstantExecution(because = "breaks the IE assumption that visiting a file collection multiple times will always throw the same exception")
     def "fails verification is signature is not trusted"() {
         def keyring = newKeyRing()
         keyServerFixture.registerPublicKey(keyring.publicKey)
@@ -411,6 +415,7 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution(because = "breaks the IE assumption that visiting a file collection multiple times will always throw the same exception")
     def "can verify classified artifacts trusting key #trustedKey"() {
         def keyring = newKeyRing()
         keyServerFixture.registerPublicKey(keyring.publicKey)
@@ -454,6 +459,7 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
         ]
     }
 
+    @ToBeFixedForInstantExecution(because = "breaks the IE assumption that visiting a file collection multiple times will always throw the same exception")
     def "reasonable error message if key server fails to answer"() {
         createMetadataFile {
             keyServer(keyServerFixture.uri)
@@ -524,6 +530,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
         secondServer.stop()
     }
 
+    @ToBeFixedForInstantExecution(because = "breaks the IE assumption that visiting a file collection multiple times will always throw the same exception")
     def "must verify all signatures"() {
         def keyring = newKeyRing()
         keyServerFixture.withDefaultSigningKey()
@@ -775,6 +782,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
 If the artifacts are trustworthy, you will need to update the gradle/verification-metadata.xml file by following the instructions at ${docsUrl}"""
     }
 
+    @ToBeFixedForInstantExecution(because = "breaks the IE assumption that visiting a file collection multiple times will always throw the same exception")
     def "unsigned artifacts require checksum verification"() {
         createMetadataFile {
             keyServer(keyServerFixture.uri)
@@ -807,6 +815,7 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
 This can indicate that a dependency has been compromised. Please carefully verify the checksums."""
     }
 
+    @ToBeFixedForInstantExecution(because = "breaks the IE assumption that visiting a file collection multiple times will always throw the same exception")
     def "can ignore a key and fallback to checksum verification"() {
         createMetadataFile {
             keyServer(keyServerFixture.uri)
@@ -836,6 +845,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
   - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': checksum is missing from verification metadata."""
     }
 
+    @ToBeFixedForInstantExecution(because = "breaks the IE assumption that visiting a file collection multiple times will always throw the same exception")
     def "can ignore a key using full fingerprint and fallback to checksum verification"() {
         createMetadataFile {
             keyServer(keyServerFixture.uri)
@@ -866,6 +876,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
   - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': checksum is missing from verification metadata."""
     }
 
+    @ToBeFixedForInstantExecution(because = "breaks the IE assumption that visiting a file collection multiple times will always throw the same exception")
     def "can ignore a key for a specific artifact and fallback to checksum verification"() {
         // we tamper the jar, so the verification of the jar would fail, but not the POM
         keyServerFixture.withDefaultSigningKey()
@@ -906,6 +917,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
 
     }
 
+    @ToBeFixedForInstantExecution(because = "breaks the IE assumption that visiting a file collection multiple times will always throw the same exception")
     def "can ignore a key by long id for a specific artifact and fallback to checksum verification"() {
         // we tamper the jar, so the verification of the jar would fail, but not the POM
         keyServerFixture.withDefaultSigningKey()
@@ -979,6 +991,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
         noExceptionThrown()
     }
 
+    @ToBeFixedForInstantExecution(because = "breaks the IE assumption that visiting a file collection multiple times will always throw the same exception")
     def "can collect multiple errors for single dependency"() {
         def keyring = newKeyRing()
         keyServerFixture.registerPublicKey(keyring.publicKey)
@@ -1048,6 +1061,7 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution(because = "breaks the IE assumption that visiting a file collection multiple times will always throw the same exception")
     def "can mix globally trusted keys and artifact specific keys (trust artifact key = #addLocalKey)"() {
         def keyring = newKeyRing()
         keyServerFixture.registerPublicKey(keyring.publicKey)
