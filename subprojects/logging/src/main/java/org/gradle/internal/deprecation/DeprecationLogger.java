@@ -30,6 +30,22 @@ import static org.gradle.internal.deprecation.Messages.thisIsScheduledToBeRemove
 import static org.gradle.internal.deprecation.Messages.thisWillBecomeAnError;
 import static org.gradle.internal.deprecation.Messages.xHasBeenDeprecated;
 
+
+/**
+ * Provides entry points for constructing and emitting deprecation messages.
+ * The basic deprecation message structure is "Summary. RemovalDetails. Context. Advice. Documentation."
+ *
+ * The deprecateX methods in this class return a builder that guides creation of the deprecation message.
+ * Summary and RemovalDetails parts are populated by the deprecateX methods in this class.
+ * Context can be added in free text using {@link DeprecationMessageBuilder#withContext(String)}.
+ * Advice is constructed contextually using {@link DeprecationMessageBuilder.WithReplacement#replaceWith(Object)} methods based on the thing being deprecated. Alternatively, it can be populated using {@link DeprecationMessageBuilder#withAdvice(String)}.
+ * Documentation reference is added using one of:
+ *  - {@link DeprecationMessageBuilder#withUpgradeGuideSection(int, String)}
+ *  - {@link DeprecationMessageBuilder#withDslReference(Class, String)}
+ *  - {@link DeprecationMessageBuilder#withUserManual(String, String)}
+ *
+ *  In order for the deprecation message to be emitted, terminal operation {@link DeprecationMessageBuilder.WithDocumentation#nagUser()} has to be called after one of the documentation providing methods.
+ */
 @ThreadSafe
 public class DeprecationLogger {
 
@@ -60,6 +76,8 @@ public class DeprecationLogger {
     }
 
     /**
+     * This is a rather generic deprecation entry point - consider using a more specific deprecation method and only resort to this one if there is no fit.
+     *
      * Output: ${feature} has been deprecated. This is scheduled to be removed in Gradle X.
      */
     @CheckReturnValue
@@ -75,6 +93,9 @@ public class DeprecationLogger {
     }
 
     /**
+     * Indirect usage means that stack trace at the time the deprecation is logged does not indicate the call site.
+     * This directs GE to not display unhelpful stacktraces with the deprecation.
+     *
      * Output: ${feature} has been deprecated. This is scheduled to be removed in Gradle X.
      */
     @CheckReturnValue
@@ -85,6 +106,7 @@ public class DeprecationLogger {
     }
 
     /**
+     *
      * Output: ${feature} has been deprecated. This is scheduled to be removed in Gradle X.
      */
     @CheckReturnValue
