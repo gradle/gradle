@@ -22,6 +22,7 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.quality.Checkstyle;
 import org.gradle.api.plugins.quality.CheckstyleExtension;
 import org.gradle.api.tasks.PathSensitivity;
@@ -52,12 +53,16 @@ public class GradleJavadocsPlugin implements Plugin<Project> {
         // TODO: Staging directory should be a part of the Javadocs extension
         // TODO: Pull out more of this configuration into the extension if it makes sense
         // TODO: in a typical project, this may need to be the regular javadoc task vs javadocAll
+
+        ObjectFactory objects = project.getObjects();
+        // TODO: This breaks if version is changed later
+        Object version = project.getVersion();
+
         TaskProvider<Javadoc> javadocAll = tasks.register("javadocAll", Javadoc.class, task -> {
             task.setGroup("documentation");
             task.setDescription("Generate Javadocs for all API classes");
 
-            // TODO: This breaks if version is changed later
-            task.setTitle("Gradle API " + project.getVersion());
+            task.setTitle("Gradle API " + version);
 
             Javadocs javadocs = extension.getJavadocs();
 
@@ -84,7 +89,7 @@ public class GradleJavadocsPlugin implements Plugin<Project> {
             task.setClasspath(extension.getClasspath());
 
             // TODO: This should be in Javadoc task
-            DirectoryProperty generatedJavadocDirectory = project.getObjects().directoryProperty();
+            DirectoryProperty generatedJavadocDirectory = objects.directoryProperty();
             generatedJavadocDirectory.set(layout.getBuildDirectory().dir("javadoc"));
             task.getOutputs().dir(generatedJavadocDirectory);
             task.getExtensions().getExtraProperties().set("destinationDirectory", generatedJavadocDirectory);
@@ -99,7 +104,7 @@ public class GradleJavadocsPlugin implements Plugin<Project> {
                 task.doLast(new Action<Task>() {
                     @Override
                     public void execute(Task task) {
-                        project.copy(copySpec -> {
+                        task.getProject().copy(copySpec -> {
                             // Commit http://hg.openjdk.java.net/jdk/jdk/rev/89dc31d7572b broke use of JSZip (https://bugs.openjdk.java.net/browse/JDK-8214856)
                             // fixed in Java 12 by http://hg.openjdk.java.net/jdk/jdk/rev/b4982a22926b
                             // TODO: Remove this script.js workaround when we distribute Gradle using JDK 12 or higher

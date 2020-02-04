@@ -17,6 +17,7 @@
 package org.gradle.instantexecution.serialization.codecs
 
 import org.gradle.api.tasks.util.PatternSet
+import org.gradle.api.tasks.util.internal.IntersectionPatternSet
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
@@ -37,4 +38,21 @@ object PatternSetCodec : Codec<PatternSet> {
             setIncludes(readStrings())
             setExcludes(readStrings())
         }
+}
+
+
+object IntersectPatternSetCodec : Codec<IntersectionPatternSet> {
+    override suspend fun WriteContext.encode(value: IntersectionPatternSet) {
+        write(value.other)
+        writeStrings(value.includes)
+        writeStrings(value.excludes)
+    }
+
+    override suspend fun ReadContext.decode(): IntersectionPatternSet? {
+        val other = read() as PatternSet
+        return IntersectionPatternSet(other).apply {
+            setIncludes(readStrings())
+            setExcludes(readStrings())
+        }
+    }
 }

@@ -92,6 +92,14 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
 
         settingsFile << """
             rootProject.name = 'thing'
+            include 'a', 'b', 'c'
+            include 'a:b'
+            project(':a:b').projectDir = file('custom')
+            gradle.rootProject {
+                allprojects {
+                    task thing
+                }
+            }
         """
 
         when:
@@ -100,6 +108,8 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         then:
         def event = fixture.first(LoadProjectsBuildOperationType)
         event.result.rootProject.name == 'thing'
+        event.result.rootProject.path == ':'
+        event.result.rootProject.children.size() == 3 // All projects are created when storing
 
         when:
         instantRun "help"
@@ -107,6 +117,59 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         then:
         def event2 = fixture.first(LoadProjectsBuildOperationType)
         event2.result.rootProject.name == 'thing'
+        event2.result.rootProject.path == ':'
+        event2.result.rootProject.projectDir == testDirectory.absolutePath
+        event2.result.rootProject.children.empty // None of the child projects are created when loading, as they have no tasks scheduled
+
+        when:
+        instantRun ":a:thing"
+
+        then:
+        def event3 = fixture.first(LoadProjectsBuildOperationType)
+        event3.result.rootProject.name == 'thing'
+        event3.result.rootProject.children.size() == 3 // All projects are created when storing
+
+        when:
+        instantRun ":a:thing"
+
+        then:
+        def event4 = fixture.first(LoadProjectsBuildOperationType)
+        event4.result.rootProject.name == 'thing'
+        event4.result.rootProject.path == ':'
+        event4.result.rootProject.projectDir == testDirectory.absolutePath
+        event4.result.rootProject.children.size() == 1 // Only project a is created when loading
+        def project1 = event4.result.rootProject.children.first()
+        project1.name == 'a'
+        project1.path == ':a'
+        project1.projectDir == file('a').absolutePath
+        project1.children.empty
+
+        when:
+        instantRun ":a:b:thing"
+
+        then:
+        def event5 = fixture.first(LoadProjectsBuildOperationType)
+        event5.result.rootProject.name == 'thing'
+        event5.result.rootProject.children.size() == 3 // All projects are created when storing
+
+        when:
+        instantRun ":a:b:thing"
+
+        then:
+        def event6 = fixture.first(LoadProjectsBuildOperationType)
+        event6.result.rootProject.name == 'thing'
+        event6.result.rootProject.path == ':'
+        event6.result.rootProject.projectDir == testDirectory.absolutePath
+        event6.result.rootProject.children.size() == 1
+        def project3 = event6.result.rootProject.children.first()
+        project3.name == 'a'
+        project3.path == ':a'
+        project3.projectDir == file('a').absolutePath
+        project3.children.size() == 1
+        def project4 = project3.children.first()
+        project4.name == 'b'
+        project4.path == ':a:b'
+        project4.projectDir == file('custom').absolutePath
     }
 
     def "does not configure build when task graph is already cached for requested tasks"() {

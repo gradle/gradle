@@ -16,7 +16,8 @@
 
 package org.gradle.instantexecution
 
-import org.gradle.util.Path.path
+import com.nhaarman.mockitokotlin2.mock
+import org.gradle.api.Project
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
@@ -26,23 +27,30 @@ class InstantExecutionTest {
 
     @Test
     fun `mind the gaps`() {
+        val root = project(null)
+        val a = project(root)
+        val a_b = project(a)
+        val a_c = project(a)
+        val d = project(root)
+        val d_e = project(d)
+        val d_e_f = project(d_e)
         assertThat(
             fillTheGapsOf(
-                sortedSetOf(
-                    path(":a:b"),
-                    path(":a:c"),
-                    path(":d:e:f")
+                listOf(
+                    a_b,
+                    a_c,
+                    d_e_f
                 )
             ),
             equalTo(
                 listOf(
-                    path(":"),
-                    path(":a"),
-                    path(":a:b"),
-                    path(":a:c"),
-                    path(":d"),
-                    path(":d:e"),
-                    path(":d:e:f")
+                    root,
+                    a,
+                    a_b,
+                    a_c,
+                    d,
+                    d_e,
+                    d_e_f
                 )
             )
         )
@@ -50,23 +58,33 @@ class InstantExecutionTest {
 
     @Test
     fun `don't mind no gaps`() {
+        val root = project(null)
+        val a = project(root)
+        val a_b = project(a)
+        val a_c = project(a)
         assertThat(
             fillTheGapsOf(
-                sortedSetOf(
-                    path(":"),
-                    path(":a"),
-                    path(":a:b"),
-                    path(":a:c")
+                listOf(
+                    root,
+                    a,
+                    a_b,
+                    a_c
                 )
             ),
             equalTo(
                 listOf(
-                    path(":"),
-                    path(":a"),
-                    path(":a:b"),
-                    path(":a:c")
+                    root,
+                    a,
+                    a_b,
+                    a_c
                 )
             )
         )
+    }
+
+    fun project(parent: Project?): Project {
+        return mock {
+            on(mock.parent).thenReturn(parent)
+        }
     }
 }
