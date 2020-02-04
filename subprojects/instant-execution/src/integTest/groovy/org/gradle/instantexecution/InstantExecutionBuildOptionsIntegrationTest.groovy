@@ -210,7 +210,7 @@ class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecuti
         then:
         output.count("Hello, hello!") == 1
         instant.assertStateStored()
-        outputContains("$description property 'greeting' has changed")
+        outputContains "$description property 'greeting' has changed"
 
         where:
         kind     | option | description
@@ -343,7 +343,7 @@ class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecuti
 
         then:
         output.count("Hello, hello!") == 1
-        outputContains("environment variable 'GREETING' has changed")
+        outputContains "environment variable 'GREETING' has changed"
         instant.assertStateStored()
     }
 
@@ -402,6 +402,7 @@ class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecuti
 
         then: "cache is NO longer valid"
         output.count(usage.endsWith("presence") ? "ON CI" : "NOT CI") == 1
+        outputContains "configuration file 'ci' has changed"
         instant.assertStateStored()
 
         where:

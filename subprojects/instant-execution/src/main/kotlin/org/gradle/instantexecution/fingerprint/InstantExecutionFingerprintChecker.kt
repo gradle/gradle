@@ -37,6 +37,7 @@ class InstantExecutionFingerprintChecker(private val host: Host) {
 
     interface Host {
         fun hashCodeOf(inputFile: File): HashCode?
+        fun displayNameOf(inputFile: File): String
         fun instantiateValueSourceOf(obtainedValue: ObtainedValue): ValueSource<Any, ValueSourceParameters>
     }
 
@@ -58,7 +59,7 @@ class InstantExecutionFingerprintChecker(private val host: Host) {
             val (inputFile, hashCode) = readNonNull<InstantExecutionCacheFingerprint.InputFile>()
             if (host.hashCodeOf(inputFile) != hashCode) {
                 // TODO: log some debug info
-                return "a configuration file has changed"
+                return "configuration file '${host.displayNameOf(inputFile)}' has changed"
             }
         }
         return null
