@@ -19,7 +19,7 @@ import org.apache.commons.io.FileUtils
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.internal.file.FileTreeInternal
-import org.gradle.api.internal.file.collections.ImmutableFileCollection
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec
 import org.gradle.api.tasks.TaskExecutionException
 import org.gradle.api.tasks.WorkResults
@@ -84,7 +84,7 @@ class ScalaCompileTest extends AbstractCompileTest {
 
         given:
         setUpMocksAndAttributes(scalaCompile)
-        scalaCompile.getOptions().setAnnotationProcessorPath(ImmutableFileCollection.of(file))
+        scalaCompile.getOptions().setAnnotationProcessorPath(TestFiles.fixed(file))
 
         when:
         execute(scalaCompile)

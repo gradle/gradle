@@ -18,7 +18,7 @@ package org.gradle.tooling.internal.provider
 
 import org.gradle.api.execution.internal.DefaultTaskInputsListener
 import org.gradle.api.internal.TaskInternal
-import org.gradle.api.internal.file.collections.ImmutableFileCollection
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.deployment.internal.DeploymentRegistryInternal
 import org.gradle.initialization.BuildRequestMetaData
 import org.gradle.initialization.DefaultBuildCancellationToken
@@ -157,7 +157,7 @@ class ContinuousBuildActionExecuterTest extends ConcurrentSpec {
     }
 
     private void declareInput(File file) {
-        inputsListener.onExecute(Mock(TaskInternal), ImmutableFileCollection.of(file))
+        inputsListener.onExecute(Mock(TaskInternal), TestFiles.fixed(file))
     }
 
     private ContinuousBuildActionExecuter executer() {

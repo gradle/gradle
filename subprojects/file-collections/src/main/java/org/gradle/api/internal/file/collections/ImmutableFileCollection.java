@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,17 @@ package org.gradle.api.internal.file.collections;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import org.gradle.api.internal.file.AbstractFileCollection;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 import java.io.File;
 import java.util.Set;
 
+/**
+ * This is used by the external play plugin.
+ *
+ * @deprecated Please use {@link org.gradle.api.file.ProjectLayout#files(Object...)} instead.
+ */
+@Deprecated
 public abstract class ImmutableFileCollection extends AbstractFileCollection {
     private static final ImmutableFileCollection EMPTY = new ImmutableFileCollection() {
         @Override
@@ -32,10 +39,11 @@ public abstract class ImmutableFileCollection extends AbstractFileCollection {
     };
 
     /**
-     * Please use {@link org.gradle.api.file.ProjectLayout#files(Object...)} (for plugins) or {@link org.gradle.api.internal.file.FileCollectionFactory} (for core code) instead.
-     * This method will be removed eventually.
+     * @deprecated Please use {@link org.gradle.api.file.ProjectLayout#files(Object...)} (for plugins) or {@link org.gradle.api.internal.file.FileCollectionFactory} (for core code) instead.
      */
+    @Deprecated
     public static ImmutableFileCollection of() {
+        nagUser();
         return EMPTY;
     }
 
@@ -44,6 +52,7 @@ public abstract class ImmutableFileCollection extends AbstractFileCollection {
      * This method will be removed eventually.
      */
     public static ImmutableFileCollection of(File... files) {
+        nagUser();
         if (files.length == 0) {
             return EMPTY;
         }
@@ -55,10 +64,18 @@ public abstract class ImmutableFileCollection extends AbstractFileCollection {
      * This method will be removed eventually.
      */
     public static ImmutableFileCollection of(Iterable<? extends File> files) {
+        nagUser();
         if (Iterables.isEmpty(files)) {
             return EMPTY;
         }
         return new FileOnlyImmutableFileCollection(ImmutableSet.copyOf(files));
+    }
+
+    private static void nagUser() {
+        DeprecationLogger.deprecateInternalApi("ImmutableFileCollection")
+            .replaceWith("ProjectLayout.files()")
+            .withUserManual("lazy_configuration", "property_files_api_reference")
+            .nagUser();
     }
 
     private ImmutableFileCollection() {
