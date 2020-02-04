@@ -20,7 +20,6 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.publish.internal.DefaultPublishRetrier;
 import org.gradle.api.publish.internal.PublishOperation;
 import org.gradle.api.publish.internal.validation.DuplicatePublicationTracker;
 import org.gradle.api.publish.ivy.IvyPublication;
