@@ -462,7 +462,7 @@ class DefaultInstantExecution internal constructor(
 
     private
     fun absoluteFile(path: String) =
-        File(startParameter.rootDirectory, path).absoluteFile
+        File(rootDirectory, path).absoluteFile
 
     private
     val reportOutputDir by unsafeLazy {
@@ -513,6 +513,9 @@ class DefaultInstantExecution internal constructor(
         override fun hashCodeOf(inputFile: File) =
             virtualFileSystem.hashCodeOf(inputFile)
 
+        override fun displayNameOf(inputFile: File): String =
+            relativePathOf(inputFile, rootDirectory)
+
         override fun instantiateValueSourceOf(obtainedValue: ObtainedValue) =
             (valueSourceProviderFactory as DefaultValueSourceProviderFactory).instantiateValueSource(
                 obtainedValue.valueSourceType,
@@ -520,6 +523,10 @@ class DefaultInstantExecution internal constructor(
                 obtainedValue.valueSourceParameters
             )
     }
+
+    private
+    val rootDirectory
+        get() = startParameter.rootDirectory
 }
 
 
