@@ -63,8 +63,23 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
     }
 
     @Override
+    Map<String, String> someOtherValue2() {
+        return ['k2': 'v2']
+    }
+
+    @Override
+    Map<String, String> someOtherValue3() {
+        return ['k3': 'v3']
+    }
+
+    @Override
     protected void setToNull(Object property) {
         property.set((Map) null)
+    }
+
+    @Override
+    protected void nullConvention(Object property) {
+        property.convention((Map) null)
     }
 
     @Override
@@ -800,7 +815,33 @@ The value of this property is derived from: <source>""")
         keySetProvider.getOrNull() == ['k1', 'k2', 'k3', 'k4'] as Set
     }
 
-    def "implicitly finalizes value on read of key"() {
+    def "implicitly finalizes value on read of keys"() {
+        def provider = Mock(ProviderInternal)
+
+        given:
+        property.put('k1', provider)
+        property.implicitFinalizeValue()
+
+        when:
+        def p = property.keySet()
+
+        then:
+        0 * _
+
+        when:
+        def result = p.get()
+        def result2 = property.get()
+
+        then:
+        1 * provider.calculateValue() >> ValueSupplier.Value.of("value")
+        0 * _
+
+        and:
+        result == (['k1'] as Set)
+        result2 == [k1: "value"]
+    }
+
+    def "implicitly finalizes value on read of entry"() {
         def provider = Mock(ProviderInternal)
 
         given:

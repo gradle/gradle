@@ -62,7 +62,7 @@ public interface FileLockManager {
         /**
          * No synchronisation is done.
          */
-        None,
+        OnDemand,
         /**
          * Multiple readers, no writers.
          */
@@ -71,5 +71,9 @@ public interface FileLockManager {
          * Single writer, no readers.
          */
         Exclusive,
+        /**
+         * No locking whatsoever
+         */
+        None
     }
 }

@@ -168,6 +168,11 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
     }
 
     @Override
+    public <K, V> boolean cacheExists(PersistentIndexedCacheParameters<K, V> parameters) {
+        return cacheAccess.cacheExists(parameters);
+    }
+
+    @Override
     public <T> T withFileLock(Factory<? extends T> action) {
         return cacheAccess.withFileLock(action);
     }

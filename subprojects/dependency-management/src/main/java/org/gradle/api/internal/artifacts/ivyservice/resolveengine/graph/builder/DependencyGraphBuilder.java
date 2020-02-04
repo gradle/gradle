@@ -265,8 +265,8 @@ public class DependencyGraphBuilder {
             SelectorState selector = dependency.getSelector();
             ModuleResolveState module = selector.getTargetModule();
 
-            if (selector.canResolve()) {
-                // Have an unprocessed/new selector for this module. Need to re-select the target version.
+            if (selector.canResolve() && module.getSelectors().size() > 0) {
+                // Have an unprocessed/new selector for this module. Need to re-select the target version (if there are any selectors that can be used).
                 performSelection(resolveState, module);
             }
 
@@ -286,7 +286,7 @@ public class DependencyGraphBuilder {
         ComponentState currentSelection = module.getSelected();
 
         try {
-            module.maybeUpdateSelection();
+            module.maybeUpdateSelection(null);
         } catch (ModuleVersionResolveException e) {
             // Ignore: All selectors failed, and will have failures recorded
             return;

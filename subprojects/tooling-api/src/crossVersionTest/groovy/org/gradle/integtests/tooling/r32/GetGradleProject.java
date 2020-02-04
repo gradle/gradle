@@ -13,25 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.integtests.tooling.r32;
 
-package org.gradle.instantexecution.initialization
+import org.gradle.tooling.BuildAction;
+import org.gradle.tooling.BuildController;
+import org.gradle.tooling.model.GradleProject;
 
-import org.gradle.initialization.IGradlePropertiesLoader
-
-
-class InstantExecutionPropertiesLoader(
-    private val startParameter: InstantExecutionStartParameter,
-    private val propertiesLoader: IGradlePropertiesLoader
-) {
-    private
-    var loaded = false
-
-    val hasLoaded
-        get() = loaded
-
-    fun loadProperties() {
-        require(!hasLoaded)
-        propertiesLoader.loadProperties(startParameter.rootDirectory)
-        loaded = true
+public class GetGradleProject implements BuildAction<GradleProject> {
+    @Override
+    public GradleProject execute(BuildController controller) {
+        return controller.getModel(GradleProject.class);
     }
 }

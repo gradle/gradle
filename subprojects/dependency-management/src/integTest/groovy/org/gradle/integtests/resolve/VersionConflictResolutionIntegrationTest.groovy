@@ -1921,7 +1921,7 @@ project(':sub') {
     }
 
     @ToBeFixedForInstantExecution
-    def 'direct recursion between dependencies does not causes a ConcurrentModificationException during selector removal'() {
+    def 'local cycle between dependencies does not causes a ConcurrentModificationException during selector removal'() {
         given:
         def lib2 = mavenRepo.module('org', 'lib', '2.0').publish()
         def lib3 = mavenRepo.module('org', 'lib', '3.0').publish()
@@ -1955,7 +1955,7 @@ project(':sub') {
     }
 
     @ToBeFixedForInstantExecution
-    def 'direct recursion between dependencies does not causes a ConcurrentModificationException during selector removal with strict version endorsement'() {
+    def 'local cycle between dependencies does not causes a ConcurrentModificationException during selector removal with strict version endorsement'() {
         given:
         def direct11 = mavenRepo.module('org', 'direct', '1.1')
         def betweenLibAndDirect = mavenRepo.module('org', 'betweenLibAndDirect', '1.0').dependsOn(direct11)
@@ -1969,6 +1969,46 @@ project(':sub') {
         // endorsing dependency that will cause a reselection of the parent again causing a reselection of other children
         // ("looping back" if a another child is the same as the one that was endorsed)
             .dependsOn([endorseStrictVersions: true], lib1).dependsOn(lib05).dependsOn(lib1).withModuleMetadata().publish()
+
+        buildFile << """
+            apply plugin: 'java-library'
+
+            repositories {
+                maven {
+                    url '${mavenRepo.uri}'
+                }
+            }
+
+            dependencies {
+                implementation 'org:direct:1.0'  // dependency on 'lib' which will istself update 'direct'
+            }
+        """
+
+        expect:
+        succeeds 'dependencies', '--configuration', 'runtimeClasspath'
+    }
+
+    @ToBeFixedForInstantExecution
+    def 'local cycle between dependencies does not causes a ConcurrentModificationException during selector removal with multiple strict version endorsements'() {
+        given:
+        def foo2 = mavenRepo.module('org', 'foo', '2.0').publish()
+        def foo1 = mavenRepo.module('org', 'foo', '1.0')
+            .dependencyConstraint(foo2).withModuleMetadata().publish()
+        def foo05 = mavenRepo.module('org', 'foo', '0.5').publish()
+
+        def direct11 = mavenRepo.module('org', 'direct', '1.1')
+        def betweenLibAndDirect = mavenRepo.module('org', 'betweenLibAndDirect', '1.0').dependsOn(direct11)
+        def lib2 = mavenRepo.module('org', 'lib', '2.0').publish()
+        def lib1 = mavenRepo.module('org', 'lib', '1.0').dependsOn(betweenLibAndDirect)
+        // recursive dependencies between different versions of 'lib'
+            .dependencyConstraint(lib2).withModuleMetadata().publish()
+        def lib05 = mavenRepo.module('org', 'lib', '0.5').publish()
+
+        mavenRepo.module('org', 'direct', '1.0')
+        // endorsing dependency that will cause a reselection of the parent again causing a reselection of other children
+        // ("looping back" if a another child is the same as the one that was endorsed)
+            .dependsOn([endorseStrictVersions: true], lib1)
+            .dependsOn([endorseStrictVersions: true], foo1).dependsOn(lib05).dependsOn(lib1).dependsOn([endorseStrictVersions: true], foo05).withModuleMetadata().publish()
 
         buildFile << """
             apply plugin: 'java-library'
@@ -2011,6 +2051,39 @@ dependencies {
     conf "org:direct:1.0"
 }
 """
+        expect:
+        succeeds 'dependencies', '--configuration', 'conf'
+    }
+
+    @ToBeFixedForInstantExecution
+    def "can resolve a graph with a local cycle caused by module replacement"() {
+        given:
+        def child1 = mavenRepo.module('org', 'child1', '1.0').publish()
+        def child2 = mavenRepo.module('org', 'child2', '1.0').publish()
+        mavenRepo.module('org', 'direct', '1.0').dependsOn(child1).dependsOn(child2).publish()
+
+        buildFile << """
+            repositories {
+                maven {
+                    name 'repo'
+                    url '${mavenRepo.uri}'
+                }
+            }
+
+            configurations {
+                conf
+            }
+
+            dependencies {
+                modules {
+                    module("org:child1") {
+                        replacedBy("org:direct")
+                    }
+                }
+                conf "org:direct:1.0"
+            }
+        """
+
         expect:
         succeeds 'dependencies', '--configuration', 'conf'
     }

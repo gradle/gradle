@@ -161,16 +161,17 @@ val writeEmbeddedKotlinDependencies by tasks.registering {
     val values = embeddedKotlinBaseDependencies
     inputs.files(values)
     val skippedModules = setOf(project.name, "distributionsDependencies", "kotlinCompilerEmbeddable")
+    // https://github.com/gradle/instant-execution/issues/183
+    val modules = provider { embeddedKotlinBaseDependencies.incoming.resolutionResult.allComponents
+        .asSequence()
+        .mapNotNull { it.moduleVersion }
+        .filter { it.name !in skippedModules }
+        .associate { "${it.group}:${it.name}" to it.version }
+    }
 
     doLast {
-        val modules = values.incoming.resolutionResult.allComponents
-            .asSequence()
-            .mapNotNull { it.moduleVersion }
-            .filter { it.name !in skippedModules }
-            .associate { "${it.group}:${it.name}" to it.version }
-
         ReproduciblePropertiesWriter.store(
-            modules,
+            modules.get(),
             outputFile.get().asFile.apply { parentFile.mkdirs() },
             null
         )

@@ -39,7 +39,10 @@ public class ModuleMetadataStore {
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final Interner<String> stringInterner;
 
-    public ModuleMetadataStore(PathKeyFileStore metaDataStore, ModuleMetadataSerializer moduleMetadataSerializer, ImmutableModuleIdentifierFactory moduleIdentifierFactory, Interner<String> stringInterner) {
+    public ModuleMetadataStore(PathKeyFileStore metaDataStore,
+                               ModuleMetadataSerializer moduleMetadataSerializer,
+                               ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+                               Interner<String> stringInterner) {
         this.metaDataStore = metaDataStore;
         this.moduleMetadataSerializer = moduleMetadataSerializer;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
@@ -48,7 +51,7 @@ public class ModuleMetadataStore {
 
     public MutableModuleComponentResolveMetadata getModuleDescriptor(ModuleComponentAtRepositoryKey component) {
         String[] filePath = getFilePath(component);
-        final LocallyAvailableResource resource = metaDataStore.get(filePath);
+        LocallyAvailableResource resource = metaDataStore.get(filePath);
         if (resource != null) {
             try {
                 StringDeduplicatingDecoder decoder = new StringDeduplicatingDecoder(new KryoBackedDecoder(new FileInputStream(resource.getFile())), stringInterner);

@@ -28,24 +28,33 @@ import java.util.List;
 
 public interface ValueSupplier {
     /**
-     * See {@link ProviderInternal#maybeVisitBuildDependencies(TaskDependencyResolveContext)}.
+     * Visits the build dependencies of this supplier, if possible.
+     *
+     * @return true if the dependencies have been added (possibly none), false if the build dependencies are unknown.
      */
     boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context);
 
     /**
-     * See {@link ProviderInternal#visitProducerTasks(Action)}.
+     * Visits the tasks that produce the <em>content</em> of the value of this supplier, if any.
+     *
+     * At some point, this method can {@link #maybeVisitBuildDependencies(TaskDependencyResolveContext)} could be merged.
      */
     void visitProducerTasks(Action<? super Task> visitor);
 
     /**
-     * See {@link ProviderInternal#isValueProducedByTask()}.
+     * Returns true when the <em>value</em> of this supplier is produced by a task. The <em>value</em> is the object returned the query methods.
+     * This is distinct from the <em>content</em>, which is the state of the value or the thing that the value points to. For example, for a file property, the file path
+     * represents the value of the property, and the content of the file on the file system represents the content of the property.
+     *
+     * <p>Note that a task producing the value of this supplier is not necessarily the same as a task producing the <em>content</em> of
+     * the value of this supplier.
      */
     boolean isValueProducedByTask();
 
     boolean isPresent();
 
     interface Value<T> {
-        Value<Object> MISSING = new ScalarSupplier.Missing<>();
+        Value<Object> MISSING = new Missing<>();
         Value<Void> SUCCESS = new Present<>(null);
 
         static <T> Value<T> ofNullable(@Nullable T value) {

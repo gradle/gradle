@@ -17,6 +17,7 @@ package org.gradle.util
 
 import org.gradle.api.JavaVersion
 import org.gradle.internal.os.OperatingSystem
+import org.testcontainers.DockerClientFactory
 
 import javax.tools.ToolProvider
 
@@ -72,6 +73,14 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     }),
     LINUX({
         OperatingSystem.current().linux
+    }),
+    HAS_DOCKER({
+        try {
+            DockerClientFactory.instance().client()
+        } catch (Exception ex) {
+            return false
+        }
+        return true
     }),
     NOT_LINUX({
         !LINUX.fulfilled

@@ -200,15 +200,16 @@ class Codecs(
 
     private
     fun BindingsBuilder.providerTypes(filePropertyFactory: FilePropertyFactory, buildServiceRegistry: BuildServiceRegistryInternal, valueSourceProviderFactory: ValueSourceProviderFactory) {
-        bind(ListPropertyCodec)
-        bind(SetPropertyCodec)
-        bind(MapPropertyCodec)
-        bind(DirectoryPropertyCodec(filePropertyFactory))
-        bind(RegularFilePropertyCodec(filePropertyFactory))
-        bind(PropertyCodec)
+        val nestedCodec = FixedValueReplacingProviderCodec(valueSourceProviderFactory, buildServiceRegistry)
+        bind(ListPropertyCodec(nestedCodec))
+        bind(SetPropertyCodec(nestedCodec))
+        bind(MapPropertyCodec(nestedCodec))
+        bind(DirectoryPropertyCodec(filePropertyFactory, nestedCodec))
+        bind(RegularFilePropertyCodec(filePropertyFactory, nestedCodec))
+        bind(PropertyCodec(nestedCodec))
         bind(BuildServiceProviderCodec(buildServiceRegistry))
         bind(ValueSourceProviderCodec(valueSourceProviderFactory))
-        bind(ProviderCodec)
+        bind(ProviderCodec(nestedCodec))
     }
 
     private
@@ -216,6 +217,7 @@ class Codecs(
         bind(FileTreeCodec(directoryFileTreeFactory))
         bind(ConfigurableFileCollectionCodec(fileCollectionFactory))
         bind(FileCollectionCodec(fileCollectionFactory))
+        bind(IntersectPatternSetCodec)
         bind(PatternSetCodec)
     }
 

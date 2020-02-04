@@ -16,19 +16,30 @@
 
 package org.gradle.api.internal.provider;
 
+import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.deprecation.DeprecationLogger;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TransformBackedProvider<OUT, IN> extends AbstractMappingProvider<OUT, IN> {
+public class TransformBackedProvider<OUT, IN> extends AbstractMinimalProvider<OUT> {
     private final Transformer<? extends OUT, ? super IN> transformer;
+    private final ProviderInternal<? extends IN> provider;
 
     public TransformBackedProvider(Transformer<? extends OUT, ? super IN> transformer, ProviderInternal<? extends IN> provider) {
-        super(null, provider);
         this.transformer = transformer;
+        this.provider = provider;
+    }
+
+    @Nullable
+    @Override
+    public Class<OUT> getType() {
+        // Could do a better job of inferring this
+        return null;
     }
 
     public Transformer<? extends OUT, ? super IN> getTransformer() {
@@ -36,16 +47,39 @@ public class TransformBackedProvider<OUT, IN> extends AbstractMappingProvider<OU
     }
 
     @Override
-    public boolean isValueProducedByTask() {
-        // Need the content in order to transform it to produce the value of this provider, so if the content is built by tasks, the value is also built by tasks
-        return super.isValueProducedByTask() || !getProducerTasks().isEmpty();
+    public void visitProducerTasks(Action<? super Task> visitor) {
+        provider.visitProducerTasks(visitor);
     }
 
     @Override
-    protected void beforeRead() {
+    public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
+        return provider.maybeVisitBuildDependencies(context);
+    }
+
+    @Override
+    public boolean isValueProducedByTask() {
+        // Need the content in order to transform it to produce the value of this provider, so if the content is built by tasks, the value is also built by tasks
+        return provider.isValueProducedByTask() || !getProducerTasks().isEmpty();
+    }
+
+    @Override
+    protected Value<? extends OUT> calculateOwnValue() {
+        beforeRead();
+        Value<? extends IN> value = provider.calculateValue();
+        if (value.isMissing()) {
+            return value.asType();
+        }
+        OUT result = transformer.transform(value.get());
+        if (result == null) {
+            return Value.missing();
+        }
+        return Value.of(result);
+    }
+
+    private void beforeRead() {
         for (Task producer : getProducerTasks()) {
             if (!producer.getState().getExecuted()) {
-                DeprecationLogger.deprecateAction(String.format("Querying the mapped value of %s before %s has completed", getProvider(), producer))
+                DeprecationLogger.deprecateAction(String.format("Querying the mapped value of %s before %s has completed", provider, producer))
                     .withUpgradeGuideSection(6, "querying_a_mapped_output_property_of_a_task_before_the_task_has_completed")
                     .nagUser();
                 break; // Only report one producer
@@ -53,18 +87,14 @@ public class TransformBackedProvider<OUT, IN> extends AbstractMappingProvider<OU
         }
     }
 
-    @Override
-    protected OUT mapValue(IN v) {
-        OUT result = transformer.transform(v);
-        if (result == null) {
-            throw new IllegalStateException(Providers.NULL_TRANSFORMER_RESULT);
-        }
-        return result;
-    }
-
     private List<Task> getProducerTasks() {
         List<Task> producers = new ArrayList<>();
-        getProvider().visitProducerTasks(producers::add);
+        provider.visitProducerTasks(producers::add);
         return producers;
+    }
+
+    @Override
+    public String toString() {
+        return "map(" + provider + ")";
     }
 }

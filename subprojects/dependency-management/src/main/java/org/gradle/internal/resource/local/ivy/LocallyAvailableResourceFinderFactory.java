@@ -15,7 +15,9 @@
  */
 package org.gradle.internal.resource.local.ivy;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactCachesProvider;
 import org.gradle.api.internal.artifacts.mvnsettings.CannotLocateLocalMavenRepositoryException;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.repositories.resolver.IvyResourcePattern;
@@ -42,17 +44,27 @@ import java.util.List;
 public class LocallyAvailableResourceFinderFactory implements Factory<LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata>> {
     private static final Logger LOGGER = LoggerFactory.getLogger(LocallyAvailableResourceFinderFactory.class);
 
-    private final File rootCachesDirectory;
+    private final List<File> rootCachesDirectories;
     private final LocalMavenRepositoryLocator localMavenRepositoryLocator;
     private final FileStoreSearcher<ModuleComponentArtifactIdentifier> fileStore;
     private final ChecksumService checksumService;
 
     public LocallyAvailableResourceFinderFactory(
-        ArtifactCacheMetadata artifactCacheMetadata, LocalMavenRepositoryLocator localMavenRepositoryLocator, FileStoreSearcher<ModuleComponentArtifactIdentifier> fileStore, ChecksumService checksumService) {
-        this.rootCachesDirectory = artifactCacheMetadata.getCacheDir().getParentFile();
+        ArtifactCachesProvider artifactCaches, LocalMavenRepositoryLocator localMavenRepositoryLocator, FileStoreSearcher<ModuleComponentArtifactIdentifier> fileStore, ChecksumService checksumService) {
+        this.rootCachesDirectories = buildRootCachesDirectories(artifactCaches);
         this.localMavenRepositoryLocator = localMavenRepositoryLocator;
         this.fileStore = fileStore;
         this.checksumService = checksumService;
+    }
+
+    private List<File> buildRootCachesDirectories(ArtifactCachesProvider artifactCaches) {
+        File writableRootDir = buildRootDir(artifactCaches.getWritableCacheMetadata());
+        return artifactCaches.withReadOnlyCache((md, manager) -> ImmutableList.of(buildRootDir(md), writableRootDir))
+            .orElse(ImmutableList.of(writableRootDir));
+    }
+
+    private File buildRootDir(ArtifactCacheMetadata md) {
+        return md.getCacheDir().getParentFile();
     }
 
     @Override
@@ -123,7 +135,9 @@ public class LocallyAvailableResourceFinderFactory implements Factory<LocallyAva
         }
         String pathPart = pattern.substring(0, chopAt);
         String patternPart = pattern.substring(chopAt + 1);
-        addForPattern(finders, new File(rootCachesDirectory, pathPart), new IvyResourcePattern(patternPart));
+        for (File rootCachesDirectory : rootCachesDirectories) {
+            addForPattern(finders, new File(rootCachesDirectory, pathPart), new IvyResourcePattern(patternPart));
+        }
     }
 
     private void addForPattern(List<LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata>> finders, File baseDir, ResourcePattern pattern) {

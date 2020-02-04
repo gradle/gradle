@@ -121,7 +121,7 @@ fun Project.registerBuildReceiptTask(
             this.baseVersion.set(baseVersion)
             this.isSnapshot.set(isSnapshot)
             this.buildTimestampFrom(buildTimestamp)
-            this.commitId.set(determineCommitId.flatMap { it.determinedCommitId })
+            this.commitId.set(determineCommitId.get().determinedCommitId)
             this.destinationDir = rootProject.buildDir
         }
     }

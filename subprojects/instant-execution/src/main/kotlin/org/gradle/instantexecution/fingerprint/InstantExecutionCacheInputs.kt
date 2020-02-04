@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.instantexecution
+package org.gradle.instantexecution.fingerprint
 
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.internal.provider.sources.FileContentValueSource
@@ -30,19 +30,29 @@ typealias ObtainedValue = ValueSourceProviderFactory.Listener.ObtainedValue<Any,
 
 
 internal
-class InstantExecutionCacheInputs(
-    val virtualFileSystem: VirtualFileSystem
-) : ValueSourceProviderFactory.Listener {
-
+data class InstantExecutionCacheFingerprint(
+    val inputFiles: List<InputFile>,
+    val obtainedValues: List<ObtainedValue>
+) {
     internal
     data class InputFile(
         val file: File,
         val hashCode: HashCode?
     )
+}
 
-    val inputFiles = mutableListOf<InputFile>()
+
+internal
+class InstantExecutionCacheInputs(
+    val virtualFileSystem: VirtualFileSystem
+) : ValueSourceProviderFactory.Listener {
+
+    val inputFiles = mutableListOf<InstantExecutionCacheFingerprint.InputFile>()
 
     val obtainedValues = mutableListOf<ObtainedValue>()
+
+    val fingerprint
+        get() = InstantExecutionCacheFingerprint(inputFiles, obtainedValues)
 
     override fun <T : Any, P : ValueSourceParameters> valueObtained(
         obtainedValue: ValueSourceProviderFactory.Listener.ObtainedValue<T, P>
@@ -52,7 +62,10 @@ class InstantExecutionCacheInputs(
                 parameters.file.orNull?.asFile?.let { file ->
                     // TODO - consider the potential race condition in computing the hash code here
                     inputFiles.add(
-                        InputFile(file, virtualFileSystem.hashCodeOf(file))
+                        InstantExecutionCacheFingerprint.InputFile(
+                            file,
+                            virtualFileSystem.hashCodeOf(file)
+                        )
                     )
                 }
             }

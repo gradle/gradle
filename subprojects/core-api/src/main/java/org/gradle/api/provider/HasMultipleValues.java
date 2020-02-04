@@ -127,12 +127,12 @@ public interface HasMultipleValues<T> extends HasConfigurableValue {
     /**
      * Specifies the value to use as the convention for this property. The convention is used when no value has been set for this property.
      *
-     * @param elements The elements
+     * @param elements The elements, or {@code null} when the convention is that the property has no value.
      * @return this
      * @since 5.1
      */
     @Incubating
-    HasMultipleValues<T> convention(Iterable<? extends T> elements);
+    HasMultipleValues<T> convention(@Nullable Iterable<? extends T> elements);
 
     /**
      * Specifies the provider of the value to use as the convention for this property. The convention is used when no value has been set for this property.

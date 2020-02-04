@@ -122,9 +122,15 @@ enum class Check(private val extension: String) {
     },
     KOTLIN(".kt") {
         override fun runCheck(project: Project, filesToBeChecked: List<String>) {
+            val nonTeamCityKtFiles = filesToBeChecked.filter { !it.startsWith(".teamcity") }
+            if (nonTeamCityKtFiles.isEmpty()) {
+                println("Only .teamcity kt file changes found, skip.")
+                return
+            }
+
             project.javaexec {
                 main = "com.github.shyiko.ktlint.Main"
-                filesToBeChecked.forEach { args(it) }
+                nonTeamCityKtFiles.forEach { args(it) }
                 args("--reporter=plain")
                 args("--color")
                 classpath = project.configurations["quickCheck"]

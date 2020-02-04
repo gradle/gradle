@@ -356,6 +356,11 @@ class IvyFileModule extends AbstractModule implements IvyModule {
             Map<String, String> getIvyTokens() {
                 toTokens(options)
             }
+
+            @Override
+            String getName() {
+                return file.name
+            }
         }
     }
 
@@ -454,7 +459,10 @@ class IvyFileModule extends AbstractModule implements IvyModule {
             attributes + ['org.gradle.status': status]
         )
 
-        adapter.publishTo(moduleDir)
+        def moduleFile = moduleDir.file("$module-${revision}.module")
+        publish(moduleFile) {
+            adapter.publishTo(it, publishCount)
+        }
     }
 
 

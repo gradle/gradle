@@ -53,6 +53,16 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
         return toMutable(["s1"])
     }
 
+    @Override
+    C someOtherValue2() {
+        return toMutable(["s2"])
+    }
+
+    @Override
+    C someOtherValue3() {
+        return toMutable(["s3"])
+    }
+
     abstract AbstractCollectionProperty<String, C> property()
 
     @Override
@@ -61,6 +71,11 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
     @Override
     protected void setToNull(Object property) {
         property.set((Iterable) null)
+    }
+
+    @Override
+    protected void nullConvention(Object property) {
+        property.convention((Iterable) null)
     }
 
     def property = property()

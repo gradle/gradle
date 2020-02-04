@@ -33,6 +33,32 @@ Some plugins will break with this new version of Gradle, for example because the
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_6.3]]
+== Upgrading from 6.2
+
+There were no breaking changes between Gradle 6.2 and 6.3.
+
+=== Deprecations
+
+There were no deprecations between Gradle 6.2 and 6.3.
+
+[[changes_6.2]]
+== Upgrading from 6.1
+
+=== Potential breaking changes
+
+==== Compile and runtime classpath now request library variants by default
+
+A classpath in a JVM project now explicitly requests the `org.gradle.category=library` attribute.
+This leads to clearer error messages if a certain library cannot be used.
+For example, when the library does not support the required Java version.
+The practical effect is that now all <<java_platform_plugin.adoc#sec:java_platform_consumption,platform dependencies>> have to be declared as such.
+Before, platform dependencies also worked, accidentally, when the `platform()` keyword was omitted for local platforms or platforms published with Gradle Module Metadata.
+
+=== Deprecations
+
+There were no deprecations between Gradle 6.1 and 6.2.
+
 [[changes_6.1]]
 == Upgrading from 6.0 and earlier
 
@@ -63,6 +89,14 @@ println("thread pool size = " + consumer.threadPoolSize.get())
 
 Querying the value of `consumer.threadPoolSize` will produce a deprecation warning if done prior to `producer` completing, as the output file has not yet been generated.
 
+==== Discontinued methods
+The following methods have been discontinued and should no longer be used. They will be removed in Gradle 7.0.
+
+- `BasePluginConvention.setProject(ProjectInternal)`
+- `BasePluginConvention.getProject()`
+- `StartParameter.useEmptySettings()`
+- `StartParameter.isUseEmptySettings()`
+
 [[upgrading_jvm_plugins]]
 ==== Alternative JVM plugins (a.k.a "Software Model")
 
@@ -84,3 +118,42 @@ In Gradle 6.0, the `ProjectLayout` service was made available to worker actions 
 
 - Checkstyle has been updated to https://checkstyle.org/releasenotes.html#Release_8.27[Checkstyle 8.27].
 - PMD has been updated to https://pmd.github.io/pmd-6.20.0/pmd_release_notes.html#29-november-2019---6200[PMD 6.20.0].
+
+==== Publishing Spring Boot applications
+
+Starting from Gradle 6.2, Gradle performs a sanity check before uploading, to make sure you don't upload stale files (files produced by another build).
+This introduces a problem with Spring Boot applications which are uploaded using the `components.java` component:
+
+```
+Artifact my-application-0.0.1-SNAPSHOT.jar wasn't produced by this build.
+```
+
+This is caused by the fact that the main `jar` task is disabled by the Spring Boot application, and the component expects it to be present.
+Because the `bootJar` task uses the _same file_ as the main `jar` task by default, previous releases of Gradle would either:
+
+- publish a stale `bootJar` artifact
+- or fail if the `bootJar` task hasn't been called previously
+
+A workaround is to tell Gradle what to upload.
+If you want to upload the `bootJar`, then you need to configure the outgoing configurations to do this:
+
+```
+configurations {
+   [apiElements, runtimeElements].each {
+       it.outgoing.artifacts.removeIf { it.buildDependencies.getDependencies(null).contains(jar) }
+       it.outgoing.artifact(bootJar)
+   }
+}
+```
+
+Alternatively, you might want to re-enable the `jar` task, and add the `bootJar` with a different classifier.
+
+```
+jar {
+   enabled = true
+}
+
+bootJar {
+   classifier = 'application'
+}
+```

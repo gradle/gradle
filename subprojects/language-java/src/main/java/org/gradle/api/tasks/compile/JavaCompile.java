@@ -161,7 +161,7 @@ public class JavaCompile extends AbstractCompile {
         Compiler<JavaCompileSpec> compiler;
         if (!compileOptions.isIncremental()) {
             spec = createSpec();
-            spec.setSourceFiles(getSource());
+            spec.setSourceFiles(getStableSources());
             compiler = createCompiler(spec);
         } else {
             spec = createSpec();

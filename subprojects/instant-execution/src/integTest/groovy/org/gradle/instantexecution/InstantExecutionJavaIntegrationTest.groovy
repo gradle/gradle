@@ -43,6 +43,7 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
         then:
         instantExecution.assertStateStored()
         result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
+        result.assertTasksNotSkipped(":jar", ":assemble", ":build")
         def jarFile = file("build/libs/somelib.jar")
         new ZipTestFixture(jarFile).hasDescendants("META-INF/MANIFEST.MF")
 
@@ -59,6 +60,44 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
         then:
         instantExecution.assertStateLoaded()
         result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
+        result.assertTasksNotSkipped(":jar", ":assemble", ":build")
+        new ZipTestFixture(jarFile).hasDescendants("META-INF/MANIFEST.MF")
+    }
+
+    def "build on Java project with no source and additional non-Java files in source directories"() {
+        given:
+        settingsFile << """
+            rootProject.name = 'somelib'
+        """
+        buildFile << """
+            plugins { id 'java' }
+        """
+        file("src/main/java/thing.kt") << "ignore me!"
+
+        when:
+        instantRun "build"
+
+        then:
+        instantExecution.assertStateStored()
+        result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
+        result.assertTasksNotSkipped(":jar", ":assemble", ":build")
+        def jarFile = file("build/libs/somelib.jar")
+        new ZipTestFixture(jarFile).hasDescendants("META-INF/MANIFEST.MF")
+
+        when:
+        instantRun "clean"
+
+        then:
+        instantExecution.assertStateStored()
+        !file("build").exists()
+
+        when:
+        instantRun "build"
+
+        then:
+        instantExecution.assertStateLoaded()
+        result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
+        result.assertTasksNotSkipped(":jar", ":assemble", ":build")
         new ZipTestFixture(jarFile).hasDescendants("META-INF/MANIFEST.MF")
     }
 

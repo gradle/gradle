@@ -16,21 +16,22 @@
 
 package org.gradle.instantexecution
 
+import org.gradle.api.Project
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
-import org.gradle.api.internal.provider.sources.SystemPropertyValueSource
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logging
 import org.gradle.api.provider.Provider
-import org.gradle.api.provider.ValueSource
-import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.execution.plan.Node
 import org.gradle.initialization.InstantExecution
-import org.gradle.instantexecution.extensions.uncheckedCast
 import org.gradle.instantexecution.extensions.unsafeLazy
-import org.gradle.instantexecution.initialization.InstantExecutionPropertiesLoader
+import org.gradle.instantexecution.fingerprint.InstantExecutionCacheInputs
+import org.gradle.instantexecution.fingerprint.InstantExecutionFingerprintChecker
+import org.gradle.instantexecution.fingerprint.InvalidationReason
+import org.gradle.instantexecution.fingerprint.ObtainedValue
+import org.gradle.instantexecution.fingerprint.hashCodeOf
 import org.gradle.instantexecution.initialization.InstantExecutionStartParameter
 import org.gradle.instantexecution.serialization.DefaultReadContext
 import org.gradle.instantexecution.serialization.DefaultWriteContext
@@ -40,9 +41,11 @@ import org.gradle.instantexecution.serialization.beans.BeanConstructors
 import org.gradle.instantexecution.serialization.codecs.Codecs
 import org.gradle.instantexecution.serialization.codecs.WorkNodeCodec
 import org.gradle.instantexecution.serialization.readCollection
+import org.gradle.instantexecution.serialization.readFile
 import org.gradle.instantexecution.serialization.readNonNull
 import org.gradle.instantexecution.serialization.withIsolate
 import org.gradle.instantexecution.serialization.writeCollection
+import org.gradle.instantexecution.serialization.writeFile
 import org.gradle.internal.build.event.BuildEventListenerRegistryInternal
 import org.gradle.internal.hash.HashUtil.createCompactMD5
 import org.gradle.internal.operations.BuildOperationExecutor
@@ -54,12 +57,9 @@ import org.gradle.internal.vfs.VirtualFileSystem
 import org.gradle.tooling.events.OperationCompletionListener
 import org.gradle.util.GFileUtils.relativePathOf
 import org.gradle.util.GradleVersion
-import org.gradle.util.Path
 import java.io.File
 import java.nio.file.Files
 import java.util.ArrayList
-import java.util.SortedSet
-import java.util.TreeSet
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.coroutines.startCoroutine
@@ -102,7 +102,6 @@ class DefaultInstantExecution internal constructor(
             false
         }
         else -> {
-            loadProperties()
             val fingerprintChangedReason = checkFingerprint()
             when {
                 fingerprintChangedReason != null -> {
@@ -217,9 +216,8 @@ class DefaultInstantExecution internal constructor(
     private
     suspend fun DefaultWriteContext.encodeFingerprint() {
         withHostIsolate {
-            instantExecutionInputs!!.run {
-                writeCollection(inputFiles)
-                writeCollection(obtainedValues)
+            InstantExecutionFingerprintChecker.FingerprintEncoder.run {
+                encode(instantExecutionInputs!!.fingerprint)
             }
         }
     }
@@ -228,72 +226,11 @@ class DefaultInstantExecution internal constructor(
     fun checkFingerprint(): InvalidationReason? =
         withReadContextFor(instantExecutionFingerprintFile) {
             withHostIsolate {
-                checkFingerprintOfInputFiles()
-                    ?: checkFingerprintOfObtainedValues()
-            }
-        }
-
-    private
-    suspend fun DefaultReadContext.checkFingerprintOfInputFiles(): InvalidationReason? {
-        readCollection {
-            val (inputFile, hashCode) = readNonNull<InstantExecutionCacheInputs.InputFile>()
-            if (hashCodeOf(inputFile) != hashCode) {
-                // TODO: log some debug info
-                return "a configuration file has changed"
-            }
-        }
-        return null
-    }
-
-    private
-    suspend fun DefaultReadContext.checkFingerprintOfObtainedValues(): InvalidationReason? {
-        readCollection {
-            val obtainedValue = readNonNull<ObtainedValue>()
-            checkFingerprintValueIsUpToDate(obtainedValue)?.let { reason ->
-                return reason
-            }
-        }
-        return null
-    }
-
-    private
-    fun hashCodeOf(inputFile: File) = virtualFileSystem.hashCodeOf(inputFile)
-
-    private
-    fun checkFingerprintValueIsUpToDate(obtainedValue: ObtainedValue): InvalidationReason? = obtainedValue.run {
-        when (valueSourceType) {
-            SystemPropertyValueSource::class.java -> {
-                // Special case system properties to get them from the host because
-                // this check happens too early in the process, before the system properties
-                // passed in the command line have been propagated.
-                val propertyName = valueSourceParameters
-                    .uncheckedCast<SystemPropertyValueSource.Parameters>()
-                    .propertyName
-                    .get()
-                if (value.get() != System.getProperty(propertyName)) {
-                    "system property '$propertyName' has changed"
-                } else {
-                    null
-                }
-            }
-            else -> {
-                val valueSource = instantiateValueSource()
-                if (value.get() != valueSource.obtain()) {
-                    "a build logic input has changed"
-                } else {
-                    null
+                instantExecutionFingerprintChecker().run {
+                    checkFingerprint()
                 }
             }
         }
-    }
-
-    private
-    fun ObtainedValue.instantiateValueSource(): ValueSource<Any, ValueSourceParameters> =
-        (valueSourceProviderFactory as DefaultValueSourceProviderFactory).instantiateValueSource(
-            valueSourceType,
-            valueSourceParametersType,
-            valueSourceParameters
-        )
 
     private
     fun attachBuildLogicInputsCollector() {
@@ -431,8 +368,9 @@ class DefaultInstantExecution internal constructor(
 
     private
     fun Encoder.writeRelevantProjectsFor(nodes: List<Node>) {
-        writeCollection(fillTheGapsOf(relevantProjectPathsFor(nodes))) { projectPath ->
-            writeString(projectPath.path)
+        writeCollection(fillTheGapsOf(relevantProjectPathsFor(nodes))) { project ->
+            writeString(project.path)
+            writeFile(project.projectDir)
         }
     }
 
@@ -440,23 +378,17 @@ class DefaultInstantExecution internal constructor(
     fun Decoder.readRelevantProjects(build: InstantExecutionBuild) {
         readCollection {
             val projectPath = readString()
-            build.createProject(projectPath)
+            val projectDir = readFile()
+            build.createProject(projectPath, projectDir)
         }
     }
 
     private
-    fun relevantProjectPathsFor(nodes: List<Node>): SortedSet<Path> =
-        nodes.mapNotNullTo(TreeSet()) { node ->
+    fun relevantProjectPathsFor(nodes: List<Node>): List<Project> =
+        nodes.mapNotNullTo(mutableListOf()) { node ->
             node.owningProject
                 ?.takeIf { it.parent != null }
-                ?.path
-                ?.let(Path::path)
         }
-
-    private
-    fun loadProperties() {
-        service<InstantExecutionPropertiesLoader>().loadProperties()
-    }
 
     private
     fun log(message: String, vararg args: Any?) {
@@ -505,9 +437,9 @@ class DefaultInstantExecution internal constructor(
         val hasRelativeTaskName = taskNames.any { !it.startsWith(':') }
         if (hasRelativeTaskName) {
             // Because unqualified task names are resolved relative to the enclosing
-            // sub-project according to `invocationDir` we need to include
-            // the relative invocation dir information in the key.
-            relativeChildPathOrNull(invocationDir, rootDirectory)?.let { relativeSubDir ->
+            // sub-project according to `invocationDirectory`,
+            // the relative invocation directory information must be part of the key.
+            relativeChildPathOrNull(invocationDirectory, rootDirectory)?.let { relativeSubDir ->
                 cacheKey.append('*')
                 cacheKey.append(relativeSubDir)
             }
@@ -569,12 +501,26 @@ class DefaultInstantExecution internal constructor(
 
     private
     fun systemProperty(propertyName: String) =
-        startParameter.systemPropertyArg(propertyName) ?: System.getProperty(propertyName)
+        System.getProperty(propertyName)
+
+    private
+    fun instantExecutionFingerprintChecker() =
+        InstantExecutionFingerprintChecker(InstantExecutionFingerprintCheckerHost())
+
+    private
+    inner class InstantExecutionFingerprintCheckerHost : InstantExecutionFingerprintChecker.Host {
+
+        override fun hashCodeOf(inputFile: File) =
+            virtualFileSystem.hashCodeOf(inputFile)
+
+        override fun instantiateValueSourceOf(obtainedValue: ObtainedValue) =
+            (valueSourceProviderFactory as DefaultValueSourceProviderFactory).instantiateValueSource(
+                obtainedValue.valueSourceType,
+                obtainedValue.valueSourceParametersType,
+                obtainedValue.valueSourceParameters
+            )
+    }
 }
-
-
-private
-typealias InvalidationReason = String
 
 
 inline fun <reified T> DefaultInstantExecution.Host.service(): T =
@@ -582,22 +528,22 @@ inline fun <reified T> DefaultInstantExecution.Host.service(): T =
 
 
 internal
-fun fillTheGapsOf(paths: SortedSet<Path>): List<Path> {
-    val pathsWithoutGaps = ArrayList<Path>(paths.size)
+fun fillTheGapsOf(projects: Collection<Project>): List<Project> {
+    val projectsWithoutGaps = ArrayList<Project>(projects.size)
     var index = 0
-    paths.forEach { path ->
-        var parent = path.parent
+    projects.forEach { project ->
+        var parent = project.parent
         var added = 0
-        while (parent !== null && parent !in pathsWithoutGaps) {
-            pathsWithoutGaps.add(index, parent)
+        while (parent !== null && parent !in projectsWithoutGaps) {
+            projectsWithoutGaps.add(index, parent)
             added += 1
             parent = parent.parent
         }
-        pathsWithoutGaps.add(path)
+        projectsWithoutGaps.add(project)
         added += 1
         index += added
     }
-    return pathsWithoutGaps
+    return projectsWithoutGaps
 }
 
 

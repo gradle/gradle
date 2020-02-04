@@ -297,7 +297,7 @@ This method can be used when the value may be expensive to calculate or may not 
 [[lazy_configuration_faqs]]
 == Guidelines
 
-This section will introduce guidelines to be successful with the Provider API. To see those guidelines in action, have a look at https://github.com/gradle-guides/gradle-site-plugin[gradle-site-plugin], a Gradle plugin demonstrating established techniques and practices for plugin development.
+This section will introduce guidelines to be successful with the Provider API. To see those guidelines in action, have a look at https://github.com/gradle/gradle-site-plugin[gradle-site-plugin], a Gradle plugin demonstrating established techniques and practices for plugin development.
 
 * The link:{javadocPath}/org/gradle/api/provider/Property.html[Property] and link:{javadocPath}/org/gradle/api/provider/Provider.html[Provider] types have all of the overloads you need to query or configure a value. For this reason, you should follow the following guidelines:
 ** For configurable properties, expose the link:{javadocPath}/org/gradle/api/provider/Property.html[Property] directly through a single getter.
@@ -360,6 +360,10 @@ link:{javadocPath}/org/gradle/api/file/ConfigurableFileCollection.html[Configura
 link:{javadocPath}/org/gradle/api/file/ConfigurableFileTree.html[ConfigurableFileTree]:: Hierarchy of files
   Factories;;
     * link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#fileTree--[ObjectFactory.fileTree()]
+
+link:{javadocPath}/org/gradle/api/file/SourceDirectorySet.html[SourceDirectorySet]:: Hierarchy of source directories
+  Factories;;
+    * link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#sourceDirectorySet-java.lang.String-java.lang.String-[ObjectFactory.sourceDirectorySet(String, String)]
 
 == Lazy Collections API Reference
 

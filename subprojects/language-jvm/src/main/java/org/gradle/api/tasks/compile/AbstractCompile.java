@@ -19,7 +19,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.provider.AbstractMinimalProvider;
 import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Classpath;
@@ -28,6 +27,7 @@ import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SourceTask;
 
 import java.io.File;
+import java.util.concurrent.Callable;
 
 /**
  * The base class for all JVM-based language compilation tasks.
@@ -40,7 +40,7 @@ public abstract class AbstractCompile extends SourceTask {
 
     public AbstractCompile() {
         this.destinationDirectory = getProject().getObjects().directoryProperty();
-        this.destinationDirectory.convention(new BackwardCompatibilityOutputDirectoryConvention());
+        this.destinationDirectory.convention(getProject().getProviders().provider(new BackwardCompatibilityOutputDirectoryConvention()));
     }
 
     /**
@@ -144,20 +144,15 @@ public abstract class AbstractCompile extends SourceTask {
     /**
      * Convention to fall back to the 'destinationDir' output for backwards compatibility with plugins that extend AbstractCompile and override the deprecated methods.
      */
-    private class BackwardCompatibilityOutputDirectoryConvention extends AbstractMinimalProvider<Directory> {
+    private class BackwardCompatibilityOutputDirectoryConvention implements Callable<Directory> {
         private boolean recursiveCall;
 
         @Override
-        public Class<Directory> getType() {
-            return Directory.class;
-        }
-
-        @Override
-        protected Value<Directory> calculateOwnValue() {
+        public Directory call() throws Exception {
             if (recursiveCall) {
                 // Already quering AbstractCompile.getDestinationDirectory() and not by a subclass implementation of that method.
                 // In that case, this convention should not be used.
-                return Value.missing();
+                return null;
             }
             recursiveCall = true;
             File legacyValue;
@@ -169,9 +164,9 @@ public abstract class AbstractCompile extends SourceTask {
                 recursiveCall = false;
             }
             if (legacyValue == null) {
-                return Value.missing();
+                return null;
             } else {
-                return Value.of(getProject().getLayout().getProjectDirectory().dir(legacyValue.getAbsolutePath()));
+                return getProject().getLayout().getProjectDirectory().dir(legacyValue.getAbsolutePath());
             }
         }
     }

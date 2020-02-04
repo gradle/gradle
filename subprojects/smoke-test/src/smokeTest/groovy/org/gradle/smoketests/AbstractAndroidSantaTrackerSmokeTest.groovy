@@ -21,6 +21,7 @@ import org.gradle.internal.scan.config.fixtures.GradleEnterprisePluginSettingsFi
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testkit.runner.BuildResult
+import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.testkit.runner.internal.ToolingApiGradleExecutor
 import org.junit.Rule
@@ -49,7 +50,15 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
     }
 
     protected BuildResult buildLocation(File projectDir, String agpVersion) {
-        def runner = runner("assembleDebug", "-DagpVersion=$agpVersion")
+        return runnerForLocation(projectDir, agpVersion, "assembleDebug").build()
+    }
+
+    protected BuildResult cleanLocation(File projectDir, String agpVersion) {
+        return runnerForLocation(projectDir, agpVersion, "clean").build()
+    }
+
+    private GradleRunner runnerForLocation(File projectDir, String agpVersion, String... tasks) {
+        def runner = runner(*[["-DagpVersion=$agpVersion"], tasks].flatten())
             .withProjectDir(projectDir)
             .withTestKitDir(homeDir)
             .forwardOutput()
@@ -57,7 +66,7 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
             def init = AGP_VERSIONS.createAgpNightlyRepositoryInitScript()
             runner.withArguments([runner.arguments, ['-I', init.canonicalPath]].flatten())
         }
-        runner.build()
+        return runner
     }
 
     protected static boolean verify(BuildResult result, Map<String, TaskOutcome> outcomes) {

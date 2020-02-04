@@ -16,9 +16,12 @@
 
 package org.gradle.api.internal.provider;
 
+import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 
 import javax.annotation.Nullable;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.concurrent.Callable;
 
 public class DefaultProvider<T> extends AbstractMinimalProvider<T> {
@@ -31,7 +34,29 @@ public class DefaultProvider<T> extends AbstractMinimalProvider<T> {
     @Nullable
     @Override
     public Class<T> getType() {
+        // guard against https://youtrack.jetbrains.com/issue/KT-36297
+        try {
+            return inferTypeFromCallableGenericArgument();
+        } catch (NoClassDefFoundError e) {
+            return null;
+        }
+    }
+
+    @Nullable
+    private Class<T> inferTypeFromCallableGenericArgument() {
         // We could do a better job of figuring this out
+        // Extract the type for common case that is quick to calculate
+        for (Type superType : value.getClass().getGenericInterfaces()) {
+            if (superType instanceof ParameterizedType) {
+                ParameterizedType parameterizedSuperType = (ParameterizedType) superType;
+                if (parameterizedSuperType.getRawType().equals(Callable.class)) {
+                    Type argument = parameterizedSuperType.getActualTypeArguments()[0];
+                    if (argument instanceof Class) {
+                        return Cast.uncheckedCast(argument);
+                    }
+                }
+            }
+        }
         return null;
     }
 

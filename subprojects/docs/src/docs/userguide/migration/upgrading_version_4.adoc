@@ -170,7 +170,7 @@ Kotlin DSL::
  * `PluginAware.apply<T>(to)` was renamed `PluginAware.applyTo<T>(target)`.
 
 +
-Both changes could cause script compilation errors. See the https://github.com/gradle/kotlin-dsl/releases/tag/v1.0.0#breaking-changes[Gradle Kotlin DSL release notes] for more information and how to fix builds broken by the changes described above.
+Both changes could cause script compilation errors. See the https://github.com/gradle/kotlin-dsl-samples/releases/tag/v1.0.2#breaking-changes[Gradle Kotlin DSL release notes] for more information and how to fix builds broken by the changes described above.
 
 Miscellaneous::
  * The `ConfigurableReport.setDestination(Object)` method has been removed — use link:{javadocPath}/org/gradle/api/reporting/ConfigurableReport.html#setDestination-java.io.File-[ConfigurableReport.setDestination(File)] instead.
@@ -275,7 +275,7 @@ Checkstyle configuration files in subprojects — the old by-convention location
  * You should not put annotation processors on the compile classpath or declare them with the `-processorpath` compiler argument.
 +
 They should be added to the `annotationProcessor` configuration instead. If you don't want any processing, but your compile classpath contains a processor unintentionally (e.g. as part of a library you depend on), use the `-proc:none` compiler argument to ignore it.
- * Use link:{javadocPath}/org/gradle/process/CommandLineArgumentProvider.html[CommandLineArgumentProvider] in place of link:{javadocPath}/org/gradle/api/tasks/compile/CompilerArgumentProvider.html[CompilerArgumentProvider].
+ * Use link:{javadocPath}/org/gradle/process/CommandLineArgumentProvider.html[CommandLineArgumentProvider] in place of link:https://docs.gradle.org/4.10.3/javadoc/org/gradle/api/tasks/compile/CompilerArgumentProvider.html[CompilerArgumentProvider].
 
 === Potential breaking changes
 
@@ -364,7 +364,7 @@ Prefer using separate properties with `@OutputFile`/`@OutputDirectory` annotatio
 
 Follow the API links to learn how to deal with these deprecations (if no extra information is provided here):
 
- * link:{javadocPath}/org/gradle/api/Nullable.html[Nullable]
+ * link:https://docs.gradle.org/4.10.3/javadoc/org/gradle/api/Nullable.html[Nullable]
 
 === Potential breaking changes
 

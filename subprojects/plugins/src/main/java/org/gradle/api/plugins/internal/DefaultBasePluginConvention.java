@@ -84,13 +84,17 @@ public class DefaultBasePluginConvention extends BasePluginConvention implements
 
     @Override
     public ProjectInternal getProject() {
-        DeprecationLogger.deprecateMethod(BasePluginConvention.class, "getProject()").undocumented().nagUser();
+        DeprecationLogger.deprecateMethod(BasePluginConvention.class, "getProject()")
+            .withUpgradeGuideSection(6, "discontinued_methods")
+            .nagUser();
         return project;
     }
 
     @Override
     public void setProject(ProjectInternal project) {
-        DeprecationLogger.deprecateMethod(BasePluginConvention.class, "setProject()").undocumented().nagUser();
+        DeprecationLogger.deprecateMethod(BasePluginConvention.class, "setProject()")
+            .withUpgradeGuideSection(6, "discontinued_methods")
+            .nagUser();
         this.project = project;
     }
 

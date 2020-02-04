@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.provider;
+package org.gradle.integtests.resolve.snapshot
 
-/**
- * Supplies zero or one value of type {@link T}.
- */
-public interface ScalarSupplier<T> extends ValueSupplier {
-    /**
-     * Calculates the value of this supplier.
-     */
-    Value<? extends T> calculateValue();
+import org.gradle.integtests.fixtures.TargetVersions
 
-    ProviderInternal<T> asProvider();
+@TargetVersions("6.0+")
+class GradleMetadataMavenSnapshotPreviousConsumerCrossVersionIntegrationTest extends AbstractGradleMetadataMavenSnapshotCrossVersionIntegrationTest {
 
-    ScalarSupplier<T> withFinalValue();
+    def "previous Gradle can consume Maven snapshot published with current version of Gradle"() {
+        expect:
+        version current withTasks ':producer:publish' run()
+        version previous withTasks ':consumer:resolve' run()
+    }
+
 }
