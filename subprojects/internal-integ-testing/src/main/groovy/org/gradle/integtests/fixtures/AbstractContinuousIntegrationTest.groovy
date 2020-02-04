@@ -170,6 +170,7 @@ ${result.error}
     protected void waitForBuild() {
         def lastOutput = buildOutputSoFar()
         def lastLength = lastOutput.size()
+        long startAt = monotonicClockMillis()
         def lastActivity = monotonicClockMillis()
         int endOfBuildReached = 0
         int startIndex = 0
@@ -203,6 +204,10 @@ ${result.error}
             throw new RuntimeException("""Timeout waiting for build to complete. Output:
 $lastOutput
 """)
+        }
+        def sinceStart = monotonicClockMillis() - startAt
+        if (sinceStart < minimumBuildTimeMillis) {
+            Thread.sleep(minimumBuildTimeMillis - sinceStart)
         }
 
         def out = buildOutputSoFar()
