@@ -16,8 +16,7 @@
 
 package org.gradle.instantexecution.fingerprint
 
-import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory
-import org.gradle.api.internal.provider.ValueSourceProviderFactory
+import org.gradle.api.Describable
 import org.gradle.api.internal.provider.sources.SystemPropertyValueSource
 import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
@@ -27,7 +26,7 @@ import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.readCollection
 import org.gradle.instantexecution.serialization.readNonNull
 import org.gradle.instantexecution.serialization.writeCollection
-import org.gradle.internal.vfs.VirtualFileSystem
+import org.gradle.internal.hash.HashCode
 import java.io.File
 
 
@@ -36,14 +35,16 @@ typealias InvalidationReason = String
 
 
 internal
-class InstantExecutionFingerprintChecker(
-    private val virtualFileSystem: VirtualFileSystem,
-    private val valueSourceProviderFactory: ValueSourceProviderFactory
-) {
+class InstantExecutionFingerprintChecker(private val host: Host) {
+
+    interface Host {
+        fun hashCodeOf(inputFile: File): HashCode?
+        fun instantiateValueSourceOf(obtainedValue: ObtainedValue): ValueSource<Any, ValueSourceParameters>
+    }
 
     object FingerprintEncoder {
-        suspend fun WriteContext.encodeFingerprintOf(inputs: InstantExecutionCacheInputs) {
-            inputs.run {
+        suspend fun WriteContext.encode(fingerprint: InstantExecutionCacheFingerprint) {
+            fingerprint.run {
                 writeCollection(inputFiles)
                 writeCollection(obtainedValues)
             }
@@ -51,13 +52,13 @@ class InstantExecutionFingerprintChecker(
     }
 
     suspend fun ReadContext.checkFingerprint(): InvalidationReason? =
-        (checkFingerprintOfInputFiles() ?: checkFingerprintOfObtainedValues())
+        checkFingerprintOfInputFiles() ?: checkFingerprintOfObtainedValues()
 
     private
     suspend fun ReadContext.checkFingerprintOfInputFiles(): InvalidationReason? {
         readCollection {
-            val (inputFile, hashCode) = readNonNull<InstantExecutionCacheInputs.InputFile>()
-            if (hashCodeOf(inputFile) != hashCode) {
+            val (inputFile, hashCode) = readNonNull<InstantExecutionCacheFingerprint.InputFile>()
+            if (host.hashCodeOf(inputFile) != hashCode) {
                 // TODO: log some debug info
                 return "a configuration file has changed"
             }
@@ -77,9 +78,6 @@ class InstantExecutionFingerprintChecker(
     }
 
     private
-    fun hashCodeOf(inputFile: File) = virtualFileSystem.hashCodeOf(inputFile)
-
-    private
     fun checkFingerprintValueIsUpToDate(obtainedValue: ObtainedValue): InvalidationReason? = obtainedValue.run {
         when (valueSourceType) {
             SystemPropertyValueSource::class.java -> {
@@ -97,21 +95,15 @@ class InstantExecutionFingerprintChecker(
                 }
             }
             else -> {
-                val valueSource = instantiateValueSource()
+                val valueSource = host.instantiateValueSourceOf(this)
                 if (value.get() != valueSource.obtain()) {
-                    "a build logic input has changed"
+                    (valueSource as? Describable)?.let {
+                        it.displayName + " has changed"
+                    } ?: "a build logic input has changed"
                 } else {
                     null
                 }
             }
         }
     }
-
-    private
-    fun ObtainedValue.instantiateValueSource(): ValueSource<Any, ValueSourceParameters> =
-        (valueSourceProviderFactory as DefaultValueSourceProviderFactory).instantiateValueSource(
-            valueSourceType,
-            valueSourceParametersType,
-            valueSourceParameters
-        )
 }

@@ -30,19 +30,29 @@ typealias ObtainedValue = ValueSourceProviderFactory.Listener.ObtainedValue<Any,
 
 
 internal
-class InstantExecutionCacheInputs(
-    val virtualFileSystem: VirtualFileSystem
-) : ValueSourceProviderFactory.Listener {
-
+data class InstantExecutionCacheFingerprint(
+    val inputFiles: List<InputFile>,
+    val obtainedValues: List<ObtainedValue>
+) {
     internal
     data class InputFile(
         val file: File,
         val hashCode: HashCode?
     )
+}
 
-    val inputFiles = mutableListOf<InputFile>()
+
+internal
+class InstantExecutionCacheInputs(
+    val virtualFileSystem: VirtualFileSystem
+) : ValueSourceProviderFactory.Listener {
+
+    val inputFiles = mutableListOf<InstantExecutionCacheFingerprint.InputFile>()
 
     val obtainedValues = mutableListOf<ObtainedValue>()
+
+    val fingerprint
+        get() = InstantExecutionCacheFingerprint(inputFiles, obtainedValues)
 
     override fun <T : Any, P : ValueSourceParameters> valueObtained(
         obtainedValue: ValueSourceProviderFactory.Listener.ObtainedValue<T, P>
@@ -52,7 +62,10 @@ class InstantExecutionCacheInputs(
                 parameters.file.orNull?.asFile?.let { file ->
                     // TODO - consider the potential race condition in computing the hash code here
                     inputFiles.add(
-                        InputFile(file, virtualFileSystem.hashCodeOf(file))
+                        InstantExecutionCacheFingerprint.InputFile(
+                            file,
+                            virtualFileSystem.hashCodeOf(file)
+                        )
                     )
                 }
             }

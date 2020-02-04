@@ -18,6 +18,7 @@ package org.gradle.instantexecution
 
 import org.gradle.api.Project
 import org.gradle.api.internal.project.ProjectStateRegistry
+import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.LogLevel
@@ -29,6 +30,8 @@ import org.gradle.instantexecution.extensions.unsafeLazy
 import org.gradle.instantexecution.fingerprint.InstantExecutionCacheInputs
 import org.gradle.instantexecution.fingerprint.InstantExecutionFingerprintChecker
 import org.gradle.instantexecution.fingerprint.InvalidationReason
+import org.gradle.instantexecution.fingerprint.ObtainedValue
+import org.gradle.instantexecution.fingerprint.hashCodeOf
 import org.gradle.instantexecution.initialization.InstantExecutionStartParameter
 import org.gradle.instantexecution.serialization.DefaultReadContext
 import org.gradle.instantexecution.serialization.DefaultWriteContext
@@ -214,7 +217,7 @@ class DefaultInstantExecution internal constructor(
     suspend fun DefaultWriteContext.encodeFingerprint() {
         withHostIsolate {
             InstantExecutionFingerprintChecker.FingerprintEncoder.run {
-                encodeFingerprintOf(instantExecutionInputs!!)
+                encode(instantExecutionInputs!!.fingerprint)
             }
         }
     }
@@ -223,10 +226,7 @@ class DefaultInstantExecution internal constructor(
     fun checkFingerprint(): InvalidationReason? =
         withReadContextFor(instantExecutionFingerprintFile) {
             withHostIsolate {
-                InstantExecutionFingerprintChecker(
-                    virtualFileSystem,
-                    valueSourceProviderFactory
-                ).run {
+                instantExecutionFingerprintChecker().run {
                     checkFingerprint()
                 }
             }
@@ -502,6 +502,24 @@ class DefaultInstantExecution internal constructor(
     private
     fun systemProperty(propertyName: String) =
         System.getProperty(propertyName)
+
+    private
+    fun instantExecutionFingerprintChecker() =
+        InstantExecutionFingerprintChecker(InstantExecutionFingerprintCheckerHost())
+
+    private
+    inner class InstantExecutionFingerprintCheckerHost : InstantExecutionFingerprintChecker.Host {
+
+        override fun hashCodeOf(inputFile: File) =
+            virtualFileSystem.hashCodeOf(inputFile)
+
+        override fun instantiateValueSourceOf(obtainedValue: ObtainedValue) =
+            (valueSourceProviderFactory as DefaultValueSourceProviderFactory).instantiateValueSource(
+                obtainedValue.valueSourceType,
+                obtainedValue.valueSourceParametersType,
+                obtainedValue.valueSourceParameters
+            )
+    }
 }
 
 
