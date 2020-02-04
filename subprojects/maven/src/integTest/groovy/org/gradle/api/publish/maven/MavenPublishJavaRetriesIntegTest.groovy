@@ -89,9 +89,9 @@ class MavenPublishJavaRetriesIntegTest extends AbstractMavenPublishIntegTest {
 
         then:
         verifyPublications()
-        result.output.contains("Waiting 1000ms before next retry, 2 retries left")
-        result.output.contains("Waiting 2000ms before next retry, 1 retries left")
-        result.output.contains("after 2 retries")
+        outputContains("Waiting 1000ms before next retry, 2 retries left")
+        outputContains("Waiting 2000ms before next retry, 1 retries left")
+        outputContains("after 2 retries")
     }
 
 
