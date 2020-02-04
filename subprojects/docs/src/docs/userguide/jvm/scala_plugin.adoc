@@ -171,7 +171,7 @@ You can diagnose problems with the version of the Zinc compiler selected by runn
 | Gradle version    | Supported Zinc versions | Zinc coordinates | Required Scala version | Supported Scala compilation version
 
 | 6.0 and newer     | link:https://github.com/sbt/zinc[SBT Zinc]. Versions 1.2.0 and above. | `org.scala-sbt:zinc_2.12` | Scala `2.12.x` is required for _running_ Zinc. | Scala `2.10.x` through `2.13.x` can be compiled.
-| 1.x trough 5.x    | link:https://github.com/typesafehub/zinc[**Deprecated** Typesafe Zinc compiler.] Versions 0.3.0 and above, except for 0.3.2 through 0.3.5.2. | `com.typesafe.zinc:zinc` | Scala `2.10.x` is required for _running_ Zinc. | Scala `2.9.x` through `2.12.x` can be compiled.
+| 1.x through 5.x   | link:https://github.com/typesafehub/zinc[**Deprecated** Typesafe Zinc compiler.] Versions 0.3.0 and above, except for 0.3.2 through 0.3.5.2. | `com.typesafe.zinc:zinc` | Scala `2.10.x` is required for _running_ Zinc. | Scala `2.9.x` through `2.12.x` can be compiled.
 
 |===
 
