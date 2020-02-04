@@ -50,25 +50,41 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         return (T) this;
     }
 
+    /**
+     * Allows proceeding to terminal {@link WithDocumentation#nagUser()} operation without including any documentation reference.
+     * Consider using one of the documentation providing methods instead.
+     */
     public WithDocumentation undocumented() {
         return new WithDocumentation(this);
     }
 
+    /**
+     * Output: See USER_MANUAL_URL for more details.
+     */
     public WithDocumentation withUserManual(String documentationId) {
         this.documentation = Documentation.userManual(documentationId);
         return new WithDocumentation(this);
     }
 
+    /**
+     * Output: See USER_MANUAL_URL for more details.
+     */
     public WithDocumentation withUserManual(String documentationId, String section) {
         this.documentation = Documentation.userManual(documentationId, section);
         return new WithDocumentation(this);
     }
 
+    /**
+     * Output: See DSL_REFERENCE_URL for more details.
+     */
     public WithDocumentation withDslReference(Class<?> targetClass, String property) {
         this.documentation = Documentation.dslReference(targetClass, property);
         return new WithDocumentation(this);
     }
 
+    /**
+     * Output: Consult the upgrading guide for further information: UPGRADE_GUIDE_URL
+     */
     public WithDocumentation withUpgradeGuideSection(int majorVersion, String upgradeGuideSection) {
         this.documentation = Documentation.upgradeGuide(majorVersion, upgradeGuideSection);
         return new WithDocumentation(this);
@@ -105,10 +121,13 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
     public static class WithDocumentation {
         private final DeprecationMessageBuilder<?> builder;
 
-        public WithDocumentation(DeprecationMessageBuilder<?> builder) {
+        WithDocumentation(DeprecationMessageBuilder<?> builder) {
             this.builder = builder;
         }
 
+        /**
+         * Terminal operation. Emits the deprecation message.
+         */
         public void nagUser() {
             DeprecationLogger.nagUserWith(builder, WithDocumentation.class);
         }
@@ -122,6 +141,16 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
             this.subject = subject;
         }
 
+        /**
+         * Constructs advice message based on the context.
+         *
+         * deprecateProperty: Please use the ${replacement} property instead.
+         * deprecateMethod/deprecateInvocation: Please use the ${replacement} method instead.
+         * deprecatePlugin: Please use the ${replacement} plugin instead.
+         * deprecateTask: Please use the ${replacement} task instead.
+         * deprecateInternalApi: Please use ${replacement} instead.
+         * deprecateNamedParameter: Please use the ${replacement} named parameter instead.
+         */
         @SuppressWarnings("unchecked")
         public SELF replaceWith(T replacement) {
             this.replacement = replacement;
@@ -178,6 +207,9 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
             this.property = property;
         }
 
+        /**
+         * Output: See DSL_REFERENCE_URL for more details.
+         */
         public WithDocumentation withDslReference() {
             setDocumentation(Documentation.dslReference(propertyClass, property));
             return new WithDocumentation(this);
@@ -333,6 +365,9 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
             return externalReplacement ? String.format("Consider using the %s plugin instead.", replacement) : String.format("Please use the %s plugin instead.", replacement);
         }
 
+        /**
+         * Advice output: Consider using the ${replacement} plugin instead.
+         */
         public DeprecatePlugin replaceWithExternalPlugin(String replacement) {
             this.externalReplacement = true;
             return replaceWith(replacement);
