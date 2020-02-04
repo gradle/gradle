@@ -33,6 +33,7 @@ import java.util.List;
  */
 @NonNullApi
 public abstract class AbstractFileCollectionFingerprinter implements FileCollectionFingerprinter {
+
     private final FileCollectionSnapshotter fileCollectionSnapshotter;
     private final FingerprintingStrategy fingerprintingStrategy;
 

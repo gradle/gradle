@@ -30,7 +30,9 @@ import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class DefaultCurrentFileCollectionFingerprint implements CurrentFileCollectionFingerprint {
 
@@ -117,5 +119,15 @@ public class DefaultCurrentFileCollectionFingerprint implements CurrentFileColle
         for (FileSystemSnapshot root : roots) {
             root.accept(visitor);
         }
+    }
+
+    @Override
+    public String toString() {
+        Map<Boolean, List<Map.Entry<String, FileSystemLocationFingerprint>>> collect = fingerprints.entrySet()
+            .stream()
+            .collect(Collectors.partitioningBy(entry -> entry.getValue() instanceof IgnoredPathFileSystemLocationFingerprint));
+        List<Map.Entry<String, FileSystemLocationFingerprint>> includedFingerprints = collect.get(false);
+        List<Map.Entry<String, FileSystemLocationFingerprint>> ignoredFingerprints = collect.get(true);
+        return identifier + "{fingerprints=" + includedFingerprints + ", ignoredFingerprints=" + ignoredFingerprints + "}";
     }
 }
