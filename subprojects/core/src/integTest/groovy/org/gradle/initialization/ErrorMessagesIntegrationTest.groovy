@@ -17,6 +17,7 @@
 package org.gradle.initialization
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -47,7 +48,7 @@ class ErrorMessagesIntegrationTest extends AbstractIntegrationSpec {
             "\n" +
             "* What went wrong:\n" +
             "Gradle could not start your build.\n" +
-            "> Gradle encountered an internal problem.")
+            "> Failed to create directory '${localGradleCache}/checksums'")
     }
 
     @Requires(TestPrecondition.NOT_WINDOWS)
@@ -68,7 +69,7 @@ class ErrorMessagesIntegrationTest extends AbstractIntegrationSpec {
             "\n" +
             "* What went wrong:\n" +
             "Gradle could not start your build.\n" +
-            "> Gradle encountered an internal problem.")
+            "> Failed to create parent directory '${executer.gradleUserHomeDir}/caches' when creating directory '${executer.gradleUserHomeDir}/caches/${GradleVersion.current().version}/generated-gradle-jars'")
     }
 
     @Requires(TestPrecondition.NOT_WINDOWS)
@@ -90,7 +91,7 @@ class ErrorMessagesIntegrationTest extends AbstractIntegrationSpec {
             "\n" +
             "* What went wrong:\n" +
             "Gradle could not start your build.\n" +
-            "> Gradle encountered an internal problem.")
+            "> Failed to create directory '${daemonDir}/${GradleVersion.current().version}'")
     }
 
     @Requires(TestPrecondition.NOT_WINDOWS)
@@ -109,7 +110,7 @@ class ErrorMessagesIntegrationTest extends AbstractIntegrationSpec {
             "\n" +
             "* What went wrong:\n" +
             "Gradle could not start your build.\n" +
-            "> Gradle encountered an internal problem.")
+            "> Not a directory")
         errorOutput.contains("net.rubygrapefruit.platform.NativeException: Failed to load native library")
     }
 

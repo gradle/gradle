@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.buildevents;
 
+import com.google.common.base.Throwables;
 import net.rubygrapefruit.platform.NativeException;
 import org.gradle.BuildResult;
 import org.gradle.api.Action;
@@ -137,7 +138,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
         fillInFailureResolution(details);
 
         if (isInternalFailure(failure)) {
-            reportInternalGradleError(details);
+            reportInternalGradleError(details, failure);
         } else if (failure instanceof LocationAwareException) {
             LocationAwareException scriptException = (LocationAwareException) failure;
             details.failure = scriptException.getCause();
@@ -158,10 +159,10 @@ public class BuildExceptionReporter implements Action<Throwable> {
         return failure instanceof ServiceCreationException || failure instanceof NativeException;
     }
 
-    private static void reportInternalGradleError(FailureDetails details) {
+    private static void reportInternalGradleError(FailureDetails details, Throwable failure) {
         details.details.text("Gradle could not start your build.");
         LinePrefixingStyledTextOutput output = getLinePrefixingStyledTextOutput(details, 0);
-        output.text("Gradle encountered an internal problem.");
+        output.text(Throwables.getRootCause(failure).getMessage());
     }
 
     private static class ExceptionFormattingVisitor extends TreeVisitor<Throwable> {
