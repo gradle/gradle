@@ -20,17 +20,18 @@ import org.gradle.api.Project
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
-import org.gradle.api.internal.provider.sources.SystemPropertyValueSource
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logging
 import org.gradle.api.provider.Provider
-import org.gradle.api.provider.ValueSource
-import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.execution.plan.Node
 import org.gradle.initialization.InstantExecution
-import org.gradle.instantexecution.extensions.uncheckedCast
 import org.gradle.instantexecution.extensions.unsafeLazy
+import org.gradle.instantexecution.fingerprint.InstantExecutionCacheInputs
+import org.gradle.instantexecution.fingerprint.InstantExecutionFingerprintChecker
+import org.gradle.instantexecution.fingerprint.InvalidationReason
+import org.gradle.instantexecution.fingerprint.ObtainedValue
+import org.gradle.instantexecution.fingerprint.hashCodeOf
 import org.gradle.instantexecution.initialization.InstantExecutionStartParameter
 import org.gradle.instantexecution.serialization.DefaultReadContext
 import org.gradle.instantexecution.serialization.DefaultWriteContext
@@ -215,9 +216,8 @@ class DefaultInstantExecution internal constructor(
     private
     suspend fun DefaultWriteContext.encodeFingerprint() {
         withHostIsolate {
-            instantExecutionInputs!!.run {
-                writeCollection(inputFiles)
-                writeCollection(obtainedValues)
+            InstantExecutionFingerprintChecker.FingerprintEncoder.run {
+                encode(instantExecutionInputs!!.fingerprint)
             }
         }
     }
@@ -226,72 +226,11 @@ class DefaultInstantExecution internal constructor(
     fun checkFingerprint(): InvalidationReason? =
         withReadContextFor(instantExecutionFingerprintFile) {
             withHostIsolate {
-                checkFingerprintOfInputFiles()
-                    ?: checkFingerprintOfObtainedValues()
-            }
-        }
-
-    private
-    suspend fun DefaultReadContext.checkFingerprintOfInputFiles(): InvalidationReason? {
-        readCollection {
-            val (inputFile, hashCode) = readNonNull<InstantExecutionCacheInputs.InputFile>()
-            if (hashCodeOf(inputFile) != hashCode) {
-                // TODO: log some debug info
-                return "a configuration file has changed"
-            }
-        }
-        return null
-    }
-
-    private
-    suspend fun DefaultReadContext.checkFingerprintOfObtainedValues(): InvalidationReason? {
-        readCollection {
-            val obtainedValue = readNonNull<ObtainedValue>()
-            checkFingerprintValueIsUpToDate(obtainedValue)?.let { reason ->
-                return reason
-            }
-        }
-        return null
-    }
-
-    private
-    fun hashCodeOf(inputFile: File) = virtualFileSystem.hashCodeOf(inputFile)
-
-    private
-    fun checkFingerprintValueIsUpToDate(obtainedValue: ObtainedValue): InvalidationReason? = obtainedValue.run {
-        when (valueSourceType) {
-            SystemPropertyValueSource::class.java -> {
-                // Special case system properties to get them from the host because
-                // this check happens too early in the process, before the system properties
-                // passed in the command line have been propagated.
-                val propertyName = valueSourceParameters
-                    .uncheckedCast<SystemPropertyValueSource.Parameters>()
-                    .propertyName
-                    .get()
-                if (value.get() != System.getProperty(propertyName)) {
-                    "system property '$propertyName' has changed"
-                } else {
-                    null
-                }
-            }
-            else -> {
-                val valueSource = instantiateValueSource()
-                if (value.get() != valueSource.obtain()) {
-                    "a build logic input has changed"
-                } else {
-                    null
+                instantExecutionFingerprintChecker().run {
+                    checkFingerprint()
                 }
             }
         }
-    }
-
-    private
-    fun ObtainedValue.instantiateValueSource(): ValueSource<Any, ValueSourceParameters> =
-        (valueSourceProviderFactory as DefaultValueSourceProviderFactory).instantiateValueSource(
-            valueSourceType,
-            valueSourceParametersType,
-            valueSourceParameters
-        )
 
     private
     fun attachBuildLogicInputsCollector() {
@@ -498,9 +437,9 @@ class DefaultInstantExecution internal constructor(
         val hasRelativeTaskName = taskNames.any { !it.startsWith(':') }
         if (hasRelativeTaskName) {
             // Because unqualified task names are resolved relative to the enclosing
-            // sub-project according to `invocationDir` we need to include
-            // the relative invocation dir information in the key.
-            relativeChildPathOrNull(invocationDir, rootDirectory)?.let { relativeSubDir ->
+            // sub-project according to `invocationDirectory`,
+            // the relative invocation directory information must be part of the key.
+            relativeChildPathOrNull(invocationDirectory, rootDirectory)?.let { relativeSubDir ->
                 cacheKey.append('*')
                 cacheKey.append(relativeSubDir)
             }
@@ -562,12 +501,26 @@ class DefaultInstantExecution internal constructor(
 
     private
     fun systemProperty(propertyName: String) =
-        startParameter.systemPropertyArg(propertyName) ?: System.getProperty(propertyName)
+        System.getProperty(propertyName)
+
+    private
+    fun instantExecutionFingerprintChecker() =
+        InstantExecutionFingerprintChecker(InstantExecutionFingerprintCheckerHost())
+
+    private
+    inner class InstantExecutionFingerprintCheckerHost : InstantExecutionFingerprintChecker.Host {
+
+        override fun hashCodeOf(inputFile: File) =
+            virtualFileSystem.hashCodeOf(inputFile)
+
+        override fun instantiateValueSourceOf(obtainedValue: ObtainedValue) =
+            (valueSourceProviderFactory as DefaultValueSourceProviderFactory).instantiateValueSource(
+                obtainedValue.valueSourceType,
+                obtainedValue.valueSourceParametersType,
+                obtainedValue.valueSourceParameters
+            )
+    }
 }
-
-
-private
-typealias InvalidationReason = String
 
 
 inline fun <reified T> DefaultInstantExecution.Host.service(): T =
