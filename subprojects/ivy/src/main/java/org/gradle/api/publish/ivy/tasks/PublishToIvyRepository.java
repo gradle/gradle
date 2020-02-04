@@ -149,15 +149,7 @@ public class PublishToIvyRepository extends DefaultTask {
             protected void publish() throws Exception {
                 IvyNormalizedPublication normalizedPublication = publication.asNormalisedPublication();
                 IvyPublisher publisher = getIvyPublisher();
-                DefaultPublishRetrier deployRetrier = new DefaultPublishRetrier(
-                    () -> {
-                        publisher.publish(normalizedPublication, repository);
-                        return null;
-                    },
-                    repository.getUrl().toString()
-                );
-
-                deployRetrier.publishWithRetry();
+                publisher.publish(normalizedPublication, repository);
             }
         }.run();
     }
