@@ -58,7 +58,7 @@ class InstantExecutionFingerprintCheckerTest {
         }
 
         val obtainedValue = mock<ObtainedValue> {
-            on { value } doReturn Try.successful(42)
+            on { value } doReturn Try.successful<Any>(42)
         }
 
         val fingerprintCheckerHost = mock<InstantExecutionFingerprintChecker.Host> {
