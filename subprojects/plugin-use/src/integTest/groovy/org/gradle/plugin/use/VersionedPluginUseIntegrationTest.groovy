@@ -33,6 +33,17 @@ class VersionedPluginUseIntegrationTest extends AbstractIntegrationSpec {
     MavenHttpPluginRepository pluginRepo = MavenHttpPluginRepository.asGradlePluginPortal(executer, mavenRepo)
 
     def setup() {
+        /*
+
+        https://github.com/gradle/build-tool-flaky-tests/issues/49
+
+        The plugin is published to a repository inside the test folder, which is accessed via a localhost address (using MavenHttpPluginRepository).
+        When we resolve, we cache the results in the shared home folder. Now if another test runs, and the repository ends up looking the same (same localhost address).
+        The wrong cached artifact is used.
+        That's why these kind of resolution tests need requireOwnGradleUserHomeDir().
+
+         */
+        executer.requireOwnGradleUserHomeDir()
         publishPlugin("1.0")
         publishPlugin("2.0")
     }
@@ -118,13 +129,13 @@ class VersionedPluginUseIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << "include 'p1', 'p2'"
 
         file("p1/build.gradle") << """
-            plugins { 
+            plugins {
                 id '$PLUGIN_ID' version '1.0'
             }
             ${verifyPluginTask('1.0')}
 """
         file("p2/build.gradle") << """
-            plugins { 
+            plugins {
                 id '$PLUGIN_ID' version '2.0'
             }
             ${verifyPluginTask('2.0')}
