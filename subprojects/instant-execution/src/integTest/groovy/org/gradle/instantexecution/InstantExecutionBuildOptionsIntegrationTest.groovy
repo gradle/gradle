@@ -210,11 +210,12 @@ class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecuti
         then:
         output.count("Hello, hello!") == 1
         instant.assertStateStored()
+        outputContains("$description property 'greeting' has changed")
 
         where:
-        kind     | option
-        'system' | 'D'
-        'gradle' | 'P'
+        kind     | option | description
+        'system' | 'D'    | 'system'
+        'gradle' | 'P'    | 'Gradle'
     }
 
     def "mapped system property used as task input"() {
