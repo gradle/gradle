@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,28 @@
 
 package org.gradle.api.internal.provider.sources;
 
+import org.gradle.api.Describable;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.ValueSource;
+import org.gradle.api.provider.ValueSourceParameters;
+
 import javax.annotation.Nullable;
 
-public abstract class SystemPropertyValueSource extends AbstractPropertyValueSource {
+public abstract class AbstractPropertyValueSource implements ValueSource<String, GradlePropertyValueSource.Parameters>, Describable {
+
+    public interface Parameters extends ValueSourceParameters {
+        Property<String> getPropertyName();
+    }
 
     @Nullable
     @Override
-    public String obtain() {
-        @Nullable String propertyName = propertyNameOrNull();
-        if (propertyName == null) {
-            return null;
-        }
-        return System.getProperty(propertyName);
-    }
+    public abstract String obtain();
 
     @Override
-    public String getDisplayName() {
-        return String.format("system property '%s'", propertyNameOrNull());
+    public abstract String getDisplayName();
+
+    @Nullable
+    protected String propertyNameOrNull() {
+        return getParameters().getPropertyName().getOrNull();
     }
 }
