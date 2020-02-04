@@ -343,6 +343,7 @@ class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecuti
 
         then:
         output.count("Hello, hello!") == 1
+        outputContains("environment variable 'GREETING' has changed")
         instant.assertStateStored()
     }
 
