@@ -56,7 +56,6 @@ class ErrorMessagesIntegrationTest extends AbstractIntegrationSpec {
         given:
         requireOwnGradleUserHomeDir()
         requireGradleDistribution()
-        executer.requireIsolatedDaemons()
 
         executer.gradleUserHomeDir.mkdir()
         executer.gradleUserHomeDir.setPermissions("r-xr-xr-x")
