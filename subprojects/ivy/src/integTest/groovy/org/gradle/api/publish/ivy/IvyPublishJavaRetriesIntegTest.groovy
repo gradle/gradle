@@ -23,9 +23,6 @@ import org.gradle.test.fixtures.server.http.IvyHttpModule
 import org.gradle.test.fixtures.server.http.IvyHttpRepository
 import org.junit.Rule
 
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
-
 class IvyPublishJavaRetriesIntegTest extends AbstractIvyPublishIntegTest {
 
     TestKeyStore keyStore
@@ -87,16 +84,8 @@ class IvyPublishJavaRetriesIntegTest extends AbstractIvyPublishIntegTest {
 
 
     def expectPublication() {
-        server.expect("/repo/org.gradle.test/testIvyRetries/1.9/testIvyRetries-1.9.jar", ['PUT'], new HttpServer.ActionSupport("intermittent network issue") {
-            void handle(HttpServletRequest request, HttpServletResponse response) {
-                response.sendError(503, "intermittent issue")
-            }
-        })
-        server.expect("/repo/org.gradle.test/testIvyRetries/1.9/testIvyRetries-1.9.jar", ['PUT'], new HttpServer.ActionSupport("intermittent network issue") {
-            void handle(HttpServletRequest request, HttpServletResponse response) {
-                response.sendError(503, "intermittent issue")
-            }
-        })
+        server.expect("/repo/org.gradle.test/testIvyRetries/1.9/testIvyRetries-1.9.jar", ['PUT'], new HttpServer.ServiceUnavailableAction("intermittent network issue"))
+        server.expect("/repo/org.gradle.test/testIvyRetries/1.9/testIvyRetries-1.9.jar", ['PUT'], new HttpServer.ServiceUnavailableAction("intermittent network issue"))
         module.artifact.expectPut()
         module.ivy.expectPut()
         module.ivy.sha1.expectPut()

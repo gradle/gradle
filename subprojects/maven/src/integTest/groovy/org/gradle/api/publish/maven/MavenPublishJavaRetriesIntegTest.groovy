@@ -24,9 +24,6 @@ import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.junit.Rule
 
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
-
 class MavenPublishJavaRetriesIntegTest extends AbstractMavenPublishIntegTest {
 
     TestKeyStore keyStore
@@ -99,16 +96,8 @@ class MavenPublishJavaRetriesIntegTest extends AbstractMavenPublishIntegTest {
 
 
     def expectPublication() {
-        server.expect("/repo/org/gradle/test/testMavenRetries/1.9/testMavenRetries-1.9.jar", ['PUT'], new HttpServer.ActionSupport("plugin marker pom") {
-            void handle(HttpServletRequest request, HttpServletResponse response) {
-                response.sendError(503, "intermittent issue")
-            }
-        })
-        server.expect("/repo/org/gradle/test/testMavenRetries/1.9/testMavenRetries-1.9.jar", ['PUT'], new HttpServer.ActionSupport("plugin marker pom") {
-            void handle(HttpServletRequest request, HttpServletResponse response) {
-                response.sendError(503, "intermittent issue")
-            }
-        })
+        server.expect("/repo/org/gradle/test/testMavenRetries/1.9/testMavenRetries-1.9.jar", ['PUT'], new HttpServer.ServiceUnavailableAction("intermittent network issue"))
+        server.expect("/repo/org/gradle/test/testMavenRetries/1.9/testMavenRetries-1.9.jar", ['PUT'], new HttpServer.ServiceUnavailableAction("intermittent network issue"))
         module.artifact.expectPut()
         module.artifact.sha1.expectPut()
         module.artifact.sha256.expectPut()
