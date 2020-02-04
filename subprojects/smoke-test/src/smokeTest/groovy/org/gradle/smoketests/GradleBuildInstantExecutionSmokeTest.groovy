@@ -19,6 +19,7 @@ package org.gradle.smoketests
 import org.gradle.api.JavaVersion
 import org.gradle.api.specs.Spec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.jvm.JvmInstallation
 import org.gradle.test.fixtures.file.TestFile
@@ -61,6 +62,11 @@ class GradleBuildInstantExecutionSmokeTest extends AbstractSmokeTest {
 
         then:
         result.output.count("Reusing instant execution cache") == 1
+
+        and:
+        file("build/distributions").allDescendants().count { it ==~ /gradle-.*-bin.zip/ } == 1
+        new DefaultTestExecutionResult(file("subprojects/core"), "build", "", "", "integTest")
+            .assertTestClassesExecuted("org.gradle.NameValidationIntegrationTest")
     }
 
     private BuildResult instantRun(String... tasks) {
@@ -83,8 +89,7 @@ class GradleBuildInstantExecutionSmokeTest extends AbstractSmokeTest {
 
     private static final String[] GRADLE_BUILD_TEST_ARGS = [
         "--dependency-verification=off", // TODO:instant-execution remove once handled
-        "-Dorg.gradle.unsafe.kotlin-eap=true", // TODO:instant-execution kotlin 1.3.61 doesn't support instant execution
-        "-PbuildSrcCheck=false"
+        "-Dorg.gradle.unsafe.kotlin-eap=true" // TODO:instant-execution kotlin 1.3.61 doesn't support instant execution
     ]
 }
 

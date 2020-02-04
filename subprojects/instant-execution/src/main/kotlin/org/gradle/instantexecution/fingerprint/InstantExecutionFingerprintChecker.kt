@@ -17,10 +17,8 @@
 package org.gradle.instantexecution.fingerprint
 
 import org.gradle.api.Describable
-import org.gradle.api.internal.provider.sources.SystemPropertyValueSource
 import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
-import org.gradle.instantexecution.extensions.uncheckedCast
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.readCollection
@@ -39,6 +37,7 @@ class InstantExecutionFingerprintChecker(private val host: Host) {
 
     interface Host {
         fun hashCodeOf(inputFile: File): HashCode?
+        fun displayNameOf(inputFile: File): String
         fun instantiateValueSourceOf(obtainedValue: ObtainedValue): ValueSource<Any, ValueSourceParameters>
     }
 
@@ -60,7 +59,7 @@ class InstantExecutionFingerprintChecker(private val host: Host) {
             val (inputFile, hashCode) = readNonNull<InstantExecutionCacheFingerprint.InputFile>()
             if (host.hashCodeOf(inputFile) != hashCode) {
                 // TODO: log some debug info
-                return "a configuration file has changed"
+                return "configuration file '${host.displayNameOf(inputFile)}' has changed"
             }
         }
         return null
@@ -78,32 +77,17 @@ class InstantExecutionFingerprintChecker(private val host: Host) {
     }
 
     private
-    fun checkFingerprintValueIsUpToDate(obtainedValue: ObtainedValue): InvalidationReason? = obtainedValue.run {
-        when (valueSourceType) {
-            SystemPropertyValueSource::class.java -> {
-                // Special case system properties to get them from the host because
-                // this check happens too early in the process, before the system properties
-                // passed in the command line have been propagated.
-                val propertyName = valueSourceParameters
-                    .uncheckedCast<SystemPropertyValueSource.Parameters>()
-                    .propertyName
-                    .get()
-                if (value.get() != System.getProperty(propertyName)) {
-                    "system property '$propertyName' has changed"
-                } else {
-                    null
-                }
-            }
-            else -> {
-                val valueSource = host.instantiateValueSourceOf(this)
-                if (value.get() != valueSource.obtain()) {
-                    (valueSource as? Describable)?.let {
-                        it.displayName + " has changed"
-                    } ?: "a build logic input has changed"
-                } else {
-                    null
-                }
-            }
+    fun checkFingerprintValueIsUpToDate(obtainedValue: ObtainedValue): InvalidationReason? {
+        val valueSource = host.instantiateValueSourceOf(obtainedValue)
+        if (obtainedValue.value.get() != valueSource.obtain()) {
+            return buildLogicInputHasChanged(valueSource)
         }
+        return null
     }
+
+    private
+    fun buildLogicInputHasChanged(valueSource: ValueSource<Any, ValueSourceParameters>): InvalidationReason =
+        (valueSource as? Describable)?.let {
+            it.displayName + " has changed"
+        } ?: "a build logic input has changed"
 }
