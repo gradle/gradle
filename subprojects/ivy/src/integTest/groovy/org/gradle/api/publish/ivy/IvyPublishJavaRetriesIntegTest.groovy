@@ -14,34 +14,33 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publish.maven
+package org.gradle.api.publish.ivy
 
 import org.gradle.integtests.fixtures.executer.ExecutionResult
-import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.server.http.HttpServer
-import org.gradle.test.fixtures.server.http.MavenHttpModule
-import org.gradle.test.fixtures.server.http.MavenHttpRepository
+import org.gradle.test.fixtures.server.http.IvyHttpModule
+import org.gradle.test.fixtures.server.http.IvyHttpRepository
 import org.junit.Rule
 
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-class MavenPublishJavaRetriesIntegTest extends AbstractMavenPublishIntegTest {
+class IvyPublishJavaRetriesIntegTest extends AbstractIvyPublishIntegTest {
 
     TestKeyStore keyStore
 
     @Rule public final HttpServer server = new HttpServer()
 
-    MavenHttpRepository mavenRemoteRepo
-    MavenHttpModule module
+    IvyHttpRepository ivyRemoteRepo
+    IvyHttpModule module
 
     def setup() {
         keyStore = TestKeyStore.init(file("keystore"))
         server.start()
 
-        mavenRemoteRepo = new MavenHttpRepository(server, "/repo", mavenRepo)
-        module = mavenRemoteRepo.module("org.gradle.test", "testMavenRetries", "1.9")
+        ivyRemoteRepo = new IvyHttpRepository(server, "/repo", ivyRepo)
+        module = ivyRemoteRepo.module("org.gradle.test", "testIvyRetries", "1.9")
     }
 
     def cleanup() {
@@ -51,34 +50,23 @@ class MavenPublishJavaRetriesIntegTest extends AbstractMavenPublishIntegTest {
     def "should publish with intermittent network issues"() {
         given:
         keyStore.enableSslWithServerCert(server)
-        settingsFile.text = "rootProject.name = 'testMavenRetries'"
+        settingsFile.text = "rootProject.name = 'testIvyRetries'"
         buildFile << """
-            apply plugin: 'maven-publish'
+            apply plugin: 'ivy-publish'
             apply plugin: 'java-library'
 
             group = 'org.gradle.test'
             version = '1.9'
 
-            ${jcenterRepository()}
-
-            dependencies {
-                implementation "commons-collections:commons-collections:1.+"
-            }
-
             publishing {
                 repositories {
-                    maven {
-                        url '${mavenRemoteRepo.uri}'
+                    ivy {
+                        url '${ivyRemoteRepo.uri}'
                     }
                 }
                 publications {
-                    maven(MavenPublication) {
+                    ivy(IvyPublication) {
                         from components.java
-                        versionMapping {
-                            allVariants {
-                                fromResolutionResult()
-                            }
-                        }
                     }
                 }
             }
@@ -99,39 +87,38 @@ class MavenPublishJavaRetriesIntegTest extends AbstractMavenPublishIntegTest {
 
 
     def expectPublication() {
-        server.expect("/repo/org/gradle/test/testMavenRetries/1.9/testMavenRetries-1.9.jar", ['PUT'], new HttpServer.ActionSupport("plugin marker pom") {
+        server.expect("/repo/org.gradle.test/testIvyRetries/1.9/testIvyRetries-1.9.jar", ['PUT'], new HttpServer.ActionSupport("intermittent network issue") {
             void handle(HttpServletRequest request, HttpServletResponse response) {
                 response.sendError(503, "intermittent issue")
             }
         })
-        server.expect("/repo/org/gradle/test/testMavenRetries/1.9/testMavenRetries-1.9.jar", ['PUT'], new HttpServer.ActionSupport("plugin marker pom") {
+        server.expect("/repo/org.gradle.test/testIvyRetries/1.9/testIvyRetries-1.9.jar", ['PUT'], new HttpServer.ActionSupport("intermittent network issue") {
             void handle(HttpServletRequest request, HttpServletResponse response) {
                 response.sendError(503, "intermittent issue")
             }
         })
         module.artifact.expectPut()
+        module.ivy.expectPut()
+        module.ivy.sha1.expectPut()
+        module.ivy.sha256.expectPut()
+        module.ivy.sha512.expectPut()
         module.artifact.sha1.expectPut()
         module.artifact.sha256.expectPut()
         module.artifact.sha512.expectPut()
-        module.artifact.md5.expectPut()
-        module.rootMetaData.expectGetMissing()
-        module.rootMetaData.expectPublish()
-        module.pom.expectPublish()
-        module.moduleMetadata.expectPublish()
+        module.moduleMetadata.expectPut()
+        module.moduleMetadata.sha1.expectPut()
+        module.moduleMetadata.sha256.expectPut()
+        module.moduleMetadata.sha512.expectPut()
     }
 
     def verifyPublications() {
-        def localPom = file("build/publications/maven/pom-default.xml").assertIsFile()
-        def localArtifact = file("build/libs/testMavenRetries-1.9.jar").assertIsFile()
+        def localIvyXml = file("build/publications/ivy/ivy.xml").assertIsFile()
+        def localArtifact = file("build/libs/testIvyRetries-1.9.jar").assertIsFile()
 
-        module.pomFile.assertIsCopyOf(localPom)
-        module.pom.verifyChecksums()
-        module.artifactFile.assertIsCopyOf(localArtifact)
-        module.artifact.verifyChecksums()
-
-        module.rootMetaData.verifyChecksums()
-        assert module.rootMetaData.versions == ["1.9"]
+        module.ivyFile.assertIsCopyOf(localIvyXml)
+        module.ivy.verifyChecksums()
+        module.jarFile.assertIsCopyOf(localArtifact)
+        module.jar.verifyChecksums()
         true
     }
-
 }
