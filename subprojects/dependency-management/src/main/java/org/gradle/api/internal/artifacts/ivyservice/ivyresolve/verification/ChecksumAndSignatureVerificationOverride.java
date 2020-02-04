@@ -81,6 +81,7 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
     private final Set<VerificationQuery> verificationQueries = Sets.newConcurrentHashSet();
     private final Deque<VerificationEvent> verificationEvents = Queues.newArrayDeque();
     private final AtomicBoolean closed = new AtomicBoolean();
+    private final AtomicBoolean hasFatalFailure = new AtomicBoolean();
 
     public ChecksumAndSignatureVerificationOverride(BuildOperationExecutor buildOperationExecutor,
                                                     File gradleUserHome,
@@ -122,6 +123,7 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
     }
 
     private void verifyConcurrently() {
+        hasFatalFailure.set(false);
         synchronized (verificationEvents) {
             if (verificationEvents.isEmpty()) {
                 return;
@@ -142,6 +144,9 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
                             verifier.verify(checksumService, signatureVerificationService, ve.kind, ve.artifact, ve.mainFile, ve.signatureFile.create(), f -> {
                                 synchronized (failures) {
                                     failures.put(ve.artifact, new FailureWrapper(f, ve.repositoryName));
+                                }
+                                if (f.isFatal()) {
+                                    hasFatalFailure.set(true);
                                 }
                             });
                         }
@@ -167,7 +172,9 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
     public void artifactsAccessed(String displayName) {
         verifyConcurrently();
         synchronized (failures) {
-            if (!failures.isEmpty()) {
+            if (hasFatalFailure.get() && !failures.isEmpty()) {
+                // We need at least one fatal failure: if it's only "warnings" we don't care
+                // but of there's a fatal failure AND a warning we want to show both
                 TreeFormatter formatter = new TreeFormatter();
                 formatter.node("Dependency verification failed for " + displayName);
                 formatter.startChildren();
@@ -175,7 +182,6 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
                 AtomicBoolean hasUntrusted = new AtomicBoolean();
                 AtomicBoolean hasMissing = new AtomicBoolean();
                 AtomicBoolean failedSignatures = new AtomicBoolean();
-                AtomicBoolean hasFatalFailure = new AtomicBoolean();
                 Set<String> affectedFiles = Sets.newTreeSet();
                 // Sorting entries so that error messages are always displayed in a reproducible order
                 failures.asMap()
@@ -185,19 +191,17 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
                     .forEachOrdered(entry -> {
                         ModuleComponentArtifactIdentifier key = entry.getKey();
                         Collection<FailureWrapper> failures = entry.getValue();
-                        if (failures.stream().anyMatch(f -> f.failure.isFatal())) {
-                            failures.stream()
-                                .map(FailureWrapper::getFailure)
-                                .map(this::extractFailedFilePaths)
-                                .forEach(affectedFiles::add);
-                            hasFatalFailure.set(true);
-                            formatter.node("On artifact " + key + " ");
-                            if (failures.size() == 1) {
-                                FailureWrapper firstFailure = failures.iterator().next();
-                                explainSingleFailure(formatter, maybeCompromised, hasMissing, failedSignatures, hasUntrusted, firstFailure);
-                            } else {
-                                explainMultiFailure(formatter, maybeCompromised, hasMissing, failedSignatures, hasUntrusted, failures);
-                            }
+                        failures.stream()
+                            .map(FailureWrapper::getFailure)
+                            .map(this::extractFailedFilePaths)
+                            .forEach(affectedFiles::add);
+                        hasFatalFailure.set(true);
+                        formatter.node("On artifact " + key + " ");
+                        if (failures.size() == 1) {
+                            FailureWrapper firstFailure = failures.iterator().next();
+                            explainSingleFailure(formatter, maybeCompromised, hasMissing, failedSignatures, hasUntrusted, firstFailure);
+                        } else {
+                            explainMultiFailure(formatter, maybeCompromised, hasMissing, failedSignatures, hasUntrusted, failures);
                         }
                     });
                 formatter.endChildren();
@@ -224,14 +228,13 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
                     formatter.blankLine();
                     formatter.node("GRADLE_USER_HOME = " + gradleUserHome);
                 }
-                if (hasFatalFailure.get()) {
-                    String message = formatter.toString();
-                    if (verificationMode == DependencyVerificationMode.LENIENT) {
-                        LOGGER.error(message);
-                        failures.clear();
-                    } else {
-                        throw new InvalidUserDataException(message);
-                    }
+                String message = formatter.toString();
+                if (verificationMode == DependencyVerificationMode.LENIENT) {
+                    LOGGER.error(message);
+                    failures.clear();
+                    hasFatalFailure.set(false);
+                } else {
+                    throw new InvalidUserDataException(message);
                 }
             }
         }
