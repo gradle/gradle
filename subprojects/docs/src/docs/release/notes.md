@@ -9,6 +9,7 @@ Include only their name, impactful features should be called out separately belo
 -->
 [Roberto Perez Alcolea](https://github.com/rpalcolea),
 [Daniel Thomas](https://github.com/DanielThomas),
+[jeffalder](https://github.com/jeffalder),
 and [username](url).
 
 ## Upgrade Instructions
