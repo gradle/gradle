@@ -54,8 +54,8 @@ public class DefaultGradleApiSourcesResolver implements GradleApiSourcesResolver
     private final Project project;
 
     private final String zipType = "zip";
-    private final String unzippedDistributionType = "unzipped-distribution";
-    private final String sourceDirectory = "src-directory";
+    private final String unzippedDistributionType = "gradle-src-unzip";
+    private final String sourceDirectory = "gradle-src-dir";
 
     public DefaultGradleApiSourcesResolver(Project project) {
         this.project = project;
