@@ -89,28 +89,39 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
         private Class<? extends Project> projectClazz;
 
         void configureProperty(Project project, String name, Object value) {
-            Class<? extends Project> clazz = project.getClass();
-            if (clazz != projectClazz) {
-                mutators.clear();
-                projectClazz = clazz;
-            }
-            Class<?> valueType = value == null ? null : value.getClass();
-            Pair<String, ? extends Class<?>> key = Pair.of(name, valueType);
-            PropertyMutator propertyMutator = mutators.get(key);
-            if (propertyMutator != null) {
-                propertyMutator.setValue(project, value);
-            } else {
-                if (!mutators.containsKey(key)) {
-                    propertyMutator = JavaPropertyReflectionUtil.writeablePropertyIfExists(clazz, name, valueType);
-                    mutators.put(key, propertyMutator);
-                    if (propertyMutator != null) {
-                        propertyMutator.setValue(project, value);
-                        return;
-                    }
+            if (isPossibleProperty(name)) {
+                Class<? extends Project> clazz = project.getClass();
+                if (clazz != projectClazz) {
+                    mutators.clear();
+                    projectClazz = clazz;
                 }
-                ExtraPropertiesExtension extraProperties = project.getExtensions().getExtraProperties();
-                extraProperties.set(name, value);
+                Class<?> valueType = value == null ? null : value.getClass();
+                Pair<String, ? extends Class<?>> key = Pair.of(name, valueType);
+                PropertyMutator propertyMutator = mutators.get(key);
+                if (propertyMutator != null) {
+                    propertyMutator.setValue(project, value);
+                } else {
+                    if (!mutators.containsKey(key)) {
+                        propertyMutator = JavaPropertyReflectionUtil.writeablePropertyIfExists(clazz, name, valueType);
+                        mutators.put(key, propertyMutator);
+                        if (propertyMutator != null) {
+                            propertyMutator.setValue(project, value);
+                            return;
+                        }
+                    }
+                    ExtraPropertiesExtension extraProperties = project.getExtensions().getExtraProperties();
+                    extraProperties.set(name, value);
+                }
             }
+        }
+        /**
+         * In a properties file, entries like '=' or ':' on a single line define a property with an empty string name and value.
+         * We know that no property will have an empty property name.
+         *
+         * @see java.util.Properties#load(java.io.Reader)
+         */
+        private boolean isPossibleProperty(String name) {
+            return !name.isEmpty();
         }
     }
 }
