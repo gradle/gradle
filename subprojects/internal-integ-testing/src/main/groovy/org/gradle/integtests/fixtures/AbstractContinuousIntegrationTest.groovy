@@ -80,7 +80,10 @@ abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec
                 gradle.buildFinished {
                     long sinceStart = (System.nanoTime() - startAt) / 1000000L
                     if (sinceStart > 0 && sinceStart < $minimumBuildTimeMillis) {
-                      Thread.sleep(($minimumBuildTimeMillis - sinceStart) as Long)
+                      def sleepTime = ($minimumBuildTimeMillis - sinceStart) as Long
+                      println "Sleeping for \$sleepTime"
+                      Thread.sleep(sleepTime)
+                      println "Slept for \$sleepTime"
                     }
                 }
             """
@@ -207,7 +210,10 @@ $lastOutput
         }
         def sinceStart = monotonicClockMillis() - startAt
         if (sinceStart < minimumBuildTimeMillis) {
-            Thread.sleep(minimumBuildTimeMillis - sinceStart)
+            def sleepTime = minimumBuildTimeMillis - sinceStart
+            println("Build was too fast - sleeping another $sleepTime ms")
+            Thread.sleep(sleepTime)
+            println("Build was too fast - slept another $sleepTime ms")
         }
 
         def out = buildOutputSoFar()
