@@ -20,6 +20,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
+import org.gradle.api.file.FileTree;
+import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
@@ -41,8 +43,9 @@ import java.util.List;
 import java.util.Set;
 
 public class DefaultFileCollectionFactory implements FileCollectionFactory {
-    public static final String DEFAULT_DISPLAY_NAME = "file collection";
-    private static final EmptyFileCollection EMPTY = new EmptyFileCollection(DEFAULT_DISPLAY_NAME);
+    public static final String DEFAULT_COLLECTION_DISPLAY_NAME = "file collection";
+    public static final String DEFAULT_TREE_DISPLAY_NAME = "file tree";
+    private static final EmptyFileCollection EMPTY = new EmptyFileCollection(DEFAULT_COLLECTION_DISPLAY_NAME);
     private final PathToFileResolver fileResolver;
     private final TaskDependencyFactory taskDependencyFactory;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
@@ -112,7 +115,7 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
         if (sources.length == 1 && sources[0] instanceof FileCollectionInternal) {
             return (FileCollectionInternal) sources[0];
         }
-        return resolving(DEFAULT_DISPLAY_NAME, sources);
+        return resolving(DEFAULT_COLLECTION_DISPLAY_NAME, sources);
     }
 
     @Override
@@ -130,7 +133,7 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
         if (files.length == 0) {
             return empty();
         }
-        return fixed(DEFAULT_DISPLAY_NAME, files);
+        return fixed(DEFAULT_COLLECTION_DISPLAY_NAME, files);
     }
 
     @Override
@@ -146,7 +149,7 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
         if (files.isEmpty()) {
             return empty();
         }
-        return fixed(DEFAULT_DISPLAY_NAME, files);
+        return fixed(DEFAULT_COLLECTION_DISPLAY_NAME, files);
     }
 
     @Override
@@ -172,6 +175,27 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
         @Override
         public Set<File> getFiles() {
             return ImmutableSet.of();
+        }
+
+        @Override
+        public void visitStructure(FileCollectionStructureVisitor visitor) {
+        }
+
+        @Override
+        public FileTree getAsFileTree() {
+            return new EmptyFileTree();
+        }
+    }
+
+    private static final class EmptyFileTree extends AbstractFileTree {
+        @Override
+        public String getDisplayName() {
+            return DEFAULT_TREE_DISPLAY_NAME;
+        }
+
+        @Override
+        public FileTree visit(FileVisitor visitor) {
+            return this;
         }
 
         @Override

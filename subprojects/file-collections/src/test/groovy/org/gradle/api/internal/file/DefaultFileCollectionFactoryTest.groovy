@@ -19,6 +19,8 @@ package org.gradle.api.internal.file
 import com.google.common.collect.ImmutableSet
 import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
+import org.gradle.api.file.FileVisitDetails
+import org.gradle.api.file.FileVisitor
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.file.collections.MinimalFileSet
 import org.gradle.api.internal.provider.Providers
@@ -91,11 +93,18 @@ class DefaultFileCollectionFactoryTest extends Specification {
 
     def "constructs an empty collection"() {
         expect:
-        def collection = factory.empty("some collection")
+        def collection = factory.empty()
         collection.files.empty
         collection.buildDependencies.getDependencies(null).empty
         collection.visitStructure(new BrokenVisitor())
-        collection.toString() == "some collection"
+        collection.toString() == "file collection"
+
+        def tree = collection.asFileTree
+        tree.files.empty
+        tree.visit(new BrokenVisitor())
+        tree.buildDependencies.getDependencies(null).empty
+        tree.visitStructure(new BrokenVisitor())
+        tree.toString() == "file tree"
     }
 
     def "constructs empty collection with display name"() {
@@ -105,6 +114,13 @@ class DefaultFileCollectionFactoryTest extends Specification {
         collection.buildDependencies.getDependencies(null).empty
         collection.visitStructure(new BrokenVisitor())
         collection.toString() == "some collection"
+
+        def tree = collection.asFileTree
+        tree.files.empty
+        tree.visit(new BrokenVisitor())
+        tree.buildDependencies.getDependencies(null).empty
+        tree.visitStructure(new BrokenVisitor())
+        tree.toString() == "file tree"
     }
 
     def "constructs a collection with fixed contents"() {
@@ -326,7 +342,17 @@ class DefaultFileCollectionFactoryTest extends Specification {
         'URL'       | tmpDir.file('abc').toURI().toURL()
     }
 
-    static class BrokenVisitor implements FileCollectionStructureVisitor {
+    static class BrokenVisitor implements FileCollectionStructureVisitor, FileVisitor {
+        @Override
+        void visitDir(FileVisitDetails dirDetails) {
+            Assert.fail()
+        }
+
+        @Override
+        void visitFile(FileVisitDetails fileDetails) {
+            Assert.fail()
+        }
+
         @Override
         void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents) {
             Assert.fail()
