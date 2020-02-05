@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
 import build.futureKotlin
 import build.kotlin
 import build.kotlinVersion
 import codegen.GenerateKotlinDependencyExtensions
 import org.gradle.build.ReproduciblePropertiesWriter
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
     `kotlin-dsl-module`

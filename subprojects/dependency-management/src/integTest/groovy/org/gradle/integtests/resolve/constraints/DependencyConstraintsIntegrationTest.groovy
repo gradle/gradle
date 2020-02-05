@@ -48,7 +48,6 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
         resolve.addDefaultVariantDerivationStrategy()
     }
 
-    @FailsWithDsl(GradleDsl.KOTLIN)
     void "dependency constraint is not included in resolution without a hard dependency"() {
         given:
         mavenRepo.module("org", "foo", '1.0').publish()
@@ -71,7 +70,6 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
         }
     }
 
-    @FailsWithDsl(GradleDsl.KOTLIN)
     void "dependency constraint is included into the result of resolution when a hard dependency is also added"() {
         given:
         mavenRepo.module("org", "foo", '1.1').publish()
@@ -99,7 +97,6 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
         }
     }
 
-    @FailsWithDsl(GradleDsl.KOTLIN)
     void "dependency constraint can be used to declare incompatibility"() {
         given:
         mavenRepo.module("org", "foo", '1.1').publish()
@@ -129,7 +126,6 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
    Constraint path ':test:unspecified' --> 'org:foo:{reject all versions}'""")
     }
 
-    @FailsWithDsl(GradleDsl.KOTLIN)
     void "dependency constraint is included into the result of resolution when a hard dependency is also added transitively"() {
         given:
         mavenRepo.module("org", "foo", '1.0').publish()
@@ -165,7 +161,6 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
      * Test demonstrates a bug in resolution of constraints, when real dependency is evicted via conflict resolution.
      */
     @Issue("gradle/gradle#4610")
-    @FailsWithDsl(GradleDsl.KOTLIN)
     void "dependency constraint should not preserve hard dependency for evicted dependency"() {
         given:
         // "org:foo:1.0" -> "org:baz:1.0" -> "org:baz-transitive:1.0"
@@ -233,7 +228,6 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
          */
     }
 
-    @FailsWithDsl(GradleDsl.KOTLIN)
     void "range resolution kicks in with dependency constraints"() {
         given:
         mavenRepo.module("org", "foo", '1.0').publish()
@@ -268,7 +262,6 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
         }
     }
 
-    @FailsWithDsl(GradleDsl.KOTLIN)
     void "transitive dependencies of an dependency constraint do not participate in conflict resolution if it is not included elsewhere"() {
         given:
         mavenRepo.module("org", "foo", '1.0').dependsOn('org', 'bar', '1.1').publish()
@@ -317,9 +310,9 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
                             }
                         }""", """resolutionStrategy.dependencySubstitution {
                             all {
-                                requested as ModuleComponentSelector
-                                if (requested.module == "bar") {
-                                    useTarget(requested.group + ":foo:" + requested.version)
+                                val r = requested as ModuleComponentSelector
+                                if (r.module == "bar") {
+                                    useTarget("\${r.group}:foo:\${r.version}")
                                 }
                             }
                         }
@@ -383,7 +376,6 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
         }
     }
 
-    @FailsWithDsl(GradleDsl.KOTLIN)
     void "dependency constraints defined for a configuration are applied when resolving that configuration as part of a project dependency"() {
         given:
         mavenRepo.module("org", "foo", '1.0').publish()
@@ -430,7 +422,6 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
         }
     }
 
-    @FailsWithDsl(GradleDsl.KOTLIN)
     void "dependency constraints defined for a build are applied when resolving a configuration that uses that build as an included build"() {
         given:
         resolve.expectDefaultConfiguration('default')
@@ -480,7 +471,6 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
     }
 
     @Issue("gradle/gradle#4609")
-    @FailsWithDsl(GradleDsl.KOTLIN)
     def "dependency constraint does not invalidate excludes defined on hard dependency"() {
         given:
         mavenRepo.module("org", "baz", "1.0").publish()
@@ -514,7 +504,6 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
         }
     }
 
-    @FailsWithDsl(GradleDsl.KOTLIN)
     void "dependency constraints should not pull in additional artifacts"() {
         given:
         mavenRepo.module("org", "foo", '1.0').artifact(classifier: 'shaded').publish()
@@ -544,7 +533,6 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
         }
     }
 
-    @FailsWithDsl(GradleDsl.KOTLIN)
     void "dependency constraints should not pull in additional artifacts for transitive dependencies"() {
         given:
         def foo11 = mavenRepo.module("org", "foo", '1.0').artifact(classifier: 'shaded').publish()
@@ -578,7 +566,6 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
         }
     }
 
-    @FailsWithDsl(GradleDsl.KOTLIN)
     void 'dependency updated through constraints has its transitive dependencies'() {
         given:
         def foo10 = mavenRepo.module('org', 'foo', '1.0').publish()
@@ -609,7 +596,6 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
         }
     }
 
-    @FailsWithDsl(GradleDsl.KOTLIN)
     void 'dependency without version updated through constraints has its transitive dependencies'() {
         given:
         def foo10 = mavenRepo.module('org', 'foo', '1.0').publish()
@@ -640,7 +626,6 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
         }
     }
 
-    @FailsWithDsl(GradleDsl.KOTLIN)
     void 'dependency constraint can be not pending, then pending, then not pending and still participate in resolution'() {
         def constrainedBase = mavenRepo.module('org', 'constrained', '1.0').publish()
         def constrained = mavenRepo.module('org', 'constrained', '1.1').publish()

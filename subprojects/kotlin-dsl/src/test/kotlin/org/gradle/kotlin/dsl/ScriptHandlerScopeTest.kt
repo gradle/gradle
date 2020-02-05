@@ -17,21 +17,18 @@
 package org.gradle.kotlin.dsl
 
 import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.eq
 import com.nhaarman.mockito_kotlin.doAnswer
 import com.nhaarman.mockito_kotlin.doReturn
+import com.nhaarman.mockito_kotlin.eq
 import com.nhaarman.mockito_kotlin.inOrder
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
-
 import org.gradle.api.Action
 import org.gradle.api.artifacts.DependencyConstraint
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
 import org.gradle.api.initialization.dsl.ScriptHandler
-
 import org.gradle.kotlin.dsl.support.configureWith
-
 import org.junit.Test
 
 
@@ -81,8 +78,8 @@ class ScriptHandlerScopeTest {
             }
             dependencies {
                 constraints {
-                    it.classpath("in-block:accessor")
-                    it.classpath("in-block:accessor-with-action") {
+                    classpath("in-block:accessor")
+                    classpath("in-block:accessor-with-action") {
                         because("just because")
                     }
                 }
