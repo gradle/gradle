@@ -1,4 +1,5 @@
 import org.gradle.build.GradleStartScriptGenerator
+import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
@@ -104,6 +105,10 @@ configurations {
             builtBy(startScripts)
         }
     }
+}
+
+tasks.withType<IntegrationTest>().configureEach {
+    rerun.set(true)
 }
 
 testFilesCleanup {
