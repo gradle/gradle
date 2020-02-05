@@ -85,6 +85,9 @@ abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec
                       Thread.sleep(sleepTime)
                       println "Slept for \$sleepTime"
                     }
+                    if ($waitTimeAtEndOfBuild > 0) {
+                        Thread.sleep($waitTimeAtEndOfBuild)
+                    }
                 }
             """
             withArgument("-I").withArgument(initScript.absolutePath)
@@ -93,6 +96,10 @@ abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec
 
     protected int getMinimumBuildTimeMillis() {
         OperatingSystem.current().isWindows() ? 3000 : 2000
+    }
+
+    protected int getWaitTimeAtEndOfBuild() {
+        OperatingSystem.current().isWindows() ? 1000 : 0
     }
 
     protected void withoutContinuousBuild() {
