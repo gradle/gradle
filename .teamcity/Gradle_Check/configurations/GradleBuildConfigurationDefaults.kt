@@ -145,34 +145,6 @@ fun BuildType.dumpOpenFiles() {
 }
 
 private
-fun BaseGradleBuildType.gradleRerunnerStep(model: CIBuildModel, gradleTasks: String, os: Os = Os.linux, extraParameters: String = "", daemon: Boolean = true) {
-    val buildScanTags = model.buildScanTags + listOfNotNull(stage?.id)
-    val cleanedExtraParameters = extraParameters
-        .replace("-PincludeTestClasses=true", "")
-        .replace("-PexcludeTestClasses=true", "")
-        .replace("-PonlyTestGradleVersion=[\\d.-]+".toRegex(), "")
-
-    steps {
-        gradleWrapper {
-            name = "GRADLE_RERUNNER"
-            tasks = "$gradleTasks tagBuild"
-            executionMode = BuildStep.ExecutionMode.RUN_ON_FAILURE
-            gradleParams = (
-                buildToolGradleParameters(daemon, os = os) +
-                    this@gradleRerunnerStep.buildCache.gradleParameters(os) +
-                    listOf(cleanedExtraParameters) +
-                    "-PteamCityToken=%teamcity.user.bot-gradle.token%" +
-                    "-PteamCityBuildId=%teamcity.build.id%" +
-                    buildScanTags.map { buildScanTag(it) } +
-                    "-PonlyPreviousFailedTestClasses=true" +
-                    "-Dscan.tag.RERUN_TESTS" +
-                    "-PgithubToken=%github.ci.oauth.token%"
-                ).joinToString(separator = " ")
-        }
-    }
-}
-
-private
 fun BaseGradleBuildType.killProcessStepIfNecessary(stepName: String, os: Os = Os.linux, daemon: Boolean = true) {
     if (os == Os.windows) {
         steps {
@@ -232,8 +204,6 @@ fun applyTestDefaults(
         buildType.dumpOpenFiles()
     }
     buildType.killProcessStepIfNecessary("KILL_PROCESSES_STARTED_BY_GRADLE", os)
-    buildType.gradleRerunnerStep(model, gradleTasks, os, extraParameters, daemon)
-    buildType.killProcessStepIfNecessary("KILL_PROCESSES_STARTED_BY_GRADLE_RERUN", os)
 
     buildType.steps {
         extraSteps()

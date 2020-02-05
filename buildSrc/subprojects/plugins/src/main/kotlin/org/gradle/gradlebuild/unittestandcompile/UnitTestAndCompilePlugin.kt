@@ -51,6 +51,7 @@ import org.gradle.kotlin.dsl.*
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.idea.model.IdeaModel
 import org.gradle.process.CommandLineArgumentProvider
+import org.gradle.testretry.TestRetryPlugin
 import testLibrary
 import java.util.concurrent.Callable
 import java.util.jar.Attributes
@@ -99,6 +100,7 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
     override fun apply(project: Project): Unit = project.run {
         apply(plugin = "groovy")
         plugins.apply(AvailableJavaInstallationsPlugin::class.java)
+        plugins.apply(TestRetryPlugin::class.java)
 
         val extension = extensions.create<UnitTestAndCompileExtension>("gradlebuildJava", this)
 
@@ -251,8 +253,12 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
             configureJvmForTest()
             addOsAsInputs()
 
-            doFirst {
-                if (BuildEnvironment.isCiServer) {
+            if (BuildEnvironment.isCiServer) {
+                retry {
+                    maxRetries.set(1)
+                    maxFailures.set(10)
+                }
+                doFirst {
                     logger.lifecycle("maxParallelForks for '$path' is $maxParallelForks")
                 }
             }
