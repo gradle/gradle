@@ -18,9 +18,11 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.gradle.api.artifacts.DirectDependencyMetadata;
 
+import javax.annotation.Nullable;
+
 public class DirectDependencyMetadataImpl extends AbstractDependencyImpl<DirectDependencyMetadata> implements DirectDependencyMetadata {
 
-    boolean endorsing = false;
+    private boolean endorsing = false;
 
     public DirectDependencyMetadataImpl(String group, String name, String version) {
         super(group, name, version);
@@ -40,4 +42,17 @@ public class DirectDependencyMetadataImpl extends AbstractDependencyImpl<DirectD
     public boolean isEndorsingStrictVersions() {
         return endorsing;
     }
+
+    @Nullable
+    @Override
+    public String getClassifier() {
+        throw new UnsupportedOperationException("Classifier is not available for newly added dependencies");
+    }
+
+    @Nullable
+    @Override
+    public String getType() {
+        throw new UnsupportedOperationException("Type is not available for newly added dependencies");
+    }
+
 }

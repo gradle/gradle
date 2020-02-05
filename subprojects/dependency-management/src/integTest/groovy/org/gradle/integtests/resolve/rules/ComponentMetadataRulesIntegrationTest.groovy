@@ -15,10 +15,10 @@
  */
 package org.gradle.integtests.resolve.rules
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.RequiredFeatures
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import spock.lang.Issue
 
@@ -80,6 +80,109 @@ dependencies {
 
         then:
         succeeds 'resolve'
+    }
+
+    @RequiredFeatures([
+        @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven"),
+        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false")
+    ])
+    def "rule can use accessors for sourced metadata"() {
+        repository {
+            'org.test:projectA:1.0' {
+                dependsOn group: 'org.test', artifact: 'projectB', version: '1.0', 'classifier': 'classy'
+            }
+            'org.test:projectB:1.0' {
+                withModule {
+                    undeclaredArtifact(type: 'jar', classifier: 'classy')
+                }
+            }
+        }
+        buildFile << """
+
+class AssertingRule implements ComponentMetadataRule {
+
+    void execute(ComponentMetadataContext context) {
+        context.details.allVariants {
+            withDependencies {
+                it.each { dep ->
+                    assert dep.classifier == "classy"
+                    assert dep.type == "jar"
+                }
+            }
+        }
+    }
+}
+
+dependencies {
+    components {
+        all(AssertingRule)
+    }
+}
+"""
+
+        when:
+        repositoryInteractions {
+            'org.test:projectA:1.0' {
+                allowAll()
+            }
+            'org.test:projectB:1.0' {
+                allowAll()
+            }
+        }
+
+        then:
+        succeeds 'resolve'
+    }
+
+    @RequiredFeatures([
+        @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven"),
+        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false")
+    ])
+    def "added dependency has no sourced metadata"() {
+        repository {
+            'org.test:projectA:1.0' {
+            }
+            'org.test:projectB:1.0' {
+                withModule {
+                    undeclaredArtifact(type: 'jar', classifier: 'classy')
+                }
+            }
+        }
+        buildFile << """
+
+class AssertingRule implements ComponentMetadataRule {
+
+    void execute(ComponentMetadataContext context) {
+        context.details.allVariants {
+            withDependencies {
+                add("org.test:projectB:1.0") {
+                    classifier == "shouldThrowException"
+                }
+            }
+        }
+    }
+}
+
+dependencies {
+    components {
+        all(AssertingRule)
+    }
+}
+"""
+
+        when:
+        repositoryInteractions {
+            'org.test:projectA:1.0' {
+                allowAll()
+            }
+            'org.test:projectB:1.0' {
+                allowAll()
+            }
+        }
+
+        then:
+        fails 'resolve'
+        failure.assertHasCause("Classifier is not available for newly added dependencies")
     }
 
     def "changes made by a rule are visible to subsequent rules"() {
@@ -172,7 +275,7 @@ dependencies {
 
             class VerifyingRule implements ComponentMetadataRule {
                 static boolean ruleInvoked
-                
+
                 public void execute(ComponentMetadataContext context) {
                     ruleInvoked = true
                 }
@@ -212,9 +315,9 @@ dependencies {
                 }
             }
 
-            resolve.doLast { 
+            resolve.doLast {
                 assert rulesInvoked == [ '1.0', '1.0', '1.0', '1.0', '1.0' ]
-                assert VerifyingRule.ruleInvoked 
+                assert VerifyingRule.ruleInvoked
             }
         """
 
@@ -239,7 +342,7 @@ dependencies {
 
             class InvokedRule implements ComponentMetadataRule {
                 static boolean ruleInvoked
-                
+
                 public void execute(ComponentMetadataContext context) {
                     ruleInvoked = true
                 }
@@ -247,7 +350,7 @@ dependencies {
 
             class NotInvokedRule implements ComponentMetadataRule {
                 static boolean ruleInvoked
-                
+
                 public void execute(ComponentMetadataContext context) {
                     ruleInvoked = true
                 }
@@ -448,7 +551,7 @@ project (':sub') {
     }
     task res {
         doLast {
-            // If we resolve twice the modified component metadata for 'projectA' must not be cached in-memory 
+            // If we resolve twice the modified component metadata for 'projectA' must not be cached in-memory
             println configurations.conf.collect { it.name }
             println configurations.other.collect { it.name }
         }

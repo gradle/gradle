@@ -18,6 +18,8 @@ package org.gradle.api.artifacts;
 
 import org.gradle.api.Incubating;
 
+import javax.annotation.Nullable;
+
 /**
  * Describes a dependency declared in a resolved component's metadata, which typically originates from
  * a component descriptor (Gradle metadata file, Ivy file, Maven POM). This interface can be used to adjust
@@ -53,5 +55,23 @@ public interface DirectDependencyMetadata extends DependencyMetadata<DirectDepen
      */
     @Incubating
     boolean isEndorsingStrictVersions();
+
+    /**
+     * Returns the classifier for the dependency if available via the original Maven POM.
+     *
+     * @since 6.3
+     */
+    @Incubating
+    @Nullable
+    String getClassifier();
+
+    /**
+     * Returns the Maven POM type for the dependency if available.
+     *
+     * @since 6.3
+     */
+    @Incubating
+    @Nullable
+    String getType();
 
 }
