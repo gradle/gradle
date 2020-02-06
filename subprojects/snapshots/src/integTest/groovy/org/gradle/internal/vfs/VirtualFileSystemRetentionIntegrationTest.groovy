@@ -17,6 +17,7 @@
 package org.gradle.internal.vfs
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.IgnoreIf
@@ -26,7 +27,7 @@ import static org.gradle.internal.service.scopes.VirtualFileSystemServices.VFS_R
 
 // The whole test makes no sense if there isn't a daemon to retain the state.
 @IgnoreIf({ GradleContextualExecuter.noDaemon || GradleContextualExecuter.vfsRetention })
-class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec {
+class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
 
     def setup() {
         // Make the first build in each test drop the VFS state
@@ -405,6 +406,64 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         then:
         file("build/tmp/jar/MANIFEST.MF").text.contains("second")
         executedAndNotSkipped(":jar")
+    }
+
+    def "detects when local state is removed"() {
+        buildFile << """
+            plugins {
+                id 'base'
+            }
+
+            @CacheableTask
+            abstract class WithLocalStateDirectory extends DefaultTask {
+                @LocalState
+                abstract DirectoryProperty getLocalStateDirectory()
+                @OutputFile
+                abstract RegularFileProperty getOutputFile()
+
+                @TaskAction
+                void doStuff() {
+                    def localStateDir = localStateDirectory.get().asFile
+                    localStateDir.mkdirs()
+                    new File(localStateDir, "localState.txt").text = "localState"
+                    outputFile.get().asFile.text = "output"
+                }
+            }
+
+            abstract class WithOutputFile extends DefaultTask {
+                @OutputFile
+                abstract RegularFileProperty getOutputFile()
+
+                @TaskAction
+                void doStuff() {
+                    outputFile.get().asFile.text = "outputFile"
+                }
+            }
+
+            task localStateTask(type: WithLocalStateDirectory) {
+                localStateDirectory = file("build/overlap")
+                outputFile = file("build/localStateOutput.txt")
+            }
+
+            task outputFileTask(type: WithOutputFile) {
+                outputFile = file("build/overlap/outputFile.txt")
+            }
+        """
+        def localStateOutputFile = file("build/localStateOutput.txt")
+
+        when:
+        withRetention().withBuildCache().run("localStateTask", "outputFileTask")
+        then:
+        executedAndNotSkipped(":localStateTask", ":outputFileTask")
+        localStateOutputFile.exists()
+
+        when:
+        localStateOutputFile.delete()
+        waitForChangesToBePickedUp()
+        withRetention().withBuildCache().run("localStateTask", "outputFileTask")
+        then:
+        skipped(":localStateTask")
+        executedAndNotSkipped(":outputFileTask")
     }
 
     // This makes sure the next Gradle run starts with a clean BuildOutputCleanupRegistry
