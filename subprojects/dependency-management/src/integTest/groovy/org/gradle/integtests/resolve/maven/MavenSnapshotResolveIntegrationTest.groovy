@@ -17,7 +17,6 @@ package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.RequiredFeatures
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import org.gradle.test.fixtures.maven.MavenModule
@@ -26,9 +25,7 @@ import org.gradle.test.fixtures.server.http.MavenHttpModule
 import spock.lang.Issue
 import spock.lang.Unroll
 
-@RequiredFeatures(
-    @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
-)
+@RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
 class MavenSnapshotResolveIntegrationTest extends AbstractModuleDependencyResolveTest {
 
     @Override
@@ -984,11 +981,8 @@ Required by:
 """)
     }
 
-    @RequiredFeatures([
-        @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven"),
-        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
-    ]
-    )
+    @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     @Unroll
     def "can resolve unique and non-unique snapshots using Gradle Module Metadata (redirection = #redirection, metadata sources=#metadataSources)"() {
         given:

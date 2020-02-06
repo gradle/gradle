@@ -18,14 +18,11 @@ package org.gradle.integtests.resolve.validation
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.RequiredFeatures
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import org.gradle.test.fixtures.gradle.GradleFileModuleAdapter
 import spock.lang.Issue
 
-@RequiredFeatures([
-    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
-])
+@RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
 class GradleMetadataValidationResolveIntegrationTest extends AbstractModuleDependencyResolveTest {
 
     def "can resolve if component gav information is missing"() {

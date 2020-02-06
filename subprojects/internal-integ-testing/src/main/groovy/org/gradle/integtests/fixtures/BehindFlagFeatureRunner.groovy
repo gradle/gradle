@@ -44,13 +44,13 @@ abstract class BehindFlagFeatureRunner extends AbstractMultiTestRunner {
 
     Map<String, String> requiredFeatures() {
         def required = [:]
-        target.annotations.findAll {
-            RequiredFeatures.isAssignableFrom(it.getClass())
-        }.each {
-            extractRequiredFeatures((RequiredFeatures) it, required)
-        }
-
+        getAllAnnotations(RequiredFeature).each { required[it.feature()] = it.value() }
+        getAllAnnotations(RequiredFeatures).each { extractRequiredFeatures(it, required) }
         required
+    }
+
+    private <A> Collection<A> getAllAnnotations(Class<A> annotationType) {
+        (Collection<A>) target.annotations.findAll { annotationType.isAssignableFrom(it.getClass()) }
     }
 
     def isInvalidCombination(Map<String, String> values) {

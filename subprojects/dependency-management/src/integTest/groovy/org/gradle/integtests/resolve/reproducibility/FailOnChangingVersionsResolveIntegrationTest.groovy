@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve.reproducibility
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.RequiredFeatures
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import spock.lang.Unroll
 
@@ -95,9 +94,7 @@ class FailOnChangingVersionsResolveIntegrationTest extends AbstractModuleDepende
         failure.assertHasCause("Could not resolve org:testB:1.0: Resolution strategy disallows usage of changing versions")
     }
 
-    @RequiredFeatures(
-        @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
-    )
+    @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     @Unroll
     def "can deny a direct snapshot dependency (unique = #unique)"() {
         buildFile << """
@@ -131,9 +128,7 @@ class FailOnChangingVersionsResolveIntegrationTest extends AbstractModuleDepende
         unique << [true, false]
     }
 
-    @RequiredFeatures(
-        @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
-    )
+    @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     @Unroll
     def "can deny a transitive snapshot dependency (unique = #unique)"() {
         buildFile << """

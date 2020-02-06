@@ -16,17 +16,14 @@
 
 package org.gradle.integtests.resolve.suppliers
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.RequiredFeatures
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import spock.lang.Unroll
 
-@RequiredFeatures([
-    // we only need to check without Gradle metadata, it doesn't matter
-    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false"),
-])
+// we only need to check without Gradle metadata, it doesn't matter
+@RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false")
 class CustomVersionListerIntegrationTest extends AbstractModuleDependencyResolveTest {
     void "can list versions without hitting repository"() {
         withLister([testA: [1, 2, 3]])
@@ -312,10 +309,10 @@ $listing
         buildFile << """
             class BrokenLister implements ComponentMetadataVersionLister {
                 private final boolean breakBuild
-                
+
                 @javax.inject.Inject
                 BrokenLister(boolean breakBuild) { this.breakBuild = breakBuild }
-            
+
                 void execute(ComponentMetadataListerDetails details) {
                     if (breakBuild) { throw new RuntimeException("oh noes!") }
                 }
@@ -331,7 +328,7 @@ $listing
             class MyLister implements ComponentMetadataVersionLister {
 
                 final RepositoryResourceAccessor repositoryResourceAccessor
-            
+
                 @javax.inject.Inject
                 MyLister(RepositoryResourceAccessor accessor) { repositoryResourceAccessor = accessor }
 
