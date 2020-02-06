@@ -16,6 +16,7 @@
 
 package org.gradle.internal.execution.steps;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.controller.BuildCacheCommandFactory;
@@ -26,6 +27,7 @@ import org.gradle.internal.Try;
 import org.gradle.internal.execution.CurrentSnapshotResult;
 import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.IncrementalChangesContext;
+import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.caching.CachingState;
@@ -44,17 +46,20 @@ public class CacheStep implements Step<IncrementalChangesContext, CurrentSnapsho
     private final BuildCacheController buildCache;
     private final BuildCacheCommandFactory commandFactory;
     private final Deleter deleter;
+    private final OutputChangeListener outputChangeListener;
     private final Step<? super IncrementalChangesContext, ? extends CurrentSnapshotResult> delegate;
 
     public CacheStep(
         BuildCacheController buildCache,
         BuildCacheCommandFactory commandFactory,
         Deleter deleter,
+        OutputChangeListener outputChangeListener,
         Step<? super IncrementalChangesContext, ? extends CurrentSnapshotResult> delegate
     ) {
         this.buildCache = buildCache;
         this.commandFactory = commandFactory;
         this.deleter = deleter;
+        this.outputChangeListener = outputChangeListener;
         this.delegate = delegate;
     }
 
@@ -118,6 +123,7 @@ public class CacheStep implements Step<IncrementalChangesContext, CurrentSnapsho
     private void cleanLocalState(UnitOfWork work) {
         work.visitLocalState(localStateFile -> {
             try {
+                outputChangeListener.beforeOutputChange(ImmutableList.of(localStateFile.getAbsolutePath()));
                 deleter.deleteRecursively(localStateFile);
             } catch (IOException ex) {
                 throw new UncheckedIOException(String.format("Failed to clean up local state files for %s: %s", work.getDisplayName(), localStateFile), ex);
