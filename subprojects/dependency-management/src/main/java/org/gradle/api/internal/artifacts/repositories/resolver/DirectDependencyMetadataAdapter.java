@@ -16,17 +16,21 @@
 
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
+import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.DirectDependencyMetadata;
+import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyArtifact;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.model.ConfigurationBoundExternalDependencyMetadata;
 import org.gradle.internal.component.external.model.ExternalDependencyDescriptor;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
+import org.gradle.internal.component.external.model.ivy.IvyDependencyDescriptor;
 import org.gradle.internal.component.external.model.maven.MavenDependencyDescriptor;
 import org.gradle.internal.component.model.IvyArtifactName;
 
-import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class DirectDependencyMetadataAdapter extends AbstractDependencyMetadataAdapter<DirectDependencyMetadata> implements DirectDependencyMetadata {
 
@@ -49,28 +53,41 @@ public class DirectDependencyMetadataAdapter extends AbstractDependencyMetadataA
         return getOriginalMetadata().isEndorsingStrictVersions();
     }
 
-    @Nullable
     @Override
-    public String getClassifier() {
-        return getIvyArtifact().map(IvyArtifactName::getClassifier).orElse(null);
+    public List<DependencyArtifact> getArtifactSelectors() {
+        return getIvyArtifacts().stream().map(this::asDependencyArtifact).collect(Collectors.toList());
     }
 
-    @Nullable
-    @Override
-    public String getType() {
-        return getIvyArtifact().map(IvyArtifactName::getType).orElse(null);
+    private DependencyArtifact asDependencyArtifact(IvyArtifactName ivyArtifactName) {
+        return new DefaultDependencyArtifact(ivyArtifactName.getName(), ivyArtifactName.getType(), ivyArtifactName.getExtension(), ivyArtifactName.getClassifier(), null);
     }
 
-    private Optional<IvyArtifactName> getIvyArtifact() {
+    private List<IvyArtifactName> getIvyArtifacts() {
         ModuleDependencyMetadata originalMetadata = getOriginalMetadata();
         if (originalMetadata instanceof ConfigurationBoundExternalDependencyMetadata) {
             ConfigurationBoundExternalDependencyMetadata externalMetadata = (ConfigurationBoundExternalDependencyMetadata) originalMetadata;
             ExternalDependencyDescriptor descriptor = externalMetadata.getDependencyDescriptor();
             if (descriptor instanceof MavenDependencyDescriptor) {
-                return Optional.ofNullable(((MavenDependencyDescriptor) descriptor).getDependencyArtifact());
+                return fromMavenDescriptor((MavenDependencyDescriptor) descriptor);
+            }
+            if (descriptor instanceof IvyDependencyDescriptor) {
+                return fromIvyDescriptor((IvyDependencyDescriptor) descriptor);
             }
         }
-        return Optional.empty();
+        return Collections.emptyList();
+    }
+
+    private List<IvyArtifactName> fromIvyDescriptor(IvyDependencyDescriptor descriptor) {
+        List<Artifact> artifacts = descriptor.getDependencyArtifacts();
+        return artifacts.stream().map(Artifact::getArtifactName).collect(Collectors.toList());
+    }
+
+    private List<IvyArtifactName> fromMavenDescriptor(MavenDependencyDescriptor descriptor) {
+        IvyArtifactName artifact = descriptor.getDependencyArtifact();
+        if(artifact != null) {
+            return Collections.singletonList(artifact);
+        }
+        return Collections.emptyList();
     }
 
 }

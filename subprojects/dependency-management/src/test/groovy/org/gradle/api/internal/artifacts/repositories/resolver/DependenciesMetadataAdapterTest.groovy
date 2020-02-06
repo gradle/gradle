@@ -217,13 +217,12 @@ abstract class DependenciesMetadataAdapterTest extends Specification {
         dependenciesMetadata[0].isEndorsingStrictVersions()
     }
 
-    def "modified dependency has no maven pom attributes"() {
+    def "modified dependency has no artifact selectors"() {
         when:
         adapter.add "org.gradle.test:module1:1.0"
 
         then:
-        adapter.get(0).classifier == null
-        adapter.get(0).type == null
+        adapter.get(0).artifactSelectors == []
     }
 
     private fillDependencyList(int size) {

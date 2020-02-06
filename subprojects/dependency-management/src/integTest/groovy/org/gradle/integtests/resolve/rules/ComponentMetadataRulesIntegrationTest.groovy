@@ -82,11 +82,7 @@ dependencies {
         succeeds 'resolve'
     }
 
-    @RequiredFeatures([
-        @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven"),
-        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false")
-    ])
-    def "rule can use accessors for sourced metadata"() {
+    def "rule can use artifactSelector to check sourced metadata"() {
         repository {
             'org.test:projectA:1.0' {
                 dependsOn group: 'org.test', artifact: 'projectB', version: '1.0', 'classifier': 'classy'
@@ -105,8 +101,9 @@ class AssertingRule implements ComponentMetadataRule {
         context.details.allVariants {
             withDependencies {
                 it.each { dep ->
-                    assert dep.classifier == "classy"
-                    assert dep.type == "jar"
+                    println "selectorSize:" + dep.artifactSelectors.size
+                    println "classifier:" + dep.artifactSelectors[0]?.classifier
+                    println "type:" + dep.artifactSelectors[0]?.type
                 }
             }
         }
@@ -132,13 +129,16 @@ dependencies {
 
         then:
         succeeds 'resolve'
+        if (isGradleMetadataPublished()) {
+            outputContains("selectorSize:0")
+        } else {
+            outputContains("selectorSize:1")
+            outputContains("classifier:classy")
+            outputContains("type:jar")
+        }
     }
 
-    @RequiredFeatures([
-        @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven"),
-        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false")
-    ])
-    def "added dependency has no sourced metadata"() {
+    def "added dependency has no artifact selectors"() {
         repository {
             'org.test:projectA:1.0' {
             }
@@ -156,7 +156,7 @@ class AssertingRule implements ComponentMetadataRule {
         context.details.allVariants {
             withDependencies {
                 add("org.test:projectB:1.0") {
-                    classifier == "shouldThrowException"
+                    artifactSelectors == []
                 }
             }
         }
@@ -181,8 +181,7 @@ dependencies {
         }
 
         then:
-        fails 'resolve'
-        failure.assertHasCause("Classifier is not available for newly added dependencies")
+        succeeds 'resolve'
     }
 
     def "changes made by a rule are visible to subsequent rules"() {

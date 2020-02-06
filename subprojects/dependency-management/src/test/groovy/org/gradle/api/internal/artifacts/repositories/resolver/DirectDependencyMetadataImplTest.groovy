@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.repositories.resolver
 
+
 import spock.lang.Specification
 
 class DirectDependencyMetadataImplTest extends Specification {
@@ -50,28 +51,15 @@ class DirectDependencyMetadataImplTest extends Specification {
         metadata.endorsingStrictVersions == false
     }
 
-    def "classifier is not available for newly added dependencies"() {
+    def "no selectors for newly added dependencies"() {
         given:
         def metadata = new DirectDependencyMetadataImpl("g", "a", "v")
 
         when:
-        metadata.classifier
+        def selectors = metadata.artifactSelectors
 
         then:
-        def e = thrown(UnsupportedOperationException)
-        e.message == "Classifier is not available for newly added dependencies"
-    }
-
-    def "type is not available for newly added dependencies"() {
-        given:
-        def metadata = new DirectDependencyMetadataImpl("g", "a", "v")
-
-        when:
-        metadata.type
-
-        then:
-        def e = thrown(UnsupportedOperationException)
-        e.message == "Type is not available for newly added dependencies"
+        selectors == []
     }
 
 }
