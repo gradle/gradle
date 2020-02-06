@@ -21,9 +21,14 @@ import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.RedirectStdOutAndErr
 import org.junit.Rule
+import spock.lang.IgnoreIf
 import spock.lang.Specification
 import spock.lang.Unroll
 
+// Ignored for VFS retention since
+// - For VFS retention, we start an isolated daemon, which by definition is not an in process daemon, so the test doesn't make much sense.
+// - The daemon then leaves back some running daemons which write to the registry and cause an error for `verifyTestFilesCleanup`.
+@IgnoreIf({ GradleContextualExecuter.vfsRetention })
 class InProcessGradleExecuterIntegrationTest extends Specification {
     @Rule
     RedirectStdOutAndErr outputs = new RedirectStdOutAndErr()
