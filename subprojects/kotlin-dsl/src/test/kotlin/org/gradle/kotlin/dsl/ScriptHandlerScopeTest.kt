@@ -60,6 +60,7 @@ class ScriptHandlerScopeTest {
         val constraint = mock<DependencyConstraint>()
         val constraintHandler = mock<DependencyConstraintHandler> {
             on { add(any(), any()) } doReturn constraint
+            on { add(any(), any(), any()) } doReturn constraint
         }
         val dependencies = newDependencyHandlerMock {
             on { constraints } doReturn constraintHandler

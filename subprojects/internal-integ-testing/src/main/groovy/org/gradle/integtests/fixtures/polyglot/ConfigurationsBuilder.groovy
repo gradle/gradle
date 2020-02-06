@@ -23,6 +23,12 @@ import java.lang.reflect.Array
 
 @CompileStatic
 class ConfigurationsBuilder extends MultiSectionHandler<ConfigurationsBuilder> implements SectionBuilder {
+    final Set<String> alreadyCreated
+
+    ConfigurationsBuilder(Set<String> alreadyCreated) {
+        this.alreadyCreated = alreadyCreated
+    }
+
     @Override
     String getSectionName() {
         "configurations"
@@ -30,7 +36,11 @@ class ConfigurationsBuilder extends MultiSectionHandler<ConfigurationsBuilder> i
 
     Object propertyMissing(String name) {
         sections << new ConfigurationCreation(new GenericSection({ name }, {
-            "val $name by configurations.creating"
+            if (alreadyCreated.add(name)) {
+                "val $name by configurations.creating"
+            } else {
+                "$name"
+            }
         }))
         null
     }
@@ -48,7 +58,7 @@ class ConfigurationsBuilder extends MultiSectionHandler<ConfigurationsBuilder> i
     }
 
     void withConfiguration(String name, @DelegatesTo(value = ConfigurationSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> config) {
-        def spec = new ConfigurationSpec(name)
+        def spec = new ConfigurationSpec(name, { alreadyCreated.add(name) })
         sections << new ConfigurationCreation(spec)
         BuilderSupport.applyConfiguration(config, spec)
     }
@@ -64,8 +74,9 @@ class ConfigurationsBuilder extends MultiSectionHandler<ConfigurationsBuilder> i
             sb.append(it.generateSection(dsl)).append("\n")
         }
         sections.removeAll(creations)
+        def configPart = sections ? super.generateSection(dsl) : ""
         return """$sb
-${super.generateSection(dsl)}
+${configPart}
 """
     }
 

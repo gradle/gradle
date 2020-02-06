@@ -19,12 +19,16 @@ package org.gradle.integtests.fixtures.polyglot
 import groovy.transform.CompileStatic
 import org.gradle.test.fixtures.dsl.GradleDsl
 
+import java.util.function.Supplier
+
 @CompileStatic
 class ConfigurationSpec extends MultiSectionHandler {
     private final String name
+    private final Supplier<Boolean> isCreate
 
-    ConfigurationSpec(String name) {
+    ConfigurationSpec(String name, Supplier<Boolean> isCreate) {
         this.name = name
+        this.isCreate = isCreate
     }
 
     @Override
@@ -46,7 +50,9 @@ class ConfigurationSpec extends MultiSectionHandler {
             case GradleDsl.GROOVY:
                 return super.generateSection(dsl)
             case GradleDsl.KOTLIN:
-                return """val $name by configurations.creating {
+                def creation = isCreate.get()
+                def prefix =  creation ?"val $name by configurations.creating ":"${name}.run "
+                return """$prefix {
     ${innerDsl(dsl)}
 }"""
         }
