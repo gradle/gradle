@@ -20,6 +20,7 @@ import org.gradle.api.tasks.CompileClasspath
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForVfsRetention
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Issue
@@ -31,6 +32,7 @@ import static org.gradle.work.ChangeType.MODIFIED
 
 @Unroll
 @Requires(TestPrecondition.SYMLINKS)
+@ToBeFixedForVfsRetention("https://github.com/gradle/gradle/issues/11851")
 class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
 
     def "#desc can handle symlinks"() {

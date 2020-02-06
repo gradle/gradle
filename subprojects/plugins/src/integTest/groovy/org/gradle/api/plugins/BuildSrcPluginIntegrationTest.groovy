@@ -18,6 +18,7 @@ package org.gradle.api.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForVfsRetention
 import spock.lang.Issue
 
 class BuildSrcPluginIntegrationTest extends AbstractIntegrationSpec {
@@ -127,12 +128,13 @@ class BuildSrcPluginIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasDescription("Could not compile build file '$buildFile.canonicalPath'.")
     }
 
+    @ToBeFixedForVfsRetention("https://github.com/gradle/gradle/issues/11837")
     def "build uses jar from buildSrc"() {
         writeBuildSrcPlugin("buildSrc", "MyPlugin")
         buildFile << """
             apply plugin: MyPlugin
             // nuke buildSrc classes so we can't use them
-            project.delete(file("buildSrc/build/classes")) 
+            project.delete(file("buildSrc/build/classes"))
         """
         when:
         succeeds("myTaskMyPlugin")
@@ -140,6 +142,7 @@ class BuildSrcPluginIntegrationTest extends AbstractIntegrationSpec {
         outputContains("From MyPlugin")
     }
 
+    @ToBeFixedForVfsRetention("https://github.com/gradle/gradle/issues/11837")
     def "build uses jars from multi-project buildSrc"() {
         writeBuildSrcPlugin("buildSrc", "MyPlugin")
         writeBuildSrcPlugin("buildSrc/subproject", "MyPluginSub")
