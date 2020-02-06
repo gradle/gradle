@@ -16,9 +16,7 @@
 package org.gradle.integtests.resolve.constraints
 
 import org.gradle.integtests.fixtures.AbstractPolyglotIntegrationSpec
-import org.gradle.integtests.fixtures.FailsWithDsl
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
-import org.gradle.test.fixtures.dsl.GradleDsl
 import spock.lang.Issue
 
 /**
@@ -290,7 +288,6 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
         }
     }
 
-    @FailsWithDsl(GradleDsl.KOTLIN)
     void "dependency constraints on substituted module is recognized properly"() {
         given:
         mavenRepo.module("org", "foo", '1.0').publish()
@@ -340,7 +337,6 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
         }
     }
 
-    @FailsWithDsl(GradleDsl.KOTLIN)
     void "dependency constraints are inherited"() {
         given:
         mavenRepo.module("org", "foo", '1.0').publish()
@@ -687,8 +683,8 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
                         details.allVariants {
                             withDependencies {
                                 forEach {
-                                    if (name == "bom") {
-                                        attributes {
+                                    if (it.name == "bom") {
+                                        it.attributes {
                                             attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category::class.java, "platform"))
                                         }
                                     }

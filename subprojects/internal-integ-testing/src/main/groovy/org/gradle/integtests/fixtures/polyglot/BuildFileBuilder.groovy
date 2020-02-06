@@ -25,6 +25,7 @@ class BuildFileBuilder extends MultiSectionHandler<BuildFileBuilder> implements 
     private final String id
     private String group
     private String version
+    private final Set<String> configurationNames = [] as Set
 
     BuildFileBuilder(String id) {
         this.id = id
@@ -59,7 +60,7 @@ class BuildFileBuilder extends MultiSectionHandler<BuildFileBuilder> implements 
     }
 
     BuildFileBuilder configurations(@DelegatesTo(value = ConfigurationsBuilder, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
-        newSection(new ConfigurationsBuilder()) {
+        newSection(new ConfigurationsBuilder(configurationNames)) {
             BuilderSupport.applyConfiguration(spec, it)
         }
         this
