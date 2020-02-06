@@ -63,10 +63,10 @@ public class DirectDependencyMetadataAdapter extends AbstractDependencyMetadataA
 
     private Optional<IvyArtifactName> getIvyArtifact() {
         ModuleDependencyMetadata originalMetadata = getOriginalMetadata();
-        if(originalMetadata instanceof ConfigurationBoundExternalDependencyMetadata) {
+        if (originalMetadata instanceof ConfigurationBoundExternalDependencyMetadata) {
             ConfigurationBoundExternalDependencyMetadata externalMetadata = (ConfigurationBoundExternalDependencyMetadata) originalMetadata;
             ExternalDependencyDescriptor descriptor = externalMetadata.getDependencyDescriptor();
-            if(descriptor instanceof MavenDependencyDescriptor) {
+            if (descriptor instanceof MavenDependencyDescriptor) {
                 return Optional.ofNullable(((MavenDependencyDescriptor) descriptor).getDependencyArtifact());
             }
         }
