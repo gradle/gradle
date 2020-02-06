@@ -25,6 +25,7 @@ import spock.lang.Unroll
 class BuildScanEndOfBuildNotifierIntegrationTest extends AbstractIntegrationSpec {
 
     private static final VFS_RETENTION_OUTPUT = '''(Watching \\d* (directory hierarchies to track changes between builds in \\d* directories|directories to track changes between builds)
+Spent \\d+ ms registering watches for file system events
 )?'''
 
     def setup() {
@@ -37,7 +38,7 @@ class BuildScanEndOfBuildNotifierIntegrationTest extends AbstractIntegrationSpec
         when:
         buildFile << """
             notifier.notify {
-                println "failure is null: \${it.failure == null}" 
+                println "failure is null: \${it.failure == null}"
             }
             // user logic registered _after_ listener registered
             gradle.buildFinished {
@@ -62,7 +63,7 @@ ${VFS_RETENTION_OUTPUT}\$""")
         buildFile << """
             task t { doFirst { throw new Exception("!") } }
             notifier.notify {
-                println "failure message: \${it.failure.cause.message}" 
+                println "failure message: \${it.failure.cause.message}"
                 System.err.println "notified"
             }
             // user logic registered _after_ listener registered
@@ -99,10 +100,10 @@ notified
         """
         buildFile << """
             notifier.notify {
-                println "failure message: \${it.failure.cause.message}" 
+                println "failure message: \${it.failure.cause.message}"
             }
-            task t { 
-                dependsOn gradle.includedBuild("child").task(":t") 
+            task t {
+                dependsOn gradle.includedBuild("child").task(":t")
                 doLast { }
             }
         """

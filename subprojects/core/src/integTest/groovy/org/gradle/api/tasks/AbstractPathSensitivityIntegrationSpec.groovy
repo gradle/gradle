@@ -20,7 +20,10 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Unroll
 
-import static org.gradle.api.tasks.PathSensitivity.*
+import static org.gradle.api.tasks.PathSensitivity.ABSOLUTE
+import static org.gradle.api.tasks.PathSensitivity.NAME_ONLY
+import static org.gradle.api.tasks.PathSensitivity.NONE
+import static org.gradle.api.tasks.PathSensitivity.RELATIVE
 
 @Unroll
 abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegrationSpec {
@@ -165,7 +168,7 @@ abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegratio
         """
         buildFile << """
             task test(type: PathSensitiveTask) {
-                outputFile = file("output.txt")
+                outputFile = file("build/output.txt")
             }
         """
     }
