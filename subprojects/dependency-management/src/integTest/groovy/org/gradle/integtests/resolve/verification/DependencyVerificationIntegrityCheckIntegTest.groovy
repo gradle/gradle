@@ -215,7 +215,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
         """
     }
 
-
+    @ToBeFixedForInstantExecution(because = "breaks the IE assumption that visiting a file collection multiple times will always throw the same exception")
     def "can collect multiple errors in a single dependency graph"() {
         createMetadataFile {
             addChecksum("org:foo:1.0", "sha1", "invalid")
@@ -252,6 +252,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
 This can indicate that a dependency has been compromised. Please carefully verify the checksums.""")
     }
 
+    @ToBeFixedForInstantExecution(because = "breaks the IE assumption that visiting a file collection multiple times will always throw the same exception")
     def "displays repository information"() {
         createMetadataFile {
             noMetadataVerification()
@@ -379,6 +380,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution(because = "breaks the IE assumption that visiting a file collection multiple times will always throw the same exception")
     def "fails if any of the checksums (#wrong) declared in the metadata file is wrong"() {
         createMetadataFile {
             addChecksum("org:foo:1.0", "md5", md5)
@@ -465,6 +467,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
   - On artifact myplugin-1.0.jar (com:myplugin:1.0) in repository 'maven': expected a 'sha1' checksum of 'woot' but was""")
     }
 
+    @ToBeFixedForInstantExecution(because = "breaks the IE assumption that visiting a file collection multiple times will always throw the same exception")
     def "fails if a dependency doesn't have an associated checksum"() {
         createMetadataFile {
             // nothing in it
