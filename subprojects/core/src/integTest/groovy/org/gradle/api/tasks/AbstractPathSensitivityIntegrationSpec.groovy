@@ -29,7 +29,7 @@ import static org.gradle.api.tasks.PathSensitivity.RELATIVE
 abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegrationSpec {
 
     @ToBeFixedForInstantExecution(bottomSpecs = "CachedPathSensitivityIntegrationTest")
-    def "single source file renamed with #pathSensitive as input is loaded from cache: #expectSkipped"() {
+    def "single source file renamed with #pathSensitive as input is loaded from cache: #expectedOutcome"() {
         given:
         file("sources/input.txt").text = "input"
 
@@ -64,7 +64,7 @@ abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegratio
     }
 
     @ToBeFixedForInstantExecution(bottomSpecs = "CachedPathSensitivityIntegrationTest")
-    def "single source file moved within hierarchy with #pathSensitive as input is loaded from cache: #expectSkipped"() {
+    def "single source file moved within hierarchy with #pathSensitive as input is loaded from cache: #expectedOutcome"() {
         given:
         file("src/data1").createDir()
         file("src/data2").createDir()
