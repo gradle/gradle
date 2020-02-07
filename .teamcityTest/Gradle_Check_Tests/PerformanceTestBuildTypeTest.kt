@@ -49,8 +49,7 @@ class PerformanceTestBuildTypeTest {
 
         assertEquals(listOf(
                 "GRADLE_RUNNER",
-                "CHECK_CLEAN_M2",
-                "TAG_BUILD"
+                "CHECK_CLEAN_M2"
         ), performanceTest.steps.items.map(BuildStep::name))
 
         val expectedRunnerParams = listOf(

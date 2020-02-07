@@ -56,6 +56,7 @@ import testLibrary
 import java.util.concurrent.Callable
 import java.util.jar.Attributes
 import kotlin.reflect.full.declaredFunctions
+import org.gradle.testing.PerformanceTest
 
 
 enum class ModuleType(val compatibility: JavaVersion = JavaVersion.VERSION_1_8) {
@@ -253,7 +254,7 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
             configureJvmForTest()
             addOsAsInputs()
 
-            if (BuildEnvironment.isCiServer) {
+            if (BuildEnvironment.isCiServer && this !is PerformanceTest) {
                 retry {
                     maxRetries.set(1)
                     maxFailures.set(10)

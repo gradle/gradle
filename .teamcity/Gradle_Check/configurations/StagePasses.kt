@@ -92,14 +92,6 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, stagePro
             executionMode = BuildStep.ExecutionMode.ALWAYS
             scriptContent = m2CleanScriptUnixLike
         }
-        if (model.tagBuilds) {
-            gradleWrapper {
-                name = "TAG_BUILD"
-                executionMode = BuildStep.ExecutionMode.ALWAYS
-                tasks = "tagBuild"
-                gradleParams = "$defaultGradleParameters -PteamCityToken=%teamcity.user.bot-gradle.token% -PteamCityBuildId=%teamcity.build.id% -PgithubToken=%github.ci.oauth.token% ${buildScanTag("StagePasses")}"
-            }
-        }
     }
 
     dependencies {

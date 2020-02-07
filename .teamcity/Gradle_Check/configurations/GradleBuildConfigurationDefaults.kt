@@ -75,22 +75,6 @@ fun ProjectFeatures.buildReportTab(title: String, startPage: String) {
 }
 
 private
-fun BuildSteps.tagBuild(tagBuild: Boolean = true, daemon: Boolean = true) {
-    if (tagBuild) {
-        gradleWrapper {
-            name = "TAG_BUILD"
-            executionMode = BuildStep.ExecutionMode.ALWAYS
-            tasks = "tagBuild"
-            gradleParams = "${buildToolParametersString(daemon)} -PteamCityToken=%teamcity.user.bot-gradle.token% -PteamCityBuildId=%teamcity.build.id% -PgithubToken=%github.ci.oauth.token%"
-        }
-    }
-}
-
-fun BuildSteps.tagBuild(model: CIBuildModel, daemon: Boolean = true) {
-    tagBuild(tagBuild = model.tagBuilds, daemon = daemon)
-}
-
-private
 fun BaseGradleBuildType.gradleRunnerStep(model: CIBuildModel, gradleTasks: String, os: Os = Os.linux, extraParameters: String = "", daemon: Boolean = true) {
     val buildScanTags = model.buildScanTags + listOfNotNull(stage?.id)
 
