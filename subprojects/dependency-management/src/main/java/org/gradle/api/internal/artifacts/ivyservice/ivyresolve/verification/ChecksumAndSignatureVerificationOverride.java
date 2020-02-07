@@ -29,14 +29,11 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DependencyVerifyingModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.report.DependencyVerificationReportWriter;
 import org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationsXmlReader;
 import org.gradle.api.internal.artifacts.verification.signatures.SignatureVerificationService;
 import org.gradle.api.internal.artifacts.verification.signatures.SignatureVerificationServiceFactory;
-import org.gradle.api.internal.artifacts.verification.verifier.DeletedArtifact;
 import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifier;
-import org.gradle.api.internal.artifacts.verification.verifier.MissingChecksums;
-import org.gradle.api.internal.artifacts.verification.verifier.SignatureVerificationFailure;
-import org.gradle.api.internal.artifacts.verification.verifier.VerificationFailure;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Factory;
@@ -44,7 +41,6 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.hash.ChecksumService;
-import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -54,34 +50,25 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.net.URI;
-import java.nio.file.Path;
-import java.util.Collection;
-import java.util.Comparator;
 import java.util.Deque;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ChecksumAndSignatureVerificationOverride implements DependencyVerificationOverride, ArtifactVerificationOperation, Stoppable {
     private final static Logger LOGGER = Logging.getLogger(ChecksumAndSignatureVerificationOverride.class);
 
-    private static final Comparator<Map.Entry<ModuleComponentArtifactIdentifier, Collection<FailureWrapper>>> DELETED_LAST = Comparator.comparing(e -> e.getValue().stream().anyMatch(f -> f.failure instanceof DeletedArtifact) ? 1 : 0);
-    private static final Comparator<Map.Entry<ModuleComponentArtifactIdentifier, Collection<FailureWrapper>>> MISSING_LAST = Comparator.comparing(e -> e.getValue().stream().anyMatch(f -> f.failure instanceof MissingChecksums) ? 1 : 0);
-    private static final Comparator<Map.Entry<ModuleComponentArtifactIdentifier, Collection<FailureWrapper>>> BY_MODULE_ID = Comparator.comparing(e -> e.getKey().getDisplayName());
-
     private final DependencyVerifier verifier;
-    private final Multimap<ModuleComponentArtifactIdentifier, FailureWrapper> failures = LinkedHashMultimap.create();
+    private final Multimap<ModuleComponentArtifactIdentifier, RepositoryAwareVerificationFailure> failures = LinkedHashMultimap.create();
     private final BuildOperationExecutor buildOperationExecutor;
-    private final Path gradleUserHome;
     private final ChecksumService checksumService;
     private final SignatureVerificationService signatureVerificationService;
     private final DependencyVerificationMode verificationMode;
-    private final DocumentationRegistry documentationRegistry;
     private final Set<VerificationQuery> verificationQueries = Sets.newConcurrentHashSet();
     private final Deque<VerificationEvent> verificationEvents = Queues.newArrayDeque();
     private final AtomicBoolean closed = new AtomicBoolean();
     private final AtomicBoolean hasFatalFailure = new AtomicBoolean();
+    private final DependencyVerificationReportWriter reportWriter;
 
     public ChecksumAndSignatureVerificationOverride(BuildOperationExecutor buildOperationExecutor,
                                                     File gradleUserHome,
@@ -92,10 +79,9 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
                                                     DependencyVerificationMode verificationMode,
                                                     DocumentationRegistry documentationRegistry) {
         this.buildOperationExecutor = buildOperationExecutor;
-        this.gradleUserHome = gradleUserHome.toPath();
         this.checksumService = checksumService;
         this.verificationMode = verificationMode;
-        this.documentationRegistry = documentationRegistry;
+        this.reportWriter = new DependencyVerificationReportWriter(gradleUserHome.toPath(), documentationRegistry);
         try {
             this.verifier = DependencyVerificationsXmlReader.readFromXml(
                 new FileInputStream(verificationsFile)
@@ -143,7 +129,7 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
                         public void run(BuildOperationContext context) {
                             verifier.verify(checksumService, signatureVerificationService, ve.kind, ve.artifact, ve.mainFile, ve.signatureFile.create(), f -> {
                                 synchronized (failures) {
-                                    failures.put(ve.artifact, new FailureWrapper(f, ve.repositoryName));
+                                    failures.put(ve.artifact, new RepositoryAwareVerificationFailure(f, ve.repositoryName));
                                 }
                                 if (f.isFatal()) {
                                     hasFatalFailure.set(true);
@@ -173,121 +159,18 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
         verifyConcurrently();
         synchronized (failures) {
             if (hasFatalFailure.get() && !failures.isEmpty()) {
-                // We need at least one fatal failure: if it's only "warnings" we don't care
-                // but of there's a fatal failure AND a warning we want to show both
-                TreeFormatter formatter = new TreeFormatter();
-                formatter.node("Dependency verification failed for " + displayName);
-                formatter.startChildren();
-                AtomicBoolean maybeCompromised = new AtomicBoolean();
-                AtomicBoolean hasUntrusted = new AtomicBoolean();
-                AtomicBoolean hasMissing = new AtomicBoolean();
-                AtomicBoolean failedSignatures = new AtomicBoolean();
-                Set<String> affectedFiles = Sets.newTreeSet();
-                // Sorting entries so that error messages are always displayed in a reproducible order
-                failures.asMap()
-                    .entrySet()
-                    .stream()
-                    .sorted(DELETED_LAST.thenComparing(MISSING_LAST).thenComparing(BY_MODULE_ID))
-                    .forEachOrdered(entry -> {
-                        ModuleComponentArtifactIdentifier key = entry.getKey();
-                        Collection<FailureWrapper> failures = entry.getValue();
-                        failures.stream()
-                            .map(FailureWrapper::getFailure)
-                            .map(this::extractFailedFilePaths)
-                            .forEach(affectedFiles::add);
-                        hasFatalFailure.set(true);
-                        formatter.node("On artifact " + key + " ");
-                        if (failures.size() == 1) {
-                            FailureWrapper firstFailure = failures.iterator().next();
-                            explainSingleFailure(formatter, maybeCompromised, hasMissing, failedSignatures, hasUntrusted, firstFailure);
-                        } else {
-                            explainMultiFailure(formatter, maybeCompromised, hasMissing, failedSignatures, hasUntrusted, failures);
-                        }
-                    });
-                formatter.endChildren();
-                formatter.blankLine();
-                if (maybeCompromised.get()) {
-                    formatter.node("This can indicate that a dependency has been compromised. Please carefully verify the ");
-                    if (failedSignatures.get()) {
-                        formatter.append("signatures and ");
-                    }
-                    formatter.append("checksums.");
-                }
-                if ((hasMissing.get() || hasUntrusted.get()) && !maybeCompromised.get()) {
-                    // the else is just to avoid telling people to use `--write-verification-metadata` if we suspect compromised dependencies
-                    formatter.node("If the artifacts are trustworthy, you will need to update the gradle/verification-metadata.xml file by following the instructions at " + documentationRegistry.getDocumentationFor("dependency_verification", "sec:troubleshooting-verification"));
-                }
-                if (!affectedFiles.isEmpty()) {
-                    formatter.blankLine();
-                    formatter.node("These files failed verification:");
-                    formatter.startChildren();
-                    for (String affectedFile : affectedFiles) {
-                        formatter.node(affectedFile);
-                    }
-                    formatter.endChildren();
-                    formatter.blankLine();
-                    formatter.node("GRADLE_USER_HOME = " + gradleUserHome);
-                }
-                String message = formatter.toString();
+                DependencyVerificationReportWriter.Report report = reportWriter.generateReport(displayName, failures);
+                String summary = report.getSummary();
                 if (verificationMode == DependencyVerificationMode.LENIENT) {
-                    LOGGER.error(message);
+                    // todo: in lenient mode the report writer should accumulate configurations
+                    LOGGER.error(summary);
                     failures.clear();
                     hasFatalFailure.set(false);
                 } else {
-                    throw new InvalidUserDataException(message);
+                    throw new InvalidUserDataException(summary);
                 }
             }
         }
-    }
-
-    private String extractFailedFilePaths(VerificationFailure f) {
-        String shortenPath = shortenPath(f.getFilePath());
-        if (f instanceof SignatureVerificationFailure) {
-            File signatureFile = ((SignatureVerificationFailure) f).getSignatureFile();
-            return shortenPath + " (signature: " + shortenPath(signatureFile) + ")";
-        }
-        return shortenPath;
-    }
-
-    // Shortens the path for display the user
-    private String shortenPath(File file) {
-        Path path = file.toPath();
-        try {
-            Path relativize = gradleUserHome.relativize(path);
-            return "GRADLE_USER_HOME" + File.separator + relativize;
-        } catch (IllegalArgumentException e) {
-            return file.getAbsolutePath();
-        }
-    }
-
-    private void explainMultiFailure(TreeFormatter formatter, AtomicBoolean maybeCompromised, AtomicBoolean hasMissing, AtomicBoolean failedSignatures, AtomicBoolean hasUntrusted, Collection<FailureWrapper> failures) {
-        formatter.append("multiple problems reported");
-        formatter.startChildren();
-        for (FailureWrapper failure : failures) {
-            formatter.node("");
-            explainSingleFailure(formatter, maybeCompromised, hasMissing, failedSignatures, hasUntrusted, failure);
-        }
-        formatter.endChildren();
-    }
-
-    private void explainSingleFailure(TreeFormatter formatter, AtomicBoolean maybeCompromised, AtomicBoolean hasMissing, AtomicBoolean failedSignatures, AtomicBoolean hasUntrusted, FailureWrapper wrapper) {
-        VerificationFailure failure = wrapper.failure;
-        if (failure instanceof MissingChecksums) {
-            hasMissing.set(true);
-        } else {
-            if (failure instanceof SignatureVerificationFailure) {
-                failedSignatures.set(true);
-                if (((SignatureVerificationFailure) failure).getErrors().values().stream().map(SignatureVerificationFailure.SignatureError::getKind).noneMatch(kind -> kind == SignatureVerificationFailure.FailureKind.PASSED_NOT_TRUSTED)) {
-                    maybeCompromised.set(true);
-                } else {
-                    hasUntrusted.set(true);
-                }
-            } else {
-                maybeCompromised.set(true);
-            }
-        }
-        formatter.append("in repository '" + wrapper.repositoryName + "': ");
-        failure.explainTo(formatter);
     }
 
     @Override
@@ -320,20 +203,6 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
     public void stop() {
         closed.set(true);
         signatureVerificationService.stop();
-    }
-
-    private static class FailureWrapper {
-        private final VerificationFailure failure;
-        private final String repositoryName;
-
-        private FailureWrapper(VerificationFailure failure, String repositoryName) {
-            this.failure = failure;
-            this.repositoryName = repositoryName;
-        }
-
-        public VerificationFailure getFailure() {
-            return failure;
-        }
     }
 
     private static class VerificationQuery {
