@@ -18,11 +18,17 @@ package org.gradle.language.cpp
 
 import org.gradle.integtests.fixtures.CompilationOutputsFixture
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForVfsRetention
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
 
+@ToBeFixedForVfsRetention(
+    value = "https://github.com/gradle/gradle/issues/12162",
+    failsOnlyIf = TestPrecondition.WINDOWS
+)
 class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements CppTaskNames {
 
     private static final String LIBRARY = ':library'
@@ -45,7 +51,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
     def installApp = appDebug.install
 
     def setup() {
-        buildFile << """    
+        buildFile << """
             project(':library') {
                 apply plugin: 'cpp-library'
             }
@@ -63,16 +69,16 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
 
         appHeaderFile = file("app/src/main/cpp/app.hpp") << """
             #include <string>
-            extern void greeting(const char* name, std::string& result);    
+            extern void greeting(const char* name, std::string& result);
         """
 
         appSourceFile = file("app/src/main/cpp/main.cpp") << """
             #include <lib.h>
             #include <iostream>
             #include "app.hpp"
-            
+
             using namespace std;
-            
+
             int main() {
                 string msg;
                 greeting("world", msg);
@@ -87,10 +93,10 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
             #define PREFIX "hello"
 
             using namespace std;
-            
-            extern void greeting(const char* name, string& result) {    
-                result.append(PREFIX);                
-                result.append(" ");                
+
+            extern void greeting(const char* name, string& result) {
+                result.append(PREFIX);
+                result.append(" ");
                 result.append(name);
             }
         """
@@ -122,7 +128,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
             #include <iostream>
 
             using namespace std;
-            
+
             void log(const string& message) {
                 cout << message;
             }
@@ -134,7 +140,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
             #include "lib_impl.h"
 
             using namespace std;
-            
+
             void log(const char* message) {
                 cout << message;
             }
@@ -302,10 +308,10 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
             #include "greeting.hpp"
 
             using namespace std;
-            
-            void greeting(const char* name, string& result) {    
-                result.append(PREFIX);                
-                result.append(" ");                
+
+            void greeting(const char* name, string& result) {
+                result.append(PREFIX);
+                result.append(" ");
                 result.append(name);
             }
         """
@@ -459,17 +465,17 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
             #define _HELLO_HEADER_2 "hello.h"
             #define _HELLO_HEADER_1 _HELLO_HEADER_2
             #define HELLO_HEADER MACRO_FUNCTION() // some indirection
-            
+
             #define MACRO_FUNCTION( ) _HELLO_HEADER_1
             #define FUNCTION_RETURNS_STRING(X) "hello.h"
             #define FUNCTION_RETURNS_MACRO(X) HELLO_HEADER
             #define FUNCTION_RETURNS_MACRO_CALL(X) FUNCTION_RETURNS_ARG(X)
             #define FUNCTION_RETURNS_ARG(X) X
-            
+
             #define PREFIX MACRO_USES
             #define SUFFIX() _FUNCTION
             #define ARGS (MACRO_FUNCTION())
-            
+
             // Token concatenation ## does not macro expand macro function args, so is usually wrapped by another macro function
             #define CONCAT_FUNCTION2(X, Y) X ## Y
             #define CONCAT_FUNCTION(X, Y) CONCAT_FUNCTION2(X, Y)
@@ -491,7 +497,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
                 #define MACRO_PRODUCES_FUNCTION_CALL CONCAT_FUNCTION(FUNCTION_RETURNS_ARG, ARGS)
             #else
                 #define MACRO_PRODUCES_FUNCTION_CALL "hello.h" // ignore
-            #endif                
+            #endif
             #include ${macro}
             #include <iostream>
 
@@ -740,7 +746,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
 
         where:
         include             | text
-        'HELLO'             | '''            
+        'HELLO'             | '''
             #define _HELLO(X) #X
             #define HELLO _HELLO(hello.h)
             #include HELLO
@@ -873,7 +879,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         appSourceFile.text = """
                 #include <iostream>
                 #include "hello.h"
-    
+
                 int main () {
                   std::cout << MESSAGE;
                   return 0;

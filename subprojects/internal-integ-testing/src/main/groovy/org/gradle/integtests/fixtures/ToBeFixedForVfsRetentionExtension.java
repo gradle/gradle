@@ -25,16 +25,16 @@ import org.spockframework.runtime.model.SpecInfo;
 public class ToBeFixedForVfsRetentionExtension extends AbstractAnnotationDrivenExtension<ToBeFixedForVfsRetention> {
     @Override
     public void visitSpecAnnotation(ToBeFixedForVfsRetention annotation, SpecInfo spec) {
-        doVisit(spec);
+        doVisit(spec, annotation);
     }
 
     @Override
     public void visitFeatureAnnotation(ToBeFixedForVfsRetention annotation, FeatureInfo feature) {
-        doVisit(feature);
+        doVisit(feature, annotation);
     }
 
-    private void doVisit(ISkippable skippable) {
-        if (GradleContextualExecuter.isVfsRetention()) {
+    private void doVisit(ISkippable skippable, ToBeFixedForVfsRetention annotation) {
+        if (GradleContextualExecuter.isVfsRetention() && annotation.failsOnlyIf().isFulfilled()) {
             skippable.setSkipped(true);
         }
     }
