@@ -297,7 +297,7 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
                     new File(outputDirectory, "output.txt").text = "Success"
                     changes.getFileChanges(input).each {
                         println "Changes > \$it"
-                    }                    
+                    }
                 }
             }
 

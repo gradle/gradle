@@ -33,7 +33,7 @@ class WorkerExecutorCompositeBuildIntegrationTest extends AbstractIntegrationSpe
     def "can use worker api with composite builds using #pluginId"() {
         settingsFile << """
             rootProject.name = "app"
-            
+
             includeBuild "plugin"
             includeBuild "lib"
         """
@@ -67,7 +67,7 @@ class WorkerExecutorCompositeBuildIntegrationTest extends AbstractIntegrationSpe
                 id "java"
                 id "org.gradle.test.${pluginId}"
             }
-       
+
             dependencies {
                 implementation "org.gradle.test:lib:1.0"
             }
@@ -90,14 +90,14 @@ class WorkerExecutorCompositeBuildIntegrationTest extends AbstractIntegrationSpe
         plugin.file("src/main/java/LegacyParameter.java") << """
             import java.io.File;
             import java.io.Serializable;
-            
+
             public class LegacyParameter implements Serializable {
                 private final File outputFile;
-                
+
                 public LegacyParameter(File outputFile) {
                     this.outputFile = outputFile;
                 }
-                
+
                 public File getOutputFile() {
                     return this.outputFile;
                }
@@ -108,15 +108,15 @@ class WorkerExecutorCompositeBuildIntegrationTest extends AbstractIntegrationSpe
             import javax.inject.Inject;
             import java.io.File;
             import org.gradle.test.FileHelper;
-            
+
             public class LegacyRunnable implements Runnable {
                 private File outputFile;
-                
+
                 @Inject
                 public LegacyRunnable(LegacyParameter parameter) {
                     this.outputFile = parameter.getOutputFile();
                 }
-                
+
                 public void run() {
                     FileHelper.write("foo", outputFile);
                 }
@@ -130,16 +130,16 @@ class WorkerExecutorCompositeBuildIntegrationTest extends AbstractIntegrationSpe
             import org.gradle.workers.*;
             import javax.inject.Inject;
             import java.io.File;
-            
+
             public class LegacyWorkerTask extends DefaultTask {
                 private final WorkerExecutor workerExecutor;
                 private File outputFile;
-                
+
                 @Inject
                 public LegacyWorkerTask(WorkerExecutor workerExecutor) {
                     this.workerExecutor = workerExecutor;
-                } 
-                
+                }
+
                 @TaskAction
                 public void runWork() {
                     workerExecutor.submit(LegacyRunnable.class, new Action<WorkerConfiguration>() {
@@ -149,12 +149,12 @@ class WorkerExecutorCompositeBuildIntegrationTest extends AbstractIntegrationSpe
                         }
                     });
                 }
-                
+
                 @OutputFile
                 File getOutputFile() {
                     return outputFile;
                 }
-                
+
                 void setOutputFile(File outputFile) {
                     this.outputFile = outputFile;
                 }
@@ -165,7 +165,7 @@ class WorkerExecutorCompositeBuildIntegrationTest extends AbstractIntegrationSpe
             import org.gradle.api.Plugin;
             import org.gradle.api.Project;
             import java.io.File;
-            
+
             public class LegacyWorkerPlugin implements Plugin<Project> {
                 public void apply(Project project) {
                     project.getTasks().create("runWork", LegacyWorkerTask.class)
@@ -176,7 +176,7 @@ class WorkerExecutorCompositeBuildIntegrationTest extends AbstractIntegrationSpe
 
         plugin.file("build.gradle") << """
             apply plugin: "java-gradle-plugin"
-            
+
             gradlePlugin {
                 plugins {
                     LegacyWorkerPlugin {
@@ -192,7 +192,7 @@ class WorkerExecutorCompositeBuildIntegrationTest extends AbstractIntegrationSpe
         plugin.file("src/main/java/TypedParameter.java") << """
             import org.gradle.workers.WorkParameters;
             import org.gradle.api.file.RegularFileProperty;
-            
+
             public interface TypedParameter extends WorkParameters {
                 RegularFileProperty getOutputFile();
             }
@@ -201,7 +201,7 @@ class WorkerExecutorCompositeBuildIntegrationTest extends AbstractIntegrationSpe
         plugin.file("src/main/java/TypedWorkAction.java") << """
             import org.gradle.workers.WorkAction;
             import org.gradle.test.FileHelper;
-            
+
             abstract public class TypedWorkAction implements WorkAction<TypedParameter> {
                 public void execute() {
                     FileHelper.write("foo", getParameters().getOutputFile().getAsFile().get());
@@ -217,17 +217,17 @@ class WorkerExecutorCompositeBuildIntegrationTest extends AbstractIntegrationSpe
             import org.gradle.workers.*;
             import javax.inject.Inject;
             import java.io.File;
-            
+
             public class TypedWorkerTask extends DefaultTask {
                 private final WorkerExecutor workerExecutor;
                 private final RegularFileProperty outputFile;
-                
+
                 @Inject
                 public TypedWorkerTask(WorkerExecutor workerExecutor) {
                     this.workerExecutor = workerExecutor;
                     this.outputFile = getProject().getObjects().fileProperty();
-                } 
-                
+                }
+
                 @TaskAction
                 public void runWork() {
                     workerExecutor.noIsolation().submit(TypedWorkAction.class, new Action<TypedParameter>() {
@@ -236,7 +236,7 @@ class WorkerExecutorCompositeBuildIntegrationTest extends AbstractIntegrationSpe
                         }
                     });
                 }
-                
+
                 @OutputFile
                 RegularFileProperty getOutputFile() {
                     return outputFile;
@@ -248,7 +248,7 @@ class WorkerExecutorCompositeBuildIntegrationTest extends AbstractIntegrationSpe
             import org.gradle.api.Plugin;
             import org.gradle.api.Project;
             import java.io.File;
-            
+
             public class TypedWorkerPlugin implements Plugin<Project> {
                 public void apply(Project project) {
                     project.getTasks().create("runWork", TypedWorkerTask.class)
@@ -259,7 +259,7 @@ class WorkerExecutorCompositeBuildIntegrationTest extends AbstractIntegrationSpe
 
         plugin.file("build.gradle") << """
             apply plugin: "java-gradle-plugin"
-            
+
             gradlePlugin {
                 plugins {
                     TypedWorkerPlugin {
