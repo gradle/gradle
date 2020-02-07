@@ -43,7 +43,6 @@ dependencies {
     testImplementation(testLibrary("mockito_kotlin2"))
 
     testRuntimeOnly(project(":runtimeApiInfo"))
-    testRuntimeOnly(kotlin("reflect"))
 
     integTestImplementation(project(":jvmServices"))
     integTestImplementation(project(":toolingApi"))
