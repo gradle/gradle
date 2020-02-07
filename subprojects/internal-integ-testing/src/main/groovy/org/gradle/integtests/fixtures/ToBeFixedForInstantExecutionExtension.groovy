@@ -122,14 +122,21 @@ class ToBeFixedForInstantExecutionExtension extends AbstractAnnotationDrivenExte
         @Override
         void afterFeature(FeatureInfo featureInfo) {
             if (featureInfo == feature) {
-                if (failuresInterceptor.failures.empty) {
+                if (failuresInterceptor.failuresByIterations.empty) {
                     throw new UnexpectedSuccessException()
                 } else {
+                    def isAllIterations = isAllIterations(iterationMatchers)
+                    def unexpectedSuccessIterations = failuresInterceptor.failuresByIterations.findAll {
+                        it.value.isEmpty() && (isAllIterations || iterationMatches(iterationMatchers, it.key))
+                    }.collect { it.key }
+                    if (!unexpectedSuccessIterations.isEmpty()) {
+                        throw new UnexpectedSuccessException(unexpectedSuccessIterations)
+                    }
                     System.err.println("Failed with instant execution as expected:")
-                    if (failuresInterceptor.failures.size() == 1) {
-                        failuresInterceptor.failures.first().printStackTrace()
+                    if (failuresInterceptor.failuresByIterations.size() == 1 && failuresInterceptor.failuresByIterations.values().first().size() == 1) {
+                        failuresInterceptor.failuresByIterations.values().flatten().first().printStackTrace()
                     } else {
-                        new ExpectedFailureException(failuresInterceptor.failures).printStackTrace()
+                        new ExpectedFailureException(failuresInterceptor.failuresByIterations).printStackTrace()
                     }
                 }
             }
@@ -161,7 +168,7 @@ class ToBeFixedForInstantExecutionExtension extends AbstractAnnotationDrivenExte
     private static class RecordFailuresInterceptor implements IMethodInterceptor {
 
         private final String[] iterationMatchers
-        List<Throwable> failures = []
+        Map<String, List<Throwable>> failuresByIterations = [:]
 
         RecordFailuresInterceptor(String[] iterationMatchers) {
             this.iterationMatchers = iterationMatchers
@@ -169,11 +176,12 @@ class ToBeFixedForInstantExecutionExtension extends AbstractAnnotationDrivenExte
 
         @Override
         void intercept(IMethodInvocation invocation) throws Throwable {
+            failuresByIterations.computeIfAbsent(invocation.iteration.name, { [] })
             if (isAllIterations(iterationMatchers) || iterationMatches(iterationMatchers, invocation.iteration.name)) {
                 try {
                     invocation.proceed()
                 } catch (Throwable ex) {
-                    failures += ex
+                    failuresByIterations[invocation.iteration.name].add(ex)
                 }
             } else {
                 invocation.proceed()
@@ -182,15 +190,34 @@ class ToBeFixedForInstantExecutionExtension extends AbstractAnnotationDrivenExte
     }
 
     static class UnexpectedSuccessException extends Exception {
+
         UnexpectedSuccessException() {
             super("Expected to fail with instant execution, but succeeded!")
+        }
+
+        UnexpectedSuccessException(Collection<String> succeededIterations) {
+            super("Expected to fail with instant execution, but succeeded on the following iterations!\n- ${succeededIterations.join("\n- ")}")
         }
     }
 
     static class ExpectedFailureException extends Exception {
-        ExpectedFailureException(List<Throwable> failures) {
-            super("Expected failure with instant execution")
-            failures.each { addSuppressed(it) }
+
+        ExpectedFailureException(Map<String, List<Throwable>> failuresByIterations) {
+            this()
+            failuresByIterations.each {
+                def itEx = new ExpectedFailureException(it.key)
+                itEx.setStackTrace(new StackTraceElement[0])
+                if (it.value.size() == 1) {
+                    itEx.initCause(it.value.first())
+                } else {
+                    it.value.each { itEx.addSuppressed(it) }
+                }
+                addSuppressed(itEx)
+            }
+        }
+
+        private ExpectedFailureException(String message = "Expected failure with instant execution") {
+            super(message)
         }
     }
 }
