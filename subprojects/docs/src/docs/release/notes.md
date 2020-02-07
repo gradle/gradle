@@ -37,7 +37,7 @@ Typical projects use a large number of external dependencies which put them at r
 What if you accidentally introduced malicious code via a transitive dependency?
 Similarly, what if your build script itself is vulnerable to malicious code execution via a compromised plugin?
 
-In an effort to mitigate the risks, Gradle 6.2 ships with [dependency verification](userguide/dependency_verification.html).
+In an effort to mitigate these risks, Gradle 6.2 ships with [dependency verification](userguide/dependency_verification.html).
 Dependency verification is a major step towards a safer ecosystem by making it possible to verify both the checksums and the signatures of dependencies and plugins used during a build.
 
 By enabling dependency verification, Gradle will:
