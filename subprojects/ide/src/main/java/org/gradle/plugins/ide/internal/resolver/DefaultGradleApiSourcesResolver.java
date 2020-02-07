@@ -148,10 +148,19 @@ public class DefaultGradleApiSourcesResolver implements GradleApiSourcesResolver
         Map<String, String> sourceDependency = new HashMap<>();
         sourceDependency.put("group", "gradle");
         sourceDependency.put("name", "gradle");
-        sourceDependency.put("version", gradleVersion().getVersion());
+        sourceDependency.put("version", dependencyVersion());
         sourceDependency.put("classifier", "src");
         sourceDependency.put("ext", "zip");
         return project.getDependencies().create(sourceDependency);
+    }
+
+    private String dependencyVersion() {
+        GradleVersion version = gradleVersion();
+        if (version.isSnapshot()) {
+            return String.format("(6.1.1, %s]", version.getVersion());
+        } else {
+            return version.getVersion();
+        }
     }
 
     private static String repositoryNameFor(GradleVersion gradleVersion) {

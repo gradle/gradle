@@ -16,8 +16,8 @@
 package org.gradle.integtests.tooling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
@@ -27,6 +27,7 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.time.CountdownTimer
 import org.gradle.internal.time.Time
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.tooling.BuildActionFailureException
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.GradleProject
@@ -69,6 +70,33 @@ class ToolingApiIntegrationTest extends AbstractIntegrationSpec {
         then:
         stdOut.toString().contains("CONFIGURE SUCCESSFUL")
         !stdOut.toString().contains("BUILD SUCCESSFUL")
+    }
+
+    def "can configure Kotlin DSL project with gradleApi() dependency via tooling API"() {
+        given:
+        toolingApi.requireIsolatedToolingApi()
+
+        buildKotlinFile << """
+        plugins {
+            java
+        }
+
+        dependencies {
+            implementation(gradleApi())
+        }
+        """
+
+        when:
+        def stdOut = new ByteArrayOutputStream()
+        toolingApi.withConnection { ProjectConnection connection ->
+            connection.action(new KotlinIdeaModelBuildAction())
+                .addArguments("--info")
+                .setStandardOutput(stdOut)
+                .run()
+        }
+
+        then:
+        stdOut.toString().contains("CONFIGURE SUCCESSFUL")
     }
 
     def "tooling api uses the wrapper properties to determine which version to use"() {
