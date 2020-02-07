@@ -50,7 +50,7 @@ and therefore reduce the risks of shipping malicious code to production.
 With dependency verification, you maintain an XML file with checksums and optionally also signatures of all external artifacts used in your project, which includes, but is not limited to, all jars (binaries, sources, ...) and plugins.
 Gradle will immediately fail the build if an artifact is not trusted or missing from the configuration file.
 
-Please refer to the [user manual](userguide/dependency_verification.html) for a complete explanation about how to setup dependency verification. 
+Please refer to the [user manual](userguide/dependency_verification.html) for a complete explanation about how to set up dependency verification. 
 
 We would like to give special thanks to [Vladimir Sitnikov](https://github.com/vlsi) for his feedback and inspiration.
 A lot of the work on this feature is, in particular, available to previous versions of Gradle via his [Checksum Dependency Plugin](https://plugins.gradle.org/plugin/com.github.vlsi.checksum-dependency).
@@ -65,7 +65,7 @@ In the context of ephemeral builds on disposable containers, this makes it possi
 - Each container will have access to the shared read-only dependency cache, which avoids redundant downloads between builds.
 - This cache can be safely shared between containers without creating separate copies of it.
 
-Please refer to the [user manual](userguide/dependency_resolution.html#sec:dependency_cache) to learn how to setup the shared dependency cache.
+Please refer to the [user manual](userguide/dependency_resolution.html#sec:dependency_cache) to learn how to set up the shared dependency cache.
 
 <a name="exclusive-repository-content"></a>
 ## Declaring exclusive repository content
@@ -103,7 +103,7 @@ repositories {
 }
 ```
 
-In this example, when Gradle needs to resolve the dependency `com.mycompany:awesome-lib:1.0`, it will _only_ search in in your company repository. This avoids the unnecessary dependency lookup with Maven Central.
+In this example, when Gradle needs to resolve the dependency `com.mycompany:awesome-lib:1.0`, it will _only_ search in your company repository. This avoids the unnecessary dependency lookup with Maven Central.
 
 Please refer to the [user manual](userguide/declaring_repositories.html#declaring_content_exclusively_found_in_one_repository) for details.
 
@@ -145,7 +145,7 @@ You can still manually verify the `gradle-wrapper.jar` by following the instruct
 [Gradle Wrapper user manual](userguide/gradle_wrapper.html#sec:wrapper_checksum_verification).
 
 ## Promoted features
-Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
+Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backward compatibility.
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 
 The following are the features that have been promoted in this Gradle release.
