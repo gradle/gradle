@@ -70,7 +70,7 @@ Please refer to the [user manual](userguide/dependency_resolution.html#sec:depen
 <a name="exclusive-repository-content"></a>
 ## Declaring exclusive repository content
 
-Gradle lets you [declare precisely which dependencies a repository contains](userguide/declaring_repositories.html#sec:repository-content-filtering).  This speeds up builds by reducing the number of repositories that need to be searched and increases security by not leaking details about your internal projects.
+Gradle lets you [declare precisely which dependencies a repository contains](userguide/declaring_repositories.html#sec:repository-content-filtering). This can speed up builds by reducing the number of repositories that need to be searched and increases security by not leaking details about your internal projects.
 
 As an example:
 ```
@@ -85,7 +85,7 @@ repositories {
 ```
 If Gradle needs to resolve the dependency `com.mycompany:awesome-lib:1.0`, it will _first_ search in the repository Maven Central and then in your company repository.  This is unnecessary if `com.mycompany` dependencies will never be found in Maven Central.
 
-Gradle 6.2 provides an _exclusive content_ API, which lets you declare that if a dependency can be found in one repository, it _cannot_ be found in any other.
+Gradle 6.2 provides an _exclusive content_ API, which lets you convieniently declare that a dependency can be found in one repository and it shouldn't be searched for in any other.
 
 ```
 repositories {
