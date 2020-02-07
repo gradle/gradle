@@ -75,6 +75,7 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -760,8 +761,11 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         private void addSetMethods(AbstractClassGenerator.ClassGenerationVisitor visitor) {
             for (PropertyMetadata property : mutableProperties) {
                 if (property.setMethods.isEmpty()) {
+                    Set<Class<?>> appliedTo = new HashSet<>();
                     for (Method setter : property.setters) {
-                        visitor.addSetMethod(property, setter);
+                        if (appliedTo.add(setter.getParameterTypes()[0])) {
+                            visitor.addSetMethod(property, setter);
+                        }
                     }
                 } else if (extensibleTypeHandler.conventionProperties.contains(property)) {
                     for (Method setMethod : property.setMethods) {
