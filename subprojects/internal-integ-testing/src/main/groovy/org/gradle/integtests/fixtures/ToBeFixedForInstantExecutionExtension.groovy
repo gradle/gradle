@@ -72,6 +72,11 @@ class ToBeFixedForInstantExecutionExtension extends AbstractAnnotationDrivenExte
      * Registration happens as late as possible and to the utmost position in the stack in order to catch
      * failures without being sensible to other spock extensions that re-order interceptors nor to the place
      * of annotated spock features in hierarchies of spec classes.
+     *
+     * This is also so that failures in setup and cleanup methods are taken into account by the annotation.
+     * Unfortunately this leads to not being able to throw from inside the interceptors but instead throw
+     * from outside the test execution, after setup/test/cleanup, in Spock's core, effectively stopping the
+     * whole spec execution. In practice, as soon as a test doesn't behave, we stop executing subsequent tests.
      */
     private static class CatchFeatureFailuresRunListener extends AbstractRunListener {
 
