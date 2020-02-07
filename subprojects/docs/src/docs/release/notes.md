@@ -2,7 +2,7 @@ The Gradle team is excited to announce Gradle @version@.
 
 This release adds [built-in dependency checksum and signature verification](#dependency-verification), provides a [shareable read-only dependency cache](#shared-dependency-cache) and emits [helpful documentation links when you have deprecations in your build](#deprecation-messages).
 
-As always, there are several [bug fixes](#fixed-issues), IDE improvements for [Gradle plugin authors](#plugin-dev) and more.
+As always, there are several [bug fixes](#fixed-issues), [improvements for plugin authors](#plugin-dev) and more.
 
 We would like to thank the following community contributors to this release of Gradle:
 
