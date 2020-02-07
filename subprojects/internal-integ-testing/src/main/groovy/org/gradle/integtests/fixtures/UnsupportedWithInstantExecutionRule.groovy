@@ -21,8 +21,8 @@ import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
 
+import static org.gradle.integtests.fixtures.ToBeFixedForInstantExecutionExtension.iterationMatches
 import static org.gradle.integtests.fixtures.ToBeFixedForInstantExecutionExtension.isEnabledBottomSpec
-import static org.gradle.integtests.fixtures.UnsupportedWithInstantExecutionExtension.iterationMatches
 import static org.junit.Assume.assumeFalse
 
 

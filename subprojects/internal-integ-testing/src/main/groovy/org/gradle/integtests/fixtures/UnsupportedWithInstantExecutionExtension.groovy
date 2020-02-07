@@ -22,6 +22,8 @@ import org.spockframework.runtime.extension.IMethodInterceptor
 import org.spockframework.runtime.extension.IMethodInvocation
 import org.spockframework.runtime.model.FeatureInfo
 
+import static org.gradle.integtests.fixtures.ToBeFixedForInstantExecutionExtension.iterationMatches
+import static org.gradle.integtests.fixtures.ToBeFixedForInstantExecutionExtension.isAllIterations
 import static org.gradle.integtests.fixtures.ToBeFixedForInstantExecutionExtension.isEnabledBottomSpec
 
 
@@ -38,14 +40,6 @@ class UnsupportedWithInstantExecutionExtension extends AbstractAnnotationDrivenE
         }
     }
 
-    static boolean iterationMatches(String[] iterationMatchers, String iterationName) {
-        return isAllIterations(iterationMatchers) || iterationMatchers.any { iterationName.matches(it) }
-    }
-
-    private static boolean isAllIterations(String[] iterationMatchers) {
-        return iterationMatchers.length == 0
-    }
-
     private static class IterationMatchingMethodInterceptor implements IMethodInterceptor {
 
         private final String[] iterationMatchers
@@ -59,7 +53,7 @@ class UnsupportedWithInstantExecutionExtension extends AbstractAnnotationDrivenE
             if (!iterationMatches(iterationMatchers, invocation.iteration.name)) {
                 invocation.proceed()
             } else {
-                // This will show up in test reports, necessary because we can't mark the test as skipped
+                // This will show up in test reports, necessary because we can't mark the iteration as skipped
                 println("Skipping test @${UnsupportedWithInstantExecution.simpleName}")
             }
         }

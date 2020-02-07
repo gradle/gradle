@@ -39,7 +39,7 @@ class ToBeFixedForInstantExecutionExtension extends AbstractAnnotationDrivenExte
                     if (isEnabledBottomSpec(annotation.bottomSpecs(), { spec.bottomSpec.name == it })) {
                         ToBeFixedForInstantExecution.Skip skip = annotation.skip()
                         if (skip == ToBeFixedForInstantExecution.Skip.DO_NOT_SKIP) {
-                            spec.addListener(new CatchFeatureFailuresRunListener(feature))
+                            spec.addListener(new CatchFeatureFailuresRunListener(feature, annotation.iterationMatchers()))
                         } else {
                             feature.skipped = true
                         }
@@ -51,6 +51,14 @@ class ToBeFixedForInstantExecutionExtension extends AbstractAnnotationDrivenExte
 
     static boolean isEnabledBottomSpec(String[] bottomSpecs, Predicate<String> specNamePredicate) {
         return bottomSpecs.length == 0 || bottomSpecs.any { specNamePredicate.test(it) }
+    }
+
+    static boolean iterationMatches(String[] iterationMatchers, String iterationName) {
+        return isAllIterations(iterationMatchers) || iterationMatchers.any { iterationName.matches(it) }
+    }
+
+    static boolean isAllIterations(String[] iterationMatchers) {
+        return iterationMatchers.length == 0
     }
 
     @Override
@@ -68,13 +76,15 @@ class ToBeFixedForInstantExecutionExtension extends AbstractAnnotationDrivenExte
     private static class CatchFeatureFailuresRunListener extends AbstractRunListener {
 
         private final FeatureInfo feature
+        private final String[] iterationMatchers
         private final RecordFailuresInterceptor failuresInterceptor
         private final FeatureFilterInterceptor fixturesInterceptor
 
-        CatchFeatureFailuresRunListener(FeatureInfo feature) {
+        CatchFeatureFailuresRunListener(FeatureInfo feature, String[] iterationMatchers) {
             this.feature = feature
-            this.failuresInterceptor = new RecordFailuresInterceptor()
-            this.fixturesInterceptor = new FeatureFilterInterceptor(feature, failuresInterceptor)
+            this.iterationMatchers = iterationMatchers
+            this.failuresInterceptor = new RecordFailuresInterceptor(iterationMatchers)
+            this.fixturesInterceptor = new FeatureFilterInterceptor(feature, iterationMatchers, failuresInterceptor)
         }
 
         @Override
@@ -100,6 +110,11 @@ class ToBeFixedForInstantExecutionExtension extends AbstractAnnotationDrivenExte
         }
 
         @Override
+        void afterIteration(IterationInfo iteration) {
+            super.afterIteration(iteration)
+        }
+
+        @Override
         void afterFeature(FeatureInfo featureInfo) {
             if (featureInfo == feature) {
                 if (failuresInterceptor.failures.empty) {
@@ -119,16 +134,18 @@ class ToBeFixedForInstantExecutionExtension extends AbstractAnnotationDrivenExte
     private static class FeatureFilterInterceptor implements IMethodInterceptor {
 
         private final FeatureInfo feature
+        private final String[] iterationMatchers
         private final IMethodInterceptor next
 
-        FeatureFilterInterceptor(FeatureInfo feature, IMethodInterceptor next) {
+        FeatureFilterInterceptor(FeatureInfo feature, String[] iterationMatchers, IMethodInterceptor next) {
             this.feature = feature
+            this.iterationMatchers = iterationMatchers
             this.next = next
         }
 
         @Override
         void intercept(IMethodInvocation invocation) throws Throwable {
-            if (invocation.feature == feature) {
+            if (invocation.feature == feature && (isAllIterations(iterationMatchers) || iterationMatches(iterationMatchers, invocation.iteration.name))) {
                 next.intercept(invocation)
             } else {
                 invocation.proceed()
@@ -138,14 +155,23 @@ class ToBeFixedForInstantExecutionExtension extends AbstractAnnotationDrivenExte
 
     private static class RecordFailuresInterceptor implements IMethodInterceptor {
 
+        private final String[] iterationMatchers
         List<Throwable> failures = []
+
+        RecordFailuresInterceptor(String[] iterationMatchers) {
+            this.iterationMatchers = iterationMatchers
+        }
 
         @Override
         void intercept(IMethodInvocation invocation) throws Throwable {
-            try {
+            if (isAllIterations(iterationMatchers) || iterationMatches(iterationMatchers, invocation.iteration.name)) {
+                try {
+                    invocation.proceed()
+                } catch (Throwable ex) {
+                    failures += ex
+                }
+            } else {
                 invocation.proceed()
-            } catch (Throwable ex) {
-                failures += ex
             }
         }
     }
