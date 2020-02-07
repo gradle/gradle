@@ -73,8 +73,6 @@ class ToolingApiIntegrationTest extends AbstractIntegrationSpec {
 
     def "can configure Kotlin DSL project with gradleApi() dependency via tooling API"() {
         given:
-        toolingApi.requireIsolatedToolingApi()
-
         buildKotlinFile << """
         plugins {
             java
