@@ -71,6 +71,7 @@ class ModuleResolveState implements CandidateModule {
     private boolean overriddenSelection;
     private Set<VirtualPlatformState> platformOwners;
     private boolean replaced = false;
+    private boolean changingSelection;
 
     ModuleResolveState(IdGenerator<Long> idGenerator,
                        ModuleIdentifier id,
@@ -172,22 +173,29 @@ class ModuleResolveState implements CandidateModule {
         selected.select();
     }
 
+    public boolean isChangingSelection() {
+        return changingSelection;
+    }
+
     /**
      * Changes the selected target component for this module.
      */
-    private void changeSelection(ComponentState newSelection, NodeState currentlyDeselecting) {
+    private void changeSelection(ComponentState newSelection) {
         assert this.selected != null;
         assert newSelection != null;
         assert this.selected != newSelection;
         assert newSelection.getModule() == this;
 
+        changingSelection = true;
+
         // Remove any outgoing edges for the current selection
-        selected.removeOutgoingEdges(currentlyDeselecting);
+        selected.removeOutgoingEdges();
 
         this.selected = newSelection;
         this.replaced = false;
 
         doRestart(newSelection);
+        changingSelection = false;
     }
 
     /**
@@ -197,7 +205,7 @@ class ModuleResolveState implements CandidateModule {
      */
     public void clearSelection() {
         if (selected != null) {
-            selected.removeOutgoingEdges(null);
+            selected.removeOutgoingEdges();
         }
         for (ComponentState version : versions.values()) {
             if (version.isSelected()) {
@@ -285,7 +293,7 @@ class ModuleResolveState implements CandidateModule {
         }
     }
 
-    void removeSelector(SelectorState selector, NodeState currentlyDeselecting) {
+    void removeSelector(SelectorState selector) {
         selectors.remove(selector);
         boolean alreadyReused = selector.markForReuse();
         mergedConstraintAttributes = ImmutableAttributes.EMPTY;
@@ -293,7 +301,7 @@ class ModuleResolveState implements CandidateModule {
             mergedConstraintAttributes = appendAttributes(mergedConstraintAttributes, selectorState);
         }
         if (!alreadyReused && selectors.size() != 0) {
-            maybeUpdateSelection(currentlyDeselecting);
+            maybeUpdateSelection();
         }
     }
 
@@ -377,7 +385,7 @@ class ModuleResolveState implements CandidateModule {
         pendingDependencies.addNode(node);
     }
 
-    public void maybeUpdateSelection(NodeState currentlyDeselecting) {
+    public void maybeUpdateSelection() {
         if (replaced) {
             // Never update selection for a replaced module
             return;
@@ -391,7 +399,7 @@ class ModuleResolveState implements CandidateModule {
         if (selected == null) {
             select(newSelected);
         } else if (newSelected != selected) {
-            changeSelection(newSelected, currentlyDeselecting);
+            changeSelection(newSelected);
         }
     }
 
