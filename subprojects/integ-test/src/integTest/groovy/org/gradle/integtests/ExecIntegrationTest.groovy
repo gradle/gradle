@@ -29,7 +29,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
     public final TestResources testResources = new TestResources(testDirectoryProvider)
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(iterationMatchers = ".*javaexecTask")
     def 'can execute java with #task'() {
         given:
         buildFile << """
@@ -86,7 +86,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(iterationMatchers = ".*execTask")
     def 'can execute commands with #task'() {
         given:
         buildFile << """
