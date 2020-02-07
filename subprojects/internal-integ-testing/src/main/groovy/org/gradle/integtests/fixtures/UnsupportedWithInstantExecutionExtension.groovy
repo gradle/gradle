@@ -17,6 +17,7 @@
 package org.gradle.integtests.fixtures
 
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.junit.AssumptionViolatedException
 import org.spockframework.runtime.extension.AbstractAnnotationDrivenExtension
 import org.spockframework.runtime.extension.IMethodInterceptor
 import org.spockframework.runtime.extension.IMethodInvocation
@@ -53,8 +54,7 @@ class UnsupportedWithInstantExecutionExtension extends AbstractAnnotationDrivenE
             if (!iterationMatches(iterationMatchers, invocation.iteration.name)) {
                 invocation.proceed()
             } else {
-                // This will show up in test reports, necessary because we can't mark the iteration as skipped
-                println("Skipping test @${UnsupportedWithInstantExecution.simpleName}")
+                throw new AssumptionViolatedException("Unsupported with instant execution")
             }
         }
     }
