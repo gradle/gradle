@@ -39,7 +39,7 @@ class SamplesWorkingWithDependenciesIntegrationTest extends AbstractIntegrationS
 
     @Unroll
     @UsesSample("userguide/dependencyManagement/workingWithDependencies/iterateDependencies")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(iterationMatchers = ".*kotlin dsl")
     def "can iterate over dependencies assigned to a configuration with #dsl dsl"() {
         executer.inDirectory(sample.dir.file(dsl))
 

@@ -101,7 +101,7 @@ class SamplesDeclaringDependenciesIntegrationTest extends AbstractSampleIntegrat
 
     @Unroll
     @UsesSample("userguide/dependencyManagement/declaringDependencies/fileDependencies")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(iterationMatchers = ".*kotlin dsl")
     def "can use declare and resolve file dependencies with #dsl dsl"() {
         TestFile dslDir = sample.dir.file(dsl)
         executer.inDirectory(dslDir)

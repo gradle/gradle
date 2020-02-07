@@ -45,7 +45,7 @@ class SamplesMavenPomGenerationIntegrationTest extends AbstractSampleIntegration
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(iterationMatchers = ".*kotlin dsl.*")
+    @ToBeFixedForInstantExecution
     def "can deploy to local repository with #dsl dsl"() {
         given:
         def pomProjectDir = sample.dir.file(dsl)
@@ -70,7 +70,7 @@ class SamplesMavenPomGenerationIntegrationTest extends AbstractSampleIntegration
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(iterationMatchers = ".*kotlin dsl.*")
+    @ToBeFixedForInstantExecution
     def "can install to local repository with #dsl dsl"() {
         given:
         def pomProjectDir = sample.dir.file(dsl)
@@ -121,7 +121,7 @@ class SamplesMavenPomGenerationIntegrationTest extends AbstractSampleIntegration
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(iterationMatchers = ".*kotlin dsl.*")
+    @ToBeFixedForInstantExecution
     def "write deployer pom with #dsl dsl"() {
         given:
         def pomProjectDir = sample.dir.file(dsl)

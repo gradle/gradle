@@ -38,7 +38,7 @@ class SamplesDefiningUsingConfigurationsIntegrationTest extends AbstractIntegrat
 
     @Unroll
     @UsesSample("userguide/dependencyManagement/definingUsingConfigurations/custom")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(iterationMatchers = ".*kotlin dsl")
     def "can declare and resolve custom configuration"() {
         setup:
         executer.inDirectory(sample.dir.file(dsl))

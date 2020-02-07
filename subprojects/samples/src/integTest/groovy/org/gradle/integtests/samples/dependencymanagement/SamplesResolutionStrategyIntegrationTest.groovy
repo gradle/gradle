@@ -35,7 +35,7 @@ class SamplesResolutionStrategyIntegrationTest extends AbstractIntegrationSpec {
 
     @Unroll
     @UsesSample("userguide/dependencyManagement/customizingResolution/resolutionStrategy")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(iterationMatchers = ".*kotlin dsl")
     def "can resolve dependencies in #dsl dsl"() {
         TestFile dslDir = sample.dir.file(dsl)
         executer.inDirectory(dslDir)
