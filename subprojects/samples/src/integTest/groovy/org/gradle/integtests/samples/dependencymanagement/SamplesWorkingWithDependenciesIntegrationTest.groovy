@@ -104,7 +104,7 @@ commons-codec:commons-codec:1.7""")
 
     @Unroll
     @UsesSample("userguide/dependencyManagement/workingWithDependencies/accessMetadataArtifact")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(iterationMatchers = ".*kotlin dsl")
     def "can accessing a module's metadata artifact with #dsl dsl"() {
         executer.inDirectory(sample.dir.file(dsl))
 

@@ -39,7 +39,7 @@ class SamplesDefiningUsingConfigurationsIntegrationTest extends AbstractIntegrat
     @Unroll
     @UsesSample("userguide/dependencyManagement/definingUsingConfigurations/custom")
     @ToBeFixedForInstantExecution(iterationMatchers = ".*kotlin dsl")
-    def "can declare and resolve custom configuration"() {
+    def "can declare and resolve custom configuration with #dsl dsl"() {
         setup:
         executer.inDirectory(sample.dir.file(dsl))
         executer.requireGradleDistribution() // required to avoid multiple Servlet API JARs in classpath
