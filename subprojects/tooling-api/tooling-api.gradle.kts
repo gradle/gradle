@@ -91,6 +91,7 @@ dependencies {
     integTestRuntimeOnly(project(":kotlinDsl"))
     integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
     integTestRuntimeOnly(project(":kotlinDslToolingBuilders"))
+    integTestRuntimeOnly(project(":apiMetadata"))
 }
 
 gradlebuildJava {
