@@ -19,6 +19,8 @@ package org.gradle.integtests.fixtures
 import groovy.transform.CompileStatic
 import org.gradle.integtests.fixtures.executer.AbstractGradleExecuter
 
+import java.lang.annotation.Annotation
+
 /**
  * A base runner for features hidden behind a flag, convenient for executing tests with the flag on or off.
  * If a test only makes sense if the feature is enabled, then it needs to be annotated with {@link RequiredFeatures}.
@@ -42,15 +44,15 @@ abstract class BehindFlagFeatureRunner extends AbstractMultiTestRunner {
         }
     }
 
-    Map<String, String> requiredFeatures() {
-        def required = [:]
-        getAllAnnotations(RequiredFeature).each { required[it.feature()] = it.value() }
-        getAllAnnotations(RequiredFeatures).each { extractRequiredFeatures(it, required) }
+    static Map<String, String> requiredFeatures(Annotation[] testAnnotations) {
+        Map<String, String> required = [:]
+        getAllAnnotations(testAnnotations, RequiredFeature).each { required[it.feature()] = it.value() }
+        getAllAnnotations(testAnnotations, RequiredFeatures).each { extractRequiredFeatures(it, required) }
         required
     }
 
-    private <A> Collection<A> getAllAnnotations(Class<A> annotationType) {
-        (Collection<A>) target.annotations.findAll { annotationType.isAssignableFrom(it.getClass()) }
+    static <A> Collection<A> getAllAnnotations(testAnnotations, Class<A> annotationType) {
+        (Collection<A>) testAnnotations.findAll { annotationType.isAssignableFrom(it.getClass()) }
     }
 
     def isInvalidCombination(Map<String, String> values) {
@@ -59,7 +61,7 @@ abstract class BehindFlagFeatureRunner extends AbstractMultiTestRunner {
 
     @Override
     protected void createExecutions() {
-        def requiredFeatures = requiredFeatures()
+        def requiredFeatures = requiredFeatures(target.annotations)
         def allFeatures = features.values()
         def combinations = allFeatures.collect { it.displayNames.keySet() }.combinations()
         combinations.each {
@@ -114,15 +116,11 @@ abstract class BehindFlagFeatureRunner extends AbstractMultiTestRunner {
 
         @Override
         protected boolean isTestEnabled(AbstractMultiTestRunner.TestDetails testDetails) {
-            def requiredFeatures = testDetails.getAnnotation(RequiredFeatures)
+            def requiredFeatures = requiredFeatures(testDetails.annotations)
             def enabled = true
-            if (requiredFeatures) {
-                Map<String, String> required = [:]
-                extractRequiredFeatures(requiredFeatures, required)
-                required.each { sysProp, value ->
-                    if (featureValues[sysProp] != value) {
-                        enabled = false
-                    }
+            requiredFeatures.each { sysProp, value ->
+                if (featureValues[sysProp] != value) {
+                    enabled = false
                 }
             }
             return enabled
