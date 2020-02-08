@@ -1046,9 +1046,18 @@ public class NodeState implements DependencyGraphNode {
                 // Only remove edges that come from a different node than the source of the dependency going back to pending
                 // The edges from the "From" will be removed first
                 incomingEdge.getSelector().release();
-                from.getOutgoingEdges().remove(incomingEdge);
+                from.removeOutgoingEdge(incomingEdge);
             }
             pendingDependencies.addNode(from);
+        }
+    }
+
+    private void removeOutgoingEdge(EdgeState edge) {
+        if (!removingOutgoingEdges) {
+            // don't try to remove an outgoing edge if we're already doing it
+            // because removeOutgoingEdges() will clear all of them so it's not required to do it twice
+            // and it can cause a concurrent modification exception
+            outgoingEdges.remove(edge);
         }
     }
 
