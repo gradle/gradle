@@ -39,7 +39,7 @@ class SamplesWorkingWithDependenciesIntegrationTest extends AbstractIntegrationS
 
     @Unroll
     @UsesSample("userguide/dependencyManagement/workingWithDependencies/iterateDependencies")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(iterationMatchers = ".*kotlin dsl")
     def "can iterate over dependencies assigned to a configuration with #dsl dsl"() {
         executer.inDirectory(sample.dir.file(dsl))
 
@@ -104,7 +104,7 @@ commons-codec:commons-codec:1.7""")
 
     @Unroll
     @UsesSample("userguide/dependencyManagement/workingWithDependencies/accessMetadataArtifact")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(iterationMatchers = ".*kotlin dsl")
     def "can accessing a module's metadata artifact with #dsl dsl"() {
         executer.inDirectory(sample.dir.file(dsl))
 

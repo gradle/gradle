@@ -40,7 +40,7 @@ class SamplesRepositoriesIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     @LeaksFileHandles
     @UsesSample("userguide/artifacts/defineRepository")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(iterationMatchers = ".*kotlin dsl")
     def "can use repositories notation with #dsl dsl"() {
         // This test is not very strong. Its main purpose is to the for the correct syntax as we use many
         // code snippets from this build script in the user's guide.

@@ -1061,7 +1061,10 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(because = "breaks the IE assumption that visiting a file collection multiple times will always throw the same exception")
+    @ToBeFixedForInstantExecution(
+        iterationMatchers = ".*key = false\\)",
+        because = "breaks the IE assumption that visiting a file collection multiple times will always throw the same exception"
+    )
     def "can mix globally trusted keys and artifact specific keys (trust artifact key = #addLocalKey)"() {
         def keyring = newKeyRing()
         keyServerFixture.registerPublicKey(keyring.publicKey)

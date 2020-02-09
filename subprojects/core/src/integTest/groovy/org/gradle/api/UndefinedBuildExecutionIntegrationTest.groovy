@@ -46,7 +46,7 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(iterationMatchers = ".*tasks task.*")
     def "shows deprecation warning when executing #task task in undefined build"() {
         expect:
         executer.expectDocumentedDeprecationWarning("Executing Gradle tasks as part of an undefined build has been deprecated. This will fail with an error in Gradle 7.0. " +

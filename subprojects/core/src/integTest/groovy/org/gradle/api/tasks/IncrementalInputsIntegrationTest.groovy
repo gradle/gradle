@@ -297,7 +297,7 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
                     new File(outputDirectory, "output.txt").text = "Success"
                     changes.getFileChanges(input).each {
                         println "Changes > \$it"
-                    }                    
+                    }
                 }
             }
 
@@ -483,7 +483,7 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
         outputDir.assertIsEmptyDir()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(iterationMatchers = ".*ConfigurableFileTree.*")
     def "outputs are cleaned out on rebuild (output type: #type)"() {
         file("buildSrc").deleteDir()
         buildFile.text = """

@@ -182,8 +182,8 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2313")
     @Unroll
-    @ToBeFixedForInstantExecution
-    "can clean test after extracting class file with #framework"() {
+    @ToBeFixedForInstantExecution(iterationMatchers = ".*useTestNG.*")
+    def "can clean test after extracting class file with #framework"() {
         when:
         ignoreWhenJUnitPlatform()
         buildFile << """

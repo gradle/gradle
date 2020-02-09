@@ -32,7 +32,7 @@ class JavaSourceIncrementalCompilationIntegrationTest extends AbstractSourceIncr
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(iterationMatchers = ".*annotated types")
     def "change to #retention retention annotation class recompiles #desc"() {
         def annotationClass = file("src/main/${language.name}/SomeAnnotation.${language.name}") << """
             import java.lang.annotation.*;

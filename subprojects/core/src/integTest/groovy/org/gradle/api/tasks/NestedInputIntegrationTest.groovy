@@ -36,27 +36,27 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
                 @Nested
                 Object bean
             }
-            
+
             class NestedBeanWithInput {
                 @Input${kind}
                 @PathSensitive(PathSensitivity.NONE)
                 ${type.name} input
             }
-            
+
             class GeneratorTask extends DefaultTask {
                 @Output${kind}
                 final ${type.name} output = project.objects.${factory}()
-                
+
                 @TaskAction
                 void doStuff() {
                     output${generatorAction}
                 }
             }
-            
+
             task generator(type: GeneratorTask) {
                 output.set(project.layout.buildDirectory.${lookup}('output'))
             }
-            
+
             task consumer(type: TaskWithNestedProperty) {
                 bean = new NestedBeanWithInput(input: project.objects.${factory}())
                 bean.input.set(generator.output)
@@ -80,26 +80,26 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
                 @Nested
                 Object bean
             }
-            
+
             class NestedBeanWithInput {
                 @InputFiles
                 FileCollection input
             }
-            
+
             class GeneratorTask extends DefaultTask {
                 @OutputFile
                 final RegularFileProperty outputFile = project.objects.fileProperty()
-                
+
                 @TaskAction
                 void doStuff() {
                     outputFile.getAsFile().get().text = "Hello"
                 }
             }
-            
+
             task generator(type: GeneratorTask) {
                 outputFile = project.layout.buildDirectory.file('output')
             }
-            
+
             task consumer(type: TaskWithNestedProperty) {
                 bean = new NestedBeanWithInput(input: files(generator.outputFile))
             }
@@ -118,26 +118,26 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
                 @Nested
                 Object bean
             }
-            
+
             class NestedBeanWithInput {
                 @InputFile
                 RegularFileProperty file
             }
-            
+
             class GeneratorTask extends DefaultTask {
                 @OutputFile
                 final RegularFileProperty outputFile = project.objects.fileProperty()
-                
+
                 @TaskAction
                 void doStuff() {
                     outputFile.getAsFile().get().text = "Hello"
                 }
             }
-            
+
             task generator(type: GeneratorTask) {
                 outputFile = project.layout.buildDirectory.file('output')
             }
-            
+
             task consumer(type: TaskWithNestedProperty) {
                 bean = new NestedBeanWithInput(file: generator.outputFile)
             }
@@ -162,7 +162,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
                     taskWithNestedProperty.bean = secondBean
                 }
             }
-            
+
             taskWithNestedProperty.dependsOn(configureTask)
         """
 
@@ -195,7 +195,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         def fixture = new NestedBeanTestFixture()
 
         buildFile << fixture.taskWithNestedProperty()
-        buildFile << """      
+        buildFile << """
             taskWithNestedProperty.bean = ${from}
 
             task configureTask {
@@ -203,7 +203,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
                     taskWithNestedProperty.bean = ${to}
                 }
             }
-            
+
             taskWithNestedProperty.dependsOn(configureTask)
         """
 
@@ -231,7 +231,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(iterationMatchers = ".*inputProperty.*")
     def "re-configuring #change in nested bean after the task started executing has no effect"() {
         def fixture = new NestedBeanTestFixture()
         fixture.prepareInputFiles()
@@ -264,14 +264,14 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(iterationMatchers = ".*from firstBean to null.*")
     def "re-configuring a nested bean from #from to #to after the task started executing has no effect"() {
         def fixture = new NestedBeanTestFixture()
         fixture.prepareInputFiles()
         buildFile << fixture.taskWithNestedProperty()
-        buildFile << """   
+        buildFile << """
             taskWithNestedProperty.bean = ${from}
-            
+
             taskWithNestedProperty.doLast {
                 bean = ${to}
             }
@@ -351,60 +351,60 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         String taskWithNestedProperty() {
             """
             class TaskWithNestedProperty extends DefaultTask {
-                @Nested     
+                @Nested
                 @Optional
                 Object bean
-    
+
                 @OutputFile
                 final RegularFileProperty outputFile = project.objects.fileProperty()
-    
+
                 @TaskAction
                 void writeInputToFile() {
                     outputFile.getAsFile().get().text = bean == null ? 'null' : bean.toString()
                     if (bean != null) {
-                        bean.doStuff()     
+                        bean.doStuff()
                     }
                 }
             }
-    
+
             class NestedBean {
                 @Input
                 String firstInput
-    
+
                 @InputFile
                 File firstInputFile
-    
+
                 @OutputFile
                 File firstOutputFile
-    
+
                 String toString() {
                     firstInput
                 }
-    
+
                 void doStuff() {
                     firstOutputFile.text = firstInputFile.text
                 }
             }
-    
+
             class OtherNestedBean {
                 @Input
                 String secondInput
-    
+
                 @InputFile
                 File secondInputFile
-    
+
                 @OutputFile
                 File secondOutputFile
-    
+
                 String toString() {
                     secondInput
                 }
-    
+
                 void doStuff() {
                     secondOutputFile.text = secondInputFile.text
                 }
             }
-            
+
             def firstString = project.findProperty('firstInput')
             def firstBean = new NestedBean(firstInput: firstString, firstOutputFile: file("${firstOutputFile}"), firstInputFile: file("${firstInputFile}"))
 
@@ -426,19 +426,19 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
                 Object getNested() {
                     throw new RuntimeException("BOOM")
                 }
-                
+
                 @Input
                 String input = "Hello"
-                
+
                 @OutputFile
                 File outputFile
-                
+
                 @TaskAction
                 void doStuff() {
                     outputFile.text = input
                 }
-            }            
-            
+            }
+
             task myTask(type: TaskWithFailingNestedInput) {
                 outputFile = file('build/output.txt')
             }
@@ -455,22 +455,22 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
             class TaskWithAbsentNestedInput extends DefaultTask {
                 @Nested
                 Object nested
-                
+
                 @Input
                 String input = "Hello"
-                
+
                 @OutputFile
                 File outputFile
-                
+
                 @TaskAction
                 void doStuff() {
                     outputFile.text = input
                 }
-            }            
-            
+            }
+
             task myTask(type: TaskWithAbsentNestedInput) {
                 outputFile = file('build/output.txt')
-            }            
+            }
         """
 
         expect:
@@ -485,22 +485,22 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
                 @Nested
                 @Optional
                 Object nested
-                
+
                 @Input
                 String input = "Hello"
-                
+
                 @OutputFile
                 File outputFile
-                
+
                 @TaskAction
                 void doStuff() {
                     outputFile.text = input
                 }
-            }            
-            
+            }
+
             task myTask(type: TaskWithAbsentNestedInput) {
                 outputFile = file('build/output.txt')
-            }            
+            }
         """
 
         expect:
@@ -513,28 +513,28 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
             class TaskWithNestedInput extends DefaultTask {
                 @Nested
                 Object nested
-                
+
                 @OutputFile
                 File outputFile
-                
+
                 @TaskAction
                 void doStuff() {
                     outputFile.text = nested.input
                 }
             }
-            
+
             class NestedBean {
                 @Input
                 input
             }
-            
+
             class OtherNestedBean {
                 @Input
                 input
             }
-            
+
             boolean useOther = project.findProperty('useOther')
-            
+
             task myTask(type: TaskWithNestedInput) {
                 outputFile = file('build/output.txt')
                 nested = useOther ? new OtherNestedBean(input: 'string') : new NestedBean(input: 'string')
@@ -566,12 +566,12 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
                 @Optional
                 Iterable<Object> beans
             }
-            
+
             class NestedBean {
                 @Input
                 String input
             }
-            
+
             task myTask(type: TaskWithNestedIterable) {
                 beans = [new NestedBean(input: 'input'), null]
             }
@@ -589,18 +589,18 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
             class TaskWithNestedIterable extends DefaultTask {
                 @Nested
                 Iterable<Object> beans
-                
+
                 @OutputFile
                 File outputFile
-                
+
                 @TaskAction
                 void doStuff() {
                     outputFile.text = beans.flatten()*.input.join('\\n')
                 }
             }
-            
+
             def inputString = project.findProperty('input') ?: 'input'
-            
+
             task myTask(type: TaskWithNestedIterable) {
                 outputFile = file('build/output.txt')
                 beans = [[new NestedBean(inputString)], [new NestedBean('secondInput')]]
@@ -629,29 +629,29 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
             class TaskWithNestedInput extends DefaultTask {
                 @Nested
                 Object nested
-                
+
                 @Input
                 String input = "Hello"
-                
+
                 @OutputFile
                 File outputFile
-                
+
                 @TaskAction
                 void doStuff() {
                     outputFile.text = input
                 }
-            }            
-            
+            }
+
             class NestedBean {
                 @Nested
                 NestedBean nested
             }
-            
+
             task myTask(type: TaskWithNestedInput) {
                 outputFile = file('build/output.txt')
                 nested = new NestedBean()
                 nested.nested = nested
-            }            
+            }
         """
 
         expect:
@@ -664,7 +664,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         buildFile << taskWithNestedInput()
         buildFile << namedBeanClass()
         buildFile << """
-            myTask.nested = [new NamedBean('name', 'value1'), new NamedBean('name', 'value2')]           
+            myTask.nested = [new NamedBean('name', 'value1'), new NamedBean('name', 'value2')]
         """
 
         expect:
@@ -701,8 +701,8 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
     def "input changes for task with named nested beans"() {
         buildFile << taskWithNestedInput()
         buildFile << namedBeanClass()
-        buildFile << """                                   
-            myTask.nested = [new NamedBean(project.property('namedName'), 'value1'), new NamedBean('name', 'value2')]           
+        buildFile << """
+            myTask.nested = [new NamedBean(project.property('namedName'), 'value1'), new NamedBean('name', 'value2')]
         """
         def taskPath = ':myTask'
 
@@ -728,8 +728,8 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
     def "input changes for task with nested map"() {
         buildFile << taskWithNestedInput()
         buildFile << nestedBeanWithStringInput()
-        buildFile << """                                   
-            myTask.nested = [(project.property('key')): new NestedBean('value1'), key2: new NestedBean('value2')]           
+        buildFile << """
+            myTask.nested = [(project.property('key')): new NestedBean('value1'), key2: new NestedBean('value2')]
         """
         def taskPath = ':myTask'
 
@@ -812,7 +812,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         buildFile << """
             def domainObjectCollection = objects.domainObjectContainer(Bean)
             myTask.nested = domainObjectCollection
-            
+
             domainObjectCollection.create('first') { prop = project.property('value') }
             domainObjectCollection.create('second') { prop = '2' }
         """
@@ -867,13 +867,13 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
             class TaskWithNestedInput extends DefaultTask {
                 @Nested
                 Object nested
-                
+
                 @Input
                 String input = "Hello"
-                
+
                 @OutputFile
                 File outputFile
-                
+
                 @TaskAction
                 void doStuff() {
                     outputFile.text = input
@@ -890,7 +890,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         """
             class NestedBean {
                 @Input final String input
-                
+
                 NestedBean(String input) {
                     this.input = input
                 }
@@ -903,11 +903,11 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         taskWithNestedBeanWithAction()
         buildFile << """
             extensions.create("bean", NestedBeanWithAction.class)
-            
+
             bean {
                 withAction { it.text = "hello" }
             }
-            
+
             task myTask(type: TaskWithNestedBeanWithAction) {
                 bean = project.bean
             }
@@ -944,11 +944,11 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
                 apply plugin: 'base'
 
                 extensions.create("bean", NestedBeanWithAction.class)
-                
+
                 bean {
                     withAction { it.text = "hello" }
                 }
-                
+
                 task myTask(type: TaskWithNestedBeanWithAction) {
                     bean = project.bean
                     outputs.cacheIf { true }
@@ -990,14 +990,14 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
             import org.gradle.api.tasks.Nested;
             import org.gradle.api.Action;
             import java.io.File;
-            
+
             public class NestedBeanWithAction {
                 private Action<File> action;
-                
+
                 public void withAction(Action<File> action) {
                     this.action = action;
                 }
-                
+
                 @Nested
                 public Action<File> getAction() {
                     return action;
@@ -1015,32 +1015,32 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
             import org.gradle.api.tasks.Nested;
             import org.gradle.api.tasks.OutputFile;
             import org.gradle.api.tasks.TaskAction;
-            
+
             import java.io.File;
-            
+
             @NonNullApi
             public class TaskWithNestedBeanWithAction extends DefaultTask {
                 private File outputFile = new File(getTemporaryDir(), "output.txt");
                 private NestedBeanWithAction bean;
-                
+
                 @OutputFile
                 public File getOutputFile() {
                     return outputFile;
                 }
-            
+
                 public void setOutputFile(File outputFile) {
                     this.outputFile = outputFile;
                 }
-            
+
                 @Nested
                 public NestedBeanWithAction getBean() {
                     return bean;
                 }
-                
+
                 public void setBean(NestedBeanWithAction bean) {
                     this.bean = bean;
                 }
-            
+
                 @TaskAction
                 public void doStuff() {
                     bean.getAction().execute(outputFile);

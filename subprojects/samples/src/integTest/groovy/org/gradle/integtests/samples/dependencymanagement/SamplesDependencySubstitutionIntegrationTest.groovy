@@ -35,7 +35,7 @@ class SamplesDependencySubstitutionIntegrationTest extends AbstractIntegrationSp
 
     @Unroll
     @UsesSample("userguide/dependencyManagement/customizingResolution/conditionalSubstitutionRule")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(iterationMatchers = ".*kotlin dsl")
     def "can run sample with all external dependencies with #dsl dsl" () {
         executer.inDirectory(sample.dir.file(dsl))
 
@@ -56,7 +56,7 @@ class SamplesDependencySubstitutionIntegrationTest extends AbstractIntegrationSp
 
     @Unroll
     @UsesSample("userguide/dependencyManagement/customizingResolution/conditionalSubstitutionRule")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(iterationMatchers = ".*kotlin dsl")
     def "can run sample with some internal projects with #dsl dsl" () {
         executer.inDirectory(sample.dir.file(dsl))
 

@@ -39,7 +39,7 @@ class ToBeFixedForInstantExecutionExtension extends AbstractAnnotationDrivenExte
                     if (isEnabledBottomSpec(annotation.bottomSpecs(), { spec.bottomSpec.name == it })) {
                         ToBeFixedForInstantExecution.Skip skip = annotation.skip()
                         if (skip == ToBeFixedForInstantExecution.Skip.DO_NOT_SKIP) {
-                            spec.addListener(new CatchFeatureFailuresRunListener(feature))
+                            spec.addListener(new CatchFeatureFailuresRunListener(feature, annotation.iterationMatchers()))
                         } else {
                             feature.skipped = true
                         }
@@ -53,6 +53,14 @@ class ToBeFixedForInstantExecutionExtension extends AbstractAnnotationDrivenExte
         return bottomSpecs.length == 0 || bottomSpecs.any { specNamePredicate.test(it) }
     }
 
+    static boolean iterationMatches(String[] iterationMatchers, String iterationName) {
+        return isAllIterations(iterationMatchers) || iterationMatchers.any { iterationName.matches(it) }
+    }
+
+    static boolean isAllIterations(String[] iterationMatchers) {
+        return iterationMatchers.length == 0
+    }
+
     @Override
     void visitFeatureAnnotation(ToBeFixedForInstantExecution annotation, FeatureInfo feature) {
         // This override is required to satisfy spock's zealous runtime checks
@@ -64,17 +72,24 @@ class ToBeFixedForInstantExecutionExtension extends AbstractAnnotationDrivenExte
      * Registration happens as late as possible and to the utmost position in the stack in order to catch
      * failures without being sensible to other spock extensions that re-order interceptors nor to the place
      * of annotated spock features in hierarchies of spec classes.
+     *
+     * This is also so that failures in setup and cleanup methods are taken into account by the annotation.
+     * Unfortunately this leads to not being able to throw from inside the interceptors but instead throw
+     * from outside the test execution, after setup/test/cleanup, in Spock's core, effectively stopping the
+     * whole spec execution. In practice, as soon as a test doesn't behave, we stop executing subsequent tests.
      */
     private static class CatchFeatureFailuresRunListener extends AbstractRunListener {
 
         private final FeatureInfo feature
+        private final String[] iterationMatchers
         private final RecordFailuresInterceptor failuresInterceptor
         private final FeatureFilterInterceptor fixturesInterceptor
 
-        CatchFeatureFailuresRunListener(FeatureInfo feature) {
+        CatchFeatureFailuresRunListener(FeatureInfo feature, String[] iterationMatchers) {
             this.feature = feature
-            this.failuresInterceptor = new RecordFailuresInterceptor()
-            this.fixturesInterceptor = new FeatureFilterInterceptor(feature, failuresInterceptor)
+            this.iterationMatchers = iterationMatchers
+            this.failuresInterceptor = new RecordFailuresInterceptor(iterationMatchers)
+            this.fixturesInterceptor = new FeatureFilterInterceptor(feature, iterationMatchers, failuresInterceptor)
         }
 
         @Override
@@ -100,16 +115,28 @@ class ToBeFixedForInstantExecutionExtension extends AbstractAnnotationDrivenExte
         }
 
         @Override
+        void afterIteration(IterationInfo iteration) {
+            super.afterIteration(iteration)
+        }
+
+        @Override
         void afterFeature(FeatureInfo featureInfo) {
             if (featureInfo == feature) {
-                if (failuresInterceptor.failures.empty) {
+                if (failuresInterceptor.failuresByIterations.empty) {
                     throw new UnexpectedSuccessException()
                 } else {
+                    def isAllIterations = isAllIterations(iterationMatchers)
+                    def unexpectedSuccessIterations = failuresInterceptor.failuresByIterations.findAll {
+                        it.value.isEmpty() && (isAllIterations || iterationMatches(iterationMatchers, it.key))
+                    }.collect { it.key }
+                    if (!unexpectedSuccessIterations.isEmpty()) {
+                        throw new UnexpectedSuccessException(unexpectedSuccessIterations)
+                    }
                     System.err.println("Failed with instant execution as expected:")
-                    if (failuresInterceptor.failures.size() == 1) {
-                        failuresInterceptor.failures.first().printStackTrace()
+                    if (failuresInterceptor.failuresByIterations.size() == 1 && failuresInterceptor.failuresByIterations.values().first().size() == 1) {
+                        failuresInterceptor.failuresByIterations.values().flatten().first().printStackTrace()
                     } else {
-                        new ExpectedFailureException(failuresInterceptor.failures).printStackTrace()
+                        new ExpectedFailureException(failuresInterceptor.failuresByIterations).printStackTrace()
                     }
                 }
             }
@@ -119,16 +146,18 @@ class ToBeFixedForInstantExecutionExtension extends AbstractAnnotationDrivenExte
     private static class FeatureFilterInterceptor implements IMethodInterceptor {
 
         private final FeatureInfo feature
+        private final String[] iterationMatchers
         private final IMethodInterceptor next
 
-        FeatureFilterInterceptor(FeatureInfo feature, IMethodInterceptor next) {
+        FeatureFilterInterceptor(FeatureInfo feature, String[] iterationMatchers, IMethodInterceptor next) {
             this.feature = feature
+            this.iterationMatchers = iterationMatchers
             this.next = next
         }
 
         @Override
         void intercept(IMethodInvocation invocation) throws Throwable {
-            if (invocation.feature == feature) {
+            if (invocation.feature == feature && (isAllIterations(iterationMatchers) || iterationMatches(iterationMatchers, invocation.iteration.name))) {
                 next.intercept(invocation)
             } else {
                 invocation.proceed()
@@ -138,28 +167,57 @@ class ToBeFixedForInstantExecutionExtension extends AbstractAnnotationDrivenExte
 
     private static class RecordFailuresInterceptor implements IMethodInterceptor {
 
-        List<Throwable> failures = []
+        private final String[] iterationMatchers
+        Map<String, List<Throwable>> failuresByIterations = [:]
+
+        RecordFailuresInterceptor(String[] iterationMatchers) {
+            this.iterationMatchers = iterationMatchers
+        }
 
         @Override
         void intercept(IMethodInvocation invocation) throws Throwable {
-            try {
+            failuresByIterations.computeIfAbsent(invocation.iteration.name, { [] })
+            if (isAllIterations(iterationMatchers) || iterationMatches(iterationMatchers, invocation.iteration.name)) {
+                try {
+                    invocation.proceed()
+                } catch (Throwable ex) {
+                    failuresByIterations[invocation.iteration.name].add(ex)
+                }
+            } else {
                 invocation.proceed()
-            } catch (Throwable ex) {
-                failures += ex
             }
         }
     }
 
     static class UnexpectedSuccessException extends Exception {
+
         UnexpectedSuccessException() {
             super("Expected to fail with instant execution, but succeeded!")
+        }
+
+        UnexpectedSuccessException(Collection<String> succeededIterations) {
+            super("Expected to fail with instant execution, but succeeded on the following iterations!\n- ${succeededIterations.join("\n- ")}")
         }
     }
 
     static class ExpectedFailureException extends Exception {
-        ExpectedFailureException(List<Throwable> failures) {
-            super("Expected failure with instant execution")
-            failures.each { addSuppressed(it) }
+
+        ExpectedFailureException(Map<String, List<Throwable>> failuresByIterations) {
+            this()
+            failuresByIterations.each {
+                def itEx = new ExpectedFailureException(it.key)
+                itEx.setStackTrace(new StackTraceElement[0])
+                if (it.value.size() == 1) {
+                    itEx.initCause(it.value.first())
+                } else {
+                    it.value.each { itEx.addSuppressed(it) }
+                }
+                addSuppressed(itEx)
+            }
+        }
+
+        private ExpectedFailureException(String message = "Expected failure with instant execution") {
+            super(message)
         }
     }
 }
