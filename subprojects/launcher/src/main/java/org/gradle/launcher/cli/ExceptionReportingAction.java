@@ -17,6 +17,7 @@ package org.gradle.launcher.cli;
 
 import org.gradle.api.Action;
 import org.gradle.initialization.ReportedException;
+import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.internal.logging.LoggingOutputInternal;
 import org.gradle.launcher.bootstrap.ExecutionListener;
 
@@ -24,11 +25,13 @@ public class ExceptionReportingAction implements Action<ExecutionListener> {
     private final Action<ExecutionListener> action;
     private final Action<Throwable> reporter;
     private final LoggingOutputInternal loggingOutput;
+    private final ExceptionAnalyser exceptionAnalyser;
 
-    public ExceptionReportingAction(Action<ExecutionListener> action, Action<Throwable> reporter, LoggingOutputInternal loggingOutput) {
+    public ExceptionReportingAction(Action<ExecutionListener> action, Action<Throwable> reporter, LoggingOutputInternal loggingOutput, ExceptionAnalyser exceptionAnalyser) {
         this.action = action;
         this.reporter = reporter;
         this.loggingOutput = loggingOutput;
+        this.exceptionAnalyser = exceptionAnalyser;
     }
 
     @Override
@@ -43,8 +46,9 @@ public class ExceptionReportingAction implements Action<ExecutionListener> {
             // Exception has already been reported
             executionListener.onFailure(e);
         } catch (Throwable t) {
-            reporter.execute(t);
-            executionListener.onFailure(t);
+            RuntimeException e = exceptionAnalyser.transform(t);
+            reporter.execute(e);
+            executionListener.onFailure(e);
         }
     }
 }

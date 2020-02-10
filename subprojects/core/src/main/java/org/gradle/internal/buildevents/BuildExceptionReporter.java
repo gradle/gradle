@@ -15,8 +15,6 @@
  */
 package org.gradle.internal.buildevents;
 
-import com.google.common.base.Throwables;
-import net.rubygrapefruit.platform.NativeException;
 import org.gradle.BuildResult;
 import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
@@ -32,7 +30,6 @@ import org.gradle.internal.logging.text.BufferingStyledTextOutput;
 import org.gradle.internal.logging.text.LinePrefixingStyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
-import org.gradle.internal.service.ServiceCreationException;
 import org.gradle.util.GUtil;
 import org.gradle.util.TreeVisitor;
 
@@ -137,9 +134,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
 
         fillInFailureResolution(details);
 
-        if (isInternalFailure(failure)) {
-            reportInternalGradleError(details, failure);
-        } else if (failure instanceof LocationAwareException) {
+        if (failure instanceof LocationAwareException) {
             LocationAwareException scriptException = (LocationAwareException) failure;
             details.failure = scriptException.getCause();
             if (scriptException.getLocation() != null) {
@@ -150,19 +145,6 @@ public class BuildExceptionReporter implements Action<Throwable> {
         } else {
             details.details.text(getMessage(failure));
         }
-    }
-
-    private static boolean isInternalFailure(Throwable failure) {
-        if (failure instanceof LocationAwareException) {
-            failure = failure.getCause();
-        }
-        return failure instanceof ServiceCreationException || failure instanceof NativeException;
-    }
-
-    private static void reportInternalGradleError(FailureDetails details, Throwable failure) {
-        details.details.text("Gradle could not start your build.");
-        LinePrefixingStyledTextOutput output = getLinePrefixingStyledTextOutput(details, 0);
-        output.text(Throwables.getRootCause(failure).getMessage());
     }
 
     private static class ExceptionFormattingVisitor extends TreeVisitor<Throwable> {
@@ -179,7 +161,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
         @Override
         public void node(Throwable node) {
             if (node != scriptException) {
-                LinePrefixingStyledTextOutput output = getLinePrefixingStyledTextOutput(failureDetails, depth);
+                LinePrefixingStyledTextOutput output = getLinePrefixingStyledTextOutput(failureDetails);
                 output.text(getMessage(node));
             }
         }
@@ -193,19 +175,19 @@ public class BuildExceptionReporter implements Action<Throwable> {
         public void endChildren() {
             depth--;
         }
-    }
 
-    private static LinePrefixingStyledTextOutput getLinePrefixingStyledTextOutput(FailureDetails details, int depth) {
-        details.details.format("%n");
-        StringBuilder prefix = new StringBuilder();
-        for (int i = 1; i < depth; i++) {
-            prefix.append("   ");
+        private LinePrefixingStyledTextOutput getLinePrefixingStyledTextOutput(FailureDetails details) {
+            details.details.format("%n");
+            StringBuilder prefix = new StringBuilder();
+            for (int i = 1; i < depth; i++) {
+                prefix.append("   ");
+            }
+            details.details.text(prefix);
+            prefix.append("  ");
+            details.details.style(Info).text("> ").style(Normal);
+
+            return new LinePrefixingStyledTextOutput(details.details, prefix, false);
         }
-        details.details.text(prefix);
-        prefix.append("  ");
-        details.details.style(Info).text("> ").style(Normal);
-
-        return new LinePrefixingStyledTextOutput(details.details, prefix, false);
     }
 
     private void fillInFailureResolution(FailureDetails details) {

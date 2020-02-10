@@ -47,6 +47,7 @@ import org.gradle.internal.nativeintegration.network.HostnameLookup;
 import org.gradle.internal.nativeintegration.processenvironment.NativePlatformBackedProcessEnvironment;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.ServiceCreationException;
 import org.gradle.internal.service.ServiceRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,7 +77,11 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
      * Initializes the native services to use the given user home directory to store native libs and other resources. Does nothing if already initialized.
      */
     public static void initialize(File userHomeDir) {
-        initialize(userHomeDir, true);
+        try {
+            initialize(userHomeDir, true);
+        } catch (RuntimeException e) {
+            throw new ServiceCreationException("Could not initialize native services.", e);
+        }
     }
 
     /**

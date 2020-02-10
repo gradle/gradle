@@ -44,11 +44,9 @@ class InternalGradleFailuresIntegrationTest extends AbstractIntegrationSpec {
         fails 'hello'
 
         then:
-        errorOutput.contains("FAILURE: Build failed with an exception.\n" +
-            "\n" +
-            "* What went wrong:\n" +
-            "Gradle could not start your build.\n" +
-            "> Failed to create directory '${localGradleCache}/checksums'")
+        failure.assertHasFailures(1)
+        failure.assertHasDescription("Gradle could not start your build.")
+        failure.assertHasCause("Failed to create directory '${localGradleCache}/checksums'")
     }
 
     @Requires(TestPrecondition.NOT_WINDOWS)
@@ -64,11 +62,9 @@ class InternalGradleFailuresIntegrationTest extends AbstractIntegrationSpec {
         fails 'hello'
 
         then:
-        errorOutput.contains("FAILURE: Build failed with an exception.\n" +
-            "\n" +
-            "* What went wrong:\n" +
-            "Gradle could not start your build.\n" +
-            "> Failed to create parent directory '${executer.gradleUserHomeDir}/caches' when creating directory '${executer.gradleUserHomeDir}/caches/${GradleVersion.current().version}/generated-gradle-jars'")
+        failure.assertHasFailures(1)
+        failure.assertHasDescription("Gradle could not start your build.")
+        failure.assertHasCause("Failed to create parent directory '${executer.gradleUserHomeDir}/caches' when creating directory '${executer.gradleUserHomeDir}/caches/${GradleVersion.current().version}/generated-gradle-jars'")
     }
 
     @Requires(TestPrecondition.NOT_WINDOWS)
@@ -86,11 +82,9 @@ class InternalGradleFailuresIntegrationTest extends AbstractIntegrationSpec {
         fails 'hello'
 
         then:
-        errorOutput.contains("FAILURE: Build failed with an exception.\n" +
-            "\n" +
-            "* What went wrong:\n" +
-            "Gradle could not start your build.\n" +
-            "> Failed to create directory '${daemonDir}/${GradleVersion.current().version}'")
+        failure.assertHasFailures(1)
+        failure.assertHasDescription("Gradle could not start your build.")
+        failure.assertHasCause("Failed to create directory '${daemonDir}/${GradleVersion.current().version}'")
     }
 
     @Requires(TestPrecondition.NOT_WINDOWS)
@@ -105,12 +99,10 @@ class InternalGradleFailuresIntegrationTest extends AbstractIntegrationSpec {
         fails 'hello'
 
         then:
-        errorOutput.contains("FAILURE: Build failed with an exception.\n" +
-            "\n" +
-            "* What went wrong:\n" +
-            "Gradle could not start your build.\n" +
-            "> Not a directory")
-        errorOutput.contains("net.rubygrapefruit.platform.NativeException: Failed to load native library")
+        failure.assertHasFailures(1)
+        failure.assertHasDescription("Gradle could not start your build.")
+        failure.assertHasCause("Could not initialize native services.")
+        failure.assertHasErrorOutput("Caused by: net.rubygrapefruit.platform.NativeException: Failed to load native library")
     }
 
 }
