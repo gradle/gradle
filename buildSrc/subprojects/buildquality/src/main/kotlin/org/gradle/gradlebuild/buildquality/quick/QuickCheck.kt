@@ -110,8 +110,14 @@ enum class Check(private val extension: String) {
         }
 
         override fun addDependencies(project: Project) {
+            val ruleClass = Class.forName("org.gradle.gradlebuild.buildquality.codenarc.IntegrationTestFixturesRule", false, this.javaClass.classLoader)
             project.dependencies.add("quickCheck", project.dependencies.localGroovy())
-            project.dependencies.add("quickCheck", "org.codenarc:CodeNarc:1.5")
+            project.dependencies.add("quickCheck", project.dependencies.embeddedKotlin("stdlib"))
+            project.dependencies.add("quickCheck", "org.slf4j:slf4j-api:1.7.28")
+            project.dependencies.add("quickCheck", project.files(ruleClass.protectionDomain!!.codeSource!!.location))
+            project.dependencies.add("quickCheck", "org.codenarc:CodeNarc:1.5") {
+                isTransitive = false
+            }
         }
 
         private
