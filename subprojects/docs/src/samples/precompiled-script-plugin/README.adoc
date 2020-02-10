@@ -6,8 +6,8 @@ The Gradle plugin id by which the precompiled script can be referenced is derive
 and optional package declaration.
 
 ====
-include::sample[dir="samples/precompiled-script-plugin/groovy",files="build.gradle[]"]
-include::sample[dir="samples/precompiled-script-plugin/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="groovy",files="build.gradle[]"]
+include::sample[dir="kotlin",files="build.gradle.kts[]"]
 ====
 
 The sample is comprised of two builds:
@@ -16,33 +16,13 @@ The sample is comprised of two builds:
 2. The root build is a user of the plugin above. 
 
 Running the task added by the precompiled script plugin:
-====
-[.testable-sample,dir="groovy"]
-=====
-[.sample-command]
+[listing.terminal.sample-command]
 ----
 $ ./gradlew greet
-
-> Task :plugin:extractPrecompiledScriptPluginPlugins
-> Task :plugin:generateExternalPluginSpecBuilders
-> Task :plugin:compilePluginsBlocks
-> Task :plugin:generatePrecompiledScriptPluginAccessors
-> Task :plugin:configurePrecompiledScriptDependenciesResolver
-> Task :plugin:generateScriptPluginAdapters
-> Task :plugin:compileKotlin
-> Task :plugin:compileJava NO-SOURCE
-> Task :plugin:pluginDescriptors
-> Task :plugin:processResources
-> Task :plugin:classes
-> Task :plugin:inspectClassesForKotlinIC
-> Task :plugin:jar
 
 > Task :greet
 Hello, World!
 
-BUILD SUCCESSFUL in 0s
+BUILD SUCCESSFUL
 1 actionable task: 1 executed
-
 ----
-=====
-====

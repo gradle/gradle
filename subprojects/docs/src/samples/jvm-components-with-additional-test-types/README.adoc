@@ -7,30 +7,25 @@ In this sample, we are testing Java projects with JUnit4; however, this applies 
 For applications:
 
 ====
-include::sample[dir="samples/jvm-components-with-additional-test-types/groovy",files="application/build.gradle[]"]
-include::sample[dir="samples/jvm-components-with-additional-test-types/kotlin",files="application/build.gradle.kts[]"]
+include::sample[dir="groovy",files="application/build.gradle[]"]
+include::sample[dir="kotlin",files="application/build.gradle.kts[]"]
 ====
 
 For libraries:
 
 ====
-include::sample[dir="samples/jvm-components-with-additional-test-types/groovy",files="list/build.gradle[]"]
-include::sample[dir="samples/jvm-components-with-additional-test-types/kotlin",files="list/build.gradle.kts[]"]
+include::sample[dir="groovy",files="list/build.gradle[]"]
+include::sample[dir="kotlin",files="list/build.gradle.kts[]"]
 ====
 
 These additional tests can be executed with the `integrationTest` task or as part of lifecycle `check`:
 
-====
-[.testable-sample,dir="groovy"]
-=====
-[.sample-command]
+[listing.terminal.sample-command]
 ----
 $ ./gradlew check
 
-BUILD SUCCESSFUL in 2s
-11 actionable tasks: 11 executed
+BUILD SUCCESSFUL
+5 actionable tasks: 5 executed
 ----
-=====
-====
 
 For more information, see link:{userManualPath}/java_testing.html#sec:configuring_java_integration_tests[section Configuring integration tests in the Testing in Java project chapter].

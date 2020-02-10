@@ -6,24 +6,19 @@ This sample shows how a Java library can be built with Gradle.
 The library has no dependencies and the build has minimal configuration.
 
 ====
-include::sample[dir="samples/java-library/groovy",files="build.gradle[]"]
-include::sample[dir="samples/java-library/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="groovy",files="build.gradle[]"]
+include::sample[dir="kotlin",files="build.gradle.kts[]"]
 ====
 
 To build the library:
 
-====
-[.testable-sample,dir="groovy"]
-=====
-[.sample-command]
+[listing.terminal.sample-command]
 ----
 $ ./gradlew jar
 
-BUILD SUCCESSFUL in 1s
+BUILD SUCCESSFUL
 2 actionable tasks: 2 executed
 ----
-=====
-====
 
 For more information, see link:{userManualPath}/java_library_plugin.html[Java Library Plugin reference chapter].
 

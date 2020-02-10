@@ -4,16 +4,13 @@ This sample shows how a Spring Boot Web application can be built with Gradle.
 The application was generated using the https://start.spring.io/#!type=gradle-project[Spring Initializr].
 
 ====
-include::sample[dir="samples/spring-boot-web-application/groovy",files="build.gradle[]"]
-include::sample[dir="samples/spring-boot-web-application/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="groovy",files="build.gradle[]"]
+include::sample[dir="kotlin",files="build.gradle.kts[]"]
 ====
 
 To build and run the application:
 
-====
-[.testable-sample,dir="groovy"]
-=====
-[.sample-command]
+[listing.terminal]
 ----
 $ ./gradlew bootRun
 
@@ -31,11 +28,9 @@ $ ./gradlew bootRun
 2019-11-12 22:14:43.820  INFO 1389 --- [           main] o.g.samples.SpringBootDemoApplication    : No active profile set, falling back to default profiles: default
 2019-11-12 22:14:44.108  INFO 1389 --- [           main] o.g.samples.SpringBootDemoApplication    : Started SpringBootDemoApplication in 5.537 seconds (JVM running for 5.8)
 
-BUILD SUCCESSFUL in 6s
+BUILD SUCCESSFUL
 3 actionable tasks: 3 executed
 ----
-=====
-====
 
 For more information, we suggest reading link:{userManualPath}/getting_started.html[Getting Started with Gradle].
 You can also find https://spring.io/guides[Spring Boot related information inside the guides provided by the Spring team].
