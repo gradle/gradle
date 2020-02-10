@@ -177,3 +177,34 @@ span.wrapped pre {
 label.hidden {
     display: none;
 }
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+    html {
+      background: black;
+    }
+    body, a, a:visited {
+        color: #a3a3a3;
+    }
+    #footer, #footer a {
+        color: #cacaca;
+    }
+    ul.tabLinks li {
+        border: solid 1px #cacaca;
+        background-color: #151515;
+    }
+    ul.tabLinks li:hover {
+        background-color: #383838;
+    }
+    ul.tabLinks li.selected {
+        background-color: #002d32;
+        border-color: #007987;
+    }
+    div.tab th, div.tab table {
+        border-bottom: solid #d0d0d0 1px;
+    }
+    span.code pre {
+        background-color: #0a0a0a;
+        border: solid 1px #5f5f5f;
+    }
+}
