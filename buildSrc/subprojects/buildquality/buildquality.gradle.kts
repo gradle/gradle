@@ -10,7 +10,7 @@ dependencies {
     implementation(project(":profiling"))
 
     implementation("org.owasp:dependency-check-gradle:3.1.0")
-    implementation("org.codenarc:CodeNarc:1.0") {
+    implementation("org.codenarc:CodeNarc:1.5") {
         exclude(group = "org.codehaus.groovy")
     }
     implementation("com.github.javaparser:javaparser-symbol-solver-core")
