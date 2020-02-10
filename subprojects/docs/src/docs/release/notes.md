@@ -117,6 +117,17 @@ For example:
 
 In some terminals, this link will be clickable and take you directly to the documentation.
 
+## Gradle Wrapper Verification GitHub Action
+
+We have created [an official GitHub Action](https://github.com/marketplace/actions/gradle-wrapper-validation) that allows your projects on GitHub to automatically verify that the `gradle-wrapper.jar` in their repository was released by Gradle.
+
+<!-- TODO: Replace this with link to blog when live -->
+See why this is important and how to apply this action to your project
+[here](https://github.com/gradle/wrapper-validation-action).
+
+You can still manually verify the `gradle-wrapper.jar` by following the instructions in our
+[Gradle Wrapper user manual](userguide/gradle_wrapper.html#sec:wrapper_checksum_verification).
+
 <a name="plugin-dev"></a>
 ## Improvements for Plugin Development
 
@@ -132,17 +143,6 @@ This will change once [IDEA-231667](https://youtrack.jetbrains.com/issue/IDEA-23
 ### Injectable services available to Settings plugins
 
 Our `ExecOperations` and `FileSystemOperations` [injectable services](userguide/custom_gradle_types.html#services_for_injection) are now available to Settings plugins.
-
-## Gradle Wrapper Verification GitHub Action
-
-We have created [an official GitHub Action](https://github.com/marketplace/actions/gradle-wrapper-validation) that allows your projects on GitHub to automatically verify that the `gradle-wrapper.jar` in their repository was released by Gradle.
-
-<!-- TODO: Replace this with link to blog when live -->
-See why this is important and how to apply this action to your project
-[here](https://github.com/gradle/wrapper-validation-action).
-
-You can still manually verify the `gradle-wrapper.jar` by following the instructions in our
-[Gradle Wrapper user manual](userguide/gradle_wrapper.html#sec:wrapper_checksum_verification).
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backward compatibility.
