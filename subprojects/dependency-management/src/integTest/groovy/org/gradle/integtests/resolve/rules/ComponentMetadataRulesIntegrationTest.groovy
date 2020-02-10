@@ -129,13 +129,9 @@ dependencies {
 
         then:
         succeeds 'resolve'
-        if (isGradleMetadataPublished()) {
-            outputContains("selectorSize:0")
-        } else {
-            outputContains("selectorSize:1")
-            outputContains("classifier:classy")
-            outputContains("type:jar")
-        }
+        outputContains("selectorSize:1")
+        outputContains("classifier:classy")
+        outputContains("type:jar")
     }
 
     def "added dependency has no artifact selectors"() {

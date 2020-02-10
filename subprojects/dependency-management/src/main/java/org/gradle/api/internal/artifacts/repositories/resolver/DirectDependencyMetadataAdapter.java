@@ -23,6 +23,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.model.ConfigurationBoundExternalDependencyMetadata;
 import org.gradle.internal.component.external.model.ExternalDependencyDescriptor;
+import org.gradle.internal.component.external.model.GradleDependencyMetadata;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.external.model.ivy.IvyDependencyDescriptor;
 import org.gradle.internal.component.external.model.maven.MavenDependencyDescriptor;
@@ -73,6 +74,16 @@ public class DirectDependencyMetadataAdapter extends AbstractDependencyMetadataA
             if (descriptor instanceof IvyDependencyDescriptor) {
                 return fromIvyDescriptor((IvyDependencyDescriptor) descriptor);
             }
+        } else if (originalMetadata instanceof GradleDependencyMetadata){
+            return fromGradleMetadata((GradleDependencyMetadata) originalMetadata);
+        }
+        return Collections.emptyList();
+    }
+
+    private List<IvyArtifactName> fromGradleMetadata(GradleDependencyMetadata metadata) {
+        IvyArtifactName artifact = metadata.getDependencyArtifact();
+        if(artifact != null) {
+            return Collections.singletonList(artifact);
         }
         return Collections.emptyList();
     }
