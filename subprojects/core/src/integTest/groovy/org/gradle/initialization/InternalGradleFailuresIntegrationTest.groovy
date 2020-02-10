@@ -21,7 +21,7 @@ import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
-class ErrorMessagesIntegrationTest extends AbstractIntegrationSpec {
+class InternalGradleFailuresIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         buildScript """
