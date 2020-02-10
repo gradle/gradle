@@ -117,16 +117,15 @@ For example:
 
 In some terminals, this link will be clickable and take you directly to the documentation.
 
-## Gradle Wrapper Verification GitHub Action
+## Verifying Gradle Wrappers 
 
-We have created [an official GitHub Action](https://github.com/marketplace/actions/gradle-wrapper-validation) that allows your projects on GitHub to automatically verify that the `gradle-wrapper.jar` in their repository was released by Gradle.
+The [Gradle Wrapper](userguide/gradle_wrapper.html) is a binary blob of executable code that is checked into nearly
+[2.8 Million GitHub Repositories](https://github.com/search?l=&q=filename%3Agradle-wrapper.jar&type=Code).  There are [security implications](https://blog.gradle.org/gradle-wrapper-checksum-verification-github-action) when accepting changes to `gradle-wrapper.jar` that may not be apparent.
 
-<!-- TODO: Replace this with link to blog when live -->
-See why this is important and how to apply this action to your project
-[here](https://github.com/gradle/wrapper-validation-action).
+We have created [an official GitHub Action](https://github.com/marketplace/actions/gradle-wrapper-validation) that allows projects on GitHub to automatically verify that the `gradle-wrapper.jar` in their repository was released by Gradle.
 
-You can still manually verify the `gradle-wrapper.jar` by following the instructions in our
-[Gradle Wrapper user manual](userguide/gradle_wrapper.html#sec:wrapper_checksum_verification).
+You can still manually verify the `gradle-wrapper.jar` by following the instructions in the
+[user manual](userguide/gradle_wrapper.html#sec:wrapper_checksum_verification).
 
 <a name="plugin-dev"></a>
 ## Improvements for Plugin Development
