@@ -91,15 +91,6 @@ abstract class DependenciesMetadataAdapterTest extends Specification {
         dependenciesMetadata[0].selector.version == "1.0"
     }
 
-    def "added dependency has no maven metadata"() {
-        when:
-        adapter.add "org.gradle.test:module1:1.0"
-
-        then:
-        println dependenciesMetadata[0].selector
-        println dependenciesMetadata[0].selector.class
-    }
-
     def "remove is propagated to the underlying dependency list"() {
         given:
         fillDependencyList(1)
