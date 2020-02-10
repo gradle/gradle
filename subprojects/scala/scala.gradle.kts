@@ -44,6 +44,8 @@ dependencies {
 
     testImplementation(project(":baseServicesGroovy"))
     testImplementation(project(":files"))
+    testImplementation(project(":processServices"))
+    testImplementation(project(":resources"))
     testImplementation(library("slf4j_api"))
     testImplementation(library("commons_io"))
     testImplementation(testFixtures(project(":core")))

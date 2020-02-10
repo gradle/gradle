@@ -18,13 +18,11 @@ package org.gradle.api.internal.file;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.collections.BuildDependenciesOnlyFileCollectionResolveContext;
 import org.gradle.api.internal.file.collections.DefaultFileCollectionResolveContext;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileCollectionContainer;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
-import org.gradle.api.internal.file.collections.ResolvableFileCollectionResolveContext;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
@@ -117,28 +115,6 @@ public abstract class CompositeFileCollection extends AbstractFileCollection imp
             fileTree.addAll(collection.getAsFileTrees());
         }
         return fileTree;
-    }
-
-    @Override
-    public FileTree getAsFileTree() {
-        return new CompositeFileTree() {
-            @Override
-            public void visitContents(FileCollectionResolveContext context) {
-                ResolvableFileCollectionResolveContext nested = context.newContext();
-                CompositeFileCollection.this.visitContents(nested);
-                context.addAll(nested.resolveAsFileTrees());
-            }
-
-            @Override
-            public void visitDependencies(TaskDependencyResolveContext context) {
-                CompositeFileCollection.this.visitDependencies(context);
-            }
-
-            @Override
-            public String getDisplayName() {
-                return CompositeFileCollection.this.getDisplayName();
-            }
-        };
     }
 
     @Override

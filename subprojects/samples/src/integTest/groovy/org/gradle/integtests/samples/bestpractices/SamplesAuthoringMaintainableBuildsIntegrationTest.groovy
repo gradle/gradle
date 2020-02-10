@@ -67,7 +67,7 @@ generateDocs - Generates the HTML documentation for this project.""")
 
     @Unroll
     @UsesSample('userguide/bestPractices/logicDuringConfiguration')
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(iterationMatchers = ".*kotlin dsl.*")
     def "can execute logic during execution phase with #dsl dsl"() {
         executer.inDirectory(sample.dir.file("$subDirName/$dsl"))
 

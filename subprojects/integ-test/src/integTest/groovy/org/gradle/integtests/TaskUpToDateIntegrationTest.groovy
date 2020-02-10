@@ -106,7 +106,7 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
                 @OutputFile
                 @Optional
                 File outputFile
-            
+
                 @TaskAction
                 void doAction() {
                     if (outputFile != null) {
@@ -114,7 +114,7 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
                     }
                 }
             }
-            
+
             task customTask(type: CustomTask) {
                 outputFile = project.hasProperty('outputFile') ? file(project.property("outputFile")) : null
             }
@@ -132,13 +132,13 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/3073")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(iterationMatchers = ".*not up-to-date")
     def "output files changed from #before to #after marks task #upToDateString"() {
         buildFile << """
             class CustomTask extends DefaultTask {
                 @OutputFiles
                 List<Object> outputFiles
-            
+
                 @TaskAction
                 void doAction() {
                     outputFiles.each { output ->
@@ -149,13 +149,13 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
                     }
                 }
             }
-            
+
             def lazyProperty(String name) {
                 def value = project.findProperty(name)
                 def outputFile = value ? file(value) : null
                 return { -> outputFile }
             }
-            
+
             task customTask(type: CustomTask) {
                 int numOutputs = Integer.valueOf(project.findProperty('numOutputs'))
                 outputFiles = (0..(numOutputs-1)).collect { lazyProperty("output\$it") }
@@ -204,10 +204,10 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
                 @Optional
                 @InputFile
                 File inputFile
-                
+
                 @OutputFile
                 File outputFile
-            
+
                 @TaskAction
                 void doAction() {
                     if (inputFile != null) {
@@ -215,7 +215,7 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
                     }
                 }
             }
-            
+
             task customTask(type: CustomTask) {
                 inputFile = project.hasProperty('inputFile') ? file(project.property("inputFile")) : null
                 outputFile = file("output.txt")
@@ -239,14 +239,14 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
             class CustomTask extends DefaultTask {
                 @OutputFiles
                 FileTree outputFiles
-            
+
                 @TaskAction
                 void doAction() {
                     project.file("build/output.txt").text = "Hello"
                     project.file("build/build.log") << "Produced at \${new Date()}\\n"
                 }
             }
-            
+
             task customTask(type: CustomTask) {
                 outputFiles = fileTree(file("build")) {
                     exclude "*.log"
@@ -317,14 +317,14 @@ import org.gradle.api.tasks.TaskAction
             abstract class MyTask extends DefaultTask {
                 @OutputFiles
                 abstract ConfigurableFileCollection getOutputFiles()
-                
+
                 @TaskAction
                 void doStuff() {
                     project.file('build/dir1/output1.txt').text = "first"
                     project.file('build/dir2/output2.txt').text = "second"
                 }
             }
-            
+
             tasks.register("myTask", MyTask) {
                 outputFiles.from(fileTree('build/dir1'))
                 outputFiles.from(fileTree('build/dir2'))
@@ -352,17 +352,17 @@ import org.gradle.api.tasks.TaskAction
                 File input
                 @OutputFile
                 File output
-                
+
                 @TaskAction
                 void doStuff() {
                     output.text = input.list().join('\\n')
                 }
-            }           
-            
+            }
+
             task myTask(type: MyTask) {
                 input = file(inputDir)
                 output = project.file("build/output.txt")
-            }          
+            }
 
             myTask.input.mkdirs()
         """
@@ -386,18 +386,18 @@ import org.gradle.api.tasks.TaskAction
     def "missing directory is ignored"() {
         buildFile << """
             class TaskWithInputDir extends DefaultTask {
-            
+
                 @InputFiles
                 FileTree inputDir
-                
+
                 @OutputFile
                 File outputFile
-            
+
                 @TaskAction
-                void doStuff() { 
-                    outputFile.text = inputDir.files.collect { it.name }.join("\\n") 
+                void doStuff() {
+                    outputFile.text = inputDir.files.collect { it.name }.join("\\n")
                 }
-            }                             
+            }
 
             task myTask1(type: TaskWithInputDir) {
                 inputDir = fileTree(file('input'))

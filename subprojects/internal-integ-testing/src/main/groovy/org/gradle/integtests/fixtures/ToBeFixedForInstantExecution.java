@@ -43,6 +43,12 @@ public @interface ToBeFixedForInstantExecution {
      */
     String[] bottomSpecs() default {};
 
+    /**
+     * Declare regular expressions matching the iteration name.
+     * Defaults to an empty array, meaning this annotation applies to all iterations of the annotated feature.
+     */
+    String[] iterationMatchers() default {};
+
     String because() default "";
 
     /**

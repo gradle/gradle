@@ -107,6 +107,8 @@ fun buildToolGradleParameters(daemon: Boolean = true, isContinue: Boolean = true
         // for each test task, such that we are independent of whatever default value is defined in the build itself.
         "-Dorg.gradle.workers.max=%maxParallelForks%",
         "-PmaxParallelForks=%maxParallelForks%",
+        // Drop the VFS on before the build CI for dogfooding, until we do that automatically
+        "-Dorg.gradle.unsafe.vfs.drop=true",
         "-s",
         if (daemon) "--daemon" else "--no-daemon",
         if (isContinue) "--continue" else "",

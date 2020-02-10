@@ -26,7 +26,6 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.DefaultFileCollectionResolveContext
 import org.gradle.api.internal.file.collections.DirectoryFileTree
 import org.gradle.api.internal.file.collections.FileTreeAdapter
-import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.api.internal.tasks.testing.TestExecuter
 import org.gradle.api.internal.tasks.testing.TestExecutionSpec
 import org.gradle.api.internal.tasks.testing.TestFramework
@@ -60,7 +59,7 @@ class TestTest extends AbstractConventionTaskTest {
     def testFrameworkMock = Mock(TestFramework)
 
     private WorkerLeaseRegistry.WorkerLeaseCompletion completion
-    private FileCollection classpathMock = ImmutableFileCollection.of(new File("classpath"))
+    private FileCollection classpathMock = TestFiles.fixed(new File("classpath"))
     private Test test
 
     def setup() {
@@ -293,7 +292,7 @@ class TestTest extends AbstractConventionTaskTest {
         test.useTestFramework(testFrameworkMock)
         test.setTestExecuter(testExecuterMock)
 
-        test.setTestClassesDirs(ImmutableFileCollection.of(classesDir))
+        test.setTestClassesDirs(TestFiles.fixed(classesDir))
         test.getReports().getJunitXml().setDestination(resultsDir)
         test.setBinResultsDir(binResultsDir)
         test.getReports().getHtml().setDestination(reportDir)

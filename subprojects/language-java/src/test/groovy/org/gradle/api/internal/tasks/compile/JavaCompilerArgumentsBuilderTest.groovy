@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks.compile
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.JavaVersion
 import org.gradle.api.file.ProjectLayout
-import org.gradle.api.internal.file.collections.ImmutableFileCollection
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GUtil
@@ -173,7 +173,7 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
 
     def "generates -bootclasspath option"() {
         def compileOptions = new CompileOptions(Stub(ProjectLayout), TestUtil.objectFactory())
-        compileOptions.bootstrapClasspath = ImmutableFileCollection.of(new File("lib1.jar"), new File("lib2.jar"))
+        compileOptions.bootstrapClasspath = TestFiles.fixed(new File("lib1.jar"), new File("lib2.jar"))
         spec.compileOptions = compileOptions
 
         expect:
@@ -377,6 +377,6 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
     }
 
     String asPath(File... files) {
-        ImmutableFileCollection.of(files).asPath
+        TestFiles.fixed(files).asPath
     }
 }

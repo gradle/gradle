@@ -18,6 +18,7 @@ package org.gradle.instantexecution.initialization
 
 import org.gradle.StartParameter
 import org.gradle.initialization.layout.BuildLayout
+import org.gradle.instantexecution.extensions.unsafeLazy
 import java.io.File
 
 
@@ -29,19 +30,16 @@ class InstantExecutionStartParameter(
     val rootDirectory: File
         get() = buildLayout.rootDirectory
 
-    val invocationDir: File
+    val invocationDirectory: File
         get() = startParameter.currentDir
 
     val isRefreshDependencies
         get() = startParameter.isRefreshDependencies
 
-    val requestedTaskNames: List<String> by lazy(LazyThreadSafetyMode.NONE) {
+    val requestedTaskNames: List<String> by unsafeLazy {
         startParameter.taskNames
     }
 
     val excludedTaskNames: Set<String>
         get() = startParameter.excludedTaskNames
-
-    fun systemPropertyArg(propertyName: String): String? =
-        startParameter.systemPropertiesArgs[propertyName]
 }

@@ -15,7 +15,7 @@ import model.Stage
 import model.TestCoverage
 import model.TestType
 import java.io.File
-import java.util.*
+import java.util.LinkedList
 
 const val MAX_PROJECT_NUMBER_IN_BUCKET = 10
 
@@ -109,7 +109,7 @@ class StatisticBasedGradleBuildBucketProvider(private val model: CIBuildModel, t
         val validSubprojects = model.subprojects.getSubprojectsFor(testCoverage, stage)
 
         // Build project not found, don't split into buckets
-        val subProjectToClassTimes: Map<String, List<TestClassTime>> = buildProjectClassTimes[testCoverage.asId(model)] ?: return validSubprojects
+        val subProjectToClassTimes: Map<String, List<TestClassTime>> = determineSubProjectClassTimes(testCoverage, buildProjectClassTimes) ?: return validSubprojects
 
         val subProjectTestClassTimes: List<SubprojectTestClassTime> = subProjectToClassTimes
             .entries
@@ -126,6 +126,25 @@ class StatisticBasedGradleBuildBucketProvider(private val model: CIBuildModel, t
             testCoverage.expectedBucketNumber,
             MAX_PROJECT_NUMBER_IN_BUCKET
         )
+    }
+
+    private fun determineSubProjectClassTimes(testCoverage: TestCoverage, buildProjectClassTimes: BuildProjectToSubprojectTestClassTimes): Map<String, List<TestClassTime>>? {
+        val testCoverageId = testCoverage.asId(model)
+        return buildProjectClassTimes[testCoverageId] ?: if (testCoverage.testType == TestType.soak) {
+            null
+        } else {
+            val testCoverages = model.stages.flatMap { it.functionalTests }
+            val foundTestCoverage = testCoverages.firstOrNull {
+                it.testType == TestType.platform &&
+                    it.os == testCoverage.os &&
+                    it.buildJvmVersion == testCoverage.buildJvmVersion
+            }
+            foundTestCoverage?.let {
+                buildProjectClassTimes[it.asId(model)]
+            }?.also {
+                println("No test statistics found for ${testCoverage.asName()} (${testCoverage.uuid}), re-using the data from ${foundTestCoverage.asName()} (${foundTestCoverage.uuid})")
+            }
+        }
     }
 }
 

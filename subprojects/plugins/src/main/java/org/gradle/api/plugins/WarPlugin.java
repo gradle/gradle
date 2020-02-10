@@ -66,29 +66,19 @@ public class WarPlugin implements Plugin<Project> {
         project.getTasks().withType(War.class).configureEach(new Action<War>() {
             @Override
             public void execute(War task) {
-                task.from(new Callable() {
-                    @Override
-                    public Object call() throws Exception {
-                        return pluginConvention.getWebAppDir();
-                    }
+                task.from((Callable) () -> pluginConvention.getWebAppDir());
+                task.dependsOn((Callable) () -> project.getConvention()
+                    .getPlugin(JavaPluginConvention.class)
+                    .getSourceSets()
+                    .getByName(SourceSet.MAIN_SOURCE_SET_NAME)
+                    .getRuntimeClasspath());
+                task.classpath((Callable) () -> {
+                    FileCollection runtimeClasspath = project.getConvention().getPlugin(JavaPluginConvention.class)
+                            .getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getRuntimeClasspath();
+                    Configuration providedRuntime = project.getConfigurations().getByName(
+                            PROVIDED_RUNTIME_CONFIGURATION_NAME);
+                    return runtimeClasspath.minus(providedRuntime);
                 });
-                task.dependsOn(new Callable() {
-                    @Override
-                    public Object call() throws Exception {
-                        return project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().getByName(
-                                SourceSet.MAIN_SOURCE_SET_NAME).getRuntimeClasspath();
-                    }
-                });
-                task.classpath(new Object[] {new Callable() {
-                    @Override
-                    public Object call() throws Exception {
-                        FileCollection runtimeClasspath = project.getConvention().getPlugin(JavaPluginConvention.class)
-                                .getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getRuntimeClasspath();
-                        Configuration providedRuntime = project.getConfigurations().getByName(
-                                PROVIDED_RUNTIME_CONFIGURATION_NAME);
-                        return runtimeClasspath.minus(providedRuntime);
-                    }
-                }});
             }
         });
 

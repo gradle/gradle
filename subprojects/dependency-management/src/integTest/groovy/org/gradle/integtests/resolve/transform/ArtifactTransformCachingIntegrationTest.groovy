@@ -1023,7 +1023,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(iterationMatchers = ".*scheduled: true\\)")
     def "failure in resolution propagates to chain (scheduled: #scheduled)"() {
         given:
         def module = mavenHttpRepo.module("test", "test", "1.3").publish()

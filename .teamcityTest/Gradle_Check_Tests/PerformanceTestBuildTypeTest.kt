@@ -67,6 +67,7 @@ class PerformanceTestBuildTypeTest {
                 "-PtestJavaHome=%linux.java8.oracle.64bit%",
                 "-Dorg.gradle.workers.max=%maxParallelForks%",
                 "-PmaxParallelForks=%maxParallelForks%",
+                "-Dorg.gradle.unsafe.vfs.drop=true",
                 "-s",
                 "--daemon",
                 "",

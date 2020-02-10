@@ -18,7 +18,7 @@ package org.gradle.play.internal.run;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.file.collections.ImmutableFileCollection;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.deployment.internal.Deployment;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.hash.HashCode;
@@ -33,11 +33,13 @@ public class PlayApplicationRunner {
     private final WorkerProcessFactory workerFactory;
     private final VersionedPlayRunAdapter adapter;
     private final FileCollectionFingerprinter fingerprinter;
+    private final FileCollectionFactory fileCollectionFactory;
 
-    public PlayApplicationRunner(WorkerProcessFactory workerFactory, VersionedPlayRunAdapter adapter, FileCollectionFingerprinter fingerprinter) {
+    public PlayApplicationRunner(WorkerProcessFactory workerFactory, VersionedPlayRunAdapter adapter, FileCollectionFingerprinter fingerprinter, FileCollectionFactory fileCollectionFactory) {
         this.workerFactory = workerFactory;
         this.adapter = adapter;
         this.fingerprinter = fingerprinter;
+        this.fileCollectionFactory = fileCollectionFactory;
     }
 
     public PlayApplication start(PlayRunSpec spec, Deployment deployment) {
@@ -45,7 +47,7 @@ public class PlayApplicationRunner {
         process.start();
 
         PlayRunWorkerServerProtocol workerServer = process.getConnection().addOutgoing(PlayRunWorkerServerProtocol.class);
-        PlayApplication playApplication = new PlayApplication(new PlayClassloaderMonitorDeploymentDecorator(deployment, spec), workerServer, process);
+        PlayApplication playApplication = new PlayApplication(new PlayClassloaderMonitorDeploymentDecorator(deployment, spec, fileCollectionFactory), workerServer, process);
         process.getConnection().addIncoming(PlayRunWorkerClientProtocol.class, playApplication);
         process.getConnection().connect();
         playApplication.waitForRunning();
@@ -55,10 +57,12 @@ public class PlayApplicationRunner {
     private class PlayClassloaderMonitorDeploymentDecorator implements Deployment {
         private final Deployment delegate;
         private final FileCollection applicationClasspath;
+        private final FileCollectionFactory fileCollectionFactory;
         private HashCode classpathHash;
 
-        private PlayClassloaderMonitorDeploymentDecorator(Deployment delegate, PlayRunSpec runSpec) {
+        private PlayClassloaderMonitorDeploymentDecorator(Deployment delegate, PlayRunSpec runSpec, FileCollectionFactory fileCollectionFactory) {
             this.delegate = delegate;
+            this.fileCollectionFactory = fileCollectionFactory;
             this.applicationClasspath = collectApplicationClasspath(runSpec);
         }
 
@@ -67,7 +71,7 @@ public class PlayApplicationRunner {
                 .addAll(runSpec.getChangingClasspath())
                 .add(runSpec.getApplicationJar())
                 .build();
-            return ImmutableFileCollection.of(applicationClasspath);
+            return fileCollectionFactory.fixed(applicationClasspath);
         }
 
         @Override

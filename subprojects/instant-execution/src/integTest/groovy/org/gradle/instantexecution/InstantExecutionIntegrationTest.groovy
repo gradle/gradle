@@ -76,15 +76,22 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
     def "instant execution for help on empty project"() {
         given:
         instantRun "help"
-        def firstRunOutput = result.normalizedOutput.replace('Calculating task graph as no instant execution cache is available for tasks: help', '')
+        def firstRunOutput = result.normalizedOutput
+            .replaceAll(/Calculating task graph as no instant execution cache is available for tasks: help\n/, '')
+            .replaceAll(/Watching \d+ (directory hierarchies to track changes between builds in \d+ directories|directories to track changes between builds)\n/, '')
+            .replaceAll(/Spent \d+ ms registering watches for file system events\n/, '')
 
         when:
         instantRun "help"
+        def secondRunOutput = result.normalizedOutput
+            .replaceAll(/Reusing instant execution cache. This is not guaranteed to work in any way.\n/, '')
+            .replaceAll(/Received \d+ file system events since last build\n/, '')
+            .replaceAll(/Spent \d+ ms processing file system events since last build\n/, '')
+            .replaceAll(/Watching \d+ (directory hierarchies to track changes between builds in \d+ directories|directories to track changes between builds)\n/, '')
+            .replaceAll(/Spent \d+ ms registering watches for file system events\n/, '')
 
         then:
-        firstRunOutput == result.normalizedOutput
-            .replace('Reusing instant execution cache. This is not guaranteed to work in any way.', '')
-            .replaceAll('Received \\d* file system events since last build\n', '')
+        firstRunOutput == secondRunOutput
     }
 
     def "restores some details of the project structure"() {

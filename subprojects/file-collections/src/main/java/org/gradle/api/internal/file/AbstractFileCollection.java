@@ -258,7 +258,7 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
 
             @Override
             public Set<File> getFiles() {
-                return CollectionUtils.filter(AbstractFileCollection.this, new LinkedHashSet<File>(), filterSpec);
+                return CollectionUtils.filter(AbstractFileCollection.this, new LinkedHashSet<>(), filterSpec);
             }
 
             @Override

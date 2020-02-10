@@ -27,7 +27,7 @@ Subprojects can be defined either in their own settings.kts or by
 calling the subProjects() method in this project.
 */
 
-version = "2019.1"
+version = "2019.2"
 val model = CIBuildModel(buildScanTags = listOf("Check"))
 val gradleBuildBucketProvider = StatisticBasedGradleBuildBucketProvider(model, File("./test-class-data.json"))
 project(RootProject(model,gradleBuildBucketProvider))

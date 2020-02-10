@@ -16,7 +16,24 @@
 
 package org.gradle.plugins.signing.internal;
 
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.ProjectLayout;
 import org.gradle.plugins.signing.SignOperation;
 
+import javax.inject.Inject;
+import java.io.File;
+import java.util.List;
+
 public class SignOperationInternal extends SignOperation {
+    private final ProjectLayout projectLayout;
+
+    @Inject
+    public SignOperationInternal(ProjectLayout projectLayout) {
+        this.projectLayout = projectLayout;
+    }
+
+    @Override
+    protected FileCollection toFileCollection(List<File> files) {
+        return projectLayout.files(files);
+    }
 }

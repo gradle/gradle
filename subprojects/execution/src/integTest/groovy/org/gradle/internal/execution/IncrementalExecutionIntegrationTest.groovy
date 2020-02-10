@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableSortedMap
 import com.google.common.collect.Iterables
 import com.google.common.collect.Maps
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.caching.internal.CacheableEntity
 import org.gradle.caching.internal.controller.BuildCacheController
 import org.gradle.internal.execution.caching.CachingDisabledReason
@@ -794,7 +793,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 void visitInputFileProperties(UnitOfWork.InputFilePropertyVisitor visitor) {
                     for (entry in inputs.entrySet()) {
                         visitor.visitInputFileProperty(entry.key, entry.value, false,
-                            { -> fingerprinter.fingerprint(ImmutableFileCollection.of(entry.value)) }
+                            { -> fingerprinter.fingerprint(TestFiles.fixed(entry.value)) }
                         )
                     }
                 }
@@ -889,7 +888,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
         private ImmutableSortedMap<String, FileSystemSnapshot> snapshotOutputs(Map<String, OutputPropertySpec> outputs) {
             def builder = ImmutableSortedMap.<String, FileSystemSnapshot>naturalOrder()
             outputs.each { propertyName, spec ->
-                builder.put(propertyName, CompositeFileSystemSnapshot.of(snapshotter.snapshot(ImmutableFileCollection.of(spec.root))))
+                builder.put(propertyName, CompositeFileSystemSnapshot.of(snapshotter.snapshot(TestFiles.fixed(spec.root))))
             }
             return builder.build()
         }

@@ -71,7 +71,7 @@ class ArchivesContinuousIntegrationTest extends AbstractContinuousIntegrationTes
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(iterationMatchers = ".* source\\.t.*readonly true.*")
     def "using compressed files as inputs - #source - readonly #readonly"() {
         given:
         def packDir = file("pack").createDir()
