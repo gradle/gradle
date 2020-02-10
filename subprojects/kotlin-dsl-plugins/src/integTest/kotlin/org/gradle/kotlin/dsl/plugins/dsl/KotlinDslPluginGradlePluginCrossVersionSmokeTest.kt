@@ -16,14 +16,12 @@
 
 package org.gradle.kotlin.dsl.plugins.dsl
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
-import org.gradle.kotlin.dsl.embeddedKotlinVersion
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
 import org.gradle.test.fixtures.dsl.GradleDsl
-
 import org.gradle.test.fixtures.file.LeaksFileHandles
-
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
 import org.junit.Assert.assertThat
@@ -58,6 +56,9 @@ class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
 
         requireGradleDistributionOnEmbeddedExecuter()
         executer.noDeprecationChecks()
+        // Ignore stacktraces when the Kotlin daemon fails
+        // See https://github.com/gradle/gradle-private/issues/2936
+        executer.withStackTraceChecksDisabled()
 
         withDefaultSettingsIn("buildSrc")
         withBuildScriptIn("buildSrc", """

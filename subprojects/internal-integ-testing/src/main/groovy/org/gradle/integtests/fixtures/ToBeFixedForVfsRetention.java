@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.fixtures;
 
+import org.gradle.util.TestPrecondition;
 import org.spockframework.runtime.extension.ExtensionAnnotation;
 
 import java.lang.annotation.ElementType;
@@ -31,4 +32,9 @@ public @interface ToBeFixedForVfsRetention {
      * The reason why the test doesn't work.
      */
     String value();
+
+    /**
+     * The test only doesn't work if the given condition is true.
+     */
+    TestPrecondition failsOnlyIf() default TestPrecondition.NULL_REQUIREMENT;
 }
