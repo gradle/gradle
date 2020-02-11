@@ -280,9 +280,6 @@ org.gradle.api.GradleException: <message>
 {stacktrace}
 Caused by: org.gradle.api.GradleException: <failure>
 {stacktrace}
-\t... 60 more
-
-
 * Get more help at {userinput}https://help.gradle.org{normal}
 '''
     }
