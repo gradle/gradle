@@ -17,6 +17,8 @@ package org.gradle.launcher.cli
 
 import org.gradle.api.Action
 import org.gradle.initialization.ReportedException
+import org.gradle.initialization.exception.InitializationException
+import org.gradle.internal.exceptions.LocationAwareException
 import org.gradle.internal.logging.LoggingOutputInternal
 import org.gradle.launcher.bootstrap.ExecutionListener
 import spock.lang.Specification
@@ -40,6 +42,7 @@ class ExceptionReportingActionTest extends Specification {
 
     def reportsExceptionThrownByAction() {
         def failure = new RuntimeException()
+        RuntimeException reportedException
 
         when:
         action.execute(listener)
@@ -47,7 +50,10 @@ class ExceptionReportingActionTest extends Specification {
         then:
         1 * target.execute(listener) >> { throw failure }
         1 * loggingOutput.flush()
-        1 * reporter.execute(failure)
+        1 * reporter.execute(_) >> { arguments -> reportedException = arguments[0] }
+        reportedException instanceof LocationAwareException
+        reportedException.getCause() instanceof InitializationException
+        reportedException.getCause().getCause() == failure
         1 * listener.onFailure(failure)
         0 * _._
     }

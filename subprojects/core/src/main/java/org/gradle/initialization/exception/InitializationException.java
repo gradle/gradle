@@ -20,9 +20,9 @@ import org.gradle.api.GradleException;
 import org.gradle.internal.exceptions.Contextual;
 
 @Contextual
-class InitializationException extends GradleException {
+public class InitializationException extends GradleException {
 
-    InitializationException(Throwable cause) {
+    public InitializationException(Throwable cause) {
         super("Gradle could not start your build.", cause);
     }
 }

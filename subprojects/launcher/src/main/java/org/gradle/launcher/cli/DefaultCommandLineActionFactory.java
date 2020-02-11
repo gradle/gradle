@@ -34,15 +34,11 @@ import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.LayoutCommandLineConverter;
 import org.gradle.initialization.ParallelismConfigurationCommandLineConverter;
-import org.gradle.initialization.exception.DefaultExceptionAnalyser;
-import org.gradle.initialization.exception.ExceptionAnalyser;
-import org.gradle.initialization.exception.MultipleBuildFailuresExceptionAnalyser;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.Actions;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.buildevents.BuildExceptionReporter;
 import org.gradle.internal.concurrent.DefaultParallelismConfiguration;
-import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.logging.DefaultLoggingConfiguration;
 import org.gradle.internal.logging.LoggingCommandLineConverter;
@@ -305,7 +301,6 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
         private final LoggingConfiguration loggingConfiguration;
         private final Action<ExecutionListener> action;
         private final Action<Throwable> reporter;
-        private final ExceptionAnalyser exceptionAnalyser = new MultipleBuildFailuresExceptionAnalyser(new DefaultExceptionAnalyser(new DefaultListenerManager()));
 
         WithLogging(ServiceRegistry loggingServices, List<String> args, LoggingConfiguration loggingConfiguration, Action<ExecutionListener> action, Action<Throwable> reporter) {
             this.loggingServices = loggingServices;
@@ -365,7 +360,7 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
             loggingManager.setLevelInternal(loggingConfiguration.getLogLevel());
             loggingManager.start();
             NativeServicesInitializingAction nativeServicesInitializingAction = new NativeServicesInitializingAction(buildLayout, loggingConfiguration, loggingManager, action);
-            Action<ExecutionListener> exceptionReportingAction = new ExceptionReportingAction(nativeServicesInitializingAction, reporter, loggingManager, exceptionAnalyser);
+            Action<ExecutionListener> exceptionReportingAction = new ExceptionReportingAction(nativeServicesInitializingAction, reporter, loggingManager);
             try {
                 exceptionReportingAction.execute(executionListener);
             } finally {
