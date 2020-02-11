@@ -87,7 +87,7 @@ public class TransformerTask extends DefaultTask {
 '''
     }
 
-    @ToBeFixedForVfsRetention("https://github.com/gradle/gradle/issues/11837")
+    @ToBeFixedForVfsRetention(because = "https://github.com/gradle/gradle/issues/11837")
     def "task history is shared between multiple build processes"() {
         prepareTransformTask()
 

@@ -33,7 +33,7 @@ import org.junit.runners.Parameterized
 
 
 @ToBeFixedForVfsRetention(
-    value = "https://github.com/gradle/gradle/issues/12184",
+    because = "https://github.com/gradle/gradle/issues/12184",
     failsOnlyIf = TestPrecondition.WINDOWS
 )
 @RunWith(Parameterized::class)

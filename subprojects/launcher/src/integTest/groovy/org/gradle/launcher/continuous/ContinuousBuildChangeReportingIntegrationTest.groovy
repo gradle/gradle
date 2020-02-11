@@ -178,7 +178,7 @@ class ContinuousBuildChangeReportingIntegrationTest extends AbstractContinuousIn
         assertReportsChanges([new ChangeEntry("new file", newfile1), new ChangeEntry("modified", inputFiles[2]), new ChangeEntry("deleted", inputFiles[7]), new ChangeEntry("new file", newfile2)], true)
     }
 
-    @ToBeFixedForVfsRetention("https://github.com/gradle/gradle/issues/11837")
+    @ToBeFixedForVfsRetention(because = "https://github.com/gradle/gradle/issues/11837")
     def "should report changes that happen when the build is executing"() {
         given:
         buildFile << """

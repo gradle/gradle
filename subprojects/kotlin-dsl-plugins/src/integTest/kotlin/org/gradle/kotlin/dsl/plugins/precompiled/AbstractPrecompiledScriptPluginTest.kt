@@ -25,7 +25,7 @@ import org.junit.Before
 
 
 @ToBeFixedForVfsRetention(
-    value = "https://github.com/gradle/gradle/issues/12184",
+    because = "https://github.com/gradle/gradle/issues/12184",
     failsOnlyIf = TestPrecondition.WINDOWS
 )
 open class AbstractPrecompiledScriptPluginTest : AbstractPluginTest() {
