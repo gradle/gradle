@@ -41,7 +41,7 @@ class InternalGradleFailuresIntegrationTest extends AbstractIntegrationSpec {
         fails 'hello'
 
         then:
-        assertHasStartupFailure(failure, "Failed to create directory '${localGradleCache}/checksums'")
+        assertHasStartupFailure(failure, "Failed to create directory '${localGradleCache}${File.separator}checksums'")
     }
 
     def "Error message due to unwritable user home directory is not scary"() {
@@ -55,7 +55,7 @@ class InternalGradleFailuresIntegrationTest extends AbstractIntegrationSpec {
         fails 'hello'
 
         then:
-        assertHasStartupFailure(failure, "Cannot create parent directory '${executer.gradleUserHomeDir}/caches' when creating directory '${executer.gradleUserHomeDir}/caches/${GradleVersion.current().version}/generated-gradle-jars'")
+        assertHasStartupFailure(failure, "Cannot create parent directory '${executer.gradleUserHomeDir}${File.separator}caches' when creating directory '${executer.gradleUserHomeDir}/caches/${GradleVersion.current().version}/generated-gradle-jars'")
     }
 
     def "Error message due to unwritable Gradle daemon directory is not scary"() {
@@ -71,7 +71,7 @@ class InternalGradleFailuresIntegrationTest extends AbstractIntegrationSpec {
         fails 'hello'
 
         then:
-        assertHasStartupFailure(failure, "Failed to create directory '${daemonDir}/${GradleVersion.current().version}'")
+        assertHasStartupFailure(failure, "Failed to create directory '${daemonDir}${File.separator}${GradleVersion.current().version}'")
     }
 
     def "Error message due to unwritable native directory is not scary"() {
