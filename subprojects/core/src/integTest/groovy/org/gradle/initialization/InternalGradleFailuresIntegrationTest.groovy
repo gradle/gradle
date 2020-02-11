@@ -55,7 +55,7 @@ class InternalGradleFailuresIntegrationTest extends AbstractIntegrationSpec {
         fails 'hello'
 
         then:
-        assertHasStartupFailure(failure, "Cannot create parent directory '${executer.gradleUserHomeDir}${File.separator}caches' when creating directory '${executer.gradleUserHomeDir}/caches/${GradleVersion.current().version}/generated-gradle-jars'")
+        assertHasStartupFailure(failure, "Cannot create parent directory '${executer.gradleUserHomeDir}${File.separator}caches' when creating directory '${executer.gradleUserHomeDir}${File.separator}caches${File.separator}${GradleVersion.current().version}${File.separator}generated-gradle-jars'")
     }
 
     def "Error message due to unwritable Gradle daemon directory is not scary"() {
