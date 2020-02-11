@@ -16,12 +16,9 @@
 
 package org.gradle.initialization
 
-import org.gradle.initialization.exception.InitializationException
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.util.GradleVersion
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
 class InternalGradleFailuresIntegrationTest extends AbstractIntegrationSpec {
 
@@ -35,12 +32,10 @@ class InternalGradleFailuresIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    @Requires(TestPrecondition.NOT_WINDOWS)
-    def "Error message due to bad permissions on project's Gradle cache directory is not scary"() {
+    def "Error message due to unwritable project's Gradle cache directory is not scary"() {
         given:
         def localGradleCache = file('.gradle')
-        localGradleCache.mkdir()
-        localGradleCache.setPermissions("r-xr-xr-x")
+        localGradleCache.touch()
 
         when:
         fails 'hello'
@@ -49,23 +44,20 @@ class InternalGradleFailuresIntegrationTest extends AbstractIntegrationSpec {
         assertHasStartupFailure(failure, "Failed to create directory '${localGradleCache}/checksums'")
     }
 
-    @Requires(TestPrecondition.NOT_WINDOWS)
     def "Error message due to unwritable user home directory is not scary"() {
         given:
         requireOwnGradleUserHomeDir()
         requireGradleDistribution()
 
-        executer.gradleUserHomeDir.mkdir()
-        executer.gradleUserHomeDir.setPermissions("r-xr-xr-x")
+        executer.gradleUserHomeDir.touch()
 
         when:
         fails 'hello'
 
         then:
-        assertHasStartupFailure(failure, "Failed to create parent directory '${executer.gradleUserHomeDir}/caches' when creating directory '${executer.gradleUserHomeDir}/caches/${GradleVersion.current().version}/generated-gradle-jars'")
+        assertHasStartupFailure(failure, "Cannot create parent directory '${executer.gradleUserHomeDir}/caches' when creating directory '${executer.gradleUserHomeDir}/caches/${GradleVersion.current().version}/generated-gradle-jars'")
     }
 
-    @Requires(TestPrecondition.NOT_WINDOWS)
     def "Error message due to unwritable Gradle daemon directory is not scary"() {
         given:
         requireGradleDistribution()
@@ -73,8 +65,7 @@ class InternalGradleFailuresIntegrationTest extends AbstractIntegrationSpec {
         executer.requireDaemon()
 
         def daemonDir = executer.daemonBaseDir
-        daemonDir.mkdirs()
-        daemonDir.setPermissions("r-xr-xr-x")
+        daemonDir.touch()
 
         when:
         fails 'hello'
@@ -83,13 +74,16 @@ class InternalGradleFailuresIntegrationTest extends AbstractIntegrationSpec {
         assertHasStartupFailure(failure, "Failed to create directory '${daemonDir}/${GradleVersion.current().version}'")
     }
 
-    @Requires(TestPrecondition.NOT_WINDOWS)
     def "Error message due to unwritable native directory is not scary"() {
         given:
         requireOwnGradleUserHomeDir()
         requireGradleDistribution()
 
-        executer.withEnvironmentVars(GRADLE_OPTS: "-Dorg.gradle.native.dir=/dev/null")
+        def nativeDir = testDirectory.file("native-dir")
+        nativeDir.touch()
+        println nativeDir
+
+        executer.withEnvironmentVars(GRADLE_OPTS: "-Dorg.gradle.native.dir=\"${nativeDir}\"")
 
         when:
         fails 'hello'
@@ -101,7 +95,7 @@ class InternalGradleFailuresIntegrationTest extends AbstractIntegrationSpec {
 
     private static void assertHasStartupFailure(ExecutionFailure failure, String cause) {
         failure.assertHasFailures(1)
-        failure.assertHasDescription(InitializationException.MESSAGE)
+        failure.assertHasDescription("Gradle could not start your build.")
         failure.assertHasCause(cause)
     }
 }
