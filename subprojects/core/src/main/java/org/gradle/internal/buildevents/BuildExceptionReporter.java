@@ -23,8 +23,8 @@ import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.initialization.StartParameterBuildOptions;
+import org.gradle.internal.exceptions.ContextAwareException;
 import org.gradle.internal.exceptions.FailureResolutionAware;
-import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
 import org.gradle.internal.logging.text.BufferingStyledTextOutput;
 import org.gradle.internal.logging.text.LinePrefixingStyledTextOutput;
@@ -134,8 +134,8 @@ public class BuildExceptionReporter implements Action<Throwable> {
 
         fillInFailureResolution(details);
 
-        if (failure instanceof LocationAwareException) {
-            LocationAwareException scriptException = (LocationAwareException) failure;
+        if (failure instanceof ContextAwareException) {
+            ContextAwareException scriptException = (ContextAwareException) failure;
             details.failure = scriptException.getCause();
             if (scriptException.getLocation() != null) {
                 details.location.text(scriptException.getLocation());
@@ -148,12 +148,12 @@ public class BuildExceptionReporter implements Action<Throwable> {
     }
 
     private static class ExceptionFormattingVisitor extends TreeVisitor<Throwable> {
-        private final LocationAwareException scriptException;
+        private final ContextAwareException scriptException;
         private final FailureDetails failureDetails;
 
         private int depth;
 
-        private ExceptionFormattingVisitor(LocationAwareException scriptException, FailureDetails failureDetails) {
+        private ExceptionFormattingVisitor(ContextAwareException scriptException, FailureDetails failureDetails) {
             this.scriptException = scriptException;
             this.failureDetails = failureDetails;
         }

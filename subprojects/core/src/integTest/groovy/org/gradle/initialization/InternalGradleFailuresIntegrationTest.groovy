@@ -16,6 +16,7 @@
 
 package org.gradle.initialization
 
+import org.gradle.initialization.exception.InitializationException
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.util.GradleVersion
@@ -100,7 +101,7 @@ class InternalGradleFailuresIntegrationTest extends AbstractIntegrationSpec {
 
     private static void assertHasStartupFailure(ExecutionFailure failure, String cause) {
         failure.assertHasFailures(1)
-        failure.assertHasDescription("Gradle could not start your build.")
+        failure.assertHasDescription(InitializationException.MESSAGE)
         failure.assertHasCause(cause)
     }
 }

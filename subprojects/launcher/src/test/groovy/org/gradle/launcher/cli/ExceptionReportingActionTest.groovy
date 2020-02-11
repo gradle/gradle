@@ -18,8 +18,9 @@ package org.gradle.launcher.cli
 import org.gradle.api.Action
 import org.gradle.initialization.ReportedException
 import org.gradle.initialization.exception.InitializationException
-import org.gradle.internal.exceptions.LocationAwareException
+import org.gradle.internal.exceptions.ContextAwareException
 import org.gradle.internal.logging.LoggingOutputInternal
+import org.gradle.internal.service.ServiceCreationException
 import org.gradle.launcher.bootstrap.ExecutionListener
 import spock.lang.Specification
 
@@ -30,7 +31,7 @@ class ExceptionReportingActionTest extends Specification {
     final LoggingOutputInternal loggingOutput = Mock()
     final ExceptionReportingAction action = new ExceptionReportingAction(target, reporter, loggingOutput)
 
-    def executesAction() {
+    def "executes Action"() {
         when:
         action.execute(listener)
 
@@ -40,8 +41,22 @@ class ExceptionReportingActionTest extends Specification {
         0 * _._
     }
 
-    def reportsExceptionThrownByAction() {
+    def "reports exception thrown by Action"() {
         def failure = new RuntimeException()
+
+        when:
+        action.execute(listener)
+
+        then:
+        1 * target.execute(listener) >> { throw failure }
+        1 * loggingOutput.flush()
+        1 * reporter.execute(failure)
+        1 * listener.onFailure(failure)
+        0 * _._
+    }
+
+    def "service creation failure is reported as initialization exception"() {
+        def failure = new ServiceCreationException("Service creation failed")
         RuntimeException reportedException
 
         when:
@@ -51,14 +66,14 @@ class ExceptionReportingActionTest extends Specification {
         1 * target.execute(listener) >> { throw failure }
         1 * loggingOutput.flush()
         1 * reporter.execute(_) >> { arguments -> reportedException = arguments[0] }
-        reportedException instanceof LocationAwareException
+        reportedException instanceof ContextAwareException
         reportedException.getCause() instanceof InitializationException
         reportedException.getCause().getCause() == failure
         1 * listener.onFailure(failure)
         0 * _._
     }
 
-    def doesNotReportAlreadyReportedExceptionThrownByAction() {
+    def "does not report already reported exception thrown by Action"() {
         def cause = new RuntimeException()
         def failure = new ReportedException(cause)
 
