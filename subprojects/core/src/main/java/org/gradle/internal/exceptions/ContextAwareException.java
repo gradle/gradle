@@ -29,10 +29,6 @@ public class ContextAwareException extends GradleException {
         initCause(t);
     }
 
-    public String getLocation() {
-        return null;
-    }
-
     /**
      * Returns the reportable causes for this failure.
      *
@@ -49,13 +45,11 @@ public class ContextAwareException extends GradleException {
         return causes;
     }
 
-    /**
-     * Visits the reportable causes for this failure.
-     */
-    public void visitReportableCauses(TreeVisitor<? super Throwable> visitor) {
-        visitor.node(this);
-        if (this.getCause() != null) {
-            visitCauses(this.getCause(), visitor);
+    public void accept(Visitor contextVisitor) {
+        Throwable cause = getCause();
+        if (cause != null) {
+            contextVisitor.visitCause(cause);
+            visitCauses(cause, contextVisitor);
         }
     }
 
@@ -98,5 +92,11 @@ public class ContextAwareException extends GradleException {
             return t;
         }
         return findNearestContextual(t.getCause());
+    }
+
+    public static abstract class Visitor extends TreeVisitor<Throwable> {
+        protected abstract void visitCause(Throwable cause);
+
+        protected abstract void visitLocation(String location);
     }
 }
