@@ -68,7 +68,13 @@ class MavenDownloaderTest extends Specification {
 
     def "throws exception if Maven distribution cannot be downloaded from any repository"() {
         when:
-        downloader.getMavenInstallation('unknown')
+        try {
+            downloader.getMavenInstallation('unknown')
+        } catch (Throwable e) {
+            // https://github.com/gradle/build-tool-flaky-tests/issues/112
+            Assume.assumeFalse(ExceptionUtils.getStackTrace(e).contains("Connection timed out"))
+            throw e
+        }
 
         then:
         def t = thrown(UncheckedIOException)
