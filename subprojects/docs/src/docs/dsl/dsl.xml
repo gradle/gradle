@@ -308,6 +308,9 @@
                 <td>org.gradle.api.artifacts.dsl.DependencyHandler</td>
             </tr>
             <tr>
+                <td>org.gradle.api.artifacts.dsl.ComponentMetadataHandler</td>
+            </tr>
+            <tr>
                 <td>org.gradle.api.artifacts.dsl.ArtifactHandler</td>
             </tr>
         </table>
