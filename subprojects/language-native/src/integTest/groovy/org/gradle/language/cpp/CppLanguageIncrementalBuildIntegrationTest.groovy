@@ -23,7 +23,7 @@ import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.util.TestPrecondition
 
 @ToBeFixedForVfsRetention(
-    because = "https://github.com/gradle/gradle/issues/12182",
+    because = "https://github.com/gradle/gradle/issues/12162",
     failsOnlyIf = TestPrecondition.WINDOWS
 )
 class CppLanguageIncrementalBuildIntegrationTest extends AbstractNativeLanguageIncrementalBuildIntegrationTest {
