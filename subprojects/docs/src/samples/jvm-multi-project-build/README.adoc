@@ -5,33 +5,28 @@ This sample shows how to use dependencies within a JVM multi-project build in Gr
 The `application` project has an implementation dependency on the `utilities` project:
 
 ====
-include::sample[dir="samples/jvm-multi-project-build/groovy",files="application/build.gradle[]"]
-include::sample[dir="samples/jvm-multi-project-build/kotlin",files="application/build.gradle.kts[]"]
+include::sample[dir="groovy",files="application/build.gradle[]"]
+include::sample[dir="kotlin",files="application/build.gradle.kts[]"]
 ====
 
 Which in turn has an API dependency on the `list` project:
 
 ====
-include::sample[dir="samples/jvm-multi-project-build/groovy",files="utilities/build.gradle[]"]
-include::sample[dir="samples/jvm-multi-project-build/kotlin",files="utilities/build.gradle.kts[]"]
+include::sample[dir="groovy",files="utilities/build.gradle[]"]
+include::sample[dir="kotlin",files="utilities/build.gradle.kts[]"]
 ====
 
 To build the projects, you simply need to build the application:
 
-====
-[.testable-sample,dir="groovy"]
-=====
-[.sample-command]
+[listing.terminal.sample-command]
 ----
 $ ./gradlew :application:run
 
 > Task :application:run
 Hello, World!
 
-BUILD SUCCESSFUL in 998ms
+BUILD SUCCESSFUL
 6 actionable tasks: 6 executed
 ----
-=====
-====
 
 For more information, see link:{userManualPath}/core_dependency_management.html[dependency management chapters].
