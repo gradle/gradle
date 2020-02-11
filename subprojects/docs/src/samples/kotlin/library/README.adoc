@@ -6,24 +6,19 @@ This sample shows how a Kotlin library can be built with Gradle.
 The library has no dependencies aside from the Kotlin standard library and the build has minimal configuration.
 
 ====
-include::sample[dir="samples/kotlin-library/groovy",files="build.gradle[]"]
-include::sample[dir="samples/kotlin-library/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="groovy",files="build.gradle[]"]
+include::sample[dir="kotlin",files="build.gradle.kts[]"]
 ====
 
 To build the library:
 
-====
-[.testable-sample,dir="groovy"]
-=====
-[.sample-command]
+[listing.terminal.sample-command]
 ----
 $ ./gradlew jar
 
-BUILD SUCCESSFUL in 1s
-2 actionable tasks: 2 executed
+BUILD SUCCESSFUL
+3 actionable tasks: 3 executed
 ----
-=====
-====
 
 For more information, see link:https://kotlinlang.org/docs/reference/using-gradle.html[building a Kotlin project with Gradle reference].
 

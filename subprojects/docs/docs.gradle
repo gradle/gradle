@@ -22,7 +22,7 @@ plugins {
     // TODO: Apply asciidoctor in documentation plugin instead.
     id 'org.asciidoctor.convert'
     id 'gradlebuild.documentation'
-    id 'org.gradle.samples' version "0.15.28"
+    id 'org.gradle.samples' version "0.16.1"
 }
 
 repositories { handler ->
@@ -349,7 +349,12 @@ samples {
 }
 
 // TODO: Fix upstream plugin to disable Checkstyle checks for the generated sources
-tasks.named("checkstyleSamplesExemplarFunctionalTest") {
+tasks.named("checkstyleDocsTest") {
+    enabled = false
+}
+
+// TODO: The rich console to plain text is flaky
+tasks.named("checkAsciidoctorSampleContents") {
     enabled = false
 }
 

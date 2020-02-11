@@ -82,3 +82,30 @@ ul.linkList li {
     list-style: none;
     margin-bottom: 5px;
 }
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+    .breadcrumbs, .breadcrumbs a {
+        color: #9b9b9b;
+    }
+    #successRate, .summaryGroup {
+        border: solid 2px #d0d0d0;
+    }
+    .success, .success a {
+        color: #007900;
+    }
+    div.success, #successRate.success {
+        background-color: #001c00;
+        border-color: #007900;
+    }
+    .failures, .failures a {
+        color: #a30000;
+    }
+    .skipped, .skipped a {
+        color: #a26d13;
+    }
+    div.failures, #successRate.failures {
+        background-color: #170000;
+        border-color: #a30000;
+    }
+}

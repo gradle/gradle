@@ -36,7 +36,7 @@ import static org.junit.Assert.assertThat
 
 abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
-    protected static final THIRD_PARTY_LIB_COUNT = 186
+    protected static final THIRD_PARTY_LIB_COUNT = 178
 
     @Rule public final PreconditionVerifier preconditionVerifier = new PreconditionVerifier()
 

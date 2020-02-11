@@ -62,7 +62,7 @@ fun Project.configureCodenarc(codeQualityConfigDir: File) {
     apply(plugin = "codenarc")
 
     dependencies {
-        "codenarc"("org.codenarc:CodeNarc:1.5")
+        "codenarc"("org.codenarc:CodeNarc:1.0")
         components {
             withModule("org.codenarc:CodeNarc", CodeNarcRule::class.java)
         }
