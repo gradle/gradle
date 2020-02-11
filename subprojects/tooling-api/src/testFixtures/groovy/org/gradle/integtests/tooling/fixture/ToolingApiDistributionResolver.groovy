@@ -64,6 +64,7 @@ class ToolingApiDistributionResolver {
     private Collection<File> resolveDependency(String dependency) {
         Dependency dep = resolutionServices.dependencyHandler.create(dependency)
         Configuration config = resolutionServices.configurationContainer.detachedConfiguration(dep)
+        config.resolutionStrategy.disableDependencyVerification()
         return config.files
     }
 
