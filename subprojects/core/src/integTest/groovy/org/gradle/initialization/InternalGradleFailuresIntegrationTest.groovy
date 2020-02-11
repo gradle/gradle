@@ -81,7 +81,6 @@ class InternalGradleFailuresIntegrationTest extends AbstractIntegrationSpec {
 
         def nativeDir = testDirectory.file("native-dir")
         nativeDir.touch()
-        println nativeDir
 
         executer.withEnvironmentVars(GRADLE_OPTS: "-Dorg.gradle.native.dir=\"${nativeDir}\"")
 
