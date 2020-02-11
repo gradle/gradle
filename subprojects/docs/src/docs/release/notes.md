@@ -119,8 +119,8 @@ In some terminals, this link will be clickable and take you directly to the docu
 
 ## Verifying Gradle Wrappers 
 
-The [Gradle Wrapper](userguide/gradle_wrapper.html) is a binary blob of executable code that is checked into nearly
-[2.8 Million GitHub Repositories](https://github.com/search?l=&q=filename%3Agradle-wrapper.jar&type=Code).  There are [security implications](https://blog.gradle.org/gradle-wrapper-checksum-verification-github-action) when accepting changes to `gradle-wrapper.jar` that may not be apparent.
+The [Gradle Wrapper](userguide/gradle_wrapper.html) is a binary blob of executable code that is checked into
+[millions of GitHub repositories](https://github.com/search?l=&q=filename%3Agradle-wrapper.jar&type=Code). There are [security implications](https://blog.gradle.org/gradle-wrapper-checksum-verification-github-action) when accepting changes to `gradle-wrapper.jar` that may not be apparent.
 
 We have created [an official GitHub Action](https://github.com/marketplace/actions/gradle-wrapper-validation) that allows projects on GitHub to automatically verify that the `gradle-wrapper.jar` in their repository was released by Gradle.
 
