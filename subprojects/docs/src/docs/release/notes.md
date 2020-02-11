@@ -70,7 +70,7 @@ Please refer to the [user manual](userguide/dependency_resolution.html#sec:depen
 <a name="exclusive-repository-content"></a>
 ## Declaring exclusive repository content
 
-Gradle lets you [declare precisely which dependencies a repository contains](userguide/declaring_repositories.html#sec:repository-content-filtering). This can speed up builds by reducing the number of repositories that need to be searched and increases security by not leaking details about your internal projects.
+Gradle lets you [declare which repositories should be searched for specific dependencies](userguide/declaring_repositories.html#sec:repository-content-filtering). This can speed up builds by reducing the number of repositories that need to be searched and increases security by not leaking details about your internal projects.
 
 As an example:
 ```
