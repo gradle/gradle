@@ -24,7 +24,7 @@ import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 
 @ToBeFixedForVfsRetention(
-    value = "https://github.com/gradle/gradle/issues/12162",
+    because = "https://github.com/gradle/gradle/issues/12162",
     failsOnlyIf = TestPrecondition.WINDOWS
 )
 class CLanguageIncrementalCompileIntegrationTest extends AbstractNativeLanguageIncrementalCompileWithDiscoveredInputsIntegrationTest {

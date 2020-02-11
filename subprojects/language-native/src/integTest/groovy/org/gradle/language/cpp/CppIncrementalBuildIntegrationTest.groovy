@@ -26,7 +26,7 @@ import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
 
 @ToBeFixedForVfsRetention(
-    value = "https://github.com/gradle/gradle/issues/12162",
+    because = "https://github.com/gradle/gradle/issues/12162",
     failsOnlyIf = TestPrecondition.WINDOWS
 )
 class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements CppTaskNames {

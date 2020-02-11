@@ -26,7 +26,7 @@ import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 
 @Requires(TestPrecondition.SYMLINKS)
-@ToBeFixedForVfsRetention("https://github.com/gradle/gradle/issues/11851")
+@ToBeFixedForVfsRetention(because = "https://github.com/gradle/gradle/issues/11851")
 class IncrementalBuildSymlinkHandlingIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         buildFile << """
