@@ -31,7 +31,7 @@ public @interface ToBeFixedForVfsRetention {
     /**
      * The reason why the test doesn't work.
      */
-    String value();
+    String because();
 
     /**
      * The test only doesn't work if the given condition is true.

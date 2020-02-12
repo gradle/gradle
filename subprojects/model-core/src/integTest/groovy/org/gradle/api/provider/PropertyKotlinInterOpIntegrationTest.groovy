@@ -37,6 +37,7 @@ import java.nio.file.StandardCopyOption
 class PropertyKotlinInterOpIntegrationTest extends AbstractPropertyLanguageInterOpIntegrationTest {
     def setup() {
         usesKotlin(pluginDir)
+        executer.withStackTraceChecksDisabled()
         pluginDir.file("src/main/kotlin/SomeTask.kt") << """
             import ${DefaultTask.name}
             import ${Property.name}
