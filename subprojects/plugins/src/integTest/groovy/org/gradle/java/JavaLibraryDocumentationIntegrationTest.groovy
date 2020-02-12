@@ -116,6 +116,25 @@ class JavaLibraryDocumentationIntegrationTest extends AbstractIntegrationSpec {
         succeeds(':a:javadocJar')
     }
 
+    def "javadocJar with custom name task is only created when publishing is requested"() {
+        when:
+        fails(':a:myJavadocJar')
+
+        then:
+        failure.assertHasDescription("Task 'myJavadocJar' not found in project ':a'.")
+
+        when:
+        buildFile << '''
+            subprojects {
+                java {
+                    withJavadocJar('myJavadocJar')
+                }
+            }
+        '''
+        then:
+        succeeds(':a:myJavadocJar')
+    }
+
     def "sourcesJar task is only created when publishing is requested"() {
         when:
         fails(':a:sourcesJar')
@@ -131,6 +150,25 @@ class JavaLibraryDocumentationIntegrationTest extends AbstractIntegrationSpec {
         '''
         then:
         succeeds(':a:sourcesJar')
+    }
+
+    def "sourcesJar with custom name task is only created when publishing is requested"() {
+        when:
+        fails(':a:sourceJar')
+
+        then:
+        failure.assertHasDescription("Task 'sourceJar' not found in project ':a'.")
+
+        when:
+        buildFile << '''
+            subprojects {
+                java {
+                    withSourcesJar('sourceJar')
+                }
+            }
+        '''
+        then:
+        succeeds(':a:sourceJar')
     }
 
     def "project packages own and runtime dependency sources if requested"() {

@@ -107,4 +107,41 @@ public interface JavaPluginExtension {
      */
     @Incubating
     void withSourcesJar();
+
+    /**
+     * Allows to set a preferred name for javadocs jar task name
+     *
+     * Adds a task {@code javadocJar} that will package the output of the {@code javadoc} task in a JAR with classifier {@code javadoc}.
+     * <P>
+     * The produced artifact is registered as a documentation variant on the {@code java} component and added as a dependency on the {@code assemble} task.
+     * This means that if {@code maven-publish} or {@code ivy-publish} is also applied, the javadoc JAR will be published.
+     * <P>
+     * If the project already has a task named {@code javadocJar} then no task is created.
+     * <P>
+     * The publishing of the Javadoc variant can also be disabled using {@link org.gradle.api.component.ConfigurationVariantDetails#skip()}
+     * through {@link org.gradle.api.component.AdhocComponentWithVariants#withVariantsFromConfiguration(Configuration, Action)},
+     * if it should only be built locally by calling or wiring the ':javadocJar' task.
+     * @since 6.3
+     */
+    @Incubating
+    void withJavadocJar(String taskName);
+
+    /**
+     * Allows to set a preferred name for sources jar task name
+     *
+     * Adds a task {@code sourcesJar} that will package the Java sources of the main {@link org.gradle.api.tasks.SourceSet SourceSet} in a JAR with classifier {@code sources}.
+     * <P>
+     * The produced artifact is registered as a documentation variant on the {@code java} component and added as a dependency on the {@code assemble} task.
+     * This means that if {@code maven-publish} or {@code ivy-publish} is also applied, the sources JAR will be published.
+     * <P>
+     * If the project already has a task named {@code sourcesJar} then no task is created.
+     * <P>
+     * The publishing of the sources variant can be disabled using {@link org.gradle.api.component.ConfigurationVariantDetails#skip()}
+     * through {@link org.gradle.api.component.AdhocComponentWithVariants#withVariantsFromConfiguration(Configuration, Action)},
+     * if it should only be built locally by calling or wiring the ':sourcesJar' task.
+     *
+     * @since 6.3
+     */
+    @Incubating
+    void withSourcesJar(String taskName);
 }

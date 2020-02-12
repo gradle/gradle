@@ -53,6 +53,9 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
     private final TaskContainer tasks;
     private final Project project;
 
+    private String javadocJarTaskName;
+    private String sourcesJarTaskName;
+
     public DefaultJavaPluginExtension(JavaPluginConvention convention,
                                       Project project) {
         this.convention = convention;
@@ -95,6 +98,12 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
                 pluginManager,
                 components,
                 tasks);
+        if(javadocJarTaskName != null) {
+            spec.withJavadocJar(javadocJarTaskName);
+        }
+        if(sourcesJarTaskName != null) {
+            spec.withSourcesJar(sourcesJarTaskName);
+        }
         configureAction.execute(spec);
         spec.create();
     }
@@ -109,7 +118,8 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
         TaskContainer tasks = project.getTasks();
         ConfigurationContainer configurations = project.getConfigurations();
         SourceSet main = convention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
-        configureDocumentationVariantWithArtifact(JAVADOC_ELEMENTS_CONFIGURATION_NAME, null, JAVADOC, ImmutableList.of(), main.getJavadocJarTaskName(), tasks.named(main.getJavadocTaskName()), findJavaComponent(components), configurations, tasks, objectFactory);
+        String taskName = javadocJarTaskName != null ? javadocJarTaskName : main.getJavadocJarTaskName();
+        configureDocumentationVariantWithArtifact(JAVADOC_ELEMENTS_CONFIGURATION_NAME, null, JAVADOC, ImmutableList.of(), taskName, tasks.named(main.getJavadocTaskName()), findJavaComponent(components), configurations, tasks, objectFactory);
     }
 
     @Override
@@ -117,7 +127,20 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
         TaskContainer tasks = project.getTasks();
         ConfigurationContainer configurations = project.getConfigurations();
         SourceSet main = convention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
-        configureDocumentationVariantWithArtifact(SOURCES_ELEMENTS_CONFIGURATION_NAME, null, SOURCES, ImmutableList.of(), main.getSourcesJarTaskName(), main.getAllSource(), findJavaComponent(components), configurations, tasks, objectFactory);
+        String taskName = sourcesJarTaskName != null ? sourcesJarTaskName : main.getSourcesJarTaskName();
+        configureDocumentationVariantWithArtifact(SOURCES_ELEMENTS_CONFIGURATION_NAME, null, SOURCES, ImmutableList.of(), taskName, main.getAllSource(), findJavaComponent(components), configurations, tasks, objectFactory);
+    }
+
+    @Override
+    public void withJavadocJar(String taskName) {
+        javadocJarTaskName = taskName;
+        withJavadocJar();
+    }
+
+    @Override
+    public void withSourcesJar(String taskName) {
+        sourcesJarTaskName = taskName;
+        withSourcesJar();
     }
 
     private static String validateFeatureName(String name) {

@@ -71,6 +71,8 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
     private SourceSet sourceSet;
     private boolean withJavadocJar = false;
     private boolean withSourcesJar = false;
+    private String javadocJarTaskName;
+    private String sourcesJarTaskName;
 
     public DefaultJavaFeatureSpec(String name,
                                   Capability defaultCapability,
@@ -119,6 +121,16 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
         withSourcesJar = true;
     }
 
+    @Override
+    public void withJavadocJar(String taskName) {
+        javadocJarTaskName = taskName;
+    }
+
+    @Override
+    public void withSourcesJar(String taskName) {
+        sourcesJarTaskName = taskName;
+    }
+
     private void setupConfigurations(SourceSet sourceSet) {
         if (sourceSet == null) {
             throw new InvalidUserCodeException("You must specify which source set to use for feature '" + name + "'");
@@ -162,10 +174,12 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
         attachArtifactToConfiguration(runtimeElements);
         configureJavaDocTask(name, sourceSet, tasks);
         if (withJavadocJar) {
-            configureDocumentationVariantWithArtifact(sourceSet.getJavadocElementsConfigurationName(), name, JAVADOC, capabilities, sourceSet.getJavadocJarTaskName(), tasks.named(sourceSet.getJavadocTaskName()), component, configurationContainer, tasks, objectFactory);
+            String taskName = javadocJarTaskName != null ? javadocJarTaskName : sourceSet.getJavadocJarTaskName();
+            configureDocumentationVariantWithArtifact(sourceSet.getJavadocElementsConfigurationName(), name, JAVADOC, capabilities, taskName, tasks.named(sourceSet.getJavadocTaskName()), component, configurationContainer, tasks, objectFactory);
         }
         if (withSourcesJar) {
-            configureDocumentationVariantWithArtifact(sourceSet.getSourcesElementsConfigurationName(), name, SOURCES, capabilities, sourceSet.getSourcesJarTaskName(), sourceSet.getAllSource(), component, configurationContainer, tasks, objectFactory);
+            String taskName = sourcesJarTaskName != null ? sourcesJarTaskName : sourceSet.getSourcesJarTaskName();
+            configureDocumentationVariantWithArtifact(sourceSet.getSourcesElementsConfigurationName(), name, SOURCES, capabilities, taskName, sourceSet.getAllSource(), component, configurationContainer, tasks, objectFactory);
         }
         JvmPluginsHelper.configureClassesDirectoryVariant(sourceSet, javaPluginConvention.getProject(), apiElementsConfigurationName, Usage.JAVA_API);
 

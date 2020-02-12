@@ -64,4 +64,24 @@ public interface FeatureSpec {
      */
     @Incubating
     void withSourcesJar();
+
+    /**
+     * Allows to set a preferred name for javadocs jar task name
+     * Automatically package Javadoc and register the produced JAR as a variant.
+     * See also {@link JavaPluginExtension#withJavadocJar(String taskName)}.
+     *
+     * @since 6.3
+     */
+    @Incubating
+    void withJavadocJar(String taskName);
+
+    /**
+     * Allows to set a preferred name for sources jar task name
+     * Automatically package sources from the linked {@link #usingSourceSet(SourceSet) SourceSet} and register the produced JAR as a variant.
+     * See also {@link JavaPluginExtension#withSourcesJar(String taskName)} ()}.
+     *
+     * @since 6.3
+     */
+    @Incubating
+    void withSourcesJar(String taskName);
 }
