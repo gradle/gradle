@@ -132,15 +132,6 @@ You can still manually verify the `gradle-wrapper.jar` by following the instruct
 <a name="plugin-dev"></a>
 ## Improvements for Plugin Development
 
-### Gradle API source code for plugin developers in IDEs
-
-Plugin authors will now have the sources of the `gradleApi()`, `gradleTestKit()` and `localGroovy()` dependencies attached for navigation in the IDE.
-
-This works out of the box with [Eclipse Buildship](https://projects.eclipse.org/projects/tools.buildship).
-
-For IntelliJ IDEA, the sources for `gradleApi()` are only attached when the [Gradle wrapper](userguide/gradle_wrapper.html#sec:adding_wrapper) is used with an `-all` distribution. Sources for `gradleTestKit()` and `localGroovy()` are not attached at the moment.
-This will change once [IDEA-231667](https://youtrack.jetbrains.com/issue/IDEA-231667) is resolved. Then, the sources for all Gradle APIs (`gradleApi()`, `gradleTestKit()` and `localGroovy()`) will be downloaded and attached on-demand regardless of the wrapper in use.
-
 ### Injectable services available to Settings plugins
 
 Our `ExecOperations` and `FileSystemOperations` [injectable services](userguide/custom_gradle_types.html#services_for_injection) are now available to Settings plugins.

@@ -26,11 +26,6 @@ public class NullGradleApiSourcesResolver implements GradleApiSourcesResolver {
     }
 
     @Override
-    public File resolveGradleApiSources(boolean download) {
-        return null;
-    }
-
-    @Override
     public File resolveLocalGroovySources(String jarName) {
         return null;
     }
