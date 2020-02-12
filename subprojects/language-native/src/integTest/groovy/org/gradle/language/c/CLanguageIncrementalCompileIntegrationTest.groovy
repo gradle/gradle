@@ -16,17 +16,11 @@
 package org.gradle.language.c
 
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
-import org.gradle.integtests.fixtures.ToBeFixedForVfsRetention
 import org.gradle.language.AbstractNativeLanguageIncrementalCompileWithDiscoveredInputsIntegrationTest
 import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
-import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 
-@ToBeFixedForVfsRetention(
-    because = "https://github.com/gradle/gradle/issues/12162",
-    failsOnlyIf = TestPrecondition.WINDOWS
-)
 class CLanguageIncrementalCompileIntegrationTest extends AbstractNativeLanguageIncrementalCompileWithDiscoveredInputsIntegrationTest {
     @Override
     IncrementalHelloWorldApp getHelloWorldApp() {
