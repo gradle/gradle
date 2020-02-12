@@ -102,12 +102,12 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
     private static final Logger LOGGER = LoggerFactory.getLogger(VirtualFileSystemServices.class);
 
     /**
-     * System property to enable partial invalidation.
+     * Boolean system property to enable partial invalidation.
      */
     public static final String VFS_PARTIAL_INVALIDATION_ENABLED_PROPERTY = "org.gradle.unsafe.vfs.partial-invalidation";
 
     /**
-     * System property to enable retaining VFS state between builds.
+     * Boolean system property to enable retaining VFS state between builds.
      *
      * Also enables partial VFS invalidation.
      *
@@ -131,12 +131,12 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
     public static final String VFS_DROP_PROPERTY = "org.gradle.unsafe.vfs.drop";
 
     public static boolean isPartialInvalidationEnabled(Map<String, String> systemPropertiesArgs) {
-        return getSystemProperty(VFS_PARTIAL_INVALIDATION_ENABLED_PROPERTY, systemPropertiesArgs) != null
+        return isSystemPropertyEnabled(VFS_PARTIAL_INVALIDATION_ENABLED_PROPERTY, systemPropertiesArgs)
             || isRetentionEnabled(systemPropertiesArgs);
     }
 
     public static boolean isRetentionEnabled(Map<String, String> systemPropertiesArgs) {
-        return getSystemProperty(VFS_RETENTION_ENABLED_PROPERTY, systemPropertiesArgs) != null;
+        return isSystemPropertyEnabled(VFS_RETENTION_ENABLED_PROPERTY, systemPropertiesArgs);
     }
 
     public static List<File> getChangedPathsSinceLastBuild(PathToFileResolver resolver, Map<String, String> systemPropertiesArgs) {
@@ -148,6 +148,11 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             .filter(path -> !path.isEmpty())
             .map(resolver::resolve)
             .collect(Collectors.toList());
+    }
+
+    private static boolean isSystemPropertyEnabled(String systemProperty, Map<String, String> systemPropertiesArgs) {
+        String value = getSystemProperty(systemProperty, systemPropertiesArgs);
+        return value != null && !"false".equalsIgnoreCase(value);
     }
 
     @Nullable
@@ -222,7 +227,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                         FileResolver fileResolver = new BaseDirFileResolver(startParameter.getCurrentDir(), () -> {
                             throw new UnsupportedOperationException();
                         });
-                        if (getSystemProperty(VFS_DROP_PROPERTY, systemPropertiesArgs) != null) {
+                        if (isSystemPropertyEnabled(VFS_DROP_PROPERTY, systemPropertiesArgs)) {
                             virtualFileSystem.invalidateAll();
                         } else {
                             List<File> changedPathsSinceLastBuild = getChangedPathsSinceLastBuild(fileResolver, systemPropertiesArgs);
