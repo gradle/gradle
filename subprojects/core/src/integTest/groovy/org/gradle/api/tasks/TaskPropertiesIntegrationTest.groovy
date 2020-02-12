@@ -17,6 +17,7 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Issue
 
 class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
     def "can define task with abstract read-only Property<T> property"() {
@@ -329,5 +330,54 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         errorOutput.contains("java.lang.UnsupportedOperationException")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/12133")
+    def "abstract super type can define concrete property"() {
+        // Problem is exposed by Java compiler
+        file("buildSrc/src/main/java/AbstractCustomTask.java") << """
+            import org.gradle.api.file.ConfigurableFileCollection;
+            import org.gradle.api.internal.AbstractTask;
+            import org.gradle.api.tasks.InputFiles;
+
+            abstract class AbstractCustomTask extends AbstractTask {
+                private final ConfigurableFileCollection sourceFiles = getProject().files();
+
+                @InputFiles
+                public ConfigurableFileCollection getSourceFiles() {
+                    System.out.println("get files from field");
+                    return sourceFiles;
+                }
+
+                public void setSourceFiles(Object files) {
+                    System.out.println("set files using field");
+                    sourceFiles.setFrom(files);
+                }
+            }
+        """
+        file("buildSrc/src/main/java/CustomTask.java") << """
+            import org.gradle.api.GradleException;
+            import org.gradle.api.tasks.TaskAction;
+
+            public class CustomTask extends AbstractCustomTask {
+                @TaskAction
+                public void checkFiles() {
+                    System.out.println("checking files");
+                    if (getSourceFiles().isEmpty()) {
+                        throw new GradleException("sourceFiles are unexpectedly empty");
+                    }
+                    System.out.println("done checking files");
+                }
+            }
+        """
+
+        buildFile << """
+            task check(type: CustomTask) {
+                check.setSourceFiles("in.txt")
+            }
+        """
+
+        expect:
+        succeeds("check")
     }
 }

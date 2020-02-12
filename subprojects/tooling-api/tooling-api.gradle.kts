@@ -88,6 +88,10 @@ dependencies {
     testImplementation(testFixtures(project(":workers")))
 
     integTestRuntimeOnly(project(":runtimeApiInfo"))
+    integTestRuntimeOnly(project(":kotlinDsl"))
+    integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
+    integTestRuntimeOnly(project(":kotlinDslToolingBuilders"))
+    integTestRuntimeOnly(project(":apiMetadata"))
 }
 
 gradlebuildJava {

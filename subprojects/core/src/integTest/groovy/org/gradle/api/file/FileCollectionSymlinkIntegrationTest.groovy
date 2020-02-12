@@ -32,7 +32,7 @@ import static org.gradle.work.ChangeType.MODIFIED
 
 @Unroll
 @Requires(TestPrecondition.SYMLINKS)
-@ToBeFixedForVfsRetention("https://github.com/gradle/gradle/issues/11851")
+@ToBeFixedForVfsRetention(because = "https://github.com/gradle/gradle/issues/11851")
 class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
 
     def "#desc can handle symlinks"() {

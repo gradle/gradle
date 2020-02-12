@@ -23,6 +23,7 @@ import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.IvyHttpModule
 import org.gradle.test.fixtures.server.http.IvyHttpRepository
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
+import org.gradle.util.GFileUtils
 import org.junit.Rule
 import spock.lang.IgnoreIf
 
@@ -409,7 +410,7 @@ dependencies {
         requireGradleDistribution()
 
         executer.withEnvironmentVars('GRADLE_REPO_OVERRIDE': "$server.uri/")
-        server.expectHeadMissing("/distributions-snapshots/gradle-${distribution.version.version}-src.zip")
+        server.expectGetMissing("/distributions-snapshots/")
 
         buildScript """
             apply plugin: "java"
@@ -640,9 +641,13 @@ dependencies {
     }
 
     private void givenSourceDistributionExistsOnRemoteServer(String repository = "distributions-snapshots", String version = distribution.version.version, TestFile zippedSources = gradleSourcesZip()) {
+        def repoDir = testDirectory.createTempDir()
+        GFileUtils.copyFile(zippedSources, new File(repoDir, "gradle-${version}-src.zip"))
+
         String distributionPath = "/$repository/gradle-${version}-src.zip"
         server.allowGetOrHead(distributionPath, zippedSources)
         server.allowGetMissing("${distributionPath}.sha1")
+        server.allowGetDirectoryListing("/$repository/", repoDir)
     }
 
     void assertSourcesDirectoryDoesNotExistInDistribution() {

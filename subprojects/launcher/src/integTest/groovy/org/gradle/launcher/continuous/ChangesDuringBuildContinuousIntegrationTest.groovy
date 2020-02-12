@@ -31,7 +31,7 @@ import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
 // Continuous build will trigger a rebuild when an input file is changed during build execution
 @TestReproducibleArchives
 @Retry(condition = { TestPrecondition.LINUX && TestPrecondition.JDK8_OR_EARLIER && cleanProjectDir(instance) }, mode = SETUP_FEATURE_CLEANUP, count = 2)
-@ToBeFixedForVfsRetention("https://github.com/gradle/gradle/issues/11837")
+@ToBeFixedForVfsRetention(because = "https://github.com/gradle/gradle/issues/11837")
 class ChangesDuringBuildContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
 
     def setup() {
