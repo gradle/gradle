@@ -202,7 +202,8 @@ public class JavaCompile extends AbstractCompile {
 
     @Nested
     protected JavaPlatform getPlatform() {
-        return new DefaultJavaPlatform(JavaVersion.toVersion(getTargetCompatibility()));
+        JavaVersion javaVersion = JavaVersion.toVersion(getTargetCompatibility());
+        return javaVersion == null ? null : new DefaultJavaPlatform(javaVersion);
     }
 
     private void performCompilation(JavaCompileSpec spec, Compiler<JavaCompileSpec> compiler) {
