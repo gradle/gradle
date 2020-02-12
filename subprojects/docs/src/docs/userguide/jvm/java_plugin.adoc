@@ -423,8 +423,14 @@ Java version to generate classes for. Default value: `__sourceCompatibility__`.
 `withJavadocJar()`::
 Automatically packages Javadoc and creates a variant `javadocElements` with an artifact `-javadoc.jar`, which will be part of the publication.
 
+`withJavadocJar(String taskName)`::
+Automatically packages Javadoc and creates a variant `javadocElements` with an artifact `-javadoc.jar`, which will be part of the publication. `taskName` will be used as the task name for the `Jar` task responsible for javadoc generation
+
 `withSourcesJar()`::
 Automatically packages source code and creates a variant `sourceElements` with an artifact `-sources.jar`, which will be part of the publication.
+
+`withSourcesJar(String taskName)`::
+Automatically packages source code and creates a variant `sourceElements` with an artifact `-sources.jar`, which will be part of the publication. `taskName` will be used as the task name for the `Jar` task responsible for sources jar generation
 
 == Convention properties
 
