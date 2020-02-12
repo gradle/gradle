@@ -1,4 +1,3 @@
  - Dependency checksum and signature verification
  - Documentation links in deprecation messages
  - Shareable read-only dependency cache
- - Navigable Gradle sources for plugin developers in IDE
