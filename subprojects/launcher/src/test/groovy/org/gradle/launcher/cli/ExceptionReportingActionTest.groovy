@@ -29,7 +29,7 @@ class ExceptionReportingActionTest extends Specification {
     final ExecutionListener listener = Mock()
     final Action<Throwable> reporter = Mock()
     final LoggingOutputInternal loggingOutput = Mock()
-    final ExceptionReportingAction action = new ExceptionReportingAction(target, reporter, loggingOutput)
+    final ExceptionReportingAction action = new ExceptionReportingAction(reporter, loggingOutput, target)
 
     def "executes Action"() {
         when:
