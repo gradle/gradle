@@ -52,20 +52,23 @@ public class LogToClient extends BuildCommandOnly {
 
     @Override
     protected void doBuild(final DaemonCommandExecution execution, Build build) {
-        if (Boolean.getBoolean(DISABLE_OUTPUT)) {
-            execution.proceed();
-            return;
-        }
-
-        dispatcher = new AsynchronousLogDispatcher(execution.getConnection(), build.getParameters().getLogLevel());
-        LOGGER.info("{}{}). The daemon log file: {}", DaemonMessages.STARTED_RELAYING_LOGS, diagnostics.getPid(), diagnostics.getDaemonLog());
-        dispatcher.start();
         try {
-            execution.proceed();
+            if (Boolean.getBoolean(DISABLE_OUTPUT)) {
+                execution.proceed();
+                return;
+            }
+
+            dispatcher = new AsynchronousLogDispatcher(execution.getConnection(), build.getParameters().getLogLevel());
+            LOGGER.info("{}{}). The daemon log file: {}", DaemonMessages.STARTED_RELAYING_LOGS, diagnostics.getPid(), diagnostics.getDaemonLog());
+            dispatcher.start();
+            try {
+                execution.proceed();
+            } finally {
+                dispatcher.waitForCompletion();
+            }
         } finally {
-            dispatcher.waitForCompletion();
+            reInitializeDaemonLogLevel();
         }
-        reInitializeDaemonLogLevel();
     }
 
     private void reInitializeDaemonLogLevel() {
