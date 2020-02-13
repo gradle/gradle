@@ -223,8 +223,6 @@ public class IdeDependencySet {
                     Set<ResolvedArtifactResult> javaDoc = auxiliaryArtifacts.get(componentIdentifier, JavadocArtifact.class);
                     javaDoc = javaDoc != null ? javaDoc : Collections.<ResolvedArtifactResult>emptySet();
                     visitor.visitModuleDependency(artifact, sources, javaDoc, isTestConfiguration(configurations.get(artifactIdentifier)));
-                } else if (isGradleApiDependency(artifact)) {
-                    visitor.visitGradleApiDependency(artifact, gradleApiSourcesResolver.resolveGradleApiSources(shouldDownloadSources(visitor)), isTestConfiguration(configurations.get(artifactIdentifier)));
                 } else if (isLocalGroovyDependency(artifact)) {
                     File localGroovySources = shouldDownloadSources(visitor) ? gradleApiSourcesResolver.resolveLocalGroovySources(artifact.getFile().getName()) : null;
                     visitor.visitGradleApiDependency(artifact, localGroovySources, isTestConfiguration(configurations.get(artifactIdentifier)));
@@ -239,11 +237,6 @@ public class IdeDependencySet {
             String componentIdentifier = artifact.getId().getComponentIdentifier().getDisplayName();
             return (componentIdentifier.equals(GRADLE_API.displayName) || componentIdentifier.equals(GRADLE_TEST_KIT.displayName) || componentIdentifier.equals(LOCAL_GROOVY.displayName))
                 && artifactFileName.startsWith("groovy-all-");
-        }
-
-        private boolean isGradleApiDependency(ResolvedArtifactResult artifact) {
-            String artifactFileName = artifact.getFile().getName();
-            return artifactFileName.startsWith("gradle-api") || artifactFileName.startsWith("gradle-test-kit");
         }
 
         private boolean shouldDownloadSources(IdeDependencyVisitor visitor) {

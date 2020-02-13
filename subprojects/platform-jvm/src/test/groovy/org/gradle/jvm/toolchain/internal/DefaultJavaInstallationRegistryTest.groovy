@@ -19,10 +19,14 @@ package org.gradle.jvm.toolchain.internal
 import org.gradle.api.file.Directory
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.provider.Providers
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
+import org.junit.Rule
 import spock.lang.Specification
 
 class DefaultJavaInstallationRegistryTest extends Specification {
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def probe = Mock(JavaInstallationProbe)
     def registry = new DefaultJavaInstallationRegistry(probe, TestUtil.providerFactory(), TestFiles.fileCollectionFactory(), TestFiles.fileFactory())
 
@@ -54,7 +58,7 @@ class DefaultJavaInstallationRegistryTest extends Specification {
     def "can lazily query information for installation in directory"() {
         def dir = Stub(Directory)
         def probeResult = Stub(JavaInstallationProbe.ProbeResult)
-        def javaHome = new File("java-home").absoluteFile
+        def javaHome = tmpDir.createDir("java-home").absoluteFile
 
         when:
         def provider = registry.installationForDirectory(dir)
@@ -84,7 +88,6 @@ class DefaultJavaInstallationRegistryTest extends Specification {
     }
 
     def "has no information when no directory defined"() {
-        def dir = Stub(Directory)
         when:
         def provider = registry.installationForDirectory(Providers.notDefined())
 
@@ -92,12 +95,39 @@ class DefaultJavaInstallationRegistryTest extends Specification {
         0 * probe._
 
         when:
+        def present = provider.present
         def result = provider.getOrNull()
 
         then:
         0 * probe._
 
         and:
+        !present
         result == null
+    }
+
+    def "fails when directory does not exist"() {
+        def missing = tmpDir.file("missing")
+        def dir = Stub(Directory)
+        _ * dir.toString() >> "<dir>"
+        _ * dir.asFile >> missing
+
+        when:
+        def provider = registry.installationForDirectory(dir)
+
+        then:
+        0 * probe._
+
+        when:
+        provider.getOrNull()
+
+        then:
+        def e = thrown(DefaultJavaInstallationRegistry.JavaInstallationDiscoveryException)
+        e.message == "Could not determine the details of Java installation in directory <dir>."
+        e.cause instanceof FileNotFoundException
+        e.cause.message == "Directory ${missing} does not exist."
+
+        and:
+        0 * probe._
     }
 }
