@@ -33,6 +33,7 @@ import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.FilePropertyFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
+import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.invocation.Gradle
@@ -152,6 +153,7 @@ class Codecs(
         bind(ownerServiceCodec<BuildOperationListenerManager>())
         bind(ownerServiceCodec<BuildRequestMetaData>())
         bind(ownerServiceCodec<ListenerManager>())
+        bind(ownerServiceCodec<ClassLoaderCache>())
         bind(ServicesCodec())
 
         bind(ProxyCodec)
