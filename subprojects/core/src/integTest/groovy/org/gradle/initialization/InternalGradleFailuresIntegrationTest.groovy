@@ -34,6 +34,8 @@ class InternalGradleFailuresIntegrationTest extends AbstractIntegrationSpec {
 
     def "Error message due to unwritable project's Gradle cache directory is not scary"() {
         given:
+        executer.requireIsolatedDaemons()
+
         def localGradleCache = file('.gradle')
         localGradleCache.touch()
 
@@ -48,6 +50,7 @@ class InternalGradleFailuresIntegrationTest extends AbstractIntegrationSpec {
         given:
         requireOwnGradleUserHomeDir()
         requireGradleDistribution()
+        executer.requireIsolatedDaemons()
 
         executer.gradleUserHomeDir.touch()
 
@@ -60,7 +63,6 @@ class InternalGradleFailuresIntegrationTest extends AbstractIntegrationSpec {
 
     def "Error message due to unwritable Gradle daemon directory is not scary"() {
         given:
-        requireGradleDistribution()
         executer.requireIsolatedDaemons()
         executer.requireDaemon()
 
@@ -76,8 +78,8 @@ class InternalGradleFailuresIntegrationTest extends AbstractIntegrationSpec {
 
     def "Error message due to unwritable native directory is not scary"() {
         given:
-        requireOwnGradleUserHomeDir()
         requireGradleDistribution()
+        executer.requireIsolatedDaemons()
 
         def nativeDir = testDirectory.file("native-dir")
         nativeDir.touch()
