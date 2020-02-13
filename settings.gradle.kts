@@ -133,6 +133,7 @@ include("workerProcesses")
 include("baseAnnotations")
 include("samples")
 include("security")
+include("normalizationJava")
 
 val upperCaseLetters = "\\p{Upper}".toRegex()
 
