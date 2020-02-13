@@ -17,8 +17,9 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
     `java-library`
-    gradlebuild.`publish-public-libraries`
     gradlebuild.classycle
+    gradlebuild.`publish-public-libraries`
+    gradlebuild.`strict-compile`
 }
 
 description = "Base tools to work with files"
