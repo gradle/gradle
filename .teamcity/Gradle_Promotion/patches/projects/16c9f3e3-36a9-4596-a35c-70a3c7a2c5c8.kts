@@ -29,5 +29,11 @@ changeProject(uuid("16c9f3e3-36a9-4596-a35c-70a3c7a2c5c8")) {
         update {
             param("env.ORG_GRADLE_PROJECT_gradleS3AccessKey", "AKIAQBZWBNAJCJGCAMFL")
         }
+        expect {
+            password("env.ORG_GRADLE_PROJECT_gradleS3SecretKey", "credentialsJSON:0f1f842f-df6c-4db7-8271-f1f73c823aed")
+        }
+        update {
+            password("env.ORG_GRADLE_PROJECT_gradleS3SecretKey", "credentialsJSON:1d713842-74ae-48ef-8a89-c60fc1704545")
+        }
     }
 }
