@@ -23,6 +23,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.provider.PropertyInternal;
 import org.gradle.api.internal.tasks.JavaToolChainFactory;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.CompileJavaBuildOperationReportingCompiler;
@@ -75,16 +76,16 @@ import java.util.concurrent.Callable;
 public class JavaCompile extends AbstractCompile {
     private final CompileOptions compileOptions;
     private JavaToolChain toolChain;
-    private final FileCollection stableSources = getProject().files(new Callable<Object[]>() {
-        @Override
-        public Object[] call() {
-            return new Object[]{getSource(), getSources()};
-        }
-    });
+    private final FileCollection stableSources = getProject().files((Callable<Object[]>) () -> new Object[]{getSource(), getSources()});
 
     public JavaCompile() {
         CompileOptions compileOptions = getProject().getObjects().newInstance(CompileOptions.class);
         this.compileOptions = compileOptions;
+
+        // Work around for https://github.com/gradle/gradle/issues/6619
+        ((PropertyInternal<?>) compileOptions.getHeaderOutputDirectory()).attachProducer(this);
+        ((PropertyInternal<?>) compileOptions.getGeneratedSourceOutputDirectory()).attachProducer(this);
+
         CompilerForkUtils.doNotCacheIfForkingViaExecutable(compileOptions, getOutputs());
     }
 
@@ -221,6 +222,9 @@ public class JavaCompile extends AbstractCompile {
         spec.setSourceCompatibility(getSourceCompatibility());
         spec.setCompileOptions(compileOptions);
         spec.setSourcesRoots(CompilationSourceDirs.inferSourceRoots((FileTreeInternal) getStableSources().getAsFileTree()));
+        if (((JavaToolChainInternal) getToolChain()).getJavaVersion().compareTo(JavaVersion.VERSION_1_8) < 0) {
+            spec.getCompileOptions().setHeaderOutputDirectory(null);
+        }
         return spec;
     }
 

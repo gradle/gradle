@@ -60,9 +60,6 @@ class JavaSourceIncrementalCompilationIntegrationTest extends AbstractSourceIncr
     @Requires(TestPrecondition.JDK8_OR_LATER)
     def "deletes headers when source file is deleted"() {
         given:
-        buildFile << """
-            compileJava.options.headerOutputDirectory = file("build/headers/java/main")
-        """
         def sourceFile = file("src/main/java/my/org/Foo.java")
         sourceFile.text = """
             package my.org;
@@ -75,8 +72,8 @@ class JavaSourceIncrementalCompilationIntegrationTest extends AbstractSourceIncr
                 }
             }
         """
-        def generatedHeaderFile = file("build/headers/java/main/my_org_Foo.h")
-        def generatedInnerClassHeaderFile = file("build/headers/java/main/my_org_Foo_Inner.h")
+        def generatedHeaderFile = file("build/generated/sources/headers/java/main/my_org_Foo.h")
+        def generatedInnerClassHeaderFile = file("build/generated/sources/headers/java/main/my_org_Foo_Inner.h")
 
         source("""class Bar {
             public native void bar();
@@ -93,7 +90,7 @@ class JavaSourceIncrementalCompilationIntegrationTest extends AbstractSourceIncr
         then:
         generatedHeaderFile.assertDoesNotExist()
         generatedInnerClassHeaderFile.assertDoesNotExist()
-        file("build/headers/java/main/Bar.h").assertExists()
+        file("build/generated/sources/headers/java/main/Bar.h").assertExists()
     }
 
     def "changed class with used non-private constant incurs full rebuild"() {

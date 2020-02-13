@@ -925,12 +925,35 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
     }
 
     @Requires(TestPrecondition.JDK8_OR_LATER)
+    def "can connect generated headers to input of another task"() {
+        given:
+        buildFile << """
+            apply plugin: 'java'
+
+            task copy(type: Copy) {
+                from tasks.compileJava.options.headerOutputDirectory
+                into 'headers'
+            }
+        """
+        file('src/main/java/Foo.java') << """
+            public class Foo {
+                public native void foo();
+            }
+        """
+        when:
+        succeeds "copy"
+        executed ":compileJava"
+
+        then:
+        file('headers').assertHasDescendants("Foo.h")
+    }
+
+    @Requires(TestPrecondition.JDK8_OR_LATER)
     @ToBeFixedForInstantExecution
     def "deletes stale header files"() {
         given:
         buildFile << """
             apply plugin: 'java'
-            compileJava.options.headerOutputDirectory = file("build/headers/java/main")
         """
         def header = file('src/main/java/my/org/Foo.java') << """
             package my.org;
@@ -939,7 +962,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
                 public native void foo();
             }
         """
-        def generatedHeader = file("build/headers/java/main/my_org_Foo.h")
+        def generatedHeader = file("build/generated/sources/headers/java/main/my_org_Foo.h")
 
         when:
         succeeds "compileJava"

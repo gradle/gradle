@@ -43,7 +43,6 @@ class UnknownIncrementalAnnotationProcessingIntegrationTest extends AbstractIncr
         outputs.recompiledClasses("A", "AThing", "B")
     }
 
-    @ToBeFixedForInstantExecution
     def "the user is informed about non-incremental processors"() {
         def a = java "@Thing class A {}"
 
@@ -61,7 +60,6 @@ class UnknownIncrementalAnnotationProcessingIntegrationTest extends AbstractIncr
         }
     }
 
-    @ToBeFixedForInstantExecution
     def "compilation is incremental if the non-incremental processor is not used"() {
         def a = java "class A {}"
         java "class B {}"
