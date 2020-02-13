@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.tasks.api.internal
+package org.gradle.internal.normalization.java
 
-import org.gradle.internal.classanalysis.AsmConstants
-import org.gradle.internal.reflect.JavaReflectionUtil
 import org.junit.Assume
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassVisitor
@@ -27,8 +25,6 @@ import org.objectweb.asm.Opcodes
 import spock.lang.Unroll
 
 import java.lang.reflect.Modifier
-
-import static org.gradle.util.TestPrecondition.SUPPORTS_TARGETING_JAVA6
 
 class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
 
@@ -50,7 +46,7 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         hasMethod(extracted, 'foo')
 
         when:
-        def o = JavaReflectionUtil.newInstance(extracted)
+        def o = createInstance(extracted)
         o.foo()
 
         then:
@@ -76,7 +72,7 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         hasMethod(extracted, 'foo')
 
         when:
-        JavaReflectionUtil.newInstance(extracted)
+        createInstance(extracted)
 
         then:
         def e = thrown(Exception)
@@ -207,7 +203,7 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         hasMethod(extractedB, 'foo').modifiers == Opcodes.ACC_PUBLIC
 
         when:
-        JavaReflectionUtil.newInstance(extractedB)
+        createInstance(extractedB)
 
         then:
         def e = thrown(Exception)
@@ -287,7 +283,7 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
     }
 
     void "target binary compatibility is maintained"() {
-        Assume.assumeFalse(target == "1.6" && !SUPPORTS_TARGETING_JAVA6.fulfilled)
+        Assume.assumeFalse(target == "1.6" && !org.gradle.util.TestPrecondition.SUPPORTS_TARGETING_JAVA6.fulfilled)
 
         given:
         def api = toApi(target, [A: 'public class A {}'])
@@ -295,7 +291,7 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         when:
         def cr = new ClassReader(api.extractApiClassFrom(api.classes.A))
         def stubVersion = 0
-        cr.accept(new ClassVisitor(AsmConstants.ASM_LEVEL) {
+        cr.accept(new ClassVisitor(Opcodes.ASM7) {
             @Override
             void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
                 stubVersion = version
@@ -330,7 +326,7 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         hasField(extracted, 'foo', String)
 
         when:
-        def o = JavaReflectionUtil.newInstance(extracted)
+        def o = createInstance(extracted)
         o.foo()
 
         then:
@@ -356,7 +352,7 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         hasField(extracted, 'foo', String)
 
         when:
-        JavaReflectionUtil.newInstance(extracted)
+        createInstance(extracted)
 
         then:
         def e = thrown(Exception)
@@ -465,7 +461,7 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         when:
         def apiClassBytes = api.extractApiClassFrom(api.classes['com.acme.A'])
         def cr = new ClassReader(apiClassBytes)
-        cr.accept(new ClassVisitor(AsmConstants.ASM_LEVEL) {
+        cr.accept(new ClassVisitor(Opcodes.ASM7) {
             @Override
             void visitSource(String source, String debug) {
                 super.visitSource(source, debug)
@@ -479,7 +475,7 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
 
             @Override
             MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
-                new MethodVisitor(AsmConstants.ASM_LEVEL) {
+                new MethodVisitor(Opcodes.ASM7) {
                     @Override
                     void visitLineNumber(int line, Label start) {
                         throw new AssertionError("Should not produce any line number information but " +

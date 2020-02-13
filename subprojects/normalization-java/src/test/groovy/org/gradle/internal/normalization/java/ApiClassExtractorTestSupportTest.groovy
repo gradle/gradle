@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.tasks.api.internal
+package org.gradle.internal.normalization.java
 
-import org.gradle.internal.reflect.JavaReflectionUtil
 import spock.lang.Unroll
 
 class ApiClassExtractorTestSupportTest extends ApiClassExtractorTestSupport {
@@ -68,7 +67,7 @@ class ApiClassExtractorTestSupportTest extends ApiClassExtractorTestSupport {
         b.name == 'com.acme.B'
 
         when:
-        def aa = JavaReflectionUtil.newInstance(a)
+        def aa = createInstance(a)
 
         then:
         aa.id == 'id'

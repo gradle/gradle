@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.tasks.api.internal
+package org.gradle.internal.normalization.java
 
 import org.objectweb.asm.Opcodes
 import spock.lang.Unroll
 
 import java.lang.reflect.Modifier
-
-import static org.gradle.internal.reflect.JavaReflectionUtil.newInstance
 
 class ApiClassExtractorInnerClassTest extends ApiClassExtractorTestSupport {
 
@@ -53,7 +51,7 @@ class ApiClassExtractorInnerClassTest extends ApiClassExtractorTestSupport {
         hasMethod(extractedInner, 'foo').modifiers == Modifier.PUBLIC
 
         when:
-        def o = (modifier =~ /static/) ? newInstance(extractedInner) : extractedInner.newInstance(newInstance(extractedOuter))
+        def o = (modifier =~ /static/) ? createInstance(extractedInner) : extractedInner.newInstance(createInstance(extractedOuter))
         o.foo()
 
         then:

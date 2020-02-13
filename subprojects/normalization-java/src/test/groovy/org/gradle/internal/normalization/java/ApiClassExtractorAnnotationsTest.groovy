@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.tasks.api.internal
+package org.gradle.internal.normalization.java
 
 class ApiClassExtractorAnnotationsTest extends ApiClassExtractorTestSupport {
 

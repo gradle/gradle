@@ -29,6 +29,9 @@ dependencies {
 
     implementation(library("asm")) { version { require(libraryVersion("asm")) } }
     implementation(library("guava")) { version { require(libraryVersion("guava")) } }
+
+    testImplementation(project(":baseServices"))
+    testImplementation(project(":internalTesting"))
 }
 
 gradlebuildJava {

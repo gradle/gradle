@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.tasks.api.internal
+package org.gradle.internal.normalization.java
 
 import groovy.transform.CompileStatic
 import groovy.transform.TupleConstructor
-import org.gradle.internal.normalization.java.ApiClassExtractor
+import org.gradle.internal.UncheckedException
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import org.objectweb.asm.ClassReader
@@ -30,6 +30,7 @@ import javax.tools.JavaCompiler
 import javax.tools.JavaFileObject
 import javax.tools.SimpleJavaFileObject
 import javax.tools.ToolProvider
+import java.lang.reflect.Constructor
 import java.lang.reflect.Field
 import java.lang.reflect.Method
 
@@ -45,7 +46,7 @@ class ApiClassExtractorTestSupport extends Specification {
         }
 
         @Override
-        public CharSequence getCharContent(boolean ignoreEncodingErrors) {
+        CharSequence getCharContent(boolean ignoreEncodingErrors) {
             code
         }
     }
@@ -63,13 +64,13 @@ class ApiClassExtractorTestSupport extends Specification {
     }
 
     @CompileStatic
-    public static class ApiContainer {
+    static class ApiContainer {
         private final ApiClassLoader apiClassLoader = new ApiClassLoader()
         private final ApiClassExtractor apiClassExtractor
 
         public final Map<String, GeneratedClass> classes
 
-        public ApiContainer(List<String> packages, Map<String, GeneratedClass> classes) {
+        ApiContainer(List<String> packages, Map<String, GeneratedClass> classes) {
             this.apiClassExtractor = new ApiClassExtractor(packages.toSet())
             this.classes = classes
         }
@@ -89,7 +90,7 @@ class ApiClassExtractorTestSupport extends Specification {
 
     @TupleConstructor
     @CompileStatic
-    public static class GeneratedClass {
+    static class GeneratedClass {
         final byte[] bytes
         final Class<?> clazz
     }
@@ -164,7 +165,7 @@ class ApiClassExtractorTestSupport extends Specification {
         throw new AssertionError("Should not have found method $name(${Arrays.toString(argTypes)}) on class $c")
     }
 
-    protected Method hasMethod(Class c, String name, Class... argTypes) {
+    protected static Method hasMethod(Class c, String name, Class... argTypes) {
         try {
             c.getDeclaredMethod(name, argTypes)
         } catch (NoSuchMethodException ex) {
@@ -172,7 +173,7 @@ class ApiClassExtractorTestSupport extends Specification {
         }
     }
 
-    protected void noSuchField(Class c, String name, Class type) {
+    protected static void noSuchField(Class c, String name, Class type) {
         try {
             def f = c.getDeclaredField(name)
             if (f.type != type) {
@@ -185,7 +186,7 @@ class ApiClassExtractorTestSupport extends Specification {
         throw new AssertionError("Should not have found field $name of type $type on class $c")
     }
 
-    protected Field hasField(Class c, String name, Class type) {
+    protected static Field hasField(Class c, String name, Class type) {
         try {
             def f = c.getDeclaredField(name)
             if (f.type != type) {
@@ -198,4 +199,13 @@ class ApiClassExtractorTestSupport extends Specification {
         }
     }
 
+    protected static <T> T createInstance(Class<T> c) {
+        try {
+            Constructor<T> constructor = c.getDeclaredConstructor()
+            constructor.setAccessible(true)
+            return constructor.newInstance()
+        } catch (Throwable e) {
+            throw UncheckedException.throwAsUncheckedException(e)
+        }
+    }
 }
