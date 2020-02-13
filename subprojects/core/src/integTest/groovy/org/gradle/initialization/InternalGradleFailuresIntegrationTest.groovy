@@ -52,6 +52,11 @@ class InternalGradleFailuresIntegrationTest extends AbstractIntegrationSpec {
         requireGradleDistribution()
         executer.requireIsolatedDaemons()
 
+        def nativeDir = testDirectory.file("native-dir")
+        nativeDir.mkdir()
+
+        executer.withEnvironmentVars(GRADLE_OPTS: "-Dorg.gradle.native.dir=\"${nativeDir}\"")
+
         executer.gradleUserHomeDir.touch()
 
         when:
