@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile;
+package org.gradle.internal.normalization.java.impl;
 
 import com.google.common.collect.ComparisonChain;
 
@@ -30,8 +30,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * methods, but also classes, inner classes, annotations and their values, and more. This
  * model is minimalistic and has a few assumptions about being used in an ASM context, but
  * provides us in any case with what we need to effectively find and manipulate API
- * members, construct API classes out of them, and ultimately to assemble an
- * {@link org.gradle.jvm.tasks.api.ApiJar}.</p>
+ * members and construct API classes out of them.
  */
 public abstract class Member {
 

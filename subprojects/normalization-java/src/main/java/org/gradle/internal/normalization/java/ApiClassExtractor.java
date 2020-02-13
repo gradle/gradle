@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile;
+package org.gradle.internal.normalization.java;
 
+import org.gradle.internal.normalization.java.impl.ApiMemberSelector;
+import org.gradle.internal.normalization.java.impl.MethodStubbingApiMemberAdapter;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 

@@ -14,11 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile;
+package org.gradle.internal.normalization.java.impl;
 
-public class AnnotationAnnotationValue extends AnnotationValue<AnnotationMember> {
+import com.google.common.collect.ComparisonChain;
 
-    public AnnotationAnnotationValue(String name, AnnotationMember value) {
-        super(name, value);
+public abstract class AccessibleMember extends Member {
+
+    private final int access;
+
+    public AccessibleMember(int access, String name) {
+        super(name);
+        this.access = access;
+    }
+
+    public int getAccess() {
+        return access;
+    }
+
+    protected ComparisonChain compare(AccessibleMember o) {
+        return super.compare(o).compare(access, o.access);
     }
 }

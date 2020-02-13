@@ -14,24 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile;
+package org.gradle.internal.normalization.java.impl;
 
-import com.google.common.collect.ComparisonChain;
+public class EnumAnnotationValue extends SimpleAnnotationValue {
 
-public abstract class AccessibleMember extends Member {
+    private final String typeDesc;
 
-    private final int access;
-
-    public AccessibleMember(int access, String name) {
-        super(name);
-        this.access = access;
+    public EnumAnnotationValue(String name, String value, String typeDesc) {
+        super(name, value);
+        this.typeDesc = typeDesc;
     }
 
-    public int getAccess() {
-        return access;
-    }
-
-    protected ComparisonChain compare(AccessibleMember o) {
-        return super.compare(o).compare(access, o.access);
+    public String getTypeDesc() {
+        return typeDesc;
     }
 }

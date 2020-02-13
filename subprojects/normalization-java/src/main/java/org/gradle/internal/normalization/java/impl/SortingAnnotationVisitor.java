@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile;
+package org.gradle.internal.normalization.java.impl;
 
 import com.google.common.collect.Lists;
 import org.objectweb.asm.AnnotationVisitor;

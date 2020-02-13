@@ -19,7 +19,6 @@ package org.gradle.jvm.tasks.api;
 import com.google.common.collect.Lists;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.internal.tasks.compile.ApiClassExtractor;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.PathSensitive;
@@ -27,6 +26,7 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.ErroringAction;
+import org.gradle.internal.normalization.java.ApiClassExtractor;
 import org.objectweb.asm.ClassReader;
 
 import java.io.BufferedOutputStream;

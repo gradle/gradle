@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile;
+package org.gradle.internal.normalization.java.impl;
 
-public class ArrayAnnotationValue extends AnnotationValue<AnnotationValue<?>[]> {
+public class SimpleAnnotationValue extends AnnotationValue<Object> {
 
-    public ArrayAnnotationValue(String name, AnnotationValue<?>[] value) {
+    public SimpleAnnotationValue(String name, Object value) {
         super(name, value);
     }
 }

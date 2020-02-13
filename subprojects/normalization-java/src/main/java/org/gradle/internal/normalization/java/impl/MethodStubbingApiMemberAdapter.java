@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile;
+package org.gradle.internal.normalization.java.impl;
 
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
@@ -37,8 +37,7 @@ import static org.objectweb.asm.Opcodes.NEW;
  * implementations and replacing them with a "stub" that will throw an
  * {@link UnsupportedOperationException} if called at runtime. All members (including but
  * not limited to stripped and stubbed methods) are delegated to a {@link ClassWriter}
- * responsible for writing new API classes that will then in turn be used to assemble an
- * {@link org.gradle.jvm.tasks.api.ApiJar}.
+ * responsible for writing new API classes.
  */
 public class MethodStubbingApiMemberAdapter extends ClassVisitor {
 

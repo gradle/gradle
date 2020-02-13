@@ -14,18 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile;
+package org.gradle.internal.normalization.java.impl;
 
-public class EnumAnnotationValue extends SimpleAnnotationValue {
+public abstract class AnnotationValue<V> extends Member implements Comparable<AnnotationValue<?>> {
 
-    private final String typeDesc;
+    private final V value;
 
-    public EnumAnnotationValue(String name, String value, String typeDesc) {
-        super(name, value);
-        this.typeDesc = typeDesc;
+    public AnnotationValue(String name, V value) {
+        super(name);
+        this.value = value;
     }
 
-    public String getTypeDesc() {
-        return typeDesc;
+    public V getValue() {
+        return value;
+    }
+
+    @Override
+    public int compareTo(AnnotationValue<?> o) {
+        return super.compare(o).result();
     }
 }

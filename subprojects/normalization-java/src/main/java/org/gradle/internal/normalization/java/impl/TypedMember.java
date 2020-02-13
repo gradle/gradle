@@ -14,32 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile;
+package org.gradle.internal.normalization.java.impl;
 
-import java.util.Arrays;
+import com.google.common.collect.ComparisonChain;
 
-public class ClassMember extends AnnotatableMember {
+public abstract class TypedMember extends AnnotatableMember {
 
-    private final int version;
-    private final String superName;
-    private final String[] interfaces;
+    private final String typeDesc;
 
-    public ClassMember(int version, int access, String name, String signature, String superName, String[] interfaces) {
+    public TypedMember(int access, String name, String signature, String typeDesc) {
         super(access, name, signature);
-        this.version = version;
-        this.superName = superName;
-        this.interfaces = interfaces;
+        this.typeDesc = typeDesc;
     }
 
-    public String[] getInterfaces() {
-        return Arrays.copyOf(interfaces, interfaces.length);
+    public String getTypeDesc() {
+        return typeDesc;
     }
 
-    public String getSuperName() {
-        return superName;
-    }
-
-    public int getVersion() {
-        return version;
+    protected ComparisonChain compare(TypedMember o) {
+        return super.compare(o)
+            .compare(typeDesc == null ? "" : typeDesc, o.typeDesc == null ? "" : o.typeDesc);
     }
 }

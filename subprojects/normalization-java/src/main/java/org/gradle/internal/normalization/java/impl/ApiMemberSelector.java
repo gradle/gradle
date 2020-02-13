@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile;
+package org.gradle.internal.normalization.java.impl;
 
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassVisitor;
@@ -34,10 +34,11 @@ import static org.objectweb.asm.Opcodes.ACC_STATIC;
 import static org.objectweb.asm.Opcodes.ACC_SUPER;
 
 /**
- * Visits each {@link Member} of a given class and selects only those members that should
- * be included in the {@link org.gradle.jvm.tasks.api.ApiJar}. Selected API members are
- * delegated to an adapter that determines how to further process those members (e.g.
- * stripping out method bodies), and how to write a new "API class" with them.
+ * Visits each {@link Member} of a given class and selects only those members that
+ * are part of its API.
+ * Selected members are delegated to an adapter that determines how to further
+ * process those members (e.g. stripping out method bodies), and how to write a
+ * new "API class" with them.
  */
 public class ApiMemberSelector extends ClassVisitor {
 
