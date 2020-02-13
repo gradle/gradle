@@ -18,7 +18,7 @@ package org.gradle.launcher.daemon.server.exec;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.internal.logging.LoggingOutputInternal;
+import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
@@ -37,14 +37,15 @@ import java.util.concurrent.CountDownLatch;
 public class LogToClient extends BuildCommandOnly {
 
     public static final String DISABLE_OUTPUT = "org.gradle.daemon.disable-output";
+    public static final String DAEMON_LOGLEVEL_PROPERTY_NAME = "org.gradle.daemon.loglevel";
     private static final Logger LOGGER = Logging.getLogger(LogToClient.class);
 
-    private final LoggingOutputInternal loggingOutput;
+    private final LoggingManagerInternal loggingOutput;
     private final DaemonDiagnostics diagnostics;
 
     private volatile AsynchronousLogDispatcher dispatcher;
 
-    public LogToClient(LoggingOutputInternal loggingOutput, DaemonDiagnostics diagnostics) {
+    public LogToClient(LoggingManagerInternal loggingOutput, DaemonDiagnostics diagnostics) {
         this.loggingOutput = loggingOutput;
         this.diagnostics = diagnostics;
     }
@@ -63,6 +64,15 @@ public class LogToClient extends BuildCommandOnly {
             execution.proceed();
         } finally {
             dispatcher.waitForCompletion();
+        }
+        reInitializeDaemonLogLevel();
+    }
+
+    private void reInitializeDaemonLogLevel() {
+        String logLevelProperty = System.getProperty(DAEMON_LOGLEVEL_PROPERTY_NAME);
+        if (logLevelProperty != null && !logLevelProperty.isEmpty()) {
+            LogLevel daemonLogLevel = LogLevel.valueOf(logLevelProperty.toUpperCase());
+            loggingOutput.setLevelInternal(daemonLogLevel);
         }
     }
 
