@@ -66,7 +66,6 @@ subprojects {
 
         apply(from = "../../../gradle/shared-with-buildSrc/code-quality-configuration.gradle.kts")
     }
-    apply(plugin = "eclipse")
 }
 
 allprojects {
