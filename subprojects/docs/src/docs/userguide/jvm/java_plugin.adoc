@@ -762,6 +762,10 @@ Many popular annotation processors support incremental annotation processing (se
 | link:https://github.com/airbnb/epoxy/pull/902[Open PR]
 | N/A
 
+| link:https://docs.jboss.org/hibernate/orm/5.4/topical/html_single/metamodelgen/MetamodelGenerator.html[JPA Static Metamodel Generator]
+| link:https://github.com/hibernate/hibernate-orm/releases/tag/5.4.11[5.4.11]
+| N/A
+
 |===
 
 [[sec:java_compile_avoidance]]
