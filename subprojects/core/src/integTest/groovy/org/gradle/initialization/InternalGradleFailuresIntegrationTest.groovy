@@ -18,11 +18,14 @@ package org.gradle.initialization
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
-import org.gradle.util.GradleVersion
 
 class InternalGradleFailuresIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
+        executer.requireIsolatedDaemons()
+        executer.requireOwnGradleUserHomeDir()
+        executer.requireDaemon()
+
         buildScript """
             task hello() {
                 doLast {
@@ -34,8 +37,6 @@ class InternalGradleFailuresIntegrationTest extends AbstractIntegrationSpec {
 
     def "Error message due to unwritable project's Gradle cache directory is not scary"() {
         given:
-        executer.requireIsolatedDaemons()
-
         def localGradleCache = file('.gradle')
         localGradleCache.touch()
 
@@ -43,34 +44,25 @@ class InternalGradleFailuresIntegrationTest extends AbstractIntegrationSpec {
         fails 'hello'
 
         then:
-        assertHasStartupFailure(failure, "Failed to create directory '${localGradleCache}${File.separator}checksums'")
+        localGradleCache.isFile()
+        assertHasStartupFailure(failure, "Failed to create directory '${localGradleCache.file("checksums")}'")
     }
 
-    def "Error message due to unwritable user home directory is not scary"() {
+    def "Error message due to unwritable gradle user home directory is not scary"() {
         given:
-        requireOwnGradleUserHomeDir()
-        requireGradleDistribution()
-        executer.requireIsolatedDaemons()
-
-        def nativeDir = testDirectory.file("native-dir")
-        nativeDir.mkdir()
-
-        executer.withEnvironmentVars(GRADLE_OPTS: "-Dorg.gradle.native.dir=\"${nativeDir}\"")
-
-        executer.gradleUserHomeDir.touch()
+        def cachesDir = executer.gradleUserHomeDir.file("caches")
+        cachesDir.touch()
 
         when:
         fails 'hello'
 
         then:
-        assertHasStartupFailure(failure, "Cannot create parent directory '${executer.gradleUserHomeDir.file("caches")}' when creating directory '${executer.gradleUserHomeDir.file("caches")}")
+        cachesDir.isFile()
+        assertHasStartupFailure(failure, "Cannot create parent directory '${executer.gradleUserHomeDir.file("caches")}")
     }
 
     def "Error message due to unwritable Gradle daemon directory is not scary"() {
         given:
-        executer.requireIsolatedDaemons()
-        executer.requireDaemon()
-
         def daemonDir = executer.daemonBaseDir
         daemonDir.touch()
 
@@ -78,23 +70,21 @@ class InternalGradleFailuresIntegrationTest extends AbstractIntegrationSpec {
         fails 'hello'
 
         then:
+        daemonDir.isFile()
         assertHasStartupFailure(failure, "Failed to create directory '${daemonDir}")
     }
 
     def "Error message due to unwritable native directory is not scary"() {
         given:
-        requireGradleDistribution()
-        executer.requireIsolatedDaemons()
-
         def nativeDir = executer.gradleUserHomeDir.file("native")
         nativeDir.touch()
-
         executer.withNoExplicitNativeServicesDir()
 
         when:
         fails 'hello'
 
         then:
+        nativeDir.isFile()
         assertHasStartupFailure(failure, "Could not initialize native services.")
         failure.assertHasErrorOutput("Caused by: net.rubygrapefruit.platform.NativeException: Failed to load native library")
     }
