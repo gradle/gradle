@@ -81,7 +81,7 @@ public class LogToClient extends BuildCommandOnly {
 
     private class AsynchronousLogDispatcher extends Thread {
         private final CountDownLatch completionLock = new CountDownLatch(1);
-        private final Queue<OutputEvent> eventQueue = new ConcurrentLinkedQueue<OutputEvent>();
+        private final Queue<OutputEvent> eventQueue = new ConcurrentLinkedQueue<>();
         private final DaemonConnection connection;
         private final OutputEventListener listener;
         private volatile boolean shouldStop;
