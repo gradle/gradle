@@ -1,6 +1,5 @@
 package org.gradle.gradlebuild.test.integrationtests
 
-import accessors.eclipse
 import accessors.groovy
 import accessors.java
 import org.gradle.api.Action
@@ -8,7 +7,6 @@ import org.gradle.api.Project
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.kotlin.dsl.*
-import org.gradle.plugins.ide.eclipse.EclipsePlugin
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import java.io.File
 
@@ -142,12 +140,4 @@ fun Project.configureIde(testType: TestType) {
         }
     }
 
-    plugins.withType<EclipsePlugin> {
-        eclipse {
-            classpath.plusConfigurations.apply {
-                add(compile)
-                add(runtime)
-            }
-        }
-    }
 }

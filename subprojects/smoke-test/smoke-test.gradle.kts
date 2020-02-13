@@ -103,13 +103,6 @@ plugins.withType<IdeaPlugin>().configureEach {
     }
 }
 
-plugins.withType<EclipsePlugin>().configureEach {
-    eclipse.classpath {
-        plusConfigurations.add(smokeTestCompileClasspath)
-        plusConfigurations.add(smokeTestRuntimeClasspath)
-    }
-}
-
 tasks {
 
     /**

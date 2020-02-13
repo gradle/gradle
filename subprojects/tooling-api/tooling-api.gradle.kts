@@ -100,16 +100,6 @@ gradlebuildJava {
 
 apply(from = "buildship.gradle")
 
-eclipse {
-    classpath {
-        file.whenMerged(Action<Classpath> {
-            //**TODO
-            entries.removeAll { it is SourceFolder && it.path.contains("src/test/groovy") }
-            entries.removeAll { it is SourceFolder && it.path.contains("src/integTest/groovy") }
-        })
-    }
-}
-
 val integTestTasks: DomainObjectCollection<IntegrationTest> by extra
 
 integTestTasks.configureEach {
