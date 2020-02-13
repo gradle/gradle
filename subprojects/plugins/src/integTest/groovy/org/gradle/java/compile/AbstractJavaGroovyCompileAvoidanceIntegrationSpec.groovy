@@ -92,7 +92,6 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
         """
     }
 
-    @ToBeFixedForInstantExecution
     def "doesn't recompile when private element of implementation class changes"() {
         given:
         buildFile << """
@@ -203,7 +202,6 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
         executedAndNotSkipped ":a:${language.compileTaskName}", ":b:${language.compileTaskName}"
     }
 
-    @ToBeFixedForInstantExecution
     def "doesn't recompile when comments and whitespace of implementation class changes"() {
         given:
         buildFile << """
@@ -245,7 +243,6 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
         skipped ":b:${language.compileTaskName}"
     }
 
-    @ToBeFixedForInstantExecution
     def "doesn't recompile when implementation class code changes"() {
         given:
         buildFile << """
@@ -288,7 +285,6 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
         skipped ":b:${language.compileTaskName}"
     }
 
-    @ToBeFixedForInstantExecution
     def "doesn't recompile when initializer, static initializer or constructor is changed"() {
         given:
         buildFile << """
@@ -501,7 +497,6 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
         executedAndNotSkipped ":b:${language.compileTaskName}"
     }
 
-    @ToBeFixedForInstantExecution
     def "doesn't recompile when implementation resource is changed in various ways"() {
         given:
         buildFile << """
@@ -553,7 +548,6 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
         skipped ":b:${language.compileTaskName}"
     }
 
-    @ToBeFixedForInstantExecution
     def "doesn't recompile when empty directories are changed in various ways"() {
         given:
         buildFile << """

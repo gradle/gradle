@@ -18,8 +18,8 @@ package org.gradle.integtests
 
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.StaleOutputJavaProject
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
@@ -50,7 +50,6 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("https://github.com/gradle/gradle/issues/821")
     @Unroll
-    @ToBeFixedForInstantExecution
     def "production class files are removed in a single project build for #description"() {
         given:
         def javaProject = new StaleOutputJavaProject(testDirectory, buildDirName)
@@ -91,13 +90,12 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         'out'        | false      | 'reconfigured build directory'
     }
 
-    @ToBeFixedForInstantExecution
     def "production class files outside of 'build' are removed"() {
         given:
         def javaProject = new StaleOutputJavaProject(testDirectory, 'out')
         buildFile << """
             apply plugin: 'java'
-            
+
             sourceSets {
                 main {
                     java.outputDir = file('out/classes/java/main')
@@ -135,14 +133,14 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         def javaProject = new StaleOutputJavaProject(testDirectory)
         buildFile << """
             apply plugin: 'java'
-            
+
             task configureCompileJava {
                 doLast {
                     compileJava.destinationDir = file('build/out')
                     jar.from compileJava
                 }
             }
-            
+
             compileJava.dependsOn configureCompileJava
         """
         when:
@@ -506,7 +504,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         def targetFile2 = file('build/target/source2.txt')
         def taskPath = ':customCopy'
 
-        buildFile << """                
+        buildFile << """
             task customCopy(type: CustomCopy) {
                 sourceDir = fileTree('source')
                 targetDir = file('build/target')
@@ -559,7 +557,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         def targetFile2 = file('build/target/source2.txt')
         def taskPath = ':copy'
 
-        buildFile << """                     
+        buildFile << """
             tasks.register("copy", Copy) {
                 from file('source')
                 into 'build/target'

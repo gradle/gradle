@@ -18,7 +18,6 @@ package org.gradle.api.tasks
 
 import org.apache.commons.io.FilenameUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.archive.ArchiveTestFixture
 import org.gradle.test.fixtures.archive.TarTestFixture
 import org.gradle.test.fixtures.archive.ZipTestFixture
@@ -65,7 +64,6 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
         expectedHash = taskName == 'tar' ? 'eff4909fee3367f576fe26537ff6403a' : '62b93684c0b891fcf905b4a6eaf32976'
     }
 
-    @ToBeFixedForInstantExecution
     def "timestamps are ignored in #taskName"() {
         given:
         createTestFiles()

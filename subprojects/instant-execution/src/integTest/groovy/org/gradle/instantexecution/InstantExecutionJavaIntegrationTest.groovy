@@ -48,6 +48,15 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
         new ZipTestFixture(jarFile).hasDescendants("META-INF/MANIFEST.MF")
 
         when:
+        instantRun "build"
+
+        then:
+        instantExecution.assertStateLoaded()
+        result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
+        result.assertTasksNotSkipped() // everything is up-to-date
+        new ZipTestFixture(jarFile).hasDescendants("META-INF/MANIFEST.MF")
+
+        when:
         instantRun "clean"
 
         then:
@@ -126,8 +135,7 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
         then:
         instantExecution.assertStateLoaded()
         result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
-        // TODO - jar is out-of-date but should be up-to-date
-        result.assertTasksNotSkipped(":jar", ":assemble", ":build") // everything should be up-to-date
+        result.assertTasksNotSkipped() // everything should be up-to-date
         classFile.isFile()
         new ZipTestFixture(jarFile).hasDescendants("META-INF/MANIFEST.MF", "Thing.class")
 
@@ -147,6 +155,31 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
         result.assertTasksNotSkipped(":compileJava", ":classes", ":jar", ":assemble", ":build")
         classFile.isFile()
         new ZipTestFixture(jarFile).hasDescendants("META-INF/MANIFEST.MF", "Thing.class")
+
+        when:
+        instantRun "build"
+
+        then:
+        instantExecution.assertStateLoaded()
+        result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
+        result.assertTasksNotSkipped() // everything should be up-to-date
+        classFile.isFile()
+        new ZipTestFixture(jarFile).hasDescendants("META-INF/MANIFEST.MF", "Thing.class")
+
+        when:
+        file("src/main/java/thing/NewThing.java") << """
+            package thing;
+
+            public class NewThing { }
+        """
+        instantRun "build"
+
+        then:
+        instantExecution.assertStateLoaded()
+        result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
+        result.assertTasksNotSkipped(":compileJava", ":classes", ":jar", ":assemble", ":build")
+        classFile.isFile()
+        new ZipTestFixture(jarFile).hasDescendants("META-INF/MANIFEST.MF", "Thing.class", "thing/NewThing.class")
     }
 
     def "clean on Java project with a single source file and no dependencies"() {
@@ -193,8 +226,7 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
         then:
         instantExecution.assertStateLoaded()
         result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
-        // TODO - jar is out-of-date but should be up-to-date
-        result.assertTasksNotSkipped(":jar", ":assemble", ":build") // everything should be up-to-date
+        result.assertTasksNotSkipped() // everything should be up-to-date
         classFile.isFile()
         new ZipTestFixture(jarFile).hasDescendants("META-INF/MANIFEST.MF", "Thing.class", "answer.txt")
 
@@ -213,7 +245,37 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
         result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
         result.assertTasksNotSkipped(":compileJava", ":processResources", ":classes", ":jar", ":assemble", ":build")
         classFile.isFile()
-        new ZipTestFixture(jarFile).hasDescendants("META-INF/MANIFEST.MF", "Thing.class", "answer.txt")
+        new ZipTestFixture(jarFile).with {
+            hasDescendants("META-INF/MANIFEST.MF", "Thing.class", "answer.txt")
+            assertFileContent("answer.txt", "42")
+        }
+
+        when:
+        instantRun "build"
+
+        then:
+        instantExecution.assertStateLoaded()
+        result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
+        result.assertTasksNotSkipped() // everything should be up-to-date
+        classFile.isFile()
+        new ZipTestFixture(jarFile).with {
+            hasDescendants("META-INF/MANIFEST.MF", "Thing.class", "answer.txt")
+            assertFileContent("answer.txt", "42")
+        }
+
+        when:
+        file("src/main/resources/answer.txt").text = "forty-two"
+        instantRun "build"
+
+        then:
+        instantExecution.assertStateLoaded()
+        result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
+        result.assertTasksNotSkipped(":processResources", ":classes", ":jar", ":assemble", ":build")
+        classFile.isFile()
+        new ZipTestFixture(jarFile).with {
+            hasDescendants("META-INF/MANIFEST.MF", "Thing.class", "answer.txt")
+            assertFileContent("answer.txt", "forty-two")
+        }
     }
 
     def "assemble on Java project with multiple source directories"() {
@@ -304,37 +366,6 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
         new ZipTestFixture(jarFile).assertContainsFile("b/B.class")
     }
 
-    def "processResources on Java project honors task inputs"() {
-        given:
-        buildFile << """
-            apply plugin: 'java'
-        """
-        file("src/main/resources/answer.txt") << "42"
-
-        when:
-        instantRun ":processResources"
-
-        and:
-        file("build").deleteDir()
-
-        and:
-        instantRun ":processResources"
-
-        then:
-        instantExecution.assertStateLoaded()
-        file("build/resources/main/answer.txt").text == "42"
-
-        when: "task input changes"
-        file("src/main/resources/answer.txt").text = "forty-two"
-
-        and:
-        instantRun ":processResources"
-
-        then:
-        instantExecution.assertStateLoaded()
-        file("build/resources/main/answer.txt").text == "forty-two"
-    }
-
     def "processResources on Java project honors task outputs"() {
         given:
         buildFile << """
@@ -394,8 +425,7 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
         then:
         instantExecution.assertStateLoaded()
         result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
-        // TODO - jar should be up-to-date
-        result.assertTasksNotSkipped(":jar", ":assemble", ":build") // everything should be up-to-date
+        result.assertTasksNotSkipped() // everything should be up-to-date
         classFile.isFile()
         testClassFile.isFile()
         testResults.isDirectory()
@@ -452,8 +482,7 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
         then:
         instantExecution.assertStateLoaded()
         result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":startScripts", ":distTar", ":distZip", ":assemble", ":check", ":build")
-        // TODO - jar should be up-to-date
-//        result.assertTasksNotSkipped() // everything should be up-to-date
+        result.assertTasksNotSkipped() // everything should be up-to-date
         classFile.isFile()
         jarFile.isFile()
 

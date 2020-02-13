@@ -646,7 +646,6 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         "'UTF-8'"       | null            | "contentCharset must not be null"
     }
 
-    @ToBeFixedForInstantExecution
     def "JAR task is skipped when compiler output is unchanged"() {
         file("src/main/java/Main.java") << "public class Main {}\n"
         buildFile << """
