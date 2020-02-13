@@ -23,5 +23,11 @@ changeProject(uuid("16c9f3e3-36a9-4596-a35c-70a3c7a2c5c8")) {
         update {
             password("env.DOTCOM_DEV_DOCS_AWS_SECRET_KEY", "credentialsJSON:853fec36-91c4-4815-9a04-c9073b497352")
         }
+        expect {
+            param("env.ORG_GRADLE_PROJECT_gradleS3AccessKey", "AKIAJUN6ZAPAEO3BC7AQ")
+        }
+        update {
+            param("env.ORG_GRADLE_PROJECT_gradleS3AccessKey", "AKIAQBZWBNAJCJGCAMFL")
+        }
     }
 }
