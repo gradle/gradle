@@ -121,7 +121,9 @@ public class DefaultArtifactCaches implements ArtifactCachesProvider {
 
         @Override
         public void close() {
-            getDelegate().close();
+            if (delegate != null) {
+                delegate.close();
+            }
         }
 
         @Override
