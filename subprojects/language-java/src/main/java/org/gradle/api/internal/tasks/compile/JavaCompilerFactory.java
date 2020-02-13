@@ -23,6 +23,4 @@ import org.gradle.language.base.internal.compile.Compiler;
  */
 public interface JavaCompilerFactory {
     Compiler<JavaCompileSpec> create(Class<? extends CompileSpec> type);
-
-    Compiler<JavaCompileSpec> createForJointCompilation(Class<? extends CompileSpec> type);
 }

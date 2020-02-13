@@ -65,7 +65,6 @@ public class CreateEmptyDirectory extends DefaultTask {
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-834")
-    @ToBeFixedForInstantExecution
     def "task without actions is reported as up-to-date when it's up-to-date"() {
         file("src/main/java/Main.java") << "public class Main {}"
         buildFile << """
@@ -94,15 +93,15 @@ public class CreateEmptyDirectory extends DefaultTask {
             class CustomTask extends DefaultTask {
                 @OutputFile
                 File outputFile
-                
+
                 @Input
                 String content
-            
+
                 @TaskAction
                 public void doStuff() {
                     outputFile.text = content
                 }
-            }            
+            }
         '''
 
         def customTask = ':customTask'

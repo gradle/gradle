@@ -82,7 +82,7 @@
             </tr>
             <tr>
                 <td>headerOutputDirectory</td>
-                <td><literal>null</literal></td>
+                <td><literal><replaceable>${project.buildDir}</replaceable>/generated/sources/headers/<replaceable>${sourceDirectorySet.name}</replaceable>/<replaceable>${sourceSet.name}</replaceable></literal></td>
             </tr>
         </table>
     </section>
