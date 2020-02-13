@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.compile;
 
 import com.google.common.collect.Lists;
-import org.gradle.internal.classanalysis.AsmConstants;
 import org.objectweb.asm.AnnotationVisitor;
 
 import java.util.List;
