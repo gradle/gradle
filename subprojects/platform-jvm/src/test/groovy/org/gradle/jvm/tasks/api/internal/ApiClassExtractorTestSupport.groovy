@@ -75,15 +75,15 @@ class ApiClassExtractorTestSupport extends Specification {
         }
 
         protected Class<?> extractAndLoadApiClassFrom(GeneratedClass clazz) {
-            apiClassLoader.loadClassFromBytes(apiClassExtractor.extractApiClassFrom(new ClassReader(clazz.bytes)))
+            apiClassLoader.loadClassFromBytes(apiClassExtractor.extractApiClassFrom(new ClassReader(clazz.bytes)).get())
         }
 
         protected byte[] extractApiClassFrom(GeneratedClass clazz) {
-            apiClassExtractor.extractApiClassFrom(new ClassReader(clazz.bytes))
+            apiClassExtractor.extractApiClassFrom(new ClassReader(clazz.bytes)).get()
         }
 
         protected boolean shouldExtractApiClassFrom(GeneratedClass clazz) {
-            apiClassExtractor.shouldExtractApiClassFrom(new ClassReader(clazz.bytes))
+            apiClassExtractor.extractApiClassFrom(new ClassReader(clazz.bytes)).isPresent()
         }
     }
 

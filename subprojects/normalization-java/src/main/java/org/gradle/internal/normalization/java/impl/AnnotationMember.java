@@ -51,7 +51,7 @@ public class AnnotationMember extends Member implements Comparable<AnnotationMem
 
     protected ComparisonChain compare(AnnotationMember o) {
         return super.compare(o)
-            .compare(visible, o.visible);
+            .compareFalseFirst(visible, o.visible);
     }
 
     @Override

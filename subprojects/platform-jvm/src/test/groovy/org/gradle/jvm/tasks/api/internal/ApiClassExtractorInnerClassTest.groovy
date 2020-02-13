@@ -88,7 +88,7 @@ class ApiClassExtractorInnerClassTest extends ApiClassExtractorTestSupport {
 
         then:
         api.shouldExtractApiClassFrom(outer)
-        !api.extractApiClassFrom(inner)
+        !api.shouldExtractApiClassFrom(inner)
         extractedOuter.classes.length == 0
 
         where:

@@ -33,6 +33,7 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -132,31 +133,28 @@ public class ApiJar extends SourceTask {
                             continue;
                         }
                         ClassReader classReader = new ClassReader(readFileToByteArray(sourceFile));
-                        if (!apiClassExtractor.shouldExtractApiClassFrom(classReader)) {
-                            continue;
-                        }
-
-                        byte[] apiClassBytes = apiClassExtractor.extractApiClassFrom(classReader);
-                        if (apiClassBytes == null) {
-                            // Should be excluded
-                            continue;
-                        }
-
-                        String internalClassName = classReader.getClassName();
-                        String entryPath = internalClassName + ".class";
-                        writeEntry(jos, entryPath, apiClassBytes);
+                        apiClassExtractor.extractApiClassFrom(classReader)
+                            .ifPresent(apiClassBytes -> {
+                                String internalClassName = classReader.getClassName();
+                                String entryPath = internalClassName + ".class";
+                                writeEntry(jos, entryPath, apiClassBytes);
+                            });
                     }
                 }
 
-                private void writeEntry(JarOutputStream jos, String name, byte[] bytes) throws IOException {
-                    JarEntry je = new JarEntry(name);
-                    // Setting time to 0 because we need API jars to be identical independently of
-                    // the timestamps of class files
-                    je.setTime(0);
-                    je.setSize(bytes.length);
-                    jos.putNextEntry(je);
-                    jos.write(bytes);
-                    jos.closeEntry();
+                private void writeEntry(JarOutputStream jos, String name, byte[] bytes) {
+                    try {
+                        JarEntry je = new JarEntry(name);
+                        // Setting time to 0 because we need API jars to be identical independently of
+                        // the timestamps of class files
+                        je.setTime(0);
+                        je.setSize(bytes.length);
+                        jos.putNextEntry(je);
+                        jos.write(bytes);
+                        jos.closeEntry();
+                    } catch (IOException ex) {
+                        throw new UncheckedIOException(ex);
+                    }
                 }
             }
         );

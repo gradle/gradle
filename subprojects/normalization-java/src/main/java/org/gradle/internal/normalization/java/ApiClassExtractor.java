@@ -21,7 +21,7 @@ import org.gradle.internal.normalization.java.impl.MethodStubbingApiMemberAdapte
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 
-import javax.annotation.Nullable;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -40,24 +40,7 @@ public class ApiClassExtractor {
         this.apiIncludesPackagePrivateMembers = exportedPackages.isEmpty();
     }
 
-    /**
-     * Indicates whether the class held by the given reader is a candidate for extraction to
-     * an API class. Checks whether the class's package is in the list of packages
-     * explicitly exported by the library (if any), and whether the class should be
-     * included in the public API based on its visibility. If the list of exported
-     * packages is empty (e.g. the library has not declared an explicit {@code api {...}}
-     * specification, then package-private classes are included in the public API. If the
-     * list of exported packages is non-empty (i.e. the library has declared an
-     * {@code api {...}} specification, then package-private classes are excluded.
-     *
-     * <p>For these reasons, this method should be called as a test on every original
-     * .class file prior to invoking processed through
-     * {@link #extractApiClassFrom(ClassReader)}.</p>
-     *
-     * @param originalClassReader the reader containing the original class to evaluate
-     * @return whether the given class is a candidate for API extraction
-     */
-    public boolean shouldExtractApiClassFrom(ClassReader originalClassReader) {
+    private boolean shouldExtractApiClassFrom(ClassReader originalClassReader) {
         if (!ApiMemberSelector.isCandidateApiMember(originalClassReader.getAccess(), apiIncludesPackagePrivateMembers)) {
             return false;
         }
@@ -73,17 +56,27 @@ public class ApiClassExtractor {
      * Extracts an API class from a given original class.
      *
      * @param originalClassReader the reader containing the original class
-     * @return bytecode of the API class extracted from the original class. Returns null when class should not be included, due to some reason that is not known until visited.
+     * @return bytecode of the API class extracted from the original class. Returns {@link Optional#empty()} when class should not be included, due to some reason that is not known until visited.
+     *
+     * <p>Checks whether the class's package is in the list of packages
+     * explicitly exported by the library (if any), and whether the class should be
+     * included in the public API based on its visibility. If the list of exported
+     * packages is empty (e.g. the library has not declared an explicit {@code api {...}}
+     * specification, then package-private classes are included in the public API. If the
+     * list of exported packages is non-empty (i.e. the library has declared an
+     * {@code api {...}} specification, then package-private classes are excluded.</p>
      */
-    @Nullable
-    public byte[] extractApiClassFrom(ClassReader originalClassReader) {
+    public Optional<byte[]> extractApiClassFrom(ClassReader originalClassReader) {
+        if (!shouldExtractApiClassFrom(originalClassReader)) {
+            return Optional.empty();
+        }
         ClassWriter apiClassWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
         ApiMemberSelector visitor = new ApiMemberSelector(originalClassReader.getClassName(), new MethodStubbingApiMemberAdapter(apiClassWriter), apiIncludesPackagePrivateMembers);
         originalClassReader.accept(visitor, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
         if (visitor.isPrivateInnerClass()) {
-            return null;
+            return Optional.empty();
         }
-        return apiClassWriter.toByteArray();
+        return Optional.of(apiClassWriter.toByteArray());
     }
 
     private static String packageNameOf(String internalClassName) {
