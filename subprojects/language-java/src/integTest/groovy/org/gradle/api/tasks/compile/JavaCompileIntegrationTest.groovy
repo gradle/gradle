@@ -441,7 +441,6 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
     }
 
     @Issue("gradle/gradle#1347")
-    @ToBeFixedForInstantExecution
     def "compile classpath snapshotting ignores non-relevant elements"() {
         def buildFileWithDependencies = { String... dependencies ->
             buildFile.text = """

@@ -18,8 +18,8 @@ package org.gradle.java.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.CompiledLanguage
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.FeaturePreviewsFixture
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Unroll
 
 abstract class AbstractIncrementalCompileIntegrationTest extends AbstractIntegrationSpec implements IncrementalCompileMultiProjectTestFixture {
@@ -100,7 +100,7 @@ abstract class AbstractIncrementalCompileIntegrationTest extends AbstractIntegra
             subprojects {
                 apply plugin: '${language.name}'
                 ${language.compileTaskName}.options.incremental = true
-            }            
+            }
             project(':app') {
                 dependencies {
                     implementation project(':lib')
@@ -120,7 +120,6 @@ abstract class AbstractIncrementalCompileIntegrationTest extends AbstractIntegra
         failure.assertHasDescription "Execution failed for task ':app:${language.compileTaskName}'."
     }
 
-    @ToBeFixedForInstantExecution
     def "task outcome is UP-TO-DATE when no recompilation necessary"() {
         given:
         libraryAppProjectWithIncrementalCompilation(language)
@@ -145,7 +144,6 @@ abstract class AbstractIncrementalCompileIntegrationTest extends AbstractIntegra
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
     def "does not recompile when only compileOptions.incremental property changes from #from to #to"() {
         given:
         libraryAppProjectWithIncrementalCompilation(language)

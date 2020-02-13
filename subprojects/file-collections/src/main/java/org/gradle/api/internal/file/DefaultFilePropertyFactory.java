@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.file;
 
+import org.gradle.api.Transformer;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
@@ -223,7 +224,12 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
 
         @Override
         public THIS fileProvider(Provider<File> provider) {
-            set(provider.map(file -> fromFile(file)));
+            set(provider.map(new Transformer<T, File>() {
+                @Override
+                public T transform(File file) {
+                    return fromFile(file);
+                }
+            }));
             return Cast.uncheckedNonnullCast(this);
         }
 

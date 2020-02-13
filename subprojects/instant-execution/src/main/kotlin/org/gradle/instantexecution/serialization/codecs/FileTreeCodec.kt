@@ -16,7 +16,6 @@
 
 package org.gradle.instantexecution.serialization.codecs
 
-import org.gradle.api.file.FileVisitor
 import org.gradle.api.internal.file.DefaultCompositeFileTree
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileCollectionStructureVisitor
@@ -25,10 +24,8 @@ import org.gradle.api.internal.file.FileTreeInternal
 import org.gradle.api.internal.file.archive.TarFileTree
 import org.gradle.api.internal.file.archive.ZipFileTree
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
-import org.gradle.api.internal.file.collections.FileBackedDirectoryFileTree
 import org.gradle.api.internal.file.collections.FileTreeAdapter
 import org.gradle.api.internal.file.collections.GeneratedSingletonFileTree
-import org.gradle.api.internal.file.collections.MinimalFileTree
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
@@ -36,6 +33,7 @@ import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.ownerService
 import org.gradle.instantexecution.serialization.readNonNull
 import java.io.File
+import java.nio.file.Files
 
 
 private
@@ -59,18 +57,22 @@ class GeneratedTreeSpec(val file: File) : FileTreeSpec()
 
 
 private
-class DummyFileTree(val file: File) : MinimalFileTree {
-    override fun getDisplayName(): String {
-        return "generated ${file.name}"
-    }
-
-    override fun visit(visitor: FileVisitor) {
+class DummyGeneratedFileTree(file: File) : GeneratedSingletonFileTree(
+    { file.parentFile },
+    file.name,
+    {},
+    { outStr ->
         if (!file.exists()) {
             // Generate some dummy content if the file does not exist
+            // TODO - rework this so that content is generated into some fixed workspace location and reused from there
             file.parentFile.mkdirs()
             file.writeText("")
         }
-        FileBackedDirectoryFileTree(file).visit(visitor)
+        Files.copy(file.toPath(), outStr)
+    }
+) {
+    override fun getDisplayName(): String {
+        return "generated ${file.name}"
     }
 }
 
@@ -89,7 +91,7 @@ class FileTreeCodec(
             readNonNull<List<FileTreeSpec>>().map {
                 when (it) {
                     is DirectoryTreeSpec -> FileTreeAdapter(directoryFileTreeFactory.create(it.file, it.patterns))
-                    is GeneratedTreeSpec -> FileTreeAdapter(DummyFileTree(it.file))
+                    is GeneratedTreeSpec -> FileTreeAdapter(DummyGeneratedFileTree(it.file))
                     is ZipTreeSpec -> ownerService<FileOperations>().zipTree(it.file) as FileTreeInternal
                     is TarTreeSpec -> ownerService<FileOperations>().tarTree(it.file) as FileTreeInternal
                 }
