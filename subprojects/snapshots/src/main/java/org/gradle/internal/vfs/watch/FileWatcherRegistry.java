@@ -22,7 +22,7 @@ import java.nio.file.Path;
 
 public interface FileWatcherRegistry extends Closeable {
 
-    interface ChangeHandler {
+    interface ChangeHandler extends Closeable {
         void handleChange(Type type, Path path);
 
         void handleLostState();
@@ -38,7 +38,7 @@ public interface FileWatcherRegistry extends Closeable {
     /**
      * Stop watching and handle the accumulated changes.
      */
-    void stopWatching(ChangeHandler handler) throws IOException;
+    void stopWatching() throws IOException;
 
     /**
      * Close the watcher registry. Stops watching without handling the changes.

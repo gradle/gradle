@@ -57,7 +57,33 @@ public class DefaultWatchingVirtualFileSystem extends AbstractDelegatingVirtualF
         }
         try {
             long startTime = System.currentTimeMillis();
-            watchRegistry = watcherRegistryFactory.startWatching(getRoot(), watchFilter, mustWatchDirectories);
+            watchRegistry = watcherRegistryFactory.startWatching(getRoot(), watchFilter, mustWatchDirectories, new FileWatcherRegistry.ChangeHandler() {
+                AtomicInteger count = new AtomicInteger();
+                AtomicBoolean unknownEventEncountered = new AtomicBoolean();
+
+                @Override
+                public void handleChange(FileWatcherRegistry.Type type, Path path) {
+                    count.incrementAndGet();
+                    LOGGER.debug("Handling VFS change {} {}", type, path);
+                    update(Collections.singleton(path.toString()), () -> {});
+                }
+
+                @Override
+                public void handleLostState() {
+                    unknownEventEncountered.getAndSet(true);
+                    LOGGER.warn("Dropped VFS state due to lost state");
+                    invalidateAll();
+                }
+
+                @Override
+                public void close() {
+                    if (unknownEventEncountered.get()) {
+                        LOGGER.warn("Dropped VFS state due to lost state");
+                    } else {
+                        LOGGER.warn("Received {} file system events since last build", count);
+                    }
+                }
+            });
             long endTime = System.currentTimeMillis() - startTime;
             LOGGER.warn("Spent {} ms registering watches for file system events", endTime);
         } catch (Exception ex) {
@@ -73,28 +99,9 @@ public class DefaultWatchingVirtualFileSystem extends AbstractDelegatingVirtualF
             return;
         }
 
-        AtomicInteger count = new AtomicInteger();
-        AtomicBoolean unknownEventEncountered = new AtomicBoolean();
         try {
             long startTime = System.currentTimeMillis();
-            watchRegistry.stopWatching(new FileWatcherRegistry.ChangeHandler() {
-                @Override
-                public void handleChange(FileWatcherRegistry.Type type, Path path) {
-                    count.incrementAndGet();
-                    LOGGER.debug("Handling VFS change {} {}", type, path);
-                    update(Collections.singleton(path.toString()), () -> {});
-                }
-
-                @Override
-                public void handleLostState() {
-                    unknownEventEncountered.set(true);
-                    LOGGER.warn("Dropped VFS state due to lost state");
-                    invalidateAll();
-                }
-            });
-            if (!unknownEventEncountered.get()) {
-                LOGGER.warn("Received {} file system events since last build", count);
-            }
+            watchRegistry.stopWatching();
             LOGGER.warn("Spent {} ms processing file system events since last build", System.currentTimeMillis() - startTime);
         } catch (IOException ex) {
             LOGGER.error("Couldn't fetch file changes, dropping VFS state", ex);

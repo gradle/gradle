@@ -17,35 +17,28 @@
 package org.gradle.internal.vfs;
 
 import net.rubygrapefruit.platform.file.FileWatcher;
-import org.gradle.internal.vfs.impl.WatcherEvent;
 import org.gradle.internal.vfs.watch.FileWatcherRegistry;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
 public class AbstractEventDrivenFileWatcherRegistry implements FileWatcherRegistry {
     private final FileWatcher watcher;
-    private final List<WatcherEvent> events = new ArrayList<>();
+    private final ChangeHandler handler;
 
-    public AbstractEventDrivenFileWatcherRegistry(FileWatcherCreator watcherCreator) {
-        this.watcher = watcherCreator.createWatcher(events);
+    public AbstractEventDrivenFileWatcherRegistry(FileWatcher watcher, ChangeHandler handler) {
+        this.watcher = watcher;
+        this.handler = handler;
     }
 
     @Override
-    public void stopWatching(ChangeHandler handler) throws IOException {
+    public void stopWatching() throws IOException {
         // Make sure events stop arriving before we start dispatching
         watcher.close();
-        WatcherEvent.dispatch(events, handler);
+        handler.close();
     }
 
     @Override
     public void close() throws IOException {
         watcher.close();
-    }
-
-    protected interface FileWatcherCreator {
-        FileWatcher createWatcher(Collection<WatcherEvent> events);
     }
 }

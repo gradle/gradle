@@ -35,23 +35,25 @@ import java.util.stream.Collectors;
 public class WindowsFileWatcherRegistry extends AbstractEventDrivenFileWatcherRegistry {
     private static final Logger LOGGER = LoggerFactory.getLogger(WindowsFileWatcherRegistry.class);
 
-    public WindowsFileWatcherRegistry(Set<Path> watchRoots) {
-        super(events -> Native.get(WindowsFileEventFunctions.class)
-            .startWatching(
+    public WindowsFileWatcherRegistry(Set<Path> watchRoots, ChangeHandler handler) {
+        super(
+            Native.get(WindowsFileEventFunctions.class).startWatching(
                 watchRoots.stream()
                     .map(Path::toString)
                     .collect(Collectors.toList()),
-                (type, path) -> events.add(WatcherEvent.createEvent(type, path))
-            ));
+                (type, path) -> WatcherEvent.createEvent(type, path).dispatch(handler)
+            ),
+            handler
+        );
     }
 
     public static class Factory implements FileWatcherRegistryFactory {
         @Override
-        public FileWatcherRegistry startWatching(SnapshotHierarchy snapshotHierarchy, Predicate<String> watchFilter, Collection<File> mustWatchDirectories) {
+        public FileWatcherRegistry startWatching(SnapshotHierarchy snapshotHierarchy, Predicate<String> watchFilter, Collection<File> mustWatchDirectories, ChangeHandler handler) {
             Set<String> directories = WatchRootUtil.resolveDirectoriesToWatch(snapshotHierarchy, watchFilter, mustWatchDirectories);
             Set<Path> watchRoots = WatchRootUtil.resolveRootsToWatch(directories);
             LOGGER.warn("Watching {} directory hierarchies to track changes between builds in {} directories", watchRoots.size(), directories.size());
-            return new WindowsFileWatcherRegistry(watchRoots);
+            return new WindowsFileWatcherRegistry(watchRoots, handler);
         }
     }
 }

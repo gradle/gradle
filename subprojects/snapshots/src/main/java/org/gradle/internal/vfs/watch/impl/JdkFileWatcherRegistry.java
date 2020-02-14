@@ -46,9 +46,11 @@ public class JdkFileWatcherRegistry implements FileWatcherRegistry {
     private static final Logger LOGGER = LoggerFactory.getLogger(JdkFileWatcherRegistry.class);
 
     private final WatchService watchService;
+    private final ChangeHandler handler;
 
-    public JdkFileWatcherRegistry(WatchService watchService, Iterable<Path> watchRoots) throws IOException {
+    public JdkFileWatcherRegistry(WatchService watchService, Iterable<Path> watchRoots, ChangeHandler handler) throws IOException {
         this.watchService = watchService;
+        this.handler = handler;
         for (Path watchRoot : watchRoots) {
             LOGGER.debug("Started watching {}", watchRoot);
             watchRoot.register(watchService,
@@ -58,7 +60,7 @@ public class JdkFileWatcherRegistry implements FileWatcherRegistry {
     }
 
     @Override
-    public void stopWatching(ChangeHandler handler) throws IOException {
+    public void stopWatching() throws IOException {
         try {
             boolean overflow = false;
             while (!overflow) {
@@ -93,6 +95,7 @@ public class JdkFileWatcherRegistry implements FileWatcherRegistry {
             }
         } finally {
             close();
+            handler.close();
         }
     }
 
@@ -103,13 +106,13 @@ public class JdkFileWatcherRegistry implements FileWatcherRegistry {
 
     public static class Factory implements FileWatcherRegistryFactory {
         @Override
-        public FileWatcherRegistry startWatching(SnapshotHierarchy root, Predicate<String> watchFilter, Collection<File> mustWatchDirectories) throws IOException {
+        public FileWatcherRegistry startWatching(SnapshotHierarchy root, Predicate<String> watchFilter, Collection<File> mustWatchDirectories, ChangeHandler handler) throws IOException {
             WatchService watchService = FileSystems.getDefault().newWatchService();
             Set<Path> directories = WatchRootUtil.resolveDirectoriesToWatch(root, watchFilter, mustWatchDirectories).stream()
                 .map(Paths::get)
                 .collect(Collectors.toSet());
             LOGGER.warn("Watching {} directories to track changes between builds", directories.size());
-            return new JdkFileWatcherRegistry(watchService, directories);
+            return new JdkFileWatcherRegistry(watchService, directories, handler);
         }
     }
 }

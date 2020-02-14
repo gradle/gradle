@@ -24,5 +24,5 @@ import java.util.Collection;
 import java.util.function.Predicate;
 
 public interface FileWatcherRegistryFactory {
-    FileWatcherRegistry startWatching(SnapshotHierarchy snapshotHierarchy, Predicate<String> watchFilter, Collection<File> mustWatchDirectories) throws IOException;
+    FileWatcherRegistry startWatching(SnapshotHierarchy snapshotHierarchy, Predicate<String> watchFilter, Collection<File> mustWatchDirectories, FileWatcherRegistry.ChangeHandler handler) throws IOException;
 }
