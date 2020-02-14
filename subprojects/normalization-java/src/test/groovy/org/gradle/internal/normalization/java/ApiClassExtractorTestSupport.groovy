@@ -83,7 +83,7 @@ class ApiClassExtractorTestSupport extends Specification {
             apiClassExtractor.extractApiClassFrom(new ClassReader(clazz.bytes)).get()
         }
 
-        protected boolean shouldExtractApiClassFrom(GeneratedClass clazz) {
+        protected boolean isApiClassExtractedFrom(GeneratedClass clazz) {
             apiClassExtractor.extractApiClassFrom(new ClassReader(clazz.bytes)).isPresent()
         }
     }

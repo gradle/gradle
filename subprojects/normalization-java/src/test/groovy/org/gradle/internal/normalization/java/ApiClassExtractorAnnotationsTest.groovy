@@ -43,8 +43,6 @@ class ApiClassExtractorAnnotationsTest extends ApiClassExtractorTestSupport {
         def extractedAnnotations = extractedClass.annotations
 
         then:
-        api.shouldExtractApiClassFrom(clazz)
-        api.shouldExtractApiClassFrom(annClazz)
         annotations.size() == 1
         annotations[0].annotationType().name == 'Ann'
         extractedAnnotations.size() == 1
@@ -81,8 +79,6 @@ class ApiClassExtractorAnnotationsTest extends ApiClassExtractorTestSupport {
         def extractedAnnotations = extractedClass.getDeclaredMethod('foo').annotations
 
         then:
-        api.shouldExtractApiClassFrom(clazz)
-        api.shouldExtractApiClassFrom(annClazz)
         annotations.size() == 1
         annotations[0].annotationType().name == 'Ann'
         extractedAnnotations.size() == 1
@@ -120,8 +116,6 @@ class ApiClassExtractorAnnotationsTest extends ApiClassExtractorTestSupport {
         def extractedAnnotations = extractedClass.getDeclaredMethod('foo', String).parameterAnnotations[0]
 
         then:
-        api.shouldExtractApiClassFrom(clazz)
-        api.shouldExtractApiClassFrom(annClazz)
         annotations.size() == 1
         annotations[0].annotationType().name == 'Ann'
         extractedAnnotations.size() == 1
@@ -161,8 +155,6 @@ class ApiClassExtractorAnnotationsTest extends ApiClassExtractorTestSupport {
         def extractedAnnotations = extractedClass.getDeclaredField('foo').annotations
 
         then:
-        api.shouldExtractApiClassFrom(clazz)
-        api.shouldExtractApiClassFrom(annClazz)
         annotations.size() == 1
         annotations[0].annotationType().name == 'Ann'
         extractedAnnotations.size() == 1
@@ -215,8 +207,6 @@ class ApiClassExtractorAnnotationsTest extends ApiClassExtractorTestSupport {
         def extractedAnnotations = extractedClass.annotations
 
         then:
-        api.shouldExtractApiClassFrom(clazz)
-        api.shouldExtractApiClassFrom(annClazz)
         annotations.size() == 1
         annotations[0].annotationType().name == 'Ann'
         extractedAnnotations.size() == 1
@@ -272,8 +262,6 @@ class ApiClassExtractorAnnotationsTest extends ApiClassExtractorTestSupport {
         def extractedAnnotations = extractedClass.annotations
 
         then:
-        api.shouldExtractApiClassFrom(clazz)
-        api.shouldExtractApiClassFrom(annClazz)
         annotations.size() == 1
         annotations[0].annotationType().name == 'Ann'
         extractedAnnotations.size() == 1
@@ -315,8 +303,6 @@ class ApiClassExtractorAnnotationsTest extends ApiClassExtractorTestSupport {
         def extractedAnnotations = extractedClass.annotations
 
         then:
-        api.shouldExtractApiClassFrom(clazz)
-        api.shouldExtractApiClassFrom(annClazz)
         annotations.size() == 1
         annotations[0].annotationType().name == 'Ann'
         extractedAnnotations.size() == 1

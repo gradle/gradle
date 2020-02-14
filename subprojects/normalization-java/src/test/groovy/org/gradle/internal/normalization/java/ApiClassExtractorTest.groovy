@@ -41,7 +41,6 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         def extracted = api.extractAndLoadApiClassFrom(clazz)
 
         then:
-        api.shouldExtractApiClassFrom(clazz)
         clazz.clazz.getDeclaredMethod('foo').modifiers == Modifier.PUBLIC
         hasMethod(extracted, 'foo')
 
@@ -67,7 +66,6 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         def extracted = api.extractAndLoadApiClassFrom(clazz)
 
         then:
-        api.shouldExtractApiClassFrom(clazz)
         hasMethod(clazz.clazz, 'foo').modifiers == Modifier.PROTECTED
         hasMethod(extracted, 'foo')
 
@@ -93,7 +91,6 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         def extracted = api.extractAndLoadApiClassFrom(clazz)
 
         then:
-        api.shouldExtractApiClassFrom(clazz)
         hasMethod(clazz.clazz, 'foo').modifiers == Modifier.PRIVATE
         noSuchMethod(extracted, 'foo')
 
@@ -113,7 +110,6 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         def extracted = api.extractAndLoadApiClassFrom(clazz)
 
         then:
-        api.shouldExtractApiClassFrom(clazz)
         hasMethod(clazz.clazz, 'foo').modifiers == 0
         hasMethod(clazz.clazz, 'bar').modifiers == Opcodes.ACC_STATIC
         hasMethod(extracted, 'foo').modifiers == 0
@@ -136,7 +132,6 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         def extracted = api.extractAndLoadApiClassFrom(clazz)
 
         then:
-        api.shouldExtractApiClassFrom(clazz)
         hasMethod(clazz.clazz, 'foo').modifiers == 0
         hasMethod(clazz.clazz, 'bar').modifiers == Opcodes.ACC_STATIC
         noSuchMethod(extracted, 'foo')
@@ -157,7 +152,6 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         def extracted = api.extractAndLoadApiClassFrom(clazz)
 
         then:
-        api.shouldExtractApiClassFrom(clazz)
         hasMethod(clazz.clazz, 'foo').modifiers == Opcodes.ACC_ABSTRACT + Opcodes.ACC_PUBLIC
         hasMethod(extracted, 'foo').modifiers == Opcodes.ACC_ABSTRACT + Opcodes.ACC_PUBLIC
 
@@ -191,8 +185,6 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         def extractedB = api.extractAndLoadApiClassFrom(clazzB)
 
         then:
-        api.shouldExtractApiClassFrom(clazzA)
-        api.shouldExtractApiClassFrom(clazzB)
         hasMethod(clazzA.clazz, 'foo').modifiers == Opcodes.ACC_ABSTRACT + Opcodes.ACC_PUBLIC
         hasMethod(clazzA.clazz, 'bar').modifiers == Opcodes.ACC_PUBLIC
         hasMethod(extractedA, 'foo').modifiers == Opcodes.ACC_ABSTRACT + Opcodes.ACC_PUBLIC
@@ -321,7 +313,6 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         def extracted = api.extractAndLoadApiClassFrom(clazz)
 
         then:
-        api.shouldExtractApiClassFrom(clazz)
         hasField(clazz.clazz, 'foo', String).modifiers == Modifier.PUBLIC
         hasField(extracted, 'foo', String)
 
@@ -347,7 +338,6 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         def extracted = api.extractAndLoadApiClassFrom(clazz)
 
         then:
-        api.shouldExtractApiClassFrom(clazz)
         hasField(clazz.clazz, 'foo', String).modifiers == Modifier.PROTECTED
         hasField(extracted, 'foo', String)
 
@@ -372,7 +362,6 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         def extracted = api.extractAndLoadApiClassFrom(clazz)
 
         then:
-        api.shouldExtractApiClassFrom(clazz)
         hasField(clazz.clazz, 'foo', String).modifiers == Modifier.PRIVATE
         noSuchField(extracted, 'foo', String)
 
@@ -391,7 +380,6 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         def extracted = api.extractAndLoadApiClassFrom(clazz)
 
         then:
-        api.shouldExtractApiClassFrom(clazz)
         hasField(clazz.clazz, 'foo', String).modifiers == 0
         hasField(extracted, 'foo', String).modifiers == 0
 
@@ -414,7 +402,6 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         def extracted = api.extractAndLoadApiClassFrom(clazz)
 
         then:
-        api.shouldExtractApiClassFrom(clazz)
         hasField(clazz.clazz, 'foo', int).modifiers == Modifier.VOLATILE
         hasField(extracted, 'foo', int).modifiers == Modifier.VOLATILE
         hasField(clazz.clazz, 'bar', int).modifiers == Modifier.FINAL
@@ -439,7 +426,6 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         def extracted = api.extractAndLoadApiClassFrom(clazz)
 
         then:
-        api.shouldExtractApiClassFrom(clazz)
         hasField(clazz.clazz, 'foo', String).modifiers == 0
         noSuchField(extracted, 'foo', String)
 
@@ -508,7 +494,7 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         def clazz = api.classes.A
 
         then:
-        api.shouldExtractApiClassFrom(clazz)
+        api.isApiClassExtractedFrom(clazz)
     }
 
     def "package private class does not belong to API if API declared"() {
@@ -523,6 +509,6 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         def clazz = api.classes.A
 
         then:
-        !api.shouldExtractApiClassFrom(clazz)
+        !api.isApiClassExtractedFrom(clazz)
     }
 }

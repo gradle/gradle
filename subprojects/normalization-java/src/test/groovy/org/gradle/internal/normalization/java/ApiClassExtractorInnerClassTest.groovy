@@ -44,8 +44,6 @@ class ApiClassExtractorInnerClassTest extends ApiClassExtractorTestSupport {
         def extractedInner = api.extractAndLoadApiClassFrom(inner)
 
         then:
-        api.shouldExtractApiClassFrom(outer)
-        api.shouldExtractApiClassFrom(inner)
         inner.clazz.getDeclaredMethod('foo').modifiers == Modifier.PUBLIC
         extractedInner.modifiers == access
         hasMethod(extractedInner, 'foo').modifiers == Modifier.PUBLIC
@@ -85,8 +83,7 @@ class ApiClassExtractorInnerClassTest extends ApiClassExtractorTestSupport {
         def extractedOuter = api.extractAndLoadApiClassFrom(outer)
 
         then:
-        api.shouldExtractApiClassFrom(outer)
-        !api.shouldExtractApiClassFrom(inner)
+        !api.isApiClassExtractedFrom(inner)
         extractedOuter.classes.length == 0
 
         where:
@@ -113,8 +110,7 @@ class ApiClassExtractorInnerClassTest extends ApiClassExtractorTestSupport {
         def extractedOuter = api.extractAndLoadApiClassFrom(outer)
 
         then:
-        api.shouldExtractApiClassFrom(outer)
-        !api.shouldExtractApiClassFrom(inner)
+        !api.isApiClassExtractedFrom(inner)
         inner.clazz.getDeclaredMethod('foo').modifiers == Modifier.PUBLIC
         extractedOuter.classes.length == 0
 
@@ -142,8 +138,7 @@ class ApiClassExtractorInnerClassTest extends ApiClassExtractorTestSupport {
         def extractedOuter = api.extractAndLoadApiClassFrom(outer)
 
         then:
-        api.shouldExtractApiClassFrom(outer)
-        !api.shouldExtractApiClassFrom(inner)
+        !api.isApiClassExtractedFrom(inner)
         extractedOuter.classes.length == 0
     }
 
@@ -163,8 +158,7 @@ class ApiClassExtractorInnerClassTest extends ApiClassExtractorTestSupport {
         def extractedOuter = api.extractAndLoadApiClassFrom(outer)
 
         then:
-        api.shouldExtractApiClassFrom(outer)
-        !api.shouldExtractApiClassFrom(inner)
+        !api.isApiClassExtractedFrom(inner)
         extractedOuter.classes.length == 0
     }
 }
