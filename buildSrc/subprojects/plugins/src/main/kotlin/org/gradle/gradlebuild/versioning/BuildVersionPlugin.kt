@@ -17,6 +17,7 @@
 package org.gradle.gradlebuild.versioning
 
 import org.gradle.StartParameter
+import org.gradle.api.Describable
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Plugin
@@ -212,7 +213,7 @@ fun Project.buildTimestampFromBuildReceipt(): Provider<String> =
     }
 
 
-abstract class BuildTimestampValueSource : ValueSource<String, BuildTimestampValueSource.Parameters> {
+abstract class BuildTimestampValueSource : ValueSource<String, BuildTimestampValueSource.Parameters>, Describable {
 
     interface Parameters : ValueSourceParameters {
 
@@ -250,6 +251,21 @@ abstract class BuildTimestampValueSource : ValueSource<String, BuildTimestampVal
         }
         return timestampFormat.format(buildTime)
     }
+
+    override fun getDisplayName(): String =
+        "the build timestamp ($timestampSource)"
+
+    private
+    val timestampSource: String
+        get() = parameters.run {
+            when {
+                buildTimestampFromBuildReceipt.isPresent -> "from build receipt"
+                buildTimestampFromGradleProperty.isPresent -> "from buildTimestamp property"
+                runningInstallTask.get() -> "from current time because installing"
+                runningOnCi.get() -> "from current time because CI"
+                else -> "from current date"
+            }
+        }
 }
 
 
