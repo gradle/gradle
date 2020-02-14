@@ -14,7 +14,7 @@
 
 :kotlin-reference: https://kotlinlang.org/docs/reference/
 :kotlin-tutorials: https://kotlinlang.org/tutorials/
-:kotlin-dsl-samples: https://github.com/gradle/kotlin-dsl/tree/master/samples/
+:kotlin-dsl-samples: https://github.com/gradle/kotlin-dsl-samples/tree/master/samples
 :gradle-issues: https://github.com/gradle/gradle/issues/
 :plugin-portal: https://plugins.gradle.org/
 
