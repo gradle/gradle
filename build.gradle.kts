@@ -218,6 +218,7 @@ apply(plugin = "gradlebuild.quick-check")
 apply(plugin = "gradlebuild.update-versions")
 apply(plugin = "gradlebuild.dependency-vulnerabilities")
 apply(plugin = "gradlebuild.add-verify-production-environment-task")
+apply(plugin = "gradlebuild.generate-subprojects-info")
 
 // https://github.com/gradle/gradle-private/issues/2463
 apply(from = "gradle/remove-teamcity-temp-property.gradle")

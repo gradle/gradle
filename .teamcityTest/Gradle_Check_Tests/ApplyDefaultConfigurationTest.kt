@@ -1,3 +1,4 @@
+import Gradle_Check.model.JsonBasedGradleSubprojectProvider
 import common.Os
 import configurations.BaseGradleBuildType
 import configurations.applyDefaults
@@ -10,12 +11,14 @@ import io.mockk.slot
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.GradleBuildStep
+import model.CIBuildModel
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
+import java.io.File
 
 /*
  * Copyright 2019 the original author or authors.
@@ -42,7 +45,7 @@ class ApplyDefaultConfigurationTest {
     val steps = BuildSteps()
 
     private
-    val buildModel = model.CIBuildModel(buildScanTags = listOf("Check"))
+    val buildModel = CIBuildModel(buildScanTags = listOf("Check"), subprojects = JsonBasedGradleSubprojectProvider(File("../.teamcity/subprojects.json")))
 
     @BeforeEach
     fun setUp() {

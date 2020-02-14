@@ -1,6 +1,6 @@
 package model
 
-import Gradle_Check.model.GradleSubprojectList
+import Gradle_Check.model.GradleSubprojectProvider
 import common.BuildCache
 import common.JvmCategory
 import common.JvmVendor
@@ -15,7 +15,6 @@ import configurations.Gradleception
 import configurations.SanityCheck
 import configurations.SmokeTests
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
-import java.lang.UnsupportedOperationException
 
 enum class StageNames(override val stageName: String, override val description: String, override val uuid: String) : StageName {
     QUICK_FEEDBACK_LINUX_ONLY("Quick Feedback - Linux Only", "Run checks and functional tests (embedded executer, Linux)", "QuickFeedbackLinuxOnly"),
@@ -129,117 +128,7 @@ data class CIBuildModel(
                 TestCoverage(32, TestType.vfsRetention, Os.macos, JvmCategory.MAX_VERSION.version, vendor = JvmCategory.MAX_VERSION.vendor))
         )
     ),
-    val subprojects: GradleSubprojectList = GradleSubprojectList(
-        listOf(
-            GradleSubproject("antlr"),
-            GradleSubproject("baseAnnotations", unitTests = false, functionalTests = false),
-            GradleSubproject("baseServices"),
-            GradleSubproject("baseServicesGroovy", functionalTests = false),
-            GradleSubproject("bootstrap", unitTests = false, functionalTests = false),
-            GradleSubproject("buildCacheBase", unitTests = false, functionalTests = false),
-            GradleSubproject("buildCache"),
-            GradleSubproject("buildCacheHttp", unitTests = false),
-            GradleSubproject("buildCachePackaging", functionalTests = false),
-            GradleSubproject("buildEvents"),
-            GradleSubproject("buildProfile"),
-            GradleSubproject("buildOption", functionalTests = false),
-            GradleSubproject("buildInit"),
-            GradleSubproject("cli", functionalTests = false),
-            GradleSubproject("codeQuality"),
-            GradleSubproject("compositeBuilds"),
-            GradleSubproject("core", crossVersionTests = true),
-            GradleSubproject("coreApi", functionalTests = false),
-            GradleSubproject("dependencyManagement", crossVersionTests = true),
-            GradleSubproject("diagnostics"),
-            GradleSubproject("ear"),
-            GradleSubproject("execution"),
-            GradleSubproject("fileCollections"),
-            GradleSubproject("files", functionalTests = false),
-            GradleSubproject("hashing", functionalTests = false),
-            GradleSubproject("ide", crossVersionTests = true),
-            GradleSubproject("ideNative"),
-            GradleSubproject("idePlay", unitTests = false),
-            GradleSubproject("instantExecution"),
-            GradleSubproject("instantExecutionReport", unitTests = false, functionalTests = false),
-            GradleSubproject("integTest", unitTests = false, crossVersionTests = true),
-            GradleSubproject("internalIntegTesting"),
-            GradleSubproject("internalPerformanceTesting"),
-            GradleSubproject("internalTesting", functionalTests = false),
-            GradleSubproject("ivy", crossVersionTests = true),
-            GradleSubproject("jacoco"),
-            GradleSubproject("javascript"),
-            GradleSubproject("jvmServices", functionalTests = false),
-            GradleSubproject("languageGroovy"),
-            GradleSubproject("languageJava", crossVersionTests = true),
-            GradleSubproject("languageJvm"),
-            GradleSubproject("languageNative"),
-            GradleSubproject("languageScala"),
-            GradleSubproject("launcher"),
-            GradleSubproject("logging"),
-            GradleSubproject("maven", crossVersionTests = true),
-            GradleSubproject("messaging"),
-            GradleSubproject("modelCore"),
-            GradleSubproject("modelGroovy"),
-            GradleSubproject("native"),
-            GradleSubproject("normalizationJava", functionalTests = false),
-            GradleSubproject("persistentCache"),
-            GradleSubproject("platformBase"),
-            GradleSubproject("platformJvm"),
-            GradleSubproject("platformNative"),
-            GradleSubproject("platformPlay", containsSlowTests = true),
-            GradleSubproject("pluginDevelopment"),
-            GradleSubproject("pluginUse"),
-            GradleSubproject("plugins"),
-            GradleSubproject("processServices"),
-            GradleSubproject("publish"),
-            GradleSubproject("reporting"),
-            GradleSubproject("resources"),
-            GradleSubproject("resourcesGcs"),
-            GradleSubproject("resourcesHttp"),
-            GradleSubproject("resourcesS3"),
-            GradleSubproject("resourcesSftp"),
-            GradleSubproject("scala"),
-            GradleSubproject("security", functionalTests = false),
-            GradleSubproject("signing"),
-            GradleSubproject("snapshots"),
-            GradleSubproject("samples", unitTests = false, functionalTests = true),
-            GradleSubproject("testKit"),
-            GradleSubproject("testingBase"),
-            GradleSubproject("testingJvm"),
-            GradleSubproject("testingJunitPlatform", unitTests = false, functionalTests = false),
-            GradleSubproject("testingNative"),
-            GradleSubproject("toolingApi", crossVersionTests = true),
-            GradleSubproject("toolingApiBuilders", functionalTests = false),
-            GradleSubproject("toolingNative", unitTests = false, functionalTests = false, crossVersionTests = true),
-            GradleSubproject("versionControl"),
-            GradleSubproject("workers"),
-            GradleSubproject("workerProcesses", unitTests = false, functionalTests = false),
-            GradleSubproject("wrapper", crossVersionTests = true),
-
-            GradleSubproject("soak", unitTests = false, functionalTests = false),
-
-            GradleSubproject("apiMetadata", unitTests = false, functionalTests = false),
-            GradleSubproject("kotlinDsl", unitTests = true, functionalTests = true),
-            GradleSubproject("kotlinDslProviderPlugins", unitTests = true, functionalTests = false),
-            GradleSubproject("kotlinDslToolingModels", unitTests = false, functionalTests = false),
-            GradleSubproject("kotlinDslToolingBuilders", unitTests = true, functionalTests = true, crossVersionTests = true),
-            GradleSubproject("kotlinDslPlugins", unitTests = false, functionalTests = true),
-            GradleSubproject("kotlinDslTestFixtures", unitTests = true, functionalTests = false),
-            GradleSubproject("kotlinDslIntegTests", unitTests = false, functionalTests = true),
-            GradleSubproject("kotlinCompilerEmbeddable", unitTests = false, functionalTests = false),
-
-            GradleSubproject("architectureTest", unitTests = false, functionalTests = false),
-            GradleSubproject("distributionsDependencies", unitTests = false, functionalTests = false),
-            GradleSubproject("buildScanPerformance", unitTests = false, functionalTests = false),
-            GradleSubproject("distributions", unitTests = false, functionalTests = false),
-            GradleSubproject("docs", unitTests = false, functionalTests = false),
-            GradleSubproject("installationBeacon", unitTests = false, functionalTests = false),
-            GradleSubproject("internalAndroidPerformanceTesting", unitTests = false, functionalTests = false),
-            GradleSubproject("performance", unitTests = false, functionalTests = false),
-            GradleSubproject("runtimeApiInfo", unitTests = false, functionalTests = false),
-            GradleSubproject("smokeTest", unitTests = false, functionalTests = false)
-        )
-    )
+    val subprojects: GradleSubprojectProvider
 )
 
 interface BuildTypeBucket {
