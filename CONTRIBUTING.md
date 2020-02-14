@@ -60,6 +60,8 @@ You require IntelliJ 2018.3.1 or newer.
 
 NOTE: Due to the project size, the initial import can take a while and IntelliJ might become unresponsive for several seconds during this period.
 
+IntelliJ automatically hides stacktrace elements from the `org.gradle` package, which makes running/debugging tests more difficult.  You can disable this behavior by changing IntelliJ Preferences under Editor -> General -> Console. In the "Fold lines that contain" section, remove the `org.gradle` entry.
+
 ### Eclipse
 
 You can generate the Eclipse projects by running
