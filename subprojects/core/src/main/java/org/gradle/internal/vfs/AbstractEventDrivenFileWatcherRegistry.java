@@ -17,28 +17,50 @@
 package org.gradle.internal.vfs;
 
 import net.rubygrapefruit.platform.file.FileWatcher;
+import net.rubygrapefruit.platform.file.FileWatcherCallback;
+import org.gradle.internal.vfs.impl.WatcherEvent;
 import org.gradle.internal.vfs.watch.FileWatcherRegistry;
 
 import java.io.IOException;
+import java.nio.file.Path;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class AbstractEventDrivenFileWatcherRegistry implements FileWatcherRegistry {
     private final FileWatcher watcher;
-    private final ChangeHandler handler;
+    private final AtomicInteger numberOfReceivedEvents = new AtomicInteger();
+    private final AtomicBoolean unknownEventEncountered = new AtomicBoolean();
 
-    public AbstractEventDrivenFileWatcherRegistry(FileWatcher watcher, ChangeHandler handler) {
-        this.watcher = watcher;
-        this.handler = handler;
+    public AbstractEventDrivenFileWatcherRegistry(FileWatcherCreator watcherCreator, ChangeHandler handler) {
+        ChangeHandler statisticsGatheringHandler = new ChangeHandler() {
+            @Override
+            public void handleChange(Type type, Path path) {
+                numberOfReceivedEvents.incrementAndGet();
+                handler.handleChange(type, path);
+            }
+
+            @Override
+            public void handleLostState() {
+                unknownEventEncountered.set(true);
+                handler.handleLostState();
+            }
+        };
+        this.watcher = watcherCreator.createWatcher((type, path) -> WatcherEvent.createEvent(type, path).dispatch(statisticsGatheringHandler));
     }
 
     @Override
-    public void stopWatching() throws IOException {
+    public FileWatchingStatistics stopWatching() throws IOException {
         // Make sure events stop arriving before we start dispatching
         watcher.close();
-        handler.close();
+        return new FileWatchingStatistics(unknownEventEncountered.get(), numberOfReceivedEvents.get());
     }
 
     @Override
     public void close() throws IOException {
         watcher.close();
+    }
+
+    protected interface FileWatcherCreator {
+        FileWatcher createWatcher(FileWatcherCallback callback);
     }
 }

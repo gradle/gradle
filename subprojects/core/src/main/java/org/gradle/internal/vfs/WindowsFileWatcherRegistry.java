@@ -18,7 +18,6 @@ package org.gradle.internal.vfs;
 
 import net.rubygrapefruit.platform.Native;
 import net.rubygrapefruit.platform.internal.jni.WindowsFileEventFunctions;
-import org.gradle.internal.vfs.impl.WatcherEvent;
 import org.gradle.internal.vfs.watch.FileWatcherRegistry;
 import org.gradle.internal.vfs.watch.FileWatcherRegistryFactory;
 import org.gradle.internal.vfs.watch.WatchRootUtil;
@@ -37,11 +36,11 @@ public class WindowsFileWatcherRegistry extends AbstractEventDrivenFileWatcherRe
 
     public WindowsFileWatcherRegistry(Set<Path> watchRoots, ChangeHandler handler) {
         super(
-            Native.get(WindowsFileEventFunctions.class).startWatching(
+            callback -> Native.get(WindowsFileEventFunctions.class).startWatching(
                 watchRoots.stream()
                     .map(Path::toString)
                     .collect(Collectors.toList()),
-                (type, path) -> WatcherEvent.createEvent(type, path).dispatch(handler)
+                callback
             ),
             handler
         );

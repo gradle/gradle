@@ -19,7 +19,6 @@ package org.gradle.internal.vfs;
 import com.google.common.collect.ImmutableSet;
 import net.rubygrapefruit.platform.Native;
 import net.rubygrapefruit.platform.internal.jni.OsxFileEventFunctions;
-import org.gradle.internal.vfs.impl.WatcherEvent;
 import org.gradle.internal.vfs.watch.FileWatcherRegistry;
 import org.gradle.internal.vfs.watch.FileWatcherRegistryFactory;
 import org.gradle.internal.vfs.watch.WatchRootUtil;
@@ -39,13 +38,13 @@ public class DarwinFileWatcherRegistry extends AbstractEventDrivenFileWatcherReg
 
     public DarwinFileWatcherRegistry(Set<Path> watchRoots, ChangeHandler handler) {
         super(
-            Native.get(OsxFileEventFunctions.class).startWatching(
+            callback -> Native.get(OsxFileEventFunctions.class).startWatching(
                 watchRoots.stream()
                     .map(Path::toString)
                     .collect(Collectors.toList()),
                 // TODO Figure out a good value for this
                 300, TimeUnit.MICROSECONDS,
-                (type, path) -> WatcherEvent.createEvent(type, path).dispatch(handler)
+                callback
             ),
             handler
         );

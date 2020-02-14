@@ -60,9 +60,10 @@ public class JdkFileWatcherRegistry implements FileWatcherRegistry {
     }
 
     @Override
-    public void stopWatching() throws IOException {
+    public FileWatchingStatistics stopWatching() throws IOException {
         try {
             boolean overflow = false;
+            int numberOfEventsEncountered = 0;
             while (!overflow) {
                 WatchKey watchKey = watchService.poll();
                 if (watchKey == null) {
@@ -90,12 +91,13 @@ public class JdkFileWatcherRegistry implements FileWatcherRegistry {
                     } else {
                         throw new AssertionError();
                     }
+                    numberOfEventsEncountered++;
                     handler.handleChange(type, changedPath);
                 }
             }
+            return new FileWatchingStatistics(overflow, numberOfEventsEncountered);
         } finally {
             close();
-            handler.close();
         }
     }
 
