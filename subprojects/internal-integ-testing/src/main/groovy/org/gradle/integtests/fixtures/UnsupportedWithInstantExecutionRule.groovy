@@ -31,7 +31,7 @@ class UnsupportedWithInstantExecutionRule implements TestRule {
     @Override
     Statement apply(Statement base, Description description) {
         def annotation = description.getAnnotation(UnsupportedWithInstantExecution.class)
-        if (!GradleContextualExecuter.isInstant() || annotation == null) {
+        if (GradleContextualExecuter.isNotInstant() || annotation == null) {
             return base
         }
         def enabledBottomSpec = isEnabledBottomSpec(annotation.bottomSpecs(), { description.className.endsWith(".$it") })

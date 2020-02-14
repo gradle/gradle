@@ -80,6 +80,10 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
         return getSystemPropertyExecuter().executeParallel;
     }
 
+    public static boolean isNotInstant() {
+        return !isInstant();
+    }
+
     public static boolean isInstant() {
         return getSystemPropertyExecuter() == Executer.instant;
     }

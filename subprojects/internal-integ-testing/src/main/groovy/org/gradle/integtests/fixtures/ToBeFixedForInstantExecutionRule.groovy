@@ -32,7 +32,7 @@ class ToBeFixedForInstantExecutionRule implements TestRule {
     @Override
     Statement apply(Statement base, Description description) {
         def annotation = description.getAnnotation(ToBeFixedForInstantExecution.class)
-        if (!GradleContextualExecuter.isInstant() || annotation == null) {
+        if (GradleContextualExecuter.isNotInstant() || annotation == null) {
             return base
         }
         def enabledBottomSpec = isEnabledBottomSpec(annotation.bottomSpecs(), { description.className.endsWith(".$it") })
