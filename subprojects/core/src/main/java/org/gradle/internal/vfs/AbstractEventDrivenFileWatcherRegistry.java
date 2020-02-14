@@ -18,13 +18,17 @@ package org.gradle.internal.vfs;
 
 import net.rubygrapefruit.platform.file.FileWatcher;
 import net.rubygrapefruit.platform.file.FileWatcherCallback;
-import org.gradle.internal.vfs.impl.WatcherEvent;
 import org.gradle.internal.vfs.watch.FileWatcherRegistry;
 
 import java.io.IOException;
-import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static org.gradle.internal.vfs.watch.FileWatcherRegistry.Type.CREATED;
+import static org.gradle.internal.vfs.watch.FileWatcherRegistry.Type.INVALIDATE;
+import static org.gradle.internal.vfs.watch.FileWatcherRegistry.Type.MODIFIED;
+import static org.gradle.internal.vfs.watch.FileWatcherRegistry.Type.REMOVED;
 
 public class AbstractEventDrivenFileWatcherRegistry implements FileWatcherRegistry {
     private final FileWatcher watcher;
@@ -32,20 +36,32 @@ public class AbstractEventDrivenFileWatcherRegistry implements FileWatcherRegist
     private final AtomicBoolean unknownEventEncountered = new AtomicBoolean();
 
     public AbstractEventDrivenFileWatcherRegistry(FileWatcherCreator watcherCreator, ChangeHandler handler) {
-        ChangeHandler statisticsGatheringHandler = new ChangeHandler() {
-            @Override
-            public void handleChange(Type type, Path path) {
-                numberOfReceivedEvents.incrementAndGet();
-                handler.handleChange(type, path);
-            }
+        this.watcher = watcherCreator.createWatcher((type, path) -> handleEvent(type, path, handler));
+    }
 
-            @Override
-            public void handleLostState() {
-                unknownEventEncountered.set(true);
-                handler.handleLostState();
-            }
-        };
-        this.watcher = watcherCreator.createWatcher((type, path) -> WatcherEvent.createEvent(type, path).dispatch(statisticsGatheringHandler));
+    private void handleEvent(FileWatcherCallback.Type type, String path, ChangeHandler handler) {
+        if (type == FileWatcherCallback.Type.UNKNOWN) {
+            unknownEventEncountered.set(true);
+            handler.handleLostState();
+        } else {
+            numberOfReceivedEvents.incrementAndGet();
+            handler.handleChange(convertType(type), Paths.get(path));
+        }
+    }
+
+    private static Type convertType(FileWatcherCallback.Type type) {
+        switch (type) {
+            case CREATED:
+                return CREATED;
+            case MODIFIED:
+                return MODIFIED;
+            case REMOVED:
+                return REMOVED;
+            case INVALIDATE:
+                return INVALIDATE;
+            default:
+                throw new AssertionError();
+        }
     }
 
     @Override
