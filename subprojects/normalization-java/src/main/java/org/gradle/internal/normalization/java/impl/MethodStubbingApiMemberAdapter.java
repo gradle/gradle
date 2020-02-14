@@ -19,6 +19,7 @@ package org.gradle.internal.normalization.java.impl;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
 
 import static org.objectweb.asm.Opcodes.ACC_ABSTRACT;
 import static org.objectweb.asm.Opcodes.ACC_INTERFACE;
@@ -46,7 +47,7 @@ public class MethodStubbingApiMemberAdapter extends ClassVisitor {
     private String internalClassName;
 
     public MethodStubbingApiMemberAdapter(ClassWriter cv) {
-        super(AsmConstants.ASM_LEVEL, cv);
+        super(Opcodes.ASM7, cv);
     }
 
     @Override

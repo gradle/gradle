@@ -18,6 +18,7 @@ package org.gradle.internal.normalization.java.impl;
 
 import com.google.common.collect.Lists;
 import org.objectweb.asm.AnnotationVisitor;
+import org.objectweb.asm.Opcodes;
 
 import java.util.List;
 
@@ -31,7 +32,7 @@ public class SortingAnnotationVisitor extends AnnotationVisitor {
     private String arrayValueName;
 
     public SortingAnnotationVisitor(AnnotationMember parentAnnotation, AnnotationVisitor av) {
-        super(AsmConstants.ASM_LEVEL, av);
+        super(Opcodes.ASM7, av);
         this.annotation = parentAnnotation;
     }
 

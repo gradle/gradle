@@ -21,6 +21,7 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.ModuleVisitor;
+import org.objectweb.asm.Opcodes;
 
 import java.util.Set;
 import java.util.SortedSet;
@@ -55,7 +56,7 @@ public class ApiMemberSelector extends ClassVisitor {
     private boolean thisClassIsPrivateInnerClass;
 
     public ApiMemberSelector(String className, ClassVisitor apiMemberAdapter, boolean apiIncludesPackagePrivateMembers) {
-        super(AsmConstants.ASM_LEVEL);
+        super(Opcodes.ASM7);
         this.className = className;
         this.apiMemberAdapter = apiMemberAdapter;
         this.apiIncludesPackagePrivateMembers = apiIncludesPackagePrivateMembers;
@@ -178,7 +179,7 @@ public class ApiMemberSelector extends ClassVisitor {
         if (isCandidateApiMember(access, apiIncludesPackagePrivateMembers) || ("<init>".equals(name) && isInnerClass)) {
             final MethodMember methodMember = new MethodMember(access, name, desc, signature, exceptions);
             methods.add(methodMember);
-            return new MethodVisitor(AsmConstants.ASM_LEVEL) {
+            return new MethodVisitor(Opcodes.ASM7) {
                 @Override
                 public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
                     AnnotationMember ann = new AnnotationMember(desc, visible);
@@ -203,7 +204,7 @@ public class ApiMemberSelector extends ClassVisitor {
             Object keepValue = (access & ACC_STATIC) == ACC_STATIC && ((access & ACC_FINAL) == ACC_FINAL) ? value : null;
             final FieldMember fieldMember = new FieldMember(access, name, signature, desc, keepValue);
             fields.add(fieldMember);
-            return new FieldVisitor(AsmConstants.ASM_LEVEL) {
+            return new FieldVisitor(Opcodes.ASM7) {
                 @Override
                 public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
                     AnnotationMember ann = new AnnotationMember(desc, visible);
