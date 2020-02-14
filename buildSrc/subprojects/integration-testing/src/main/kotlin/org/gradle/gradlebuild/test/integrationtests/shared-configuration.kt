@@ -139,5 +139,4 @@ fun Project.configureIde(testType: TestType) {
             }
         }
     }
-
 }
