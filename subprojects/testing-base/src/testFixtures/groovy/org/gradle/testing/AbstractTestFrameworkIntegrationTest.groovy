@@ -19,7 +19,6 @@ package org.gradle.testing
 import com.google.common.collect.Lists
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.hamcrest.CoreMatchers
 import org.junit.Assume
 import spock.lang.Unroll

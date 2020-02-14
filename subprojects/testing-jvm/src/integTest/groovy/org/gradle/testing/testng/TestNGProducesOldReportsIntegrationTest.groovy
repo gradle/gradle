@@ -18,7 +18,6 @@ package org.gradle.testing.testng
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.TestNGExecutionResult
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Unroll
 
 public class TestNGProducesOldReportsIntegrationTest extends AbstractIntegrationSpec {

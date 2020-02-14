@@ -17,13 +17,11 @@
 
 package org.gradle.testing.testng
 
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.HtmlTestExecutionResult
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.TestExecutionResult
 import org.gradle.integtests.fixtures.TestResultOutputAssociation
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Shared
 import spock.lang.Unroll
 

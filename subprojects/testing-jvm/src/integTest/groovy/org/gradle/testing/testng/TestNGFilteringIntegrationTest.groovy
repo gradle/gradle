@@ -18,20 +18,20 @@
 package org.gradle.testing.testng
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.fixture.AbstractTestFilteringIntegrationTest
+import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import org.gradle.testing.fixture.TestNGCoverage
 import spock.lang.Issue
 
-import static org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec.*
+import static org.gradle.integtests.fixtures.AbstractIntegrationSpec.mavenCentralRepository
 
 @TargetCoverage({TestNGCoverage.STANDARD_COVERAGE})
 public class TestNGFilteringIntegrationTest extends AbstractTestFilteringIntegrationTest {
 
     String imports = "org.testng.annotations.*"
     String framework = "TestNG"
-    String dependencies = "testImplementation 'org.testng:testng:${dependencyVersion}'"
+    String dependencies = "testImplementation 'org.testng:testng:${JUnitMultiVersionIntegrationSpec.getDependencyVersion()}'"
 
     void theUsualFiles() {
         buildFile << """
