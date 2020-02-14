@@ -61,7 +61,6 @@ test {
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
     "can generate the old xml reports"() {
         given:
         file("src/test/java/org/SomeTest.java") << """package org;

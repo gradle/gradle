@@ -92,7 +92,6 @@ Gradle test > org.gradle.TestNGTest.badTest FAILED
         """)
     }
 
-    @ToBeFixedForInstantExecution
     def customQuietLogging() {
         when:
         executer.withStackTraceChecksDisabled()
@@ -114,7 +113,6 @@ Gradle suite FAILED
         """)
     }
 
-    @ToBeFixedForInstantExecution
     def "standardOutputLogging"() {
         given:
         buildFile.text = """

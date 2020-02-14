@@ -87,7 +87,6 @@ class TestNGSuiteIntegrationTest extends MultiVersionIntegrationSpec {
     }
 
     @Issue("GRADLE-3020")
-    @ToBeFixedForInstantExecution
     def "can specify test suite by string"() {
         buildFile << """
             apply plugin: 'java'

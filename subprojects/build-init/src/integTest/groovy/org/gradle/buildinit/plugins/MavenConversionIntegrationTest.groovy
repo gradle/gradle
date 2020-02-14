@@ -183,7 +183,6 @@ ${TextUtil.indent(configLines.join("\n"), "                        ")}
         assert text.contains(publishingBlock)
     }
 
-    @ToBeFixedForInstantExecution
     def "singleModule with explicit project dir"() {
         setup:
         resources.maybeCopy('MavenConversionIntegrationTest/singleModule')
@@ -204,7 +203,6 @@ ${TextUtil.indent(configLines.join("\n"), "                        ")}
         failure.assertHasCause("There were failing tests.")
     }
 
-    @ToBeFixedForInstantExecution
     def 'sourcesJar'() {
         when: 'build is initialized'
         run 'init'
@@ -246,7 +244,6 @@ ${TextUtil.indent(configLines.join("\n"), "                        ")}
         file('build/libs/util-2.5-tests.jar').exists()
     }
 
-    @ToBeFixedForInstantExecution
     def 'javadocJar'() {
         when: 'build is initialized'
         run 'init'

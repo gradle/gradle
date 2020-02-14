@@ -226,7 +226,6 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
     }
 
     @UsesSample("testing/testng/preserveorder/groovy")
-    @ToBeFixedForInstantExecution
     def "can use the preserveOrder option with TestNG tests"() {
         given:
         executer.inDirectory(sample.dir)

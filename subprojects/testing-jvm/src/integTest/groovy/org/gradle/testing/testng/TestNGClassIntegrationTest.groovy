@@ -137,7 +137,6 @@ class TestNGClassIntegrationTest extends MultiVersionIntegrationSpec {
         containsEvent(FINISHED, DefaultTestSuiteDescriptor, 'TestSuite > FullTest')
     }
 
-    @ToBeFixedForInstantExecution
     def "synthesized events for broken configuration methods reference test class descriptors"() {
         given:
         file("src/test/java/org/company/TestWithBrokenSetupMethod.java") << """

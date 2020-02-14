@@ -75,7 +75,6 @@ public class TestNGFilteringIntegrationTest extends AbstractTestFilteringIntegra
     }
 
     @Issue("GRADLE-3112")
-    @ToBeFixedForInstantExecution
     def "suites can be filtered from the command-line"() {
         given:
         theUsualFiles()
@@ -94,7 +93,6 @@ public class TestNGFilteringIntegrationTest extends AbstractTestFilteringIntegra
     }
 
     @Issue("GRADLE-3112")
-    @ToBeFixedForInstantExecution
     def "suites can be filtered from the build file"() {
         given:
         theUsualFiles()

@@ -78,7 +78,6 @@ class TestNGParallelSuiteIntegrationTest extends MultiVersionIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/4457")
-    @ToBeFixedForInstantExecution
     def "can persist configurations in xml"() {
         given:
         createTests(3, 3)

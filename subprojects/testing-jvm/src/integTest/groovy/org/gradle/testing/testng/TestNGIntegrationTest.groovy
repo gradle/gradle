@@ -86,7 +86,6 @@ class TestNGIntegrationTest extends MultiVersionIntegrationSpec {
         new DefaultTestExecutionResult(testDirectory).testClass('org.gradle.OkTest').assertTestPassed('ok')
     }
 
-    @ToBeFixedForInstantExecution
     def "can listen for test results"() {
         given:
         buildFile << """
@@ -136,7 +135,6 @@ class TestNGIntegrationTest extends MultiVersionIntegrationSpec {
     }
 
     @Issue("GRADLE-1532")
-    @ToBeFixedForInstantExecution
     def "supports thread pool size"() {
         given:
         file('src/test/java/SomeTest.java') << '''
@@ -153,7 +151,6 @@ class TestNGIntegrationTest extends MultiVersionIntegrationSpec {
         succeeds 'test'
     }
 
-    @ToBeFixedForInstantExecution
     def "supports test groups"() {
         buildFile << """
             ext {
@@ -192,7 +189,6 @@ class TestNGIntegrationTest extends MultiVersionIntegrationSpec {
         result.testClass('org.gradle.groups.SomeTest').assertTestsExecuted("databaseTest")
     }
 
-    @ToBeFixedForInstantExecution
     def "supports test factory"() {
         given:
         file('src/test/java/org/gradle/factory/FactoryTest.java') << '''
@@ -266,7 +262,6 @@ class TestNGIntegrationTest extends MultiVersionIntegrationSpec {
         result.assertTestsFailed()
     }
 
-    @ToBeFixedForInstantExecution
     def "tries to execute unparseable test classes"() {
         given:
         testDirectory.file('build/classes/java/test/com/example/Foo.class').text = "invalid class file"
@@ -283,7 +278,6 @@ class TestNGIntegrationTest extends MultiVersionIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/7878")
-    @ToBeFixedForInstantExecution
     def "can concurrently execute the same test class multiple times"() {
         given:
         file('src/test/java/TestNG7878.java') << """

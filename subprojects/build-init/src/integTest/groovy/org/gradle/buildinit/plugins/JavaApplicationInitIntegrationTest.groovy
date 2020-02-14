@@ -38,6 +38,7 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'java-application', '--dsl', scriptDsl.id)
@@ -89,7 +90,6 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
     def "creates sample source using testng instead of junit with #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'java-application', '--test-framework', 'testng', '--dsl', scriptDsl.id)

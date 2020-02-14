@@ -116,7 +116,6 @@ class TestNGLoggingOutputCaptureIntegrationTest extends MultiVersionIntegrationS
         assertTestClassExecutionResultReport(classReport)
     }
 
-    @ToBeFixedForInstantExecution
     def "attaches output events to correct test descriptors"() {
         when: succeeds "test"
 

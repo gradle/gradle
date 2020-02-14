@@ -32,9 +32,9 @@ class TestNGTestFrameworkIntegrationTest extends AbstractTestFrameworkIntegratio
         file('src/test/java/SomeTest.java') << """
             public class SomeTest {
                 @org.testng.annotations.Test
-                public void ${failingTestCaseName}() { 
+                public void ${failingTestCaseName}() {
                     System.err.println("some error output");
-                    assert false : "test failure message"; 
+                    assert false : "test failure message";
                 }
                 @org.testng.annotations.Test
                 public void ${passingTestCaseName}() {}
@@ -78,7 +78,6 @@ class TestNGTestFrameworkIntegrationTest extends AbstractTestFrameworkIntegratio
     }
 
     @Issue("https://github.com/gradle/gradle/issues/3545")
-    @ToBeFixedForInstantExecution
     def "can run tests with ignored test class"() {
         given:
         file("src/test/java/DisabledTest.java") << """
@@ -97,14 +96,13 @@ class TestNGTestFrameworkIntegrationTest extends AbstractTestFrameworkIntegratio
     }
 
     @Issue("https://github.com/gradle/gradle/issues/3545")
-    @ToBeFixedForInstantExecution
     def "can run tests with ignored test methods"() {
         given:
         file("src/test/java/DisabledTest.java") << """
             public class DisabledTest {
                 @org.testng.annotations.Test(enabled = false)
                 public void testOne() {}
-                
+
                 @org.testng.annotations.Test(enabled = false)
                 public void testTwo() {}
             }

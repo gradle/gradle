@@ -71,7 +71,6 @@ class TestNGStaticLoggingIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("GRADLE-2841")
-    @ToBeFixedForInstantExecution
     def "captures logging from System streams referenced from static initializer"() {
         file("src/test/java/FooTest.java") << """
             import org.testng.annotations.*;
@@ -96,7 +95,6 @@ class TestNGStaticLoggingIntegrationTest extends AbstractIntegrationSpec {
         testResult.testClass("FooTest").assertTestCaseStderr("foo", is("err output from test\n"))
     }
 
-    @ToBeFixedForInstantExecution
     def "test can generate output from multiple threads"() {
         file("src/test/java/OkTest.java") << """
 import java.util.logging.Logger;
