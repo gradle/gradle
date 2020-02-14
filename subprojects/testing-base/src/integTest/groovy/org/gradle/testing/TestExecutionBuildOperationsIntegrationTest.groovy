@@ -16,12 +16,11 @@
 
 package org.gradle.testing
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
-
 import org.gradle.api.internal.tasks.testing.operations.ExecuteTestBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.junit.Rule
 
 import static org.gradle.testing.TestExecutionBuildOperationTestUtils.assertJunit
@@ -49,24 +48,6 @@ class TestExecutionBuildOperationsIntegrationTest extends AbstractIntegrationSpe
 
         assertJunit(rootTestOp, operations)
     }
-
-    @ToBeFixedForInstantExecution
-    def "emitsBuildOperationsForTestNgTests"() {
-        given:
-        executer.withRepositoryMirrors()
-
-        when:
-        run "test"
-
-        then: "test build operations are emitted in expected hierarchy"
-        def rootTestOp = operations.first(ExecuteTestBuildOperationType)
-        rootTestOp.details.testDescriptor.name.startsWith("Gradle Test Run :test")
-        rootTestOp.details.testDescriptor.className == null
-        rootTestOp.details.testDescriptor.composite == true
-
-        assertTestNg(rootTestOp, operations)
-    }
-
 
     def "emits test operations as expected for two builds in a row"() {
         given:
@@ -106,7 +87,7 @@ class TestExecutionBuildOperationsIntegrationTest extends AbstractIntegrationSpe
             task testng {
                 dependsOn gradle.includedBuild('testng').task(':test')
             }
-            
+
             task junit {
                 dependsOn gradle.includedBuild('junit').task(':test')
             }

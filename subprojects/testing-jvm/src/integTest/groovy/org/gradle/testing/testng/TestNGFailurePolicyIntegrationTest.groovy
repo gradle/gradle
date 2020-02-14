@@ -17,10 +17,10 @@
 package org.gradle.testing.testng
 
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.TestClassExecutionResult
 import org.gradle.integtests.fixtures.TestNGExecutionResult
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.junit.Rule
 
 import static org.gradle.testing.fixture.TestNGCoverage.NEWEST
@@ -39,7 +39,6 @@ class TestNGFailurePolicyIntegrationTest extends AbstractSampleIntegrationTest {
         """
     }
 
-    @ToBeFixedForInstantExecution
     def "skips tests after a config method failure by default"() {
         when:
         usingTestNG(NEWEST)

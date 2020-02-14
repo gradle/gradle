@@ -18,9 +18,9 @@
 package org.gradle.testing.testng
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.testing.fixture.TestNGCoverage
 import spock.lang.Issue
 
@@ -64,7 +64,6 @@ class TestNGParallelSuiteIntegrationTest extends MultiVersionIntegrationSpec {
     }
 
     @Issue("GRADLE-3190")
-    @ToBeFixedForInstantExecution
     def "runs with multiple parallel threads"() {
         given:
         createTests(200, 20)

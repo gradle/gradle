@@ -44,7 +44,6 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         return testSuite
     }
 
-    @ToBeFixedForInstantExecution(bottomSpecs = ["TestNGTestFrameworkIntegrationTest", "XCTestTestFrameworkIntegrationTest"])
     def "can listen for test results"() {
         given:
         createPassingFailingTest()

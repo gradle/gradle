@@ -19,8 +19,8 @@ package org.gradle.buildinit.plugins
 import org.gradle.buildinit.plugins.fixtures.WrapperTestFixture
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpModule
@@ -148,7 +148,6 @@ Root project 'webinar-parent'
 """
     }
 
-    @ToBeFixedForInstantExecution
     def "singleModule"() {
         when:
         run 'init'

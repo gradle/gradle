@@ -16,12 +16,12 @@
 
 package org.gradle.testing.testng
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.HtmlTestExecutionResult
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestClassExecutionResult
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.util.GradleVersion
 
 import static org.gradle.testing.fixture.TestNGCoverage.FIXED_ICLASS_LISTENER
@@ -81,7 +81,6 @@ class TestNGLoggingOutputCaptureIntegrationTest extends MultiVersionIntegrationS
         """
     }
 
-    @ToBeFixedForInstantExecution
     def "attaches events to correct test descriptors of a suite"() {
         buildFile << "test.useTestNG { suites 'suite.xml' }"
 

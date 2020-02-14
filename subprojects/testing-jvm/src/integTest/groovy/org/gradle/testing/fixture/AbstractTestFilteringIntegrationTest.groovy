@@ -16,8 +16,8 @@
 package org.gradle.testing.fixture
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -36,7 +36,6 @@ abstract class AbstractTestFilteringIntegrationTest extends MultiVersionIntegrat
         """
     }
 
-    @ToBeFixedForInstantExecution(bottomSpecs = "TestNGFilteringIntegrationTest")
     def "executes single method from a test class"() {
         buildFile << """
             test {

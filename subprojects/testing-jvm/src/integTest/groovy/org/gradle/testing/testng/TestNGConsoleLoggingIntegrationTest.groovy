@@ -81,7 +81,6 @@ class TestNGConsoleLoggingIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    @ToBeFixedForInstantExecution
     def "defaultLifecycleLogging"() {
         when:
         fails "test"

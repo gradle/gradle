@@ -17,8 +17,8 @@
 package org.gradle.integtests.samples.java
 
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
@@ -146,7 +146,6 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
     }
 
     @UsesSample("testing/testng/groups/groovy")
-    @ToBeFixedForInstantExecution
     def "can filter tests by TestNG group"() {
         given:
         executer.inDirectory(sample.dir)

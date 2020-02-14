@@ -20,9 +20,9 @@ import org.gradle.api.internal.tasks.testing.DefaultTestClassDescriptor
 import org.gradle.api.internal.tasks.testing.DefaultTestMethodDescriptor
 import org.gradle.api.internal.tasks.testing.DefaultTestSuiteDescriptor
 import org.gradle.api.tasks.testing.TestDescriptor
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.testing.fixture.TestNGCoverage
 
 import static org.gradle.testing.fixture.TestNGCoverage.FIXED_ICLASS_LISTENER
@@ -46,20 +46,20 @@ class TestNGClassIntegrationTest extends MultiVersionIntegrationSpec {
             import org.gradle.api.internal.tasks.testing.results.TestListenerInternal
             import org.gradle.api.tasks.testing.TestOutputEvent
             import org.gradle.api.tasks.testing.TestResult
-    
+
             test {
                 useTestNG()
             }
-    
+
             gradle.addListener(new TestListenerInternal() {
                 void started(TestDescriptorInternal d, TestStartEvent s) {
                     printEventInformation('$STARTED', d)
                 }
-    
+
                 void completed(TestDescriptorInternal d, TestResult result, TestCompleteEvent cE) {
                     printEventInformation('$FINISHED', d)
                 }
-    
+
                 private void printEventInformation(String eventTypeDescription, TestDescriptorInternal d) {
                     def name = d.name
                     def descriptor = d;
@@ -69,14 +69,13 @@ class TestNGClassIntegrationTest extends MultiVersionIntegrationSpec {
                     }
                     println "\$eventTypeDescription event type \${d.descriptor.class.name} for \${name}"
                 }
-    
+
                 void output(TestDescriptorInternal descriptor, TestOutputEvent output) {
                 }
             })
         """
     }
 
-    @ToBeFixedForInstantExecution
     def "test class events references correct suite as parent"() {
         given:
         def testNgSuite = file("src/test/resources/testng.xml")
@@ -91,10 +90,10 @@ class TestNGClassIntegrationTest extends MultiVersionIntegrationSpec {
 
         file("src/test/java/org/company/SystemOutTest.java") << """
             package org.company;
-    
+
             import org.testng.Assert;
             import org.testng.annotations.Test;
-    
+
             public class SystemOutTest {
                 @Test
                 public void testOut() {
@@ -143,10 +142,10 @@ class TestNGClassIntegrationTest extends MultiVersionIntegrationSpec {
         given:
         file("src/test/java/org/company/TestWithBrokenSetupMethod.java") << """
             package org.company;
-    
+
             import org.testng.Assert;
             import org.testng.annotations.*;
-    
+
             public class TestWithBrokenSetupMethod {
                 @BeforeMethod
                 public void broken() {

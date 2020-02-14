@@ -17,13 +17,24 @@
 
 package org.gradle.testing.testng
 
-import org.gradle.integtests.fixtures.*
+
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.HtmlTestExecutionResult
+import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
+import org.gradle.integtests.fixtures.TestExecutionResult
+import org.gradle.integtests.fixtures.TestResultOutputAssociation
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Shared
 import spock.lang.Unroll
 
 import static org.gradle.integtests.fixtures.TestResultOutputAssociation.WITH_SUITE
 import static org.gradle.integtests.fixtures.TestResultOutputAssociation.WITH_TESTCASE
-import static org.hamcrest.CoreMatchers.*
+import static org.hamcrest.CoreMatchers.allOf
+import static org.hamcrest.CoreMatchers.anyOf
+import static org.hamcrest.CoreMatchers.anything
+import static org.hamcrest.CoreMatchers.containsString
+import static org.hamcrest.CoreMatchers.equalTo
+import static org.hamcrest.CoreMatchers.not
 
 @Unroll
 public class TestNGXmlResultAndHtmlReportIntegrationTest extends
@@ -45,7 +56,6 @@ public class TestNGXmlResultAndHtmlReportIntegrationTest extends
         setupTestCases()
     }
 
-    @ToBeFixedForInstantExecution
     def "produces JUnit xml results - #mode.name"() {
         when:
         runWithTestConfig("useTestNG(); $mode.config")

@@ -46,7 +46,6 @@ class TestNGUpToDateCheckIntegrationTest extends AbstractIntegrationSpec {
 
     @Unroll
     @Issue('https://github.com/gradle/gradle/issues/4924')
-    @ToBeFixedForInstantExecution
     def 'test task is up-to-date when #property is changed because it should not impact output'() {
         given:
         TestNGCoverage.enableTestNG(buildFile)
