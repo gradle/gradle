@@ -29,7 +29,7 @@ import org.gradle.util.TestPrecondition
 
 
 @Requires(value = TestPrecondition.JDK9_OR_LATER, adhoc = {
-    !GradleContextualExecuter.isInstant() && AvailableJavaHomes.getAvailableJdk(new GradleBuildJvmSpec())
+    GradleContextualExecuter.isNotInstant() && GradleBuildJvmSpec.isAvailable()
 })
 class GradleBuildInstantExecutionSmokeTest extends AbstractSmokeTest {
 
@@ -95,6 +95,11 @@ class GradleBuildInstantExecutionSmokeTest extends AbstractSmokeTest {
 
 
 class GradleBuildJvmSpec implements Spec<JvmInstallation> {
+
+    static boolean isAvailable() {
+        return AvailableJavaHomes.getAvailableJdk(new GradleBuildJvmSpec()) != null
+    }
+
     @Override
     boolean isSatisfiedBy(JvmInstallation jvm) {
         return jvm.javaVersion >= JavaVersion.VERSION_1_9 && jvm.javaVersion <= JavaVersion.VERSION_11

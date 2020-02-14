@@ -89,5 +89,5 @@ class InstantExecutionFingerprintChecker(private val host: Host) {
     fun buildLogicInputHasChanged(valueSource: ValueSource<Any, ValueSourceParameters>): InvalidationReason =
         (valueSource as? Describable)?.let {
             it.displayName + " has changed"
-        } ?: "a build logic input has changed"
+        } ?: "a build logic input of type '${valueSource.javaClass.simpleName}' has changed"
 }
