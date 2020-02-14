@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
+description = "API extraction for Java"
+
 plugins {
     `java-library`
     gradlebuild.classycle
@@ -22,14 +24,16 @@ plugins {
     gradlebuild.`strict-compile`
 }
 
-description = "Common shared classes without external dependencies"
-
 dependencies {
     implementation(project(":baseAnnotations"))
+
+    implementation(library("asm")) { version { require(libraryVersion("asm")) } }
     implementation(library("guava")) { version { require(libraryVersion("guava")) } }
+
+    testImplementation(project(":baseServices"))
+    testImplementation(project(":internalTesting"))
 }
 
 gradlebuildJava {
-    // We need this because org.gradle.internal.nativeintegration.filesystem.Stat is used in workers
-    moduleType = ModuleType.WORKER
+    moduleType = ModuleType.CORE
 }

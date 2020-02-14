@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,22 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
+@NonNullApi
+package org.gradle.internal.normalization.java;
 
-plugins {
-    `java-library`
-    gradlebuild.classycle
-    gradlebuild.`publish-public-libraries`
-    gradlebuild.`strict-compile`
-}
-
-description = "Common shared annotations"
-
-dependencies {
-    api(library("jsr305")) { version { require(libraryVersion("jsr305")) } }
-}
-
-gradlebuildJava {
-    // We need this because org.gradle.internal.nativeintegration.filesystem.Stat is used in workers
-    moduleType = ModuleType.WORKER
-}
+import org.gradle.api.NonNullApi;

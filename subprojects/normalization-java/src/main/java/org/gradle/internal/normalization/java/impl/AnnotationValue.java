@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,22 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
-plugins {
-    `java-library`
-    gradlebuild.classycle
-    gradlebuild.`publish-public-libraries`
-    gradlebuild.`strict-compile`
-}
+package org.gradle.internal.normalization.java.impl;
 
-description = "Common shared annotations"
+public abstract class AnnotationValue<V> extends Member implements Comparable<AnnotationValue<?>> {
 
-dependencies {
-    api(library("jsr305")) { version { require(libraryVersion("jsr305")) } }
-}
+    private final V value;
 
-gradlebuildJava {
-    // We need this because org.gradle.internal.nativeintegration.filesystem.Stat is used in workers
-    moduleType = ModuleType.WORKER
+    public AnnotationValue(String name, V value) {
+        super(name);
+        this.value = value;
+    }
+
+    public V getValue() {
+        return value;
+    }
+
+    @Override
+    public int compareTo(AnnotationValue<?> o) {
+        return super.compare(o).result();
+    }
 }
