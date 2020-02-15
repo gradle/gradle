@@ -280,6 +280,13 @@
     "crossVersionTests": false
   },
   {
+    "dirName": "normalization-java",
+    "name": "normalizationJava",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "dirName": "smoke-test",
     "name": "smokeTest",
     "unitTests": false,

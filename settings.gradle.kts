@@ -133,14 +133,7 @@ include("workerProcesses")
 include("baseAnnotations")
 include("samples")
 include("security")
-<<<<<<< HEAD
 include("normalizationJava")
-=======
-// Do not modify the JSON file manually. Use `./gradlew generateSubprojectsInfo`
-val subprojects = JsonSlurper().parseText(file(".teamcity/subprojects.json").readText()) as List<Map<String, Object>>
->>>>>>> Automate subproject generation
-=======
->>>>>>> Not change settings.gradle
 
 val upperCaseLetters = "\\p{Upper}".toRegex()
 
