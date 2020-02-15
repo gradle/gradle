@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.service;
+package org.gradle.initialization.exception;
 
+import org.gradle.api.GradleException;
 import org.gradle.internal.exceptions.Contextual;
 
-/**
- * Thrown when a service instance cannot be created.
- */
 @Contextual
-public class ServiceCreationException extends ServiceLookupException {
-    public ServiceCreationException(String message) {
-        super(message);
-    }
+public class InitializationException extends GradleException {
 
-    public ServiceCreationException(String message, Throwable cause) {
-        super(message, cause);
+    public InitializationException(Throwable cause) {
+        super("Gradle could not start your build.", cause);
     }
 }

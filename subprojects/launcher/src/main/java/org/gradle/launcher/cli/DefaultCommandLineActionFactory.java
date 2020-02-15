@@ -16,14 +16,9 @@
 package org.gradle.launcher.cli;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Function;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.tools.ant.Main;
 import org.codehaus.groovy.util.ReleaseInfo;
 import org.gradle.api.Action;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineConverter;
@@ -37,7 +32,6 @@ import org.gradle.initialization.LayoutCommandLineConverter;
 import org.gradle.initialization.ParallelismConfigurationCommandLineConverter;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.Actions;
-import org.gradle.internal.IoActions;
 import org.gradle.internal.buildevents.BuildExceptionReporter;
 import org.gradle.internal.concurrent.DefaultParallelismConfiguration;
 import org.gradle.internal.jvm.Jvm;
@@ -46,7 +40,6 @@ import org.gradle.internal.logging.LoggingCommandLineConverter;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
-import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.bootstrap.CommandLineActionFactory;
@@ -54,15 +47,9 @@ import org.gradle.launcher.bootstrap.ExecutionListener;
 import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
 import org.gradle.launcher.cli.converter.PropertiesToLogLevelConfigurationConverter;
 import org.gradle.launcher.cli.converter.PropertiesToParallelismConfigurationConverter;
-import org.gradle.util.GFileUtils;
 import org.gradle.util.GradleVersion;
 
-import javax.annotation.Nullable;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintStream;
-import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -118,105 +105,6 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
         out.println();
         parser.printUsage(out);
         out.println();
-    }
-
-    @VisibleForTesting
-    static class WelcomeMessageAction implements Action<Logger> {
-
-        private final BuildLayoutParameters buildLayoutParameters;
-        private final GradleVersion gradleVersion;
-        private final Function<String, InputStream> inputStreamProvider;
-
-        WelcomeMessageAction(BuildLayoutParameters buildLayoutParameters) {
-            this(buildLayoutParameters, GradleVersion.current(), new Function<String, InputStream>() {
-                @Nullable
-                @Override
-                public InputStream apply(@Nullable String input) {
-                    return getClass().getClassLoader().getResourceAsStream(input);
-                }
-            });
-        }
-
-        @VisibleForTesting
-        WelcomeMessageAction(BuildLayoutParameters buildLayoutParameters, GradleVersion gradleVersion, Function<String, InputStream> inputStreamProvider) {
-            this.buildLayoutParameters = buildLayoutParameters;
-            this.gradleVersion = gradleVersion;
-            this.inputStreamProvider = inputStreamProvider;
-        }
-
-        @Override
-        public void execute(Logger logger) {
-            if (isWelcomeMessageEnabled()) {
-                File markerFile = getMarkerFile();
-
-                if (!markerFile.exists() && logger.isLifecycleEnabled()) {
-                    logger.lifecycle("");
-                    logger.lifecycle("Welcome to Gradle " + gradleVersion.getVersion() + "!");
-
-                    String featureList = readReleaseFeatures();
-
-                    if (StringUtils.isNotBlank(featureList)) {
-                        logger.lifecycle("");
-                        logger.lifecycle("Here are the highlights of this release:");
-                        logger.lifecycle(StringUtils.stripEnd(featureList, " \n\r"));
-                    }
-
-                    if (!gradleVersion.isSnapshot()) {
-                        logger.lifecycle("");
-                        logger.lifecycle("For more details see https://docs.gradle.org/" + gradleVersion.getVersion() + "/release-notes.html");
-                    }
-
-                    logger.lifecycle("");
-
-                    writeMarkerFile(markerFile);
-                }
-            }
-        }
-
-        /**
-         * The system property is set for the purpose of internal testing.
-         * In user environments the system property will never be available.
-         */
-        private boolean isWelcomeMessageEnabled() {
-            String messageEnabled = System.getProperty(DefaultCommandLineActionFactory.WELCOME_MESSAGE_ENABLED_SYSTEM_PROPERTY);
-
-            if (messageEnabled == null) {
-                return true;
-            }
-
-            return Boolean.parseBoolean(messageEnabled);
-        }
-
-        private File getMarkerFile() {
-            File gradleUserHomeDir = buildLayoutParameters.getGradleUserHomeDir();
-            File notificationsDir = new File(gradleUserHomeDir, "notifications");
-            File versionedNotificationsDir = new File(notificationsDir, gradleVersion.getVersion());
-            return new File(versionedNotificationsDir, "release-features.rendered");
-        }
-
-        private String readReleaseFeatures() {
-            InputStream inputStream = inputStreamProvider.apply("release-features.txt");
-
-            if (inputStream != null) {
-                StringWriter writer = new StringWriter();
-
-                try {
-                    IOUtils.copy(inputStream, writer, "UTF-8");
-                    return writer.toString();
-                } catch (IOException e) {
-                    // do not fail the build as feature is non-critical
-                } finally {
-                    IoActions.closeQuietly(inputStream);
-                }
-            }
-
-            return null;
-        }
-
-        private void writeMarkerFile(File markerFile) {
-            GFileUtils.mkdirs(markerFile.getParentFile());
-            GFileUtils.touch(markerFile);
-        }
     }
 
     private static class BuiltInActions implements CommandLineAction {
@@ -361,11 +249,12 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
             LoggingManagerInternal loggingManager = loggingServices.getFactory(LoggingManagerInternal.class).create();
             loggingManager.setLevelInternal(loggingConfiguration.getLogLevel());
             loggingManager.start();
-            Action<ExecutionListener> exceptionReportingAction = new ExceptionReportingAction(action, reporter, loggingManager);
+
+            Action<ExecutionListener> exceptionReportingAction =
+                    new ExceptionReportingAction(reporter, loggingManager,
+                            new NativeServicesInitializingAction(buildLayout, loggingConfiguration, loggingManager,
+                                    new WelcomeMessageAction(buildLayout, action)));
             try {
-                NativeServices.initialize(buildLayout.getGradleUserHomeDir());
-                loggingManager.attachProcessConsole(loggingConfiguration.getConsoleOutput());
-                new WelcomeMessageAction(buildLayout).execute(Logging.getLogger(WelcomeMessageAction.class));
                 exceptionReportingAction.execute(executionListener);
             } finally {
                 loggingManager.stop();

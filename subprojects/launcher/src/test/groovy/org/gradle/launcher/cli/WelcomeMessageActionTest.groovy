@@ -17,11 +17,12 @@
 package org.gradle.launcher.cli
 
 import com.google.common.base.Function
+import org.gradle.api.Action
 import org.gradle.initialization.BuildLayoutParameters
 import org.gradle.internal.logging.slf4j.OutputEventListenerBackedLogger
 import org.gradle.internal.logging.slf4j.OutputEventListenerBackedLoggerContext
 import org.gradle.internal.time.MockClock
-import org.gradle.launcher.cli.DefaultCommandLineActionFactory.WelcomeMessageAction
+import org.gradle.launcher.bootstrap.ExecutionListener
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
 import org.gradle.util.SetSystemProperties
@@ -43,6 +44,8 @@ class WelcomeMessageActionTest extends Specification {
     BuildLayoutParameters buildLayoutParameters
     File gradleUserHomeDir
     ToStringLogger log
+    Action<ExecutionListener> delegateAction
+    ExecutionListener listener
 
     def setup() {
         gradleUserHomeDir = temporaryFolder.root
@@ -50,22 +53,25 @@ class WelcomeMessageActionTest extends Specification {
             getGradleUserHomeDir() >> gradleUserHomeDir
         }
         log = new ToStringLogger()
+        delegateAction = Mock()
+        listener = Mock()
+    }
+
+    private WelcomeMessageAction createWelcomeMessage(GradleVersion gradleVersion=GradleVersion.current(), String welcomeMessage) {
+        return new WelcomeMessageAction(log, buildLayoutParameters, gradleVersion, { welcomeMessage == null ? null : new ByteArrayInputStream(welcomeMessage.bytes) } as Function, delegateAction)
     }
 
     def "prints highlights when file exists and contains visible content"() {
         given:
-        def inputStreamProvider = Mock(Function) {
-            apply(_) >> { new ByteArrayInputStream(""" - foo
+        def action = createWelcomeMessage(GradleVersion.version("42.0"), """ - foo
  - bar
- """.bytes) }
-        }
+ """)
 
         when:
-        def action = new WelcomeMessageAction(buildLayoutParameters, GradleVersion.version("42.0"), inputStreamProvider)
-        action.execute(log)
+        action.execute(listener)
 
         then:
-        def output = TextUtil.normaliseLineSeparators(log.toString());
+        def output = TextUtil.normaliseLineSeparators(log.toString())
         output.contains('''Welcome to Gradle 42.0!
 
 Here are the highlights of this release:
@@ -73,38 +79,33 @@ Here are the highlights of this release:
  - bar
 
 For more details see https://docs.gradle.org/42.0/release-notes.html''')
+        1 * delegateAction.execute(_)
     }
 
     def "omits highlights when file contains only whitespace"() {
         given:
-        def inputStreamProvider = Mock(Function) {
-            apply(_) >> new ByteArrayInputStream("""
+        def action = createWelcomeMessage("""
 
-""".bytes)
-        }
+""")
 
         when:
-        def action = new WelcomeMessageAction(buildLayoutParameters, GradleVersion.current(), inputStreamProvider)
-        action.execute(log)
+        action.execute(listener)
 
         then:
-
         !log.toString().contains("Here are the highlights of this release:")
+        1 * delegateAction.execute(_)
     }
 
     def "omits highlights when file does not exist"() {
         given:
-        def inputStreamProvider = Mock(Function) {
-            apply(_) >> null
-        }
+        def action = createWelcomeMessage(null)
 
         when:
-        def action = new WelcomeMessageAction(buildLayoutParameters, GradleVersion.current(), inputStreamProvider)
-        action.execute(log)
+        action.execute(listener)
 
         then:
-
         !log.toString().contains("Here are the highlights of this release:")
+        1 * delegateAction.execute(_)
     }
 
     def "closes InputStream after reading features"() {
@@ -118,39 +119,51 @@ For more details see https://docs.gradle.org/42.0/release-notes.html''')
                 }
             }
         }
+        def action = new WelcomeMessageAction(log, buildLayoutParameters, GradleVersion.version("42.0"), inputStreamProvider, delegateAction)
 
         when:
-        def action = new WelcomeMessageAction(buildLayoutParameters, GradleVersion.version("42.0"), inputStreamProvider)
-        action.execute(log)
+        action.execute(listener)
 
         then:
         inputStreamWasClosed
+        1 * delegateAction.execute(_)
+    }
+
+    def "does not print links to release notes for snapshot versions"() {
+        given:
+        def action = createWelcomeMessage(GradleVersion.version("1.0-SNAPSHOT"), null)
+
+        when:
+        action.execute(listener)
+
+        then:
+        !log.toString().contains("For more details see https://docs.gradle.org/")
+        1 * delegateAction.execute(_)
     }
 
     def "prints links to release notes for non-snapshot versions"() {
+        given:
+        def action = createWelcomeMessage(GradleVersion.version("1.0"), null)
+
         when:
-        def action = new WelcomeMessageAction(buildLayoutParameters, GradleVersion.version(version), Mock(Function))
-        action.execute(log)
+        action.execute(listener)
 
         then:
-        log.toString().contains("For more details see https://docs.gradle.org/${version}/release-notes.html") == shouldContainLink
-
-        where:
-        version        | shouldContainLink
-        "1.0"          | true
-        "1.0-SNAPSHOT" | false
+        log.toString().contains("For more details see https://docs.gradle.org/1.0/release-notes.html")
+        1 * delegateAction.execute(_)
     }
 
     def "writes marker file after printing welcome message"() {
         given:
         def version = "42.0"
+        def action = createWelcomeMessage(GradleVersion.version(version), null)
 
         when:
-        def action = new WelcomeMessageAction(buildLayoutParameters, GradleVersion.version(version), Mock(Function))
-        action.execute(log)
+        action.execute(listener)
 
         then:
         markerFile(version).exists()
+        1 * delegateAction.execute(_)
     }
 
     def "does not print anything if marker file exists"() {
@@ -159,25 +172,27 @@ For more details see https://docs.gradle.org/42.0/release-notes.html''')
         def markerFile = markerFile(version)
         markerFile.getParentFile().mkdirs()
         markerFile.touch()
+        def action = createWelcomeMessage(GradleVersion.version(version), null)
 
         when:
-        def action = new WelcomeMessageAction(buildLayoutParameters, GradleVersion.version(version), Mock(Function))
-        action.execute(log)
+        action.execute(listener)
 
         then:
         log.toString().isEmpty()
+        1 * delegateAction.execute(_)
     }
 
     def "does not print anything if system property is set to false"() {
         given:
-        System.setProperty(WELCOME_MESSAGE_ENABLED_SYSTEM_PROPERTY, "false");
+        System.setProperty(WELCOME_MESSAGE_ENABLED_SYSTEM_PROPERTY, "false")
+        def action = createWelcomeMessage( null)
 
         when:
-        def action = new WelcomeMessageAction(buildLayoutParameters, GradleVersion.current(), Mock(Function))
-        action.execute(log)
+        action.execute(listener)
 
         then:
         log.toString().isEmpty()
+        1 * delegateAction.execute(_)
     }
 
     private TestFile markerFile(String version) {
