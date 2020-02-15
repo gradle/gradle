@@ -242,6 +242,8 @@ class Codecs(
         // Only serialize certain List implementations
         bind(arrayListCodec)
         bind(linkedListCodec)
+        bind(vectorCodec)
+        bind(stackCodec)
         bind(ImmutableListCodec)
 
         // Only serialize certain Set implementations for now, as some custom types extend Set (eg DomainObjectContainer)

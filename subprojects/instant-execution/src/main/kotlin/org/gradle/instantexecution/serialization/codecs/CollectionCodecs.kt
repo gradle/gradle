@@ -25,13 +25,23 @@ import org.gradle.instantexecution.serialization.writeArray
 import org.gradle.instantexecution.serialization.writeCollection
 import org.gradle.instantexecution.serialization.writeMap
 import java.util.LinkedList
+import java.util.Stack
 import java.util.TreeMap
 import java.util.TreeSet
+import java.util.Vector
 import java.util.concurrent.ConcurrentHashMap
 
 
 internal
 val arrayListCodec: Codec<ArrayList<Any?>> = collectionCodec { ArrayList<Any?>(it) }
+
+
+internal
+val vectorCodec: Codec<Vector<Any?>> = collectionCodec { Vector<Any?>(it) }
+
+
+internal
+val stackCodec: Codec<Stack<Any?>> = collectionCodec { Stack<Any?>() }
 
 
 internal
