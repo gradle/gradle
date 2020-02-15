@@ -249,7 +249,6 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
     }
 
     @UsesSample("testing/testng/groupbyinstances/groovy")
-    @ToBeFixedForInstantExecution
     def "can use the groupByInstances option with TestNG tests"() {
         given:
         executer.inDirectory(sample.dir)
