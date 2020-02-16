@@ -35,8 +35,12 @@ class PrecompiledScriptDependenciesResolver : ScriptDependenciesResolver {
     companion object {
 
         fun hashOf(charSequence: CharSequence) =
-            Hashing.hashString(replaceLineSeparatorsOf(charSequence, "\n")).toString()
+            hashOfNormalisedString(replaceLineSeparatorsOf(charSequence, "\n"))
 
+        /**
+         * **Optimisation note**: assumes [scriptText] contains only `\n` line separators as any script text
+         * coming from the Kotlin compiler should already do.
+         */
         fun implicitImportsForScript(scriptText: CharSequence, environment: Environment?) =
             implicitImportsFrom(environment) + precompiledScriptPluginImportsFrom(environment, scriptText)
 
@@ -46,7 +50,11 @@ class PrecompiledScriptDependenciesResolver : ScriptDependenciesResolver {
 
         private
         fun precompiledScriptPluginImportsFrom(environment: Environment?, scriptText: CharSequence): List<String> =
-            environment.stringList(hashOf(scriptText))
+            environment.stringList(hashOfNormalisedString(scriptText))
+
+        private
+        fun hashOfNormalisedString(charSequence: CharSequence) =
+            Hashing.hashString(charSequence).toString()
 
         private
         fun Environment?.stringList(key: String) =
