@@ -49,6 +49,22 @@ class TestExecutionBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         assertJunit(rootTestOp, operations)
     }
 
+    def "emitsBuildOperationsForTestNgTests"() {
+        given:
+        executer.withRepositoryMirrors()
+
+        when:
+        run "test"
+
+        then: "test build operations are emitted in expected hierarchy"
+        def rootTestOp = operations.first(ExecuteTestBuildOperationType)
+        rootTestOp.details.testDescriptor.name.startsWith("Gradle Test Run :test")
+        rootTestOp.details.testDescriptor.className == null
+        rootTestOp.details.testDescriptor.composite == true
+
+        assertTestNg(rootTestOp, operations)
+    }
+
     def "emits test operations as expected for two builds in a row"() {
         given:
         executer.withRepositoryMirrors()
