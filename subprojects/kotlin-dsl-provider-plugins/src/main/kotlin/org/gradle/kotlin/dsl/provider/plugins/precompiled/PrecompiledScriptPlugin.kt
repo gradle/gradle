@@ -20,7 +20,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
-import org.gradle.internal.hash.Hashing
+import org.gradle.kotlin.dsl.precompile.PrecompiledScriptDependenciesResolver
 
 import org.gradle.kotlin.dsl.support.KotlinScriptType
 import org.gradle.kotlin.dsl.support.KotlinScriptTypeMatch
@@ -101,7 +101,7 @@ data class PrecompiledScriptPlugin(internal val scriptFile: File) {
     }
 
     val hashString by lazy {
-        Hashing.hashString(scriptText).toString()
+        PrecompiledScriptDependenciesResolver.hashOf(scriptText)
     }
 
     val scriptText: String

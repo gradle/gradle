@@ -19,6 +19,7 @@ package org.gradle.kotlin.dsl.precompile
 import org.gradle.internal.hash.Hashing
 
 import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependencies
+import org.gradle.util.TextUtil.replaceLineSeparatorsOf
 
 import java.util.concurrent.Future
 
@@ -33,7 +34,8 @@ class PrecompiledScriptDependenciesResolver : ScriptDependenciesResolver {
 
     companion object {
 
-        fun hashOf(charSequence: CharSequence) = Hashing.hashString(charSequence).toString()
+        fun hashOf(charSequence: CharSequence) =
+            Hashing.hashString(replaceLineSeparatorsOf(charSequence, "\n")).toString()
 
         fun implicitImportsForScript(scriptText: CharSequence, environment: Environment?) =
             implicitImportsFrom(environment) + precompiledScriptPluginImportsFrom(environment, scriptText)

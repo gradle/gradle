@@ -22,6 +22,7 @@ import com.google.common.collect.Iterables;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.gradle.internal.SystemProperties;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Arrays;
 import java.util.regex.Pattern;
@@ -61,8 +62,16 @@ public class TextUtil {
     /**
      * Converts all line separators in the specified string to the specified line separator.
      */
-    public static String convertLineSeparators(String str, String sep) {
-        return str == null ? null : str.replaceAll("\r\n|\r|\n", sep);
+    @Nullable
+    public static String convertLineSeparators(@Nullable String str, String sep) {
+        return str == null ? null : replaceLineSeparatorsOf(str, sep);
+    }
+
+    /**
+     * Converts all line separators in the specified non-null string to the specified line separator.
+     */
+    public static String replaceLineSeparatorsOf(CharSequence string, String bySeparator) {
+        return Pattern.compile("\r\n|\r|\n").matcher(string).replaceAll(bySeparator);
     }
 
     /**

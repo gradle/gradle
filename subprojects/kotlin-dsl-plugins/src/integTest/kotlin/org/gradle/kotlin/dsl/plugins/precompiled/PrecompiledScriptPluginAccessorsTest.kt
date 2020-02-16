@@ -39,11 +39,12 @@ import org.gradle.kotlin.dsl.fixtures.pluginDescriptorEntryFor
 import org.gradle.kotlin.dsl.support.zipTo
 
 import org.gradle.test.fixtures.file.LeaksFileHandles
+import org.gradle.util.TextUtil.replaceLineSeparatorsOf
 
-import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.equalTo
+import org.hamcrest.MatcherAssert.assertThat
 
 import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.descriptors.Visibility
@@ -58,6 +59,27 @@ import java.io.File
 
 @LeaksFileHandles("Kotlin Compiler Daemon working directory")
 class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest() {
+
+    @Test
+    fun `can use type-safe accessors for applied plugins with CRLF line separators`() {
+
+        withKotlinDslPlugin()
+
+        withPrecompiledKotlinScript("my-java-library.gradle.kts",
+            replaceLineSeparatorsOf(
+                """
+                plugins { java }
+
+                java { }
+
+                tasks.compileJava { }
+                """,
+                "\r\n"
+            )
+        )
+
+        compileKotlin()
+    }
 
     @Test
     @ToBeFixedForInstantExecution
