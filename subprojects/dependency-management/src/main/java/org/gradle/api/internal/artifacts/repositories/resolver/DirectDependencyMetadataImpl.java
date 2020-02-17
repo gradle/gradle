@@ -16,11 +16,15 @@
 
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
+import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.DirectDependencyMetadata;
+
+import java.util.Collections;
+import java.util.List;
 
 public class DirectDependencyMetadataImpl extends AbstractDependencyImpl<DirectDependencyMetadata> implements DirectDependencyMetadata {
 
-    boolean endorsing = false;
+    private boolean endorsing = false;
 
     public DirectDependencyMetadataImpl(String group, String name, String version) {
         super(group, name, version);
@@ -40,4 +44,10 @@ public class DirectDependencyMetadataImpl extends AbstractDependencyImpl<DirectD
     public boolean isEndorsingStrictVersions() {
         return endorsing;
     }
+
+    @Override
+    public List<DependencyArtifact> getArtifactSelectors() {
+        return Collections.emptyList();
+    }
+
 }

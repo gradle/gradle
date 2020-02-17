@@ -18,6 +18,8 @@ package org.gradle.api.artifacts;
 
 import org.gradle.api.Incubating;
 
+import java.util.List;
+
 /**
  * Describes a dependency declared in a resolved component's metadata, which typically originates from
  * a component descriptor (Gradle metadata file, Ivy file, Maven POM). This interface can be used to adjust
@@ -53,5 +55,14 @@ public interface DirectDependencyMetadata extends DependencyMetadata<DirectDepen
      */
     @Incubating
     boolean isEndorsingStrictVersions();
+
+    /**
+     * Returns additional artifact information associated with the dependency that is used to select artifacts in the targeted module.
+     * For example, a classifier or type defined in POM metadata or a complete artifact name defined in Ivy metadata.
+     *
+     * @since 6.3
+     */
+    @Incubating
+    List<DependencyArtifact> getArtifactSelectors();
 
 }

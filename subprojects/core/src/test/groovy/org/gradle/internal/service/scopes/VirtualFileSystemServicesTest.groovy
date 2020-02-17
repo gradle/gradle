@@ -109,7 +109,7 @@ class VirtualFileSystemServicesTest extends Specification {
         rootBuildLifecycleListener.beforeComplete(gradle)
         then:
         virtualFileSystem.read(path, { it }) == snapshot
-        1 * watcherRegistryFactory.startWatching(_, _, Collections.singleton(rootProject.projectDir)) >> watcherRegistry
+        1 * watcherRegistryFactory.startWatching(_, _, Collections.singleton(rootProject.projectDir), _) >> watcherRegistry
     }
 
     Map<String, String> systemPropertyArgs(boolean retentionEnabled) {
