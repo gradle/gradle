@@ -162,9 +162,10 @@ class DefaultFileOperationsTest extends Specification {
     }
 
     def copiesFiles() {
+        def fileCollection = Mock(ConfigurableFileCollection)
         def fileTree = Mock(FileTreeInternal)
-        fileCollectionFactory.resolving({ it.contains('file') }) >> fileTree
-        fileTree.asFileTree >> fileTree
+        fileCollectionFactory.configurableFiles() >> fileCollection
+        fileCollection.asFileTree >> fileTree
         fileTree.matching(_) >> fileTree
         resolver.resolve('dir') >> tmpDir.getTestDirectory()
 

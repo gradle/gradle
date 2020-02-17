@@ -24,6 +24,7 @@ import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.Transformer;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.CopyProcessingSpec;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DuplicatesStrategy;
@@ -52,8 +53,6 @@ import java.io.FilterReader;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -65,7 +64,7 @@ public class DefaultCopySpec implements CopySpecInternal {
     private static final NotationParser<Object, String> PATH_NOTATION_PARSER = PathNotationConverter.parser();
     protected final FileResolver fileResolver;
     protected final FileCollectionFactory fileCollectionFactory;
-    private final Set<Object> sourcePaths = new LinkedHashSet<>();
+    private final ConfigurableFileCollection sourcePaths;
     private Object destDir;
     private final PatternSet patternSet;
     private final List<CopySpecInternal> childSpecs = new LinkedList<>();
@@ -89,6 +88,7 @@ public class DefaultCopySpec implements CopySpecInternal {
 
     public DefaultCopySpec(FileResolver resolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, PatternSet patternSet) {
         this.fileResolver = resolver;
+        this.sourcePaths = fileCollectionFactory.configurableFiles();
         this.fileCollectionFactory = fileCollectionFactory;
         this.instantiator = instantiator;
         this.patternSet = patternSet;
@@ -96,7 +96,7 @@ public class DefaultCopySpec implements CopySpecInternal {
 
     public DefaultCopySpec(FileResolver resolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, @Nullable String destPath, FileCollection source, PatternSet patternSet, Collection<CopySpecInternal> children) {
         this(resolver, fileCollectionFactory, instantiator, patternSet);
-        sourcePaths.add(source);
+        sourcePaths.from(source);
         destDir = destPath;
         for (CopySpecInternal child : children) {
             addChildSpec(child);
@@ -138,7 +138,7 @@ public class DefaultCopySpec implements CopySpecInternal {
 
     @Override
     public CopySpec from(Object... sourcePaths) {
-        Collections.addAll(this.sourcePaths, sourcePaths);
+        this.sourcePaths.from(sourcePaths);
         return this;
     }
 
@@ -226,7 +226,7 @@ public class DefaultCopySpec implements CopySpecInternal {
 
     @VisibleForTesting
     public Set<Object> getSourcePaths() {
-        return sourcePaths;
+        return sourcePaths.getFrom();
     }
 
     @Nullable
@@ -507,8 +507,8 @@ public class DefaultCopySpec implements CopySpecInternal {
         return this.new DefaultCopySpecResolver(null);
     }
 
-    public FileCollection resolveSourceFiles() {
-        return fileCollectionFactory.resolving(sourcePaths);
+    public FileCollection getSourceFiles() {
+        return sourcePaths;
     }
 
     @Override
@@ -526,8 +526,8 @@ public class DefaultCopySpec implements CopySpecInternal {
     }
 
     public class DefaultCopySpecResolver implements CopySpecResolver {
-
-        private CopySpecResolver parentResolver;
+        @Nullable
+        private final CopySpecResolver parentResolver;
 
         private DefaultCopySpecResolver(@Nullable CopySpecResolver parent) {
             this.parentResolver = parent;
@@ -557,7 +557,7 @@ public class DefaultCopySpec implements CopySpecInternal {
 
         @Override
         public FileTree getSource() {
-            return resolveSourceFiles().getAsFileTree().matching(this.getPatternSet());
+            return getSourceFiles().getAsFileTree().matching(this.getPatternSet());
         }
 
         @Override
