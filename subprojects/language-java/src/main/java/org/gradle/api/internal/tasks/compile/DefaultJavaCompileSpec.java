@@ -16,12 +16,10 @@
 
 package org.gradle.api.internal.tasks.compile;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration;
 import org.gradle.api.tasks.compile.CompileOptions;
 
 import java.io.File;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -30,6 +28,7 @@ public class DefaultJavaCompileSpec extends DefaultJvmLanguageCompileSpec implem
     private List<File> annotationProcessorPath;
     private Set<AnnotationProcessorDeclaration> effectiveAnnotationProcessors;
     private Set<String> classes;
+    private List<File> modulePath;
     private List<File> sourceRoots;
 
     @Override
@@ -73,16 +72,12 @@ public class DefaultJavaCompileSpec extends DefaultJvmLanguageCompileSpec implem
 
     @Override
     public List<File> getModulePath() {
-        int i = compileOptions.getCompilerArgs().indexOf("--module-path");
-        if (i < 0) {
-            return Collections.emptyList();
-        }
-        String[] modules = compileOptions.getCompilerArgs().get(i + 1).split(File.pathSeparator);
-        List<File> result = Lists.newArrayListWithCapacity(modules.length);
-        for (String module : modules) {
-            result.add(new File(module));
-        }
-        return result;
+        return modulePath;
+    }
+
+    @Override
+    public void setModulePath(List<File> modulePath) {
+        this.modulePath = modulePath;
     }
 
     @Override

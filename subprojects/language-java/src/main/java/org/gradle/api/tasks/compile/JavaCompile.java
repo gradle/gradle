@@ -37,6 +37,7 @@ import org.gradle.api.internal.tasks.compile.incremental.recomp.JavaRecompilatio
 import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.CompileClasspath;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
@@ -47,6 +48,7 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.file.Deleter;
+import org.gradle.internal.jpms.ModuleDetection;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.jvm.platform.JavaPlatform;
@@ -58,6 +60,8 @@ import org.gradle.work.Incremental;
 import org.gradle.work.InputChanges;
 
 import javax.inject.Inject;
+import java.io.File;
+import java.util.List;
 import java.util.concurrent.Callable;
 
 /**
@@ -74,6 +78,7 @@ import java.util.concurrent.Callable;
  */
 @CacheableTask
 public class JavaCompile extends AbstractCompile {
+    private ModulePathHandling modulePathHandling = ModulePathHandling.NONE;
     private final CompileOptions compileOptions;
     private JavaToolChain toolChain;
     private final FileCollection stableSources = getProject().files((Callable<Object[]>) () -> new Object[]{getSource(), getSources()});
@@ -212,20 +217,72 @@ public class JavaCompile extends AbstractCompile {
     }
 
     private DefaultJavaCompileSpec createSpec() {
+        List<File> sourcesRoots = CompilationSourceDirs.inferSourceRoots((FileTreeInternal) getStableSources().getAsFileTree());
+
         final DefaultJavaCompileSpec spec = new DefaultJavaCompileSpecFactory(compileOptions).create();
         spec.setDestinationDir(getDestinationDirectory().getAsFile().get());
         spec.setWorkingDir(getProject().getProjectDir());
         spec.setTempDir(getTemporaryDir());
-        spec.setCompileClasspath(ImmutableList.copyOf(getClasspath()));
+        spec.setCompileClasspath(getCompileClasspath(sourcesRoots));
+        spec.setModulePath(ImmutableList.copyOf(getCompileModulePath(sourcesRoots)));
         spec.setAnnotationProcessorPath(compileOptions.getAnnotationProcessorPath() == null ? ImmutableList.of() : ImmutableList.copyOf(compileOptions.getAnnotationProcessorPath()));
         spec.setTargetCompatibility(getTargetCompatibility());
         spec.setSourceCompatibility(getSourceCompatibility());
         spec.setCompileOptions(compileOptions);
-        spec.setSourcesRoots(CompilationSourceDirs.inferSourceRoots((FileTreeInternal) getStableSources().getAsFileTree()));
+        spec.setSourcesRoots(sourcesRoots);
         if (((JavaToolChainInternal) getToolChain()).getJavaVersion().compareTo(JavaVersion.VERSION_1_8) < 0) {
             spec.getCompileOptions().setHeaderOutputDirectory(null);
         }
         return spec;
+    }
+
+    private ImmutableList<File> getCompileClasspath(List<File> sourcesRoots) {
+        if (modulePathHandling == ModulePathHandling.AUTO) {
+            if (ModuleDetection.isModuleSource(sourcesRoots)) {
+                return ImmutableList.copyOf(getClasspath().filter(ModuleDetection.CLASSPATH_FILTER));
+            } else {
+                return ImmutableList.copyOf(getClasspath());
+            }
+        }
+        if (modulePathHandling == ModulePathHandling.ALL) {
+            return ImmutableList.of();
+        }
+        return ImmutableList.copyOf(getClasspath());
+    }
+
+    private ImmutableList<File> getCompileModulePath(List<File> sourcesRoots) {
+        if (modulePathHandling == ModulePathHandling.AUTO) {
+            if (ModuleDetection.isModuleSource(sourcesRoots)) {
+                return ImmutableList.copyOf(getClasspath().filter(ModuleDetection.MODULE_PATH_FILTER));
+            } else {
+                return ImmutableList.of();
+            }
+        }
+        if (modulePathHandling == ModulePathHandling.ALL) {
+            return ImmutableList.copyOf(getClasspath());
+        }
+        return ImmutableList.of();
+    }
+
+    /**
+     * Returns the module path handling of this compile task.
+     *
+     * @since 6.3
+     */
+    @Incubating
+    @Input
+    public ModulePathHandling getModulePathHandling() {
+        return modulePathHandling;
+    }
+
+    /**
+     * Sets the module path handling of this compile task.
+     *
+     * @since 6.3
+     */
+    @Incubating
+    public void setModulePathHandling(ModulePathHandling modulePathHandling) {
+        this.modulePathHandling = modulePathHandling;
     }
 
     /**
