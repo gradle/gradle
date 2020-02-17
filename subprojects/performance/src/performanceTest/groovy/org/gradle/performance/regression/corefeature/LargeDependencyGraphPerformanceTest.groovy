@@ -29,7 +29,7 @@ class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionGradleProf
 
     def setup() {
         runner.minimumBaseVersion = '4.8'
-        runner.targetVersions = ["6.2-20200108160029+0000"]
+        runner.targetVersions = ["6.3-20200215132528+0000"]
     }
 
     def "resolve large dependency graph from file repo"() {

@@ -25,7 +25,6 @@ abstract class AbstractSourceIncrementalCompilationIntegrationTest extends Abstr
 
     abstract void recompiledWithFailure(String expectedFailure, String... recompiledClasses)
 
-    @ToBeFixedForInstantExecution
     def "changes to transitive private classes do not force recompilation"() {
         source """class A {
             private B b;
@@ -128,7 +127,6 @@ abstract class AbstractSourceIncrementalCompilationIntegrationTest extends Abstr
         }
     }
 
-    @ToBeFixedForInstantExecution
     def "change to class accessed from private method only recompile that class and the direct consumer"() {
         def componentUnderTest = new IncrementalLib()
         componentUnderTest.writeToProject()
@@ -143,7 +141,6 @@ abstract class AbstractSourceIncrementalCompilationIntegrationTest extends Abstr
         outputs.recompiledClasses 'AccessedFromPrivateMethod', 'SomeClass', 'SomeClass$Foo'
     }
 
-    @ToBeFixedForInstantExecution
     def "change to class accessed from private method body only recompile that class and the direct consumer"() {
         def componentUnderTest = new IncrementalLib()
         componentUnderTest.writeToProject()
@@ -158,7 +155,6 @@ abstract class AbstractSourceIncrementalCompilationIntegrationTest extends Abstr
         outputs.recompiledClasses 'AccessedFromPrivateMethodBody', 'SomeClass', 'SomeClass$Foo'
     }
 
-    @ToBeFixedForInstantExecution
     def "change to class accessed from package private field only recompile that class and transitive consumer"() {
         def componentUnderTest = new IncrementalLib()
         componentUnderTest.writeToProject()
@@ -173,7 +169,6 @@ abstract class AbstractSourceIncrementalCompilationIntegrationTest extends Abstr
         outputs.recompiledClasses 'AccessedFromPackagePrivateField', 'SomeClass', 'SomeClass$Foo', 'UsingSomeClass'
     }
 
-    @ToBeFixedForInstantExecution
     def "change to class accessed from private field only recompile that class and direct consumer"() {
         def componentUnderTest = new IncrementalLib()
         componentUnderTest.writeToProject()
@@ -188,7 +183,6 @@ abstract class AbstractSourceIncrementalCompilationIntegrationTest extends Abstr
         outputs.recompiledClasses 'AccessedFromPrivateField', 'SomeClass', 'SomeClass$Foo'
     }
 
-    @ToBeFixedForInstantExecution
     def "change to class accessed from private inner class's public field only recompile that class and direct consumer"() {
         def componentUnderTest = new IncrementalLib()
         componentUnderTest.writeToProject()
@@ -203,7 +197,6 @@ abstract class AbstractSourceIncrementalCompilationIntegrationTest extends Abstr
         outputs.recompiledClasses 'AccessedFromPrivateClassPublicField', 'SomeClass', 'SomeClass$Foo'
     }
 
-    @ToBeFixedForInstantExecution
     def "change to class accessed from private inner class's public method body only recompile that class and direct consumer"() {
         def componentUnderTest = new IncrementalLib()
         componentUnderTest.writeToProject()
@@ -218,7 +211,6 @@ abstract class AbstractSourceIncrementalCompilationIntegrationTest extends Abstr
         outputs.recompiledClasses 'AccessedFromPrivateClass', 'SomeClass', 'SomeClass$Foo'
     }
 
-    @ToBeFixedForInstantExecution
     def "detects deletion of an isolated source class with an inner class"() {
         def a = source """class A {
             class InnerA {}
@@ -250,7 +242,6 @@ abstract class AbstractSourceIncrementalCompilationIntegrationTest extends Abstr
         outputs.deletedClasses 'A', 'B'
     }
 
-    @ToBeFixedForInstantExecution
     def "detects change of an isolated source class with an inner class"() {
         source """class A {
             class InnerA {}
@@ -269,7 +260,6 @@ abstract class AbstractSourceIncrementalCompilationIntegrationTest extends Abstr
         outputs.recompiledClasses 'A', 'A$InnerA'
     }
 
-    @ToBeFixedForInstantExecution
     def "detects change of an isolated class"() {
         source "class A {}", "class B {}"
 
@@ -283,7 +273,6 @@ abstract class AbstractSourceIncrementalCompilationIntegrationTest extends Abstr
         outputs.recompiledClasses 'A'
     }
 
-    @ToBeFixedForInstantExecution
     def "detects deletion of an inner class"() {
         source """class A {
             class InnerA {}
@@ -301,7 +290,6 @@ abstract class AbstractSourceIncrementalCompilationIntegrationTest extends Abstr
         outputs.deletedClasses 'A$InnerA'
     }
 
-    @ToBeFixedForInstantExecution
     def "detects rename of an inner class"() {
         source """class A {
             class InnerA {}
@@ -321,7 +309,6 @@ abstract class AbstractSourceIncrementalCompilationIntegrationTest extends Abstr
         outputs.deletedClasses 'A$InnerA'
     }
 
-    @ToBeFixedForInstantExecution
     def "detects addition af a new class with an inner class"() {
         source "class B {}"
 
@@ -337,7 +324,6 @@ abstract class AbstractSourceIncrementalCompilationIntegrationTest extends Abstr
         outputs.recompiledClasses 'A', 'A$InnerA'
     }
 
-    @ToBeFixedForInstantExecution
     def "detects transitive dependencies"() {
         source "class A {}", "class B extends A {}", "class C extends B {}", "class D {}"
         outputs.snapshot { run language.compileTaskName }
@@ -358,7 +344,6 @@ abstract class AbstractSourceIncrementalCompilationIntegrationTest extends Abstr
         outputs.recompiledClasses 'B', 'C'
     }
 
-    @ToBeFixedForInstantExecution
     def "detects transitive dependencies with inner classes"() {
         source "class A {}", "class B extends A {}", "class D {}"
         source """class C extends B {
@@ -375,7 +360,6 @@ abstract class AbstractSourceIncrementalCompilationIntegrationTest extends Abstr
         outputs.recompiledClasses 'A', 'B', 'C', 'C$InnerC'
     }
 
-    @ToBeFixedForInstantExecution
     def "handles cycles in class dependencies"() {
         source "class A {}", "class D {}"
         source "class B extends A { C c; }", "class C extends B {}" //cycle
@@ -389,11 +373,10 @@ abstract class AbstractSourceIncrementalCompilationIntegrationTest extends Abstr
         outputs.recompiledClasses 'A', 'B', 'C'
     }
 
-    @ToBeFixedForInstantExecution
     def "change to class referenced by an annotation recompiles annotated types"() {
         source """
             import java.lang.annotation.*;
-            @Retention(RetentionPolicy.CLASS) 
+            @Retention(RetentionPolicy.CLASS)
             public @interface B {
                 Class<?> value();
             }
@@ -413,11 +396,10 @@ abstract class AbstractSourceIncrementalCompilationIntegrationTest extends Abstr
         outputs.recompiledClasses("A", "OnClass", "OnMethod", "OnParameter", "OnField")
     }
 
-    @ToBeFixedForInstantExecution
     def "change to class referenced by an array value in an annotation recompiles annotated types"() {
         source """
             import java.lang.annotation.*;
-            @Retention(RetentionPolicy.CLASS) 
+            @Retention(RetentionPolicy.CLASS)
             public @interface B {
                 Class<?>[] value();
             }
@@ -440,7 +422,7 @@ abstract class AbstractSourceIncrementalCompilationIntegrationTest extends Abstr
     def "change to enum referenced by an annotation recompiles annotated types"() {
         source """
             import java.lang.annotation.*;
-            @Retention(RetentionPolicy.CLASS) 
+            @Retention(RetentionPolicy.CLASS)
             public @interface B {
                 A value();
             }
@@ -460,11 +442,10 @@ abstract class AbstractSourceIncrementalCompilationIntegrationTest extends Abstr
         outputs.recompiledClasses("A", "B", "OnClass", "OnMethod", "OnParameter", "OnField")
     }
 
-    @ToBeFixedForInstantExecution
     def "change to value in nested annotation recompiles annotated types"() {
         source """
             import java.lang.annotation.*;
-            @Retention(RetentionPolicy.CLASS) 
+            @Retention(RetentionPolicy.CLASS)
             public @interface B {
                 A value();
             }
@@ -485,7 +466,6 @@ abstract class AbstractSourceIncrementalCompilationIntegrationTest extends Abstr
         outputs.recompiledClasses("C", "OnClass", "OnMethod", "OnParameter", "OnField")
     }
 
-    @ToBeFixedForInstantExecution
     def "changed class with private constant does not incur full rebuild"() {
         source "class A {}", "class B { private final static int x = 1;}"
         outputs.snapshot { run language.compileTaskName }
@@ -498,7 +478,6 @@ abstract class AbstractSourceIncrementalCompilationIntegrationTest extends Abstr
         outputs.recompiledClasses 'B'
     }
 
-    @ToBeFixedForInstantExecution
     def "dependent class with non-private constant does not incur full rebuild"() {
         source "class A {}", "class B extends A { final static int x = 1;}", "class C {}"
         outputs.snapshot { run language.compileTaskName }
@@ -511,7 +490,6 @@ abstract class AbstractSourceIncrementalCompilationIntegrationTest extends Abstr
         outputs.recompiledClasses 'B', 'A'
     }
 
-    @ToBeFixedForInstantExecution
     def "detects class changes in subsequent runs ensuring the class dependency data is refreshed"() {
         source "class A {}", "class B {}", "class C {}"
         outputs.snapshot { run language.compileTaskName }
@@ -532,7 +510,6 @@ abstract class AbstractSourceIncrementalCompilationIntegrationTest extends Abstr
         outputs.recompiledClasses('A', 'B')
     }
 
-    @ToBeFixedForInstantExecution
     def "handles multiple compile tasks within a single project"() {
         source "class A {}", "class B extends A {}"
         file("src/integTest/${language.name}/X.${language.name}") << "class X {}"
@@ -567,7 +544,6 @@ abstract class AbstractSourceIncrementalCompilationIntegrationTest extends Abstr
         outputs.recompiledClasses("X", "Y")
     }
 
-    @ToBeFixedForInstantExecution
     def "recompiles classes from extra source directories"() {
         buildFile << "sourceSets.main.${language.name}.srcDir 'extra'"
 
@@ -585,7 +561,6 @@ abstract class AbstractSourceIncrementalCompilationIntegrationTest extends Abstr
         outputs.recompiledClasses("B", "A")
     }
 
-    @ToBeFixedForInstantExecution
     def 'can move classes between source dirs'() {
         given:
         buildFile << "sourceSets.main.${language.name}.srcDir 'extra'"
@@ -646,7 +621,6 @@ sourceSets {
         outputs.recompiledClasses("Other", "Main")
     }
 
-    @ToBeFixedForInstantExecution
     def "recompilation does not process removed classes from dependent sourceSet"() {
         def unusedClass = source("public class Unused {}")
         // Need another class or :compileJava will always be considered UP-TO-DATE
@@ -667,7 +641,6 @@ sourceSets {
         outputs.deletedClasses("Unused")
     }
 
-    @ToBeFixedForInstantExecution
     def "detects changes to source in extra source directories"() {
         buildFile << "sourceSets.main.${language.name}.srcDir 'extra'"
 
@@ -686,7 +659,6 @@ sourceSets {
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
     def "recompiles classes from extra source directory provided as #type"() {
         given:
         buildFile << "${language.compileTaskName}.source $method('extra')"
@@ -711,7 +683,6 @@ sourceSets {
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
     def "detects changes to source in extra source directory provided as #type"() {
         buildFile << "${language.compileTaskName}.source $method('extra')"
 
@@ -734,7 +705,6 @@ sourceSets {
         "DirectoryTree" | "fileTree"
     }
 
-    @ToBeFixedForInstantExecution
     def "missing files are ignored as source roots"() {
         buildFile << """
             ${language.compileTaskName} {
@@ -759,7 +729,6 @@ sourceSets {
         outputs.recompiledClasses("A", "B")
     }
 
-    @ToBeFixedForInstantExecution
     def "can remove source root"() {
         def toBeRemoved = file("to-be-removed")
         buildFile << """
@@ -941,7 +910,7 @@ dependencies { implementation 'net.sf.ehcache:ehcache:2.10.2' }
         given:
         source '''class A {
     B b() { return null; }
-    
+
     void doSomething() {
         Runnable r = b();
         r.run();
@@ -1004,7 +973,7 @@ dependencies { implementation 'net.sf.ehcache:ehcache:2.10.2' }
         given:
         source '''class A {
     java.util.List<B> bs() { return null; }
-    
+
     void doSomething() {
         for (B b: bs()) {
            Runnable r = b;
@@ -1026,7 +995,7 @@ dependencies { implementation 'net.sf.ehcache:ehcache:2.10.2' }
     def "detects changes to class referenced through type argument in parameter"() {
         given:
         source '''class A {
-    
+
     void doSomething(java.util.List<B> bs) {
         for (B b: bs) {
            Runnable r = b;
@@ -1089,12 +1058,11 @@ dependencies { implementation 'net.sf.ehcache:ehcache:2.10.2' }
         file("build/classes/${language.name}/main/Test\$\$InnerClass.class").assertExists()
     }
 
-    @ToBeFixedForInstantExecution
     def "incremental java compilation ignores empty packages"() {
         given:
         file("src/main/${language.name}/org/gradle/test/MyTest.${language.name}").text = """
             package org.gradle.test;
-            
+
             class MyTest {}
         """
 
@@ -1111,7 +1079,6 @@ dependencies { implementation 'net.sf.ehcache:ehcache:2.10.2' }
         skipped(":${language.compileTaskName}")
     }
 
-    @ToBeFixedForInstantExecution
     def "recompiles all classes in a package if the package-info file changes"() {
         given:
         def packageFile = file("src/main/${language.name}/foo/package-info.${language.name}")
@@ -1132,7 +1099,7 @@ dependencies { implementation 'net.sf.ehcache:ehcache:2.10.2' }
         outputs.recompiledClasses("A", "B", "E", "package-info")
     }
 
-
+    @ToBeFixedForInstantExecution
     def "recompiles all dependents when no jar analysis is present"() {
         given:
         source """class A {

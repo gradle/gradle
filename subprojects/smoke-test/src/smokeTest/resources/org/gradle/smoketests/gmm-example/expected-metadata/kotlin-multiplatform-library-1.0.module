@@ -1,0 +1,114 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "example",
+    "module": "kotlin-multiplatform-library",
+    "version": "1.0",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "6.1.1",
+      "buildId": "pr4n4lpg5ja6re27qc3piepc4q"
+    }
+  },
+  "variants": [
+    {
+      "name": "js-api",
+      "attributes": {
+        "org.gradle.usage": "kotlin-api",
+        "org.jetbrains.kotlin.platform.type": "js"
+      },
+      "available-at": {
+        "url": "../../kotlin-multiplatform-library-js/1.0/kotlin-multiplatform-library-js-1.0.module",
+        "group": "example",
+        "module": "kotlin-multiplatform-library-js",
+        "version": "1.0"
+      }
+    },
+    {
+      "name": "js-runtime",
+      "attributes": {
+        "org.gradle.usage": "kotlin-runtime",
+        "org.jetbrains.kotlin.platform.type": "js"
+      },
+      "available-at": {
+        "url": "../../kotlin-multiplatform-library-js/1.0/kotlin-multiplatform-library-js-1.0.module",
+        "group": "example",
+        "module": "kotlin-multiplatform-library-js",
+        "version": "1.0"
+      }
+    },
+    {
+      "name": "jvm-api",
+      "attributes": {
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api",
+        "org.jetbrains.kotlin.platform.type": "jvm"
+      },
+      "available-at": {
+        "url": "../../kotlin-multiplatform-library-jvm/1.0/kotlin-multiplatform-library-jvm-1.0.module",
+        "group": "example",
+        "module": "kotlin-multiplatform-library-jvm",
+        "version": "1.0"
+      }
+    },
+    {
+      "name": "jvm-runtime",
+      "attributes": {
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime",
+        "org.jetbrains.kotlin.platform.type": "jvm"
+      },
+      "available-at": {
+        "url": "../../kotlin-multiplatform-library-jvm/1.0/kotlin-multiplatform-library-jvm-1.0.module",
+        "group": "example",
+        "module": "kotlin-multiplatform-library-jvm",
+        "version": "1.0"
+      }
+    },
+    {
+      "name": "linuxX64-api",
+      "attributes": {
+        "org.gradle.usage": "kotlin-api",
+        "org.jetbrains.kotlin.native.target": "linux_x64",
+        "org.jetbrains.kotlin.platform.type": "native"
+      },
+      "available-at": {
+        "url": "../../kotlin-multiplatform-library-linuxx64/1.0/kotlin-multiplatform-library-linuxx64-1.0.module",
+        "group": "example",
+        "module": "kotlin-multiplatform-library-linuxx64",
+        "version": "1.0"
+      }
+    },
+    {
+      "name": "macosX64-api",
+      "attributes": {
+        "org.gradle.usage": "kotlin-api",
+        "org.jetbrains.kotlin.native.target": "macos_x64",
+        "org.jetbrains.kotlin.platform.type": "native"
+      },
+      "available-at": {
+        "url": "../../kotlin-multiplatform-library-macosx64/1.0/kotlin-multiplatform-library-macosx64-1.0.module",
+        "group": "example",
+        "module": "kotlin-multiplatform-library-macosx64",
+        "version": "1.0"
+      }
+    },
+    {
+      "name": "metadata-api",
+      "attributes": {
+        "org.gradle.usage": "kotlin-api",
+        "org.jetbrains.kotlin.platform.type": "common"
+      },
+      "available-at": {
+        "url": "../../kotlin-multiplatform-library-metadata/1.0/kotlin-multiplatform-library-metadata-1.0.module",
+        "group": "example",
+        "module": "kotlin-multiplatform-library-metadata",
+        "version": "1.0"
+      }
+    }
+  ]
+}

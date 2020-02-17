@@ -218,6 +218,7 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
     private
     fun Test.configureJvmForTest() {
         val jvmForTest = project.buildJvms.testJvm.get()
+
         jvmArgumentProviders.add(createCiEnvironmentProvider(this))
         executable = jvmForTest.javaExecutable.absolutePath
         environment["JAVA_HOME"] = jvmForTest.javaHome.absolutePath

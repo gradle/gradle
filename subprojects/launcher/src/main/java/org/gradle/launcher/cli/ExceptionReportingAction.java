@@ -28,7 +28,7 @@ public class ExceptionReportingAction implements Action<ExecutionListener> {
     private final Action<Throwable> reporter;
     private final LoggingOutputInternal loggingOutput;
 
-    public ExceptionReportingAction(Action<ExecutionListener> action, Action<Throwable> reporter, LoggingOutputInternal loggingOutput) {
+    public ExceptionReportingAction(Action<Throwable> reporter, LoggingOutputInternal loggingOutput, Action<ExecutionListener> action) {
         this.action = action;
         this.reporter = reporter;
         this.loggingOutput = loggingOutput;

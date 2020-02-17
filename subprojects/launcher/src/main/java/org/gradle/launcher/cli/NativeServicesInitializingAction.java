@@ -17,7 +17,6 @@
 package org.gradle.launcher.cli;
 
 import org.gradle.api.Action;
-import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.internal.logging.LoggingManagerInternal;
@@ -31,10 +30,7 @@ public class NativeServicesInitializingAction implements Action<ExecutionListene
     private final LoggingManagerInternal loggingManager;
     private final Action<ExecutionListener> action;
 
-    public NativeServicesInitializingAction(BuildLayoutParameters buildLayout,
-                                            LoggingConfiguration loggingConfiguration,
-                                            LoggingManagerInternal loggingManager,
-                                            Action<ExecutionListener> action) {
+    public NativeServicesInitializingAction(BuildLayoutParameters buildLayout, LoggingConfiguration loggingConfiguration, LoggingManagerInternal loggingManager, Action<ExecutionListener> action) {
         this.buildLayout = buildLayout;
         this.loggingConfiguration = loggingConfiguration;
         this.loggingManager = loggingManager;
@@ -45,7 +41,6 @@ public class NativeServicesInitializingAction implements Action<ExecutionListene
     public void execute(ExecutionListener executionListener) {
         NativeServices.initialize(buildLayout.getGradleUserHomeDir());
         loggingManager.attachProcessConsole(loggingConfiguration.getConsoleOutput());
-        new DefaultCommandLineActionFactory.WelcomeMessageAction(buildLayout).execute(Logging.getLogger(DefaultCommandLineActionFactory.WelcomeMessageAction.class));
         action.execute(executionListener);
     }
 }

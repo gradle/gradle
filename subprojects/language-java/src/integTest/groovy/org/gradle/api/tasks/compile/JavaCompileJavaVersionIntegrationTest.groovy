@@ -39,7 +39,6 @@ class JavaCompileJavaVersionIntegrationTest extends AbstractIntegrationSpec {
         executer.requireDaemon().requireIsolatedDaemons()
     }
 
-    @ToBeFixedForInstantExecution
     def "not up-to-date when default Java version changes"() {
         given:
         buildFile << """
@@ -118,14 +117,14 @@ class JavaCompileJavaVersionIntegrationTest extends AbstractIntegrationSpec {
 
             sourceCompatibility = "1.6"
             targetCompatibility = "1.6"
-            
+
             compileJava {
                 options.with {
                     fork = true
                     forkOptions.javaHome=file('${javaHome}')
                 }
             }
-            
+
         """
     }
 }

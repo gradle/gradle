@@ -2,14 +2,19 @@ package org.gradle.gradlebuild.java
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.jvm.toolchain.JavaInstallationRegistry
+
+
+const val testJavaHomePropertyName = "testJavaHome"
 
 
 open class AvailableJavaInstallationsPlugin : Plugin<Project> {
     override fun apply(project: Project): Unit = project.run {
-        val availableInstallations = gradle.sharedServices.registerIfAbsent("availableJavaInstallations", AvailableJavaInstallations::class.java) {
-            // TODO:instant-execution - this should be marked as a build input in some way
-            parameters.testJavaProperty = project.findProperty(testJavaHomePropertyName)?.toString()
-        }
-        extensions.create("buildJvms", BuildJvms::class.java, availableInstallations)
+        val testJavaHomePath = providers.gradleProperty(testJavaHomePropertyName)
+            .orElse(providers.systemProperty(testJavaHomePropertyName))
+            .orElse(providers.environmentVariable(testJavaHomePropertyName))
+        val testJavaHome = rootProject.layout.projectDirectory.dir(testJavaHomePath)
+        val installationRegistry = extensions.getByType(JavaInstallationRegistry::class.java)
+        extensions.create("buildJvms", BuildJvms::class.java, installationRegistry, testJavaHome)
     }
 }

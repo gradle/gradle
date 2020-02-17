@@ -397,7 +397,7 @@ class UserTypesCodecTest {
 
         assertThat(
             Peano.fromInt(0),
-            equalTo<Peano>(Peano.Zero)
+            equalTo<Peano>(Peano.Z)
         )
 
         assertThat(
@@ -410,20 +410,24 @@ class UserTypesCodecTest {
 
         companion object {
 
-            fun fromInt(n: Int): Peano = (0 until n).fold(Zero as Peano) { acc, _ -> Succ(acc) }
+            fun fromInt(n: Int): Peano = (0 until n).fold(Z as Peano) { acc, _ -> S(acc) }
         }
 
         fun toInt(): Int = sequence().count() - 1
 
-        object Zero : Peano()
+        object Z : Peano() {
+            override fun toString() = "Z"
+        }
 
-        data class Succ(val n: Peano) : Peano()
+        data class S(val n: Peano) : Peano() {
+            override fun toString() = "S($n)"
+        }
 
         private
         fun sequence() = generateSequence(this) { previous ->
             when (previous) {
-                is Zero -> null
-                is Succ -> previous.n
+                is Z -> null
+                is S -> previous.n
             }
         }
     }

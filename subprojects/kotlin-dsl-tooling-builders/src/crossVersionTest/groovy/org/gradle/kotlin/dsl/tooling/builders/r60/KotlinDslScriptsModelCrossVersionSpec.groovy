@@ -133,6 +133,9 @@ class KotlinDslScriptsModelCrossVersionSpec extends AbstractKotlinScriptModelCro
     def "single request models equal multi requests models"() {
 
         given:
+        toolingApi.requireIsolatedUserHome()
+
+        and:
         def spec = withMultiProjectBuildWithBuildSrc()
 
         when:

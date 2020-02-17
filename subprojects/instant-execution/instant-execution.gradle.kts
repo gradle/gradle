@@ -41,9 +41,9 @@ dependencies {
 
     testImplementation(testFixtures(project(":core")))
     testImplementation(testLibrary("mockito_kotlin2"))
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-debug:1.3.3")
 
     testRuntimeOnly(project(":runtimeApiInfo"))
-    testRuntimeOnly(kotlin("reflect"))
 
     integTestImplementation(project(":jvmServices"))
     integTestImplementation(project(":toolingApi"))

@@ -52,7 +52,7 @@ public class JdkFileWatcherRegistry implements FileWatcherRegistry {
         for (Path watchRoot : watchRoots) {
             LOGGER.debug("Started watching {}", watchRoot);
             watchRoot.register(watchService,
-                new WatchEvent.Kind[]{ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY, OVERFLOW},
+                new WatchEvent.Kind<?>[]{ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY, OVERFLOW},
                 SensitivityWatchEventModifier.HIGH);
         }
     }

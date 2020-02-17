@@ -15,9 +15,7 @@
  */
 package org.gradle.plugins.ide.eclipse
 
-
 import org.gradle.plugins.ide.AbstractSourcesAndJavadocJarsIntegrationTest
-import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.HttpArtifact
 
 class EclipseSourcesAndJavadocJarsIntegrationTest extends AbstractSourcesAndJavadocJarsIntegrationTest {
@@ -46,13 +44,6 @@ class EclipseSourcesAndJavadocJarsIntegrationTest extends AbstractSourcesAndJava
     void ideFileContainsGradleApi(String apiJarPrefix) {
         def apiLib = findApiLibrary(apiJarPrefix)
         assert apiLib.sourcePath == null
-    }
-
-    @Override
-    void ideFileContainsGradleApiWithSources(String apiJarPrefix) {
-        def apiLib = findApiLibrary(apiJarPrefix)
-        assert apiLib.sourcePath != null
-        assertContainsGradleSources(new TestFile(apiLib.sourcePath))
     }
 
     EclipseClasspathFixture.EclipseLibrary findApiLibrary(String apiJarPrefix) {

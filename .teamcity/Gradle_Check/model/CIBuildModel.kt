@@ -132,6 +132,7 @@ data class CIBuildModel(
     val subprojects: GradleSubprojectList = GradleSubprojectList(
         listOf(
             GradleSubproject("antlr"),
+            GradleSubproject("baseAnnotations", unitTests = false, functionalTests = false),
             GradleSubproject("baseServices"),
             GradleSubproject("baseServicesGroovy", functionalTests = false),
             GradleSubproject("bootstrap", unitTests = false, functionalTests = false),
@@ -180,8 +181,8 @@ data class CIBuildModel(
             GradleSubproject("modelCore"),
             GradleSubproject("modelGroovy"),
             GradleSubproject("native"),
+            GradleSubproject("normalizationJava", functionalTests = false),
             GradleSubproject("persistentCache"),
-            GradleSubproject("baseAnnotations", unitTests = false, functionalTests = false),
             GradleSubproject("platformBase"),
             GradleSubproject("platformJvm"),
             GradleSubproject("platformNative"),

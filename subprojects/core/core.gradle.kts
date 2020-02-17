@@ -52,6 +52,7 @@ dependencies {
     implementation(project(":snapshots"))
     implementation(project(":execution"))
     implementation(project(":workerProcesses"))
+    implementation(project(":normalizationJava"))
 
     implementation(library("groovy"))
     implementation(library("ant"))

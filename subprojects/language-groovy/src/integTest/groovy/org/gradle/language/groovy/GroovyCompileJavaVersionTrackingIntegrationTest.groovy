@@ -43,7 +43,6 @@ class GroovyCompileJavaVersionTrackingIntegrationTest extends AbstractIntegratio
         executer.requireDaemon().requireIsolatedDaemons()
     }
 
-    @ToBeFixedForInstantExecution
     def "tracks changes to the Groovy compiler JVM Java version"() {
         given:
         def jdk8 = AvailableJavaHomes.getJdk(VERSION_1_8)
@@ -101,7 +100,7 @@ class GroovyCompileJavaVersionTrackingIntegrationTest extends AbstractIntegratio
 
             sourceCompatibility = "1.7"
             targetCompatibility = "1.7"
-               
+
             dependencies {
                 implementation localGroovy()
             }
@@ -112,7 +111,7 @@ class GroovyCompileJavaVersionTrackingIntegrationTest extends AbstractIntegratio
                     forkOptions.javaHome=file('${javaHome}')
                 }
             }
-            
+
         """
     }
 }

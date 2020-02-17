@@ -49,7 +49,6 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         withProcessor(helperProcessor)
     }
 
-    @ToBeFixedForInstantExecution
     def "generated files are recompiled when annotated file changes"() {
         given:
         def a = java "@Helper class A {}"
@@ -65,7 +64,6 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         outputs.recompiledFiles("A", "AHelper", "AHelperResource.txt")
     }
 
-    @ToBeFixedForInstantExecution
     def "annotated files are not recompiled on unrelated changes"() {
         given:
         java "@Helper class A {}"
@@ -81,7 +79,6 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         outputs.recompiledClasses("Unrelated")
     }
 
-    @ToBeFixedForInstantExecution
     def "classes depending on generated file are recompiled when source file changes"() {
         given:
         def a = java "@Helper class A {}"
@@ -131,7 +128,6 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         outputs.deletedFiles("A", "AHelper", "AHelperResource.txt")
     }
 
-    @ToBeFixedForInstantExecution
     def "generated files are deleted when annotated file is deleted"() {
         given:
         withProcessor(writingResourcesTo(StandardLocation.SOURCE_OUTPUT.toString()))
@@ -193,7 +189,6 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         outputs.recompiledFiles("A", "AHelper", "AHelperResource.txt")
     }
 
-    @ToBeFixedForInstantExecution
     def "all files are recompiled if compiler does not support incremental annotation processing"() {
         given:
         buildFile << """
@@ -263,7 +258,6 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         outputs.recompiledFiles('A', "AHelper", "AHelperResource.txt", "Unrelated")
     }
 
-    @ToBeFixedForInstantExecution
     def "processors must provide an originating element for each source element"() {
         given:
         withProcessor(new NonIncrementalProcessorFixture().providingNoOriginatingElements().withDeclaredType(IncrementalAnnotationProcessorType.ISOLATING))
@@ -280,7 +274,6 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         outputContains("Full recompilation is required because the generated type 'AThing' must have exactly one originating element, but had 0.")
     }
 
-    @ToBeFixedForInstantExecution
     def "processors must provide an originating element for each resource"() {
         given:
         withProcessor(new ResourceGeneratingProcessorFixture().providingNoOriginatingElements().withDeclaredType(IncrementalAnnotationProcessorType.ISOLATING))
@@ -297,7 +290,6 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         outputContains("Full recompilation is required because the generated resource 'A.txt in SOURCE_OUTPUT' must have exactly one originating element, but had 0.")
     }
 
-    @ToBeFixedForInstantExecution
     def "processors cannot provide multiple originating elements for types"() {
         given:
         withProcessor(new ServiceRegistryProcessorFixture().withDeclaredType(IncrementalAnnotationProcessorType.ISOLATING))
@@ -316,7 +308,6 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         outputContains("Full recompilation is required because the generated type 'ServiceRegistry' must have exactly one originating element, but had 2.")
     }
 
-    @ToBeFixedForInstantExecution
     def "processors cannot provide multiple originating elements for resources"() {
         given:
         def proc = new ServiceRegistryProcessorFixture()
@@ -337,13 +328,8 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         outputContains("Full recompilation is required because the generated resource 'ServiceRegistryResource.txt in CLASS_OUTPUT' must have exactly one originating element, but had 2.")
     }
 
-    @ToBeFixedForInstantExecution
     def "processors can generate identical resources in different locations"() {
         given:
-        // Have to configure a native header output directory otherwise there will be errors; javac NPEs when files are created in NATIVE_HEADER_OUTPUT without any location set.
-        buildFile << '''
-compileJava.options.headerOutputDirectory = file("build/headers/java/main")
-'''
         def locations = [StandardLocation.SOURCE_OUTPUT.toString(), StandardLocation.NATIVE_HEADER_OUTPUT.toString(), StandardLocation.CLASS_OUTPUT.toString()]
         withProcessor(new ResourceGeneratingProcessorFixture().withOutputLocations(locations).withDeclaredType(IncrementalAnnotationProcessorType.ISOLATING))
         def a = java "@Thing class A {}"
@@ -354,7 +340,7 @@ compileJava.options.headerOutputDirectory = file("build/headers/java/main")
 
         then:
         file("build/generated/sources/annotationProcessor/java/main/A.txt").exists()
-        file("build/headers/java/main/A.txt").exists()
+        file("build/generated/sources/headers/java/main/A.txt").exists()
         file("build/classes/java/main/A.txt").exists()
 
         when:
@@ -364,12 +350,11 @@ compileJava.options.headerOutputDirectory = file("build/headers/java/main")
         then: "they all get cleaned"
         outputs.deletedClasses("A")
         !file("build/generated/sources/annotationProcessor/java/main/A.txt").exists()
-        !file("build/headers/java/main/A.txt").exists()
+        !file("build/generated/sources/headers/java/main/A.txt").exists()
         !file("build/classes/java/main/A.txt").exists()
     }
 
     @Issue(["https://github.com/gradle/gradle/issues/8128", "https://bugs.openjdk.java.net/browse/JDK-8162455"])
-    @ToBeFixedForInstantExecution
     def "incremental processing doesn't trigger unmatched processor option warning"() {
         buildFile << """
             dependencies {

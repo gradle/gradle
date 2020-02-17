@@ -4,7 +4,7 @@
 val useKotlinEap = providers.systemProperty("org.gradle.unsafe.kotlin-eap").map(String::toBoolean).orElse(false)
 val kotlinVersion = if (useKotlinEap.get()) {
     println("Using Kotlin EAP version to build Gradle")
-    "1.3.70-eap-17"
+    "1.3.70-eap-42"
 } else {
     null
 }

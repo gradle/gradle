@@ -42,6 +42,7 @@ public class DefaultResolvedArtifact implements ResolvedArtifact, ResolvableArti
     private volatile Factory<File> artifactSource;
     private volatile File file;
     private volatile Throwable failure;
+    private volatile FinalizeAction resolvedArtifactDependency;
 
     public DefaultResolvedArtifact(ModuleVersionIdentifier owner, IvyArtifactName artifact, ComponentArtifactIdentifier artifactId, TaskDependencyContainer builtBy, Factory<File> artifactSource) {
         this.owner = owner;
@@ -49,11 +50,7 @@ public class DefaultResolvedArtifact implements ResolvedArtifact, ResolvableArti
         this.artifactId = artifactId;
         this.buildDependencies = builtBy;
         this.artifactSource = artifactSource;
-    }
-
-    @Override
-    public void visitDependencies(TaskDependencyResolveContext context) {
-        context.add(new FinalizeAction() {
+        this.resolvedArtifactDependency = new FinalizeAction() {
             @Override
             public TaskDependencyContainer getDependencies() {
                 return buildDependencies;
@@ -71,7 +68,12 @@ public class DefaultResolvedArtifact implements ResolvedArtifact, ResolvableArti
                     }
                 }
             }
-        });
+        };
+    }
+
+    @Override
+    public void visitDependencies(TaskDependencyResolveContext context) {
+        context.add(resolvedArtifactDependency);
     }
 
     public IvyArtifactName getArtifactName() {

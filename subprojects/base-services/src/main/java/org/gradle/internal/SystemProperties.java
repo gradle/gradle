@@ -100,18 +100,6 @@ public class SystemProperties {
     }
 
     /**
-     * Creates instance for Factory implementation with the provided Java home directory. Setting the "java.home" system property is thread-safe
-     * and is set back to the original value of "java.home" after the operation.
-     *
-     * @param javaHomeDir Java home directory
-     * @param factory Factory
-     * @return Instance created by Factory implementation
-     */
-    public <T> T withJavaHome(File javaHomeDir, Factory<T> factory) {
-        return withSystemProperty("java.home", javaHomeDir.getAbsolutePath(), factory);
-    }
-
-    /**
      * Creates an instance for a Factory implementation with a system property set to a given value.  Sets the system property back to the original value (or
      * clears it if it was never set) after the operation.
      *

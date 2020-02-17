@@ -15,10 +15,8 @@
  */
 package org.gradle.plugins.ide.idea
 
-
 import org.gradle.plugins.ide.AbstractSourcesAndJavadocJarsIntegrationTest
 import org.gradle.plugins.ide.fixtures.IdeaModuleFixture
-import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.HttpArtifact
 
 class IdeaSourcesAndJavadocJarsIntegrationTest extends AbstractSourcesAndJavadocJarsIntegrationTest {
@@ -39,16 +37,6 @@ class IdeaSourcesAndJavadocJarsIntegrationTest extends AbstractSourcesAndJavadoc
     void ideFileContainsGradleApi(String apiJarPrefix) {
         def libraryEntry = findApiLibrary(apiJarPrefix)
         assert libraryEntry.source.empty
-    }
-
-    @Override
-    void ideFileContainsGradleApiWithSources(String apiJarPrefix) {
-        def libraryEntry = findApiLibrary(apiJarPrefix)
-        assert !libraryEntry.source.isEmpty()
-        TestFile sourcesRoot = file(libraryEntry.source.get(0).replace('file://$MODULE_DIR$/', '')).parentFile
-        assertContainsGradleSources(sourcesRoot)
-        File[] submodules = sourcesRoot.listFiles()
-        assert libraryEntry.source.size() == submodules.length
     }
 
     IdeaModuleFixture.ImlModuleLibrary findApiLibrary(String apiJarPrefix) {
