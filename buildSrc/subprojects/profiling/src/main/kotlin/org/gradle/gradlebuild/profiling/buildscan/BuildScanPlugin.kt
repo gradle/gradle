@@ -183,8 +183,8 @@ open class BuildScanPlugin : Plugin<Project> {
         if (isCiServer) {
             buildScan {
                 tag("CI")
-                if(isEc2Agent()) {
-                   tag("EC2")
+                if (isEc2Agent()) {
+                    tag("EC2")
                 }
                 when {
                     isTravis -> {
