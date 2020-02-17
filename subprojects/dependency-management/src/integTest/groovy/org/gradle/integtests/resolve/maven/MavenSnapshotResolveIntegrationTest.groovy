@@ -953,7 +953,6 @@ dependencies {
         file('libs').assertHasDescendants("projectA-1.0.jar")
     }
 
-    @ToBeFixedForInstantExecution
     def "reports failure to find a missing unique snapshot in a Maven HTTP repository"() {
         given:
         def projectA = createModule("org.gradle.integtests.resolve", "projectA", "1.0-SNAPSHOT")

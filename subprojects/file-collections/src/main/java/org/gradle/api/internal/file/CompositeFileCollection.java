@@ -26,7 +26,8 @@ import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.tasks.util.internal.PatternSets;
+import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.Factory;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -46,6 +47,13 @@ import java.util.Set;
  * <p>The dependencies of this collection are calculated from the result of calling {@link #visitDependencies(TaskDependencyResolveContext)}.</p>
  */
 public abstract class CompositeFileCollection extends AbstractFileCollection implements FileCollectionContainer, TaskDependencyContainer {
+    public CompositeFileCollection(Factory<PatternSet> patternSetFactory) {
+        super(patternSetFactory);
+    }
+
+    public CompositeFileCollection() {
+    }
+
     @Override
     public Set<File> getFiles() {
         return getFiles(getSourceCollections());
@@ -119,7 +127,7 @@ public abstract class CompositeFileCollection extends AbstractFileCollection imp
 
     @Override
     public FileCollection filter(final Spec<? super File> filterSpec) {
-        return new CompositeFileCollection() {
+        return new CompositeFileCollection(patternSetFactory) {
             @Override
             public void visitContents(FileCollectionResolveContext context) {
                 for (FileCollection collection : CompositeFileCollection.this.getSourceCollections()) {
@@ -146,7 +154,7 @@ public abstract class CompositeFileCollection extends AbstractFileCollection imp
     }
 
     protected List<? extends FileCollectionInternal> getSourceCollections() {
-        DefaultFileCollectionResolveContext context = new DefaultFileCollectionResolveContext(PatternSets.getNonCachingPatternSetFactory());
+        DefaultFileCollectionResolveContext context = new DefaultFileCollectionResolveContext(patternSetFactory);
         visitContents(context);
         return context.resolveAsFileCollections();
     }

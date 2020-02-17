@@ -36,7 +36,7 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
             include "b"
             include "a:c"
         """
-        
+
         buildFile << """
             allprojects {
                 task otherTask
@@ -206,7 +206,6 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
         }
     }
 
-    @ToBeFixedForInstantExecution
     def "exposes plan details with nested artifact transforms"() {
         file('producer/src/main/java/artifact/transform/sample/producer/Producer.java') << """
             package artifact.transform.sample.producer;

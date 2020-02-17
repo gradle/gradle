@@ -212,7 +212,6 @@ allprojects {
 """
     }
 
-    @ToBeFixedForInstantExecution
     def "transform can access artifact dependencies as a set of files when using ArtifactView"() {
         given:
         setupBuildWithSingleStep()
@@ -270,7 +269,6 @@ project(':common') {
         )
     }
 
-    @ToBeFixedForInstantExecution
     def "transform can access artifact dependencies, in previous transform step, as set of files when using ArtifactView"() {
         given:
         setupBuildWithTwoSteps()
@@ -605,7 +603,6 @@ abstract class ClasspathTransform implements TransformAction<TransformParameters
         classpathAnnotation << [Classpath, CompileClasspath]
     }
 
-    @ToBeFixedForInstantExecution
     def "transforms with different dependencies in multiple dependency graphs are executed"() {
         given:
         withColorVariants(mavenHttpRepo.module("org.slf4j", "slf4j-api", "1.7.26")).publish().allowAll()
