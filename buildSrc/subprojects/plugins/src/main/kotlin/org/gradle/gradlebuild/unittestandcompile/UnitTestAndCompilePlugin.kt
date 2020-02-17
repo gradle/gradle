@@ -121,6 +121,7 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
             }
             tasks.withType<GroovyCompile>().configureEach {
                 groovyOptions.encoding = "utf-8"
+                groovyOptions.forkOptions.jvmArgs?.add("-XX:+HeapDumpOnOutOfMemoryError")
                 configureCompileTask(this, options, jdkForCompilation)
             }
         }
@@ -156,6 +157,7 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
         options.isFork = true
         options.encoding = "utf-8"
         options.isIncremental = true
+        options.forkOptions.jvmArgs?.add("-XX:+HeapDumpOnOutOfMemoryError")
         options.compilerArgs = mutableListOf("-Xlint:-options", "-Xlint:-path")
         if (!jdkForCompilation.current) {
             options.forkOptions.javaHome = jdkForCompilation.javaHome

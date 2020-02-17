@@ -207,6 +207,7 @@ fun Project.applyGroovyProjectConventions() {
     tasks.withType<GroovyCompile>().configureEach {
         groovyOptions.apply {
             encoding = "utf-8"
+            forkOptions.jvmArgs?.add("-XX:+HeapDumpOnOutOfMemoryError")
         }
         options.apply {
             isFork = true
