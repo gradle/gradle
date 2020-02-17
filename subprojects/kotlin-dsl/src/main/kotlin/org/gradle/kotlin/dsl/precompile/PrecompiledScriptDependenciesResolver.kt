@@ -38,7 +38,7 @@ class PrecompiledScriptDependenciesResolver : ScriptDependenciesResolver {
 
         /**
          * **Optimisation note**: assumes [scriptText] contains only `\n` line separators as any script text
-         * coming from the Kotlin compiler should already do.
+         * coming from the Kotlin compiler already should.
          */
         fun implicitImportsForScript(scriptText: CharSequence, environment: Environment?) =
             implicitImportsFrom(environment) + precompiledScriptPluginImportsFrom(environment, scriptText)
