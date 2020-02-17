@@ -43,7 +43,7 @@ class DefaultCopySpecCodec(
     override suspend fun WriteContext.encode(value: DefaultCopySpec) {
         encodePreservingIdentityOf(value) {
             write(value.destPath)
-            write(value.resolveSourceFiles())
+            write(value.getSourceFiles())
             write(value.patterns)
             writeCollection(value.children)
         }
