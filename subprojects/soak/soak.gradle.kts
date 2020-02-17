@@ -34,9 +34,6 @@ dependencies {
     integTestImplementation(project(":launcher"))
     integTestImplementation(library("slf4j_api"))
     integTestImplementation(testLibrary("jetty"))
-    integTestImplementation(library("gradleProfiler"))
-    // TODO: Use a metadata rule
-    integTestImplementation("com.github.javaparser:javaparser-core:3.1.3")
 
     integTestRuntimeOnly(project(":runtimeApiInfo"))
 }

@@ -18,11 +18,8 @@ package org.gradle.vfs
 
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.internal.service.scopes.VirtualFileSystemServices
-import org.gradle.profiler.BuildContext
-import org.gradle.profiler.Phase
-import org.gradle.profiler.ScenarioContext
-import org.gradle.profiler.mutations.ApplyAbiChangeToJavaSourceFileMutator
 import org.gradle.soak.categories.SoakTest
+import org.gradle.test.fixtures.file.TestFile
 import org.junit.experimental.categories.Category
 
 @Category(SoakTest)
@@ -31,9 +28,9 @@ class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec {
     private static final int NUMBER_OF_SUBPROJECTS = 50
     private static final int NUMBER_OF_SOURCES_PER_SUBPROJECT = 100
     private static final int TOTAL_NUMBER_OF_SOURCES = NUMBER_OF_SUBPROJECTS * NUMBER_OF_SOURCES_PER_SUBPROJECT
+    private static final double LOST_EVENTS_RATIO = 0.75
 
-    List<File> sourceFiles
-    def scenarioContext = new ScenarioContext(UUID.randomUUID(), "abiChange")
+    List<TestFile> sourceFiles
 
     def setup() {
         def subprojects = (1..NUMBER_OF_SUBPROJECTS).collect { "project$it" }
@@ -47,14 +44,7 @@ class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec {
         sourceFiles = subprojects.collectMany { projectDir ->
             (1..NUMBER_OF_SOURCES_PER_SUBPROJECT).collect {
                 def sourceFile = rootProject.file("${projectDir}/src/main/java/my/domain/Dummy${it}.java")
-                sourceFile << """
-                    package my.domain;
-
-                    public class Dummy${it} {
-                        public void doNothing() {
-                        }
-                    }
-                """
+                modifySourceFile(sourceFile, 0)
                 return sourceFile
             }
         }
@@ -74,11 +64,12 @@ class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec {
         expect:
         (1..100).each { iteration ->
             changeAllSourceFiles(iteration)
+            waitForChangesToBePickedUp()
             succeeds("assemble")
             assert daemons.daemon.logFile == daemon.logFile
             daemon.assertIdle()
             assertWatchingSucceeded()
-            assert receivedFileSystemEvents >= TOTAL_NUMBER_OF_SOURCES
+            assert receivedFileSystemEvents >= TOTAL_NUMBER_OF_SOURCES * LOST_EVENTS_RATIO
         }
     }
 
@@ -92,23 +83,23 @@ class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec {
         when:
         (1..100).each { iteration ->
             changeAllSourceFiles(iteration)
+            waitForChangesToBePickedUp()
         }
-        // Wait a little bit for file changes to be picked up
-        Thread.sleep(5000)
         then:
         succeeds("assemble")
         daemons.daemon.logFile == daemon.logFile
         daemon.assertIdle()
         assertWatchingSucceeded()
-        receivedFileSystemEvents >= TOTAL_NUMBER_OF_SOURCES * 100
+        receivedFileSystemEvents >= TOTAL_NUMBER_OF_SOURCES * 100 * LOST_EVENTS_RATIO
+    }
+
+    private static void waitForChangesToBePickedUp() {
+        Thread.sleep(1000)
     }
 
     private void changeAllSourceFiles(int iteration) {
         sourceFiles.each { sourceFile ->
-            applyAbiChangeTo(
-                sourceFile,
-                scenarioContext.withBuild(Phase.MEASURE, iteration)
-            )
+            modifySourceFile(sourceFile, iteration)
         }
     }
 
@@ -124,7 +115,14 @@ class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec {
         outputDoesNotContain("Dropped VFS state due to lost state")
     }
 
-    private static void applyAbiChangeTo(File sourceFile, BuildContext context) {
-        new ApplyAbiChangeToJavaSourceFileMutator(sourceFile).beforeBuild(context)
+    private static void modifySourceFile(TestFile sourceFile, int numberOfMethods) {
+        String className = sourceFile.name - ".java"
+        sourceFile.text = """
+                    package my.domain;
+
+                    public class ${className} {
+                        ${ (1..numberOfMethods).collect { "public void doNothing${it}() {}" }.join("\n")}
+                    }
+                """
     }
 }
