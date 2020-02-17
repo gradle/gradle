@@ -68,24 +68,40 @@ public class TextUtil {
     }
 
     /**
-     * Converts all line separators in the specified non-null string to the specified line separator.
+     * Converts all line separators in the specified non-null string to the Unix line separator {@code \n}.
+     */
+    public static String convertLineSeparatorsToUnix(String str) {
+        return str.indexOf('\r') < 0
+            ? str
+            : replaceAll("\r\n|\r", str, "\n");
+    }
+
+    /**
+     * Converts all line separators in the specified non-null {@link CharSequence} to the specified line separator.
      */
     public static String replaceLineSeparatorsOf(CharSequence string, String bySeparator) {
-        return Pattern.compile("\r\n|\r|\n").matcher(string).replaceAll(bySeparator);
+        return replaceAll("\r\n|\r|\n", string, bySeparator);
+    }
+
+    private static String replaceAll(String regex, CharSequence inString, String byString) {
+        return Pattern.compile(regex).matcher(inString).replaceAll(byString);
     }
 
     /**
      * Converts all line separators in the specified string to the platform's line separator.
      */
     public static String toPlatformLineSeparators(String str) {
-        return str == null ? null : convertLineSeparators(str, getPlatformLineSeparator());
+        return str == null ? null : replaceLineSeparatorsOf(str, getPlatformLineSeparator());
     }
 
     /**
-     * Converts all line separators in the specified string to a single new line character.
+     * Converts all line separators in the specified nullable string to a single new line character ({@code \n}).
+     *
+     * @return null if the given string is null
      */
-    public static String normaliseLineSeparators(String str) {
-        return str == null ? null : convertLineSeparators(str, "\n");
+    @Nullable
+    public static String normaliseLineSeparators(@Nullable String str) {
+        return str == null ? null : convertLineSeparatorsToUnix(str);
     }
 
     /**

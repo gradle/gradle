@@ -20,12 +20,12 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
-import org.gradle.kotlin.dsl.precompile.PrecompiledScriptDependenciesResolver
 
+import org.gradle.kotlin.dsl.precompile.PrecompiledScriptDependenciesResolver
 import org.gradle.kotlin.dsl.support.KotlinScriptType
 import org.gradle.kotlin.dsl.support.KotlinScriptTypeMatch
 
-import org.gradle.util.TextUtil.normaliseLineSeparators
+import org.gradle.util.TextUtil.convertLineSeparatorsToUnix
 
 import org.jetbrains.kotlin.lexer.KotlinLexer
 import org.jetbrains.kotlin.lexer.KtTokens
@@ -119,7 +119,7 @@ fun scriptPluginFilesOf(list: List<PrecompiledScriptPlugin>) = list.map { it.scr
 
 private
 fun packageNameOf(file: File): String? =
-    packageNameOf(normaliseLineSeparators(file.readText()))
+    packageNameOf(convertLineSeparatorsToUnix(file.readText()))
 
 
 private

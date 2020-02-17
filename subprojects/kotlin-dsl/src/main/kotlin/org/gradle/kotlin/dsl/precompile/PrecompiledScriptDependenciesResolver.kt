@@ -17,9 +17,8 @@
 package org.gradle.kotlin.dsl.precompile
 
 import org.gradle.internal.hash.Hashing
-
 import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependencies
-import org.gradle.util.TextUtil.replaceLineSeparatorsOf
+import org.gradle.util.TextUtil.convertLineSeparatorsToUnix
 
 import java.util.concurrent.Future
 
@@ -35,7 +34,7 @@ class PrecompiledScriptDependenciesResolver : ScriptDependenciesResolver {
     companion object {
 
         fun hashOf(charSequence: CharSequence) =
-            hashOfNormalisedString(replaceLineSeparatorsOf(charSequence, "\n"))
+            hashOfNormalisedString(convertLineSeparatorsToUnix(charSequence.toString()))
 
         /**
          * **Optimisation note**: assumes [scriptText] contains only `\n` line separators as any script text
