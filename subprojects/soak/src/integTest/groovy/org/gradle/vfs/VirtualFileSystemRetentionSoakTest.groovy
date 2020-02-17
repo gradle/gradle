@@ -28,8 +28,15 @@ import org.junit.experimental.categories.Category
 @Category(SoakTest)
 class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec {
 
-    def "file watching works with multiple builds on the same daemon"() {
-        def subprojects = (1..50).collect { "project$it" }
+    private static final int NUMBER_OF_SUBPROJECTS = 50
+    private static final int NUMBER_OF_SOURCES_PER_SUBPROJECT = 100
+    private static final int TOTAL_NUMBER_OF_SOURCES = NUMBER_OF_SUBPROJECTS * NUMBER_OF_SOURCES_PER_SUBPROJECT
+
+    List<File> sourceFiles
+    def scenarioContext = new ScenarioContext(UUID.randomUUID(), "abiChange")
+
+    def setup() {
+        def subprojects = (1..NUMBER_OF_SUBPROJECTS).collect { "project$it" }
         def rootProject = multiProjectBuild("javaProject", subprojects) {
             buildFile << """
                 allprojects {
@@ -37,12 +44,11 @@ class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec {
                 }
             """
         }
-        def sourceFiles = subprojects.collectMany { projectDir ->
-            (1..100).collect {
+        sourceFiles = subprojects.collectMany { projectDir ->
+            (1..NUMBER_OF_SOURCES_PER_SUBPROJECT).collect {
                 def sourceFile = rootProject.file("${projectDir}/src/main/java/my/domain/Dummy${it}.java")
                 sourceFile << """
                     package my.domain;
-
 
                     public class Dummy${it} {
                         public void doNothing() {
@@ -53,38 +59,57 @@ class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec {
             }
         }
 
-        def scenarioContext = new ScenarioContext(UUID.randomUUID(), "abiChange")
-
-        executer.requireIsolatedDaemons()
         executer.beforeExecute {
             withArgument("-D${VirtualFileSystemServices.VFS_RETENTION_ENABLED_PROPERTY}=true")
         }
+    }
 
+    def "file watching works with multiple builds on the same daemon"() {
         when:
         succeeds("assemble")
         def daemon = daemons.daemon
+        then:
+        daemon.assertIdle()
 
+        expect:
+        (1..100).each { iteration ->
+            changeAllSourceFiles(iteration)
+            succeeds("assemble")
+            assert daemons.daemon.logFile == daemon.logFile
+            daemon.assertIdle()
+            assertWatchingSucceeded()
+            assert receivedFileSystemEvents >= TOTAL_NUMBER_OF_SOURCES
+        }
+    }
+
+    def "file watching works with many changes between two builds"() {
+        when:
+        succeeds("assemble")
+        def daemon = daemons.daemon
         then:
         daemon.assertIdle()
 
         when:
         (1..100).each { iteration ->
-            sourceFiles.each { sourceFile ->
-                applyAbiChangeTo(
-                    sourceFile,
-                    scenarioContext.withBuild(Phase.MEASURE, iteration)
-                )
-            }
-            succeeds("assemble")
-            daemons.daemon.logFile == daemon.logFile
-            daemon.assertIdle()
-            assertWatchingSucceeded()
-            assert receivedFileSystemEvents >= 5000
+            changeAllSourceFiles(iteration)
         }
+        // Wait a little bit for file changes to be picked up
+        Thread.sleep(5000)
         then:
-        assertWatchingSucceeded()
+        succeeds("assemble")
         daemons.daemon.logFile == daemon.logFile
         daemon.assertIdle()
+        assertWatchingSucceeded()
+        receivedFileSystemEvents >= TOTAL_NUMBER_OF_SOURCES * 100
+    }
+
+    private void changeAllSourceFiles(int iteration) {
+        sourceFiles.each { sourceFile ->
+            applyAbiChangeTo(
+                sourceFile,
+                scenarioContext.withBuild(Phase.MEASURE, iteration)
+            )
+        }
     }
 
     private int getReceivedFileSystemEvents() {
