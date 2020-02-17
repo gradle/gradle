@@ -33,6 +33,8 @@ class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec {
     List<TestFile> sourceFiles
 
     def setup() {
+        // Use 20 minutes idle timeout since the test may be running longer with an idle daemon
+        executer.withDaemonIdleTimeoutSecs(1200)
         def subprojects = (1..NUMBER_OF_SUBPROJECTS).collect { "project$it" }
         def rootProject = multiProjectBuild("javaProject", subprojects) {
             buildFile << """
