@@ -61,7 +61,7 @@ class DaemonLogsAnalyzer implements DaemonsFixture {
 
 
     List<DaemonFixture> getDaemons() {
-        getAllDaemons().findAll { !daemonStoppedWithSocketExceptionOnWindows(it) || it.log.contains("Starting build in new daemon") }
+        getAllDaemons().findAll { !daemonStoppedWithSocketExceptionOnWindows(it) || it.logContains("Starting build in new daemon") }
     }
 
     List<DaemonFixture> getAllDaemons() {
