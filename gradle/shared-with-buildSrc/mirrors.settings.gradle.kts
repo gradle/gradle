@@ -65,7 +65,7 @@ if (System.getProperty(PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY) == null && !isEc2Age
     // https://github.com/gradle/gradle-private/issues/2951
     System.setProperty(PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY, "https://dev12.gradle.org/artifactory/gradle-plugins/")
     gradle.buildFinished {
-        System.setProperty(PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY, null)
+        System.clearProperty(PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY)
     }
 }
 
