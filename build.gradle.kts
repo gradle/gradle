@@ -166,7 +166,7 @@ buildTypes {
     }
 
     create("soakTest") {
-        tasks("soak:soakTest")
+        tasks("soak:soakIntegTest")
         projectProperties("testAllVersions" to true)
     }
 
