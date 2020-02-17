@@ -18,17 +18,11 @@ package org.gradle.language.cpp
 
 import org.gradle.integtests.fixtures.CompilationOutputsFixture
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
-import org.gradle.integtests.fixtures.ToBeFixedForVfsRetention
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
 
-@ToBeFixedForVfsRetention(
-    because = "https://github.com/gradle/gradle/issues/12162",
-    failsOnlyIf = TestPrecondition.WINDOWS
-)
 class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements CppTaskNames {
 
     private static final String LIBRARY = ':library'
