@@ -24,8 +24,6 @@ import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileBackedDirectoryFileTree;
-import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
-import org.gradle.api.internal.file.collections.ResolvableFileCollectionResolveContext;
 import org.gradle.api.internal.provider.AbstractProviderWithValue;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
@@ -33,7 +31,10 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.api.tasks.util.internal.PatternSets;
 import org.gradle.internal.Cast;
+import org.gradle.internal.Factory;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
 
@@ -46,6 +47,16 @@ import java.util.List;
 import java.util.Set;
 
 public abstract class AbstractFileCollection implements FileCollectionInternal {
+    protected final Factory<PatternSet> patternSetFactory;
+
+    protected AbstractFileCollection(Factory<PatternSet> patternSetFactory) {
+        this.patternSetFactory = patternSetFactory;
+    }
+
+    public AbstractFileCollection() {
+        this.patternSetFactory = PatternSets.getNonCachingPatternSetFactory();
+    }
+
     /**
      * Returns the display name of this file collection. Used in log and error messages.
      *
@@ -143,7 +154,7 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
 
     @Override
     public FileCollection minus(final FileCollection collection) {
-        return new AbstractFileCollection() {
+        return new AbstractFileCollection(patternSetFactory) {
             @Override
             public String getDisplayName() {
                 return AbstractFileCollection.this.getDisplayName();
@@ -217,24 +228,7 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
 
     @Override
     public FileTree getAsFileTree() {
-        return new CompositeFileTree() {
-            @Override
-            public void visitContents(FileCollectionResolveContext context) {
-                ResolvableFileCollectionResolveContext nested = context.newContext();
-                nested.add(AbstractFileCollection.this);
-                context.addAll(nested.resolveAsFileTrees());
-            }
-
-            @Override
-            public void visitDependencies(TaskDependencyResolveContext context) {
-                context.add(AbstractFileCollection.this);
-            }
-
-            @Override
-            public String getDisplayName() {
-                return AbstractFileCollection.this.getDisplayName();
-            }
-        };
+        return new FileCollectionBackFileTree(patternSetFactory, this);
     }
 
     @Override
@@ -245,7 +239,7 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
     @Override
     public FileCollection filter(final Spec<? super File> filterSpec) {
         final Predicate<File> predicate = filterSpec::isSatisfiedBy;
-        return new AbstractFileCollection() {
+        return new AbstractFileCollection(patternSetFactory) {
             @Override
             public String getDisplayName() {
                 return AbstractFileCollection.this.getDisplayName();
@@ -279,4 +273,5 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
             visitor.visitCollection(OTHER, this);
         }
     }
+
 }

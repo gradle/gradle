@@ -158,7 +158,6 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
     }
 
     @Issue('GRADLE-2034')
-    @ToBeFixedForInstantExecution
     def "mavenLocal fails to resolve artifact if contains pom but not artifact"() {
         given:
         m2.mavenRepo().module('group', 'projectA', '1.2').publishPom()
@@ -247,7 +246,6 @@ Required by:
     }
 
     @Issue('GRADLE-2034')
-    @ToBeFixedForInstantExecution
     def "mavenLocal fails to resolve snapshot artifact if contains pom but not artifact"() {
         given:
         m2.mavenRepo().module('group', 'projectA', '1.2-SNAPSHOT').publishPom()
@@ -275,7 +273,6 @@ Required by:
     }
 
     @Issue('GRADLE-2034')
-    @ToBeFixedForInstantExecution
     def "mavenLocal fails to resolve non-unique snapshot artifact if contains pom but not artifact"() {
         given:
         m2.mavenRepo().module('group', 'projectA', '1.2-SNAPSHOT').withNonUniqueSnapshots().publishPom()

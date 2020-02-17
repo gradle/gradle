@@ -215,7 +215,6 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         file('dest').assertHasDescendants('someDir/1.txt')
     }
 
-    @ToBeFixedForInstantExecution
     def "allows user to provide a custom resource for the tarTree"() {
         given:
         TestFile tar = file('tar-contents')

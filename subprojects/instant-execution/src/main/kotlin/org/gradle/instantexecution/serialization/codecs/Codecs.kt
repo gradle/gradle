@@ -40,12 +40,14 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.services.internal.BuildServiceRegistryInternal
 import org.gradle.api.tasks.TaskContainer
+import org.gradle.api.tasks.util.PatternSet
 import org.gradle.api.tasks.util.internal.PatternSpecFactory
 import org.gradle.execution.plan.TaskNodeFactory
 import org.gradle.initialization.BuildRequestMetaData
 import org.gradle.instantexecution.serialization.ownerServiceCodec
 import org.gradle.instantexecution.serialization.reentrant
 import org.gradle.instantexecution.serialization.unsupported
+import org.gradle.internal.Factory
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
@@ -96,7 +98,8 @@ class Codecs(
     actionScheme: ArtifactTransformActionScheme,
     attributesFactory: ImmutableAttributesFactory,
     transformListener: ArtifactTransformListener,
-    valueSourceProviderFactory: ValueSourceProviderFactory
+    valueSourceProviderFactory: ValueSourceProviderFactory,
+    patternSetFactory: Factory<PatternSet>
 ) {
 
     val userTypesCodec = BindingsBackedCodec {
@@ -119,7 +122,7 @@ class Codecs(
         bind(ListenerBroadcastCodec(listenerManager))
         bind(LoggerCodec)
 
-        fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory)
+        fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, patternSetFactory)
 
         bind(ClosureCodec)
         bind(GroovyMetaClassCodec)
@@ -170,7 +173,7 @@ class Codecs(
         baseTypes()
 
         providerTypes(filePropertyFactory, buildServiceRegistry, valueSourceProviderFactory)
-        fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory)
+        fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, patternSetFactory)
 
         bind(TaskNodeCodec(projectStateRegistry, userTypesCodec, taskNodeFactory))
         bind(InitialTransformationNodeCodec(buildOperationExecutor, transformListener))
@@ -213,8 +216,8 @@ class Codecs(
     }
 
     private
-    fun BindingsBuilder.fileCollectionTypes(directoryFileTreeFactory: DirectoryFileTreeFactory, fileCollectionFactory: FileCollectionFactory) {
-        bind(FileTreeCodec(directoryFileTreeFactory))
+    fun BindingsBuilder.fileCollectionTypes(directoryFileTreeFactory: DirectoryFileTreeFactory, fileCollectionFactory: FileCollectionFactory, patternSetFactory: Factory<PatternSet>) {
+        bind(FileTreeCodec(directoryFileTreeFactory, patternSetFactory))
         bind(ConfigurableFileCollectionCodec(fileCollectionFactory))
         bind(FileCollectionCodec(fileCollectionFactory))
         bind(IntersectPatternSetCodec)

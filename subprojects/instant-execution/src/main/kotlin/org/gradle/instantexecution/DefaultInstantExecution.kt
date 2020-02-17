@@ -331,7 +331,8 @@ class DefaultInstantExecution internal constructor(
             actionScheme = service(),
             attributesFactory = service(),
             transformListener = service(),
-            valueSourceProviderFactory = service()
+            valueSourceProviderFactory = service(),
+            patternSetFactory = service()
         )
     }
 

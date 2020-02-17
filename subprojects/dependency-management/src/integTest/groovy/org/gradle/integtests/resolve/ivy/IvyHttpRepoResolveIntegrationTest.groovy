@@ -33,7 +33,6 @@ class IvyHttpRepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveInte
         return server
     }
 
-    @ToBeFixedForInstantExecution
     void "fails when configured with AwsCredentials"() {
         given:
         def remoteIvyRepo = server.remoteIvyRepo
@@ -181,13 +180,13 @@ class IvyHttpRepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveInte
                 }
             }
             configurations { compile }
-            dependencies { 
-                compile ':name1:1.0' 
-                compile ':name1:1.0' 
-                compile ':name2:[1.0, 2.0]' 
+            dependencies {
+                compile ':name1:1.0'
+                compile ':name1:1.0'
+                compile ':name2:[1.0, 2.0]'
                 compile ':name3:1.0-SNAPSHOT'
                 compile 'group1::1.0'
-                compile 'group2::[1.0, 2.0]' 
+                compile 'group2::[1.0, 2.0]'
                 compile 'group3::1.0-SNAPSHOT'
                 compile 'group:name'
             }

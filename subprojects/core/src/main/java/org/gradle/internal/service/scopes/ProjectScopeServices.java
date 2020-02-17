@@ -64,6 +64,7 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskStatistics;
 import org.gradle.api.internal.tasks.properties.TaskScheme;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.configuration.project.DefaultProjectConfigurationActionContainer;
@@ -315,9 +316,9 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return new DefaultDomainObjectCollectionFactory(instantiatorFactory, services, collectionCallbackActionDecorator, MutationGuards.of(projectConfigurator));
     }
 
-    protected ManagedFactoryRegistry createManagedFactoryRegistry(ManagedFactoryRegistry parent, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, TaskDependencyFactory taskDependencyFactory) {
+    protected ManagedFactoryRegistry createManagedFactoryRegistry(ManagedFactoryRegistry parent, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory) {
         return new DefaultManagedFactoryRegistry(parent).withFactories(
-            new ManagedFactories.ConfigurableFileCollectionManagedFactory(fileResolver, taskDependencyFactory),
+            new ManagedFactories.ConfigurableFileCollectionManagedFactory(fileResolver, taskDependencyFactory, patternSetFactory),
             new org.gradle.api.internal.file.ManagedFactories.RegularFilePropertyManagedFactory(fileResolver),
             new org.gradle.api.internal.file.ManagedFactories.DirectoryManagedFactory(fileResolver, fileCollectionFactory),
             new org.gradle.api.internal.file.ManagedFactories.DirectoryPropertyManagedFactory(fileResolver, fileCollectionFactory)

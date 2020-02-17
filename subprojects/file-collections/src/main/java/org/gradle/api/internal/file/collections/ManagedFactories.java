@@ -20,6 +20,8 @@ import com.google.common.base.Objects;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
+import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.Factory;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.state.ManagedFactory;
 
@@ -35,10 +37,12 @@ public class ManagedFactories {
 
         private final PathToFileResolver resolver;
         private final TaskDependencyFactory taskDependencyFactory;
+        private final Factory<PatternSet> patternSetFactory;
 
-        public ConfigurableFileCollectionManagedFactory(FileResolver resolver, TaskDependencyFactory taskDependencyFactory) {
+        public ConfigurableFileCollectionManagedFactory(FileResolver resolver, TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory) {
             this.resolver = resolver;
             this.taskDependencyFactory = taskDependencyFactory;
+            this.patternSetFactory = patternSetFactory;
         }
 
         @Nullable
@@ -48,7 +52,7 @@ public class ManagedFactories {
                 return null;
             }
             // TODO - should retain display name
-            return type.cast(new DefaultConfigurableFileCollection(null, resolver, taskDependencyFactory, (Set<File>) state));
+            return type.cast(new DefaultConfigurableFileCollection(null, resolver, taskDependencyFactory, patternSetFactory, (Set<File>) state));
         }
 
         @Override

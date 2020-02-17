@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.resolve.resource.sftp.maven
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+
 import org.gradle.integtests.resolve.resource.sftp.AbstractSftpDependencyResolutionTest
 
 class MavenSftpRepoResolveIntegrationTest extends AbstractSftpDependencyResolutionTest {
@@ -59,7 +59,6 @@ class MavenSftpRepoResolveIntegrationTest extends AbstractSftpDependencyResoluti
     }
 
 
-    @ToBeFixedForInstantExecution
     def "cannot add invalid authentication types for sftp repo"() {
         given:
         def mavenSftpRepo = getMavenSftpRepo()

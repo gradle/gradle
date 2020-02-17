@@ -29,6 +29,7 @@ import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.TaskProvider
+import org.gradle.internal.Factory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
@@ -421,7 +422,7 @@ class DefaultSourceDirectorySetTest extends Specification {
     }
 
     FileCollection dir(String dirPath, Task builtBy) {
-        def collection = new DefaultConfigurableFileCollection(dirPath, resolver, DefaultTaskDependencyFactory.withNoAssociatedProject(), [dirPath])
+        def collection = new DefaultConfigurableFileCollection(dirPath, resolver, DefaultTaskDependencyFactory.withNoAssociatedProject(), Stub(Factory), [dirPath])
         collection.builtBy(builtBy)
         return collection
     }
