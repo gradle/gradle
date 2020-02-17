@@ -176,10 +176,16 @@ open class BuildScanPlugin : Plugin<Project> {
     }
 
     private
+    fun isEc2Agent() = java.net.InetAddress.getLocalHost().hostName.startsWith("ip-")
+
+    private
     fun Project.extractCiOrLocalData() {
         if (isCiServer) {
             buildScan {
                 tag("CI")
+                if(isEc2Agent()) {
+                   tag("EC2")
+                }
                 when {
                     isTravis -> {
                         link("Travis Build", System.getenv("TRAVIS_BUILD_WEB_URL"))
