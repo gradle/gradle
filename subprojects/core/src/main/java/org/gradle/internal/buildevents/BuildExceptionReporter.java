@@ -24,6 +24,7 @@ import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.initialization.StartParameterBuildOptions;
 import org.gradle.internal.exceptions.ContextAwareException;
+import org.gradle.internal.exceptions.ExceptionContextVisitor;
 import org.gradle.internal.exceptions.FailureResolutionAware;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
 import org.gradle.internal.logging.text.BufferingStyledTextOutput;
@@ -140,7 +141,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
         }
     }
 
-    private static class ExceptionFormattingVisitor extends ContextAwareException.Visitor {
+    private static class ExceptionFormattingVisitor extends ExceptionContextVisitor {
         private final FailureDetails failureDetails;
 
         private int depth;

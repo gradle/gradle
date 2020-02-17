@@ -103,7 +103,7 @@ public class LocationAwareException extends ContextAwareException implements Fai
     }
 
     @Override
-    public void accept(Visitor contextVisitor) {
+    public void accept(ExceptionContextVisitor contextVisitor) {
         super.accept(contextVisitor);
         String location = getLocation();
         if (location != null) {

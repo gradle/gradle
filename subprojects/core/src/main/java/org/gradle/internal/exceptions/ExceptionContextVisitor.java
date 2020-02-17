@@ -13,27 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.exceptions
 
+package org.gradle.internal.exceptions;
 
-import spock.lang.Specification
+import org.gradle.util.TreeVisitor;
 
-class LocationAwareExceptionTest extends Specification {
-    def "visitor visits location"() {
-        ExceptionContextVisitor visitor = Mock()
-        def cause = new RuntimeException()
-        def e = new LocationAwareException(cause, "location", 42)
+public abstract class ExceptionContextVisitor extends TreeVisitor<Throwable> {
+    protected abstract void visitCause(Throwable cause);
 
-        when:
-        e.accept(visitor)
-
-        then:
-        1 * visitor.visitCause(cause)
-        1 * visitor.visitLocation("Location line: 42")
-        0 * visitor._
-
-        and:
-        e.reportableCauses == []
-    }
-
+    protected abstract void visitLocation(String location);
 }

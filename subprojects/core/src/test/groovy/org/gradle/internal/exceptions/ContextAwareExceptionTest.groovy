@@ -20,7 +20,7 @@ import spock.lang.Specification
 
 class ContextAwareExceptionTest extends Specification {
     def "visitor does not visit direct cause"() {
-        ContextAwareException.Visitor visitor = Mock()
+        ExceptionContextVisitor visitor = Mock()
         def cause = new RuntimeException()
         def e = new ContextAwareException(cause)
 
@@ -36,7 +36,7 @@ class ContextAwareExceptionTest extends Specification {
     }
 
     def "visitor visits indirect cause"() {
-        ContextAwareException.Visitor visitor = Mock()
+        ExceptionContextVisitor visitor = Mock()
         def childCause = new RuntimeException()
         def cause = new RuntimeException(childCause)
         def e = new ContextAwareException(cause)
@@ -60,7 +60,7 @@ class ContextAwareExceptionTest extends Specification {
     }
 
     def "visitor visits causes of contextual exception"() {
-        ContextAwareException.Visitor visitor = Mock()
+        ExceptionContextVisitor visitor = Mock()
         def childCause = new RuntimeException()
         def cause = new TestContextualException(childCause)
         def e = new ContextAwareException(cause)
@@ -84,7 +84,7 @@ class ContextAwareExceptionTest extends Specification {
     }
 
     def "visitor visits all contextual exceptions and direct cause of last contextual exception"() {
-        ContextAwareException.Visitor visitor = Mock()
+        ExceptionContextVisitor visitor = Mock()
         def unreportedCause = new RuntimeException()
         def reportedCause = new RuntimeException(unreportedCause)
         def lastContextual = new TestContextualException(reportedCause)
@@ -114,7 +114,7 @@ class ContextAwareExceptionTest extends Specification {
     }
 
     def "visitor visits causes of multi-cause exception"() {
-        ContextAwareException.Visitor visitor = Mock()
+        ExceptionContextVisitor visitor = Mock()
         def childCause1 = new RuntimeException()
         def childCause2 = new RuntimeException()
         def cause = new DefaultMultiCauseException("broken", childCause1, childCause2)
@@ -143,7 +143,7 @@ class ContextAwareExceptionTest extends Specification {
     }
 
     def "visitor treats multi-cause exception as contextual"() {
-        ContextAwareException.Visitor visitor = Mock()
+        ExceptionContextVisitor visitor = Mock()
         def childCause1 = new RuntimeException()
         def detail = new RuntimeException()
         def childCause2 = new TestContextualException(detail)
@@ -187,7 +187,7 @@ class ContextAwareExceptionTest extends Specification {
     }
 
     def "visitor visits causes recursively"() {
-        ContextAwareException.Visitor visitor = Mock()
+        ExceptionContextVisitor visitor = Mock()
         def ignored = new RuntimeException()
         def childCause1 = new RuntimeException(ignored)
         def childCause2 = new RuntimeException()
