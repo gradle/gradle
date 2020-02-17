@@ -121,7 +121,6 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
             }
             tasks.withType<GroovyCompile>().configureEach {
                 groovyOptions.encoding = "utf-8"
-                groovyOptions.forkOptions.jvmArgs?.add("-XX:+HeapDumpOnOutOfMemoryError")
                 configureCompileTask(this, options, jdkForCompilation)
             }
         }
