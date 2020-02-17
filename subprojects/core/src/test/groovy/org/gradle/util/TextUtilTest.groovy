@@ -65,10 +65,7 @@ class TextUtilTest extends Specification {
         TextUtil.convertLineSeparatorsToUnix(original).is original
 
         where:
-        original          | converted
-        ""                | ""
-        "none"            | "none"
-        "one\ntwo\nthree" | "one\ntwo\nthree"
+        original << ["", "none", "one\ntwo\nthree"]
     }
 
     def containsWhitespace() {
