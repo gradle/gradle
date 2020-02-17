@@ -26,7 +26,7 @@ import org.gradle.internal.DisplayName;
  */
 public interface ArtifactVisitor {
     /**
-     * Called prior to scheduling resolution of a set of artifacts.
+     * Called prior to scheduling resolution of a set of artifacts. Should be called in result order.
      */
     default FileCollectionStructureVisitor.VisitType prepareForVisit(FileCollectionInternal.Source source) {
         return FileCollectionStructureVisitor.VisitType.Visit;
