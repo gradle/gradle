@@ -17,6 +17,7 @@
 package org.gradle.vfs
 
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.service.scopes.VirtualFileSystemServices
 import org.gradle.soak.categories.SoakTest
 import org.gradle.test.fixtures.file.TestFile
@@ -28,7 +29,8 @@ class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec {
     private static final int NUMBER_OF_SUBPROJECTS = 50
     private static final int NUMBER_OF_SOURCES_PER_SUBPROJECT = 100
     private static final int TOTAL_NUMBER_OF_SOURCES = NUMBER_OF_SUBPROJECTS * NUMBER_OF_SOURCES_PER_SUBPROJECT
-    private static final double LOST_EVENTS_RATIO = 0.75
+    private static final double LOST_EVENTS_RATIO_MAC_OS = 0.75
+    private static final double LOST_EVENTS_RATIO_WINDOWS = 0.1
 
     List<TestFile> sourceFiles
 
@@ -71,7 +73,7 @@ class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec {
             assert daemons.daemon.logFile == daemon.logFile
             daemon.assertIdle()
             assertWatchingSucceeded()
-            assert receivedFileSystemEvents >= TOTAL_NUMBER_OF_SOURCES * LOST_EVENTS_RATIO
+            assert receivedFileSystemEvents >= expectedFileSystemEvents(TOTAL_NUMBER_OF_SOURCES, 1)
         }
     }
 
@@ -92,7 +94,21 @@ class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec {
         daemons.daemon.logFile == daemon.logFile
         daemon.assertIdle()
         assertWatchingSucceeded()
-        receivedFileSystemEvents >= TOTAL_NUMBER_OF_SOURCES * 100 * LOST_EVENTS_RATIO
+        receivedFileSystemEvents >= expectedFileSystemEvents(TOTAL_NUMBER_OF_SOURCES, 100)
+    }
+
+    private static int expectedFileSystemEvents(int numberOfChangedFiles, int numberOfChangesPerFile) {
+        def currentOs = OperatingSystem.current()
+        if (currentOs.isMacOsX()) {
+            // macOS coalesces the changes if the are in short succession
+            return numberOfChangedFiles * numberOfChangesPerFile * LOST_EVENTS_RATIO_MAC_OS
+        } else if (currentOs.isLinux()) {
+            // the JDK watchers only capture one event per watched path
+            return numberOfChangedFiles
+        } else if (currentOs.isWindows()) {
+            return numberOfChangedFiles * numberOfChangesPerFile * LOST_EVENTS_RATIO_WINDOWS
+        }
+        throw new AssertionError("Test not supported on OS ${currentOs}")
     }
 
     private static void waitForChangesToBePickedUp() {
