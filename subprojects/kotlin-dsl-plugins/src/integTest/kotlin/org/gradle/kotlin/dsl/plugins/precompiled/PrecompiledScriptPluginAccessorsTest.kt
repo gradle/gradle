@@ -60,6 +60,7 @@ import java.io.File
 @LeaksFileHandles("Kotlin Compiler Daemon working directory")
 class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest() {
 
+    @ToBeFixedForInstantExecution
     @Test
     fun `can use type-safe accessors for applied plugins with CRLF line separators`() {
 
