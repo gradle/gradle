@@ -30,10 +30,11 @@ public class NoopFileWatcherRegistry implements FileWatcherRegistry {
     private static final Logger LOGGER = LoggerFactory.getLogger(NoopFileWatcherRegistry.class);
 
     private static final FileWatcherRegistry INSTANCE = new NoopFileWatcherRegistry();
+    private static final FileWatchingStatistics NOOP_FILE_WATCHING_STATISTICS = new FileWatchingStatistics(true, 0);
 
     @Override
-    public void stopWatching(ChangeHandler handler) {
-        handler.handleLostState();
+    public FileWatchingStatistics stopWatching() {
+        return NOOP_FILE_WATCHING_STATISTICS;
     }
 
     @Override
@@ -42,8 +43,9 @@ public class NoopFileWatcherRegistry implements FileWatcherRegistry {
 
     public static class Factory implements FileWatcherRegistryFactory {
         @Override
-        public FileWatcherRegistry startWatching(SnapshotHierarchy snapshotHierarchy, Predicate<String> watchFilter, Collection<File> mustWatchDirectories) {
+        public FileWatcherRegistry startWatching(SnapshotHierarchy snapshotHierarchy, Predicate<String> watchFilter, Collection<File> mustWatchDirectories, ChangeHandler handler) {
             LOGGER.warn("VFS retention is enabled but file watching is not supported for this platform");
+            handler.handleLostState();
             return INSTANCE;
         }
     }

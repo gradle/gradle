@@ -38,11 +38,29 @@ public interface FileWatcherRegistry extends Closeable {
     /**
      * Stop watching and handle the accumulated changes.
      */
-    void stopWatching(ChangeHandler handler) throws IOException;
+    FileWatchingStatistics stopWatching() throws IOException;
 
     /**
      * Close the watcher registry. Stops watching without handling the changes.
      */
     @Override
     void close() throws IOException;
+
+    class FileWatchingStatistics {
+        private final boolean unknownEventEncountered;
+        private final int numberOfReceivedEvents;
+
+        public FileWatchingStatistics(boolean unknownEventEncountered, int numberOfReceivedEvents) {
+            this.unknownEventEncountered = unknownEventEncountered;
+            this.numberOfReceivedEvents = numberOfReceivedEvents;
+        }
+
+        public boolean isUnknownEventEncountered() {
+            return unknownEventEncountered;
+        }
+
+        public int getNumberOfReceivedEvents() {
+            return numberOfReceivedEvents;
+        }
+    }
 }

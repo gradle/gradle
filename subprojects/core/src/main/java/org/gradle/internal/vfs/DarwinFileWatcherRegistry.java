@@ -19,7 +19,6 @@ package org.gradle.internal.vfs;
 import com.google.common.collect.ImmutableSet;
 import net.rubygrapefruit.platform.Native;
 import net.rubygrapefruit.platform.internal.jni.OsxFileEventFunctions;
-import org.gradle.internal.vfs.impl.WatcherEvent;
 import org.gradle.internal.vfs.watch.FileWatcherRegistry;
 import org.gradle.internal.vfs.watch.FileWatcherRegistryFactory;
 import org.gradle.internal.vfs.watch.WatchRootUtil;
@@ -37,21 +36,23 @@ import java.util.stream.Collectors;
 public class DarwinFileWatcherRegistry extends AbstractEventDrivenFileWatcherRegistry {
     private static final Logger LOGGER = LoggerFactory.getLogger(DarwinFileWatcherRegistry.class);
 
-    public DarwinFileWatcherRegistry(Set<Path> watchRoots) {
-        super(events -> Native.get(OsxFileEventFunctions.class)
-            .startWatching(
+    public DarwinFileWatcherRegistry(Set<Path> watchRoots, ChangeHandler handler) {
+        super(
+            callback -> Native.get(OsxFileEventFunctions.class).startWatching(
                 watchRoots.stream()
                     .map(Path::toString)
                     .collect(Collectors.toList()),
                 // TODO Figure out a good value for this
                 300, TimeUnit.MICROSECONDS,
-                (type, path) -> events.add(WatcherEvent.createEvent(type, path))
-            ));
+                callback
+            ),
+            handler
+        );
     }
 
     public static class Factory implements FileWatcherRegistryFactory {
         @Override
-        public FileWatcherRegistry startWatching(SnapshotHierarchy snapshotHierarchy, Predicate<String> watchFilter, Collection<File> mustWatchDirectories) {
+        public FileWatcherRegistry startWatching(SnapshotHierarchy snapshotHierarchy, Predicate<String> watchFilter, Collection<File> mustWatchDirectories, ChangeHandler handler) {
             Set<String> mustWatchDirectoryPrefixes = ImmutableSet.copyOf(
                 mustWatchDirectories.stream()
                     .map(path -> path.getAbsolutePath() + File.separator)
@@ -63,7 +64,7 @@ public class DarwinFileWatcherRegistry extends AbstractEventDrivenFileWatcherReg
                 mustWatchDirectories);
             Set<Path> watchRoots = WatchRootUtil.resolveRootsToWatch(directories);
             LOGGER.warn("Watching {} directory hierarchies to track changes between builds in {} directories", watchRoots.size(), directories.size());
-            return new DarwinFileWatcherRegistry(watchRoots);
+            return new DarwinFileWatcherRegistry(watchRoots, handler);
         }
 
         private static boolean startsWithAnyPrefix(String path, Set<String> prefixes) {
