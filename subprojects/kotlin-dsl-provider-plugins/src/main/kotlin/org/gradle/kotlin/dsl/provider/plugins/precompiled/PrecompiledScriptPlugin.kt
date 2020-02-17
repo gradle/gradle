@@ -97,15 +97,15 @@ data class PrecompiledScriptPlugin(internal val scriptFile: File) {
     }
 
     val packageName: String? by lazy {
-        packageNameOf(scriptFile)
+        packageNameOf(scriptText)
     }
 
     val hashString by lazy {
-        PrecompiledScriptDependenciesResolver.hashOf(scriptText)
+        PrecompiledScriptDependenciesResolver.hashOfNormalisedString(scriptText)
     }
 
     val scriptText: String
-        get() = scriptFile.readText()
+        get() = convertLineSeparatorsToUnix(scriptFile.readText())
 
     private
     fun packagePrefixed(id: String) =
@@ -114,12 +114,8 @@ data class PrecompiledScriptPlugin(internal val scriptFile: File) {
 
 
 internal
-fun scriptPluginFilesOf(list: List<PrecompiledScriptPlugin>) = list.map { it.scriptFile }.toSet()
-
-
-private
-fun packageNameOf(file: File): String? =
-    packageNameOf(convertLineSeparatorsToUnix(file.readText()))
+fun scriptPluginFilesOf(list: List<PrecompiledScriptPlugin>) =
+    list.map { it.scriptFile }.toSet()
 
 
 private
