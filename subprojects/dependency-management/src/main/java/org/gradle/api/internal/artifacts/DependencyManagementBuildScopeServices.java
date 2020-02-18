@@ -459,8 +459,9 @@ class DependencyManagementBuildScopeServices {
                                                                         ChecksumService checksumService,
                                                                         SignatureVerificationServiceFactory signatureVerificationServiceFactory,
                                                                         DocumentationRegistry documentationRegistry,
-                                                                        ListenerManager listenerManager) {
-        DependencyVerificationOverride override = startParameterResolutionOverride.dependencyVerificationOverride(buildOperationExecutor, checksumService, signatureVerificationServiceFactory, documentationRegistry);
+                                                                        ListenerManager listenerManager,
+                                                                        BuildCommencedTimeProvider timeProvider) {
+        DependencyVerificationOverride override = startParameterResolutionOverride.dependencyVerificationOverride(buildOperationExecutor, checksumService, signatureVerificationServiceFactory, documentationRegistry, timeProvider);
         registerBuildFinishedHooks(listenerManager, override);
         return override;
     }

@@ -131,14 +131,17 @@ This can indicate that a dependency has been compromised. Please carefully verif
         given:
         javaLibrary()
         uncheckedModule("org", "foo")
+        uncheckedModule("org", "bar")
         buildFile << """
             dependencies {
                 implementation "org:foo:1.0"
+                testImplementation "org:bar:1.0"
             }
         """
+        file("src/test/java/HelloTest.java") << "public class HelloTest {}"
 
         when:
-        succeeds([":compileJava", *param] as String[])
+        succeeds([":test", *param] as String[])
 
         then:
         errorOutput.contains("""Dependency verification failed for configuration ':compileClasspath':
