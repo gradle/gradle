@@ -37,6 +37,7 @@ public class TextUtil {
             return input.toLowerCase();
         }
     };
+    private static final Pattern NON_UNIX_LINE_SEPARATORS = Pattern.compile("\r\n|\r");
 
     /**
      * Returns the line separator for Windows.
@@ -71,9 +72,7 @@ public class TextUtil {
      * Converts all line separators in the specified non-null string to the Unix line separator {@code \n}.
      */
     public static String convertLineSeparatorsToUnix(String str) {
-        return str.indexOf('\r') < 0
-            ? str
-            : replaceAll("\r\n|\r", str, "\n");
+        return replaceAll(NON_UNIX_LINE_SEPARATORS, str, "\n");
     }
 
     /**
@@ -84,7 +83,11 @@ public class TextUtil {
     }
 
     private static String replaceAll(String regex, CharSequence inString, String byString) {
-        return Pattern.compile(regex).matcher(inString).replaceAll(byString);
+        return replaceAll(Pattern.compile(regex), inString, byString);
+    }
+
+    private static String replaceAll(Pattern pattern, CharSequence inString, String byString) {
+        return pattern.matcher(inString).replaceAll(byString);
     }
 
     /**
