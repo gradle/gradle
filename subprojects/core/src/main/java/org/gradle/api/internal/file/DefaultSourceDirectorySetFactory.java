@@ -41,6 +41,7 @@ public class DefaultSourceDirectorySetFactory implements SourceDirectorySetFacto
     private static void deprecate() {
         DeprecationLogger.deprecateInternalApi("SourceDirectorySetFactory")
             .replaceWith("ObjectFactory.sourceDirectorySet(String, String)")
+            .willBeRemovedInNextMajorVersion()
             .withUserManual("lazy_configuration", "property_files_api_reference")
             .nagUser();
     }

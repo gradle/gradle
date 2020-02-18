@@ -74,6 +74,7 @@ public abstract class ImmutableFileCollection extends AbstractFileCollection {
     private static void nagUser() {
         DeprecationLogger.deprecateInternalApi("ImmutableFileCollection")
             .replaceWith("ProjectLayout.files()")
+            .willBeRemovedInNextMajorVersion()
             .withUserManual("lazy_configuration", "property_files_api_reference")
             .nagUser();
     }
