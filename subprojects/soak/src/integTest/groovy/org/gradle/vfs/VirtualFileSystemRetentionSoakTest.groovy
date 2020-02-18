@@ -73,7 +73,7 @@ class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec {
         (1..100).each { iteration ->
             changeAllSourceFiles(iteration)
             waitForChangesToBePickedUp()
-            succeeds("assemble")
+            succeeds("assemble", "--parallel")
             assert daemons.daemon.logFile == daemon.logFile
             daemon.assertIdle()
             assertWatchingSucceeded()
@@ -83,7 +83,7 @@ class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec {
 
     def "file watching works with many changes between two builds"() {
         when:
-        succeeds("assemble")
+        succeeds("assemble", "--parallel")
         def daemon = daemons.daemon
         then:
         daemon.assertIdle()
