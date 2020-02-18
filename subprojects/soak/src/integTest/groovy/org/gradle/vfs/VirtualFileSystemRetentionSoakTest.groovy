@@ -31,12 +31,11 @@ class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec {
     private static final int TOTAL_NUMBER_OF_SOURCES = NUMBER_OF_SUBPROJECTS * NUMBER_OF_SOURCES_PER_SUBPROJECT
     private static final double LOST_EVENTS_RATIO_MAC_OS = 0.6
     private static final double LOST_EVENTS_RATIO_WINDOWS = 0.1
+    public static final int NUMBER_OF_REPETITIONS = 100
 
     List<TestFile> sourceFiles
 
     def setup() {
-        // Use 20 minutes idle timeout since the test may be running longer with an idle daemon
-        executer.withDaemonIdleTimeoutSecs(1200)
         def subprojects = (1..NUMBER_OF_SUBPROJECTS).collect { "project$it" }
         def rootProject = multiProjectBuild("javaProject", subprojects) {
             buildFile << """
@@ -70,18 +69,21 @@ class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec {
         daemon.assertIdle()
 
         expect:
-        (1..100).each { iteration ->
+        NUMBER_OF_REPETITIONS.times { iteration ->
             changeAllSourceFiles(iteration)
             waitForChangesToBePickedUp()
             succeeds("assemble", "--parallel")
             assert daemons.daemon.logFile == daemon.logFile
             daemon.assertIdle()
             assertWatchingSucceeded()
-            assert receivedFileSystemEvents >= expectedFileSystemEvents(TOTAL_NUMBER_OF_SOURCES, 1)
+            assert receivedFileSystemEvents >= minimumExpectedFileSystemEvents(TOTAL_NUMBER_OF_SOURCES, 1)
         }
     }
 
     def "file watching works with many changes between two builds"() {
+        // Use 20 minutes idle timeout since the test may be running longer with an idle daemon
+        executer.withDaemonIdleTimeoutSecs(1200)
+
         when:
         succeeds("assemble", "--parallel")
         def daemon = daemons.daemon
@@ -89,7 +91,7 @@ class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec {
         daemon.assertIdle()
 
         when:
-        (1..100).each { iteration ->
+        NUMBER_OF_REPETITIONS.times { iteration ->
             changeAllSourceFiles(iteration)
             waitForChangesToBePickedUp()
         }
@@ -98,18 +100,18 @@ class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec {
         daemons.daemon.logFile == daemon.logFile
         daemon.assertIdle()
         assertWatchingSucceeded()
-        receivedFileSystemEvents >= expectedFileSystemEvents(TOTAL_NUMBER_OF_SOURCES, 100)
+        receivedFileSystemEvents >= minimumExpectedFileSystemEvents(TOTAL_NUMBER_OF_SOURCES, NUMBER_OF_REPETITIONS)
     }
 
-    private static int expectedFileSystemEvents(int numberOfChangedFiles, int numberOfChangesPerFile) {
+    private static int minimumExpectedFileSystemEvents(int numberOfChangedFiles, int numberOfChangesPerFile) {
         def currentOs = OperatingSystem.current()
-        if (currentOs.isMacOsX()) {
+        if (currentOs.macOsX) {
             // macOS coalesces the changes if the are in short succession
             return numberOfChangedFiles * numberOfChangesPerFile * LOST_EVENTS_RATIO_MAC_OS
-        } else if (currentOs.isLinux()) {
+        } else if (currentOs.linux) {
             // the JDK watchers only capture one event per watched path
             return numberOfChangedFiles
-        } else if (currentOs.isWindows()) {
+        } else if (currentOs.windows) {
             return numberOfChangedFiles * numberOfChangesPerFile * LOST_EVENTS_RATIO_WINDOWS
         }
         throw new AssertionError("Test not supported on OS ${currentOs}")
@@ -121,7 +123,7 @@ class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec {
 
     private void changeAllSourceFiles(int iteration) {
         sourceFiles.each { sourceFile ->
-            modifySourceFile(sourceFile, iteration)
+            modifySourceFile(sourceFile, iteration + 1)
         }
     }
 

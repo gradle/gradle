@@ -55,7 +55,7 @@ abstract class AbstractDaemonFixture implements DaemonFixture {
     @Override
     boolean logContains(String searchString) {
         Files.lines(logFile.toPath()).withCloseable { lines ->
-            lines.filter { it.contains(searchString) }.findFirst().present
+            lines.anyMatch{ it.contains(searchString) }
         }
     }
 
