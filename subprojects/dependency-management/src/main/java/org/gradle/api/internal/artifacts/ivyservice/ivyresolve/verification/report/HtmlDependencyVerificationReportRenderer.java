@@ -109,22 +109,22 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
     }
 
     public void renderSections() {
-        contents.append("<div class=\"uk-container uk-container-expand\"><div uk-grid>\n" +
-            "    <div class=\"uk-width-1-5@m\">\n");
-        contents.append("        <ul class=\"uk-nav uk-nav-default\" uk-switcher=\"animation: uk-animation-fade; connect: .switcher-container; toggle: > *\">\n");
+        contents.append("<div class=\"uk-container uk-container-expand\">\n");
+        contents.append("        <ul uk-accordion>\n");
+        boolean first = true;
         for (Section section : sections) {
+            if (first) {
+                contents.append("            <li class=\"uk-open\">\n");
+            } else {
+                contents.append("            <li>\n");
+            }
             prerenderSection(section);
-        }
-        contents.append("        </ul>\n");
-        contents.append("    </div>\n" +
-            "            <div class=\"uk-width-4-5@m\">\n");
-        contents.append("         <ul class=\"uk-switcher uk-margin switcher-container\">\n");
-        for (Section section : sections) {
             renderSection(section);
+            contents.append("            </li>\n");
+            first = false;
         }
         contents.append("         </ul>\n");
         contents.append("        </div>\n");
-        contents.append("    </div></div>\n");
     }
 
     File writeReport() {
@@ -262,14 +262,17 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
     }
 
     private void prerenderSection(Section section) {
-        contents.append("<li><a href=\"#\">").append(section.title).append("</a></li>");
+        int size = section.errors.size();
+        contents.append("<a class=\"uk-accordion-title\" href=\"#\">").append(section.title)
+            .append("&nbsp;<span class=\"uk-badge\">")
+            .append(size)
+            .append(size == 1 ? " error" : " errors")
+            .append("</span></a>");
     }
 
     private void renderSection(Section section) {
-        contents.append("<li>")
-            .append("<table class=\"uk-table uk-table-hover uk-table-divider uk-table-middle uk-table-small\">\n" + "    <caption>")
-            .append(section.title)
-            .append("</caption>\n")
+        contents.append("<div class=\"uk-accordion-content\">")
+            .append("<table class=\"uk-table uk-table-hover uk-table-divider uk-table-middle uk-table-small\">\n")
             .append("    <thead>\n")
             .append("        <tr>\n")
             .append("            <th class=\"uk-table-shrink uk-width-auto uk-text-nowrap\">Module</th>\n")
@@ -281,7 +284,7 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
         section.errors.forEach(this::formatErrors);
         contents.append("    </tbody>\n" +
             "</table>")
-            .append("</li>");
+            .append("</div>");
     }
 
     private void formatErrors(ArtifactErrors currentArtifact) {
@@ -416,14 +419,7 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
         private ArtifactErrors currentArtifact;
 
         private Section(String title) {
-            this.title = sanitize(title);
-        }
-
-        private static String sanitize(String title) {
-            if (title.startsWith("configuration '")) {
-                return title.substring(15, title.length() - 1);
-            }
-            return title;
+            this.title = title;
         }
 
         public void newArtifact(ArtifactErrors artifactErrors) {
