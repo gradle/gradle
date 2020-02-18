@@ -42,6 +42,10 @@ class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec {
             buildFile << """
                 allprojects {
                     apply plugin: 'java-library'
+
+                    tasks.withType(JavaCompile).configureEach {
+                        options.fork = true
+                    }
                 }
             """
         }
