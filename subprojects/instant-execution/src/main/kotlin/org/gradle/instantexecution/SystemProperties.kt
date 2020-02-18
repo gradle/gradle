@@ -27,4 +27,6 @@ object SystemProperties {
     const val maxProblems = "org.gradle.unsafe.instant-execution.max-problems"
 
     const val failOnProblems = "org.gradle.unsafe.instant-execution.fail-on-problems"
+
+    const val recreateCache = "org.gradle.unsafe.instant-execution.recreate-cache"
 }
