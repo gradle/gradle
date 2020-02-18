@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.resolve.verification
 
+
 import org.gradle.integtests.fixtures.cache.CachingIntegrationFixture
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.security.fixtures.KeyServer

@@ -26,16 +26,12 @@ import java.util.Set;
 /**
  * A text report renderer, which is <i>not</i> cumulative.
  */
-class TextDependencyVerificationReportRenderer implements DependencyVerificationReportRenderer {
-    private TreeFormatter formatter;
-    private final Path gradleUserHome;
-    private final DocumentationRegistry documentationRegistry;
+class TextDependencyVerificationReportRenderer extends AbstractTextDependencyVerificationReportRenderer {
 
     private boolean inMultiErrors;
 
     public TextDependencyVerificationReportRenderer(Path gradleUserHome, DocumentationRegistry documentationRegistry) {
-        this.gradleUserHome = gradleUserHome;
-        this.documentationRegistry = documentationRegistry;
+        super(gradleUserHome, documentationRegistry);
     }
 
     @Override
@@ -67,8 +63,14 @@ class TextDependencyVerificationReportRenderer implements DependencyVerification
         failure.getFailure().explainTo(formatter);
     }
 
-    private void legend(String legendItem) {
-        formatter.node(legendItem);
+    @Override
+    public void multipleErrors(Runnable action) {
+        formatter.append("multiple problems reported:");
+        formatter.startChildren();
+        inMultiErrors = true;
+        action.run();
+        inMultiErrors = false;
+        formatter.endChildren();
     }
 
     private void processAffectedFiles(Set<String> affectedFiles) {
@@ -85,19 +87,7 @@ class TextDependencyVerificationReportRenderer implements DependencyVerification
 
     @Override
     public void finish(DependencyVerificationReportWriter.HighLevelErrors highLevelErrors) {
-        if (highLevelErrors.isMaybeCompromised()) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("This can indicate that a dependency has been compromised. Please carefully verify the ");
-            if (highLevelErrors.hasFailedSignatures()) {
-                sb.append("signatures and ");
-            }
-            sb.append("checksums.");
-            legend(sb.toString());
-        }
-        if (highLevelErrors.canSuggestWriteMetadata()) {
-            // the else is just to avoid telling people to use `--write-verification-metadata` if we suspect compromised dependencies
-            legend("If the artifacts are trustworthy, you will need to update the gradle/verification-metadata.xml file by following the instructions at " + documentationRegistry.getDocumentationFor("dependency_verification", "sec:troubleshooting-verification"));
-        }
+        super.finish(highLevelErrors);
         Set<String> affectedFiles = highLevelErrors.getAffectedFiles();
         if (!affectedFiles.isEmpty()) {
             processAffectedFiles(affectedFiles);
@@ -113,17 +103,4 @@ class TextDependencyVerificationReportRenderer implements DependencyVerification
         formatter.node("GRADLE_USER_HOME = " + gradleUserHome);
     }
 
-    @Override
-    public void multipleErrors(Runnable action) {
-        formatter.append("multiple problems reported:");
-        formatter.startChildren();
-        inMultiErrors = true;
-        action.run();
-        inMultiErrors = false;
-        formatter.endChildren();
-    }
-
-    String render() {
-        return formatter.toString();
-    }
 }

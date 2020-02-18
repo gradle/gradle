@@ -39,17 +39,25 @@ public class DependencyVerificationReportWriter {
     private static final Comparator<Map.Entry<ModuleComponentArtifactIdentifier, Collection<RepositoryAwareVerificationFailure>>> BY_MODULE_ID = Comparator.comparing(e -> e.getKey().getDisplayName());
 
     private final Path gradleUserHome;
-    private final TextDependencyVerificationReportRenderer summaryRenderer;
+    private final AbstractTextDependencyVerificationReportRenderer summaryRenderer;
     private final HtmlDependencyVerificationReportRenderer htmlRenderer;
 
     public DependencyVerificationReportWriter(Path gradleUserHome,
                                               DocumentationRegistry documentationRegistry,
                                               File verificationFile,
                                               List<String> writeFlags,
-                                              File htmlReportOutputDirectory) {
+                                              File htmlReportOutputDirectory,
+                                              boolean verboseConsoleReport) {
         this.gradleUserHome = gradleUserHome;
-        this.summaryRenderer = new TextDependencyVerificationReportRenderer(gradleUserHome, documentationRegistry);
+        this.summaryRenderer = createConsoleRenderer(gradleUserHome, documentationRegistry, verboseConsoleReport);
         this.htmlRenderer = new HtmlDependencyVerificationReportRenderer(documentationRegistry, verificationFile, writeFlags, htmlReportOutputDirectory);
+    }
+
+    public AbstractTextDependencyVerificationReportRenderer createConsoleRenderer(Path gradleUserHome, DocumentationRegistry documentationRegistry, boolean verboseConsoleReport) {
+        if (verboseConsoleReport) {
+            return new TextDependencyVerificationReportRenderer(gradleUserHome, documentationRegistry);
+        }
+        return new SimpleTextDependencyVerificationReportRenderer(gradleUserHome, documentationRegistry);
     }
 
     public Report generateReport(String displayName,
