@@ -53,7 +53,6 @@ public class LocationAwareException extends ContextAwareException implements Fai
      *
      * @return The location description. May return null.
      */
-    @Override
     public String getLocation() {
         if (sourceDisplayName == null) {
             return null;
@@ -103,4 +102,12 @@ public class LocationAwareException extends ContextAwareException implements Fai
         }
     }
 
+    @Override
+    public void accept(ExceptionContextVisitor contextVisitor) {
+        super.accept(contextVisitor);
+        String location = getLocation();
+        if (location != null) {
+            contextVisitor.visitLocation(location);
+        }
+    }
 }

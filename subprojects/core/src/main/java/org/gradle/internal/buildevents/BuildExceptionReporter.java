@@ -24,6 +24,7 @@ import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.initialization.StartParameterBuildOptions;
 import org.gradle.internal.exceptions.ContextAwareException;
+import org.gradle.internal.exceptions.ExceptionContextVisitor;
 import org.gradle.internal.exceptions.FailureResolutionAware;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
 import org.gradle.internal.logging.text.BufferingStyledTextOutput;
@@ -31,7 +32,6 @@ import org.gradle.internal.logging.text.LinePrefixingStyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.util.GUtil;
-import org.gradle.util.TreeVisitor;
 
 import java.util.List;
 
@@ -135,35 +135,36 @@ public class BuildExceptionReporter implements Action<Throwable> {
         fillInFailureResolution(details);
 
         if (failure instanceof ContextAwareException) {
-            ContextAwareException scriptException = (ContextAwareException) failure;
-            details.failure = scriptException.getCause();
-            if (scriptException.getLocation() != null) {
-                details.location.text(scriptException.getLocation());
-            }
-            details.details.text(getMessage(details.failure));
-            scriptException.visitReportableCauses(new ExceptionFormattingVisitor(scriptException, details));
+            ((ContextAwareException) failure).accept(new ExceptionFormattingVisitor(details));
         } else {
             details.details.text(getMessage(failure));
         }
     }
 
-    private static class ExceptionFormattingVisitor extends TreeVisitor<Throwable> {
-        private final ContextAwareException scriptException;
+    private static class ExceptionFormattingVisitor extends ExceptionContextVisitor {
         private final FailureDetails failureDetails;
 
         private int depth;
 
-        private ExceptionFormattingVisitor(ContextAwareException scriptException, FailureDetails failureDetails) {
-            this.scriptException = scriptException;
+        private ExceptionFormattingVisitor(FailureDetails failureDetails) {
             this.failureDetails = failureDetails;
         }
 
         @Override
+        protected void visitCause(Throwable cause) {
+            failureDetails.failure = cause;
+            failureDetails.details.text(getMessage(cause));
+        }
+
+        @Override
+        protected void visitLocation(String location) {
+            failureDetails.location.text(location);
+        }
+
+        @Override
         public void node(Throwable node) {
-            if (node != scriptException) {
-                LinePrefixingStyledTextOutput output = getLinePrefixingStyledTextOutput(failureDetails);
-                output.text(getMessage(node));
-            }
+            LinePrefixingStyledTextOutput output = getLinePrefixingStyledTextOutput(failureDetails);
+            output.text(getMessage(node));
         }
 
         @Override
