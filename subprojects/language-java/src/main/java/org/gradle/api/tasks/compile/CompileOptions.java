@@ -491,7 +491,7 @@ public class CompileOptions extends AbstractOptions {
      * @since 4.3
      */
     @Nullable
-    @ReplacedBy("generatedSourceDirectory")
+    @ReplacedBy("generatedSourceOutputDirectory")
     public File getAnnotationProcessorGeneratedSourcesDirectory() {
         return generatedSourceOutputDirectory.getAsFile().getOrNull();
     }
