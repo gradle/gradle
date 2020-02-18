@@ -61,6 +61,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ChecksumAndSignatureVerificationOverride implements DependencyVerificationOverride, ArtifactVerificationOperation, Stoppable {
     private final static Logger LOGGER = Logging.getLogger(ChecksumAndSignatureVerificationOverride.class);
+    public final static String VERBOSE_CONSOLE = "org.gradle.dependency.verification.console";
 
     private final DependencyVerifier verifier;
     private final Multimap<ModuleComponentArtifactIdentifier, RepositoryAwareVerificationFailure> failures = LinkedHashMultimap.create();
@@ -82,7 +83,8 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
                                                     SignatureVerificationServiceFactory signatureVerificationServiceFactory,
                                                     DependencyVerificationMode verificationMode,
                                                     DocumentationRegistry documentationRegistry,
-                                                    File reportsDirectory) {
+                                                    File reportsDirectory,
+                                                    boolean useVerboseConsoleReport) {
         this.buildOperationExecutor = buildOperationExecutor;
         this.checksumService = checksumService;
         this.verificationMode = verificationMode;
@@ -90,7 +92,7 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
             this.verifier = DependencyVerificationsXmlReader.readFromXml(
                 new FileInputStream(verificationsFile)
             );
-            this.reportWriter = new DependencyVerificationReportWriter(gradleUserHome.toPath(), documentationRegistry, verificationsFile, ImmutableList.copyOf(suggestedWriteFlags()), reportsDirectory);
+            this.reportWriter = new DependencyVerificationReportWriter(gradleUserHome.toPath(), documentationRegistry, verificationsFile, ImmutableList.copyOf(suggestedWriteFlags()), reportsDirectory, useVerboseConsoleReport);
         } catch (FileNotFoundException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         } catch (InvalidUserDataException e) {
@@ -203,7 +205,7 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
     public String buildConsoleErrorMessage(DependencyVerificationReportWriter.Report report) {
         String errorMessage = report.getSummary();
         String htmlReport = new ConsoleRenderer().asClickableFileUrl(report.getHtmlReport());
-        errorMessage += "\n\nPlease open " + htmlReport + " for a detailed report of verification failures.";
+        errorMessage += "\n\nOpen this report for more details: " + htmlReport;
         return errorMessage;
     }
 

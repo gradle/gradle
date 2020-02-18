@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.verification
 
 import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.ChecksumAndSignatureVerificationOverride
 import org.gradle.api.internal.artifacts.verification.DependencyVerificationFixture
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.executer.GradleExecuter
@@ -90,5 +91,12 @@ class AbstractDependencyVerificationIntegTest extends AbstractHttpDependencyReso
 
     static String getDocsUrl() {
         new DocumentationRegistry().getDocumentationFor("dependency_verification", "sec:troubleshooting-verification")
+    }
+
+    protected void terseConsoleOutput(boolean terse) {
+        if (!terse) {
+            file("gradle.properties") << """${ChecksumAndSignatureVerificationOverride.VERBOSE_CONSOLE}=verbose
+"""
+        }
     }
 }
