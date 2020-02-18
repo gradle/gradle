@@ -16,26 +16,60 @@
 
 package org.gradle.internal.jpms;
 
+import com.google.common.collect.ImmutableList;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.specs.Spec;
+import org.gradle.process.ModulePathHandling;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
-import java.util.jar.Manifest;
+import java.util.jar.JarInputStream;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 public class ModuleDetection {
 
-    public static final Spec<? super File> CLASSPATH_FILTER = (Spec<File>) file -> !isModule(file);
-    public static final Spec<? super File> MODULE_PATH_FILTER = (Spec<File>) ModuleDetection::isModule;
+    private static final Spec<? super File> CLASSPATH_FILTER = (Spec<File>) file -> !isModule(file);
+    private static final Spec<? super File> MODULE_PATH_FILTER = (Spec<File>) ModuleDetection::isModule;
 
     private static final String MODULE_INFO_SOURCE_FILE = "module-info.java";
     private static final String MODULE_INFO_CLASS_FILE = "module-info.class";
-    private static final String MANIFEST_LOCATION = "META-INF/MANIFEST.MF";
     private static final String AUTOMATIC_MODULE_NAME_ATTRIBUTE = "Automatic-Module-Name";
+
+    public static ImmutableList<File> inferClasspath(ModulePathHandling modulePathHandling, FileCollection path, boolean forModule) {
+        if (path == null) {
+            return ImmutableList.of();
+        }
+        if (modulePathHandling == ModulePathHandling.INFER_MODULE_PATH) {
+            if (forModule) {
+                return ImmutableList.copyOf(path.filter(CLASSPATH_FILTER));
+            } else {
+                return ImmutableList.copyOf(path);
+            }
+        }
+        if (modulePathHandling == ModulePathHandling.ALL_MODULE_PATH) {
+            return ImmutableList.of();
+        }
+        return ImmutableList.copyOf(path);
+    }
+
+    public static ImmutableList<File> inferModulePath(ModulePathHandling modulePathHandling, FileCollection path, boolean forModule) {
+        if (path == null) {
+            return ImmutableList.of();
+        }
+        if (modulePathHandling == ModulePathHandling.INFER_MODULE_PATH) {
+            if (forModule) {
+                return ImmutableList.copyOf(path.filter(MODULE_PATH_FILTER));
+            } else {
+                return ImmutableList.of();
+            }
+        }
+        if (modulePathHandling == ModulePathHandling.ALL_MODULE_PATH) {
+            return ImmutableList.copyOf(path);
+        }
+        return ImmutableList.of();
+    }
 
     public static boolean isModuleSource(List<File> sourcesRoots) {
         for(File srcFolder : sourcesRoots) {
@@ -46,7 +80,11 @@ public class ModuleDetection {
         return false;
     }
 
-    public static boolean isModule(File file) {
+    public static boolean isClassInModule(String qualifiedName) {
+        return qualifiedName.contains("/");
+    }
+
+    private static boolean isModule(File file) {
         if (isJarFile(file)) {
             return isModuleJar(file);
         }
@@ -73,16 +111,16 @@ public class ModuleDetection {
     }
 
     private static boolean isModuleJar(File jarFile) {
-        try (ZipInputStream zipStream =  new ZipInputStream(new FileInputStream(jarFile))) {
-            ZipEntry next = zipStream.getNextEntry();
+        try (JarInputStream jarStream =  new JarInputStream(new FileInputStream(jarFile))) {
+            if (containsAutomaticModuleName(jarStream)) {
+                return true;
+            }
+            ZipEntry next = jarStream.getNextEntry();
             while (next != null) {
                 if (next.getName().equals(MODULE_INFO_CLASS_FILE)) {
                     return true;
                 }
-                if (next.getName().equals(MANIFEST_LOCATION)) {
-                    return containsAutomaticModuleName(zipStream);
-                }
-                next = zipStream.getNextEntry();
+                next = jarStream.getNextEntry();
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -90,7 +128,7 @@ public class ModuleDetection {
         return false;
     }
 
-    private static boolean containsAutomaticModuleName(InputStream manifest) throws IOException {
-        return new Manifest(manifest).getMainAttributes().getValue(AUTOMATIC_MODULE_NAME_ATTRIBUTE) != null;
+    private static boolean containsAutomaticModuleName(JarInputStream jarStream) {
+        return jarStream.getManifest().getMainAttributes().getValue(AUTOMATIC_MODULE_NAME_ATTRIBUTE) != null;
     }
 }

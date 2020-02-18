@@ -15,6 +15,7 @@
  */
 package org.gradle.process;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
@@ -120,4 +121,21 @@ public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
      * @return this
      */
     JavaExecSpec setClasspath(FileCollection classpath);
+
+    /**
+     * Returns the module path handling of this java execution.
+     *
+     * @since 6.3
+     */
+    @Incubating
+    @Input
+    ModulePathHandling getModulePathHandling();
+
+    /**
+     * Sets the module path handling of this java execution.
+     *
+     * @since 6.3
+     */
+    @Incubating
+    void setModulePathHandling(ModulePathHandling modulePathHandling);
 }

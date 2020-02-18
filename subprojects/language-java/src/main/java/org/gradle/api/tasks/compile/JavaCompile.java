@@ -56,6 +56,7 @@ import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.CompilerUtil;
+import org.gradle.process.ModulePathHandling;
 import org.gradle.work.Incremental;
 import org.gradle.work.InputChanges;
 
@@ -78,7 +79,7 @@ import java.util.concurrent.Callable;
  */
 @CacheableTask
 public class JavaCompile extends AbstractCompile {
-    private ModulePathHandling modulePathHandling = ModulePathHandling.NONE;
+    private ModulePathHandling modulePathHandling = ModulePathHandling.ALL_CLASSPATH;
     private final CompileOptions compileOptions;
     private JavaToolChain toolChain;
     private final FileCollection stableSources = getProject().files((Callable<Object[]>) () -> new Object[]{getSource(), getSources()});
@@ -223,8 +224,8 @@ public class JavaCompile extends AbstractCompile {
         spec.setDestinationDir(getDestinationDirectory().getAsFile().get());
         spec.setWorkingDir(getProject().getProjectDir());
         spec.setTempDir(getTemporaryDir());
-        spec.setCompileClasspath(getCompileClasspath(sourcesRoots));
-        spec.setModulePath(ImmutableList.copyOf(getCompileModulePath(sourcesRoots)));
+        spec.setCompileClasspath(ModuleDetection.inferClasspath(modulePathHandling, getClasspath(), ModuleDetection.isModuleSource(sourcesRoots)));
+        spec.setModulePath(ImmutableList.copyOf(ModuleDetection.inferModulePath(modulePathHandling, getClasspath(), ModuleDetection.isModuleSource(sourcesRoots))));
         spec.setAnnotationProcessorPath(compileOptions.getAnnotationProcessorPath() == null ? ImmutableList.of() : ImmutableList.copyOf(compileOptions.getAnnotationProcessorPath()));
         spec.setTargetCompatibility(getTargetCompatibility());
         spec.setSourceCompatibility(getSourceCompatibility());
@@ -234,34 +235,6 @@ public class JavaCompile extends AbstractCompile {
             spec.getCompileOptions().setHeaderOutputDirectory(null);
         }
         return spec;
-    }
-
-    private ImmutableList<File> getCompileClasspath(List<File> sourcesRoots) {
-        if (modulePathHandling == ModulePathHandling.AUTO) {
-            if (ModuleDetection.isModuleSource(sourcesRoots)) {
-                return ImmutableList.copyOf(getClasspath().filter(ModuleDetection.CLASSPATH_FILTER));
-            } else {
-                return ImmutableList.copyOf(getClasspath());
-            }
-        }
-        if (modulePathHandling == ModulePathHandling.ALL) {
-            return ImmutableList.of();
-        }
-        return ImmutableList.copyOf(getClasspath());
-    }
-
-    private ImmutableList<File> getCompileModulePath(List<File> sourcesRoots) {
-        if (modulePathHandling == ModulePathHandling.AUTO) {
-            if (ModuleDetection.isModuleSource(sourcesRoots)) {
-                return ImmutableList.copyOf(getClasspath().filter(ModuleDetection.MODULE_PATH_FILTER));
-            } else {
-                return ImmutableList.of();
-            }
-        }
-        if (modulePathHandling == ModulePathHandling.ALL) {
-            return ImmutableList.copyOf(getClasspath());
-        }
-        return ImmutableList.of();
     }
 
     /**

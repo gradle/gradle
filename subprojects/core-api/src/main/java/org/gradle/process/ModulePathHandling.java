@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.compile;
+package org.gradle.process;
 
 import org.gradle.api.Incubating;
 
@@ -29,16 +29,16 @@ public enum ModulePathHandling {
     /**
      * Always use the --classpath (traditional behavior).
      */
-    NONE,
+    ALL_CLASSPATH,
 
     /**
-     * If the compiled sources represent a Java module, automatically detect modules on the
-     * {@link AbstractCompile#getClasspath()} and put them on the --module-path.
+     * If the compiled sources represent a Java module, automatically detect modules on a
+     * classpath and put them on the --module-path.
      */
-    AUTO,
+    INFER_MODULE_PATH,
 
     /**
-     * Put everything from the {@link AbstractCompile#getClasspath()} on the --module-path.
+     * Put everything from a classpath on the --module-path.
      */
-    ALL
+    ALL_MODULE_PATH
 }

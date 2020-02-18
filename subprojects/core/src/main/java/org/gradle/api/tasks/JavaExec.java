@@ -32,6 +32,7 @@ import org.gradle.process.ExecResult;
 import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaExecSpec;
 import org.gradle.process.JavaForkOptions;
+import org.gradle.process.ModulePathHandling;
 import org.gradle.process.ProcessForkOptions;
 import org.gradle.process.internal.DslExecActionFactory;
 import org.gradle.process.internal.ExecActionFactory;
@@ -446,6 +447,17 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     public JavaExec setClasspath(FileCollection classpath) {
         javaExecHandleBuilder.setClasspath(classpath);
         return this;
+    }
+
+    @Override
+    @Input
+    public ModulePathHandling getModulePathHandling() {
+        return javaExecHandleBuilder.getModulePathHandling();
+    }
+
+    @Override
+    public void setModulePathHandling(ModulePathHandling modulePathHandling) {
+        javaExecHandleBuilder.setModulePathHandling(modulePathHandling);
     }
 
     /**

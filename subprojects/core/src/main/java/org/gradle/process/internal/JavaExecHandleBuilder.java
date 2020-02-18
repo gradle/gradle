@@ -15,6 +15,7 @@
  */
 package org.gradle.process.internal;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import org.gradle.api.Action;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -24,10 +25,12 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.initialization.BuildCancellationToken;
+import org.gradle.internal.jpms.ModuleDetection;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaExecSpec;
 import org.gradle.process.JavaForkOptions;
+import org.gradle.process.ModulePathHandling;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
 
@@ -58,6 +61,7 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
     private String mainClass;
     private final List<Object> applicationArgs = new ArrayList<Object>();
     private ConfigurableFileCollection classpath;
+    private ModulePathHandling modulePathHandling = ModulePathHandling.ALL_CLASSPATH;
     private final JavaForkOptions javaOptions;
     private final List<CommandLineArgumentProvider> argumentProviders = new ArrayList<CommandLineArgumentProvider>();
 
@@ -84,9 +88,20 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
                 throw new IllegalStateException("No main class specified and classpath is not an executable jar.");
             }
         } else {
-            if (realClasspath != null && !realClasspath.isEmpty()) {
+            boolean runModule = ModuleDetection.isClassInModule(mainClass);
+            ImmutableList<File> runtimeClasspath = ModuleDetection.inferClasspath(modulePathHandling, realClasspath, runModule);
+            ImmutableList<File> runtimeModulePath = ModuleDetection.inferModulePath(modulePathHandling, realClasspath, runModule);
+
+            if (!runtimeClasspath.isEmpty()) {
                 allArgs.add("-cp");
-                allArgs.add(CollectionUtils.join(File.pathSeparator, realClasspath));
+                allArgs.add(CollectionUtils.join(File.pathSeparator, runtimeClasspath));
+            }
+            if (!runtimeModulePath.isEmpty()) {
+                allArgs.add("--module-path");
+                allArgs.add(CollectionUtils.join(File.pathSeparator, runtimeModulePath));
+            }
+            if (runModule) {
+                allArgs.add("--module");
             }
             allArgs.add(mainClass);
         }
@@ -289,6 +304,16 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
     }
 
     @Override
+    public ModulePathHandling getModulePathHandling() {
+        return this.modulePathHandling;
+    }
+
+    @Override
+    public void setModulePathHandling(ModulePathHandling modulePathHandling) {
+        this.modulePathHandling = modulePathHandling;
+    }
+
+    @Override
     public JavaExecHandleBuilder classpath(Object... paths) {
         doGetClasspath().from(paths);
         return this;
@@ -327,7 +352,7 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
         // Try to shorten command-line if necessary
         if (hasCommandLineExceedMaxLength(getExecutable(), arguments)) {
             try {
-                File pathingJarFile = writePathingJarFile(classpath);
+                File pathingJarFile = writePathingJarFile(classpath); //TODO Module-Path in MANIFEST
                 ConfigurableFileCollection shortenedClasspath = fileCollectionFactory.configurableFiles();
                 shortenedClasspath.from(pathingJarFile);
                 List<String> shortenedArguments = getAllArguments(shortenedClasspath);
