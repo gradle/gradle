@@ -94,7 +94,7 @@ public class SignatureVerificationFailure extends AbstractVerificationFailure {
         MISSING_KEY
     }
 
-    private void appendKeyDetails(StringBuilder sb, PGPPublicKey key) {
+    public void appendKeyDetails(StringBuilder sb, PGPPublicKey key) {
         keyService.findByFingerprint(key.getFingerprint(), new PublicKeyResultBuilder() {
             @Override
             public void keyRing(PGPPublicKeyRing keyring) {
@@ -136,5 +136,8 @@ public class SignatureVerificationFailure extends AbstractVerificationFailure {
             return kind;
         }
 
+        public PGPPublicKey getPublicKey() {
+            return publicKey;
+        }
     }
 }

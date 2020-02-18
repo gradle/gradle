@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Queues;
@@ -41,6 +42,7 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.hash.ChecksumService;
+import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -50,6 +52,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.net.URI;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
 import java.util.Set;
@@ -77,21 +81,39 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
                                                     ChecksumService checksumService,
                                                     SignatureVerificationServiceFactory signatureVerificationServiceFactory,
                                                     DependencyVerificationMode verificationMode,
-                                                    DocumentationRegistry documentationRegistry) {
+                                                    DocumentationRegistry documentationRegistry,
+                                                    File reportsDirectory) {
         this.buildOperationExecutor = buildOperationExecutor;
         this.checksumService = checksumService;
         this.verificationMode = verificationMode;
-        this.reportWriter = new DependencyVerificationReportWriter(gradleUserHome.toPath(), documentationRegistry);
         try {
             this.verifier = DependencyVerificationsXmlReader.readFromXml(
                 new FileInputStream(verificationsFile)
             );
+            this.reportWriter = new DependencyVerificationReportWriter(gradleUserHome.toPath(), documentationRegistry, verificationsFile, ImmutableList.copyOf(suggestedWriteFlags()), reportsDirectory);
         } catch (FileNotFoundException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         } catch (InvalidUserDataException e) {
             throw new InvalidUserDataException("Unable to read dependency verification metadata from " + verificationsFile, e.getCause());
         }
         this.signatureVerificationService = signatureVerificationServiceFactory.create(keyRingsFile, keyServers());
+    }
+
+    private Set<String> suggestedWriteFlags() {
+        Set<String> writeFlags = Sets.newLinkedHashSet();
+        if (verifier.getConfiguration().isVerifySignatures()) {
+            writeFlags.add("pgp");
+        }
+        verifier.getVerificationMetadata().forEach(md -> {
+            md.getArtifactVerifications().forEach(av -> {
+                av.getChecksums().forEach(checksum -> writeFlags.add(checksum.getKind().name()));
+            });
+        });
+        if (Collections.singleton("pgp").equals(writeFlags)) {
+            // need to suggest at least one checksum so we use the most secure
+            writeFlags.add("sha512");
+        }
+        return writeFlags;
     }
 
     private List<URI> keyServers() {
@@ -159,18 +181,30 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
         verifyConcurrently();
         synchronized (failures) {
             if (hasFatalFailure.get() && !failures.isEmpty()) {
+                // There are fatal failures, but not necessarily on all artifacts so we first filter out
+                // the artifacts which only have not fatal errors
+                failures.asMap().entrySet().removeIf(entry -> {
+                    Collection<RepositoryAwareVerificationFailure> value = entry.getValue();
+                    return value.stream().noneMatch(wrapper -> wrapper.getFailure().isFatal());
+                });
                 DependencyVerificationReportWriter.Report report = reportWriter.generateReport(displayName, failures);
-                String summary = report.getSummary();
+                String errorMessage = buildConsoleErrorMessage(report);
                 if (verificationMode == DependencyVerificationMode.LENIENT) {
-                    // todo: in lenient mode the report writer should accumulate configurations
-                    LOGGER.error(summary);
+                    LOGGER.error(errorMessage);
                     failures.clear();
                     hasFatalFailure.set(false);
                 } else {
-                    throw new InvalidUserDataException(summary);
+                    throw new InvalidUserDataException(errorMessage);
                 }
             }
         }
+    }
+
+    public String buildConsoleErrorMessage(DependencyVerificationReportWriter.Report report) {
+        String errorMessage = report.getSummary();
+        String htmlReport = new ConsoleRenderer().asClickableFileUrl(report.getHtmlReport());
+        errorMessage += "\n\nPlease open " + htmlReport + " for a detailed report of verification failures.";
+        return errorMessage;
     }
 
     @Override

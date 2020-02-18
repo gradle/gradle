@@ -24,12 +24,12 @@ import org.gradle.api.internal.artifacts.verification.verifier.MissingChecksums;
 import org.gradle.api.internal.artifacts.verification.verifier.SignatureVerificationFailure;
 import org.gradle.api.internal.artifacts.verification.verifier.VerificationFailure;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
-import org.gradle.internal.logging.text.TreeFormatter;
 
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -39,72 +39,60 @@ public class DependencyVerificationReportWriter {
     private static final Comparator<Map.Entry<ModuleComponentArtifactIdentifier, Collection<RepositoryAwareVerificationFailure>>> BY_MODULE_ID = Comparator.comparing(e -> e.getKey().getDisplayName());
 
     private final Path gradleUserHome;
-    private final DocumentationRegistry documentationRegistry;
+    private final TextDependencyVerificationReportRenderer summaryRenderer;
+    private final HtmlDependencyVerificationReportRenderer htmlRenderer;
 
     public DependencyVerificationReportWriter(Path gradleUserHome,
-                                              DocumentationRegistry documentationRegistry) {
+                                              DocumentationRegistry documentationRegistry,
+                                              File verificationFile,
+                                              List<String> writeFlags,
+                                              File htmlReportOutputDirectory) {
         this.gradleUserHome = gradleUserHome;
-        this.documentationRegistry = documentationRegistry;
+        this.summaryRenderer = new TextDependencyVerificationReportRenderer(gradleUserHome, documentationRegistry);
+        this.htmlRenderer = new HtmlDependencyVerificationReportRenderer(documentationRegistry, verificationFile, writeFlags, htmlReportOutputDirectory);
     }
 
     public Report generateReport(String displayName,
-                               Multimap<ModuleComponentArtifactIdentifier, RepositoryAwareVerificationFailure> failuresByArtifact) {
+                                 Multimap<ModuleComponentArtifactIdentifier, RepositoryAwareVerificationFailure> failuresByArtifact) {
         // We need at least one fatal failure: if it's only "warnings" we don't care
         // but of there's a fatal failure AND a warning we want to show both
-        TreeFormatter formatter = new TreeFormatter();
-        formatter.node("Dependency verification failed for " + displayName);
-        formatter.startChildren();
-        ReportState reportState = new ReportState();
-        // Sorting entries so that error messages are always displayed in a reproducible order
-        failuresByArtifact.asMap()
-            .entrySet()
-            .stream()
-            .sorted(DELETED_LAST.thenComparing(MISSING_LAST).thenComparing(BY_MODULE_ID))
-            .forEachOrdered(entry -> {
-                ModuleComponentArtifactIdentifier key = entry.getKey();
-                Collection<RepositoryAwareVerificationFailure> failures = entry.getValue();
-                onArtifactFailure(formatter, reportState, key, failures);
-            });
-        formatter.endChildren();
-        formatter.blankLine();
-        if (reportState.isMaybeCompromised()) {
-            formatter.node("This can indicate that a dependency has been compromised. Please carefully verify the ");
-            if (reportState.hasFailedSignatures()) {
-                formatter.append("signatures and ");
-            }
-            formatter.append("checksums.");
-        }
-        if (reportState.canSuggestWriteMetadata()) {
-            // the else is just to avoid telling people to use `--write-verification-metadata` if we suspect compromised dependencies
-            formatter.node("If the artifacts are trustworthy, you will need to update the gradle/verification-metadata.xml file by following the instructions at " + documentationRegistry.getDocumentationFor("dependency_verification", "sec:troubleshooting-verification"));
-        }
-        Set<String> affectedFiles = reportState.getAffectedFiles();
-        if (!affectedFiles.isEmpty()) {
-            formatter.blankLine();
-            formatter.node("These files failed verification:");
-            formatter.startChildren();
-            for (String affectedFile : affectedFiles) {
-                formatter.node(affectedFile);
-            }
-            formatter.endChildren();
-            formatter.blankLine();
-            formatter.node("GRADLE_USER_HOME = " + gradleUserHome);
-        }
-        return new Report(formatter.toString(), null);
+        doRender(displayName, failuresByArtifact, summaryRenderer);
+        doRender(displayName, failuresByArtifact, htmlRenderer);
+        File htmlReport = htmlRenderer.writeReport();
+        return new Report(summaryRenderer.render(), htmlReport);
     }
 
-    public void onArtifactFailure(TreeFormatter formatter, ReportState state, ModuleComponentArtifactIdentifier key, Collection<RepositoryAwareVerificationFailure> failures) {
+    public void doRender(String displayName, Multimap<ModuleComponentArtifactIdentifier, RepositoryAwareVerificationFailure> failuresByArtifact, DependencyVerificationReportRenderer renderer) {
+        ReportState reportState = new ReportState();
+        renderer.title(displayName);
+        renderer.withErrors(() -> {
+            // Sorting entries so that error messages are always displayed in a reproducible order
+            failuresByArtifact.asMap()
+                .entrySet()
+                .stream()
+                .sorted(DELETED_LAST.thenComparing(MISSING_LAST).thenComparing(BY_MODULE_ID))
+                .forEachOrdered(entry -> {
+                    ModuleComponentArtifactIdentifier key = entry.getKey();
+                    Collection<RepositoryAwareVerificationFailure> failures = entry.getValue();
+                    onArtifactFailure(renderer, reportState, key, failures);
+                });
+        });
+        renderer.finish(reportState);
+    }
+
+    public void onArtifactFailure(DependencyVerificationReportRenderer renderer, ReportState state, ModuleComponentArtifactIdentifier key, Collection<RepositoryAwareVerificationFailure> failures) {
         failures.stream()
             .map(RepositoryAwareVerificationFailure::getFailure)
             .map(this::extractFailedFilePaths)
             .forEach(state::addAffectedFile);
-        formatter.node("On artifact " + key + " ");
-        if (failures.size() == 1) {
-            RepositoryAwareVerificationFailure firstFailure = failures.iterator().next();
-            explainSingleFailure(formatter, state, firstFailure);
-        } else {
-            explainMultiFailure(formatter, state, failures);
-        }
+        renderer.withArtifact(key, () -> {
+            if (failures.size() == 1) {
+                RepositoryAwareVerificationFailure firstFailure = failures.iterator().next();
+                explainSingleFailure(renderer, state, firstFailure);
+            } else {
+                explainMultiFailure(renderer, state, failures);
+            }
+        });
     }
 
     private String extractFailedFilePaths(VerificationFailure f) {
@@ -127,17 +115,15 @@ public class DependencyVerificationReportWriter {
         }
     }
 
-    private void explainMultiFailure(TreeFormatter formatter, ReportState state, Collection<RepositoryAwareVerificationFailure> failures) {
-        formatter.append("multiple problems reported");
-        formatter.startChildren();
-        for (RepositoryAwareVerificationFailure failure : failures) {
-            formatter.node("");
-            explainSingleFailure(formatter, state, failure);
-        }
-        formatter.endChildren();
+    private void explainMultiFailure(DependencyVerificationReportRenderer renderer, ReportState state, Collection<RepositoryAwareVerificationFailure> failures) {
+        renderer.multipleErrors(() -> {
+            for (RepositoryAwareVerificationFailure failure : failures) {
+                explainSingleFailure(renderer, state, failure);
+            }
+        });
     }
 
-    private void explainSingleFailure(TreeFormatter formatter, ReportState state, RepositoryAwareVerificationFailure wrapper) {
+    private void explainSingleFailure(DependencyVerificationReportRenderer renderer, ReportState state, RepositoryAwareVerificationFailure wrapper) {
         VerificationFailure failure = wrapper.getFailure();
         if (failure instanceof MissingChecksums) {
             state.hasMissing();
@@ -153,11 +139,23 @@ public class DependencyVerificationReportWriter {
                 state.maybeCompromised();
             }
         }
-        formatter.append("in repository '" + wrapper.getRepositoryName() + "': ");
-        failure.explainTo(formatter);
+        renderer.reportFailure(wrapper);
     }
 
-    private static class ReportState {
+    public interface HighLevelErrors {
+
+        boolean isMaybeCompromised();
+
+        boolean hasFailedSignatures();
+
+        boolean isHasUntrustedKeys();
+
+        boolean canSuggestWriteMetadata();
+
+        Set<String> getAffectedFiles();
+    }
+
+    private static class ReportState implements HighLevelErrors {
         private final Set<String> affectedFiles = Sets.newTreeSet();
         private boolean maybeCompromised;
         private boolean hasMissing;
@@ -180,6 +178,7 @@ public class DependencyVerificationReportWriter {
             hasUntrustedKeys = true;
         }
 
+        @Override
         public boolean isMaybeCompromised() {
             return maybeCompromised;
         }
@@ -188,18 +187,22 @@ public class DependencyVerificationReportWriter {
             return hasMissing;
         }
 
+        @Override
         public boolean hasFailedSignatures() {
             return failedSignatures;
         }
 
+        @Override
         public boolean isHasUntrustedKeys() {
             return hasUntrustedKeys;
         }
 
+        @Override
         public boolean canSuggestWriteMetadata() {
             return (hasMissing || hasUntrustedKeys) && !maybeCompromised;
         }
 
+        @Override
         public Set<String> getAffectedFiles() {
             return affectedFiles;
         }
