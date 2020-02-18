@@ -29,7 +29,7 @@ class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec {
     private static final int NUMBER_OF_SUBPROJECTS = 50
     private static final int NUMBER_OF_SOURCES_PER_SUBPROJECT = 100
     private static final int TOTAL_NUMBER_OF_SOURCES = NUMBER_OF_SUBPROJECTS * NUMBER_OF_SOURCES_PER_SUBPROJECT
-    private static final double LOST_EVENTS_RATIO_MAC_OS = 0.75
+    private static final double LOST_EVENTS_RATIO_MAC_OS = 0.6
     private static final double LOST_EVENTS_RATIO_WINDOWS = 0.1
 
     List<TestFile> sourceFiles
