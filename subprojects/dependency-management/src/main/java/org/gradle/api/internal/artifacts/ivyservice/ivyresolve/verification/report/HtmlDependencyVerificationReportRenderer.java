@@ -323,11 +323,11 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
 
     private void reportChecksumProblems(VerificationFailure vf) {
         if (vf instanceof MissingChecksums) {
-            String reason = orange("Checksums are missing from verification metadata");
+            String reason = warning("Checksums are missing from verification metadata");
             reportItem(reason, "missing-checksums", "info");
         } else if (vf instanceof ChecksumVerificationFailure) {
             ChecksumVerificationFailure cvf = (ChecksumVerificationFailure) vf;
-            String reason = "Expected a " + cvf.getKind() + " checksum of " + green(cvf.getExpected()) + " but was " + red(cvf.getActual());
+            String reason = "Expected a " + cvf.getKind() + " checksum of " + expected(cvf.getExpected()) + " but was " + actual(cvf.getActual());
             reportItem(reason, "checksum-mismatch", "warning");
         } else if (vf instanceof OnlyIgnoredKeys) {
             String reason = "All public keys have been ignored";
@@ -335,24 +335,24 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
         }
     }
 
-    private static String green(String text) {
-        return color(text, "green");
+    private static String expected(String text) {
+        return emphatize(text, "blue");
     }
 
-    private static String red(String text) {
-        return color(text, "red");
+    private static String actual(String text) {
+        return emphatize(text, "#ee442f");
     }
 
-    private static String orange(String text) {
-        return color(text, "orange");
+    private static String warning(String text) {
+        return emphatize(text, "#c59434");
     }
 
     private static String grey(String text) {
-        return color(text, "#cccccc");
+        return emphatize(text, "#cccccc");
     }
 
-    private static String color(String text, String color) {
-        return "<span style=\"color: " + color + "\">" + text + "</span>";
+    private static String emphatize(String text, String color) {
+        return "<span style=\"font-weight:bold; color: " + color + "\">" + text + "</span>";
     }
 
     private void reportSignatureProblems(VerificationFailure vf) {
@@ -373,11 +373,11 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
                 String keyInfo = "<b>" + keyId + " " + keyDetails + "</b>";
                 switch (error.getKind()) {
                     case PASSED_NOT_TRUSTED:
-                        String reason = orange("Artifact was signed with key " + keyInfo + " but this key is not in your trusted key list");
+                        String reason = warning("Artifact was signed with key " + keyInfo + " but this key is not in your trusted key list");
                         reportItem(reason, "verified-not-trusted", "question");
                         break;
                     case FAILED:
-                        reason = red("Artifact was signed with key " + keyInfo + " but signature didn't match");
+                        reason = actual("Artifact was signed with key " + keyInfo + " but signature didn't match");
                         reportItem(reason, "signature-didnt-match", "warning");
                         break;
                     case IGNORED_KEY:
@@ -385,7 +385,7 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
                         reportItem(reason, "ignored-key", "info");
                         break;
                     case MISSING_KEY:
-                        reason = orange("Key " + keyInfo + " couldn't be found in any key server so verification couldn't be performed");
+                        reason = warning("Key " + keyInfo + " couldn't be found in any key server so verification couldn't be performed");
                         reportItem(reason, "missing-key", "warning");
                         break;
                 }
