@@ -40,6 +40,8 @@ fun isEc2Agent() = java.net.InetAddress.getLocalHost().hostName.startsWith("ip-"
 
 fun isMacAgent() = System.getProperty("os.name").toLowerCase().contains("mac")
 
+fun ignoreMirrors() = System.getenv("IGNORE_MIRROR")?.toBoolean() ?: false
+
 fun withMirrors(handler: RepositoryHandler) {
     if ("CI" !in System.getenv() || isEc2Agent()) {
         return
@@ -60,7 +62,7 @@ fun normalizeUrl(url: String): String {
     return if (result.endsWith("/")) result else "$result/"
 }
 
-if (System.getProperty(PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY) == null && !isEc2Agent() && !isMacAgent()) {
+if (System.getProperty(PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY) == null && !isEc2Agent() && !isMacAgent() && !ignoreMirrors()) {
     // https://github.com/gradle/gradle-private/issues/2725
     // https://github.com/gradle/gradle-private/issues/2951
     System.setProperty(PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY, "https://dev12.gradle.org/artifactory/gradle-plugins/")
