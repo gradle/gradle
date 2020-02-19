@@ -38,18 +38,18 @@ class SimpleTextDependencyVerificationReportRenderer extends AbstractTextDepende
     }
 
     @Override
-    public void title(String title) {
+    public void startNewSection(String title) {
         formatter = new TreeFormatter();
         formatter.node("Dependency verification failed for " + title);
     }
 
     @Override
-    public void withErrors(Runnable action) {
+    public void startArtifactErrors(Runnable action) {
         action.run();
     }
 
     @Override
-    public void withArtifact(ModuleComponentArtifactIdentifier key, Runnable action) {
+    public void startNewArtifact(ModuleComponentArtifactIdentifier key, Runnable action) {
         artifact = key;
         action.run();
     }
@@ -60,7 +60,7 @@ class SimpleTextDependencyVerificationReportRenderer extends AbstractTextDepende
     }
 
     @Override
-    public void finish(DependencyVerificationReportWriter.HighLevelErrors highLevelErrors) {
+    public void finish(VerificationHighLevelErrors highLevelErrors) {
         int size = artifacts.size();
         if (size == 1) {
             formatter.node("One artifact failed verification: " + artifacts.iterator().next());
@@ -76,7 +76,7 @@ class SimpleTextDependencyVerificationReportRenderer extends AbstractTextDepende
     }
 
     @Override
-    public void multipleErrors(Runnable action) {
+    public void reportAsMultipleErrors(Runnable action) {
         action.run();
     }
 

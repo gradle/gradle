@@ -119,12 +119,16 @@ class DependencyVerificationSignatureCheckIntegTest extends AbstractSignatureVer
 
         then:
 
-        failure.assertHasCause terse?"""Dependency verification failed for configuration ':compileClasspath'
+        assertVerificationError(terse) {
+            whenTerse """Dependency verification failed for configuration ':compileClasspath'
 One artifact failed verification: foo-1.0.jar (org:foo:1.0) from repository maven
-This can indicate that a dependency has been compromised. Please carefully verify the checksums.""":"""Dependency verification failed for configuration ':compileClasspath':
+This can indicate that a dependency has been compromised. Please carefully verify the checksums."""
+
+            whenVerbose """Dependency verification failed for configuration ':compileClasspath':
   - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': expected a 'sha256' checksum of 'invalid' but was '20ae575ede776e5e06ee6b168652d11ee23069e92de110fdec13fbeaa5cf3bbc'
 
 This can indicate that a dependency has been compromised. Please carefully verify the checksums."""
+        }
 
         where:
         terse << [true, false]
@@ -158,15 +162,19 @@ This can indicate that a dependency has been compromised. Please carefully verif
         fails ":compileJava"
 
         then:
-        failure.assertHasCause terse?"""Dependency verification failed for configuration ':compileClasspath'
+        assertVerificationError(terse) {
+            whenTerse """Dependency verification failed for configuration ':compileClasspath'
 2 artifacts failed verification:
   - foo-1.0.jar (org:foo:1.0) from repository maven
   - foo-1.0.pom (org:foo:1.0) from repository maven
-This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums.""":"""Dependency verification failed for configuration ':compileClasspath':
+This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
+
+            whenVerbose """Dependency verification failed for configuration ':compileClasspath':
   - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key '14f53f0824875d73' but it wasn't found in any key server so it couldn't be verified
   - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': Artifact was signed with key '14f53f0824875d73' but it wasn't found in any key server so it couldn't be verified
 
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
+        }
 
         where:
         terse << [true, false]
@@ -302,12 +310,16 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
         fails ":compileJava"
 
         then:
-        failure.assertHasCause terse?"""Dependency verification failed for configuration ':compileClasspath'
+        assertVerificationError(terse) {
+            whenTerse """Dependency verification failed for configuration ':compileClasspath'
 One artifact failed verification: foo-1.0.jar (org:foo:1.0) from repository maven
-This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums.""":"""Dependency verification failed for configuration ':compileClasspath':
+This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
+
+            whenVerbose """Dependency verification failed for configuration ':compileClasspath':
   - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key 'd7bf96a169f77b28c934ab1614f53f0824875d73' (Gradle Test (This is used for testing the gradle-signing-plugin) <test@gradle.org>) but signature didn't match
 
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
+        }
 
         where:
         terse << [true, false]
@@ -351,12 +363,16 @@ This can indicate that a dependency has been compromised. Please carefully verif
         fails ":compileJava"
 
         then:
-        failure.assertHasCause terse?"""Dependency verification failed for configuration ':compileClasspath'
+        assertVerificationError(terse) {
+            whenTerse """Dependency verification failed for configuration ':compileClasspath'
 One artifact failed verification: foo-1.0.jar (org:foo:1.0) from repository maven
-This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums.""":"""Dependency verification failed for configuration ':compileClasspath':
+This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
+
+            whenVerbose """Dependency verification failed for configuration ':compileClasspath':
   - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key 'd7bf96a169f77b28c934ab1614f53f0824875d73' (Gradle Test (This is used for testing the gradle-signing-plugin) <test@gradle.org>) but signature didn't match
 
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
+        }
 
         where:
         terse << [true, false]
@@ -406,12 +422,16 @@ This can indicate that a dependency has been compromised. Please carefully verif
         fails ":compileJava"
 
         then:
-        failure.assertHasCause terse?"""Dependency verification failed for configuration ':compileClasspath'
+        assertVerificationError(terse) {
+            whenTerse """Dependency verification failed for configuration ':compileClasspath'
 One artifact failed verification: parent-1.0.pom (org:parent:1.0) from repository maven
-This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums.""":"""Dependency verification failed for configuration ':compileClasspath':
+This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
+
+            whenVerbose """Dependency verification failed for configuration ':compileClasspath':
   - On artifact parent-1.0.pom (org:parent:1.0) in repository 'maven': Artifact was signed with key 'd7bf96a169f77b28c934ab1614f53f0824875d73' (Gradle Test (This is used for testing the gradle-signing-plugin) <test@gradle.org>) but signature didn't match
 
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
+        }
 
         where:
         terse << [true, false]
@@ -449,14 +469,18 @@ This can indicate that a dependency has been compromised. Please carefully verif
         fails ":compileJava"
 
         then:
-        failure.assertHasCause terse?"""Dependency verification failed for configuration ':compileClasspath'
+        assertVerificationError(terse) {
+            whenTerse """Dependency verification failed for configuration ':compileClasspath'
 2 artifacts failed verification:
   - foo-1.0.jar (org:foo:1.0) from repository maven
-  - foo-1.0.pom (org:foo:1.0) from repository maven""":"""Dependency verification failed for configuration ':compileClasspath':
+  - foo-1.0.pom (org:foo:1.0) from repository maven"""
+
+            whenVerbose """Dependency verification failed for configuration ':compileClasspath':
   - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key '$pkId' (test-user@gradle.com) and passed verification but the key isn't in your trusted keys list.
   - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': Artifact was signed with key '$pkId' (test-user@gradle.com) and passed verification but the key isn't in your trusted keys list.
 
 If the artifacts are trustworthy, you will need to update the gradle/verification-metadata.xml file by following the instructions at ${docsUrl}"""
+        }
 
         where:
         terse << [true, false]
@@ -537,14 +561,18 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
         fails ":compileJava"
 
         then:
-        failure.assertHasCause terse?"""Dependency verification failed for configuration ':compileClasspath'
+        assertVerificationError(terse) {
+            whenTerse """Dependency verification failed for configuration ':compileClasspath'
 2 artifacts failed verification:
   - foo-1.0.jar (org:foo:1.0) from repository maven
-  - foo-1.0.pom (org:foo:1.0) from repository maven""":"""Dependency verification failed for configuration ':compileClasspath':
+  - foo-1.0.pom (org:foo:1.0) from repository maven"""
+
+            whenVerbose """Dependency verification failed for configuration ':compileClasspath':
   - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key '14f53f0824875d73' but it wasn't found in any key server so it couldn't be verified
   - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': Artifact was signed with key '14f53f0824875d73' but it wasn't found in any key server so it couldn't be verified
 
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
+        }
 
         where:
         terse << [true, false]
@@ -620,14 +648,18 @@ This can indicate that a dependency has been compromised. Please carefully verif
         fails ":compileJava"
 
         then:
-        failure.assertHasCause terse?"""Dependency verification failed for configuration ':compileClasspath'
+        assertVerificationError(terse) {
+            whenTerse """Dependency verification failed for configuration ':compileClasspath'
 2 artifacts failed verification:
   - foo-1.0.jar (org:foo:1.0) from repository maven
-  - foo-1.0.pom (org:foo:1.0) from repository maven""":"""Dependency verification failed for configuration ':compileClasspath':
+  - foo-1.0.pom (org:foo:1.0) from repository maven"""
+
+            whenVerbose """Dependency verification failed for configuration ':compileClasspath':
   - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key '$pkId' (test-user@gradle.com) and passed verification but the key isn't in your trusted keys list.
   - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': Artifact was signed with key '$pkId' (test-user@gradle.com) and passed verification but the key isn't in your trusted keys list.
 
 If the artifacts are trustworthy, you will need to update the gradle/verification-metadata.xml file by following the instructions at ${docsUrl}"""
+        }
 
         where:
         terse << [true, false]
@@ -661,28 +693,36 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
         fails ":compileJava"
 
         then:
-        failure.assertHasCause terse?"""Dependency verification failed for configuration ':compileClasspath'
+        assertVerificationError(terse) {
+            whenTerse """Dependency verification failed for configuration ':compileClasspath'
 2 artifacts failed verification:
   - foo-1.0.jar (org:foo:1.0) from repository maven
-  - foo-1.0.pom (org:foo:1.0) from repository maven""":"""Dependency verification failed for configuration ':compileClasspath':
+  - foo-1.0.pom (org:foo:1.0) from repository maven"""
+
+            whenVerbose """Dependency verification failed for configuration ':compileClasspath':
   - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key '14f53f0824875d73' but it wasn't found in any key server so it couldn't be verified
   - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': Artifact was signed with key '14f53f0824875d73' but it wasn't found in any key server so it couldn't be verified
 
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
+        }
 
         when: "publish keys"
         keyServerFixture.withDefaultSigningKey()
         fails ":compileJava"
 
         then:
-        failure.assertHasCause terse?"""Dependency verification failed for configuration ':compileClasspath'
+        assertVerificationError(terse) {
+            whenTerse """Dependency verification failed for configuration ':compileClasspath'
 2 artifacts failed verification:
   - foo-1.0.jar (org:foo:1.0) from repository maven
-  - foo-1.0.pom (org:foo:1.0) from repository maven""":"""Dependency verification failed for configuration ':compileClasspath':
+  - foo-1.0.pom (org:foo:1.0) from repository maven"""
+
+            whenVerbose """Dependency verification failed for configuration ':compileClasspath':
   - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key '14f53f0824875d73' but it wasn't found in any key server so it couldn't be verified
   - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': Artifact was signed with key '14f53f0824875d73' but it wasn't found in any key server so it couldn't be verified
 
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
+        }
 
         when: "refreshes the keys"
         succeeds ":compileJava", "--refresh-keys"
@@ -813,10 +853,14 @@ This can indicate that a dependency has been compromised. Please carefully verif
         fails ":compileJava"
 
         then:
-        failure.assertHasCause terse?"""Dependency verification failed for configuration ':compileClasspath'
+        assertVerificationError(terse) {
+            whenTerse """Dependency verification failed for configuration ':compileClasspath'
 One artifact failed verification: foo-1.0.jar (org:foo:1.0) from repository maven
-This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums.""":"""Dependency verification failed for configuration ':compileClasspath':
+This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
+
+            whenVerbose """Dependency verification failed for configuration ':compileClasspath':
   - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key 'd7bf96a169f77b28c934ab1614f53f0824875d73' (Gradle Test (This is used for testing the gradle-signing-plugin) <test@gradle.org>) but signature didn't match"""
+        }
 
         where:
         terse << [true, false]
@@ -862,12 +906,16 @@ This can indicate that a dependency has been compromised. Please carefully verif
         fails ":compileJava"
 
         then:
-        failure.assertHasCause terse?"""Dependency verification failed for configuration ':compileClasspath'
+        assertVerificationError(terse) {
+            whenTerse """Dependency verification failed for configuration ':compileClasspath'
 One artifact failed verification: foo-1.0.jar (org:foo:1.0) from repository maven
-If the artifacts are trustworthy, you will need to update the gradle/verification-metadata.xml file by following the instructions at ${docsUrl}""":"""Dependency verification failed for configuration ':compileClasspath':
+If the artifacts are trustworthy, you will need to update the gradle/verification-metadata.xml file by following the instructions at ${docsUrl}"""
+
+            whenVerbose """Dependency verification failed for configuration ':compileClasspath':
   - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key 'd7bf96a169f77b28c934ab1614f53f0824875d73' (Gradle Test (This is used for testing the gradle-signing-plugin) <test@gradle.org>) and passed verification but the key isn't in your trusted keys list.
 
 If the artifacts are trustworthy, you will need to update the gradle/verification-metadata.xml file by following the instructions at ${docsUrl}"""
+        }
 
         where:
         terse << [true, false]
@@ -897,11 +945,14 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
         fails ":compileJava"
 
         then:
-        failure.assertHasCause terse?"""Dependency verification failed for configuration ':compileClasspath'
+        assertVerificationError(terse) {
+            whenTerse """Dependency verification failed for configuration ':compileClasspath'
 2 artifacts failed verification:
   - foo-1.0.jar (org:foo:1.0) from repository maven
   - foo-1.0.pom (org:foo:1.0) from repository maven
-This can indicate that a dependency has been compromised. Please carefully verify the checksums.""":"""Dependency verification failed for configuration ':compileClasspath':
+This can indicate that a dependency has been compromised. Please carefully verify the checksums."""
+
+            whenVerbose """Dependency verification failed for configuration ':compileClasspath':
   - On artifact foo-1.0.jar (org:foo:1.0) multiple problems reported:
       - in repository 'maven': artifact wasn't signed
       - in repository 'maven': expected a 'sha256' checksum of 'nope' but was '20ae575ede776e5e06ee6b168652d11ee23069e92de110fdec13fbeaa5cf3bbc'
@@ -910,6 +961,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
       - in repository 'maven': expected a 'sha256' checksum of 'nope' but was 'f331cce36f6ce9ea387a2c8719fabaf67dc5a5862227ebaa13368ff84eb69481'
 
 This can indicate that a dependency has been compromised. Please carefully verify the checksums."""
+        }
 
         where:
         terse << [true, false]
@@ -942,12 +994,16 @@ This can indicate that a dependency has been compromised. Please carefully verif
         fails ":compileJava"
 
         then:
-        failure.assertHasCause terse?"""Dependency verification failed for configuration ':compileClasspath'
+        assertVerificationError(terse) {
+            whenTerse """Dependency verification failed for configuration ':compileClasspath'
 2 artifacts failed verification:
   - foo-1.0.jar (org:foo:1.0) from repository maven
-  - foo-1.0.pom (org:foo:1.0) from repository maven""":"""Dependency verification failed for configuration ':compileClasspath':
+  - foo-1.0.pom (org:foo:1.0) from repository maven"""
+
+            whenVerbose """Dependency verification failed for configuration ':compileClasspath':
   - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': checksum is missing from verification metadata.
   - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': checksum is missing from verification metadata."""
+        }
         where:
         terse << [true, false]
     }
@@ -980,12 +1036,16 @@ This can indicate that a dependency has been compromised. Please carefully verif
         fails ":compileJava"
 
         then:
-        failure.assertHasCause terse?"""Dependency verification failed for configuration ':compileClasspath'
+        assertVerificationError(terse) {
+            whenTerse """Dependency verification failed for configuration ':compileClasspath'
 2 artifacts failed verification:
   - foo-1.0.jar (org:foo:1.0) from repository maven
-  - foo-1.0.pom (org:foo:1.0) from repository maven""":"""Dependency verification failed for configuration ':compileClasspath':
+  - foo-1.0.pom (org:foo:1.0) from repository maven"""
+
+            whenVerbose """Dependency verification failed for configuration ':compileClasspath':
   - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': checksum is missing from verification metadata.
   - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': checksum is missing from verification metadata."""
+        }
 
         where:
         terse << [true, false]
@@ -1024,16 +1084,20 @@ This can indicate that a dependency has been compromised. Please carefully verif
         then:
         // jar file fails because it doesn't have any checksum declared, despite ignoring the key, which is what we want
         // and pom file fails because we didn't trust the key
-        failure.assertHasCause terse?"""Dependency verification failed for configuration ':compileClasspath'
+        assertVerificationError(terse) {
+            whenTerse """Dependency verification failed for configuration ':compileClasspath'
 2 artifacts failed verification:
   - foo-1.0.pom (org:foo:1.0) from repository maven
-  - foo-1.0.jar (org:foo:1.0) from repository maven""":"""Dependency verification failed for configuration ':compileClasspath':
+  - foo-1.0.jar (org:foo:1.0) from repository maven"""
+
+            whenVerbose """Dependency verification failed for configuration ':compileClasspath':
   - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': Artifact was signed with key 'd7bf96a169f77b28c934ab1614f53f0824875d73' (Gradle Test (This is used for testing the gradle-signing-plugin) <test@gradle.org>) and passed verification but the key isn't in your trusted keys list.
   - On artifact foo-1.0.jar (org:foo:1.0) multiple problems reported:
       - in repository 'maven': artifact was signed but all keys were ignored
       - in repository 'maven': checksum is missing from verification metadata.
 
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
+        }
 
         where:
         terse << [true, false]
@@ -1073,16 +1137,20 @@ This can indicate that a dependency has been compromised. Please carefully verif
         then:
         // jar file fails because it doesn't have any checksum declared, despite ignoring the key, which is what we want
         // and pom file fails because we didn't trust the key
-        failure.assertHasCause terse?"""Dependency verification failed for configuration ':compileClasspath'
+        assertVerificationError(terse) {
+            whenTerse """Dependency verification failed for configuration ':compileClasspath'
 2 artifacts failed verification:
   - foo-1.0.pom (org:foo:1.0) from repository maven
-  - foo-1.0.jar (org:foo:1.0) from repository maven""":"""Dependency verification failed for configuration ':compileClasspath':
+  - foo-1.0.jar (org:foo:1.0) from repository maven"""
+
+            whenVerbose """Dependency verification failed for configuration ':compileClasspath':
   - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': Artifact was signed with key 'd7bf96a169f77b28c934ab1614f53f0824875d73' (Gradle Test (This is used for testing the gradle-signing-plugin) <test@gradle.org>) and passed verification but the key isn't in your trusted keys list.
   - On artifact foo-1.0.jar (org:foo:1.0) multiple problems reported:
       - in repository 'maven': artifact was signed but all keys were ignored
       - in repository 'maven': checksum is missing from verification metadata.
 
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
+        }
 
         where:
         terse << [true, false]
@@ -1154,10 +1222,13 @@ This can indicate that a dependency has been compromised. Please carefully verif
         fails ":compileJava"
 
         then:
-        failure.assertHasCause terse?"""Dependency verification failed for configuration ':compileClasspath'
+        assertVerificationError(terse) {
+            whenTerse """Dependency verification failed for configuration ':compileClasspath'
 2 artifacts failed verification:
   - foo-1.0.jar (org:foo:1.0) from repository maven
-  - foo-1.0.pom (org:foo:1.0) from repository maven""":"""Dependency verification failed for configuration ':compileClasspath':
+  - foo-1.0.pom (org:foo:1.0) from repository maven"""
+
+            whenVerbose """Dependency verification failed for configuration ':compileClasspath':
   - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Multiple signature verification errors found:
       - Artifact was signed with key '14f53f0824875d73' but it wasn't found in any key server so it couldn't be verified
       - Artifact was signed with key '${pkId}' (test-user@gradle.com) and passed verification but the key isn't in your trusted keys list.
@@ -1166,6 +1237,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
       - Artifact was signed with key '${pkId}' (test-user@gradle.com) and passed verification but the key isn't in your trusted keys list.
 
 If the artifacts are trustworthy, you will need to update the gradle/verification-metadata.xml file by following the instructions at ${docsUrl}"""
+        }
 
         where:
         terse << [true, false]
@@ -1323,8 +1395,8 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
         fails ":help"
 
         then:
-        failure.assertHasDescription terse?"""Dependency verification failed for configuration ':compileClasspath'
-One artifact failed verification: foo-1.0.jar (org:foo:1.0) from repository maven""":"""Dependency verification failed for configuration ':compileClasspath':
+        failure.assertHasDescription terse ? """Dependency verification failed for configuration ':compileClasspath'
+One artifact failed verification: foo-1.0.jar (org:foo:1.0) from repository maven""" : """Dependency verification failed for configuration ':compileClasspath':
   - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key 'd7bf96a169f77b28c934ab1614f53f0824875d73' (Gradle Test (This is used for testing the gradle-signing-plugin) <test@gradle.org>) and passed verification but the key isn't in your trusted keys list.
 """
         where:

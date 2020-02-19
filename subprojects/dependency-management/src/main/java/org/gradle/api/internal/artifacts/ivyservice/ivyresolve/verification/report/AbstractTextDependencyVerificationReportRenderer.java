@@ -35,7 +35,7 @@ abstract class AbstractTextDependencyVerificationReportRenderer implements Depen
     }
 
     @Override
-    public void finish(DependencyVerificationReportWriter.HighLevelErrors highLevelErrors) {
+    public void finish(VerificationHighLevelErrors highLevelErrors) {
         if (highLevelErrors.isMaybeCompromised()) {
             StringBuilder sb = new StringBuilder();
             sb.append("This can indicate that a dependency has been compromised. Please carefully verify the ");

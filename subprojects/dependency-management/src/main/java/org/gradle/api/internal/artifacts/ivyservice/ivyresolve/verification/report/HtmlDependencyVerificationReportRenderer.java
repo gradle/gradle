@@ -64,18 +64,18 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
     }
 
     @Override
-    public void title(String title) {
+    public void startNewSection(String title) {
         currentSection = new Section(title);
         this.sections.add(currentSection);
     }
 
     @Override
-    public void withErrors(Runnable action) {
+    public void startArtifactErrors(Runnable action) {
         action.run();
     }
 
     @Override
-    public void withArtifact(ModuleComponentArtifactIdentifier key, Runnable action) {
+    public void startNewArtifact(ModuleComponentArtifactIdentifier key, Runnable action) {
         currentSection.newArtifact(new ArtifactErrors(key));
         action.run();
 
@@ -87,12 +87,12 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
     }
 
     @Override
-    public void multipleErrors(Runnable action) {
+    public void reportAsMultipleErrors(Runnable action) {
         action.run();
     }
 
     @Override
-    public void finish(DependencyVerificationReportWriter.HighLevelErrors highLevelErrors) {
+    public void finish(VerificationHighLevelErrors highLevelErrors) {
 
     }
 
@@ -248,9 +248,9 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
     }
 
     private void copyReportResource(File outputDirectory, String dirName, String fileName) {
-        File cssDir = new File(outputDirectory, dirName);
-        cssDir.mkdirs();
-        copyResource(fileName, new File(cssDir, fileName));
+        File targetDir = new File(outputDirectory, dirName);
+        targetDir.mkdirs();
+        copyResource(fileName, new File(targetDir, fileName));
     }
 
     private void copyResource(String name, File outputFile) {

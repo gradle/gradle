@@ -15,14 +15,22 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.report;
 
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.RepositoryAwareVerificationFailure;
-import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
+import java.io.File;
 
-interface DependencyVerificationReportRenderer {
-    void startNewSection(String title);
-    void startArtifactErrors(Runnable action);
-    void startNewArtifact(ModuleComponentArtifactIdentifier key, Runnable action);
-    void reportFailure(RepositoryAwareVerificationFailure failure);
-    void reportAsMultipleErrors(Runnable action);
-    void finish(VerificationHighLevelErrors highLevelErrors);
+public class VerificationReport {
+    private final String summary;
+    private final File htmlReport;
+
+    public VerificationReport(String summary, File htmlReport) {
+        this.summary = summary;
+        this.htmlReport = htmlReport;
+    }
+
+    public String getSummary() {
+        return summary;
+    }
+
+    public File getHtmlReport() {
+        return htmlReport;
+    }
 }
