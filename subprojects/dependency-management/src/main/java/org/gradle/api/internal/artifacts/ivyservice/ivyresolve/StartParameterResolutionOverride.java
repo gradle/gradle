@@ -35,6 +35,7 @@ import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.resources.ResourceException;
+import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
@@ -66,8 +67,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.List;
 
-import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.ChecksumAndSignatureVerificationOverride.VERBOSE_CONSOLE;
-
 public class StartParameterResolutionOverride {
     private final StartParameter startParameter;
     private final File gradleDir;
@@ -97,7 +96,7 @@ public class StartParameterResolutionOverride {
                                                                          SignatureVerificationServiceFactory signatureVerificationServiceFactory,
                                                                          DocumentationRegistry documentationRegistry,
                                                                          BuildCommencedTimeProvider timeProvider,
-                                                                         GradleProperties gradleProperties) {
+                                                                         Factory<GradleProperties> gradlePropertiesFactory) {
         List<String> checksums = startParameter.getWriteDependencyVerifications();
         if (!checksums.isEmpty()) {
             IncubationLogger.incubatingFeatureUsed("Dependency verification");
@@ -114,9 +113,8 @@ public class StartParameterResolutionOverride {
                 IncubationLogger.incubatingFeatureUsed("Dependency verification");
                 try {
                     File sessionReportDir = computeReportDirectory(timeProvider);
-                    boolean verboseConsoleReport = isVerboseConsoleReport(gradleProperties);
                     return DisablingVerificationOverride.of(
-                        new ChecksumAndSignatureVerificationOverride(buildOperationExecutor, startParameter.getGradleUserHomeDir(), verificationsFile, keyringsFile, checksumService, signatureVerificationServiceFactory, startParameter.getDependencyVerificationMode(), documentationRegistry, sessionReportDir, verboseConsoleReport)
+                        new ChecksumAndSignatureVerificationOverride(buildOperationExecutor, startParameter.getGradleUserHomeDir(), verificationsFile, keyringsFile, checksumService, signatureVerificationServiceFactory, startParameter.getDependencyVerificationMode(), documentationRegistry, sessionReportDir, gradlePropertiesFactory)
                     );
                 } catch (Exception e) {
                     return new FailureVerificationOverride(e);
@@ -124,11 +122,6 @@ public class StartParameterResolutionOverride {
             }
         }
         return DependencyVerificationOverride.NO_VERIFICATION;
-    }
-
-    private boolean isVerboseConsoleReport(GradleProperties gradleProperties) {
-        String param = gradleProperties.find(VERBOSE_CONSOLE);
-        return param != null && "verbose".equals(param);
     }
 
     public File computeReportDirectory(BuildCommencedTimeProvider timeProvider) {
