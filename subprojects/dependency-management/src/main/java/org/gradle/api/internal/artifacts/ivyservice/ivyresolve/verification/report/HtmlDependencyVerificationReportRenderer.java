@@ -266,7 +266,7 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
         contents.append("<a class=\"uk-accordion-title\" href=\"#\">").append(section.title)
             .append("&nbsp;<span class=\"uk-badge\">")
             .append(size)
-            .append(size == 1 ? " error" : " errors")
+            .append(size < 2 ? " error" : " errors")
             .append("</span></a>");
     }
 
@@ -294,8 +294,8 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
     private void formatError(ModuleComponentArtifactIdentifier key, RepositoryAwareVerificationFailure failure) {
         VerificationFailure vf = failure.getFailure();
         contents.append("        <tr>\n");
-        reportItem(key.getComponentIdentifier().getDisplayName(), true);
-        reportItem(createFileLink(key, vf, failure.getRepositoryName()), true);
+        reportItem(key.getComponentIdentifier().getDisplayName());
+        reportItem(createFileLink(key, vf, failure.getRepositoryName()));
         contents.append("            <td>\n");
         reportSignatureProblems(vf);
         reportChecksumProblems(vf);
@@ -397,14 +397,7 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
     }
 
     private void reportItem(String item) {
-        reportItem(item, false);
-    }
-
-    private void reportItem(String item, boolean noWrap) {
-        contents.append("            <td");
-        if (noWrap) {
-            contents.append(" class=\"uk-text-nowrap\"");
-        }
+        contents.append("            <td class=\"uk-text-nowrap\"");
         contents.append(">").append(item).append("</td>\n");
     }
 
@@ -443,10 +436,6 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
 
         void addFailure(RepositoryAwareVerificationFailure failure) {
             failures.add(failure);
-        }
-
-        boolean isFatal() {
-            return failures.stream().anyMatch(e -> e.getFailure().isFatal());
         }
     }
 

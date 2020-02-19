@@ -21,7 +21,7 @@ public class RepositoryAwareVerificationFailure {
     private final VerificationFailure failure;
     private final String repositoryName;
 
-    RepositoryAwareVerificationFailure(VerificationFailure failure, String repositoryName) {
+    public RepositoryAwareVerificationFailure(VerificationFailure failure, String repositoryName) {
         this.failure = failure;
         this.repositoryName = repositoryName;
     }
@@ -32,5 +32,13 @@ public class RepositoryAwareVerificationFailure {
 
     public String getRepositoryName() {
         return repositoryName;
+    }
+
+    @Override
+    public String toString() {
+        return "RepositoryAwareVerificationFailure{" +
+            "failure=" + failure +
+            ", repositoryName='" + repositoryName + '\'' +
+            '}';
     }
 }
