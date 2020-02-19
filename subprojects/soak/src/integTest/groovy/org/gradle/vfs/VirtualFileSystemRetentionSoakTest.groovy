@@ -16,15 +16,15 @@
 
 package org.gradle.vfs
 
+import org.gradle.integtests.fixtures.VfsRetentionFixture
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.internal.service.scopes.VirtualFileSystemServices
 import org.gradle.soak.categories.SoakTest
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.experimental.categories.Category
 
 @Category(SoakTest)
-class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec {
+class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec implements VfsRetentionFixture {
 
     private static final int NUMBER_OF_SUBPROJECTS = 50
     private static final int NUMBER_OF_SOURCES_PER_SUBPROJECT = 100
@@ -57,7 +57,7 @@ class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec {
         }
 
         executer.beforeExecute {
-            withArgument("-D${VirtualFileSystemServices.VFS_RETENTION_ENABLED_PROPERTY}=true")
+            withRetention()
         }
     }
 
@@ -115,10 +115,6 @@ class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec {
             return numberOfChangedFiles * numberOfChangesPerFile * LOST_EVENTS_RATIO_WINDOWS
         }
         throw new AssertionError("Test not supported on OS ${currentOs}")
-    }
-
-    private static void waitForChangesToBePickedUp() {
-        Thread.sleep(1000)
     }
 
     private void changeAllSourceFiles(int iteration) {
