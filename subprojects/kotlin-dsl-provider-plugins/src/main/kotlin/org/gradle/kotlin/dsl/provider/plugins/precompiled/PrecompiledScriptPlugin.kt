@@ -20,12 +20,12 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
-import org.gradle.internal.hash.Hashing
 
+import org.gradle.kotlin.dsl.precompile.PrecompiledScriptDependenciesResolver
 import org.gradle.kotlin.dsl.support.KotlinScriptType
 import org.gradle.kotlin.dsl.support.KotlinScriptTypeMatch
 
-import org.gradle.util.TextUtil.normaliseLineSeparators
+import org.gradle.util.TextUtil.convertLineSeparatorsToUnix
 
 import org.jetbrains.kotlin.lexer.KotlinLexer
 import org.jetbrains.kotlin.lexer.KtTokens
@@ -97,15 +97,15 @@ data class PrecompiledScriptPlugin(internal val scriptFile: File) {
     }
 
     val packageName: String? by lazy {
-        packageNameOf(scriptFile)
+        packageNameOf(scriptText)
     }
 
     val hashString by lazy {
-        Hashing.hashString(scriptText).toString()
+        PrecompiledScriptDependenciesResolver.hashOfNormalisedString(scriptText)
     }
 
     val scriptText: String
-        get() = scriptFile.readText()
+        get() = convertLineSeparatorsToUnix(scriptFile.readText())
 
     private
     fun packagePrefixed(id: String) =
@@ -114,12 +114,8 @@ data class PrecompiledScriptPlugin(internal val scriptFile: File) {
 
 
 internal
-fun scriptPluginFilesOf(list: List<PrecompiledScriptPlugin>) = list.map { it.scriptFile }.toSet()
-
-
-private
-fun packageNameOf(file: File): String? =
-    packageNameOf(normaliseLineSeparators(file.readText()))
+fun scriptPluginFilesOf(list: List<PrecompiledScriptPlugin>) =
+    list.map { it.scriptFile }.toSet()
 
 
 private
