@@ -17,8 +17,9 @@
 package org.gradle.model.dsl
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 
+@UnsupportedWithInstantExecution(because = "software model")
 class ModelMapDslIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         buildFile << '''
@@ -291,7 +292,6 @@ model {
         succeeds "model"
     }
 
-    @ToBeFixedForInstantExecution
     def "can create and configure elements dynamically"() {
         buildFile << '''
 model {
@@ -325,7 +325,6 @@ model {
         outputContains("value = [[a:foo], [b:foo], [c:foo], foo]")
     }
 
-    @ToBeFixedForInstantExecution
     def "can create and configure elements conditionally"() {
         buildFile << '''
 model {

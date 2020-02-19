@@ -17,8 +17,10 @@
 package org.gradle.language.base
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import spock.lang.Issue
 
+@UnsupportedWithInstantExecution(because = "software model")
 class CustomComponentBinariesWithComponentReferenceIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("https://issues.gradle.org/browse/GRADLE-3422")

@@ -18,15 +18,15 @@ package org.gradle.execution.taskgraph
 
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.model.internal.core.ModelPath
 
+@UnsupportedWithInstantExecution(because = "software model")
 class RuleTaskCreationIntegrationTest extends AbstractIntegrationSpec implements WithRuleBasedTasks {
     def setup() {
         buildFile << ruleBasedTasks()
     }
 
-    @ToBeFixedForInstantExecution
     def "can use rule method to create tasks from model"() {
         given:
         buildFile << """
@@ -67,7 +67,6 @@ class RuleTaskCreationIntegrationTest extends AbstractIntegrationSpec implements
         output.contains "b - task b"
     }
 
-    @ToBeFixedForInstantExecution
     def "can use rule DSL to create tasks"() {
         given:
         buildFile << """
@@ -469,7 +468,6 @@ foo configured
         failure.assertHasCause("Cannot create 'tasks.a' using creation rule 'MyPlugin#addTasks2(ModelMap<Task>, MyModel) > create(a)' as the rule 'MyPlugin#addTasks1(ModelMap<Task>, MyModel) > create(a)' is already registered to create this model element.")
     }
 
-    @ToBeFixedForInstantExecution
     def "cannot create tasks during config of task"() {
         given:
         buildFile << """
@@ -493,7 +491,6 @@ foo configured
         failure.assertHasCause("Attempt to modify a closed view of model element 'tasks' of type 'ModelMap<Task>' given to rule MyPlugin#addTasks(ModelMap<Task>)")
     }
 
-    @ToBeFixedForInstantExecution
     def "failure during task instantiation is reasonably reported"() {
         given:
         buildFile << """
@@ -521,7 +518,6 @@ foo configured
         failure.assertHasCause("Could not create task of type 'Faulty'")
     }
 
-    @ToBeFixedForInstantExecution
     def "failure during task initial configuration is reasonably reported"() {
         given:
         buildFile << """
@@ -545,7 +541,6 @@ foo configured
         failure.assertHasCause("config failure")
     }
 
-    @ToBeFixedForInstantExecution
     def "failure during task configuration is reasonably reported"() {
         given:
         buildFile << """

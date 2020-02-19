@@ -17,17 +17,17 @@
 package org.gradle.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.integtests.fixtures.UsesSample
 import org.junit.Rule
 
+@UnsupportedWithInstantExecution(because = "software model")
 class ModelRuleSamplesIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule Sample sample = new Sample(testDirectoryProvider)
 
     @UsesSample("modelRules/modelDsl")
-    @ToBeFixedForInstantExecution
     def "dsl creation example works"() {
         when:
         sample sample

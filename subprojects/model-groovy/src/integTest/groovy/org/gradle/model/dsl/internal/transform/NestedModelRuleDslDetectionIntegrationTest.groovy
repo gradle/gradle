@@ -17,7 +17,9 @@
 package org.gradle.model.dsl.internal.transform
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 
+@UnsupportedWithInstantExecution(because = "software model")
 class NestedModelRuleDslDetectionIntegrationTest extends AbstractIntegrationSpec {
     def "rules can contain arbitrary code that includes closures that look like nested rules"() {
         buildFile << '''

@@ -18,10 +18,11 @@ package org.gradle.jvm
 
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
+@UnsupportedWithInstantExecution(because = "software model")
 class JarBinariesIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         buildFile << """
@@ -59,7 +60,6 @@ class JarBinariesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Requires(TestPrecondition.JDK8_OR_EARLIER)
-    @ToBeFixedForInstantExecution
     def "assemble task produces sensible error when there are no buildable binaries" () {
         buildFile << """
             model {

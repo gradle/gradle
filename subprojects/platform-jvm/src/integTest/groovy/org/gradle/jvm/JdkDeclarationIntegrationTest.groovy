@@ -20,10 +20,12 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.internal.jvm.JavaInfo
 import org.gradle.internal.jvm.Jvm
 import spock.lang.Unroll
 
+@UnsupportedWithInstantExecution(because = "software model")
 class JdkDeclarationIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
