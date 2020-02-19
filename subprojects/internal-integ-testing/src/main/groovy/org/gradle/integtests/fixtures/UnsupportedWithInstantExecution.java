@@ -33,6 +33,8 @@ import java.lang.annotation.Target;
 @ExtensionAnnotation(UnsupportedWithInstantExecutionExtension.class)
 public @interface UnsupportedWithInstantExecution {
 
+    String because() default "";
+
     String[] bottomSpecs() default {};
 
     /**
