@@ -21,16 +21,10 @@ import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
-import org.gradle.integtests.fixtures.ToBeFixedForVfsRetention
-import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
 
 import java.util.regex.Pattern
 
-@ToBeFixedForVfsRetention(
-    because = "https://github.com/gradle/gradle/issues/12219",
-    failsOnlyIf = TestPrecondition.MAC_OS_X
-)
 class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture, DirectoryBuildCacheFixture {
     def "transform does not execute when project artifact cannot be built"() {
         settingsFile << "include 'a', 'b', 'c'"
