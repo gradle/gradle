@@ -23,6 +23,8 @@ import org.gradle.api.internal.artifacts.verification.verifier.DeletedArtifact;
 import org.gradle.api.internal.artifacts.verification.verifier.MissingChecksums;
 import org.gradle.api.internal.artifacts.verification.verifier.SignatureVerificationFailure;
 import org.gradle.api.internal.artifacts.verification.verifier.VerificationFailure;
+import org.gradle.api.internal.properties.GradleProperties;
+import org.gradle.internal.Factory;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 
 import java.io.File;
@@ -33,27 +35,38 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.ChecksumAndSignatureVerificationOverride.VERBOSE_CONSOLE;
+
 public class DependencyVerificationReportWriter {
     private static final Comparator<Map.Entry<ModuleComponentArtifactIdentifier, Collection<RepositoryAwareVerificationFailure>>> DELETED_LAST = Comparator.comparing(e -> e.getValue().stream().anyMatch(f -> f.getFailure() instanceof DeletedArtifact) ? 1 : 0);
     private static final Comparator<Map.Entry<ModuleComponentArtifactIdentifier, Collection<RepositoryAwareVerificationFailure>>> MISSING_LAST = Comparator.comparing(e -> e.getValue().stream().anyMatch(f -> f.getFailure() instanceof MissingChecksums) ? 1 : 0);
     private static final Comparator<Map.Entry<ModuleComponentArtifactIdentifier, Collection<RepositoryAwareVerificationFailure>>> BY_MODULE_ID = Comparator.comparing(e -> e.getKey().getDisplayName());
 
     private final Path gradleUserHome;
-    private final AbstractTextDependencyVerificationReportRenderer summaryRenderer;
-    private final HtmlDependencyVerificationReportRenderer htmlRenderer;
+    private Runnable rendererInitializer;
+    private AbstractTextDependencyVerificationReportRenderer summaryRenderer;
+    private HtmlDependencyVerificationReportRenderer htmlRenderer;
 
     public DependencyVerificationReportWriter(Path gradleUserHome,
                                               DocumentationRegistry documentationRegistry,
                                               File verificationFile,
                                               List<String> writeFlags,
                                               File htmlReportOutputDirectory,
-                                              boolean verboseConsoleReport) {
+                                              Factory<GradleProperties> gradlePropertiesProvider) {
         this.gradleUserHome = gradleUserHome;
-        this.summaryRenderer = createConsoleRenderer(gradleUserHome, documentationRegistry, verboseConsoleReport);
-        this.htmlRenderer = new HtmlDependencyVerificationReportRenderer(documentationRegistry, verificationFile, writeFlags, htmlReportOutputDirectory);
+        this.rendererInitializer = () -> {
+            this.summaryRenderer = createConsoleRenderer(gradleUserHome, documentationRegistry, gradlePropertiesProvider.create());
+            this.htmlRenderer = new HtmlDependencyVerificationReportRenderer(documentationRegistry, verificationFile, writeFlags, htmlReportOutputDirectory);
+        };
     }
 
-    public AbstractTextDependencyVerificationReportRenderer createConsoleRenderer(Path gradleUserHome, DocumentationRegistry documentationRegistry, boolean verboseConsoleReport) {
+    private static boolean isVerboseConsoleReport(GradleProperties gradleProperties) {
+        String param = gradleProperties.find(VERBOSE_CONSOLE);
+        return param != null && "verbose".equals(param);
+    }
+
+    private AbstractTextDependencyVerificationReportRenderer createConsoleRenderer(Path gradleUserHome, DocumentationRegistry documentationRegistry, GradleProperties gradleProperties) {
+        boolean verboseConsoleReport = isVerboseConsoleReport(gradleProperties);
         if (verboseConsoleReport) {
             return new TextDependencyVerificationReportRenderer(gradleUserHome, documentationRegistry);
         }
@@ -61,13 +74,21 @@ public class DependencyVerificationReportWriter {
     }
 
     public Report generateReport(String displayName,
-                                 Multimap<ModuleComponentArtifactIdentifier, RepositoryAwareVerificationFailure> failuresByArtifact) {
+                                              Multimap<ModuleComponentArtifactIdentifier, RepositoryAwareVerificationFailure> failuresByArtifact) {
+        assertInitialized();
         // We need at least one fatal failure: if it's only "warnings" we don't care
         // but of there's a fatal failure AND a warning we want to show both
         doRender(displayName, failuresByArtifact, summaryRenderer);
         doRender(displayName, failuresByArtifact, htmlRenderer);
         File htmlReport = htmlRenderer.writeReport();
         return new Report(summaryRenderer.render(), htmlReport);
+    }
+
+    public synchronized void assertInitialized() {
+        if (rendererInitializer != null) {
+            rendererInitializer.run();
+            rendererInitializer = null;
+        }
     }
 
     public void doRender(String displayName, Multimap<ModuleComponentArtifactIdentifier, RepositoryAwareVerificationFailure> failuresByArtifact, DependencyVerificationReportRenderer renderer) {

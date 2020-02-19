@@ -462,8 +462,8 @@ class DependencyManagementBuildScopeServices {
                                                                         DocumentationRegistry documentationRegistry,
                                                                         ListenerManager listenerManager,
                                                                         BuildCommencedTimeProvider timeProvider,
-                                                                        GradleProperties gradleProperties) {
-        DependencyVerificationOverride override = startParameterResolutionOverride.dependencyVerificationOverride(buildOperationExecutor, checksumService, signatureVerificationServiceFactory, documentationRegistry, timeProvider, gradleProperties);
+                                                                        ServiceRegistry serviceRegistry) {
+        DependencyVerificationOverride override = startParameterResolutionOverride.dependencyVerificationOverride(buildOperationExecutor, checksumService, signatureVerificationServiceFactory, documentationRegistry, timeProvider, () -> serviceRegistry.get(GradleProperties.class));
         registerBuildFinishedHooks(listenerManager, override);
         return override;
     }

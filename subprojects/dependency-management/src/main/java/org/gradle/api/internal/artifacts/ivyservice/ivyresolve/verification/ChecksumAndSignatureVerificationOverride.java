@@ -35,6 +35,7 @@ import org.gradle.api.internal.artifacts.verification.serializer.DependencyVerif
 import org.gradle.api.internal.artifacts.verification.signatures.SignatureVerificationService;
 import org.gradle.api.internal.artifacts.verification.signatures.SignatureVerificationServiceFactory;
 import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifier;
+import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Factory;
@@ -84,7 +85,7 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
                                                     DependencyVerificationMode verificationMode,
                                                     DocumentationRegistry documentationRegistry,
                                                     File reportsDirectory,
-                                                    boolean useVerboseConsoleReport) {
+                                                    Factory<GradleProperties> gradlePropertiesFactory) {
         this.buildOperationExecutor = buildOperationExecutor;
         this.checksumService = checksumService;
         this.verificationMode = verificationMode;
@@ -92,7 +93,7 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
             this.verifier = DependencyVerificationsXmlReader.readFromXml(
                 new FileInputStream(verificationsFile)
             );
-            this.reportWriter = new DependencyVerificationReportWriter(gradleUserHome.toPath(), documentationRegistry, verificationsFile, ImmutableList.copyOf(suggestedWriteFlags()), reportsDirectory, useVerboseConsoleReport);
+            this.reportWriter = new DependencyVerificationReportWriter(gradleUserHome.toPath(), documentationRegistry, verificationsFile, ImmutableList.copyOf(suggestedWriteFlags()), reportsDirectory, gradlePropertiesFactory);
         } catch (FileNotFoundException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         } catch (InvalidUserDataException e) {
