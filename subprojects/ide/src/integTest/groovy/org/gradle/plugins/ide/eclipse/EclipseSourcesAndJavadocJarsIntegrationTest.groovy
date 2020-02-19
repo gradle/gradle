@@ -40,12 +40,6 @@ class EclipseSourcesAndJavadocJarsIntegrationTest extends AbstractSourcesAndJava
         }
     }
 
-    @Override
-    void ideFileContainsGradleApi(String apiJarPrefix) {
-        def apiLib = findApiLibrary(apiJarPrefix)
-        assert apiLib.sourcePath == null
-    }
-
     EclipseClasspathFixture.EclipseLibrary findApiLibrary(String apiJarPrefix) {
         def classpath = EclipseClasspathFixture.create(testDirectory, executer.gradleUserHomeDir)
         def libs = classpath.libs

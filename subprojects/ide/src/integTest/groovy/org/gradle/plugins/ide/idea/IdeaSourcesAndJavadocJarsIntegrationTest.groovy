@@ -33,12 +33,6 @@ class IdeaSourcesAndJavadocJarsIntegrationTest extends AbstractSourcesAndJavadoc
         libraryEntry.assertHasJavadoc(javadocs)
     }
 
-    @Override
-    void ideFileContainsGradleApi(String apiJarPrefix) {
-        def libraryEntry = findApiLibrary(apiJarPrefix)
-        assert libraryEntry.source.empty
-    }
-
     IdeaModuleFixture.ImlModuleLibrary findApiLibrary(String apiJarPrefix) {
         IdeaModuleFixture iml =  parseIml("root.iml")
         def libraryEntry = iml.dependencies.libraries.find { it.jarName.startsWith(apiJarPrefix) }
