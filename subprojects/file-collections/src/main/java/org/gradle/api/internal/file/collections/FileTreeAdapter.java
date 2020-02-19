@@ -16,6 +16,7 @@
 package org.gradle.api.internal.file.collections;
 
 import org.gradle.api.Buildable;
+import org.gradle.api.file.DirectoryTree;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.AbstractFileTree;
@@ -59,7 +60,7 @@ public class FileTreeAdapter extends AbstractFileTree implements FileCollectionC
     }
 
     @Override
-    protected Collection<DirectoryFileTree> getAsFileTrees() {
+    protected Collection<DirectoryTree> getAsFileTrees() {
         if (tree instanceof FileSystemMirroringFileTree) {
             FileSystemMirroringFileTree mirroringTree = (FileSystemMirroringFileTree) tree;
             if (visitAll()) {
@@ -113,32 +114,6 @@ public class FileTreeAdapter extends AbstractFileTree implements FileCollectionC
 
     @Override
     public void visitStructure(FileCollectionStructureVisitor visitor) {
-        if (tree instanceof GeneratedSingletonFileTree) {
-            GeneratedSingletonFileTree singletonFileTree = (GeneratedSingletonFileTree) tree;
-            if (visitor.prepareForVisit(singletonFileTree) == FileCollectionStructureVisitor.VisitType.NoContents) {
-                visitor.visitCollection(singletonFileTree, Collections.emptyList());
-            } else {
-                visitor.visitFileTree(singletonFileTree.getFile(), singletonFileTree.getPatterns(), this);
-            }
-            return;
-        }
-
-        if (visitor.prepareForVisit(OTHER) == FileCollectionStructureVisitor.VisitType.NoContents) {
-            return;
-        }
-        if (tree instanceof DirectoryFileTree) {
-            DirectoryFileTree directoryFileTree = (DirectoryFileTree) tree;
-            visitor.visitFileTree(directoryFileTree.getDir(), directoryFileTree.getPatterns(), this);
-        } else if (tree instanceof ArchiveFileTree) {
-            ArchiveFileTree archiveFileTree = (ArchiveFileTree) tree;
-            File backingFile = archiveFileTree.getBackingFile();
-            if (backingFile != null) {
-                visitor.visitFileTreeBackedByFile(backingFile, this);
-            } else {
-                visitor.visitGenericFileTree(this);
-            }
-        } else {
-            visitor.visitGenericFileTree(this);
-        }
+        tree.visitStructure(visitor, this);
     }
 }

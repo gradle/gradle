@@ -16,11 +16,14 @@
 package org.gradle.api.internal.file.collections;
 
 import org.gradle.api.GradleException;
+import org.gradle.api.file.DirectoryTree;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.DefaultFileVisitDetails;
+import org.gradle.api.internal.file.FileCollectionStructureVisitor;
+import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.pattern.PatternStep;
 import org.gradle.api.internal.file.pattern.PatternStepFactory;
 import org.gradle.api.specs.Spec;
@@ -31,6 +34,8 @@ import org.gradle.internal.nativeintegration.services.FileSystems;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -41,7 +46,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * exhaustively scan a directory hierarchy if, and from the point where,
  * a '**' pattern is encountered.
  */
-public class SingleIncludePatternFileTree implements MinimalFileTree {
+public class SingleIncludePatternFileTree implements MinimalFileTree, LocalFileTree, DirectoryTree {
     private final File baseDir;
     private final String includePattern;
     private final List<String> patternSegments;
@@ -49,7 +54,7 @@ public class SingleIncludePatternFileTree implements MinimalFileTree {
     private final FileSystem fileSystem = FileSystems.getDefault();
 
     public SingleIncludePatternFileTree(File baseDir, String includePattern) {
-        this(baseDir, includePattern, Specs.<FileTreeElement>satisfyNone());
+        this(baseDir, includePattern, Specs.satisfyNone());
     }
 
     public SingleIncludePatternFileTree(File baseDir, String includePattern, Spec<FileTreeElement> excludeSpec) {
@@ -63,8 +68,28 @@ public class SingleIncludePatternFileTree implements MinimalFileTree {
     }
 
     @Override
+    public File getDir() {
+        return baseDir;
+    }
+
+    @Override
+    public PatternSet getPatterns() {
+        return new PatternSet().include(includePattern).exclude(excludeSpec);
+    }
+
+    @Override
+    public Collection<DirectoryTree> getLocalContents() {
+        return Collections.singletonList(this);
+    }
+
+    @Override
+    public void visitStructure(FileCollectionStructureVisitor visitor, FileTreeInternal owner) {
+        visitor.visitFileTree(baseDir, getPatterns(), owner);
+    }
+
+    @Override
     public void visit(FileVisitor visitor) {
-        doVisit(visitor, baseDir, new LinkedList<String>(), 0, new AtomicBoolean());
+        doVisit(visitor, baseDir, new LinkedList<>(), 0, new AtomicBoolean());
     }
 
     private void doVisit(FileVisitor visitor, File file, LinkedList<String> relativePath, int segmentIndex, AtomicBoolean stopFlag) {

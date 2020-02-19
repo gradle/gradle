@@ -78,7 +78,7 @@ public class GeneratedSingletonFileTreeTest {
     }
 
     @Test
-    public void doesNotOverwriteFileWhenGeneratedContentRemainsTheSame() throws InterruptedException {
+    public void doesNotOverwriteFileWhenGeneratedContentRemainsTheSame() {
         Action<OutputStream> action = getAction();
         MinimalFileTree tree = tree("file.txt", action);
 
