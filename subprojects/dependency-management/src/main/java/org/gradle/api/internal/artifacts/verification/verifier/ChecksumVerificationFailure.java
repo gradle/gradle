@@ -26,7 +26,7 @@ public class ChecksumVerificationFailure extends AbstractVerificationFailure {
     private final String expected;
     private final String actual;
 
-    ChecksumVerificationFailure(File file, ChecksumKind kind, String expected, String actual) {
+    public ChecksumVerificationFailure(File file, ChecksumKind kind, String expected, String actual) {
         super(file);
         this.kind = kind;
         this.expected = expected;
