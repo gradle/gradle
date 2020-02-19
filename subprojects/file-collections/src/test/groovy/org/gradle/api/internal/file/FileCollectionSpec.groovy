@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,18 @@
 
 package org.gradle.api.internal.file
 
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 
+import static org.gradle.api.tasks.AntBuilderAwareUtil.assertSetContains
+import static org.gradle.api.tasks.AntBuilderAwareUtil.assertSetContainsForFileSet
+import static org.gradle.api.tasks.AntBuilderAwareUtil.assertSetContainsForMatchingTask
+import static org.gradle.util.WrapUtil.toSet
+
+@UsesNativeServices // via DirectoryFileTree
 abstract class FileCollectionSpec extends Specification {
     @Rule
     final TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider()
@@ -78,5 +86,48 @@ abstract class FileCollectionSpec extends Specification {
         expect:
         elements.present
         elements.get()*.asFile == [file1, file2]
+    }
+
+    void canAddToAntBuilderAsResourceCollection() {
+        File file1 = new File("f1")
+        File file2 = new File("f2")
+        def collection = containing(file1, file2)
+
+        expect:
+        assertSetContains(collection, toSet("f1", "f2"))
+    }
+
+    void includesOnlyExistingFilesWhenAddedToAntBuilderAsAFileSetOrMatchingTask() {
+        TestFile testDir = this.testDir.getTestDirectory()
+        TestFile file1 = testDir.file("f1").createFile()
+        TestFile dir1 = testDir.file("dir1").createDir()
+        TestFile file2 = dir1.file("f2").createFile()
+        TestFile missing = testDir.file("f3")
+        testDir.file("f2").createFile()
+        testDir.file("ignored1").createFile()
+        dir1.file("f1").createFile()
+        dir1.file("ignored1").createFile()
+        def collection = containing(file1, file2, dir1, missing)
+
+        expect:
+        assertSetContainsForFileSet(collection, toSet("f1", "f2"))
+        assertSetContainsForMatchingTask(collection, toSet("f1", "f2"))
+    }
+
+    void includesFilesAndContentsOfDirectoriesWhenConvertedToTreeAndAddedToAntBuilder() {
+        TestFile testDir = this.testDir.getTestDirectory()
+        TestFile file1 = testDir.file("f1").createFile()
+        TestFile dir1 = testDir.file("dir1").createDir()
+        dir1.file("f2").createFile()
+        dir1.file("subdir/f2").createFile()
+        TestFile missing = testDir.file("f3")
+        testDir.file("f2").createFile()
+        testDir.file("ignored1").createFile()
+        def collection = containing(file1, dir1, missing)
+        def tree = collection.asFileTree
+
+        expect:
+        assertSetContainsForFileSet(tree, toSet("f1", "f2", "subdir/f2"))
+        assertSetContainsForMatchingTask(tree, toSet("f1", "f2", "subdir/f2"))
     }
 }

@@ -121,6 +121,19 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         file("build/reports/checkstyle/main.html").assertContents(containsClass("org.gradle.class2"))
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/12270")
+    @ToBeFixedForInstantExecution
+    def "can analyse a single source file"() {
+        buildFile << """
+            checkstyleMain.source = ['src/main/java/org/gradle/Class1.java']
+        """
+        goodCode()
+
+        expect:
+        succeeds('check')
+        file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.Class1"))
+    }
+
     @ToBeFixedForInstantExecution
     def "can suppress console output"() {
         def message = "Name 'class1' must match pattern"

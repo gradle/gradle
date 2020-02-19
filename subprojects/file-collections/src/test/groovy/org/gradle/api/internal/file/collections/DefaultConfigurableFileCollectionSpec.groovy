@@ -21,11 +21,11 @@ import org.gradle.api.internal.file.AbstractFileCollection
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileCollectionSpec
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.tasks.DefaultTaskDependency
 import org.gradle.api.internal.tasks.TaskDependencyFactory
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.internal.tasks.TaskResolver
-import org.gradle.internal.Factory
 
 import java.util.concurrent.Callable
 
@@ -33,7 +33,7 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
 
     def fileResolver = Mock(FileResolver)
     def taskResolver = Mock(TaskResolver)
-    def patternSetFactory = Mock(Factory)
+    def patternSetFactory = TestFiles.patternSetFactory
     def taskDependencyFactory = Stub(TaskDependencyFactory) {
         _ * configurableDependency() >> new DefaultTaskDependency(taskResolver)
     }

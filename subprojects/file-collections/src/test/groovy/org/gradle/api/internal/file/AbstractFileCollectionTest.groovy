@@ -22,14 +22,9 @@ import org.gradle.api.file.FileVisitorUtil
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
-import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GUtil
 import org.gradle.util.TestUtil
-import org.gradle.util.UsesNativeServices
 
-import static org.gradle.api.tasks.AntBuilderAwareUtil.assertSetContains
-import static org.gradle.api.tasks.AntBuilderAwareUtil.assertSetContainsForFileSet
-import static org.gradle.api.tasks.AntBuilderAwareUtil.assertSetContainsForMatchingTask
 import static org.gradle.util.Matchers.isEmpty
 import static org.gradle.util.WrapUtil.toLinkedSet
 import static org.gradle.util.WrapUtil.toList
@@ -38,7 +33,6 @@ import static org.hamcrest.CoreMatchers.equalTo
 import static org.hamcrest.core.IsInstanceOf.instanceOf
 import static org.junit.Assert.assertThat
 
-@UsesNativeServices
 class AbstractFileCollectionTest extends FileCollectionSpec {
     final TaskDependency dependency = Mock(TaskDependency.class)
 
@@ -213,32 +207,6 @@ class AbstractFileCollectionTest extends FileCollectionSpec {
 
         then:
         difference.files == toLinkedSet(file1)
-    }
-
-    void canAddToAntBuilderAsResourceCollection() {
-        File file1 = new File("f1")
-        File file2 = new File("f2")
-        TestFileCollection collection = new TestFileCollection(file1, file2)
-
-        expect:
-        assertSetContains(collection, toSet("f1", "f2"))
-    }
-
-    void includesOnlyExistingFilesWhenAddedToAntBuilderAsAFileSetOrMatchingTask() {
-        TestFile testDir = this.testDir.getTestDirectory()
-        TestFile file1 = testDir.file("f1").touch()
-        TestFile dir1 = testDir.file("dir1").createDir()
-        TestFile file2 = dir1.file("f2").touch()
-        TestFile missing = testDir.file("f3")
-        testDir.file("f2").touch()
-        testDir.file("ignored1").touch()
-        dir1.file("f1").touch()
-        dir1.file("ignored1").touch()
-        TestFileCollection collection = new TestFileCollection(file1, file2, dir1, missing)
-
-        expect:
-        assertSetContainsForFileSet(collection, toSet("f1", "f2"))
-        assertSetContainsForMatchingTask(collection, toSet("f1", "f2"))
     }
 
     void canConvertToCollectionTypes() {
