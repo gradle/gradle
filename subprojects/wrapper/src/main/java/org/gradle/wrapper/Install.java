@@ -157,8 +157,7 @@ public class Install {
                         + "  Actual checksum: '%s'%n",
                     sourceUrl, localZipFile.getAbsolutePath(), expectedSum, actualSum
                 );
-                System.err.println(message);
-                System.exit(1);
+                throw new RuntimeException(message);
             }
         }
     }
