@@ -52,12 +52,13 @@ class HtmlDependencyVerificationReportRendererTest extends Specification {
 
     @Rule
     TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+
     File verificationFile = temporaryFolder.createFile("verification-metadata.xml")
     File reportsDir = temporaryFolder.testDirectory
     File currentReportDir
     File currentReportFile
-
     GPathResult report
+
     @Subject
     HtmlDependencyVerificationReportRenderer renderer = new HtmlDependencyVerificationReportRenderer(
         Mock(DocumentationRegistry),
@@ -83,7 +84,7 @@ class HtmlDependencyVerificationReportRendererTest extends Specification {
 
     def "can add different sections"() {
         given:
-        renderer.title("First section")
+        renderer.startNewSection("First section")
 
         when:
         generateReport()
@@ -93,7 +94,7 @@ class HtmlDependencyVerificationReportRendererTest extends Specification {
         bodyContainsExact("First section 0 error")
 
         when:
-        renderer.title("Second section")
+        renderer.startNewSection("Second section")
         generateReport()
 
         then:
@@ -106,8 +107,8 @@ class HtmlDependencyVerificationReportRendererTest extends Specification {
     @Unroll("reports verification errors (#failure)")
     def "reports verification errors"() {
         given:
-        renderer.title(":someConfiguration")
-        renderer.withArtifact(artifact()) {
+        renderer.startNewSection(":someConfiguration")
+        renderer.startNewArtifact(artifact()) {
             renderer.reportFailure(failure)
         }
 
@@ -139,12 +140,12 @@ class HtmlDependencyVerificationReportRendererTest extends Specification {
 
     def "reports multiple verification errors on single configuration"() {
         given:
-        renderer.title(":someConfiguration")
-        renderer.withArtifact(artifact()) {
+        renderer.startNewSection(":someConfiguration")
+        renderer.startNewArtifact(artifact()) {
             renderer.reportFailure(checksumFailure())
             renderer.reportFailure(missingSignature())
         }
-        renderer.withArtifact(artifact("com", "acme", "2.0", "acme-2.0.pom")) {
+        renderer.startNewArtifact(artifact("com", "acme", "2.0", "acme-2.0.pom")) {
             renderer.reportFailure(onlyIgnoredKeys("Ivy"))
         }
 
@@ -176,13 +177,13 @@ class HtmlDependencyVerificationReportRendererTest extends Specification {
 
     def "reports multiple verification errors on different configurations"() {
         given:
-        renderer.title(":someConfiguration")
-        renderer.withArtifact(artifact()) {
+        renderer.startNewSection(":someConfiguration")
+        renderer.startNewArtifact(artifact()) {
             renderer.reportFailure(checksumFailure())
             renderer.reportFailure(missingSignature())
         }
-        renderer.title(":other:configuration")
-        renderer.withArtifact(artifact("com", "acme", "2.0", "acme-2.0.pom")) {
+        renderer.startNewSection(":other:configuration")
+        renderer.startNewArtifact(artifact("com", "acme", "2.0", "acme-2.0.pom")) {
             renderer.reportFailure(onlyIgnoredKeys("Ivy"))
         }
 

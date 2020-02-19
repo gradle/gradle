@@ -15,14 +15,15 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.report;
 
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.RepositoryAwareVerificationFailure;
-import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
+import java.util.Set;
 
-interface DependencyVerificationReportRenderer {
-    void startNewSection(String title);
-    void startArtifactErrors(Runnable action);
-    void startNewArtifact(ModuleComponentArtifactIdentifier key, Runnable action);
-    void reportFailure(RepositoryAwareVerificationFailure failure);
-    void reportAsMultipleErrors(Runnable action);
-    void finish(VerificationHighLevelErrors highLevelErrors);
+interface VerificationHighLevelErrors {
+
+    boolean isMaybeCompromised();
+
+    boolean hasFailedSignatures();
+
+    boolean canSuggestWriteMetadata();
+
+    Set<String> getAffectedFiles();
 }

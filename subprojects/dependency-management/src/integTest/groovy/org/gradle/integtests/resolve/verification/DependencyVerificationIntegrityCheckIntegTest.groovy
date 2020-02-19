@@ -250,20 +250,24 @@ This can indicate that a dependency has been compromised. Please carefully verif
         fails ":compileJava"
 
         then:
-        failure.assertHasCause(terse?"""Dependency verification failed for configuration ':compileClasspath'
+        assertVerificationError(terse) {
+            whenTerse """Dependency verification failed for configuration ':compileClasspath'
 5 artifacts failed verification:
   - bar-1.0.jar (org:bar:1.0) from repository maven
   - foo-1.0.jar (org:foo:1.0) from repository maven
   - foo-1.0.pom (org:foo:1.0) from repository maven
   - bar-1.0.pom (org:bar:1.0) from repository maven
-  - baz-1.0.pom (org:baz:1.0) from repository maven""":"""Dependency verification failed for configuration ':compileClasspath':
+  - baz-1.0.pom (org:baz:1.0) from repository maven"""
+
+            whenVerbose """Dependency verification failed for configuration ':compileClasspath':
   - On artifact bar-1.0.jar (org:bar:1.0) in repository 'maven': expected a 'sha1' checksum of 'also invalid' but was '42077067b52edb41c658839ab62a616740417814'
   - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': expected a 'sha1' checksum of 'invalid' but was '16e066e005a935ac60f06216115436ab97c5da02'
   - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': expected a 'sha1' checksum of 'invalid' but was '6db079f8f24050d849647e029da573999776b635'
   - On artifact bar-1.0.pom (org:bar:1.0) in repository 'maven': checksum is missing from verification metadata.
   - On artifact baz-1.0.pom (org:baz:1.0) in repository 'maven': checksum is missing from verification metadata.
 
-This can indicate that a dependency has been compromised. Please carefully verify the checksums.""")
+This can indicate that a dependency has been compromised. Please carefully verify the checksums."""
+        }
 
         where:
         terse << [true, false]
@@ -284,7 +288,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
         uncheckedModule("org", "foo", "1.0") {
             dependsOn("org", "bar", "1.0")
         }
-        ivyHttpRepo.module("org","bar", "1.0")
+        ivyHttpRepo.module("org", "bar", "1.0")
             .allowAll()
             .publish()
         buildFile << """
@@ -301,14 +305,18 @@ This can indicate that a dependency has been compromised. Please carefully verif
         fails ":compileJava"
 
         then:
-        failure.assertHasCause(terse?"""Dependency verification failed for configuration ':compileClasspath'
+        assertVerificationError(terse) {
+            whenTerse """Dependency verification failed for configuration ':compileClasspath'
 2 artifacts failed verification:
   - bar-1.0.jar (org:bar:1.0) from repository ivy
-  - foo-1.0.jar (org:foo:1.0) from repository maven""":"""Dependency verification failed for configuration ':compileClasspath':
+  - foo-1.0.jar (org:foo:1.0) from repository maven"""
+
+            whenVerbose """Dependency verification failed for configuration ':compileClasspath':
   - On artifact bar-1.0.jar (org:bar:1.0) in repository 'ivy': expected a 'sha1' checksum of 'also invalid' but was '42077067b52edb41c658839ab62a616740417814'
   - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': expected a 'sha1' checksum of 'invalid' but was '16e066e005a935ac60f06216115436ab97c5da02'
 
-This can indicate that a dependency has been compromised. Please carefully verify the checksums.""")
+This can indicate that a dependency has been compromised. Please carefully verify the checksums."""
+        }
 
         where:
         terse << [true, false]
@@ -492,11 +500,15 @@ This can indicate that a dependency has been compromised. Please carefully verif
         fails ':help'
 
         then:
-        failure.assertHasCause(terse?"""Dependency verification failed for configuration ':classpath'
+        assertVerificationError(terse) {
+            whenTerse """Dependency verification failed for configuration ':classpath'
 2 artifacts failed verification:
   - myplugin-1.0.jar (com:myplugin:1.0) from repository maven
-  - myplugin-1.0.pom (com:myplugin:1.0) from repository maven""":"""Dependency verification failed for configuration ':classpath':
-  - On artifact myplugin-1.0.jar (com:myplugin:1.0) in repository 'maven': expected a 'sha1' checksum of 'woot' but was""")
+  - myplugin-1.0.pom (com:myplugin:1.0) from repository maven"""
+
+            whenVerbose """Dependency verification failed for configuration ':classpath':
+  - On artifact myplugin-1.0.jar (com:myplugin:1.0) in repository 'maven': expected a 'sha1' checksum of 'woot' but was"""
+        }
 
         where:
         terse << [true, false]
@@ -523,14 +535,18 @@ This can indicate that a dependency has been compromised. Please carefully verif
         fails ":compileJava"
 
         then:
-        failure.assertHasCause(terse?"""Dependency verification failed for configuration ':compileClasspath'
+        assertVerificationError(terse) {
+            whenTerse """Dependency verification failed for configuration ':compileClasspath'
 2 artifacts failed verification:
   - foo-1.0.jar (org:foo:1.0) from repository maven
-  - foo-1.0.pom (org:foo:1.0) from repository maven""":"""Dependency verification failed for configuration ':compileClasspath':
+  - foo-1.0.pom (org:foo:1.0) from repository maven"""
+
+            whenVerbose """Dependency verification failed for configuration ':compileClasspath':
   - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': checksum is missing from verification metadata.
   - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': checksum is missing from verification metadata.
 
-If the artifacts are trustworthy, you will need to update the gradle/verification-metadata.xml file by following the instructions at ${docsUrl}""")
+If the artifacts are trustworthy, you will need to update the gradle/verification-metadata.xml file by following the instructions at ${docsUrl}"""
+        }
 
         where:
         terse << [true, false]
@@ -595,10 +611,10 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
         fails "compileJava"
 
         then:
-        failure.assertHasDescription terse?"""Dependency verification failed for configuration ':buildSrc:runtimeClasspath'
+        failure.assertHasDescription terse ? """Dependency verification failed for configuration ':buildSrc:runtimeClasspath'
 2 artifacts failed verification:
   - bar-1.0.jar (org:bar:1.0) from repository maven
-  - bar-1.0.pom (org:bar:1.0) from repository maven""":"""Dependency verification failed for configuration ':buildSrc:runtimeClasspath':
+  - bar-1.0.pom (org:bar:1.0) from repository maven""" : """Dependency verification failed for configuration ':buildSrc:runtimeClasspath':
   - On artifact bar-1.0.jar (org:bar:1.0) in repository 'maven': checksum is missing from verification metadata."""
 
         where:
@@ -646,10 +662,10 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
         fails "compileJava", "--include-build", "included"
 
         then:
-        failure.assertHasCause terse?"""Dependency verification failed for configuration ':included:compileClasspath'
+        failure.assertHasCause terse ? """Dependency verification failed for configuration ':included:compileClasspath'
 2 artifacts failed verification:
   - bar-1.0.jar (org:bar:1.0) from repository maven
-  - bar-1.0.pom (org:bar:1.0) from repository maven""":"""Dependency verification failed for configuration ':included:compileClasspath':
+  - bar-1.0.pom (org:bar:1.0) from repository maven""" : """Dependency verification failed for configuration ':included:compileClasspath':
   - On artifact bar-1.0.jar (org:bar:1.0) in repository 'maven': checksum is missing from verification metadata."""
 
         where:
@@ -693,9 +709,9 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
         fails ':compileJava'
 
         then:
-        failure.assertHasCause terse?"""Dependency verification failed for configuration ':compileClasspath'
+        failure.assertHasCause terse ? """Dependency verification failed for configuration ':compileClasspath'
 One artifact failed verification: foo-1.0.jar (org:foo:1.0) from repository maven
-This can indicate that a dependency has been compromised. Please carefully verify the checksums.""":"""Dependency verification failed for configuration ':compileClasspath':
+This can indicate that a dependency has been compromised. Please carefully verify the checksums.""" : """Dependency verification failed for configuration ':compileClasspath':
   - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': expected a 'sha1' checksum of '16e066e005a935ac60f06216115436ab97c5da02' but was '93d6c93d9a76d27ec3462e7b57de5df1eb45bc7b'
 
 This can indicate that a dependency has been compromised. Please carefully verify the checksums."""
@@ -968,15 +984,19 @@ This can indicate that a dependency has been compromised. Please carefully verif
         outputContains "Dependency verification has been disabled for configuration compileClasspath"
 
         when:
-        fails":resolveRuntime"
+        fails ":resolveRuntime"
 
         then:
-        failure.assertHasCause(terse?"""Dependency verification failed for configuration ':runtimeClasspath'
+        assertVerificationError(terse) {
+            whenTerse """Dependency verification failed for configuration ':runtimeClasspath'
 2 artifacts failed verification:
   - foo-1.0.jar (org:foo:1.0) from repository maven
-  - foo-1.0.pom (org:foo:1.0) from repository maven""":"""Dependency verification failed for configuration ':runtimeClasspath':
+  - foo-1.0.pom (org:foo:1.0) from repository maven"""
+
+            whenVerbose """Dependency verification failed for configuration ':runtimeClasspath':
   - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': expected a 'sha1' checksum of 'invalid' but was '16e066e005a935ac60f06216115436ab97c5da02'
-  - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': checksum is missing from verification metadata.""")
+  - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': checksum is missing from verification metadata."""
+        }
 
         where:
         terse << [true, false]
@@ -1006,15 +1026,19 @@ This can indicate that a dependency has been compromised. Please carefully verif
         """
 
         when:
-        fails":resolve"
+        fails ":resolve"
 
         then:
-        failure.assertHasCause(terse?"""Dependency verification failed for configuration ':detachedConfiguration1'
+        assertVerificationError(terse) {
+            whenTerse """Dependency verification failed for configuration ':detachedConfiguration1'
 2 artifacts failed verification:
   - foo-1.0.jar (org:foo:1.0) from repository maven
-  - foo-1.0.pom (org:foo:1.0) from repository maven""":"""Dependency verification failed for configuration ':detachedConfiguration1':
+  - foo-1.0.pom (org:foo:1.0) from repository maven"""
+
+            whenVerbose """Dependency verification failed for configuration ':detachedConfiguration1':
   - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': expected a 'sha1' checksum of 'invalid' but was '16e066e005a935ac60f06216115436ab97c5da02'
-  - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': checksum is missing from verification metadata.""")
+  - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': checksum is missing from verification metadata."""
+        }
 
         when:
         succeeds ":resolve", "-PdisableVerification=true"

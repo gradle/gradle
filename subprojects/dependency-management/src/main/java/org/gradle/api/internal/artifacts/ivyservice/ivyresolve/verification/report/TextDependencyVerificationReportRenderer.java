@@ -35,13 +35,13 @@ class TextDependencyVerificationReportRenderer extends AbstractTextDependencyVer
     }
 
     @Override
-    public void title(String title) {
+    public void startNewSection(String title) {
         formatter = new TreeFormatter();
         formatter.node("Dependency verification failed for " + title);
     }
 
     @Override
-    public void withErrors(Runnable action) {
+    public void startArtifactErrors(Runnable action) {
         formatter.startChildren();
         action.run();
         formatter.endChildren();
@@ -49,7 +49,7 @@ class TextDependencyVerificationReportRenderer extends AbstractTextDependencyVer
     }
 
     @Override
-    public void withArtifact(ModuleComponentArtifactIdentifier key, Runnable action) {
+    public void startNewArtifact(ModuleComponentArtifactIdentifier key, Runnable action) {
         formatter.node("On artifact " + key + " ");
         action.run();
     }
@@ -64,7 +64,7 @@ class TextDependencyVerificationReportRenderer extends AbstractTextDependencyVer
     }
 
     @Override
-    public void multipleErrors(Runnable action) {
+    public void reportAsMultipleErrors(Runnable action) {
         formatter.append("multiple problems reported:");
         formatter.startChildren();
         inMultiErrors = true;
@@ -86,7 +86,7 @@ class TextDependencyVerificationReportRenderer extends AbstractTextDependencyVer
     }
 
     @Override
-    public void finish(DependencyVerificationReportWriter.HighLevelErrors highLevelErrors) {
+    public void finish(VerificationHighLevelErrors highLevelErrors) {
         super.finish(highLevelErrors);
         Set<String> affectedFiles = highLevelErrors.getAffectedFiles();
         if (!affectedFiles.isEmpty()) {

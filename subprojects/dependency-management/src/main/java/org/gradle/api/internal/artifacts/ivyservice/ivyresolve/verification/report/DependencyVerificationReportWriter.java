@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.report;
 
 import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.RepositoryAwareVerificationFailure;
 import org.gradle.api.internal.artifacts.verification.verifier.DeletedArtifact;
@@ -33,7 +32,6 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class DependencyVerificationReportWriter {
     private static final Comparator<Map.Entry<ModuleComponentArtifactIdentifier, Collection<RepositoryAwareVerificationFailure>>> DELETED_LAST = Comparator.comparing(e -> e.getValue().stream().anyMatch(f -> f.getFailure() instanceof DeletedArtifact) ? 1 : 0);
@@ -73,15 +71,15 @@ public class DependencyVerificationReportWriter {
         return new SimpleTextDependencyVerificationReportRenderer(gradleUserHome, documentationRegistry);
     }
 
-    public Report generateReport(String displayName,
-                                              Multimap<ModuleComponentArtifactIdentifier, RepositoryAwareVerificationFailure> failuresByArtifact) {
+    public VerificationReport generateReport(String displayName,
+                                             Multimap<ModuleComponentArtifactIdentifier, RepositoryAwareVerificationFailure> failuresByArtifact) {
         assertInitialized();
         // We need at least one fatal failure: if it's only "warnings" we don't care
         // but of there's a fatal failure AND a warning we want to show both
         doRender(displayName, failuresByArtifact, summaryRenderer);
         doRender(displayName, failuresByArtifact, htmlRenderer);
         File htmlReport = htmlRenderer.writeReport();
-        return new Report(summaryRenderer.render(), htmlReport);
+        return new VerificationReport(summaryRenderer.render(), htmlReport);
     }
 
     public synchronized void assertInitialized() {
@@ -93,8 +91,8 @@ public class DependencyVerificationReportWriter {
 
     public void doRender(String displayName, Multimap<ModuleComponentArtifactIdentifier, RepositoryAwareVerificationFailure> failuresByArtifact, DependencyVerificationReportRenderer renderer) {
         ReportState reportState = new ReportState();
-        renderer.title(displayName);
-        renderer.withErrors(() -> {
+        renderer.startNewSection(displayName);
+        renderer.startArtifactErrors(() -> {
             // Sorting entries so that error messages are always displayed in a reproducible order
             failuresByArtifact.asMap()
                 .entrySet()
@@ -109,12 +107,12 @@ public class DependencyVerificationReportWriter {
         renderer.finish(reportState);
     }
 
-    public void onArtifactFailure(DependencyVerificationReportRenderer renderer, ReportState state, ModuleComponentArtifactIdentifier key, Collection<RepositoryAwareVerificationFailure> failures) {
+    private void onArtifactFailure(DependencyVerificationReportRenderer renderer, ReportState state, ModuleComponentArtifactIdentifier key, Collection<RepositoryAwareVerificationFailure> failures) {
         failures.stream()
             .map(RepositoryAwareVerificationFailure::getFailure)
             .map(this::extractFailedFilePaths)
             .forEach(state::addAffectedFile);
-        renderer.withArtifact(key, () -> {
+        renderer.startNewArtifact(key, () -> {
             if (failures.size() == 1) {
                 RepositoryAwareVerificationFailure firstFailure = failures.iterator().next();
                 explainSingleFailure(renderer, state, firstFailure);
@@ -145,7 +143,7 @@ public class DependencyVerificationReportWriter {
     }
 
     private void explainMultiFailure(DependencyVerificationReportRenderer renderer, ReportState state, Collection<RepositoryAwareVerificationFailure> failures) {
-        renderer.multipleErrors(() -> {
+        renderer.reportAsMultipleErrors(() -> {
             for (RepositoryAwareVerificationFailure failure : failures) {
                 explainSingleFailure(renderer, state, failure);
             }
@@ -171,91 +169,4 @@ public class DependencyVerificationReportWriter {
         renderer.reportFailure(wrapper);
     }
 
-    public interface HighLevelErrors {
-
-        boolean isMaybeCompromised();
-
-        boolean hasFailedSignatures();
-
-        boolean isHasUntrustedKeys();
-
-        boolean canSuggestWriteMetadata();
-
-        Set<String> getAffectedFiles();
-    }
-
-    private static class ReportState implements HighLevelErrors {
-        private final Set<String> affectedFiles = Sets.newTreeSet();
-        private boolean maybeCompromised;
-        private boolean hasMissing;
-        private boolean failedSignatures;
-        private boolean hasUntrustedKeys;
-
-        public void maybeCompromised() {
-            maybeCompromised = true;
-        }
-
-        public void hasMissing() {
-            hasMissing = true;
-        }
-
-        public void failedSignatures() {
-            failedSignatures = true;
-        }
-
-        public void hasUntrustedKeys() {
-            hasUntrustedKeys = true;
-        }
-
-        @Override
-        public boolean isMaybeCompromised() {
-            return maybeCompromised;
-        }
-
-        public boolean isHasMissing() {
-            return hasMissing;
-        }
-
-        @Override
-        public boolean hasFailedSignatures() {
-            return failedSignatures;
-        }
-
-        @Override
-        public boolean isHasUntrustedKeys() {
-            return hasUntrustedKeys;
-        }
-
-        @Override
-        public boolean canSuggestWriteMetadata() {
-            return (hasMissing || hasUntrustedKeys) && !maybeCompromised;
-        }
-
-        @Override
-        public Set<String> getAffectedFiles() {
-            return affectedFiles;
-        }
-
-        public void addAffectedFile(String file) {
-            affectedFiles.add(file);
-        }
-    }
-
-    public static class Report {
-        private final String summary;
-        private final File htmlReport;
-
-        public Report(String summary, File htmlReport) {
-            this.summary = summary;
-            this.htmlReport = htmlReport;
-        }
-
-        public String getSummary() {
-            return summary;
-        }
-
-        public File getHtmlReport() {
-            return htmlReport;
-        }
-    }
 }

@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Queues;
@@ -31,6 +30,7 @@ import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyIntern
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DependencyVerifyingModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.report.DependencyVerificationReportWriter;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.report.VerificationReport;
 import org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationsXmlReader;
 import org.gradle.api.internal.artifacts.verification.signatures.SignatureVerificationService;
 import org.gradle.api.internal.artifacts.verification.signatures.SignatureVerificationServiceFactory;
@@ -54,7 +54,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.net.URI;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
 import java.util.Set;
@@ -92,30 +91,13 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
             this.verifier = DependencyVerificationsXmlReader.readFromXml(
                 new FileInputStream(verificationsFile)
             );
-            this.reportWriter = new DependencyVerificationReportWriter(gradleUserHome.toPath(), documentationRegistry, verificationsFile, ImmutableList.copyOf(suggestedWriteFlags()), reportsDirectory, gradlePropertiesFactory);
+            this.reportWriter = new DependencyVerificationReportWriter(gradleUserHome.toPath(), documentationRegistry, verificationsFile, verifier.getSuggestedWriteFlags(), reportsDirectory, gradlePropertiesFactory);
         } catch (FileNotFoundException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         } catch (InvalidUserDataException e) {
             throw new InvalidUserDataException("Unable to read dependency verification metadata from " + verificationsFile, e.getCause());
         }
         this.signatureVerificationService = signatureVerificationServiceFactory.create(keyRingsFile, keyServers());
-    }
-
-    private Set<String> suggestedWriteFlags() {
-        Set<String> writeFlags = Sets.newLinkedHashSet();
-        if (verifier.getConfiguration().isVerifySignatures()) {
-            writeFlags.add("pgp");
-        }
-        verifier.getVerificationMetadata().forEach(md -> {
-            md.getArtifactVerifications().forEach(av -> {
-                av.getChecksums().forEach(checksum -> writeFlags.add(checksum.getKind().name()));
-            });
-        });
-        if (Collections.singleton("pgp").equals(writeFlags)) {
-            // need to suggest at least one checksum so we use the most secure
-            writeFlags.add("sha512");
-        }
-        return writeFlags;
     }
 
     private List<URI> keyServers() {
@@ -189,7 +171,7 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
                     Collection<RepositoryAwareVerificationFailure> value = entry.getValue();
                     return value.stream().noneMatch(wrapper -> wrapper.getFailure().isFatal());
                 });
-                DependencyVerificationReportWriter.Report report = reportWriter.generateReport(displayName, failures);
+                VerificationReport report = reportWriter.generateReport(displayName, failures);
                 String errorMessage = buildConsoleErrorMessage(report);
                 if (verificationMode == DependencyVerificationMode.LENIENT) {
                     LOGGER.error(errorMessage);
@@ -202,7 +184,7 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
         }
     }
 
-    public String buildConsoleErrorMessage(DependencyVerificationReportWriter.Report report) {
+    public String buildConsoleErrorMessage(VerificationReport report) {
         String errorMessage = report.getSummary();
         String htmlReport = new ConsoleRenderer().asClickableFileUrl(report.getHtmlReport());
         errorMessage += "\n\nOpen this report for more details: " + htmlReport;
