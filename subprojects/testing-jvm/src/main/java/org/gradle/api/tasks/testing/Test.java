@@ -20,6 +20,7 @@ import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
@@ -58,6 +59,7 @@ import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.actor.ActorFactory;
+import org.gradle.internal.jpms.ModuleDetection;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -66,6 +68,7 @@ import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaForkOptions;
+import org.gradle.process.ModulePathHandling;
 import org.gradle.process.ProcessForkOptions;
 import org.gradle.process.internal.JavaForkOptionsFactory;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
@@ -143,6 +146,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     private FileCollection testClassesDirs;
     private PatternFilterable patternSet;
     private FileCollection classpath;
+    private ModulePathHandling modulePathHandling = ModulePathHandling.ALL_CLASSPATH;
     private TestFramework testFramework;
     private boolean scanForTestClasses = true;
     private long forkEvery;
@@ -575,7 +579,13 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     protected JvmTestExecutionSpec createTestExecutionSpec() {
         JavaForkOptions javaForkOptions = getForkOptionsFactory().newJavaForkOptions();
         copyTo(javaForkOptions);
-        return new JvmTestExecutionSpec(getTestFramework(), getClasspath(), getCandidateClassFiles(), isScanForTestClasses(), getTestClassesDirs(), getPath(), getIdentityPath(), getForkEvery(), javaForkOptions, getMaxParallelForks(), getPreviousFailedTestClasses());
+        ModulePathHandling actualModulePathHandling;
+        if (modulePathHandling == ModulePathHandling.INFER_MODULE_PATH && !ModuleDetection.isModuleClasses(getTestClassesDirs().getFiles())) {
+            actualModulePathHandling = ModulePathHandling.ALL_CLASSPATH;
+        } else {
+            actualModulePathHandling = modulePathHandling;
+        }
+        return new JvmTestExecutionSpec(getTestFramework(), getClasspath(), actualModulePathHandling, getCandidateClassFiles(), isScanForTestClasses(), getTestClassesDirs(), getPath(), getIdentityPath(), getForkEvery(), javaForkOptions, getMaxParallelForks(), getPreviousFailedTestClasses());
     }
 
     private Set<String> getPreviousFailedTestClasses() {
@@ -965,6 +975,27 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
 
     public void setClasspath(FileCollection classpath) {
         this.classpath = classpath;
+    }
+
+    /**
+     * Returns the module path handling of this java execution.
+     *
+     * @since 6.3
+     */
+    @Incubating
+    @Input
+    public ModulePathHandling getModulePathHandling() {
+        return this.modulePathHandling;
+    }
+
+    /**
+     * Sets the module path handling of this java execution.
+     *
+     * @since 6.3
+     */
+    @Incubating
+    public void setModulePathHandling(ModulePathHandling modulePathHandling) {
+        this.modulePathHandling = modulePathHandling;
     }
 
     /**

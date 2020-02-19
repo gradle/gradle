@@ -18,6 +18,7 @@ package org.gradle.process.internal.worker;
 
 import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.process.ModulePathHandling;
 
 import java.io.File;
 import java.net.URL;
@@ -37,6 +38,9 @@ public interface WorkerProcessBuilder extends WorkerProcessSettings {
     WorkerProcessBuilder applicationClasspath(Iterable<File> files);
 
     @Override
+    WorkerProcessBuilder setModulePathHandling(ModulePathHandling modulePathHandling);
+
+    @Override
     WorkerProcessBuilder setBaseName(String baseName);
 
     @Override
@@ -51,6 +55,8 @@ public interface WorkerProcessBuilder extends WorkerProcessSettings {
     Action<? super WorkerProcessContext> getWorker();
 
     void setImplementationClasspath(List<URL> implementationClasspath);
+
+    void setImplementationModulePath(List<URL> implementationModulePath);
 
     void enableJvmMemoryInfoPublishing(boolean shouldPublish);
 

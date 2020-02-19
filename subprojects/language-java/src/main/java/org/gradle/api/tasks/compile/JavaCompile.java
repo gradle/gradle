@@ -224,8 +224,14 @@ public class JavaCompile extends AbstractCompile {
         spec.setDestinationDir(getDestinationDirectory().getAsFile().get());
         spec.setWorkingDir(getProject().getProjectDir());
         spec.setTempDir(getTemporaryDir());
-        spec.setCompileClasspath(ModuleDetection.inferClasspath(modulePathHandling, getClasspath(), ModuleDetection.isModuleSource(sourcesRoots)));
-        spec.setModulePath(ImmutableList.copyOf(ModuleDetection.inferModulePath(modulePathHandling, getClasspath(), ModuleDetection.isModuleSource(sourcesRoots))));
+        ModulePathHandling actualModulePathHandling;
+        if (modulePathHandling == ModulePathHandling.INFER_MODULE_PATH && !ModuleDetection.isModuleSource(sourcesRoots)) {
+            actualModulePathHandling = ModulePathHandling.ALL_CLASSPATH;
+        } else {
+            actualModulePathHandling = modulePathHandling;
+        }
+        spec.setCompileClasspath(ModuleDetection.inferClasspath(actualModulePathHandling, getClasspath()));
+        spec.setModulePath(ImmutableList.copyOf(ModuleDetection.inferModulePath(actualModulePathHandling, getClasspath())));
         spec.setAnnotationProcessorPath(compileOptions.getAnnotationProcessorPath() == null ? ImmutableList.of() : ImmutableList.copyOf(compileOptions.getAnnotationProcessorPath()));
         spec.setTargetCompatibility(getTargetCompatibility());
         spec.setSourceCompatibility(getSourceCompatibility());

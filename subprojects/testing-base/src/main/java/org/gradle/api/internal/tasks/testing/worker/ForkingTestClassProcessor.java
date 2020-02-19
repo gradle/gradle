@@ -26,6 +26,7 @@ import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.process.JavaForkOptions;
+import org.gradle.process.ModulePathHandling;
 import org.gradle.process.internal.ExecException;
 import org.gradle.process.internal.worker.WorkerProcess;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
@@ -44,6 +45,7 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
     private final WorkerTestClassProcessorFactory processorFactory;
     private final JavaForkOptions options;
     private final Iterable<File> classPath;
+    private final ModulePathHandling modulePathHandling;
     private final Action<WorkerProcessBuilder> buildConfigAction;
     private final ModuleRegistry moduleRegistry;
     private final Lock lock = new ReentrantLock();
@@ -54,12 +56,13 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
     private DocumentationRegistry documentationRegistry;
     private boolean stoppedNow;
 
-    public ForkingTestClassProcessor(WorkerLeaseRegistry.WorkerLease parentWorkerLease, WorkerProcessFactory workerFactory, WorkerTestClassProcessorFactory processorFactory, JavaForkOptions options, Iterable<File> classPath, Action<WorkerProcessBuilder> buildConfigAction, ModuleRegistry moduleRegistry, DocumentationRegistry documentationRegistry) {
+    public ForkingTestClassProcessor(WorkerLeaseRegistry.WorkerLease parentWorkerLease, WorkerProcessFactory workerFactory, WorkerTestClassProcessorFactory processorFactory, JavaForkOptions options, Iterable<File> classPath, ModulePathHandling modulePathHandling, Action<WorkerProcessBuilder> buildConfigAction, ModuleRegistry moduleRegistry, DocumentationRegistry documentationRegistry) {
         this.currentWorkerLease = parentWorkerLease;
         this.workerFactory = workerFactory;
         this.processorFactory = processorFactory;
         this.options = options;
         this.classPath = classPath;
+        this.modulePathHandling = modulePathHandling;
         this.buildConfigAction = buildConfigAction;
         this.moduleRegistry = moduleRegistry;
         this.documentationRegistry = documentationRegistry;
@@ -99,7 +102,9 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
         WorkerProcessBuilder builder = workerFactory.create(new TestWorker(processorFactory));
         builder.setBaseName("Gradle Test Executor");
         builder.setImplementationClasspath(getTestWorkerImplementationClasspath());
+        builder.setImplementationModulePath(getTestWorkerImplementationModulePath());
         builder.applicationClasspath(classPath);
+        builder.setModulePathHandling(modulePathHandling);
         options.copyTo(builder.getJavaCommand());
         builder.getJavaCommand().jvmArgs("-Dorg.gradle.native=false");
         buildConfigAction.execute(builder);
@@ -131,9 +136,6 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
             moduleRegistry.getModule("gradle-testing-base").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-testing-jvm").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-testing-junit-platform").getImplementationClasspath().getAsURLs(),
-            moduleRegistry.getExternalModule("junit-platform-engine").getImplementationClasspath().getAsURLs(),
-            moduleRegistry.getExternalModule("junit-platform-launcher").getImplementationClasspath().getAsURLs(),
-            moduleRegistry.getExternalModule("junit-platform-commons").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-process-services").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getExternalModule("slf4j-api").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getExternalModule("jul-to-slf4j").getImplementationClasspath().getAsURLs(),
@@ -141,6 +143,14 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
             moduleRegistry.getExternalModule("kryo").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getExternalModule("commons-lang").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getExternalModule("junit").getImplementationClasspath().getAsURLs()
+        );
+    }
+
+    List<URL> getTestWorkerImplementationModulePath() {
+        return CollectionUtils.flattenCollections(URL.class,
+            moduleRegistry.getExternalModule("junit-platform-engine").getImplementationClasspath().getAsURLs(),
+            moduleRegistry.getExternalModule("junit-platform-launcher").getImplementationClasspath().getAsURLs(),
+            moduleRegistry.getExternalModule("junit-platform-commons").getImplementationClasspath().getAsURLs()
         );
     }
 

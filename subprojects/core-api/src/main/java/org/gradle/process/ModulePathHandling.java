@@ -19,7 +19,7 @@ package org.gradle.process;
 import org.gradle.api.Incubating;
 
 /**
- * When should the --module-path be used for compiling Java sources?
+ * When should the --module-path be used for compiling or running Java code?
  *
  * @since 6.3
  */

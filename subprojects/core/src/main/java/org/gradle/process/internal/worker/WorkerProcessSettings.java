@@ -17,6 +17,7 @@
 package org.gradle.process.internal.worker;
 
 import org.gradle.api.logging.LogLevel;
+import org.gradle.process.ModulePathHandling;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 
 import java.io.File;
@@ -38,6 +39,10 @@ public interface WorkerProcessSettings {
     WorkerProcessSettings applicationClasspath(Iterable<File> files);
 
     Set<File> getApplicationClasspath();
+
+    WorkerProcessSettings setModulePathHandling(ModulePathHandling modulePathHandling);
+
+    ModulePathHandling getModulePathHandling();
 
     WorkerProcessSettings sharedPackages(String... packages);
 

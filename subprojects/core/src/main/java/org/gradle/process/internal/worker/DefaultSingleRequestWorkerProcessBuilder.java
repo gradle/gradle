@@ -22,6 +22,7 @@ import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.internal.serialize.SerializerRegistry;
+import org.gradle.process.ModulePathHandling;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.worker.request.Receiver;
 import org.gradle.process.internal.worker.request.Request;
@@ -73,6 +74,17 @@ class DefaultSingleRequestWorkerProcessBuilder<PROTOCOL> implements SingleReques
     @Override
     public Set<File> getApplicationClasspath() {
         return builder.getApplicationClasspath();
+    }
+
+    @Override
+    public WorkerProcessSettings setModulePathHandling(ModulePathHandling modulePathHandling) {
+        builder.setModulePathHandling(modulePathHandling);
+        return this;
+    }
+
+    @Override
+    public ModulePathHandling getModulePathHandling() {
+        return builder.getModulePathHandling();
     }
 
     @Override

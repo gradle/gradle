@@ -25,6 +25,7 @@ import org.gradle.internal.remote.ConnectionAcceptor;
 import org.gradle.internal.remote.MessagingServer;
 import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.process.ExecResult;
+import org.gradle.process.ModulePathHandling;
 import org.gradle.process.internal.ExecHandle;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.JavaExecHandleFactory;
@@ -54,8 +55,9 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
     private final ApplicationClassesInSystemClassLoaderWorkerImplementationFactory workerImplementationFactory;
     private final OutputEventListener outputEventListener;
     private final JavaExecHandleBuilder javaCommand;
-    private final Set<String> packages = new HashSet<String>();
-    private final Set<File> applicationClasspath = new LinkedHashSet<File>();
+    private final Set<String> packages = new HashSet<>();
+    private final Set<File> applicationClasspath = new LinkedHashSet<>();
+    private ModulePathHandling modulePathHandling = ModulePathHandling.ALL_CLASSPATH;
     private final MemoryManager memoryManager;
     private Action<? super WorkerProcessContext> action;
     private LogLevel logLevel = LogLevel.LIFECYCLE;
@@ -63,6 +65,7 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
     private File gradleUserHomeDir;
     private int connectTimeoutSeconds;
     private List<URL> implementationClassPath;
+    private List<URL> implementationModulePath;
     private boolean shouldPublishJvmMemoryInfo;
 
     DefaultWorkerProcessBuilder(JavaExecHandleFactory execHandleFactory, MessagingServer server, IdGenerator<?> idGenerator, ApplicationClassesInSystemClassLoaderWorkerImplementationFactory workerImplementationFactory, OutputEventListener outputEventListener, MemoryManager memoryManager) {
@@ -102,6 +105,17 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
     @Override
     public Set<File> getApplicationClasspath() {
         return applicationClasspath;
+    }
+
+    @Override
+    public WorkerProcessBuilder setModulePathHandling(ModulePathHandling modulePathHandling) {
+        this.modulePathHandling = modulePathHandling;
+        return this;
+    }
+
+    @Override
+    public ModulePathHandling getModulePathHandling() {
+        return this.modulePathHandling;
     }
 
     @Override
@@ -160,8 +174,9 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
         this.implementationClassPath = implementationClassPath;
     }
 
-    public List<URL> getImplementationClassPath() {
-        return implementationClassPath;
+    @Override
+    public void setImplementationModulePath(List<URL> implementationModulePath) {
+        this.implementationModulePath = implementationModulePath;
     }
 
     @Override
@@ -200,11 +215,12 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
         LOGGER.debug("Creating {}", displayName);
         LOGGER.debug("Using application classpath {}", applicationClasspath);
         LOGGER.debug("Using implementation classpath {}", implementationClassPath);
+        LOGGER.debug("Using implementation module path {}", implementationModulePath);
 
         JavaExecHandleBuilder javaCommand = getJavaCommand();
         javaCommand.setDisplayName(displayName);
 
-        workerImplementationFactory.prepareJavaCommand(id, displayName, this, implementationClassPath, localAddress, javaCommand, shouldPublishJvmMemoryInfo);
+        workerImplementationFactory.prepareJavaCommand(id, displayName, this, implementationClassPath, implementationModulePath, localAddress, javaCommand, shouldPublishJvmMemoryInfo);
 
         javaCommand.args("'" + displayName + "'");
         if (javaCommand.getMaxHeapSize() == null) {

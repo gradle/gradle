@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.testing;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.process.JavaForkOptions;
+import org.gradle.process.ModulePathHandling;
 import org.gradle.util.Path;
 
 import java.io.File;
@@ -27,6 +28,7 @@ import java.util.Set;
 public class JvmTestExecutionSpec implements TestExecutionSpec {
     private final TestFramework testFramework;
     private final Iterable<? extends File> classpath;
+    private final ModulePathHandling modulePathHandling;
     private final FileTree candidateClassFiles;
     private final boolean scanForTestClasses;
     private final FileCollection testClassesDirs;
@@ -37,9 +39,10 @@ public class JvmTestExecutionSpec implements TestExecutionSpec {
     private final int maxParallelForks;
     private final Set<String> previousFailedTestClasses;
 
-    public JvmTestExecutionSpec(TestFramework testFramework, Iterable<? extends File> classpath, FileTree candidateClassFiles, boolean scanForTestClasses, FileCollection testClassesDirs, String path, Path identityPath, long forkEvery, JavaForkOptions javaForkOptions, int maxParallelForks, Set<String> previousFailedTestClasses) {
+    public JvmTestExecutionSpec(TestFramework testFramework, Iterable<? extends File> classpath, ModulePathHandling modulePathHandling, FileTree candidateClassFiles, boolean scanForTestClasses, FileCollection testClassesDirs, String path, Path identityPath, long forkEvery, JavaForkOptions javaForkOptions, int maxParallelForks, Set<String> previousFailedTestClasses) {
         this.testFramework = testFramework;
         this.classpath = classpath;
+        this.modulePathHandling = modulePathHandling;
         this.candidateClassFiles = candidateClassFiles;
         this.scanForTestClasses = scanForTestClasses;
         this.testClassesDirs = testClassesDirs;
@@ -57,6 +60,10 @@ public class JvmTestExecutionSpec implements TestExecutionSpec {
 
     public Iterable<? extends File> getClasspath() {
         return classpath;
+    }
+
+    public ModulePathHandling getModulePathHandling() {
+        return modulePathHandling;
     }
 
     public FileTree getCandidateClassFiles() {

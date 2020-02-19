@@ -40,6 +40,7 @@ import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.WorkerLeaseRegistry;
+import org.gradle.process.ModulePathHandling;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 
 import java.io.File;
@@ -83,11 +84,12 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
         final WorkerTestClassProcessorFactory testInstanceFactory = testFramework.getProcessorFactory();
         final WorkerLeaseRegistry.WorkerLease currentWorkerLease = workerLeaseRegistry.getCurrentWorkerLease();
         final Set<File> classpath = ImmutableSet.copyOf(testExecutionSpec.getClasspath());
+        final ModulePathHandling modulePathHandling = testExecutionSpec.getModulePathHandling();
         final Factory<TestClassProcessor> forkingProcessorFactory = new Factory<TestClassProcessor>() {
             @Override
             public TestClassProcessor create() {
                 return new ForkingTestClassProcessor(currentWorkerLease, workerFactory, testInstanceFactory, testExecutionSpec.getJavaForkOptions(),
-                    classpath, testFramework.getWorkerConfigurationAction(), moduleRegistry, documentationRegistry);
+                    classpath, modulePathHandling, testFramework.getWorkerConfigurationAction(), moduleRegistry, documentationRegistry);
             }
         };
         final Factory<TestClassProcessor> reforkingProcessorFactory = new Factory<TestClassProcessor>() {

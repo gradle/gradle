@@ -89,8 +89,14 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
             }
         } else {
             boolean runModule = ModuleDetection.isClassInModule(mainClass);
-            ImmutableList<File> runtimeClasspath = ModuleDetection.inferClasspath(modulePathHandling, realClasspath, runModule);
-            ImmutableList<File> runtimeModulePath = ModuleDetection.inferModulePath(modulePathHandling, realClasspath, runModule);
+            ModulePathHandling actualModulePathHandling;
+            if (modulePathHandling == ModulePathHandling.INFER_MODULE_PATH && !runModule) {
+                actualModulePathHandling = ModulePathHandling.ALL_CLASSPATH;
+            } else {
+                actualModulePathHandling = modulePathHandling;
+            }
+            ImmutableList<File> runtimeClasspath = ModuleDetection.inferClasspath(actualModulePathHandling, realClasspath);
+            ImmutableList<File> runtimeModulePath = ModuleDetection.inferModulePath(actualModulePathHandling, realClasspath);
 
             if (!runtimeClasspath.isEmpty()) {
                 allArgs.add("-cp");
@@ -249,7 +255,7 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
     }
 
     @Override
-    public JavaExecHandleBuilder setMain(String mainClassName) {
+    public JavaExecHandleBuilder setMain(String mainClassName) { //TODO split out mainModule
         this.mainClass = mainClassName;
         return this;
     }

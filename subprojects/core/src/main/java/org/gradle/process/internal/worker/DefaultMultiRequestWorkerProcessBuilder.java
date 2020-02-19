@@ -25,6 +25,7 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.serialize.SerializerRegistry;
+import org.gradle.process.ModulePathHandling;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.worker.request.Receiver;
 import org.gradle.process.internal.worker.request.Request;
@@ -81,6 +82,17 @@ class DefaultMultiRequestWorkerProcessBuilder<WORKER> implements MultiRequestWor
     @Override
     public Set<File> getApplicationClasspath() {
         return workerProcessBuilder.getApplicationClasspath();
+    }
+
+    @Override
+    public WorkerProcessSettings setModulePathHandling(ModulePathHandling modulePathHandling) {
+        workerProcessBuilder.setModulePathHandling(modulePathHandling);
+        return this;
+    }
+
+    @Override
+    public ModulePathHandling getModulePathHandling() {
+        return workerProcessBuilder.getModulePathHandling();
     }
 
     @Override
