@@ -74,7 +74,6 @@ class PerformanceTestBuildTypeTest {
                 "-I",
                 "\"%teamcity.build.checkoutDir%/gradle/init-scripts/build-scan.init.gradle.kts\"",
                 "-Dorg.gradle.internal.tasks.createops",
-                "-Dorg.gradle.internal.plugins.portal.url.override=%gradle.plugins.portal.url%",
                 "-Porg.gradle.performance.buildTypeId=Gradle_Check_IndividualPerformanceScenarioWorkersLinux",
                 "-Porg.gradle.performance.workerTestTaskName=fullPerformanceTest",
                 "-Porg.gradle.performance.coordinatorBuildId=%teamcity.build.id%",
