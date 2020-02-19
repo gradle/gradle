@@ -18,8 +18,11 @@ package org.gradle.api.internal.file.collections;
 import com.google.common.io.Files;
 import org.gradle.api.Action;
 import org.gradle.api.file.FileVisitDetails;
+import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
+import org.gradle.api.internal.file.FileCollectionStructureVisitor;
+import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
@@ -33,13 +36,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
+import java.util.Collections;
 
 /**
- * A {@link SingletonFileTree} which is composed using a mapping from relative path to file source.
+ * A generated file tree which is composed using a mapping from relative path to file source.
  */
-public class GeneratedSingletonFileTree extends AbstractSingletonFileTree implements GeneratedFiles {
+public class GeneratedSingletonFileTree implements PatternFilterableFileTree, FileSystemMirroringFileTree, GeneratedFiles {
     private final Factory<File> tmpDirSource;
     private final FileSystem fileSystem = FileSystems.getDefault();
+    private final PatternSet patterns;
 
     private final String fileName;
     private final FileGenerationListener fileGenerationListener;
@@ -50,7 +55,7 @@ public class GeneratedSingletonFileTree extends AbstractSingletonFileTree implem
     }
 
     public GeneratedSingletonFileTree(Factory<File> tmpDirSource, String fileName, PatternSet patternSet, FileGenerationListener fileGenerationListener, Action<OutputStream> contentWriter) {
-        super(patternSet);
+        this.patterns = patternSet;
         this.tmpDirSource = tmpDirSource;
         this.fileName = fileName;
         this.fileGenerationListener = fileGenerationListener;
@@ -66,18 +71,16 @@ public class GeneratedSingletonFileTree extends AbstractSingletonFileTree implem
         return "file tree";
     }
 
-    @Override
-    protected FileVisitDetails createFileVisitDetails() {
-        return new FileVisitDetailsImpl(fileName, contentWriter, fileSystem);
-    }
-
     public File getFileWithoutCreating() {
         return createFileInstance(fileName);
     }
 
-    @Override
     public File getFile() {
         return new FileVisitDetailsImpl(fileName, contentWriter, fileSystem).getFile();
+    }
+
+    public PatternSet getPatterns() {
+        return patterns;
     }
 
     private File createFileInstance(String fileName) {
@@ -85,8 +88,41 @@ public class GeneratedSingletonFileTree extends AbstractSingletonFileTree implem
     }
 
     @Override
+    public DirectoryFileTree getMirror() {
+        return new FileBackedDirectoryFileTree(getFile()).filter(patterns);
+    }
+
+    @Override
     public MinimalFileTree filter(PatternFilterable patterns) {
         return new GeneratedSingletonFileTree(tmpDirSource, fileName, filterPatternSet(patterns), fileGenerationListener, contentWriter);
+    }
+
+    @Override
+    public void visitStructure(FileCollectionStructureVisitor visitor, FileTreeInternal owner) {
+        if (visitor.prepareForVisit(this) == FileCollectionStructureVisitor.VisitType.NoContents) {
+            // Visit metadata but not contents
+            visitor.visitCollection(this, Collections.emptyList());
+        } else {
+            visitor.visitFileTree(getFile(), getPatterns(), owner);
+        }
+    }
+
+    @Override
+    public void visit(FileVisitor visitor) {
+        FileVisitDetails fileVisitDetails = createFileVisitDetails();
+        if (patterns.isEmpty() || patterns.getAsSpec().isSatisfiedBy(fileVisitDetails)) {
+            visitor.visitFile(fileVisitDetails);
+        }
+    }
+
+    private PatternSet filterPatternSet(PatternFilterable patterns) {
+        PatternSet patternSet = this.patterns.intersect();
+        patternSet.copyFrom(patterns);
+        return patternSet;
+    }
+
+    private FileVisitDetails createFileVisitDetails() {
+        return new FileVisitDetailsImpl(fileName, contentWriter, fileSystem);
     }
 
     /**

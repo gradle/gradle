@@ -19,6 +19,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
 import groovy.lang.Closure;
+import org.gradle.api.file.DirectoryTree;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.file.FileTree;
@@ -203,10 +204,10 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
     }
 
     /**
-     * Returns this collection as a set of {@link DirectoryFileTree} instances.
+     * Returns this collection as a set of {@link DirectoryFileTree} instance. These are used to map to Ant types.
      */
-    protected Collection<DirectoryFileTree> getAsFileTrees() {
-        List<DirectoryFileTree> fileTrees = new ArrayList<>();
+    protected Collection<DirectoryTree> getAsFileTrees() {
+        List<DirectoryTree> fileTrees = new ArrayList<>();
         for (File file : this) {
             if (file.isFile()) {
                 fileTrees.add(new FileBackedDirectoryFileTree(file));

@@ -15,11 +15,13 @@
  */
 package org.gradle.api.internal.file.collections;
 
+import org.gradle.api.file.DirectoryTree;
+
 import java.util.Collection;
 
 /**
  * A file tree whose contents are contained in zero or more local directories.
  */
 public interface LocalFileTree extends MinimalFileTree {
-    Collection<DirectoryFileTree> getLocalContents();
+    Collection<DirectoryTree> getLocalContents();
 }

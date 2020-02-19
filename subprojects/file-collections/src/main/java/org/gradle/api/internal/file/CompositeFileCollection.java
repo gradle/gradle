@@ -17,10 +17,10 @@
 package org.gradle.api.internal.file;
 
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.file.DirectoryTree;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.BuildDependenciesOnlyFileCollectionResolveContext;
 import org.gradle.api.internal.file.collections.DefaultFileCollectionResolveContext;
-import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileCollectionContainer;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
@@ -116,8 +116,8 @@ public abstract class CompositeFileCollection extends AbstractFileCollection imp
     }
 
     @Override
-    protected Collection<DirectoryFileTree> getAsFileTrees() {
-        List<DirectoryFileTree> fileTree = new ArrayList<>();
+    protected Collection<DirectoryTree> getAsFileTrees() {
+        List<DirectoryTree> fileTree = new ArrayList<>();
         for (FileCollection source : getSourceCollections()) {
             AbstractFileCollection collection = (AbstractFileCollection) source;
             fileTree.addAll(collection.getAsFileTrees());
