@@ -62,7 +62,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ChecksumAndSignatureVerificationOverride implements DependencyVerificationOverride, ArtifactVerificationOperation, Stoppable {
     private final static Logger LOGGER = Logging.getLogger(ChecksumAndSignatureVerificationOverride.class);
-    public final static String VERBOSE_CONSOLE = "org.gradle.dependency.verification.console";
 
     private final DependencyVerifier verifier;
     private final Multimap<ModuleComponentArtifactIdentifier, RepositoryAwareVerificationFailure> failures = LinkedHashMultimap.create();

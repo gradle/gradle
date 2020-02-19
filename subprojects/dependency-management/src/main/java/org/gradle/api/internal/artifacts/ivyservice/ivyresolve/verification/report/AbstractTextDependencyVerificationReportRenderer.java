@@ -20,7 +20,7 @@ import org.gradle.internal.logging.text.TreeFormatter;
 
 import java.nio.file.Path;
 
-public abstract class AbstractTextDependencyVerificationReportRenderer implements DependencyVerificationReportRenderer {
+abstract class AbstractTextDependencyVerificationReportRenderer implements DependencyVerificationReportRenderer {
     protected final Path gradleUserHome;
     protected final DocumentationRegistry documentationRegistry;
     protected TreeFormatter formatter;

@@ -124,7 +124,7 @@ public class StartParameterResolutionOverride {
         return DependencyVerificationOverride.NO_VERIFICATION;
     }
 
-    public File computeReportDirectory(BuildCommencedTimeProvider timeProvider) {
+    private File computeReportDirectory(BuildCommencedTimeProvider timeProvider) {
         // TODO: This is not quite correct: we're using the "root project" build directory
         // but technically speaking, this can be changed _after_ this service is created.
         // There's currently no good way to figure that out.

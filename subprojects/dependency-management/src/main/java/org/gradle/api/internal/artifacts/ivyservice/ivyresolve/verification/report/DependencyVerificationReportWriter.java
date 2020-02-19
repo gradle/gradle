@@ -35,12 +35,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.ChecksumAndSignatureVerificationOverride.VERBOSE_CONSOLE;
-
 public class DependencyVerificationReportWriter {
     private static final Comparator<Map.Entry<ModuleComponentArtifactIdentifier, Collection<RepositoryAwareVerificationFailure>>> DELETED_LAST = Comparator.comparing(e -> e.getValue().stream().anyMatch(f -> f.getFailure() instanceof DeletedArtifact) ? 1 : 0);
     private static final Comparator<Map.Entry<ModuleComponentArtifactIdentifier, Collection<RepositoryAwareVerificationFailure>>> MISSING_LAST = Comparator.comparing(e -> e.getValue().stream().anyMatch(f -> f.getFailure() instanceof MissingChecksums) ? 1 : 0);
     private static final Comparator<Map.Entry<ModuleComponentArtifactIdentifier, Collection<RepositoryAwareVerificationFailure>>> BY_MODULE_ID = Comparator.comparing(e -> e.getKey().getDisplayName());
+    public static final String VERBOSE_CONSOLE = "org.gradle.dependency.verification.console";
+    public static final String VERBOSE_VALUE = "verbose";
 
     private final Path gradleUserHome;
     private Runnable rendererInitializer;
@@ -62,7 +62,7 @@ public class DependencyVerificationReportWriter {
 
     private static boolean isVerboseConsoleReport(GradleProperties gradleProperties) {
         String param = gradleProperties.find(VERBOSE_CONSOLE);
-        return param != null && "verbose".equals(param);
+        return param != null && VERBOSE_VALUE.equals(param);
     }
 
     private AbstractTextDependencyVerificationReportRenderer createConsoleRenderer(Path gradleUserHome, DocumentationRegistry documentationRegistry, GradleProperties gradleProperties) {
