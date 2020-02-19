@@ -117,7 +117,7 @@ public abstract class CompositeFileCollection extends AbstractFileCollection imp
 
     @Override
     protected Collection<DirectoryFileTree> getAsFileTrees() {
-        List<DirectoryFileTree> fileTree = new ArrayList<DirectoryFileTree>();
+        List<DirectoryFileTree> fileTree = new ArrayList<>();
         for (FileCollection source : getSourceCollections()) {
             AbstractFileCollection collection = (AbstractFileCollection) source;
             fileTree.addAll(collection.getAsFileTrees());

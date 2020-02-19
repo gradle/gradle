@@ -206,7 +206,7 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
      * Returns this collection as a set of {@link DirectoryFileTree} instances.
      */
     protected Collection<DirectoryFileTree> getAsFileTrees() {
-        List<DirectoryFileTree> fileTrees = new ArrayList<DirectoryFileTree>();
+        List<DirectoryFileTree> fileTrees = new ArrayList<>();
         for (File file : this) {
             if (file.isFile()) {
                 fileTrees.add(new FileBackedDirectoryFileTree(file));
