@@ -16,6 +16,8 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.report;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.DocumentationRegistry;
@@ -38,7 +40,6 @@ import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -48,7 +49,7 @@ import java.util.Map;
  * new contents.
  */
 class HtmlDependencyVerificationReportRenderer implements DependencyVerificationReportRenderer {
-    private List<Section> sections = Lists.newArrayList();
+    private Map<String, Section> sections = Maps.newTreeMap();
     private Section currentSection;
     private final StringBuilder contents = new StringBuilder();
     private final DocumentationRegistry documentationRegistry;
@@ -65,8 +66,11 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
 
     @Override
     public void startNewSection(String title) {
-        currentSection = new Section(title);
-        this.sections.add(currentSection);
+        currentSection = sections.get(title);
+        if (currentSection == null) {
+            currentSection = new Section(title);
+            this.sections.put(title, currentSection);
+        }
     }
 
     @Override
@@ -112,7 +116,7 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
         contents.append("<div class=\"uk-container uk-container-expand\">\n");
         contents.append("        <ul uk-accordion>\n");
         boolean first = true;
-        for (Section section : sections) {
+        for (Section section : sections.values()) {
             if (first) {
                 contents.append("            <li class=\"uk-open\">\n");
             } else {
@@ -156,7 +160,6 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
     }
 
     private void generateContent() {
-        sections.sort(Comparator.comparing(Section::getTitle));
         contents.setLength(0);
         contents.append("<!DOCTYPE html>\n" +
             "<html>\n" +
@@ -263,7 +266,7 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
 
     private void prerenderSection(Section section) {
         int size = section.errors.size();
-        contents.append("<a class=\"uk-accordion-title\" href=\"#\">").append(section.title)
+        contents.append("<a class=\"uk-accordion-title\" href=\"#\"><span uk-icon=\"chevron-right\"></span>").append(section.title)
             .append("&nbsp;<span class=\"uk-badge\">")
             .append(size)
             .append(size < 2 ? " error" : " errors")
@@ -288,20 +291,21 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
     }
 
     private void formatErrors(ArtifactErrors currentArtifact) {
-        currentArtifact.failures.forEach(e -> formatError(currentArtifact.key, e));
+        contents.append("        <tr>\n");
+        RepositoryAwareVerificationFailure firstFailure = currentArtifact.failures.get(0);
+        reportItem(currentArtifact.key.getComponentIdentifier().getDisplayName());
+        reportItem(createFileLink(currentArtifact.key, firstFailure.getFailure(), firstFailure.getRepositoryName()));
+        contents.append("            <td>\n");
+        currentArtifact.failures.forEach(this::formatError);
+        contents.append("            </td>\n");
+        contents.append("        </tr>\n");
     }
 
-    private void formatError(ModuleComponentArtifactIdentifier key, RepositoryAwareVerificationFailure failure) {
+    private void formatError(RepositoryAwareVerificationFailure failure) {
         VerificationFailure vf = failure.getFailure();
-        contents.append("        <tr>\n");
-        reportItem(key.getComponentIdentifier().getDisplayName());
-        reportItem(createFileLink(key, vf, failure.getRepositoryName()));
-        contents.append("            <td>\n");
         reportSignatureProblems(vf);
         reportChecksumProblems(vf);
         reportOtherProblems(vf);
-        contents.append("            </td>\n");
-        contents.append("        </tr>\n");
     }
 
     private String createFileLink(ModuleComponentArtifactIdentifier key, VerificationFailure vf, String repositoryName) {
@@ -372,7 +376,7 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
                 } else {
                     sb.append("(not found)");
                 }
-                String keyDetails = sb.toString();
+                String keyDetails = StringEscapeUtils.escapeHtml(sb.toString());
                 String keyInfo = "<b>" + keyId + " " + keyDetails + "</b>";
                 switch (error.getKind()) {
                     case PASSED_NOT_TRUSTED:

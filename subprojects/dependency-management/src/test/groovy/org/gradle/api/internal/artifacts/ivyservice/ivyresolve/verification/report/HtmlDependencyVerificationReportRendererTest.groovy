@@ -159,15 +159,9 @@ class HtmlDependencyVerificationReportRendererTest extends Specification {
             module == 'org:foo:1.0'
             artifact == 'foo-1.0.jar'
             artifactTooltip == "From repository 'Maven'"
-            problem == "Expected a sha256 checksum of 0abcd but was 0000"
+            problems == ["Expected a sha256 checksum of 0abcd but was 0000", "Signature file is missing"]
         }
         verifyAll(errors[1]) {
-            module == 'org:foo:1.0'
-            artifact == 'foo-1.0.jar'
-            artifactTooltip == "From repository 'Maven'"
-            problem == "Signature file is missing"
-        }
-        verifyAll(errors[2]) {
             module == 'com:acme:2.0'
             artifact == 'acme-2.0.pom'
             artifactTooltip == "From repository 'Ivy'"
@@ -198,6 +192,42 @@ class HtmlDependencyVerificationReportRendererTest extends Specification {
             module == 'org:foo:1.0'
             artifact == 'foo-1.0.jar'
             artifactTooltip == "From repository 'Maven'"
+            problems == ["Expected a sha256 checksum of 0abcd but was 0000", "Signature file is missing"]
+        }
+        verifyAll(errors2[0]) {
+            module == 'com:acme:2.0'
+            artifact == 'acme-2.0.pom'
+            artifactTooltip == "From repository 'Ivy'"
+            problem == "All public keys have been ignored"
+        }
+    }
+
+    def "aggregates errors on the same configurations"() {
+        given:
+        renderer.startNewSection(":someConfiguration")
+        renderer.startNewArtifact(artifact()) {
+            renderer.reportFailure(checksumFailure())
+        }
+        renderer.startNewSection(":other:configuration")
+        renderer.startNewArtifact(artifact("com", "acme", "2.0", "acme-2.0.pom")) {
+            renderer.reportFailure(onlyIgnoredKeys("Ivy"))
+        }
+        renderer.startNewSection(":someConfiguration")
+        renderer.startNewArtifact(artifact()) {
+            renderer.reportFailure(missingSignature())
+        }
+
+        when:
+        generateReport()
+
+        def errors1 = errorsFor(":someConfiguration")
+        def errors2 = errorsFor(":other:configuration")
+
+        then:
+        verifyAll(errors1[0]) {
+            module == 'org:foo:1.0'
+            artifact == 'foo-1.0.jar'
+            artifactTooltip == "From repository 'Maven'"
             problem == "Expected a sha256 checksum of 0abcd but was 0000"
         }
         verifyAll(errors1[1]) {
@@ -213,7 +243,6 @@ class HtmlDependencyVerificationReportRendererTest extends Specification {
             problem == "All public keys have been ignored"
         }
     }
-
 
     private static RepositoryAwareVerificationFailure checksumFailure(String repo = "Maven", ChecksumKind kind = ChecksumKind.sha256, String expected = "0abcd", String actual = "0000") {
         return wrap(repo, new ChecksumVerificationFailure(dummyFile, kind, expected, actual))
@@ -292,7 +321,7 @@ class HtmlDependencyVerificationReportRendererTest extends Specification {
         final NodeChild row
         final String module
         final String artifact
-        final String problem
+        final List<String> problems = []
         final boolean hasSignature
 
         ReportedError(NodeChild row) {
@@ -301,11 +330,20 @@ class HtmlDependencyVerificationReportRendererTest extends Specification {
             def artifactText = norm(row.TD[1])
             artifact = artifactText - ' (.asc)'
             hasSignature = artifactText.contains(" (.asc)")
-            problem = norm(row.TD[2])
+            row.TD[2].P.collect(problems) {
+                norm(it)
+            }
         }
 
         String getArtifactTooltip() {
             (row.TD[1].DIV.@'uk-tooltip').text() - 'title: '
+        }
+
+        String getProblem() {
+            if (problems.size() != 1) {
+                throw new AssertionError("Expected a single problem but there were ${problems.size()}")
+            }
+            problems[0]
         }
     }
 
