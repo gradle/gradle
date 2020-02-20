@@ -18,8 +18,9 @@ package org.gradle.language.base
 
 import groovy.transform.NotYetImplemented
 import org.gradle.api.reporting.model.ModelReportOutput
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 
+@UnsupportedWithInstantExecution(because = "software model")
 class ComponentBinarySourcesIntegrationTest extends AbstractComponentModelIntegrationTest {
     def setup() {
         withCustomComponentType()
@@ -40,7 +41,6 @@ model {
 '''
     }
 
-    @ToBeFixedForInstantExecution
     def "input source sets of binary is union of component source sets and binary specific source sets"() {
         given:
         buildFile << '''
@@ -110,7 +110,6 @@ model {
         succeeds "verify"
     }
 
-    @ToBeFixedForInstantExecution
     def "source sets can be added to the binaries of a component using a rule applied to all components"() {
         given:
         buildFile << '''
@@ -144,7 +143,6 @@ model {
         succeeds "verify"
     }
 
-    @ToBeFixedForInstantExecution
     def "can reference sources container for a binary from a rule"() {
         given:
         buildFile << '''
@@ -236,7 +234,6 @@ model {
         }
     }
 
-    @ToBeFixedForInstantExecution
     def "elements of binary sources container can be referenced in a rule"() {
         given:
         buildFile << '''

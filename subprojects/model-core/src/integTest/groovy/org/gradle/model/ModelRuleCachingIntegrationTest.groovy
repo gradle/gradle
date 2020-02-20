@@ -16,10 +16,11 @@
 
 package org.gradle.model
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.integtests.fixtures.longlived.PersistentBuildProcessIntegrationTest
 import org.gradle.model.internal.inspect.ModelRuleExtractor
 
+@UnsupportedWithInstantExecution(because = "software model")
 class ModelRuleCachingIntegrationTest extends PersistentBuildProcessIntegrationTest {
 
     def setup() {
@@ -42,7 +43,6 @@ class ModelRuleCachingIntegrationTest extends PersistentBuildProcessIntegrationT
         match[0][1] == "true"
     }
 
-    @ToBeFixedForInstantExecution
     def "rules extracted from core plugins are reused across builds"() {
         given:
         buildFile << '''

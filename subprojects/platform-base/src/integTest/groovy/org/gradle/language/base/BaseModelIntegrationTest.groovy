@@ -18,12 +18,14 @@ package org.gradle.language.base
 
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.platform.base.ApplicationSpec
 import org.gradle.platform.base.ComponentSpec
 import org.gradle.platform.base.GeneralComponentSpec
 import org.gradle.platform.base.LibrarySpec
 import spock.lang.Unroll
 
+@UnsupportedWithInstantExecution(because = "software model")
 class BaseModelIntegrationTest extends AbstractIntegrationSpec {
     def "empty containers are visible in model report"() {
         buildFile << """

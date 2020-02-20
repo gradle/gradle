@@ -17,8 +17,9 @@
 package org.gradle.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 
+@UnsupportedWithInstantExecution(because = "software model")
 class RuleSourceAppliedToModelMapElementIntegrationTest extends AbstractIntegrationSpec {
 
     def "rule source can be applied to ModelMap element"() {
@@ -64,7 +65,6 @@ class RuleSourceAppliedToModelMapElementIntegrationTest extends AbstractIntegrat
         output.contains "message: foo"
     }
 
-    @ToBeFixedForInstantExecution
     def "scoped rule execution failure yields useful error message"() {
         when:
         buildScript '''
@@ -94,7 +94,6 @@ class RuleSourceAppliedToModelMapElementIntegrationTest extends AbstractIntegrat
         failure.assertHasCause("I'm broken")
     }
 
-    @ToBeFixedForInstantExecution
     def "invalid rule definitions of scoped rules are reported with a message helping to identify the faulty rule"() {
         when:
         buildScript '''

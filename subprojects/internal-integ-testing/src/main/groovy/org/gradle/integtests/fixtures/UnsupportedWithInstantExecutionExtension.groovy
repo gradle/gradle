@@ -22,6 +22,7 @@ import org.spockframework.runtime.extension.AbstractAnnotationDrivenExtension
 import org.spockframework.runtime.extension.IMethodInterceptor
 import org.spockframework.runtime.extension.IMethodInvocation
 import org.spockframework.runtime.model.FeatureInfo
+import org.spockframework.runtime.model.SpecInfo
 
 import static org.gradle.integtests.fixtures.ToBeFixedForInstantExecutionExtension.iterationMatches
 import static org.gradle.integtests.fixtures.ToBeFixedForInstantExecutionExtension.isAllIterations
@@ -29,6 +30,19 @@ import static org.gradle.integtests.fixtures.ToBeFixedForInstantExecutionExtensi
 
 
 class UnsupportedWithInstantExecutionExtension extends AbstractAnnotationDrivenExtension<UnsupportedWithInstantExecution> {
+
+    @Override
+    void visitSpecAnnotation(UnsupportedWithInstantExecution annotation, SpecInfo spec) {
+        if (GradleContextualExecuter.isInstant()) {
+            if (isAllIterations(annotation.iterationMatchers()) && isEnabledBottomSpec(annotation.bottomSpecs(), { spec.bottomSpec.name == it })) {
+                spec.skipped = true
+            } else {
+                spec.features.each { feature ->
+                    feature.iterationInterceptors.add(new IterationMatchingMethodInterceptor(annotation.iterationMatchers()))
+                }
+            }
+        }
+    }
 
     @Override
     void visitFeatureAnnotation(UnsupportedWithInstantExecution annotation, FeatureInfo feature) {

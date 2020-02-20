@@ -29,9 +29,11 @@ import java.lang.annotation.Target;
  * The annotated test will be skipped by the {@link org.gradle.integtests.fixtures.executer.InstantExecutionGradleExecuter}.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
+@Target({ElementType.TYPE, ElementType.METHOD})
 @ExtensionAnnotation(UnsupportedWithInstantExecutionExtension.class)
 public @interface UnsupportedWithInstantExecution {
+
+    String because() default "";
 
     String[] bottomSpecs() default {};
 

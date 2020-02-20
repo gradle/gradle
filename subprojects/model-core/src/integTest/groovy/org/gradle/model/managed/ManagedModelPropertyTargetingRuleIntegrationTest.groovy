@@ -17,11 +17,11 @@
 package org.gradle.model.managed
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 
+@UnsupportedWithInstantExecution(because = "software model")
 class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrationSpec {
 
-    @ToBeFixedForInstantExecution
     def "rule can target nested element of managed element as input"() {
         when:
         buildScript '''
@@ -82,7 +82,6 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
         output.contains("script name: windows 10")
     }
 
-    @ToBeFixedForInstantExecution
     def "rule can target nested element of managed element as subject"() {
         when:
         buildScript '''
@@ -144,7 +143,6 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
         output.contains("script name: foo os")
     }
 
-    @ToBeFixedForInstantExecution
     def "rule can target managed element as input through a reference"() {
         when:
         buildScript '''
@@ -206,7 +204,6 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
         output.contains("script name: windows 10")
     }
 
-    @ToBeFixedForInstantExecution
     def "rule can target nested element of managed element as input through a reference to managed element"() {
         when:
         buildScript '''
@@ -273,7 +270,6 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
         output.contains("script name: windows 10")
     }
 
-    @ToBeFixedForInstantExecution
     def "rule can target managed element via a series of references"() {
         when:
         buildScript '''
@@ -346,7 +342,6 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
         output.contains("script name: windows 10")
     }
 
-    @ToBeFixedForInstantExecution
     def "target of reference is realized when used as an input"() {
         when:
         buildScript '''
