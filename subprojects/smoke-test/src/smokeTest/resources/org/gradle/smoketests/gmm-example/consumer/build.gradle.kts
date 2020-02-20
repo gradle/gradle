@@ -11,6 +11,7 @@ allprojects {
         maven {
             setUrl(File(rootDir.parentFile, "producer/repo"))
         }
+        maven(url = "https://dl.bintray.com/kotlin/kotlin-eap/")
         jcenter()
         google()
     }
