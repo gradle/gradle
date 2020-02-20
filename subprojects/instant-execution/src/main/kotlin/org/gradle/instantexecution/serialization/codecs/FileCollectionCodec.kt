@@ -23,6 +23,7 @@ import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileCollectionStructureVisitor
 import org.gradle.api.internal.file.FileTreeInternal
+import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree
 import org.gradle.api.internal.file.collections.MinimalFileSet
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.instantexecution.serialization.Codec
@@ -99,7 +100,7 @@ class CollectingVisitor : FileCollectionStructureVisitor {
         }
     }
 
-    override fun visitGenericFileTree(fileTree: FileTreeInternal) {
+    override fun visitGenericFileTree(fileTree: FileTreeInternal, sourceTree: FileSystemMirroringFileTree) {
         elements.addAll(fileTree)
     }
 
@@ -107,7 +108,7 @@ class CollectingVisitor : FileCollectionStructureVisitor {
         elements.add(fileTree)
     }
 
-    override fun visitFileTreeBackedByFile(file: File, fileTree: FileTreeInternal) {
+    override fun visitFileTreeBackedByFile(file: File, fileTree: FileTreeInternal, sourceTree: FileSystemMirroringFileTree) {
         elements.add(fileTree)
     }
 }

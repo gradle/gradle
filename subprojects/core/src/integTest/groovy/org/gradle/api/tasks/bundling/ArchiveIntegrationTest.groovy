@@ -24,7 +24,6 @@ import org.gradle.test.fixtures.archive.TarTestFixture
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.hamcrest.CoreMatchers
-import org.junit.Assume
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -872,8 +871,6 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
     @Issue("https://github.com/gradle/gradle#1108")
     @ToBeFixedForInstantExecution(iterationMatchers = ".*includeEmptyDirs=true.*")
     def "can copy files into a different root with includeEmptyDirs=#includeEmptyDirs"() {
-        Assume.assumeFalse("This test case is not implemented when includeEmptyDirs=true", includeEmptyDirs)
-
         given:
         createZip("test.zip") {
             dir1 {
@@ -908,7 +905,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         includeEmptyDirs | expectedDescendants
-        true             | ["file2.txt", "file3.txt", "dir3"]
+        true             | ["file2.txt", "file3.txt"] // dir3 is not included as the action does not apply to directories
         false            | ["file2.txt", "file3.txt"]
     }
 

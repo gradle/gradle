@@ -27,6 +27,7 @@ import org.gradle.api.internal.file.FilteredFileTree
 import org.gradle.api.internal.file.archive.TarFileTree
 import org.gradle.api.internal.file.archive.ZipFileTree
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
+import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree
 import org.gradle.api.internal.file.collections.FileTreeAdapter
 import org.gradle.api.internal.file.collections.GeneratedSingletonFileTree
 import org.gradle.api.tasks.util.PatternSet
@@ -156,7 +157,7 @@ class FileTreeCodec(
 
         override fun visitCollection(source: FileCollectionInternal.Source, contents: Iterable<File>) = throw UnsupportedOperationException()
 
-        override fun visitGenericFileTree(fileTree: FileTreeInternal) = throw UnsupportedOperationException()
+        override fun visitGenericFileTree(fileTree: FileTreeInternal, sourceTree: FileSystemMirroringFileTree) = throw UnsupportedOperationException()
 
         override fun visitFileTree(root: File, patterns: PatternSet, fileTree: FileTreeInternal) {
             if (fileTree is FileTreeAdapter) {
@@ -171,18 +172,16 @@ class FileTreeCodec(
             roots.add(DirectoryTreeSpec(root, patterns))
         }
 
-        override fun visitFileTreeBackedByFile(file: File, fileTree: FileTreeInternal) {
-            if (fileTree is FileTreeAdapter) {
-                val tree = fileTree.tree
-                if (tree is ZipFileTree) {
-                    roots.add(ZipTreeSpec(tree.backingFile!!))
-                    return
-                } else if (tree is TarFileTree) {
-                    roots.add(TarTreeSpec(tree.backingFile!!))
-                    return
-                }
+        override fun visitFileTreeBackedByFile(file: File, fileTree: FileTreeInternal, sourceTree: FileSystemMirroringFileTree) {
+            if (sourceTree is ZipFileTree && sourceTree.backingFile != null) {
+                roots.add(ZipTreeSpec(sourceTree.backingFile!!))
+                return
+            } else if (sourceTree is TarFileTree && sourceTree.backingFile != null) {
+                roots.add(TarTreeSpec(sourceTree.backingFile!!))
+                return
+            } else {
+                throw UnsupportedOperationException()
             }
-            throw UnsupportedOperationException()
         }
     }
 }

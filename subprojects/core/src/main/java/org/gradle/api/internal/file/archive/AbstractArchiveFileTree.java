@@ -31,9 +31,9 @@ public abstract class AbstractArchiveFileTree implements FileSystemMirroringFile
     public void visitStructure(FileCollectionStructureVisitor visitor, FileTreeInternal owner) {
         File backingFile = getBackingFile();
         if (backingFile != null) {
-            visitor.visitFileTreeBackedByFile(backingFile, owner);
+            visitor.visitFileTreeBackedByFile(backingFile, owner, this);
         } else {
-            visitor.visitGenericFileTree(owner);
+            visitor.visitGenericFileTree(owner, this);
         }
     }
 }

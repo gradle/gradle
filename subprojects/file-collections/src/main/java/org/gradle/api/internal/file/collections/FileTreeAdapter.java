@@ -16,7 +16,6 @@
 package org.gradle.api.internal.file.collections;
 
 import org.gradle.api.Buildable;
-import org.gradle.api.file.DirectoryTree;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.AbstractFileTree;
@@ -27,8 +26,6 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.Collections;
 
 /**
  * Adapts a {@link MinimalFileTree} into a full {@link FileTree} implementation.
@@ -60,22 +57,6 @@ public class FileTreeAdapter extends AbstractFileTree implements FileCollectionC
     }
 
     @Override
-    protected Collection<DirectoryTree> getAsFileTrees() {
-        if (tree instanceof FileSystemMirroringFileTree) {
-            FileSystemMirroringFileTree mirroringTree = (FileSystemMirroringFileTree) tree;
-            if (visitAll()) {
-                return Collections.singletonList(mirroringTree.getMirror());
-            } else {
-                return Collections.emptyList();
-            }
-        } else if (tree instanceof LocalFileTree) {
-            LocalFileTree fileTree = (LocalFileTree) tree;
-            return fileTree.getLocalContents();
-        }
-        throw new UnsupportedOperationException(String.format("Cannot convert %s to local file system directories.", tree));
-    }
-
-    @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
         if (tree instanceof Buildable) {
             context.add(tree);
@@ -102,8 +83,10 @@ public class FileTreeAdapter extends AbstractFileTree implements FileCollectionC
         if (tree instanceof PatternFilterableFileTree) {
             PatternFilterableFileTree filterableTree = (PatternFilterableFileTree) tree;
             return new FileTreeAdapter(filterableTree.filter(patterns), patternSetFactory);
+        } else if (tree instanceof FileSystemMirroringFileTree) {
+            return new FileTreeAdapter(new FilteredMinimalFileTree((PatternSet) patterns, (FileSystemMirroringFileTree) tree), patternSetFactory);
         }
-        return super.matching(patterns);
+        throw new UnsupportedOperationException(String.format("Do not know how to filter %s.", tree));
     }
 
     @Override
