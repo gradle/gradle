@@ -20,7 +20,6 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.featurelifecycle.DeprecatedUsageBuildOperationProgressBroadcaster;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.featurelifecycle.UsageLocationReporter;
-import org.gradle.util.GradleVersion;
 
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
