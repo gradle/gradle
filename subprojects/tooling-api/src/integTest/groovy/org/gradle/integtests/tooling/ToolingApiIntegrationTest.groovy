@@ -75,9 +75,6 @@ class ToolingApiIntegrationTest extends AbstractIntegrationSpec {
 
     def "can configure Kotlin DSL project with gradleApi() dependency via tooling API"() {
         given:
-        requireIsolatedGradleDistribution()
-        toolingApi.requireIsolatedToolingApi()
-
         buildKotlinFile << """
         plugins {
             java
@@ -336,7 +333,6 @@ allprojects {
         withColor << [true, false]
     }
 
-    @Issue("https://github.com/gradle/gradle/issues/12274")
     def "resolves localGroovy() as IdeaSingleEntryLibraryDependency for IdeaProject via tooling API"() {
         given:
         settingsFile << "rootProject.name = 'root'"
