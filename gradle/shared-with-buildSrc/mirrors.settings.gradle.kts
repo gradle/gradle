@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 import org.gradle.api.internal.artifacts.BaseRepositoryFactory.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY
+import org.gradle.api.internal.GradleInternal
+import org.gradle.internal.nativeintegration.network.HostnameLookup
 
 val originalUrls: Map<String, String> = mapOf(
     "jcenter" to "https://jcenter.bintray.com/",
@@ -36,7 +38,7 @@ val mirrorUrls: Map<String, String> =
     } ?: emptyMap()
 
 
-fun isEc2Agent() = java.net.InetAddress.getLocalHost().hostName.startsWith("ip-")
+fun isEc2Agent() = (gradle as GradleInternal).services.get(HostnameLookup::class.java).hostname.startsWith("ip-")
 
 fun isMacAgent() = System.getProperty("os.name").toLowerCase().contains("mac")
 
