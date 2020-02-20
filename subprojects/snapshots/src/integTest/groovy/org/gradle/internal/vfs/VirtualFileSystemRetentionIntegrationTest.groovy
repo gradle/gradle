@@ -19,20 +19,18 @@ package org.gradle.internal.vfs
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.VfsRetentionFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.IgnoreIf
 
 import static org.gradle.integtests.fixtures.ToBeFixedForInstantExecution.Skip.FLAKY
-import static org.gradle.internal.service.scopes.VirtualFileSystemServices.VFS_DROP_PROPERTY
-import static org.gradle.internal.service.scopes.VirtualFileSystemServices.VFS_RETENTION_ENABLED_PROPERTY
 
 // The whole test makes no sense if there isn't a daemon to retain the state.
 @IgnoreIf({ GradleContextualExecuter.noDaemon || GradleContextualExecuter.vfsRetention })
-class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
+class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture, VfsRetentionFixture {
 
     def setup() {
         // Make the first build in each test drop the VFS state
-        executer.withArgument("-D$VFS_DROP_PROPERTY=true")
         executer.requireIsolatedDaemons()
     }
 
@@ -475,16 +473,6 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         """
     }
 
-    private def withRetention() {
-        executer.withArgument  "-D${VFS_RETENTION_ENABLED_PROPERTY}=true"
-        this
-    }
-
-    private def withoutRetention() {
-        executer.withArgument  "-D${VFS_RETENTION_ENABLED_PROPERTY}=false"
-        this
-    }
-
     private static String sourceFileWithGreeting(String greeting) {
         """
             public class Main {
@@ -507,9 +495,5 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
                 }
             }
         """
-    }
-
-    private static void waitForChangesToBePickedUp() {
-        Thread.sleep(1000)
     }
 }

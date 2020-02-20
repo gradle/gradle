@@ -248,7 +248,8 @@ fun implicitImportsFrom(file: File): List<String> =
 
 
 private
-fun hashOf(scriptFile: File) = PrecompiledScriptDependenciesResolver.hashOf(scriptFile.readText())
+fun hashOf(scriptFile: File) =
+    PrecompiledScriptDependenciesResolver.hashOf(scriptFile.readText())
 
 
 private

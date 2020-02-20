@@ -18,7 +18,6 @@
 package org.gradle.integtests.resource.s3.maven
 
 import org.gradle.api.credentials.AwsCredentials
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.resource.s3.AbstractS3DependencyResolutionTest
 import org.gradle.integtests.resource.s3.fixtures.MavenS3Module
 
@@ -47,7 +46,6 @@ task retrieve(type: Sync) {
 """
     }
 
-    @ToBeFixedForInstantExecution
     def "should fail with an AWS S3 authentication error"() {
         setup:
         buildFile << mavenAwsRepoDsl()
@@ -63,7 +61,6 @@ task retrieve(type: Sync) {
                 .assertHasCause("The AWS Access Key Id you provided does not exist in our records.")
     }
 
-    @ToBeFixedForInstantExecution
     def "fails when providing PasswordCredentials with decent error"() {
         setup:
         buildFile << """
@@ -87,7 +84,6 @@ repositories {
                 .assertHasCause("Credentials must be an instance of '${AwsCredentials.class.getName()}'.")
     }
 
-    @ToBeFixedForInstantExecution
     def "fails when no credentials provided"() {
         setup:
         buildFile << """
@@ -107,7 +103,6 @@ repositories {
 
     }
 
-    @ToBeFixedForInstantExecution
     def "should include resource uri when file not found"() {
         setup:
         buildFile << mavenAwsRepoDsl()
@@ -128,7 +123,6 @@ Required by:
 """)
     }
 
-    @ToBeFixedForInstantExecution
     def "cannot add invalid authentication types for s3 repo"() {
         given:
         module.publish()

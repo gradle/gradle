@@ -27,7 +27,6 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.api.tasks.util.internal.PatternSets;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.MutableBoolean;
@@ -41,15 +40,12 @@ import java.util.Set;
 import static org.gradle.util.ConfigureUtil.configure;
 
 public abstract class AbstractFileTree extends AbstractFileCollection implements FileTreeInternal {
-
-    protected final Factory<PatternSet> patternSetFactory;
-
     public AbstractFileTree() {
-        this(PatternSets.getNonCachingPatternSetFactory());
+        super();
     }
 
     public AbstractFileTree(Factory<PatternSet> patternSetFactory) {
-        this.patternSetFactory = patternSetFactory;
+        super(patternSetFactory);
     }
 
     @Override
@@ -92,7 +88,7 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
     @Override
     public FileTree matching(PatternFilterable patterns) {
         PatternSet patternSet = (PatternSet) patterns;
-        return new FilteredFileTreeImpl(this, patternSet.getAsSpec());
+        return new FilteredFileTreeImpl(this, patternSet.getAsSpec(), patternSetFactory);
     }
 
     public Map<String, File> getAsMap() {
@@ -177,7 +173,8 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
         private final AbstractFileTree fileTree;
         private final Spec<FileTreeElement> spec;
 
-        public FilteredFileTreeImpl(AbstractFileTree fileTree, Spec<FileTreeElement> spec) {
+        public FilteredFileTreeImpl(AbstractFileTree fileTree, Spec<FileTreeElement> spec, Factory<PatternSet> patternSetFactory) {
+            super(patternSetFactory);
             this.fileTree = fileTree;
             this.spec = spec;
         }

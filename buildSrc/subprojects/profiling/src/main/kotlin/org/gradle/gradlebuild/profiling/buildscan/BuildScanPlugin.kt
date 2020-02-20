@@ -19,6 +19,7 @@ import com.gradle.scan.plugin.BuildScanExtension
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.internal.GradleInternal
 import org.gradle.api.plugins.quality.Checkstyle
 import org.gradle.api.plugins.quality.CodeNarc
 import org.gradle.api.reporting.Reporting
@@ -75,6 +76,11 @@ open class BuildScanPlugin : Plugin<Project> {
         extractCheckstyleAndCodenarcData()
         extractBuildCacheData()
         extractVfsRetentionData()
+
+
+        if ((project.gradle as GradleInternal).buildType != GradleInternal.BuildType.TASKS) {
+            buildScan.tag("SYNC")
+        }
     }
 
     private
@@ -176,10 +182,16 @@ open class BuildScanPlugin : Plugin<Project> {
     }
 
     private
+    fun isEc2Agent() = java.net.InetAddress.getLocalHost().hostName.startsWith("ip-")
+
+    private
     fun Project.extractCiOrLocalData() {
         if (isCiServer) {
             buildScan {
                 tag("CI")
+                if (isEc2Agent()) {
+                    tag("EC2")
+                }
                 when {
                     isTravis -> {
                         link("Travis Build", System.getenv("TRAVIS_BUILD_WEB_URL"))

@@ -17,7 +17,7 @@
 package org.gradle.model.managed
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Issue
@@ -26,9 +26,9 @@ import spock.lang.Issue
 // Fail since build 125
 @Requires(TestPrecondition.JDK8_OR_EARLIER)
 @Issue('https://github.com/gradle/gradle/issues/721')
+@UnsupportedWithInstantExecution(because = "software model")
 class InterfaceBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec {
 
-    @ToBeFixedForInstantExecution
     def "rule method can define a managed model element backed by an interface"() {
         when:
         buildScript '''
@@ -85,7 +85,6 @@ class InterfaceBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec 
         output.contains("name: foo")
     }
 
-    @ToBeFixedForInstantExecution
     def "can view a managed element as ModelElement"() {
         when:
         buildScript '''
@@ -124,7 +123,6 @@ class InterfaceBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec 
         output.contains("display-name: Person 'someone'")
     }
 
-    @ToBeFixedForInstantExecution
     def "rule method can apply defaults to a managed model element"() {
         when:
         buildScript '''
@@ -185,7 +183,6 @@ class InterfaceBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec 
     }
 
     @Requires(TestPrecondition.JDK8_OR_LATER)
-    @ToBeFixedForInstantExecution
     def "managed type implemented as interface can have generative getter default methods"() {
         when:
         file('buildSrc/src/main/java/Rules.java') << '''
@@ -234,7 +231,6 @@ class InterfaceBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec 
     }
 
     @Requires(TestPrecondition.JDK8_OR_LATER)
-    @ToBeFixedForInstantExecution
     def "generative getters implemented as default methods cannot call setters"() {
         when:
         file('buildSrc/src/main/java/Rules.java') << '''

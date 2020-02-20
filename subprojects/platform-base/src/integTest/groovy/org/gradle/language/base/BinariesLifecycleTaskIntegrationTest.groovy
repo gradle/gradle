@@ -17,9 +17,10 @@
 package org.gradle.language.base
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.internal.logging.text.DiagnosticsVisitor
 
+@UnsupportedWithInstantExecution(because = "software model")
 class BinariesLifecycleTaskIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         settingsFile << """rootProject.name = 'assemble-binary'"""
@@ -60,7 +61,6 @@ class BinariesLifecycleTaskIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    @ToBeFixedForInstantExecution
     def "produces sensible error when there are component binaries and all are not buildable" () {
         withLibBinaries("notBuildableBinary1", "notBuildableBinary2")
         withStandaloneBinaries("ignoreMe")
@@ -93,7 +93,6 @@ class BinariesLifecycleTaskIntegrationTest extends AbstractIntegrationSpec {
         result.assertTasksExecuted(":libBuildableBinary1", ":libBuildableBinary2", ":assemble", ":check", ":build")
     }
 
-    @ToBeFixedForInstantExecution
     def "does not produce error when assemble task has other dependencies" () {
         withLibBinaries("notBuildableBinary")
         buildFile << """

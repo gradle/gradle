@@ -37,6 +37,13 @@ public interface DaemonFixture {
     File getLogFile();
 
     /**
+     * Returns whether the log file contains a given String.
+     *
+     * Works without reading the whole log file into memory.
+     */
+    boolean logContains(String searchString);
+
+    /**
      * Returns the TCP port used by this daemon.
      */
     int getPort();

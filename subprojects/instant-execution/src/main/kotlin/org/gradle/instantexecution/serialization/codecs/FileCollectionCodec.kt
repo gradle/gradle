@@ -28,6 +28,8 @@ import org.gradle.api.tasks.util.PatternSet
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
+import org.gradle.instantexecution.serialization.decodePreservingIdentity
+import org.gradle.instantexecution.serialization.encodePreservingIdentityOf
 import java.io.File
 import java.util.concurrent.Callable
 
@@ -38,33 +40,39 @@ class FileCollectionCodec(
 ) : Codec<FileCollectionInternal> {
 
     override suspend fun WriteContext.encode(value: FileCollectionInternal) {
-        runCatching {
-            val visitor = CollectingVisitor()
-            value.visitStructure(visitor)
-            visitor.elements
-        }.apply {
-            onSuccess { elements ->
-                write(elements)
-            }
-            onFailure { ex ->
-                write(BrokenValue(ex))
+        encodePreservingIdentityOf(value) {
+            runCatching {
+                val visitor = CollectingVisitor()
+                value.visitStructure(visitor)
+                visitor.elements
+            }.apply {
+                onSuccess { elements ->
+                    write(elements)
+                }
+                onFailure { ex ->
+                    write(BrokenValue(ex))
+                }
             }
         }
     }
 
     override suspend fun ReadContext.decode(): FileCollectionInternal {
-        val contents = read()
-        return if (contents is Collection<*>) {
-            fileCollectionFactory.resolving(contents.map { element ->
-                when (element) {
-                    is File -> element
-                    is TransformationNode -> Callable { element.transformedSubject.get().files }
-                    is FileTree -> element
-                    else -> throw IllegalArgumentException("Unexpected item $element in file collection contents")
-                }
-            })
-        } else {
-            fileCollectionFactory.create(ErrorFileSet(contents as BrokenValue))
+        return decodePreservingIdentity { id ->
+            val contents = read()
+            val collection = if (contents is Collection<*>) {
+                fileCollectionFactory.resolving(contents.map { element ->
+                    when (element) {
+                        is File -> element
+                        is TransformationNode -> Callable { element.transformedSubject.get().files }
+                        is FileTree -> element
+                        else -> throw IllegalArgumentException("Unexpected item $element in file collection contents")
+                    }
+                })
+            } else {
+                fileCollectionFactory.create(ErrorFileSet(contents as BrokenValue))
+            }
+            isolate.identities.putInstance(id, collection)
+            collection
         }
     }
 }

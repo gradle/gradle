@@ -17,11 +17,11 @@
 package org.gradle.model.managed
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 
+@UnsupportedWithInstantExecution(because = "software model")
 class ManagedModelMapIntegrationTest extends AbstractIntegrationSpec {
 
-    @ToBeFixedForInstantExecution
     def "rule can create a map of model elements"() {
         when:
         buildScript '''
@@ -73,7 +73,6 @@ class ManagedModelMapIntegrationTest extends AbstractIntegrationSpec {
         output.contains "things: a:1,b:2"
     }
 
-    @ToBeFixedForInstantExecution
     def "rule can create a map of abstract class backed managed model elements"() {
         when:
         buildScript '''
@@ -126,7 +125,6 @@ class ManagedModelMapIntegrationTest extends AbstractIntegrationSpec {
         output.contains "things: a:1,b:2"
     }
 
-    @ToBeFixedForInstantExecution
     def "rule can create a map of various supported types"() {
         // TODO - can't actually add anything to these maps yet
         when:
@@ -338,7 +336,6 @@ A managed collection can not contain 'java.io.InputStream's""")
         failure.assertHasCause("Attempt to modify a read only view of model element 'people' of type 'ModelMap<Person>' given to rule RulePlugin#check(ModelMap<Person>)")
     }
 
-    @ToBeFixedForInstantExecution
     def "can read children of map when used as input"() {
         when:
         buildScript """
@@ -447,7 +444,6 @@ parent
         output.contains("size: 1")
     }
 
-    @ToBeFixedForInstantExecution
     def "name is not populated when entity is not named"() {
         when:
         buildScript '''

@@ -87,6 +87,10 @@ class DefaultInstantExecution internal constructor(
         !isInstantExecutionEnabled -> {
             false
         }
+        systemPropertyFlag(SystemProperties.recreateCache) -> {
+            log("Recreating instant execution cache")
+            false
+        }
         startParameter.isRefreshDependencies -> {
             log(
                 "Calculating task graph as instant execution cache cannot be reused due to {}",
@@ -331,7 +335,8 @@ class DefaultInstantExecution internal constructor(
             actionScheme = service(),
             attributesFactory = service(),
             transformListener = service(),
-            valueSourceProviderFactory = service()
+            valueSourceProviderFactory = service(),
+            patternSetFactory = service()
         )
     }
 

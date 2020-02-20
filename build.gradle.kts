@@ -153,9 +153,8 @@ buildTypes {
 
     // Used to build production distros and smoke test them
     create("packageBuild") {
-        tasks(
-            "verifyIsProductionBuildEnvironment", "clean", "buildDists",
-            "distributions:integTest")
+        tasks("verifyIsProductionBuildEnvironment", "clean", "buildDists",
+            "distributions:integTest", ":docs:checkSamples")
     }
 
     // Used to build production distros and smoke test them
@@ -166,7 +165,7 @@ buildTypes {
     }
 
     create("soakTest") {
-        tasks("soak:soakTest")
+        tasks("soak:soakIntegTest")
         projectProperties("testAllVersions" to true)
     }
 

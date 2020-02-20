@@ -38,14 +38,12 @@ import java.util.Collections;
  * TODO - keep the file entries to snapshot later, to avoid a stat on each file during snapshot
  */
 public class CachingTaskInputFileCollection extends DefaultConfigurableFileCollection implements LifecycleAwareValue {
-    private final Factory<PatternSet> patternSetFactory;
     private boolean canCache;
     private MinimalFileSet cachedValue;
 
     // TODO - display name
     public CachingTaskInputFileCollection(PathToFileResolver fileResolver, Factory<PatternSet> patternSetFactory, TaskDependencyFactory taskDependencyFactory) {
-        super(null, fileResolver, taskDependencyFactory, Collections.emptyList());
-        this.patternSetFactory = patternSetFactory;
+        super(null, fileResolver, taskDependencyFactory, patternSetFactory, Collections.emptyList());
     }
 
     @Override

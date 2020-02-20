@@ -389,7 +389,8 @@ class UserTypesCodecTest {
         actionScheme = mock(),
         attributesFactory = mock(),
         transformListener = mock(),
-        valueSourceProviderFactory = mock()
+        valueSourceProviderFactory = mock(),
+        patternSetFactory = mock()
     )
 
     @Test

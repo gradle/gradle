@@ -18,11 +18,13 @@ package org.gradle.language.base
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
 @Requires(TestPrecondition.ONLINE)
+@UnsupportedWithInstantExecution(because = "software model")
 class LanguageTypeSampleIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     Sample languageTypeSample = new Sample(temporaryFolder, "customModel/languageType")

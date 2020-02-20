@@ -26,6 +26,8 @@ import org.gradle.instantexecution.extensions.uncheckedCast
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
+import org.gradle.instantexecution.serialization.decodePreservingIdentity
+import org.gradle.instantexecution.serialization.encodePreservingIdentityOf
 import org.gradle.instantexecution.serialization.readList
 import org.gradle.instantexecution.serialization.writeCollection
 import org.gradle.internal.reflect.Instantiator
@@ -39,17 +41,23 @@ class DefaultCopySpecCodec(
 ) : Codec<DefaultCopySpec> {
 
     override suspend fun WriteContext.encode(value: DefaultCopySpec) {
-        write(value.destPath)
-        write(value.resolveSourceFiles())
-        write(value.patterns)
-        writeCollection(value.children)
+        encodePreservingIdentityOf(value) {
+            write(value.destPath)
+            write(value.getSourceFiles())
+            write(value.patterns)
+            writeCollection(value.children)
+        }
     }
 
     override suspend fun ReadContext.decode(): DefaultCopySpec {
-        val destPath = read() as String?
-        val sourceFiles = read() as FileCollection
-        val patterns = read() as PatternSet
-        val children = readList().uncheckedCast<List<CopySpecInternal>>()
-        return DefaultCopySpec(fileResolver, fileCollectionFactory, instantiator, destPath, sourceFiles, patterns, children)
+        return decodePreservingIdentity { id ->
+            val destPath = read() as String?
+            val sourceFiles = read() as FileCollection
+            val patterns = read() as PatternSet
+            val children = readList().uncheckedCast<List<CopySpecInternal>>()
+            val copySpec = DefaultCopySpec(fileResolver, fileCollectionFactory, instantiator, destPath, sourceFiles, patterns, children)
+            isolate.identities.putInstance(id, copySpec)
+            copySpec
+        }
     }
 }

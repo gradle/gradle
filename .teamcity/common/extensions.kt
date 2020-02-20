@@ -113,9 +113,7 @@ fun buildToolGradleParameters(daemon: Boolean = true, isContinue: Boolean = true
         if (daemon) "--daemon" else "--no-daemon",
         if (isContinue) "--continue" else "",
         """-I "%teamcity.build.checkoutDir%/gradle/init-scripts/build-scan.init.gradle.kts"""",
-        "-Dorg.gradle.internal.tasks.createops",
-        // // https://github.com/gradle/gradle-private/issues/2725
-        if (os == Os.macos) "" else "-Dorg.gradle.internal.plugins.portal.url.override=%gradle.plugins.portal.url%"
+        "-Dorg.gradle.internal.tasks.createops"
     )
 
 fun buildToolParametersString(daemon: Boolean = true, os: Os = Os.linux) = buildToolGradleParameters(daemon, os = os).joinToString(separator = " ")

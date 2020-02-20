@@ -36,8 +36,6 @@ gradlebuildJava {
 val integTestTasks: DomainObjectCollection<IntegrationTest> by extra
 integTestTasks.configureEach {
     libsRepository.required = true
-    // TODO: Samples from 'docs' should be exposed in another way
-    dependsOn(":docs:checkSamples")
 }
 
 testFilesCleanup {

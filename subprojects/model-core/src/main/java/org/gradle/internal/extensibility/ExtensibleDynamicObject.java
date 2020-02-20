@@ -37,7 +37,7 @@ import java.util.Map;
  *
  * This is the dynamic object implementation that “enhanced” objects expose.
  *
- * @see org.gradle.api.internal.AsmBackedClassGenerator.MixInExtensibleDynamicObject
+ * @see org.gradle.internal.instantiation.generator.MixInExtensibleDynamicObject
  */
 public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDynamicObject implements HasConvention {
 

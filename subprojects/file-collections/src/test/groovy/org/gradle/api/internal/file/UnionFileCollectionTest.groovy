@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,8 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 
+import static org.gradle.api.internal.file.AbstractFileCollectionTest.TestFileCollection
+
 @UsesNativeServices
 class UnionFileCollectionTest extends Specification {
     def file1 = new File("1")
@@ -28,8 +30,8 @@ class UnionFileCollectionTest extends Specification {
     def file3 = new File("3")
 
     def containsUnionOfAllSourceCollections() {
-        def source1 = new AbstractFileCollectionTest.TestFileCollection(file1, file2)
-        def source2 = new AbstractFileCollectionTest.TestFileCollection(file2, file3)
+        def source1 = new TestFileCollection(file1, file2)
+        def source2 = new TestFileCollection(file2, file3)
 
         expect:
         def collection = new UnionFileCollection(source1, source2)
@@ -37,8 +39,8 @@ class UnionFileCollectionTest extends Specification {
     }
 
     def contentsTrackContentsOfSourceCollections() {
-        def source1 = new AbstractFileCollectionTest.TestFileCollection(file1)
-        def source2 = new AbstractFileCollectionTest.TestFileCollection(file2, file3)
+        def source1 = new TestFileCollection(file1)
+        def source2 = new TestFileCollection(file2, file3)
 
         expect:
         def collection = new UnionFileCollection(source1, source2)
@@ -46,8 +48,8 @@ class UnionFileCollectionTest extends Specification {
     }
 
     def canAddCollection() {
-        def source1 = new AbstractFileCollectionTest.TestFileCollection(file1)
-        def source2 = new AbstractFileCollectionTest.TestFileCollection(file2)
+        def source1 = new TestFileCollection(file1)
+        def source2 = new TestFileCollection(file2)
 
         expect:
         def collection = new UnionFileCollection([source1])

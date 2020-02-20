@@ -43,6 +43,7 @@ public interface FileCollectionStructureVisitor {
      *
      * <p>Note that this method is not necessarily called immediately before one of the visit methods, as some collections may be
      * resolved in parallel. However, all visiting is performed sequentially and in order.
+     * This method is also called sequentially and in order.
      *
      * @return how should the collection be visited?
      */
@@ -51,12 +52,12 @@ public interface FileCollectionStructureVisitor {
     }
 
     /**
-     * Visits a {@link FileCollectionInternal} element that cannot be visited in further detail.
+     * Visits an opaque file collection element that cannot be visited in further detail.
      */
     void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents);
 
     /**
-     * Visits a {@link FileTreeInternal} that does not represents a directory in the file system.
+     * Visits an atomic and opaque {@link FileTreeInternal} that does not represents a directory in the file system.
      */
     void visitGenericFileTree(FileTreeInternal fileTree);
 

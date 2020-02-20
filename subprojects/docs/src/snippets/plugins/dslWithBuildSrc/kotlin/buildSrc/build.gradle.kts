@@ -16,7 +16,6 @@
 
 // tag::main-block[]
 plugins {
-    java
     `java-gradle-plugin`
 }
 
@@ -27,9 +26,5 @@ gradlePlugin {
             implementationClass = "my.MyPlugin"
         }
     }
-}
-
-dependencies {
-    compileOnly(gradleApi())
 }
 // end::main-block[]

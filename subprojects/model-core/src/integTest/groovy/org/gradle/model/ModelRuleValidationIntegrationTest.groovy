@@ -17,7 +17,9 @@
 package org.gradle.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 
+@UnsupportedWithInstantExecution(because = "software model")
 class ModelRuleValidationIntegrationTest extends AbstractIntegrationSpec {
 
     def "invalid model name produces error message"() {

@@ -20,11 +20,18 @@ import org.gradle.api.Task
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext
 import org.gradle.api.internal.tasks.TaskDependencyContainer
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
-import org.gradle.util.UsesNativeServices
-import spock.lang.Specification
 
-@UsesNativeServices
-class CompositeFileCollectionSpec extends Specification {
+class CompositeFileCollectionSpec extends FileCollectionSpec {
+    @Override
+    AbstractFileCollection containing(File... files) {
+        return new TestCollection() {
+            @Override
+            void visitContents(FileCollectionResolveContext context) {
+                context.addAll(files as List)
+            }
+        }
+    }
+
     def "visits contents on each query"() {
         def visited = 0;
         def collection = new TestCollection() {
