@@ -280,7 +280,7 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
             .append("        <tr>\n")
             .append("            <th class=\"uk-table-shrink uk-width-auto uk-text-nowrap\">Module</th>\n")
             .append("            <th class=\"uk-table-shrink uk-width-auto uk-text-nowrap\">Artifact</th>\n")
-            .append("            <th class=\"uk-table-shrink uk-width-expand\">Problem</th>\n")
+            .append("            <th class=\"uk-table-shrink uk-width-expand\">Problem(s)</th>\n")
             .append("        </tr>\n")
             .append("    </thead>\n")
             .append("    <tbody>\n");
