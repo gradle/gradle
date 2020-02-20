@@ -785,4 +785,49 @@ $append
         outputDoesNotContain "Project :a:core has the same (groupId, artifactId) as :b:core. You should set both the organisation and module name of the publication or opt out by adding the org.gradle.dependency.duplicate.project.detection system property to 'false'."
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/12281")
+    def "shouldn't change publication coordinates if GAV are different"() {
+        given:
+        settingsFile << """
+            rootProject.name='duplicates'
+            include(':a:module')
+            project(':a:module').projectDir = file('module1')
+            include(':b:module')
+            project(':b:module').projectDir = file('module2')
+            include(':c:module')
+            project(':c:module').projectDir = file('module3')
+        """
+
+        buildFile << """
+            subprojects {
+    apply plugin: 'java'
+    apply plugin: 'maven-publish'
+
+    publishing {
+        repositories {
+            maven { url "${mavenRepo.uri}" }
+        }
+        publications {
+            maven(MavenPublication) {
+                version = '1.1'
+                from components.java
+            }
+        }
+    }
+}"""
+
+        file("module1/build.gradle") << "group = 'the.group'"
+        file("module2/build.gradle") << "group = 'the.group'"
+        file("module3/build.gradle") << "group = 'the.other.group'"
+
+        when:
+        succeeds ':c:module:publishMavenPublicationToMavenRepo'
+        def module = javaLibrary(mavenRepo.module("the.other.group", "module", "1.1"))
+
+        then:
+        module.assertPublishedAsJavaModule()
+        module.parsedPom.groupId == 'the.other.group'
+        module.parsedModuleMetadata.component.group == 'the.other.group'
+    }
+
 }
