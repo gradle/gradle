@@ -748,7 +748,7 @@ You write these as `*.gradle.kts` files in that same `src/main/kotlin` directory
 
 Precompiled script plugins are Kotlin DSL scripts that are compiled as part of a regular Kotlin source set and then placed on the build classpath or packaged in a binary plugin, depending on what type of project they're in.
 For all intents and purposes, they _are_ binary plugins, particularly as they can be applied by plugin ID, just like a normal plugin.
-In fact, the Kotlin DSL Plugin generates plugin metadata for them thanks to integration with the <<java_gradle_plugin#java_gradle_plugin,Gradle Plugin Development Plugin>>. 
+In fact, the Kotlin DSL Plugin generates plugin metadata for them thanks to integration with the <<java_gradle_plugin#java_gradle_plugin,Gradle Plugin Development Plugin>>.
 
 [NOTE]
 ====
@@ -853,6 +853,9 @@ kotlinFunctionWithJavaSam(Action {
     // ...
 })
 ----
+
+`-XX:ReferencesToSyntheticJavaProperties`::
+Enables method references to synthetic Java Bean properties.
 
 [[sec:interoperability]]
 == Interoperability
