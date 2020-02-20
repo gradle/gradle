@@ -30,8 +30,6 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.GradleProject
-import org.gradle.tooling.model.idea.IdeaProject
-import org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency
 import org.gradle.util.GradleVersion
 import org.junit.Assume
 import spock.lang.Issue
@@ -331,28 +329,5 @@ allprojects {
 
         where:
         withColor << [true, false]
-    }
-
-    def "resolves localGroovy() as IdeaSingleEntryLibraryDependency for IdeaProject via tooling API"() {
-        given:
-        settingsFile << "rootProject.name = 'root'"
-
-        buildFile << """
-        plugins {
-            id 'java'
-        }
-
-        dependencies {
-            implementation(localGroovy())
-        }
-        """
-
-        when:
-        IdeaProject ideaProject = toolingApi.withConnection { connection -> connection.getModel(IdeaProject) }
-
-        then:
-        def ideaModule = ideaProject.modules.find { it.name == 'root' }
-        def dependency = ideaModule.dependencies.find { it.file.name.contains("groovy-all-") }
-        dependency instanceof IdeaSingleEntryLibraryDependency
     }
 }
