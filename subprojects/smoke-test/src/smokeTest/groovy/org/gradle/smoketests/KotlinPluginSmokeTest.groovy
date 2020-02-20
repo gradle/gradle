@@ -133,7 +133,7 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
 
     @Unroll
     @Requires(KOTLIN_SCRIPT)
-    @ToBeFixedForInstantExecution
+    @UnsupportedWithInstantExecution(iterationMatchers = ".*kotlin 1\\.3\\.[2-6].*")
     def 'kotlin #kotlinVersion and groovy plugins combined'() {
         given:
         buildFile << """
