@@ -23,8 +23,11 @@ import org.gradle.api.file.DirectoryTree;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.file.FileVisitDetails;
+import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileBackedDirectoryFileTree;
+import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.internal.provider.AbstractProviderWithValue;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
@@ -36,6 +39,7 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.PatternSets;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
+import org.gradle.internal.MutableBoolean;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
 
@@ -208,12 +212,70 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
      */
     protected Collection<DirectoryTree> getAsFileTrees() {
         List<DirectoryTree> fileTrees = new ArrayList<>();
-        for (File file : this) {
-            if (file.isFile()) {
-                fileTrees.add(new FileBackedDirectoryFileTree(file));
+        visitStructure(new FileCollectionStructureVisitor() {
+            @Override
+            public void visitCollection(Source source, Iterable<File> contents) {
+                for (File file : contents) {
+                    if (file.isFile()) {
+                        fileTrees.add(new FileBackedDirectoryFileTree(file));
+                    }
+                }
             }
-        }
+
+            @Override
+            public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
+                if (root.isFile()) {
+                    fileTrees.add(new FileBackedDirectoryFileTree(root));
+                } else if (root.isDirectory()) {
+                    fileTrees.add(new DirectoryTree() {
+                        @Override
+                        public File getDir() {
+                            return root;
+                        }
+
+                        @Override
+                        public PatternSet getPatterns() {
+                            return patterns;
+                        }
+                    });
+                }
+            }
+
+            @Override
+            public void visitGenericFileTree(FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
+                // Visit the contents of the tree to generate the tree
+                if (visitAll(sourceTree)) {
+                    fileTrees.add(sourceTree.getMirror());
+                }
+            }
+
+            @Override
+            public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
+                visitGenericFileTree(fileTree, sourceTree);
+            }
+        });
         return fileTrees;
+    }
+
+    /**
+     * Visits all the files of this tree.
+     */
+    protected boolean visitAll(FileSystemMirroringFileTree tree) {
+        final MutableBoolean hasContent = new MutableBoolean();
+        tree.visit(new FileVisitor() {
+            @Override
+            public void visitDir(FileVisitDetails dirDetails) {
+                dirDetails.getFile();
+                hasContent.set(true);
+            }
+
+            @Override
+            public void visitFile(FileVisitDetails fileDetails) {
+                fileDetails.getFile();
+                hasContent.set(true);
+            }
+        });
+        return hasContent.get();
     }
 
     @Override

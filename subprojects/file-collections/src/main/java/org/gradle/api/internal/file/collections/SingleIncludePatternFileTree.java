@@ -34,8 +34,6 @@ import org.gradle.internal.nativeintegration.services.FileSystems;
 
 import java.io.File;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -75,11 +73,6 @@ public class SingleIncludePatternFileTree implements MinimalFileTree, LocalFileT
     @Override
     public PatternSet getPatterns() {
         return new PatternSet().include(includePattern).exclude(excludeSpec);
-    }
-
-    @Override
-    public Collection<DirectoryTree> getLocalContents() {
-        return Collections.singletonList(this);
     }
 
     @Override

@@ -197,6 +197,16 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
         }
 
         @Override
+        public Set<File> getFiles() {
+            return Collections.emptySet();
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return true;
+        }
+
+        @Override
         public FileTree matching(Closure filterConfigClosure) {
             return this;
         }

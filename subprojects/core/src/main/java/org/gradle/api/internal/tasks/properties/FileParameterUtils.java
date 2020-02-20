@@ -24,6 +24,7 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
+import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.internal.tasks.PropertyFileCollection;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.api.tasks.PathSensitivity;
@@ -141,12 +142,12 @@ public class FileParameterUtils {
                 }
 
                 @Override
-                public void visitGenericFileTree(FileTreeInternal fileTree) {
+                public void visitGenericFileTree(FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
                     failOnInvalidOutputType(fileTree);
                 }
 
                 @Override
-                public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree) {
+                public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
                     failOnInvalidOutputType(fileTree);
                 }
 

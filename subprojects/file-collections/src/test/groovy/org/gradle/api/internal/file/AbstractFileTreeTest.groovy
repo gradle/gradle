@@ -19,7 +19,6 @@ import org.gradle.api.Action
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.FileVisitor
-import org.gradle.api.file.RelativePath
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.util.PatternFilterable
@@ -48,31 +47,20 @@ class AbstractFileTreeTest extends Specification {
     def canFilterTreeUsingClosure() {
         FileVisitDetails file1 = Mock()
         FileVisitDetails file2 = Mock()
-        FileVisitor visitor = Mock()
         def tree = new TestFileTree([file1, file2])
-
-        given:
-        _ * file1.relativePath >> new RelativePath(true, 'a.txt')
-        _ * file2.relativePath >> new RelativePath(true, 'b.html')
 
         when:
         def filtered = tree.matching { include '*.txt' }
-        filtered.visit(visitor)
 
         then:
-        1 * visitor.visitFile(file1)
-        0 * visitor._
+        filtered instanceof FilteredTestFileTree
+        filtered.patterns.includes == ['*.txt'] as Set
     }
 
     def canFilterTreeUsingAction() {
         FileVisitDetails file1 = Mock()
         FileVisitDetails file2 = Mock()
-        FileVisitor visitor = Mock()
         def tree = new TestFileTree([file1, file2])
-
-        given:
-        _ * file1.relativePath >> new RelativePath(true, 'a.txt')
-        _ * file2.relativePath >> new RelativePath(true, 'b.html')
 
         when:
         def filtered = tree.matching(new Action<PatternFilterable>() {
@@ -81,24 +69,10 @@ class AbstractFileTreeTest extends Specification {
                 patternFilterable.include '*.txt'
             }
         })
-        filtered.visit(visitor)
 
         then:
-        1 * visitor.visitFile(file1)
-        0 * visitor._
-    }
-
-    def filteredTreeHasSameDependenciesAsThis() {
-        TaskDependency buildDependencies = Mock()
-        TaskDependencyResolveContext context = Mock()
-        def tree = new TestFileTree([], buildDependencies)
-
-        when:
-        def filtered = tree.matching { include '*.txt' }
-        filtered.visitDependencies(context)
-
-        then:
-        1 * context.add(tree)
+        filtered instanceof FilteredTestFileTree
+        filtered.patterns.includes == ['*.txt'] as Set
     }
 
     def "can add file trees together"() {
@@ -131,38 +105,13 @@ class AbstractFileTreeTest extends Specification {
         sum.files.sort() == [file1, file2]
     }
 
-    void "visits self as leaf collection"() {
-        def tree = new TestFileTree([])
-        def visitor = Mock(FileCollectionStructureVisitor)
-
-        when:
-        tree.visitStructure(visitor)
-
-        then:
-        1 * visitor.prepareForVisit(FileCollectionInternal.OTHER) >> FileCollectionStructureVisitor.VisitType.Visit
-        1 * visitor.visitGenericFileTree(tree)
-        0 * visitor._
-    }
-
-    void "does not visit self when visitor is not interested"() {
-        def tree = new TestFileTree([])
-        def visitor = Mock(FileCollectionStructureVisitor)
-
-        when:
-        tree.visitStructure(visitor)
-
-        then:
-        1 * visitor.prepareForVisit(FileCollectionInternal.OTHER) >> FileCollectionStructureVisitor.VisitType.NoContents
-        0 * visitor._
-    }
-
     FileVisitDetails fileVisitDetails(File file) {
         return Stub(FileVisitDetails) {
             getFile() >> { file }
         }
     }
 
-    class TestFileTree extends AbstractFileTree {
+    static class TestFileTree extends AbstractFileTree {
         List contents
         TaskDependency builtBy
 
@@ -180,11 +129,24 @@ class AbstractFileTreeTest extends Specification {
             context.add(builtBy)
         }
 
+        @Override
+        FileTree matching(PatternFilterable patterns) {
+            return new FilteredTestFileTree(patterns: patterns)
+        }
+
         FileTree visit(FileVisitor visitor) {
             contents.each { FileVisitDetails details ->
                 visitor.visitFile(details)
             }
             this
+        }
+    }
+
+    static class FilteredTestFileTree extends TestFileTree {
+        PatternFilterable patterns
+
+        FilteredTestFileTree() {
+            super([])
         }
     }
 }

@@ -39,7 +39,7 @@ class AbstractArchiveFileTreeTest extends Specification {
         fileTree.visitStructure(visitor, owner)
 
         then:
-        1 * visitor.visitFileTreeBackedByFile(backingFile, owner)
+        1 * visitor.visitFileTreeBackedByFile(backingFile, owner, fileTree)
         0 * _
     }
 
@@ -53,7 +53,7 @@ class AbstractArchiveFileTreeTest extends Specification {
         fileTree.visitStructure(visitor, owner)
 
         then:
-        1 * visitor.visitGenericFileTree(owner)
+        1 * visitor.visitGenericFileTree(owner, fileTree)
         0 * _
     }
 

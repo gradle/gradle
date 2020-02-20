@@ -18,15 +18,19 @@ package org.gradle.api.internal.file
 
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.AbstractFileCollectionTest.TestFileCollection
-import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext
 import org.gradle.api.internal.file.collections.MinimalFileSet
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
-import spock.lang.Specification
+import org.gradle.api.tasks.util.PatternSet
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.UsesNativeServices
+import org.junit.Rule
+import spock.lang.Specification
 
 @UsesNativeServices
 class CompositeFileCollectionTest extends Specification {
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def file1 = new File("1")
     def file2 = new File("2")
     def file3 = new File("3")
@@ -105,20 +109,26 @@ class CompositeFileCollectionTest extends Specification {
     }
 
     def "getAsFiletrees() returns union of file trees"() {
-        def directoryFileTreeFactory = new DefaultDirectoryFileTreeFactory();
-        def tree1 = directoryFileTreeFactory.create(new File("dir1").getAbsoluteFile());
-        def tree2 = directoryFileTreeFactory.create(new File("dir2").getAbsoluteFile());
-        def source1 = Mock(AbstractFileCollection)
-        def source2 = Mock(AbstractFileCollection)
+        def dir1 = tmpDir.createDir("dir1")
+        def dir2 = tmpDir.createDir("dir2")
+        def source1 = Mock(AbstractFileTree)
+        def source2 = Mock(AbstractFileTree)
         def collection = new TestCompositeFileCollection(source1, source2)
 
         when:
         def trees = collection.getAsFileTrees()
 
         then:
-        trees == [tree1, tree2]
-        1 * source1.getAsFileTrees() >> [tree1]
-        1 * source2.getAsFileTrees() >> [tree2]
+        trees.size() == 2
+        trees[0].dir == dir1
+        trees[1].dir == dir2
+
+        1 * source1.visitStructure(_) >> { FileCollectionStructureVisitor visitor ->
+            visitor.visitFileTree(dir1, Stub(PatternSet), source1)
+        }
+        1 * source2.visitStructure(_) >> { FileCollectionStructureVisitor visitor ->
+            visitor.visitFileTree(dir2, Stub(PatternSet), source2)
+        }
         0 * _
     }
 
@@ -174,7 +184,7 @@ class CompositeFileCollectionTest extends Specification {
         then:
         1 * source1.iterator() >> [dir1].iterator()
         1 * source2.iterator() >> [dir2].iterator()
-        1 * source3.getFiles()  >> ([dir3] as Set)
+        1 * source3.getFiles() >> ([dir3] as Set)
         0 * _
     }
 
