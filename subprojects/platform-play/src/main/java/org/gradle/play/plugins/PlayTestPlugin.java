@@ -51,7 +51,7 @@ public class PlayTestPlugin extends RuleSource {
                          final ProjectLayout projectLayout, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir) {
         DeprecationLogger.deprecatePlugin("Play Test")
             .replaceWithExternalPlugin("org.gradle.playframework-test")
-            .willBeRemovedInNextMajorVersion()
+            .willBeRemovedInGradle7()
             .withUserManual("play_plugin")
             .nagUser();
         for (final PlayApplicationBinarySpecInternal binary : playBinaries) {

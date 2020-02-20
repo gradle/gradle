@@ -98,7 +98,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
         DeprecationLogger.deprecatePlugin("jvm-component")
-            .willBeRemovedInNextMajorVersion()
+            .willBeRemovedInGradle7()
             .withUpgradeGuideSection(6, "upgrading_jvm_plugins")
             .nagUser();
     }

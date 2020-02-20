@@ -26,7 +26,7 @@ public class JavaScriptBasePlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
         DeprecationLogger.deprecatePlugin("org.gradle.javascript-base")
-            .willBeRemovedInNextMajorVersion()
+            .willBeRemovedInGradle7()
             .withUpgradeGuideSection(5, "deprecated_plugins")
             .nagUser();
         project.getPluginManager().apply(BasePlugin.class);

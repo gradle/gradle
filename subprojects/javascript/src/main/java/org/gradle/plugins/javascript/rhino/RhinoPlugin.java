@@ -38,7 +38,7 @@ public class RhinoPlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
         DeprecationLogger.deprecatePlugin("org.gradle.rhino")
-            .willBeRemovedInNextMajorVersion()
+            .willBeRemovedInGradle7()
             .withUpgradeGuideSection(5, "deprecated_plugins")
             .nagUser();
         project.getPluginManager().apply(JavaScriptBasePlugin.class);

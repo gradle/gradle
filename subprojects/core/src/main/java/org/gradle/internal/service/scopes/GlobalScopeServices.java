@@ -314,7 +314,7 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
 
     ValidateStep.ValidationWarningReporter createValidationWarningReporter() {
         return behaviour -> DeprecationLogger.deprecateBehaviour(behaviour)
-            .willBeRemovedInNextMajorVersion()
+            .willBeRemovedInGradle7()
             .withUserManual("more_about_tasks", "sec:up_to_date_checks").nagUser();
     }
 }

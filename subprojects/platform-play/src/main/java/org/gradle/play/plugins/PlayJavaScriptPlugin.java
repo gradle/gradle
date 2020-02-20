@@ -58,7 +58,7 @@ public class PlayJavaScriptPlugin implements Plugin<Project> {
     public void apply(Project project) {
         DeprecationLogger.deprecatePlugin("Play JavaScript")
             .replaceWithExternalPlugin("org.gradle.playframework-javascript")
-            .willBeRemovedInNextMajorVersion()
+            .willBeRemovedInGradle7()
             .withUserManual("play_plugin").nagUser();
         project.getPluginManager().apply(ComponentModelBasePlugin.class);
     }

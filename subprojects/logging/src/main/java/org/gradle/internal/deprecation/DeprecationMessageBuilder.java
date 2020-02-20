@@ -25,7 +25,7 @@ import java.util.List;
 @CheckReturnValue
 public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
 
-    private static final GradleVersion NEXT_MAJOR_VERSION = GradleVersion.current().getNextMajor();
+    private static final GradleVersion GRADLE7 = GradleVersion.version("7.0");
 
     private String summary;
     private DeprecationTimeline deprecationTimeline;
@@ -50,32 +50,18 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
     }
 
     /**
-     * Output: This is scheduled to be removed in Gradle X.
+     * Output: This is scheduled to be removed in Gradle 7.0.
      */
-    public WithDeprecationTimeline willBeRemovedInNextMajorVersion() {
-        return willBeRemovedInVersion(NEXT_MAJOR_VERSION);
-    }
-
-    /**
-     * Output: This will fail with an error in Gradle X.
-     */
-    public WithDeprecationTimeline willBecomeAnErrorInNextMajorVersion() {
-        return willBecomeAnError(NEXT_MAJOR_VERSION);
-    }
-
-    /**
-     * Output: This is scheduled to be removed in Gradle X.
-     */
-    public WithDeprecationTimeline willBeRemovedInVersion(GradleVersion version) {
-        this.deprecationTimeline = DeprecationTimeline.willBeRemovedInVersion(version);
+    public WithDeprecationTimeline willBeRemovedInGradle7() {
+        this.deprecationTimeline = DeprecationTimeline.willBeRemovedInVersion(GRADLE7);
         return new WithDeprecationTimeline(this);
     }
 
     /**
-     * Output: This will fail with an error in Gradle X.
+     * Output: This will fail with an error in Gradle 7.0.
      */
-    public WithDeprecationTimeline willBecomeAnError(GradleVersion version) {
-        this.deprecationTimeline = DeprecationTimeline.willBecomeAnErrorInVersion(version);
+    public WithDeprecationTimeline willBecomeAnErrorInGradle7() {
+        this.deprecationTimeline = DeprecationTimeline.willBecomeAnErrorInVersion(GRADLE7);
         return new WithDeprecationTimeline(this);
     }
 
@@ -241,19 +227,11 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         }
 
         /**
-         * Output: This is scheduled to be removed in Gradle X.
+         * Output: This is scheduled to be removed in Gradle 7.
          */
         @Override
-        public WithDeprecationTimeline willBeRemovedInNextMajorVersion() {
-            return willBeRemovedInVersion(NEXT_MAJOR_VERSION);
-        }
-
-        /**
-         * Output: This is scheduled to be removed in Gradle X.
-         */
-        @Override
-        public WithDeprecationTimeline willBeRemovedInVersion(GradleVersion version) {
-            setDeprecationTimeline(DeprecationTimeline.willBeRemovedInVersion(version));
+        public WithDeprecationTimeline willBeRemovedInGradle7() {
+            setDeprecationTimeline(DeprecationTimeline.willBeRemovedInVersion(GRADLE7));
             return new WithDeprecationTimeline(this);
         }
 
@@ -452,18 +430,10 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         }
 
         /**
-         * Output: This behaviour has been deprecated and is scheduled to be removed in Gradle X.
+         * Output: This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.
          */
-        public WithDeprecationTimeline willBeRemovedInNextMajorVersion() {
-            return willBeRemovedInVersion(NEXT_MAJOR_VERSION);
-        }
-
-        /**
-         * Output: This behaviour has been deprecated and is scheduled to be removed in Gradle X.
-         */
-        @Override
-        public WithDeprecationTimeline willBeRemovedInVersion(GradleVersion version) {
-            setDeprecationTimeline(DeprecationTimeline.behaviourWillBeRemovedInVersion(version));
+        public WithDeprecationTimeline willBeRemovedInGradle7() {
+            setDeprecationTimeline(DeprecationTimeline.behaviourWillBeRemovedInVersion(GRADLE7));
             return new WithDeprecationTimeline(this);
         }
 

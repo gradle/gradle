@@ -64,7 +64,7 @@ public class PlayTwirlPlugin extends RuleSource {
     void registerTwirlLanguageType(TypeBuilder<TwirlSourceSet> builder) {
         DeprecationLogger.deprecatePlugin("Play Twirl")
             .replaceWithExternalPlugin("org.gradle.playframework-twirl")
-            .willBeRemovedInNextMajorVersion()
+            .willBeRemovedInGradle7()
             .withUserManual("play_plugin")
             .nagUser();
         builder.defaultImplementation(DefaultTwirlSourceSet.class);

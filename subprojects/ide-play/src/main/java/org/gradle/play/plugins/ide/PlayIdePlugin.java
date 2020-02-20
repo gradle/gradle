@@ -35,7 +35,7 @@ public class PlayIdePlugin implements Plugin<Project> {
     @Override
     public void apply(final Project project) {
         DeprecationLogger.deprecatePlugin("Play Ide").replaceWithExternalPlugin("org.gradle.playframework-ide")
-            .willBeRemovedInNextMajorVersion()
+            .willBeRemovedInGradle7()
             .withUserManual("play_plugin")
             .nagUser();
         project.getPluginManager().withPlugin("idea", new Action<AppliedPlugin>() {

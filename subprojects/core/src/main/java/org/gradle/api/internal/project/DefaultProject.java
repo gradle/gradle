@@ -1026,7 +1026,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
         if (!state.isUnconfigured() && !state.isConfiguring()) {
             DeprecationLogger.deprecateInvocation("Project." + methodPrototype + " when the project is already evaluated")
                 .withAdvice(getAdviceOnDeprecationOfAfterEvaluateAfterProjectIsEvaluated())
-                .willBecomeAnErrorInNextMajorVersion()
+                .willBecomeAnErrorInGradle7()
                 .withUpgradeGuideSection(5, "calling_project_afterevaluate_on_an_evaluated_project_has_been_deprecated")
                 .nagUser();
         }

@@ -84,7 +84,7 @@ public class JavaLanguagePlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
         DeprecationLogger.deprecatePlugin("java-lang")
-            .willBeRemovedInNextMajorVersion()
+            .willBeRemovedInGradle7()
             .withUpgradeGuideSection(6, "upgrading_jvm_plugins")
             .nagUser();
         project.getPluginManager().apply(ComponentModelBasePlugin.class);

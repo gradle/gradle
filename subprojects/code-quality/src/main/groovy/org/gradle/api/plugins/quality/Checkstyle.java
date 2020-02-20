@@ -250,7 +250,7 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
     public File getConfigDir() {
         // TODO: The annotations need to be moved to the new property
         DeprecationLogger.deprecateMethod(Checkstyle.class, "getConfigDir()").replaceWith("Checkstyle.getConfigDirectory()")
-            .willBeRemovedInNextMajorVersion()
+            .willBeRemovedInGradle7()
             .withDslReference(Checkstyle.class, "configDir")
             .nagUser();
         File configDir = getConfigDirectory().getAsFile().getOrNull();
@@ -271,7 +271,7 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
     @Deprecated
     public void setConfigDir(Provider<File> configDir) {
         DeprecationLogger.deprecateMethod(Checkstyle.class, "setConfigDir()").replaceWith("Checkstyle.getConfigDirectory().set()")
-            .willBeRemovedInNextMajorVersion()
+            .willBeRemovedInGradle7()
             .withDslReference(Checkstyle.class, "configDir")
             .nagUser();
         this.configDirectory.set(getProject().getLayout().dir(configDir));

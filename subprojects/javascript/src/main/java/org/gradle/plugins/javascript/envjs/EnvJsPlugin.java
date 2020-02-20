@@ -54,7 +54,7 @@ public class EnvJsPlugin implements Plugin<Project> {
     @Override
     public void apply(final Project project) {
         DeprecationLogger.deprecatePlugin("org.gradle.envjs")
-            .willBeRemovedInNextMajorVersion()
+            .willBeRemovedInGradle7()
             .withUpgradeGuideSection(5, "deprecated_plugins")
             .nagUser();
         project.getPluginManager().apply(RhinoPlugin.class);
