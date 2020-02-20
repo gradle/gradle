@@ -9,6 +9,7 @@ version = "1.0"
 
 repositories {
     jcenter()
+    maven(url = "https://dl.bintray.com/kotlin/kotlin-eap/")
 }
 
 kotlinDslPluginOptions {
