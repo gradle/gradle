@@ -16,7 +16,9 @@
 
 package org.gradle.internal.vfs.impl;
 
+import com.google.common.collect.EnumMultiset;
 import com.google.common.collect.Interner;
+import com.google.common.collect.Multiset;
 import com.google.common.util.concurrent.Striped;
 import org.gradle.internal.file.FileMetadataSnapshot;
 import org.gradle.internal.file.FileType;
@@ -181,6 +183,26 @@ public class DefaultVirtualFileSystem extends AbstractVirtualFileSystem {
     @Override
     public void updateWithKnownSnapshot(CompleteFileSystemLocationSnapshot snapshot) {
         root.updateAndGet(root -> root.store(snapshot.getAbsolutePath(), snapshot));
+    }
+
+    @Override
+    public VirtualFileSystemStatistics getStatistics() {
+        EnumMultiset<FileType> retained = EnumMultiset.create(FileType.class);
+        getRoot().visitSnapshots((snapshot, rootOfCompleteHierarchy) -> retained.add(snapshot.getType()));
+        return new DefaultVirtualFileSystemStatistics(retained);
+    }
+
+    private static class DefaultVirtualFileSystemStatistics implements VirtualFileSystemStatistics {
+        private final Multiset<FileType> retained;
+
+        public DefaultVirtualFileSystemStatistics(Multiset<FileType> retained) {
+            this.retained = retained;
+        }
+
+        @Override
+        public int getRetained(FileType fileType) {
+            return retained.count(fileType);
+        }
     }
 
     private static class StripedProducerGuard<T> {
