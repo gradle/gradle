@@ -266,6 +266,11 @@ If multiple incompatible Gradle versions are in play, all should be used when se
 
 Instead of <<sub:cache_copy,copying the dependency cache into each container>>, it's possible to mount a shared, read-only folder that will act as a dependency cache for all containers.
 This cache, unlike the classical dependency cache, is accessed without locking, making it possible for multiple builds to read from the cache concurrently.
+
+By definition, this cache, to have any value, must be sourced from a Gradle dependency cache that contains the required dependencies.
+It can however be incomplete, as Gradle will then rely on the regular, not shared, dependency cache.
+An empty shared cache will only result in overhead.
+
 When Gradle looks for dependencies (artifacts or metadata), it will look into the writable cache in the local Gradle home directory, but will also search the shared read-only cache if it is activated.
 If an artifact is present in the read-only cache, it will not be downloaded.
 If an artifact missing from the read-only dependency cache, it will be added to the _local_, writable cache of the Gradle instance.
