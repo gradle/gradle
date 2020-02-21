@@ -17,6 +17,7 @@ package org.gradle.api.internal.file.collections;
 
 import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.internal.file.TestFiles;
 import org.gradle.internal.Factory;
 import org.gradle.internal.MutableReference;
 import org.gradle.test.fixtures.file.TestFile;
@@ -124,17 +125,15 @@ public class GeneratedSingletonFileTreeTest {
     }
 
     private GeneratedSingletonFileTree tree(String fileName, Action<OutputStream> action) {
-        return new GeneratedSingletonFileTree(fileFactory, fileName, it -> {}, action);
+        return new GeneratedSingletonFileTree(fileFactory, fileName, it -> {}, action, TestFiles.fileSystem());
     }
 
     private Action<OutputStream> getAction() {
-        return new Action<OutputStream>() {
-            public void execute(OutputStream outputStream) {
-                try {
-                    outputStream.write("content".getBytes());
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e);
-                }
+        return outputStream -> {
+            try {
+                outputStream.write("content".getBytes());
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
             }
         };
     }

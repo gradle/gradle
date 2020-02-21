@@ -17,7 +17,6 @@ package org.gradle.api.tasks.bundling
 
 import org.apache.commons.lang.RandomStringUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.test.fixtures.archive.ArchiveTestFixture
 import org.gradle.test.fixtures.archive.TarTestFixture
@@ -869,7 +868,6 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle#1108")
-    @ToBeFixedForInstantExecution(iterationMatchers = ".*includeEmptyDirs=true.*")
     def "can copy files into a different root with includeEmptyDirs=#includeEmptyDirs"() {
         given:
         createZip("test.zip") {
