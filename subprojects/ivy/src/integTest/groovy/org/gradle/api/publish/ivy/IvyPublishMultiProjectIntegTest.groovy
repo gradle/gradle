@@ -578,4 +578,49 @@ $append
 
     }
 
+    @ToBeFixedForInstantExecution
+    @Issue("https://github.com/gradle/gradle/issues/12281")
+    def "shouldn't change publication coordinates if GAV are different"() {
+        given:
+        settingsFile << """
+            rootProject.name='duplicates'
+            include(':a:module')
+            project(':a:module').projectDir = file('module1')
+            include(':b:module')
+            project(':b:module').projectDir = file('module2')
+            include(':c:module')
+            project(':c:module').projectDir = file('module3')
+        """
+
+        buildFile << """
+            subprojects {
+    apply plugin: 'java'
+    apply plugin: 'ivy-publish'
+
+    publishing {
+        repositories {
+            ivy { url "${ivyRepo.uri}" }
+        }
+        publications {
+            ivy(IvyPublication) {
+                version = '1.1'
+                from components.java
+            }
+        }
+    }
+}"""
+
+        file("module1/build.gradle") << "group = 'the.group'"
+        file("module2/build.gradle") << "group = 'the.group'"
+        file("module3/build.gradle") << "group = 'the.other.group'"
+
+        when:
+        succeeds ':c:module:publishIvyPublicationToIvyRepo'
+        def module = javaLibrary(ivyRepo.module("the.other.group", "module", "1.1"))
+
+        then:
+        module.assertPublishedAsJavaModule()
+        module.parsedIvy.organisation == 'the.other.group'
+        module.parsedModuleMetadata.component.group == 'the.other.group'
+    }
 }
