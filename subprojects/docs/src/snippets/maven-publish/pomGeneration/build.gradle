@@ -1,4 +1,6 @@
-apply plugin: 'maven-publish'
+plugins {
+    id 'maven-publish'
+}
 
 group = 'org.gradle.sample'
 version = '1.0'
