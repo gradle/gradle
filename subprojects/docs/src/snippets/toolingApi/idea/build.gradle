@@ -1,5 +1,7 @@
-apply plugin: 'java-library'
-apply plugin: 'application'
+plugins {
+    id 'java-library'
+    id 'application'
+}
 
 def toolingApiVersion = gradle.gradleVersion
 
