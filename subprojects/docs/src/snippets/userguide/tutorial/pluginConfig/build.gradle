@@ -1,4 +1,6 @@
-apply plugin: 'java'
+plugins {
+    id 'java'
+}
 
 compileJava.destinationDir = file("$buildDir/output/classes")
 
