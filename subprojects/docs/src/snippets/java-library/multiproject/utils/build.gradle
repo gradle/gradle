@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-apply plugin: 'java-library'
+plugins {
+    id 'java-library'
+}
 
 dependencies {
     api project(':core')
