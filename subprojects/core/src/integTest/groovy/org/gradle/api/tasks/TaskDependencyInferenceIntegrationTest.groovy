@@ -535,6 +535,7 @@ The following types/formats are supported:
         file("out.txt").text == "1"
     }
 
+    @ToBeFixedForInstantExecution
     def "input file collection containing filtered tree of task output implies dependency on the task"() {
         taskTypeWithOutputDirectoryProperty()
         taskTypeWithInputFileCollection()

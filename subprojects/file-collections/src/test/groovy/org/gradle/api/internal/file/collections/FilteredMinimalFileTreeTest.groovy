@@ -22,8 +22,10 @@ import org.gradle.api.internal.file.FileCollectionStructureVisitor
 import org.gradle.api.internal.file.FileTreeInternal
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.util.PatternSet
+import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 
+@UsesNativeServices
 class FilteredMinimalFileTreeTest extends Specification {
     def source = Mock(FilteredMinimalFileTree)
     def patterns = Stub(PatternSet)
@@ -88,6 +90,21 @@ class FilteredMinimalFileTreeTest extends Specification {
         1 * sourcePatterns.intersect() >> intersectPatterns
         1 * intersectPatterns.copyFrom(patterns)
         1 * visitor.visitFileTree(dir, intersectPatterns, owner)
+        0 * _
+    }
+
+    def "applies filters to mirror"() {
+        def sourceMirror = Mock(DirectoryFileTree)
+        def filteredMirror = Mock(DirectoryFileTree)
+
+        when:
+        def mirror = tree.mirror
+
+        then:
+        mirror == filteredMirror
+
+        1 * source.mirror >> sourceMirror
+        1 * sourceMirror.filter(patterns) >> filteredMirror
         0 * _
     }
 }

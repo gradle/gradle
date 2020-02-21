@@ -21,8 +21,7 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.CopySpec;
-import org.gradle.api.internal.file.collections.FileTreeAdapter;
-import org.gradle.api.internal.file.collections.GeneratedSingletonFileTree;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.java.archives.Manifest;
@@ -55,10 +54,11 @@ public class Jar extends Zip {
         // Add these as separate specs, so they are not affected by the changes to the main spec
         metaInf = (CopySpecInternal) getRootSpec().addFirst().into("META-INF");
         OutputChangeListener outputChangeListener = getServices().get(OutputChangeListener.class);
-        metaInf.addChild().from(new FileTreeAdapter(new GeneratedSingletonFileTree(
+        FileCollectionFactory fileCollectionFactory = getServices().get(FileCollectionFactory.class);
+        metaInf.addChild().from(fileCollectionFactory.generated(
             getTemporaryDirFactory(),
             "MANIFEST.MF",
-            absolutePath -> outputChangeListener.beforeOutputChange(ImmutableList.of(absolutePath)),
+            file -> outputChangeListener.beforeOutputChange(ImmutableList.of(file.getAbsolutePath())),
             outputStream -> {
                 Manifest manifest1 = getManifest();
                 if (manifest1 == null) {
@@ -72,7 +72,7 @@ public class Jar extends Zip {
                 }
                 manifestInternal.setContentCharset(manifestContentCharset);
                 manifestInternal.writeTo(outputStream);
-            })));
+            }));
         getMainSpec().appendCachingSafeCopyAction(details -> {
             if (details.getPath().equalsIgnoreCase("META-INF/MANIFEST.MF")) {
                 details.exclude();

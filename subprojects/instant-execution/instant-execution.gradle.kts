@@ -46,6 +46,7 @@ dependencies {
     // TODO - it might be good to allow projects to contribute state to save and restore, rather than have this project know about everything
     implementation(project(":toolingApi"))
     implementation(project(":buildEvents"))
+    implementation(project(":native"))
 
     implementation(library("groovy"))
     implementation(library("slf4j_api"))

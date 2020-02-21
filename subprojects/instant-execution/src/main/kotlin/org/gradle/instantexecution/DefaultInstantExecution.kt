@@ -336,7 +336,8 @@ class DefaultInstantExecution internal constructor(
             attributesFactory = service(),
             transformListener = service(),
             valueSourceProviderFactory = service(),
-            patternSetFactory = service()
+            patternSetFactory = service(),
+            fileSystem = service()
         )
     }
 

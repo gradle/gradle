@@ -43,7 +43,7 @@ class DefaultSourceSetTest extends Specification {
         _ * configurableDependency() >> new DefaultTaskDependency(taskResolver)
     }
     private final FileResolver fileResolver = TestFiles.resolver(tmpDir.testDirectory)
-    private final FileCollectionFactory fileCollectionFactory = new DefaultFileCollectionFactory(fileResolver, taskDependencyFactory, TestFiles.directoryFileTreeFactory(), TestFiles.patternSetFactory)
+    private final FileCollectionFactory fileCollectionFactory = new DefaultFileCollectionFactory(fileResolver, taskDependencyFactory, TestFiles.directoryFileTreeFactory(), TestFiles.patternSetFactory, TestFiles.fileSystem())
 
     private DefaultSourceSet sourceSet(String name) {
         def s = TestUtil.instantiatorFactory().decorateLenient().newInstance(DefaultSourceSet, name, TestUtil.objectFactory(tmpDir.testDirectory))

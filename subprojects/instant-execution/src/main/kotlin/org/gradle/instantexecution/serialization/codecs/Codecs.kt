@@ -52,6 +52,7 @@ import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.isolation.IsolatableFactory
+import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.BuildOperationListenerManager
 import org.gradle.internal.reflect.Instantiator
@@ -99,7 +100,8 @@ class Codecs(
     attributesFactory: ImmutableAttributesFactory,
     transformListener: ArtifactTransformListener,
     valueSourceProviderFactory: ValueSourceProviderFactory,
-    patternSetFactory: Factory<PatternSet>
+    patternSetFactory: Factory<PatternSet>,
+    fileSystem: FileSystem
 ) {
 
     val userTypesCodec = BindingsBackedCodec {
@@ -122,7 +124,7 @@ class Codecs(
         bind(ListenerBroadcastCodec(listenerManager))
         bind(LoggerCodec)
 
-        fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, patternSetFactory)
+        fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, patternSetFactory, fileSystem)
 
         bind(ClosureCodec)
         bind(GroovyMetaClassCodec)
@@ -173,7 +175,7 @@ class Codecs(
         baseTypes()
 
         providerTypes(filePropertyFactory, buildServiceRegistry, valueSourceProviderFactory)
-        fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, patternSetFactory)
+        fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, patternSetFactory, fileSystem)
 
         bind(TaskNodeCodec(projectStateRegistry, userTypesCodec, taskNodeFactory))
         bind(InitialTransformationNodeCodec(buildOperationExecutor, transformListener))
@@ -216,8 +218,8 @@ class Codecs(
     }
 
     private
-    fun BindingsBuilder.fileCollectionTypes(directoryFileTreeFactory: DirectoryFileTreeFactory, fileCollectionFactory: FileCollectionFactory, patternSetFactory: Factory<PatternSet>) {
-        bind(FileTreeCodec(directoryFileTreeFactory, patternSetFactory))
+    fun BindingsBuilder.fileCollectionTypes(directoryFileTreeFactory: DirectoryFileTreeFactory, fileCollectionFactory: FileCollectionFactory, patternSetFactory: Factory<PatternSet>, fileSystem: FileSystem) {
+        bind(FileTreeCodec(directoryFileTreeFactory, patternSetFactory, fileSystem))
         bind(ConfigurableFileCollectionCodec(fileCollectionFactory))
         bind(FileCollectionCodec(fileCollectionFactory))
         bind(IntersectPatternSetCodec)

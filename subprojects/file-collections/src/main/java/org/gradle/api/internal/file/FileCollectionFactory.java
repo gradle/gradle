@@ -16,14 +16,17 @@
 
 package org.gradle.api.internal.file;
 
+import org.gradle.api.Action;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.internal.Factory;
 import org.gradle.internal.file.PathToFileResolver;
 
 import java.io.File;
+import java.io.OutputStream;
 import java.util.Collection;
 import java.util.List;
 
@@ -114,4 +117,9 @@ public interface FileCollectionFactory {
      * Creates a {@link ConfigurableFileTree} instance with no base dir specified.
      */
     ConfigurableFileTree fileTree();
+
+    /**
+     * Creates a file tree containing the given generated file.
+     */
+    FileTreeInternal generated(Factory<File> tmpDir, String fileName, Action<File> fileGenerationListener, Action<OutputStream> contentGenerator);
 }

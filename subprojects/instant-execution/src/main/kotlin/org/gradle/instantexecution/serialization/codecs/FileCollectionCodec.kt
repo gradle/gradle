@@ -101,7 +101,7 @@ class CollectingVisitor : FileCollectionStructureVisitor {
     }
 
     override fun visitGenericFileTree(fileTree: FileTreeInternal, sourceTree: FileSystemMirroringFileTree) {
-        elements.addAll(fileTree)
+        elements.add(fileTree)
     }
 
     override fun visitFileTree(root: File, patterns: PatternSet, fileTree: FileTreeInternal) {
