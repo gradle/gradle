@@ -24,10 +24,6 @@ import spock.lang.Unroll
 @Unroll
 class BuildScanEndOfBuildNotifierIntegrationTest extends AbstractIntegrationSpec {
 
-    private static final VFS_RETENTION_OUTPUT = '''(Watching \\d* (directory hierarchies to track changes between builds in \\d* directories|directories to track changes between builds)
-Spent \\d+ ms registering watches for file system events
-)?'''
-
     def setup() {
         buildFile << """
             def notifier = services.get(${BuildScanEndOfBuildNotifier.name})
@@ -55,7 +51,7 @@ build finished
 BUILD SUCCESSFUL in [ \\dms]+
 1 actionable task: 1 executed
 failure is null: true
-${VFS_RETENTION_OUTPUT}\$""")
+.*""")
     }
 
     def "can observe failed build after completion of user logic and build outcome is reported"() {
@@ -80,7 +76,7 @@ ${VFS_RETENTION_OUTPUT}\$""")
 build finished
 1 actionable task: 1 executed
 failure message: Execution failed for task ':t'.
-${VFS_RETENTION_OUTPUT}\$""")
+.*""")
 
         result.error.matches("""(?s)build finished
 
@@ -120,7 +116,7 @@ notified
         output.matches("""(?s).*
 1 actionable task: 1 executed
 failure message: broken
-${VFS_RETENTION_OUTPUT}\$""")
+.*""")
     }
 
     def "can only register one listener"() {
