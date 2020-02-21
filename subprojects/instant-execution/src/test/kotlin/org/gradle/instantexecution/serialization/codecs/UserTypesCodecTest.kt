@@ -200,6 +200,28 @@ class UserTypesCodecTest {
         )
     }
 
+    @Test
+    fun `can handle anonymous enum subtypes`() {
+        EnumSuperType.values().forEach {
+            assertThat(
+                roundtrip(it),
+                sameInstance(it)
+            )
+        }
+    }
+
+    enum class EnumSuperType {
+
+        SubType1 {
+            override fun displayName() = "one"
+        },
+        SubType2 {
+            override fun displayName() = "two"
+        };
+
+        abstract fun displayName(): String
+    }
+
     private
     inline fun <reified T> assertInstanceOf(any: Any): T {
         assertThat(any, instanceOf(T::class.java))
