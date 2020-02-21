@@ -1,6 +1,10 @@
-apply plugin: 'cpp'
 // tag::apply-plugin[]
-apply plugin: 'windows-resources'
+plugins {
+// end::apply-plugin[]
+    id 'cpp'
+// tag::apply-plugin[]
+    id 'windows-resources'
+}
 // end::apply-plugin[]
 
 model {

@@ -15,9 +15,13 @@
  */
 
 // tag::apply-plugin[]
-apply plugin: 'assembler'
+plugins {
+    id 'assembler'
 // end::apply-plugin[]
-apply plugin: 'c'
+    id 'c'
+// tag::apply-plugin[]
+}
+// end::apply-plugin[]
 
 model {
     platforms {

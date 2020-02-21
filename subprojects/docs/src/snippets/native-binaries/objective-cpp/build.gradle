@@ -1,5 +1,7 @@
 // tag::apply-plugin[]
-apply plugin: 'objective-cpp'
+plugins {
+    id 'objective-cpp'
+}
 // end::apply-plugin[]
 
 // tag::executables[]
