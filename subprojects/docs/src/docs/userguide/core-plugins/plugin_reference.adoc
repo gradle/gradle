@@ -125,3 +125,6 @@ Provides support for digitally signing generated files and artifacts.
 
 <<java_gradle_plugin.adoc#,Plugin Development>>::
 Makes it easier to develop and publish a Gradle plugin.
+
+<<project_report_plugin.adoc#,Project Report Plugin>>::
+Helps to generate reports containing useful information about your build.
