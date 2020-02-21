@@ -1,4 +1,6 @@
-apply plugin: 'groovy'
+plugins {
+    id 'groovy'
+}
 
 group = 'org.gradle'
 version = '1.0'

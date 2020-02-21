@@ -1,4 +1,6 @@
-apply plugin: 'groovy'
+plugins {
+    id 'groovy'
+}
 version = 1.0
 
 repositories {
