@@ -55,6 +55,7 @@ public class FactoryNamedDomainObjectContainer<T> extends AbstractNamedDomainObj
         this(type, instantiator, Named.Namer.forType(type), factory, MutationGuards.identity(), CollectionCallbackActionDecorator.NOOP);
         DeprecationLogger.deprecateInternalApi("constructor FactoryNamedDomainObjectContainer(Class<T>, Instantiator, NamedDomainObjectFactory<T>)")
             .replaceWith("ObjectFactory.domainObjectContainer(Class<T>, NamedDomainObjectFactory<T>)")
+            .willBeRemovedInGradle7()
             .withUserManual("custom_gradle_types", "nameddomainobjectcontainer")
             .nagUser();
     }

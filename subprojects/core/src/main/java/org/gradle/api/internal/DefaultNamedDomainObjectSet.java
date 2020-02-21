@@ -43,6 +43,7 @@ public class DefaultNamedDomainObjectSet<T> extends DefaultNamedDomainObjectColl
         this(type, instantiator, CollectionCallbackActionDecorator.NOOP);
         DeprecationLogger.deprecateInternalApi("constructor DefaultNamedDomainObjectSet(Class<T>, Instantiator, Namer<T>)")
             .replaceWith("ObjectFactory.namedDomainObjectSet(Class<T>)")
+            .willBeRemovedInGradle7()
             .withUserManual("custom_gradle_types", "nameddomainobjectset")
             .nagUser();
     }

@@ -106,6 +106,7 @@ public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFac
                 allowInsecureProtocol,
                 () -> DeprecationLogger.deprecate("Using insecure protocols with remote build cache")
                     .withAdvice("Switch remote build cache to a secure protocol (like HTTPS) or allow insecure protocols.")
+                    .willBeRemovedInGradle7()
                     .withDslReference(HttpBuildCache.class, "allowInsecureProtocol")
                     .nagUser(),
                 redirect -> {

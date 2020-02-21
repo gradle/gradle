@@ -306,6 +306,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      */
     public StartParameter useEmptySettings() {
         DeprecationLogger.deprecateMethod(StartParameter.class, "useEmptySettings()")
+            .willBeRemovedInGradle7()
             .withUpgradeGuideSection(6, "discontinued_methods")
             .nagUser();
         doUseEmptySettings();
@@ -325,6 +326,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      */
     public boolean isUseEmptySettings() {
         DeprecationLogger.deprecateMethod(StartParameter.class, "isUseEmptySettings()")
+            .willBeRemovedInGradle7()
             .withUpgradeGuideSection(6, "discontinued_methods")
             .nagUser();
         return useEmptySettings;
@@ -418,6 +420,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
 
     public boolean isSearchUpwards() {
         DeprecationLogger.deprecateMethod(StartParameter.class, "isSearchUpwards()")
+            .willBeRemovedInGradle7()
             .withUpgradeGuideSection(5, "search_upwards_related_apis_in_startparameter_have_been_deprecated")
             .nagUser();
         return searchUpwards;
@@ -425,6 +428,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
 
     public void setSearchUpwards(boolean searchUpwards) {
         DeprecationLogger.deprecateMethod(StartParameter.class, "setSearchUpwards(boolean)")
+            .willBeRemovedInGradle7()
             .withUpgradeGuideSection(5, "search_upwards_related_apis_in_startparameter_have_been_deprecated")
             .nagUser();
         this.searchUpwards = searchUpwards;

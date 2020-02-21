@@ -49,6 +49,7 @@ public class DuplicateHandlingCopyActionDecorator implements CopyAction {
                         DeprecationLogger.deprecateIndirectUsage("Copying or archiving duplicate paths with the default duplicates strategy")
                             .withAdvice("Explicitly set the duplicates strategy to 'DuplicatesStrategy.INCLUDE' if you want to allow duplicate paths.")
                             .withContext("Duplicate path: \"" + details.getRelativePath() + "\".")
+                            .willBeRemovedInGradle7()
                             .withUpgradeGuideSection(5, "implicit_duplicate_strategy_for_copy_or_archive_tasks_has_been_deprecated")
                             .nagUser();
                     }

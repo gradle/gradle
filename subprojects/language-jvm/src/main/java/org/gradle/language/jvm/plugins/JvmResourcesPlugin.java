@@ -52,7 +52,10 @@ public class JvmResourcesPlugin implements Plugin<Project> {
 
     @Override
     public void apply(final Project project) {
-        DeprecationLogger.deprecatePlugin("jvm-resources").withUpgradeGuideSection(6, "upgrading_jvm_plugins").nagUser();
+        DeprecationLogger.deprecatePlugin("jvm-resources")
+            .willBeRemovedInGradle7()
+            .withUpgradeGuideSection(6, "upgrading_jvm_plugins")
+            .nagUser();
         project.getPluginManager().apply(ComponentModelBasePlugin.class);
     }
 

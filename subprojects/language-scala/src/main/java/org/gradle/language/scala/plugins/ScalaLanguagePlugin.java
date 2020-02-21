@@ -64,7 +64,10 @@ public class ScalaLanguagePlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project project) {
-        DeprecationLogger.deprecatePlugin("scala-lang").withUpgradeGuideSection(6, "upgrading_jvm_plugins").nagUser();
+        DeprecationLogger.deprecatePlugin("scala-lang")
+            .willBeRemovedInGradle7()
+            .withUpgradeGuideSection(6, "upgrading_jvm_plugins")
+            .nagUser();
         project.getPluginManager().apply(ComponentModelBasePlugin.class);
         project.getPluginManager().apply(JvmResourcesPlugin.class);
     }

@@ -88,6 +88,7 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
         if (force) {
             DeprecationLogger.deprecate("Using force on a dependency")
                 .withAdvice("Consider using strict version constraints instead (version { strictly ... } }).")
+                .willBeRemovedInGradle7()
                 .withUpgradeGuideSection(5, "forced_dependencies")
                 .nagUser();
         }

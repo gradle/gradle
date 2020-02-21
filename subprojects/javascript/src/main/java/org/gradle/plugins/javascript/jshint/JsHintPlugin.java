@@ -41,7 +41,10 @@ import java.util.concurrent.Callable;
 public class JsHintPlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
-        DeprecationLogger.deprecatePlugin("org.gradle.jshint").withUpgradeGuideSection(5, "deprecated_plugins").nagUser();
+        DeprecationLogger.deprecatePlugin("org.gradle.jshint")
+            .willBeRemovedInGradle7()
+            .withUpgradeGuideSection(5, "deprecated_plugins")
+            .nagUser();
         project.getPluginManager().apply(RhinoPlugin.class);
         project.getPluginManager().apply(ReportingBasePlugin.class);
 

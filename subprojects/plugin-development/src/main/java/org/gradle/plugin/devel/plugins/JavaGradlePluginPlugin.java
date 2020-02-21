@@ -270,6 +270,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
     private static void nagAboutDeprecatedValidateTaskPropertiesTask() {
         DeprecationLogger.deprecateTask(VALIDATE_TASK_PROPERTIES_TASK_NAME)
             .replaceWith(VALIDATE_PLUGINS_TASK_NAME)
+            .willBeRemovedInGradle7()
             .withUpgradeGuideSection(5, "plugin_validation_changes")
             .nagUser();
     }

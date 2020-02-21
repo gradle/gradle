@@ -313,6 +313,8 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
     }
 
     ValidateStep.ValidationWarningReporter createValidationWarningReporter() {
-        return behaviour -> DeprecationLogger.deprecateBehaviour(behaviour).withUserManual("more_about_tasks", "sec:up_to_date_checks").nagUser();
+        return behaviour -> DeprecationLogger.deprecateBehaviour(behaviour)
+            .willBeRemovedInGradle7()
+            .withUserManual("more_about_tasks", "sec:up_to_date_checks").nagUser();
     }
 }

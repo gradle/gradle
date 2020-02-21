@@ -84,7 +84,11 @@ public class PlayDistributionPlugin extends RuleSource {
 
     @Model
     PlayDistributionContainer distributions(Instantiator instantiator, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
-        DeprecationLogger.deprecatePlugin("Play Distribution").replaceWithExternalPlugin("org.gradle.playframework-distribution").withUserManual("play_plugin").nagUser();
+        DeprecationLogger.deprecatePlugin("Play Distribution")
+            .replaceWithExternalPlugin("org.gradle.playframework-distribution")
+            .willBeRemovedInGradle7()
+            .withUserManual("play_plugin")
+            .nagUser();
         return new DefaultPlayDistributionContainer(instantiator, collectionCallbackActionDecorator);
     }
 

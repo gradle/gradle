@@ -353,6 +353,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     public void layout(String layoutName, Closure config) {
         DeprecationLogger.deprecateMethod(IvyArtifactRepository.class, "layout(String, Closure)")
             .replaceWith("IvyArtifactRepository.patternLayout(Action)")
+            .willBeRemovedInGradle7()
             .withUserManual("declaring_repositories", "sub:defining_custom_pattern_layout_for_an_ivy_repository")
             .nagUser();
         internalLayout(layoutName, ConfigureUtil.<RepositoryLayout>configureUsing(config));
@@ -362,6 +363,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     public void layout(String layoutName, Action<? extends RepositoryLayout> config) {
         DeprecationLogger.deprecateMethod(IvyArtifactRepository.class, "layout(String, Action)")
             .replaceWith("IvyArtifactRepository.patternLayout(Action)")
+            .willBeRemovedInGradle7()
             .withUserManual("declaring_repositories", "sub:defining_custom_pattern_layout_for_an_ivy_repository")
             .nagUser();
         internalLayout(layoutName, config);

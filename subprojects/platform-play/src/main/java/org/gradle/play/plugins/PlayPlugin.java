@@ -30,7 +30,11 @@ public class PlayPlugin implements Plugin<Project> {
 
     @Override
     public void apply(final Project project) {
-        DeprecationLogger.deprecatePlugin("Play").replaceWithExternalPlugin("org.gradle.playframework").withUserManual("play_plugin").nagUser();
+        DeprecationLogger.deprecatePlugin("Play")
+            .replaceWithExternalPlugin("org.gradle.playframework")
+            .willBeRemovedInGradle7()
+            .withUserManual("play_plugin")
+            .nagUser();
         project.getPluginManager().apply(PlayApplicationPlugin.class);
         project.getPluginManager().apply(PlayTestPlugin.class);
         project.getPluginManager().apply(PlayJavaScriptPlugin.class);

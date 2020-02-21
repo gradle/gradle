@@ -93,6 +93,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
         List<String> alternatives = selectedConfiguration.getConsumptionAlternatives();
         if (alternatives != null) {
             DeprecationLogger.deprecateConfiguration(selectedConfiguration.getName()).forConsumption().replaceWith(alternatives)
+                .willBecomeAnErrorInGradle7()
                 .withUserManual("java_library_plugin", "sec:java_library_configurations_graph")
                 .nagUser();
         }

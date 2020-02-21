@@ -47,6 +47,7 @@ public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCol
         super(type, new ListElementSource<T>(), instantiator, namer, CollectionCallbackActionDecorator.NOOP);
         DeprecationLogger.deprecateInternalApi("constructor DefaultNamedDomainObjectList(Class<T>, Instantiator, Namer<T>)")
             .replaceWith("ObjectFactory.namedDomainObjectList(Class<T>)")
+            .willBeRemovedInGradle7()
             .withUserManual("custom_gradle_types", "nameddomainobjectlist")
             .nagUser();
     }

@@ -37,7 +37,10 @@ import java.util.concurrent.Callable;
 public class RhinoPlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
-        DeprecationLogger.deprecatePlugin("org.gradle.rhino").withUpgradeGuideSection(5, "deprecated_plugins").nagUser();
+        DeprecationLogger.deprecatePlugin("org.gradle.rhino")
+            .willBeRemovedInGradle7()
+            .withUpgradeGuideSection(5, "deprecated_plugins")
+            .nagUser();
         project.getPluginManager().apply(JavaScriptBasePlugin.class);
 
         JavaScriptExtension jsExtension = project.getExtensions().findByType(JavaScriptExtension.class);

@@ -35,6 +35,7 @@ public class DeprecateUndefinedBuildWorkExecutor implements BuildWorkExecutor {
     public void execute(GradleInternal gradle, Collection<? super Throwable> failures) {
         if (isUndefinedBuild(gradle) && !wasInitTaskRequested(gradle.getStartParameter())) {
             DeprecationLogger.deprecateAction("Executing Gradle tasks as part of an undefined build")
+                .willBecomeAnErrorInGradle7()
                 .withUpgradeGuideSection(5, "executing_gradle_without_a_settings_file_has_been_deprecated")
                 .nagUser();
         }

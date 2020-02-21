@@ -80,6 +80,7 @@ public class TransformBackedProvider<OUT, IN> extends AbstractMinimalProvider<OU
         for (Task producer : getProducerTasks()) {
             if (!producer.getState().getExecuted()) {
                 DeprecationLogger.deprecateAction(String.format("Querying the mapped value of %s before %s has completed", provider, producer))
+                    .willBecomeAnErrorInGradle7()
                     .withUpgradeGuideSection(6, "querying_a_mapped_output_property_of_a_task_before_the_task_has_completed")
                     .nagUser();
                 break; // Only report one producer

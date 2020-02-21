@@ -94,6 +94,7 @@ public class MavenPlugin implements Plugin<ProjectInternal> {
     public void apply(final ProjectInternal project) {
         this.project = project;
         DeprecationLogger.deprecatePlugin("maven").replaceWith("maven-publish")
+            .willBeRemovedInGradle7()
             .withUpgradeGuideSection(5, "legacy_publication_system_is_deprecated_and_replaced_with_the_publish_plugins")
             .nagUser();
 

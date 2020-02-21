@@ -61,7 +61,7 @@ public class DefaultBasePluginConvention extends BasePluginConvention implements
     @Override
     @Deprecated
     public File getDistsDir() {
-        DeprecationLogger.deprecateProperty(Project.class, "distsDir").replaceWith("distsDirectory").withDslReference().nagUser();
+        DeprecationLogger.deprecateProperty(Project.class, "distsDir").replaceWith("distsDirectory").willBeRemovedInGradle7().withDslReference().nagUser();
         return getDistsDirectory().get().getAsFile();
     }
 
@@ -73,7 +73,7 @@ public class DefaultBasePluginConvention extends BasePluginConvention implements
     @Override
     @Deprecated
     public File getLibsDir() {
-        DeprecationLogger.deprecateProperty(Project.class, "libsDir").replaceWith("libsDirectory").withDslReference().nagUser();
+        DeprecationLogger.deprecateProperty(Project.class, "libsDir").replaceWith("libsDirectory").willBeRemovedInGradle7().withDslReference().nagUser();
         return getLibsDirectory().get().getAsFile();
     }
 
@@ -85,6 +85,7 @@ public class DefaultBasePluginConvention extends BasePluginConvention implements
     @Override
     public ProjectInternal getProject() {
         DeprecationLogger.deprecateMethod(BasePluginConvention.class, "getProject()")
+            .willBeRemovedInGradle7()
             .withUpgradeGuideSection(6, "discontinued_methods")
             .nagUser();
         return project;
@@ -93,6 +94,7 @@ public class DefaultBasePluginConvention extends BasePluginConvention implements
     @Override
     public void setProject(ProjectInternal project) {
         DeprecationLogger.deprecateMethod(BasePluginConvention.class, "setProject()")
+            .willBeRemovedInGradle7()
             .withUpgradeGuideSection(6, "discontinued_methods")
             .nagUser();
         this.project = project;

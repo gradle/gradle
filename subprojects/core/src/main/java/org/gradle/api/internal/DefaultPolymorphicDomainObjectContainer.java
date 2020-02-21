@@ -45,6 +45,7 @@ public class DefaultPolymorphicDomainObjectContainer<T> extends AbstractPolymorp
         this(type, instantiator, Named.Namer.forType(type), CollectionCallbackActionDecorator.NOOP);
         DeprecationLogger.deprecateInternalApi("constructor DefaultPolymorphicDomainObjectContainer(Class<T>, Instantiator)")
             .replaceWith("ObjectFactory.polymorphicDomainObjectContainer(Class<T>)")
+            .willBeRemovedInGradle7()
             .withUserManual("custom_gradle_types", "extensiblepolymorphicdomainobjectcontainer")
             .nagUser();
     }

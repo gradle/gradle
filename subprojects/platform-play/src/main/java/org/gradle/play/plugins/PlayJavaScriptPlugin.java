@@ -56,7 +56,10 @@ import java.util.Map;
 public class PlayJavaScriptPlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
-        DeprecationLogger.deprecatePlugin("Play JavaScript").replaceWithExternalPlugin("org.gradle.playframework-javascript").withUserManual("play_plugin").nagUser();
+        DeprecationLogger.deprecatePlugin("Play JavaScript")
+            .replaceWithExternalPlugin("org.gradle.playframework-javascript")
+            .willBeRemovedInGradle7()
+            .withUserManual("play_plugin").nagUser();
         project.getPluginManager().apply(ComponentModelBasePlugin.class);
     }
 

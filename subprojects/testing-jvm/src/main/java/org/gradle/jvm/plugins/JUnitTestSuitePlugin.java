@@ -53,7 +53,10 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project project) {
-        DeprecationLogger.deprecatePlugin("junit-test-suite").withUpgradeGuideSection(6, "upgrading_jvm_plugins").nagUser();
+        DeprecationLogger.deprecatePlugin("junit-test-suite")
+            .willBeRemovedInGradle7()
+            .withUpgradeGuideSection(6, "upgrading_jvm_plugins")
+            .nagUser();
         project.getPluginManager().apply(TestingModelBasePlugin.class);
         project.getPluginManager().apply(JvmComponentPlugin.class);
         project.getPluginManager().apply(JvmTestSuiteBasePlugin.class);

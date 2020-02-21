@@ -567,6 +567,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 // We don't have mutable access to the project, so we throw a deprecation warning and then continue with
                 // lenient locking.
                 DeprecationLogger.deprecateBehaviour("The configuration " + identityPath.toString() + " was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a different project.")
+                    .willBeRemovedInGradle7()
                     .withUserManual("viewing_debugging_dependencies", "sub:resolving-unsafe-configuration-resolution-errors")
                     .nagUser();
                 owner.getModel().withLenientState(() -> resolveExclusively(requestedState));
@@ -579,6 +580,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private void warnIfConfigurationIsDeprecatedForResolving() {
         if (resolutionAlternatives != null) {
             DeprecationLogger.deprecateConfiguration(this.name).forResolution().replaceWith(resolutionAlternatives)
+                .willBecomeAnErrorInGradle7()
                 .withUpgradeGuideSection(5, "dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
                 .nagUser();
         }

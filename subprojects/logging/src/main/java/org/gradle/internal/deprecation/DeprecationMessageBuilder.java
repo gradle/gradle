@@ -17,19 +17,18 @@
 package org.gradle.internal.deprecation;
 
 import com.google.common.base.Joiner;
+import org.gradle.util.GradleVersion;
 
 import javax.annotation.CheckReturnValue;
 import java.util.List;
 
-import static org.gradle.internal.deprecation.Messages.pleaseUseThisMethodInstead;
-import static org.gradle.internal.deprecation.Messages.thisIsScheduledToBeRemoved;
-import static org.gradle.internal.deprecation.Messages.thisWillBecomeAnError;
-
 @CheckReturnValue
 public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
 
+    private static final GradleVersion GRADLE7 = GradleVersion.version("7.0");
+
     private String summary;
-    private String removalDetails;
+    private DeprecationTimeline deprecationTimeline;
     private String context;
     private String advice;
     private Documentation documentation = Documentation.NO_DOCUMENTATION;
@@ -51,43 +50,19 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
     }
 
     /**
-     * Allows proceeding to terminal {@link WithDocumentation#nagUser()} operation without including any documentation reference.
-     * Consider using one of the documentation providing methods instead.
+     * Output: This is scheduled to be removed in Gradle 7.0.
      */
-    public WithDocumentation undocumented() {
-        return new WithDocumentation(this);
+    public WithDeprecationTimeline willBeRemovedInGradle7() {
+        this.deprecationTimeline = DeprecationTimeline.willBeRemovedInVersion(GRADLE7);
+        return new WithDeprecationTimeline(this);
     }
 
     /**
-     * Output: See USER_MANUAL_URL for more details.
+     * Output: This will fail with an error in Gradle 7.0.
      */
-    public WithDocumentation withUserManual(String documentationId) {
-        this.documentation = Documentation.userManual(documentationId);
-        return new WithDocumentation(this);
-    }
-
-    /**
-     * Output: See USER_MANUAL_URL for more details.
-     */
-    public WithDocumentation withUserManual(String documentationId, String section) {
-        this.documentation = Documentation.userManual(documentationId, section);
-        return new WithDocumentation(this);
-    }
-
-    /**
-     * Output: See DSL_REFERENCE_URL for more details.
-     */
-    public WithDocumentation withDslReference(Class<?> targetClass, String property) {
-        this.documentation = Documentation.dslReference(targetClass, property);
-        return new WithDocumentation(this);
-    }
-
-    /**
-     * Output: Consult the upgrading guide for further information: UPGRADE_GUIDE_URL
-     */
-    public WithDocumentation withUpgradeGuideSection(int majorVersion, String upgradeGuideSection) {
-        this.documentation = Documentation.upgradeGuide(majorVersion, upgradeGuideSection);
-        return new WithDocumentation(this);
+    public WithDeprecationTimeline willBecomeAnErrorInGradle7() {
+        this.deprecationTimeline = DeprecationTimeline.willBecomeAnErrorInVersion(GRADLE7);
+        return new WithDeprecationTimeline(this);
     }
 
     void setIndirectUsage() {
@@ -106,8 +81,8 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         this.advice = advice;
     }
 
-    void setRemovalDetails(String removalDetails) {
-        this.removalDetails = removalDetails;
+    void setDeprecationTimeline(DeprecationTimeline deprecationTimeline) {
+        this.deprecationTimeline = deprecationTimeline;
     }
 
     void setDocumentation(Documentation documentation) {
@@ -115,7 +90,55 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
     }
 
     DeprecationMessage build() {
-        return new DeprecationMessage(summary, removalDetails, advice, context, documentation, usageType);
+        return new DeprecationMessage(summary, deprecationTimeline.toString(), advice, context, documentation, usageType);
+    }
+
+    public static class WithDeprecationTimeline {
+        private final DeprecationMessageBuilder<?> builder;
+
+        public WithDeprecationTimeline(DeprecationMessageBuilder<?> builder) {
+            this.builder = builder;
+        }
+
+        /**
+         * Allows proceeding to terminal {@link WithDocumentation#nagUser()} operation without including any documentation reference.
+         * Consider using one of the documentation providing methods instead.
+         */
+        public WithDocumentation undocumented() {
+            return new WithDocumentation(builder);
+        }
+
+        /**
+         * Output: See USER_MANUAL_URL for more details.
+         */
+        public WithDocumentation withUserManual(String documentationId) {
+            builder.setDocumentation(Documentation.userManual(documentationId));
+            return new WithDocumentation(builder);
+        }
+
+        /**
+         * Output: See USER_MANUAL_URL for more details.
+         */
+        public WithDocumentation withUserManual(String documentationId, String section) {
+            builder.setDocumentation(Documentation.userManual(documentationId, section));
+            return new WithDocumentation(builder);
+        }
+
+        /**
+         * Output: See DSL_REFERENCE_URL for more details.
+         */
+        public WithDocumentation withDslReference(Class<?> targetClass, String property) {
+            builder.setDocumentation(Documentation.dslReference(targetClass, property));
+            return new WithDocumentation(builder);
+        }
+
+        /**
+         * Output: Consult the upgrading guide for further information: UPGRADE_GUIDE_URL
+         */
+        public WithDocumentation withUpgradeGuideSection(int majorVersion, String upgradeGuideSection) {
+            builder.setDocumentation(Documentation.upgradeGuide(majorVersion, upgradeGuideSection));
+            return new WithDocumentation(builder);
+        }
     }
 
     public static class WithDocumentation {
@@ -165,14 +188,10 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
 
         abstract String formatAdvice(T replacement);
 
-        String removalDetails() {
-            return thisIsScheduledToBeRemoved();
-        }
 
         @Override
         DeprecationMessage build() {
             setSummary(formatSummary(formatSubject()));
-            setRemovalDetails(removalDetails());
             if (replacement != null) {
                 setAdvice(formatAdvice(replacement));
             }
@@ -208,11 +227,29 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         }
 
         /**
-         * Output: See DSL_REFERENCE_URL for more details.
+         * Output: This is scheduled to be removed in Gradle 7.
          */
-        public WithDocumentation withDslReference() {
-            setDocumentation(Documentation.dslReference(propertyClass, property));
-            return new WithDocumentation(this);
+        @Override
+        public WithDeprecationTimeline willBeRemovedInGradle7() {
+            setDeprecationTimeline(DeprecationTimeline.willBeRemovedInVersion(GRADLE7));
+            return new WithDeprecationTimeline(this);
+        }
+
+        public class WithDeprecationTimeline extends DeprecationMessageBuilder.WithDeprecationTimeline {
+            private final DeprecateProperty builder;
+
+            public WithDeprecationTimeline(DeprecateProperty builder) {
+                super(builder);
+                this.builder = builder;
+            }
+
+            /**
+             * Output: See DSL_REFERENCE_URL for more details.
+             */
+            public WithDocumentation withDslReference() {
+                setDocumentation(Documentation.dslReference(propertyClass, property));
+                return new WithDocumentation(builder);
+            }
         }
 
         @Override
@@ -276,11 +313,6 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         String formatAdvice(List<String> replacements) {
             return String.format("Please %s the %s configuration instead.", deprecationType.usage, Joiner.on(" or ").join(replacements));
         }
-
-        @Override
-        String removalDetails() {
-            return thisWillBecomeAnError();
-        }
     }
 
     public static class DeprecateMethod extends WithReplacement<String, DeprecateMethod> {
@@ -307,6 +339,10 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         String formatAdvice(String replacement) {
             return pleaseUseThisMethodInstead(replacement);
         }
+
+        private static String pleaseUseThisMethodInstead(String replacement) {
+            return String.format("Please use the %s method instead.", replacement);
+        }
     }
 
     public static class DeprecateInvocation extends WithReplacement<String, DeprecateInvocation> {
@@ -322,12 +358,7 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
 
         @Override
         String formatAdvice(String replacement) {
-            return pleaseUseThisMethodInstead(replacement);
-        }
-
-        @Override
-        String removalDetails() {
-            return thisWillBecomeAnError();
+            return DeprecateMethod.pleaseUseThisMethodInstead(replacement);
         }
     }
 
@@ -389,4 +420,28 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
             return String.format("Please use %s instead.", replacement);
         }
     }
+
+    public static class DeprecateBehaviour extends DeprecationMessageBuilder<DeprecateBehaviour> {
+
+        private final String behaviour;
+
+        public DeprecateBehaviour(String behaviour) {
+            this.behaviour = behaviour;
+        }
+
+        /**
+         * Output: This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.
+         */
+        public WithDeprecationTimeline willBeRemovedInGradle7() {
+            setDeprecationTimeline(DeprecationTimeline.behaviourWillBeRemovedInVersion(GRADLE7));
+            return new WithDeprecationTimeline(this);
+        }
+
+        @Override
+        DeprecationMessage build() {
+            setSummary(behaviour);
+            return super.build();
+        }
+    }
+
 }
