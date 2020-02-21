@@ -119,7 +119,6 @@
             <artifactId>fastjson</artifactId>
             <version>1.2.62</version>
         </dependency>
-
         <dependency>
             <groupId>org.jetbrains.teamcity</groupId>
             <artifactId>configs-dsl-kotlin</artifactId>
