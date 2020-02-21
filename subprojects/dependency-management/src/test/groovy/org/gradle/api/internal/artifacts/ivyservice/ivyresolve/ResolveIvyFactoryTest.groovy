@@ -43,6 +43,8 @@ import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceR
 import org.gradle.api.internal.artifacts.verification.signatures.SignatureVerificationServiceFactory
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.ImmutableAttributes
+import org.gradle.api.internal.properties.GradleProperties
+import org.gradle.internal.Factory
 import org.gradle.internal.action.InstantiatingAction
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
 import org.gradle.internal.instantiation.InstantiatorFactory
@@ -84,7 +86,7 @@ class ResolveIvyFactoryTest extends Specification {
         cacheProvider = new ModuleRepositoryCacheProvider(caches, caches)
         startParameterResolutionOverride = Mock(StartParameterResolutionOverride) {
             _ * overrideModuleVersionRepository(_) >> { ModuleComponentRepository repository -> repository }
-            _ * dependencyVerificationOverride(_, _, _, _) >> DependencyVerificationOverride.NO_VERIFICATION
+            _ * dependencyVerificationOverride(_, _, _, _, _, _) >> DependencyVerificationOverride.NO_VERIFICATION
         }
         buildCommencedTimeProvider = Mock(BuildCommencedTimeProvider)
         moduleIdentifierFactory = Mock(ImmutableModuleIdentifierFactory)
@@ -94,7 +96,7 @@ class ResolveIvyFactoryTest extends Specification {
         instantiatorFactory = Mock()
         buildOperationExecutor = Mock()
 
-        resolveIvyFactory = new ResolveIvyFactory(cacheProvider, startParameterResolutionOverride, startParameterResolutionOverride.dependencyVerificationOverride(buildOperationExecutor, TestUtil.checksumService, Mock(SignatureVerificationServiceFactory), new DocumentationRegistry()), buildCommencedTimeProvider, versionComparator, moduleIdentifierFactory, repositoryBlacklister, versionParser, instantiatorFactory)
+        resolveIvyFactory = new ResolveIvyFactory(cacheProvider, startParameterResolutionOverride, startParameterResolutionOverride.dependencyVerificationOverride(buildOperationExecutor, TestUtil.checksumService, Mock(SignatureVerificationServiceFactory), new DocumentationRegistry(), buildCommencedTimeProvider, (Factory<GradleProperties>) Mock(Factory)), buildCommencedTimeProvider, versionComparator, moduleIdentifierFactory, repositoryBlacklister, versionParser, instantiatorFactory)
     }
 
     def "returns an empty resolver when no repositories are configured" () {

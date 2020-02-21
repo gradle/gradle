@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.verification.verifier;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -229,6 +230,23 @@ public class DependencyVerifier {
 
     public DependencyVerificationConfiguration getConfiguration() {
         return config;
+    }
+
+    public List<String> getSuggestedWriteFlags() {
+        Set<String> writeFlags = Sets.newLinkedHashSet();
+        if (config.isVerifySignatures()) {
+            writeFlags.add("pgp");
+        }
+        getVerificationMetadata().forEach(md -> {
+            md.getArtifactVerifications().forEach(av -> {
+                av.getChecksums().forEach(checksum -> writeFlags.add(checksum.getKind().name()));
+            });
+        });
+        if (Collections.singleton("pgp").equals(writeFlags)) {
+            // need to suggest at least one checksum so we use the most secure
+            writeFlags.add("sha512");
+        }
+        return ImmutableList.copyOf(writeFlags);
     }
 
     private static class DefaultSignatureVerificationResultBuilder implements SignatureVerificationResultBuilder {

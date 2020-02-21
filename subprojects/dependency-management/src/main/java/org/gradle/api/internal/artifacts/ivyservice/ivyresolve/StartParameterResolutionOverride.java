@@ -30,10 +30,12 @@ import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.ExternalR
 import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost;
 import org.gradle.api.internal.artifacts.verification.signatures.SignatureVerificationServiceFactory;
 import org.gradle.api.internal.component.ArtifactType;
+import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.resources.ResourceException;
+import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
@@ -55,6 +57,7 @@ import org.gradle.internal.resource.ReadableContent;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.transfer.ExternalResourceConnector;
 import org.gradle.internal.resource.transfer.ExternalResourceReadResponse;
+import org.gradle.util.BuildCommencedTimeProvider;
 import org.gradle.util.IncubationLogger;
 
 import javax.annotation.Nullable;
@@ -91,7 +94,9 @@ public class StartParameterResolutionOverride {
     public DependencyVerificationOverride dependencyVerificationOverride(BuildOperationExecutor buildOperationExecutor,
                                                                          ChecksumService checksumService,
                                                                          SignatureVerificationServiceFactory signatureVerificationServiceFactory,
-                                                                         DocumentationRegistry documentationRegistry) {
+                                                                         DocumentationRegistry documentationRegistry,
+                                                                         BuildCommencedTimeProvider timeProvider,
+                                                                         Factory<GradleProperties> gradlePropertiesFactory) {
         List<String> checksums = startParameter.getWriteDependencyVerifications();
         if (!checksums.isEmpty()) {
             IncubationLogger.incubatingFeatureUsed("Dependency verification");
@@ -107,8 +112,9 @@ public class StartParameterResolutionOverride {
                 }
                 IncubationLogger.incubatingFeatureUsed("Dependency verification");
                 try {
+                    File sessionReportDir = computeReportDirectory(timeProvider);
                     return DisablingVerificationOverride.of(
-                        new ChecksumAndSignatureVerificationOverride(buildOperationExecutor, startParameter.getGradleUserHomeDir(), verificationsFile, keyringsFile, checksumService, signatureVerificationServiceFactory, startParameter.getDependencyVerificationMode(), documentationRegistry)
+                        new ChecksumAndSignatureVerificationOverride(buildOperationExecutor, startParameter.getGradleUserHomeDir(), verificationsFile, keyringsFile, checksumService, signatureVerificationServiceFactory, startParameter.getDependencyVerificationMode(), documentationRegistry, sessionReportDir, gradlePropertiesFactory)
                     );
                 } catch (Exception e) {
                     return new FailureVerificationOverride(e);
@@ -116,6 +122,16 @@ public class StartParameterResolutionOverride {
             }
         }
         return DependencyVerificationOverride.NO_VERIFICATION;
+    }
+
+    private File computeReportDirectory(BuildCommencedTimeProvider timeProvider) {
+        // TODO: This is not quite correct: we're using the "root project" build directory
+        // but technically speaking, this can be changed _after_ this service is created.
+        // There's currently no good way to figure that out.
+        File buildDir = new File(gradleDir.getParentFile(), "build");
+        File reportsDirectory = new File(buildDir, "reports");
+        File verifReportsDirectory = new File(reportsDirectory, "dependency-verification");
+        return new File(verifReportsDirectory, "at-" + timeProvider.getCurrentTime());
     }
 
     private static class OfflineModuleComponentRepository extends BaseModuleComponentRepository {

@@ -114,6 +114,7 @@ import org.gradle.api.internal.notations.ProjectDependencyFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.api.internal.resources.ApiTextResourceAdapter;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
 import org.gradle.authentication.Authentication;
@@ -459,8 +460,10 @@ class DependencyManagementBuildScopeServices {
                                                                         ChecksumService checksumService,
                                                                         SignatureVerificationServiceFactory signatureVerificationServiceFactory,
                                                                         DocumentationRegistry documentationRegistry,
-                                                                        ListenerManager listenerManager) {
-        DependencyVerificationOverride override = startParameterResolutionOverride.dependencyVerificationOverride(buildOperationExecutor, checksumService, signatureVerificationServiceFactory, documentationRegistry);
+                                                                        ListenerManager listenerManager,
+                                                                        BuildCommencedTimeProvider timeProvider,
+                                                                        ServiceRegistry serviceRegistry) {
+        DependencyVerificationOverride override = startParameterResolutionOverride.dependencyVerificationOverride(buildOperationExecutor, checksumService, signatureVerificationServiceFactory, documentationRegistry, timeProvider, () -> serviceRegistry.get(GradleProperties.class));
         registerBuildFinishedHooks(listenerManager, override);
         return override;
     }

@@ -87,6 +87,17 @@ In particular, the same file is used for both the (sub)projects and `buildSrc`.
 
 An easy way to get started is therefore to generate the minimal configuration for an existing build.
 
+[[sec:verification-console-output]]
+=== Configuring the console output
+
+By default, if dependency verification fails, Gradle will generate a small summary about the verification failure as well as an HTML report containing the full information about the failures.
+If your environment prevents you from reading this HTML report file (for example if you run a build on CI and that it's not easy to fetch the remote artifacts), Gradle provides a way to opt-in a verbose console report.
+For this, you need to add this Gradle property to your `gradle.properties` file:
+
+----
+org.gradle.dependency.verification.console=verbose
+----
+
 [[sec:bootstrapping-verification]]
 === Bootstrapping dependency verification
 
