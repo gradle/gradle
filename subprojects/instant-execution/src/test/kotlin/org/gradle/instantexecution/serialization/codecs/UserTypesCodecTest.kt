@@ -124,7 +124,7 @@ class UserTypesCodecTest {
         assertThat(
             "preserves identities across protocols",
             decodedSerializable.value,
-            sameInstance<Any>(decodedBean)
+            sameInstance(decodedBean)
         )
     }
 
@@ -181,7 +181,7 @@ class UserTypesCodecTest {
         val beanTrace = assertInstanceOf<PropertyTrace.Bean>(fieldTrace.trace)
         assertThat(
             beanTrace.type,
-            sameInstance<Class<*>>(bean.javaClass)
+            sameInstance(bean.javaClass)
         )
     }
 
@@ -398,7 +398,7 @@ class UserTypesCodecTest {
 
         assertThat(
             Peano.fromInt(0),
-            equalTo<Peano>(Peano.Z)
+            equalTo(Peano.Z)
         )
 
         assertThat(
