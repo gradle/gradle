@@ -1,5 +1,7 @@
-apply plugin: "plugina"
-apply plugin: "pluginb"
+plugins {
+    id "plugina"
+    id "pluginb"
+}
 
 task showPlugins {
     doLast {
