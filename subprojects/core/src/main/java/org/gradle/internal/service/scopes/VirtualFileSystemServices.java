@@ -78,6 +78,7 @@ import org.gradle.internal.vfs.DarwinFileWatcherRegistry;
 import org.gradle.internal.vfs.RoutingVirtualFileSystem;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.internal.vfs.WatchingVirtualFileSystem;
+import org.gradle.internal.vfs.WatchingVirtualFileSystem.VirtualFileSystemStatistics;
 import org.gradle.internal.vfs.WindowsFileWatcherRegistry;
 import org.gradle.internal.vfs.impl.DefaultVirtualFileSystem;
 import org.gradle.internal.vfs.impl.DefaultWatchingVirtualFileSystem;
@@ -248,7 +249,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                     }
                     virtualFileSystem.stopWatching();
                     if (isRetentionEnabled(systemPropertiesArgs)) {
-                        VirtualFileSystem.VirtualFileSystemStatistics statistics = virtualFileSystem.getStatistics();
+                        VirtualFileSystemStatistics statistics = virtualFileSystem.getStatistics();
                         LOGGER.warn(
                             "Virtual file system retained information about {} files, {} directories and {} missing files since last build",
                             statistics.getRetained(FileType.RegularFile),
@@ -262,7 +263,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                 public void beforeComplete(GradleInternal gradle) {
                     if (isRetentionEnabled(gradle.getStartParameter().getSystemPropertiesArgs())) {
                         virtualFileSystem.startWatching(Collections.singleton(gradle.getRootProject().getProjectDir()));
-                        VirtualFileSystem.VirtualFileSystemStatistics statistics = virtualFileSystem.getStatistics();
+                        VirtualFileSystemStatistics statistics = virtualFileSystem.getStatistics();
                         LOGGER.warn(
                             "Virtual file system retains information about {} files, {} directories and {} missing files till next build",
                             statistics.getRetained(FileType.RegularFile),

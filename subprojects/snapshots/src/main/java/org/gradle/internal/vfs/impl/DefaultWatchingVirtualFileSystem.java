@@ -16,6 +16,9 @@
 
 package org.gradle.internal.vfs.impl;
 
+import com.google.common.collect.EnumMultiset;
+import com.google.common.collect.Multiset;
+import org.gradle.internal.file.FileType;
 import org.gradle.internal.vfs.WatchingVirtualFileSystem;
 import org.gradle.internal.vfs.watch.FileWatcherRegistry;
 import org.gradle.internal.vfs.watch.FileWatcherRegistryFactory;
@@ -97,6 +100,26 @@ public class DefaultWatchingVirtualFileSystem extends AbstractDelegatingVirtualF
             invalidateAll();
         } finally {
             close();
+        }
+    }
+
+    @Override
+    public VirtualFileSystemStatistics getStatistics() {
+        EnumMultiset<FileType> retained = EnumMultiset.create(FileType.class);
+        getRoot().visitSnapshots((snapshot, rootOfCompleteHierarchy) -> retained.add(snapshot.getType()));
+        return new DefaultVirtualFileSystemStatistics(retained);
+    }
+
+    private static class DefaultVirtualFileSystemStatistics implements VirtualFileSystemStatistics {
+        private final Multiset<FileType> retained;
+
+        public DefaultVirtualFileSystemStatistics(Multiset<FileType> retained) {
+            this.retained = retained;
+        }
+
+        @Override
+        public int getRetained(FileType fileType) {
+            return retained.count(fileType);
         }
     }
 

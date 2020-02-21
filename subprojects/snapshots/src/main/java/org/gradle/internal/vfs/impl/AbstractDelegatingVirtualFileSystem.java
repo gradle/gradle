@@ -63,11 +63,6 @@ abstract class AbstractDelegatingVirtualFileSystem extends AbstractVirtualFileSy
     }
 
     @Override
-    public VirtualFileSystemStatistics getStatistics() {
-        return delegate.getStatistics();
-    }
-
-    @Override
     SnapshotHierarchy getRoot() {
         return delegate.getRoot();
     }

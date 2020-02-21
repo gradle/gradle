@@ -58,6 +58,7 @@ class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec implement
 
         executer.beforeExecute {
             withRetention()
+            // running in parallel, so the soak test doesn't take this long.
             withArgument("--parallel")
         }
     }

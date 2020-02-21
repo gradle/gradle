@@ -95,11 +95,6 @@ public class RoutingVirtualFileSystem implements VirtualFileSystem {
         getVirtualFileSystemFor(snapshot.getAbsolutePath()).updateWithKnownSnapshot(snapshot);
     }
 
-    @Override
-    public VirtualFileSystemStatistics getStatistics() {
-        return gradleUserHomeVirtualFileSystem.getStatistics();
-    }
-
     private VirtualFileSystem getVirtualFileSystemFor(String location) {
         return vfsRetained.getAsBoolean()
             ? gradleUserHomeVirtualFileSystem

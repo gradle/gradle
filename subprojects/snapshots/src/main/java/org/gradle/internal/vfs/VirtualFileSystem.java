@@ -16,7 +16,6 @@
 
 package org.gradle.internal.vfs;
 
-import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.SnapshottingFilter;
@@ -67,10 +66,4 @@ public interface VirtualFileSystem {
      * Updates the cached state at the location with the snapshot.
      */
     void updateWithKnownSnapshot(CompleteFileSystemLocationSnapshot snapshot);
-
-    VirtualFileSystemStatistics getStatistics();
-
-    interface VirtualFileSystemStatistics {
-        int getRetained(FileType fileType);
-    }
 }
