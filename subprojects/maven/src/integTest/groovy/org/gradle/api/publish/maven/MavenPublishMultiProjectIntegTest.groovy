@@ -785,6 +785,7 @@ $append
         outputDoesNotContain "Project :a:core has the same (groupId, artifactId) as :b:core. You should set both the organisation and module name of the publication or opt out by adding the org.gradle.dependency.duplicate.project.detection system property to 'false'."
     }
 
+    @ToBeFixedForInstantExecution
     @Issue("https://github.com/gradle/gradle/issues/12281")
     def "shouldn't change publication coordinates if GAV are different"() {
         given:

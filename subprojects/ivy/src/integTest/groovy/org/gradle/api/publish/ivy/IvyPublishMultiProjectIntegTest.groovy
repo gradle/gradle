@@ -578,6 +578,7 @@ $append
 
     }
 
+    @ToBeFixedForInstantExecution
     @Issue("https://github.com/gradle/gradle/issues/12281")
     def "shouldn't change publication coordinates if GAV are different"() {
         given:
