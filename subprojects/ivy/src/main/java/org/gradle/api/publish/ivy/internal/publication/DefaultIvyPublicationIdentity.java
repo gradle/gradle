@@ -84,6 +84,7 @@ public class DefaultIvyPublicationIdentity implements IvyPublicationIdentity {
     private static final class LazyProjectModuleProvider implements Module {
         private final ProjectBackedModule projectBackedModule;
         private final AtomicBoolean warned = new AtomicBoolean();
+        private final AtomicBoolean hasDuplicates = new AtomicBoolean();
 
         private LazyProjectModuleProvider(ProjectBackedModule module) {
             this.projectBackedModule = module;
@@ -104,7 +105,13 @@ public class DefaultIvyPublicationIdentity implements IvyPublicationIdentity {
         @Override
         public String getName() {
             maybeWarnAboutDuplicates();
-            return projectBackedModule.getName();
+            if (hasDuplicates.get()) {
+                return projectBackedModule.getName();
+            } else {
+                // the project name is used for publication, even if internally
+                // for dependency resolution we use the "de-duplicated" name
+                return projectBackedModule.getProject().getName();
+            }
         }
 
         @Override
@@ -121,7 +128,9 @@ public class DefaultIvyPublicationIdentity implements IvyPublicationIdentity {
             if (!warned.getAndSet(true)) {
                 Project project = projectBackedModule.getProject();
                 List<Project> projectsWithSameId = projectBackedModule.getProjectsWithSameCoordinates();
-                if (!projectsWithSameId.isEmpty() && DefaultProjectModuleFactory.isDuplicateDetectionEnabled()) {
+                boolean duplicates = !projectsWithSameId.isEmpty() && DefaultProjectModuleFactory.isDuplicateDetectionEnabled();
+                hasDuplicates.set(duplicates);
+                if (duplicates) {
                     StringBuilder sb = new StringBuilder();
                     sb.append("Project ")
                         .append(project.getPath())
