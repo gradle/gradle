@@ -27,7 +27,9 @@ To use the Project report plugin, include the following in your build script:
 
 [source,groovy]
 ----
-apply plugin: 'project-report'
+plugins {
+    id 'project-report'
+}
 ----
 
 
