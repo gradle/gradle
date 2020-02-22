@@ -1,5 +1,7 @@
 // tag::apply-plugin[]
-apply plugin: 'objective-c'
+plugins {
+    id 'objective-c'
+}
 // end::apply-plugin[]
 
 // tag::executables[]

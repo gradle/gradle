@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-apply plugin: 'java-library'
+plugins {
+    id 'java-library'
+}
 
 dependencies {
     implementation 'joda-time:joda-time:2.9.7'

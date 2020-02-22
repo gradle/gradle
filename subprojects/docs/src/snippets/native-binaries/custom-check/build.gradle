@@ -15,7 +15,9 @@
  */
 
 // tag::custom-check[]
-apply plugin: "cpp"
+plugins {
+    id "cpp"
+}
 // You don't need to apply the plugin below if you're already using CUnit or GoogleTest support
 apply plugin: TestingModelBasePlugin
 

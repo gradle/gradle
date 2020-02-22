@@ -1,4 +1,6 @@
-apply plugin: 'java'
+plugins {
+    id 'java'
+}
 
 // tag::file-set[]
 task zipWithFileSet(type: Zip) {

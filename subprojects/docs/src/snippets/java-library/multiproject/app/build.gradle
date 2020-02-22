@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
-apply plugin: 'java'
-apply plugin: 'application'
+plugins {
+    id 'java'
+    id 'application'
+}
 
 dependencies {
     implementation project(':utils')

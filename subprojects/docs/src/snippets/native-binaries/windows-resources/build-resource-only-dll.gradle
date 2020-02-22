@@ -1,4 +1,6 @@
-apply plugin: 'windows-resources'
+plugins {
+    id 'windows-resources'
+}
 
 // tag::resource-only-library[]
 model {

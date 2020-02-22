@@ -1,4 +1,6 @@
-apply plugin: 'application'
+plugins {
+    id 'application'
+}
 
 def toolingApiVersion = gradle.gradleVersion
 

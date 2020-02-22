@@ -1,5 +1,7 @@
 // tag::apply-plugin[]
-apply plugin: 'cpp'
+plugins {
+    id 'cpp'
+}
 // end::apply-plugin[]
 
 // tag::libraries[]

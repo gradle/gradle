@@ -1,6 +1,8 @@
 // tag::complete-example[]
-apply plugin: "cpp"
-apply plugin: 'google-test-test-suite'
+plugins {
+    id "cpp"
+    id 'google-test-test-suite'
+}
 
 model {
     flavors {

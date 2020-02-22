@@ -1,5 +1,7 @@
 // tag::use-plugin[]
-apply plugin: "cpp"
+plugins {
+    id "cpp"
+}
 // end::use-plugin[]
 
 // tag::args[]
