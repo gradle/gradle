@@ -1,15 +1,30 @@
 import build.futureKotlin
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     `kotlin-library`
 }
 
 tasks {
+
+    withType<KotlinCompile>().configureEach {
+        kotlinOptions {
+            freeCompilerArgs += listOf(
+                "-XXLanguage:+NewInference",
+                "-XXLanguage:+SamConversionForKotlinFunctions"
+            )
+        }
+    }
+
     processResources {
         from({ project(":instantExecutionReport").tasks.named("assembleReport") }) {
             into("org/gradle/instantexecution")
         }
+    }
+
+    instantIntegTest {
+        enabled = false
     }
 }
 
@@ -65,11 +80,4 @@ dependencies {
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
-}
-
-
-tasks {
-    instantIntegTest {
-        enabled = false
-    }
 }

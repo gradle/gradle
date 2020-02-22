@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import build.configureKotlinCompilerForGradleBuild
 
 import org.gradle.api.internal.initialization.DefaultClassLoaderScope
 
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 import org.jlleitschuh.gradle.ktlint.KtlintCheckTask
 import org.jlleitschuh.gradle.ktlint.KtlintFormatTask
-
-import build.configureKotlinCompilerForGradleBuild
 
 
 plugins {

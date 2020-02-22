@@ -124,7 +124,7 @@ class UserTypesCodecTest {
         assertThat(
             "preserves identities across protocols",
             decodedSerializable.value,
-            sameInstance<Any>(decodedBean)
+            sameInstance(decodedBean)
         )
     }
 
@@ -181,7 +181,7 @@ class UserTypesCodecTest {
         val beanTrace = assertInstanceOf<PropertyTrace.Bean>(fieldTrace.trace)
         assertThat(
             beanTrace.type,
-            sameInstance<Class<*>>(bean.javaClass)
+            sameInstance(bean.javaClass)
         )
     }
 
@@ -198,6 +198,28 @@ class UserTypesCodecTest {
             problem.message.toString(),
             equalTo("objects of type 'kotlin.Pair' are not yet supported with instant execution.")
         )
+    }
+
+    @Test
+    fun `can handle anonymous enum subtypes`() {
+        EnumSuperType.values().forEach {
+            assertThat(
+                roundtrip(it),
+                sameInstance(it)
+            )
+        }
+    }
+
+    enum class EnumSuperType {
+
+        SubType1 {
+            override fun displayName() = "one"
+        },
+        SubType2 {
+            override fun displayName() = "two"
+        };
+
+        abstract fun displayName(): String
     }
 
     private
@@ -398,7 +420,7 @@ class UserTypesCodecTest {
 
         assertThat(
             Peano.fromInt(0),
-            equalTo<Peano>(Peano.Z)
+            equalTo(Peano.Z)
         )
 
         assertThat(
