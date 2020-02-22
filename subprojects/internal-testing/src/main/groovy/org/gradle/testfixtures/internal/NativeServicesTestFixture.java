@@ -42,6 +42,6 @@ public class NativeServicesTestFixture {
     }
 
     public static File getNativeServicesDir() {
-        return new File("build/native-libs");
+        return new File("build/native-libs").getAbsoluteFile();
     }
 }
