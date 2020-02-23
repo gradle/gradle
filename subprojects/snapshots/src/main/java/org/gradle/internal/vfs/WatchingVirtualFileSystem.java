@@ -16,6 +16,8 @@
 
 package org.gradle.internal.vfs;
 
+import org.gradle.internal.file.FileType;
+
 import java.io.File;
 import java.util.Collection;
 
@@ -34,7 +36,13 @@ public interface WatchingVirtualFileSystem extends VirtualFileSystem {
 
     /**
      * Stop watching the known areas of the file system, and invalidate
-     * the parts that have been changed since calling {@link #startWatching()}.
+     * the parts that have been changed since calling {@link #startWatching(Collection)} ()}.
      */
     void stopWatching();
+
+    VirtualFileSystemStatistics getStatistics();
+
+    interface VirtualFileSystemStatistics {
+        int getRetained(FileType fileType);
+    }
 }

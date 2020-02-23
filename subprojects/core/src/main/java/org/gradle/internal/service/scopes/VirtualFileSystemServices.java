@@ -46,6 +46,7 @@ import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.classloader.ClasspathHasher;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.OutputChangeListener;
+import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.file.Stat;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
@@ -77,6 +78,7 @@ import org.gradle.internal.vfs.DarwinFileWatcherRegistry;
 import org.gradle.internal.vfs.RoutingVirtualFileSystem;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.internal.vfs.WatchingVirtualFileSystem;
+import org.gradle.internal.vfs.WatchingVirtualFileSystem.VirtualFileSystemStatistics;
 import org.gradle.internal.vfs.WindowsFileWatcherRegistry;
 import org.gradle.internal.vfs.impl.DefaultVirtualFileSystem;
 import org.gradle.internal.vfs.impl.DefaultWatchingVirtualFileSystem;
@@ -215,7 +217,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                     fileSystem.isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE,
                     DirectoryScanner.getDefaultExcludes()
                 ),
-                path -> !additiveCacheLocations.isInsideAdditiveCache(path.toString())
+                path -> !additiveCacheLocations.isInsideAdditiveCache(path)
             );
             listenerManager.addListener(new RootBuildLifecycleListener() {
                 @Override
@@ -246,12 +248,28 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                         virtualFileSystem.invalidateAll();
                     }
                     virtualFileSystem.stopWatching();
+                    if (isRetentionEnabled(systemPropertiesArgs)) {
+                        VirtualFileSystemStatistics statistics = virtualFileSystem.getStatistics();
+                        LOGGER.warn(
+                            "Virtual file system retained information about {} files, {} directories and {} missing files since last build",
+                            statistics.getRetained(FileType.RegularFile),
+                            statistics.getRetained(FileType.Directory),
+                            statistics.getRetained(FileType.Missing)
+                        );
+                    }
                 }
 
                 @Override
                 public void beforeComplete(GradleInternal gradle) {
                     if (isRetentionEnabled(gradle.getStartParameter().getSystemPropertiesArgs())) {
                         virtualFileSystem.startWatching(Collections.singleton(gradle.getRootProject().getProjectDir()));
+                        VirtualFileSystemStatistics statistics = virtualFileSystem.getStatistics();
+                        LOGGER.warn(
+                            "Virtual file system retains information about {} files, {} directories and {} missing files till next build",
+                            statistics.getRetained(FileType.RegularFile),
+                            statistics.getRetained(FileType.Directory),
+                            statistics.getRetained(FileType.Missing)
+                        );
                     } else {
                         virtualFileSystem.invalidateAll();
                     }
