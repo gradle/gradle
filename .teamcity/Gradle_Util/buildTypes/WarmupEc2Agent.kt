@@ -17,6 +17,10 @@ object WarmupEc2Agent : BuildType({
         checkoutMode = CheckoutMode.ON_AGENT
     }
 
+    params {
+        param("defaultBranchName", "master")
+    }
+
     steps {
         gradleWrapper {
             name = "Resolve all dependencies"
