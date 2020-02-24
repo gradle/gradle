@@ -1,5 +1,6 @@
 package Gradle_Util.buildTypes
 
+import common.applyDefaultSettings
 import common.gradleWrapper
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
 import jetbrains.buildServer.configs.kotlin.v2019_2.Requirement
@@ -9,6 +10,8 @@ object WarmupEc2Agent : BuildType({
     uuid = "980bce31-2a3e-4563-9717-7c03e184f4a4"
     name = "Warmup EC2 Agent"
     id("Gradle_Util_WarmupEc2Agent")
+
+    applyDefaultSettings()
 
     steps {
         gradleWrapper {
